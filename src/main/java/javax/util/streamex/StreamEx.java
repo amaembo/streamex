@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -100,18 +99,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
 
     public String joining(CharSequence separator, CharSequence prefix, CharSequence suffix) {
         return stream.map(String::valueOf).collect(Collectors.joining(separator, prefix, suffix));
-    }
-
-    public List<T> toList() {
-        return stream.collect(Collectors.toList());
-    }
-
-    public Set<T> toSet() {
-        return stream.collect(Collectors.toSet());
-    }
-
-    public <C extends Collection<T>> C toCollection(Supplier<C> collectionFactory) {
-        return stream.collect(Collectors.toCollection(collectionFactory));
     }
 
     public <V> Map<T, V> toMap(Function<T, V> valMapper) {

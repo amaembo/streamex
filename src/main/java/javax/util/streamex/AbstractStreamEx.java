@@ -15,10 +15,13 @@
  */
 package javax.util.streamex;
 
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.Spliterator;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -32,6 +35,7 @@ import java.util.function.ToDoubleFunction;
 import java.util.function.ToIntFunction;
 import java.util.function.ToLongFunction;
 import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
@@ -278,5 +282,17 @@ import java.util.stream.Stream;
 
     public S prepend(Stream<T> other) {
         return supply(Stream.concat(other, stream));
+    }
+
+    public List<T> toList() {
+        return stream.collect(Collectors.toList());
+    }
+
+    public Set<T> toSet() {
+        return stream.collect(Collectors.toSet());
+    }
+
+    public <C extends Collection<T>> C toCollection(Supplier<C> collectionFactory) {
+        return stream.collect(Collectors.toCollection(collectionFactory));
     }
 }

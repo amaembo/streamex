@@ -123,6 +123,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     public <VV> EntryStream<K, VV> mapEntryValues(Function<Entry<K, V>, VV> valueMapper) {
         return new EntryStream<>(stream.map(e -> new EntryImpl<>(e.getKey(), valueMapper.apply(e))));
     }
+    
+    public EntryStream<V, K> invert() {
+        return new EntryStream<>(stream.map(e -> new EntryImpl<>(e.getValue(), e.getKey())));
+    }
 
     public EntryStream<K, V> filterKeys(Predicate<K> keyPredicate) {
         return new EntryStream<>(stream.filter(e -> keyPredicate.test(e.getKey())));

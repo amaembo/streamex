@@ -191,6 +191,21 @@ public class EntryStreamTest {
         assertEquals(Collections.singletonMap("a", 1), EntryStream.of(map).selectValues(Integer.class).toMap());
         assertEquals(Collections.singletonMap(3, "c"), EntryStream.of(map).selectKeys(Integer.class).toMap());
     }
+    
+    @Test
+    public void testInvert() {
+        Map<Integer, String> result = EntryStream.of(createMap()).invert().toMap();
+        Map<Integer, String> expected = new LinkedHashMap<>();
+        expected.put(1, "a");
+        expected.put(22, "bb");
+        expected.put(33, "ccc");
+        assertEquals(expected, result);
+    }
+    
+    @Test(expected=IllegalStateException.class)
+    public void testCollision() {
+        StreamEx.of("aa", "aa").mapToEntry(String::length).toMap(LinkedHashMap::new);
+    }
 
     private Map<String, Integer> createMap() {
         Map<String, Integer> data = new LinkedHashMap<>();
