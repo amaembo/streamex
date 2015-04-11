@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Map.Entry;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -95,7 +96,15 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     public <R> StreamEx<R> flatMap(Function<? super Entry<K, V>, ? extends Stream<? extends R>> mapper) {
         return new StreamEx<>(stream.flatMap(mapper));
     }
+    
+    public <KK> EntryStream<KK, V> flatMapKeys(Function<? super K, ? extends Stream<? extends KK>> mapper) {
+        return new EntryStream<>(stream.flatMap(e -> mapper.apply(e.getKey()).map(k -> new EntryImpl<KK, V>(k, e.getValue()))));
+    }
 
+    public <VV> EntryStream<K, VV> flatMapValues(Function<? super V, ? extends Stream<? extends VV>> mapper) {
+        return new EntryStream<>(stream.flatMap(e -> mapper.apply(e.getValue()).map(v -> new EntryImpl<>(e.getKey(), v))));
+    }
+    
     public <R> StreamEx<R> flatCollection(Function<? super Entry<K, V>, ? extends Collection<? extends R>> mapper) {
         return flatMap(mapper.andThen(Collection::stream));
     }
@@ -172,6 +181,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         }, mapSupplier));
     }
 
+    public <M extends Map<K, V>> M toMap(BinaryOperator<V> mergeFunction, Supplier<M> mapSupplier) {
+        return stream.collect(Collectors.toMap(Entry::getKey, Entry::getValue, mergeFunction, mapSupplier));
+    }
+    
     public Map<K, List<V>> grouping() {
         return stream.collect(Collectors.groupingBy(Entry::getKey,
                 Collectors.mapping(Entry::getValue, Collectors.toList())));

@@ -117,6 +117,26 @@ public class EntryStreamTest {
     public void testToMap() {
         TreeMap<String, Integer> result = EntryStream.of(createMap()).toMap(TreeMap::new);
         assertEquals(createMap(), result);
+        
+        Map<String, Integer> expected = new HashMap<>();
+        expected.put("aaa", 3);
+        expected.put("bb", 4);
+        assertEquals(expected, StreamEx.of("aaa", "bb", "bb").mapToEntry(String::length).toMap(Integer::sum, HashMap::new));
+    }
+    
+    @Test
+    public void testFlatMapValues() {
+        Map<String, List<Integer>> data1 = new HashMap<>();
+        data1.put("aaa", Arrays.asList(1, 2, 3));
+        data1.put("bb", Arrays.asList(4, 5, 6));
+        Map<String, List<Integer>> data2 = new HashMap<>();
+        data2.put("aaa", Arrays.asList(10));
+        data2.put("bb", Arrays.asList(20));
+        Map<String, List<Integer>> result = StreamEx.of(data1, data2).flatMapToEntry(m -> m).flatMapValues(List::stream).grouping();
+        Map<String, List<Integer>> expected = new HashMap<>();
+        expected.put("aaa", Arrays.asList(1, 2, 3, 10));
+        expected.put("bb", Arrays.asList(4, 5, 6, 20));
+        assertEquals(expected, result);
     }
 
     @Test
