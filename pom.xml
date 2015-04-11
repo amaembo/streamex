@@ -3,7 +3,7 @@
 
   <groupId>io.github.amaembo</groupId>
   <artifactId>streamex</artifactId>
-  <version>0.0.4-SNAPSHOT</version>
+  <version>0.0.3</version>
   <packaging>jar</packaging>
 
   <name>StreamEx</name>
@@ -48,6 +48,6 @@
     <connection>scm:git:https://github.com/amaembo/streamex.git</connection>
     <developerConnection>scm:git:https://github.com/amaembo/streamex.git</developerConnection>
     <url>https://github.com/amaembo/streamex.git</url>
-    <tag>HEAD</tag>
+    <tag>streamex-0.0.3</tag>
   </scm>
 </project>
