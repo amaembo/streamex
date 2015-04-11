@@ -232,10 +232,18 @@ public class IntStreamEx implements IntStream {
 		return new IntStreamEx(IntStream.concat(stream, IntStream.of(values)));
 	}
 
+	public IntStreamEx append(IntStream other) {
+		return new IntStreamEx(IntStream.concat(stream, other));
+	}
+	
 	public IntStreamEx prepend(int... values) {
 		return new IntStreamEx(IntStream.concat(IntStream.of(values), stream));
 	}
 
+	public IntStreamEx prepend(IntStream other) {
+		return new IntStreamEx(IntStream.concat(other, stream));
+	}
+	
 	public IntStreamEx remove(IntPredicate predicate) {
 		return new IntStreamEx(stream.filter(predicate.negate()));
 	}
@@ -260,21 +268,21 @@ public class IntStreamEx implements IntStream {
 				.mapToInt(Integer::intValue));
 	}
 
-	public IntStreamEx sortedBy(IntUnaryOperator keyExtractor) {
+	public IntStreamEx sortedByInt(IntUnaryOperator keyExtractor) {
 		return new IntStreamEx(
 				stream.boxed()
 						.sorted(Comparator.comparingInt(i -> keyExtractor
 								.applyAsInt(i))).mapToInt(Integer::intValue));
 	}
 
-	public IntStreamEx sortedBy(IntToLongFunction keyExtractor) {
+	public IntStreamEx sortedByLong(IntToLongFunction keyExtractor) {
 		return new IntStreamEx(
 				stream.boxed()
 				.sorted(Comparator.comparingLong(i -> keyExtractor
 						.applyAsLong(i))).mapToInt(Integer::intValue));
 	}
 	
-	public IntStreamEx sortedBy(IntToDoubleFunction keyExtractor) {
+	public IntStreamEx sortedByDouble(IntToDoubleFunction keyExtractor) {
 		return new IntStreamEx(
 				stream.boxed()
 				.sorted(Comparator.comparingDouble(i -> keyExtractor

@@ -225,10 +225,18 @@ public class LongStreamEx implements LongStream {
 		return new LongStreamEx(LongStream.concat(stream, LongStream.of(values)));
 	}
 
+	public LongStreamEx append(LongStream other) {
+		return new LongStreamEx(LongStream.concat(stream, other));
+	}
+	
 	public LongStreamEx prepend(long... values) {
 		return new LongStreamEx(LongStream.concat(LongStream.of(values), stream));
 	}
 
+	public LongStreamEx prepend(LongStream other) {
+		return new LongStreamEx(LongStream.concat(other, stream));
+	}
+	
 	public LongStreamEx remove(LongPredicate predicate) {
 		return new LongStreamEx(stream.filter(predicate.negate()));
 	}
@@ -253,21 +261,21 @@ public class LongStreamEx implements LongStream {
 				.mapToLong(Long::longValue));
 	}
 
-	public LongStreamEx sortedBy(LongToIntFunction keyExtractor) {
+	public LongStreamEx sortedByInt(LongToIntFunction keyExtractor) {
 		return new LongStreamEx(
 				stream.boxed()
 						.sorted(Comparator.comparingInt(i -> keyExtractor
 								.applyAsInt(i))).mapToLong(Long::longValue));
 	}
 
-	public LongStreamEx sortedBy(LongUnaryOperator keyExtractor) {
+	public LongStreamEx sortedByLong(LongUnaryOperator keyExtractor) {
 		return new LongStreamEx(
 				stream.boxed()
 				.sorted(Comparator.comparingLong(i -> keyExtractor
 						.applyAsLong(i))).mapToLong(Long::longValue));
 	}
 	
-	public LongStreamEx sortedBy(LongToDoubleFunction keyExtractor) {
+	public LongStreamEx sortedByDouble(LongToDoubleFunction keyExtractor) {
 		return new LongStreamEx(
 				stream.boxed()
 				.sorted(Comparator.comparingDouble(i -> keyExtractor

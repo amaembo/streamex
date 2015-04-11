@@ -218,10 +218,18 @@ public class DoubleStreamEx implements DoubleStream {
 		return new DoubleStreamEx(DoubleStream.concat(stream, DoubleStream.of(values)));
 	}
 
+	public DoubleStreamEx append(DoubleStream other) {
+		return new DoubleStreamEx(DoubleStream.concat(stream, other));
+	}
+	
 	public DoubleStreamEx prepend(double... values) {
 		return new DoubleStreamEx(DoubleStream.concat(DoubleStream.of(values), stream));
 	}
 
+	public DoubleStreamEx prepend(DoubleStream other) {
+		return new DoubleStreamEx(DoubleStream.concat(other, stream));
+	}
+	
 	public DoubleStreamEx remove(DoublePredicate predicate) {
 		return new DoubleStreamEx(stream.filter(predicate.negate()));
 	}
@@ -246,21 +254,21 @@ public class DoubleStreamEx implements DoubleStream {
 				.mapToDouble(Double::doubleValue));
 	}
 
-	public DoubleStreamEx sortedBy(DoubleToIntFunction keyExtractor) {
+	public DoubleStreamEx sortedByInt(DoubleToIntFunction keyExtractor) {
 		return new DoubleStreamEx(
 				stream.boxed()
 						.sorted(Comparator.comparingInt(i -> keyExtractor
 								.applyAsInt(i))).mapToDouble(Double::doubleValue));
 	}
 
-	public DoubleStreamEx sortedBy(DoubleToLongFunction keyExtractor) {
+	public DoubleStreamEx sortedByLong(DoubleToLongFunction keyExtractor) {
 		return new DoubleStreamEx(
 				stream.boxed()
 				.sorted(Comparator.comparingLong(i -> keyExtractor
 						.applyAsLong(i))).mapToDouble(Double::doubleValue));
 	}
 	
-	public DoubleStreamEx sortedBy(DoubleUnaryOperator keyExtractor) {
+	public DoubleStreamEx sortedByDouble(DoubleUnaryOperator keyExtractor) {
 		return new DoubleStreamEx(
 				stream.boxed()
 				.sorted(Comparator.comparingDouble(i -> keyExtractor

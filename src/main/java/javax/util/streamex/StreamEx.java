@@ -320,11 +320,19 @@ public class StreamEx<T> implements Stream<T> {
 	public StreamEx<T> append(@SuppressWarnings("unchecked") T... values) {
 		return new StreamEx<>(Stream.concat(stream, Stream.of(values)));
 	}
+	
+	public StreamEx<T> append(Stream<T> other) {
+		return new StreamEx<>(Stream.concat(stream, other));
+	}
 
 	public StreamEx<T> prepend(@SuppressWarnings("unchecked") T... values) {
 		return new StreamEx<>(Stream.concat(Stream.of(values), stream));
 	}
 
+	public StreamEx<T> prepend(Stream<T> other) {
+		return new StreamEx<>(Stream.concat(other, stream));
+	}
+	
 	public StreamEx<T> nonNull() {
 		return new StreamEx<>(stream.filter(Objects::nonNull));
 	}
@@ -349,15 +357,15 @@ public class StreamEx<T> implements Stream<T> {
 		return new StreamEx<>(stream.sorted(Comparator.comparing(keyExtractor)));
 	}
 
-	public <V extends Comparable<? super V>> StreamEx<T> sortedBy(ToIntFunction<T> keyExtractor) {
+	public <V extends Comparable<? super V>> StreamEx<T> sortedByInt(ToIntFunction<T> keyExtractor) {
 		return new StreamEx<>(stream.sorted(Comparator.comparingInt(keyExtractor)));
 	}
 	
-	public <V extends Comparable<? super V>> StreamEx<T> sortedBy(ToLongFunction<T> keyExtractor) {
+	public <V extends Comparable<? super V>> StreamEx<T> sortedByLong(ToLongFunction<T> keyExtractor) {
 		return new StreamEx<>(stream.sorted(Comparator.comparingLong(keyExtractor)));
 	}
 	
-	public <V extends Comparable<? super V>> StreamEx<T> sortedBy(ToDoubleFunction<T> keyExtractor) {
+	public <V extends Comparable<? super V>> StreamEx<T> sortedByDouble(ToDoubleFunction<T> keyExtractor) {
 		return new StreamEx<>(stream.sorted(Comparator.comparingDouble(keyExtractor)));
 	}
 	
