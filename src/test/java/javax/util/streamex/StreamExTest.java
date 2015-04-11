@@ -18,6 +18,7 @@ package javax.util.streamex;
 import java.io.BufferedReader;
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -61,6 +62,15 @@ public class StreamExTest {
             assertEquals(1, s.count());
         }
         assertEquals(1, i.get());
+    }
+    
+    @Test
+    public void testIterable() {
+        List<String> result = new ArrayList<>();
+        for(String s : StreamEx.of("a", "b", "cc").filter(s -> s.length() < 2)) {
+            result.add(s);
+        }
+        assertEquals(Arrays.asList("a", "b"), result);
     }
 
     @Test

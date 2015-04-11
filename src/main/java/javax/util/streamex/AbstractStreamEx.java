@@ -41,7 +41,7 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
-/* package */abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> implements Stream<T> {
+/* package */abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> implements Stream<T>, Iterable<T> {
     final Stream<T> stream;
 
     AbstractStreamEx(Stream<T> stream) {
