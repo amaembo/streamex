@@ -75,6 +75,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return flatMap(mapper.andThen(Collection::stream));
     }
 
+    public <K, V> EntryStream<K, V> flatMapToEntry(Function<? super T, Map<K, V>> mapper) {
+        return new EntryStream<K, V>(stream.flatMap(e -> mapper.apply(e).entrySet().stream()));
+    }
+    
     public <K> Map<K, List<T>> groupingBy(Function<? super T, ? extends K> classifier) {
         return stream.collect(Collectors.groupingBy(classifier));
     }

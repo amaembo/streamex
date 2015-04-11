@@ -34,6 +34,7 @@ public class EntryStreamTest {
     public void testCreate() {
         Map<String, Integer> data = createMap();
         assertEquals(data, EntryStream.of(data).toMap());
+        assertEquals(data, EntryStream.of(data.entrySet().stream()).toMap());
         Map<String, Integer> expected = new HashMap<>();
         expected.put("aaa", 3);
         expected.put("bbb", 3);
@@ -41,6 +42,9 @@ public class EntryStreamTest {
         assertEquals(expected, StreamEx.of("aaa", "bbb", "c").mapToEntry(String::length).toMap());
         assertEquals(expected, StreamEx.of("aaa", "bbb", "c").mapToEntry(s -> s, String::length).toMap());
         assertEquals(Collections.singletonMap("foo", 1), EntryStream.of("foo", 1).toMap());
+        
+        assertEquals(expected, StreamEx.of(Collections.singletonMap("aaa", 3), Collections.singletonMap("bbb", 3),
+                Collections.singletonMap("c", 1), Collections.emptyMap()).flatMapToEntry(m -> m).toMap());
     }
 
     @Test

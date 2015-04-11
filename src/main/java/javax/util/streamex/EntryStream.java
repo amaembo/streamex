@@ -203,10 +203,14 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
                 Collectors.mapping(Entry::getValue, Collectors.toCollection(collectionFactory))));
     }
 
+    public static <K, V> EntryStream<K, V> of(Stream<Entry<K, V>> stream) {
+        return new EntryStream<>(stream);
+    }
+
     public static <K, V> EntryStream<K, V> of(Map<K, V> map) {
         return new EntryStream<>(map.entrySet().stream());
     }
-
+    
     public static <K, V> EntryStream<K, V> of(K key, V value) {
         return new EntryStream<>(Stream.of(new EntryImpl<>(key, value)));
     }
