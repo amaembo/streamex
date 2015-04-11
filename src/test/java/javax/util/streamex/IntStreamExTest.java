@@ -35,4 +35,29 @@ public class IntStreamExTest {
 		assertTrue(IntStreamEx.range(1, 4).has(3));
 		assertFalse(IntStreamEx.range(1, 4).has(4));
 	}
+	
+	@Test
+	public void testAs() {
+		assertEquals(4, IntStreamEx.range(0, 5).asLongStream().findAny(x -> x > 3).getAsLong());
+		assertEquals(4.0, IntStreamEx.range(0, 5).asDoubleStream().findAny(x -> x > 3).getAsDouble(), 0.0);
+	}
+	
+	@Test
+	public void testFind() {
+		assertEquals(6, IntStreamEx.range(1, 10).findFirst(i -> i > 5).getAsInt());
+		assertFalse(IntStreamEx.range(1, 10).findAny(i -> i > 10).isPresent());
+	}
+
+	@Test
+	public void testSort() {
+		assertArrayEquals(new int[] { 0, 3, 6, 1, 4, 7, 2, 5, 8 }, IntStreamEx
+				.range(0, 9).sortedByInt(i -> i % 3 * 3 + i / 3).toArray());
+		assertArrayEquals(new int[] { 0, 3, 6, 1, 4, 7, 2, 5, 8 }, IntStreamEx
+				.range(0, 9).sortedByLong(i -> (long)i % 3 * Integer.MAX_VALUE + i / 3).toArray());
+		assertArrayEquals(new int[] { 8, 7, 6, 5, 4, 3, 2, 1 }, IntStreamEx
+				.range(1, 9).sortedByDouble(i -> 1.0/i).toArray());
+		assertArrayEquals(new int[] { 10, 11, 5, 6, 7, 8, 9 }, IntStreamEx
+				.range(5, 12).sortedBy(String::valueOf).toArray());
+		
+	}
 }

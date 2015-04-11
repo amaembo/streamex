@@ -19,9 +19,7 @@ import java.util.function.IntToLongFunction;
 import java.util.function.IntUnaryOperator;
 import java.util.function.ObjIntConsumer;
 import java.util.function.Supplier;
-import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
-import java.util.stream.LongStream;
 
 public class IntStreamEx implements IntStream {
 	private static final IntStreamEx EMPTY = new IntStreamEx(IntStream.empty());
@@ -194,13 +192,13 @@ public class IntStreamEx implements IntStream {
 	}
 
 	@Override
-	public LongStream asLongStream() {
-		return stream.asLongStream();
+	public LongStreamEx asLongStream() {
+		return new LongStreamEx(stream.asLongStream());
 	}
 
 	@Override
-	public DoubleStream asDoubleStream() {
-		return stream.asDoubleStream();
+	public DoubleStreamEx asDoubleStream() {
+		return new DoubleStreamEx(stream.asDoubleStream());
 	}
 
 	@Override

@@ -34,4 +34,18 @@ public class LongStreamExTest {
 		assertTrue(LongStreamEx.range(1, 4).has(3));
 		assertFalse(LongStreamEx.range(1, 4).has(4));
 	}
+
+	@Test
+	public void testFind() {
+		assertEquals(6, LongStreamEx.range(1, 10).findFirst(i -> i > 5).getAsLong());
+		assertFalse(LongStreamEx.range(1, 10).findAny(i -> i > 10).isPresent());
+	}
+
+	@Test
+	public void testSort() {
+		assertArrayEquals(new long[] { 0, 3, 6, 1, 4, 7, 2, 5, 8 }, LongStreamEx
+				.range(0, 9).sortedByLong(i -> i % 3 * 3 + i / 3).toArray());
+		assertArrayEquals(new long[] { 10, 11, 5, 6, 7, 8, 9 }, LongStreamEx
+				.range(5, 12).sortedBy(String::valueOf).toArray());
+	}
 }

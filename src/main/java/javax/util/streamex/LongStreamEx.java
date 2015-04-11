@@ -18,7 +18,6 @@ import java.util.function.LongToIntFunction;
 import java.util.function.LongUnaryOperator;
 import java.util.function.ObjLongConsumer;
 import java.util.function.Supplier;
-import java.util.stream.DoubleStream;
 import java.util.stream.LongStream;
 
 public class LongStreamEx implements LongStream {
@@ -192,8 +191,8 @@ public class LongStreamEx implements LongStream {
 	}
 
 	@Override
-	public DoubleStream asDoubleStream() {
-		return stream.asDoubleStream();
+	public DoubleStreamEx asDoubleStream() {
+		return new DoubleStreamEx(stream.asDoubleStream());
 	}
 
 	@Override

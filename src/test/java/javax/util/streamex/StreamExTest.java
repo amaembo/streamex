@@ -52,7 +52,7 @@ public class StreamExTest {
 		data.put(1, Arrays.asList("a", "b"));
 		data.put(2, Arrays.asList("c", "d"));
 		assertEquals(Arrays.asList("a", "b", "c", "d"), StreamEx
-				.ofEntries(data).flatCollection(Entry::getValue).toList());
+				.of(data.entrySet()).flatCollection(Entry::getValue).toList());
 	}
 
 	@Test
@@ -94,6 +94,7 @@ public class StreamExTest {
 	@Test
 	public void testFind() {
 		assertEquals("bb", StreamEx.of("a", "bb", "c").findFirst(s -> s.length() == 2).get());
+		assertFalse(StreamEx.of("a", "bb", "c").findFirst(s -> s.length() == 3).isPresent());
 	}
 	
 	@Test
