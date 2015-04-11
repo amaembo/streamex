@@ -36,4 +36,8 @@
       </plugin>
     </plugins>
   </build>
+  
+  <scm>
+  	<url>https://github.com/amaembo/streamex.git</url>
+  </scm>
 </project>
