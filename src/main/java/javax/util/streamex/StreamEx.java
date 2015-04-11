@@ -349,6 +349,12 @@ public class StreamEx<T> implements Stream<T> {
 		return stream.filter(predicate).findFirst();
 	}
 	
+	public boolean has(T element) {
+		if(element == null)
+			return stream.anyMatch(Objects::isNull);
+		return stream.anyMatch(element::equals);
+	}
+	
 	public StreamEx<T> reverseSorted(Comparator<? super T> comparator) {
 		return new StreamEx<>(stream.sorted(comparator.reversed()));
 	}

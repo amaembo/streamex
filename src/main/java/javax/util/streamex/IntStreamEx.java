@@ -255,6 +255,10 @@ public class IntStreamEx implements IntStream {
 	public OptionalInt findFirst(IntPredicate predicate) {
 		return stream.filter(predicate).findFirst();
 	}
+	
+	public boolean has(int value) {
+		return stream.anyMatch(x -> x == value);
+	}
 
 	public IntStreamEx sorted(Comparator<Integer> comparator) {
 		return new IntStreamEx(stream.boxed().sorted(comparator)

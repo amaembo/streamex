@@ -29,4 +29,10 @@ public class IntStreamExTest {
 		assertArrayEquals(new int[] { 1, 2, 3, 4, 5 }, IntStreamEx.of(1, 2, 3)
 				.append(4, 5).toArray());
 	}
+	
+	@Test
+	public void testHas() {
+		assertTrue(IntStreamEx.range(1, 4).has(3));
+		assertFalse(IntStreamEx.range(1, 4).has(4));
+	}
 }

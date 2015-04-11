@@ -249,6 +249,10 @@ public class LongStreamEx implements LongStream {
 		return stream.filter(predicate).findFirst();
 	}
 	
+	public boolean has(long value) {
+		return stream.anyMatch(x -> x == value);
+	}
+
 	public LongStreamEx sorted(Comparator<Long> comparator) {
 		return new LongStreamEx(stream.boxed().sorted(comparator)
 				.mapToLong(Long::longValue));

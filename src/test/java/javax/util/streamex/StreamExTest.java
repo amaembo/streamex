@@ -1,5 +1,6 @@
 package javax.util.streamex;
 
+import java.io.BufferedReader;
 import java.io.StringReader;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -23,6 +24,19 @@ public class StreamExTest {
 				StreamEx.of(Arrays.asList("a", "b").stream()).toList());
 		assertEquals(Arrays.asList("a", "b"), StreamEx.split("a,b", ",").toList());
 		assertEquals(Arrays.asList("a", "b"), StreamEx.ofLines(new StringReader("a\nb")).toList());
+		assertEquals(Arrays.asList("a", "b"), StreamEx.ofLines(new BufferedReader(new StringReader("a\nb"))).toList());
+	}
+	
+	@Test
+	public void testCreateFromMap() {
+		Map<String, Integer> data = new LinkedHashMap<>();
+		data.put("aaa", 10);
+		data.put("bb", 25);
+		data.put("c", 37);
+		assertEquals(Arrays.asList("aaa", "bb", "c"), StreamEx.ofKeys(data).toList());
+		assertEquals(Arrays.asList("aaa"), StreamEx.ofKeys(data, x -> x % 2 == 0).toList());
+		assertEquals(Arrays.asList(10, 25, 37), StreamEx.ofValues(data).toList());
+		assertEquals(Arrays.asList(10, 25), StreamEx.ofValues(data, s -> s.length() > 1).toList());
 	}
 
 	@Test
@@ -75,5 +89,18 @@ public class StreamExTest {
 		List<String> data = Arrays.asList("a", "bbb", "cc");
 		assertEquals(Arrays.asList("a", "cc", "bbb"), StreamEx.of(data).sortedByInt(String::length).toList());
 		assertEquals(Arrays.asList("a", "cc", "bbb"), StreamEx.of(data).sortedBy(s -> s.length()).toList());
+	}
+	
+	@Test
+	public void testFind() {
+		assertEquals("bb", StreamEx.of("a", "bb", "c").findFirst(s -> s.length() == 2).get());
+	}
+	
+	@Test
+	public void testHas() {
+		assertTrue(StreamEx.of("a", "bb", "c").has("bb"));
+		assertFalse(StreamEx.of("a", "bb", "c").has("cc"));
+		assertFalse(StreamEx.of("a", "bb", "c").has(null));
+		assertTrue(StreamEx.of("a", "bb", null, "c").has(null));
 	}
 }

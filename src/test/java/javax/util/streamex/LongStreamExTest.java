@@ -28,4 +28,10 @@ public class LongStreamExTest {
 		assertArrayEquals(new long[] { 1, 2, 3, 4, 5 }, LongStreamEx.of(1, 2, 3)
 				.append(4, 5).toArray());
 	}
+	
+	@Test
+	public void testHas() {
+		assertTrue(LongStreamEx.range(1, 4).has(3));
+		assertFalse(LongStreamEx.range(1, 4).has(4));
+	}
 }
