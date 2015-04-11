@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
 
 import org.junit.Test;
 
@@ -46,13 +47,22 @@ public class EntryStreamTest {
         assertEquals(expected, StreamEx.of(Collections.singletonMap("aaa", 3), Collections.singletonMap("bbb", 3),
                 Collections.singletonMap("c", 1), Collections.emptyMap()).flatMapToEntry(m -> m).toMap());
     }
-
+    
     @Test
     public void testFilter() {
         assertEquals(Collections.singletonMap("a", 1), EntryStream.of(createMap()).filterKeys(s -> s.length() < 2)
                 .toMap());
         assertEquals(Collections.singletonMap("bb", 22), EntryStream.of(createMap()).filterValues(v -> v % 2 == 0)
                 .toMap());
+    }
+    
+    @Test
+    public void testRemove() {
+        Map<String, List<Integer>> data = new HashMap<>();
+        data.put("aaa", Collections.emptyList());
+        data.put("bbb", Collections.singletonList(1));
+        assertEquals(Arrays.asList("bbb"), EntryStream.of(data).removeValues(List::isEmpty).keys().toList());
+        assertEquals(Arrays.asList("aaa"), EntryStream.of(data).removeKeys(Pattern.compile("bbb").asPredicate()).keys().toList());
     }
 
     @Test

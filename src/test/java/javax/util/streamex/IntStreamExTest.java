@@ -16,6 +16,7 @@
 package javax.util.streamex;
 
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
@@ -31,6 +32,23 @@ public class IntStreamExTest {
         assertArrayEquals(new int[] { 1, 2, 3 }, IntStreamEx.range(1, 4).toArray());
         assertArrayEquals(new int[] { 1, 2, 3 }, IntStreamEx.rangeClosed(1, 3).toArray());
         assertArrayEquals(new int[] { 'a', 'b', 'c' }, IntStreamEx.ofChars("abc").toArray());
+    }
+
+    @Test
+    public void testBasics() {
+        assertFalse(IntStreamEx.of(1).isParallel());
+        assertTrue(IntStreamEx.of(1).parallel().isParallel());
+        assertFalse(IntStreamEx.of(1).parallel().sequential().isParallel());
+        AtomicInteger i = new AtomicInteger();
+        try(IntStreamEx s = IntStreamEx.of(1).onClose(() -> i.incrementAndGet())) {
+            assertEquals(1, s.count());
+        }
+        assertEquals(1, i.get());
+        assertEquals(6, IntStreamEx.range(0, 4).sum());
+        assertEquals(3, IntStreamEx.range(0, 4).max().getAsInt());
+        assertEquals(0, IntStreamEx.range(0, 4).min().getAsInt());
+        assertEquals(1.5, IntStreamEx.range(0, 4).average().getAsDouble(), 0.000001);
+        assertEquals(4, IntStreamEx.range(0, 4).summaryStatistics().getCount());
     }
 
     @Test
@@ -59,6 +77,11 @@ public class IntStreamExTest {
     public void testFind() {
         assertEquals(6, IntStreamEx.range(1, 10).findFirst(i -> i > 5).getAsInt());
         assertFalse(IntStreamEx.range(1, 10).findAny(i -> i > 10).isPresent());
+    }
+
+    @Test
+    public void testRemove() {
+        assertArrayEquals(new int[] { 1, 2 }, IntStreamEx.of(1, 2, 3).remove(x -> x > 2).toArray());
     }
 
     @Test

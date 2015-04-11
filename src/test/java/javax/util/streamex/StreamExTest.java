@@ -23,7 +23,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import org.junit.Test;
 
@@ -47,6 +49,18 @@ public class StreamExTest {
 
     private Reader getReader() {
         return new BufferedReader(new StringReader("a\nb"));
+    }
+
+    @Test
+    public void testBasics() {
+        assertFalse(StreamEx.of("a").isParallel());
+        assertTrue(StreamEx.of("a").parallel().isParallel());
+        assertFalse(StreamEx.of("a").parallel().sequential().isParallel());
+        AtomicInteger i = new AtomicInteger();
+        try(Stream<String> s = StreamEx.of("a").onClose(() -> i.incrementAndGet())) {
+            assertEquals(1, s.count());
+        }
+        assertEquals(1, i.get());
     }
 
     @Test

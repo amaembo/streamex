@@ -145,6 +145,14 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return new EntryStream<>(stream.filter(e -> valuePredicate.test(e.getValue())));
     }
 
+    public EntryStream<K, V> removeKeys(Predicate<K> keyPredicate) {
+        return filterKeys(keyPredicate.negate());
+    }
+
+    public EntryStream<K, V> removeValues(Predicate<V> valuePredicate) {
+        return filterValues(valuePredicate.negate());
+    }
+
     public EntryStream<K, V> nonNullKeys() {
         return new EntryStream<>(stream.filter(e -> e.getKey() != null));
     }
