@@ -22,30 +22,28 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class DoubleStreamExTest {
-	@Test
-	public void testCreate() {
-		assertArrayEquals(new double[] {}, DoubleStreamEx.empty().toArray(), 0.0);
-		assertArrayEquals(new double[] {1}, DoubleStreamEx.of(1).toArray(), 0.0);
-		assertArrayEquals(new double[] {1, 2, 3}, DoubleStreamEx.of(1, 2, 3).toArray(), 0.0);
-		assertArrayEquals(new double[] {1, 2, 3}, DoubleStreamEx.of(Arrays.asList(1.0, 2.0, 3.0)).toArray(), 0.0);
-	}
-	
-	@Test
-	public void testPrepend() {
-		assertArrayEquals(new double[] { -1, 0, 1, 2, 3 }, DoubleStreamEx.of(1, 2, 3)
-				.prepend(-1, 0).toArray(), 0.0);
-	}
-	
-	@Test
-	public void testAppend() {
-		assertArrayEquals(new double[] { 1, 2, 3, 4, 5 }, DoubleStreamEx.of(1, 2, 3)
-				.append(4, 5).toArray(), 0.0);
-	}
+    @Test
+    public void testCreate() {
+        assertArrayEquals(new double[] {}, DoubleStreamEx.empty().toArray(), 0.0);
+        assertArrayEquals(new double[] { 1 }, DoubleStreamEx.of(1).toArray(), 0.0);
+        assertArrayEquals(new double[] { 1, 2, 3 }, DoubleStreamEx.of(1, 2, 3).toArray(), 0.0);
+        assertArrayEquals(new double[] { 1, 2, 3 }, DoubleStreamEx.of(Arrays.asList(1.0, 2.0, 3.0)).toArray(), 0.0);
+    }
 
-	@Test
-	public void testFind() {
-		assertEquals(6.0, LongStreamEx.range(1, 10).asDoubleStream().findFirst(i -> i > 5).getAsDouble(), 0.0);
-		assertFalse(LongStreamEx.range(1, 10).asDoubleStream().findAny(i -> i > 10).isPresent());
-	}
+    @Test
+    public void testPrepend() {
+        assertArrayEquals(new double[] { -1, 0, 1, 2, 3 }, DoubleStreamEx.of(1, 2, 3).prepend(-1, 0).toArray(), 0.0);
+    }
+
+    @Test
+    public void testAppend() {
+        assertArrayEquals(new double[] { 1, 2, 3, 4, 5 }, DoubleStreamEx.of(1, 2, 3).append(4, 5).toArray(), 0.0);
+    }
+
+    @Test
+    public void testFind() {
+        assertEquals(6.0, LongStreamEx.range(1, 10).asDoubleStream().findFirst(i -> i > 5).getAsDouble(), 0.0);
+        assertFalse(LongStreamEx.range(1, 10).asDoubleStream().findAny(i -> i > 10).isPresent());
+    }
 
 }
