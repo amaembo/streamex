@@ -3,6 +3,7 @@ package javax.util.streamex;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -37,6 +38,24 @@ public class EntryStream<K, V> extends
 			V oldValue = this.value;
 			this.value = value;
 			return oldValue;
+		}
+		
+		@Override
+		public int hashCode() {
+			return Objects.hashCode(key) ^ Objects.hashCode(value);
+		};
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (!(obj instanceof Entry))
+				return false;
+			if (!Objects.equals(key, ((Entry<?, ?>) obj).getKey()))
+				return false;
+			if (!Objects.equals(value, ((Entry<?, ?>) obj).getValue()))
+				return false;
+			return true;
 		}
 	}
 
@@ -112,7 +131,25 @@ public class EntryStream<K, V> extends
 		return new EntryStream<>(stream.filter(e -> valuePredicate.test(e
 				.getValue())));
 	}
+	
+	public EntryStream<K, V> nonNullKeys() {
+		return new EntryStream<>(stream.filter(e -> e.getKey() != null));
+	}
 
+	public EntryStream<K, V> nonNullValues() {
+		return new EntryStream<>(stream.filter(e -> e.getValue() != null));
+	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public <KK extends K> EntryStream<KK, V> selectKeys(Class<KK> clazz) {
+		return new EntryStream<>((Stream)stream.filter(e -> clazz.isInstance(e.getKey())));
+	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public <VV extends V> EntryStream<K, VV> selectValues(Class<VV> clazz) {
+		return new EntryStream<>((Stream)stream.filter(e -> clazz.isInstance(e.getValue())));
+	}
+	
 	public StreamEx<K> keys() {
 		return new StreamEx<>(stream.map(Entry::getKey));
 	}
@@ -176,5 +213,9 @@ public class EntryStream<K, V> extends
 
 	public static <K, V> EntryStream<K, V> of(Map<K, V> map) {
 		return new EntryStream<>(map.entrySet().stream());
+	}
+
+	public static <K, V> EntryStream<K, V> of(K key, V value) {
+		return new EntryStream<>(Stream.of(new EntryImpl<>(key, value)));
 	}
 }

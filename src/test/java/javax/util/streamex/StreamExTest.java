@@ -1,12 +1,14 @@
 package javax.util.streamex;
 
 import java.io.BufferedReader;
+import java.io.Reader;
 import java.io.StringReader;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
 import org.junit.Test;
 
@@ -23,8 +25,14 @@ public class StreamExTest {
 		assertEquals(Arrays.asList("a", "b"),
 				StreamEx.of(Arrays.asList("a", "b").stream()).toList());
 		assertEquals(Arrays.asList("a", "b"), StreamEx.split("a,b", ",").toList());
+		assertEquals(Arrays.asList("a", "c", "d"), StreamEx.split("abcBd", Pattern.compile("b", Pattern.CASE_INSENSITIVE)).toList());
 		assertEquals(Arrays.asList("a", "b"), StreamEx.ofLines(new StringReader("a\nb")).toList());
 		assertEquals(Arrays.asList("a", "b"), StreamEx.ofLines(new BufferedReader(new StringReader("a\nb"))).toList());
+		assertEquals(Arrays.asList("a", "b"), StreamEx.ofLines(getReader()).toList());
+	}
+
+	private Reader getReader() {
+		return new BufferedReader(new StringReader("a\nb"));
 	}
 	
 	@Test
@@ -103,5 +111,12 @@ public class StreamExTest {
 		assertFalse(StreamEx.of("a", "bb", "c").has("cc"));
 		assertFalse(StreamEx.of("a", "bb", "c").has(null));
 		assertTrue(StreamEx.of("a", "bb", null, "c").has(null));
+	}
+	
+	@Test
+	public void testJoining() {
+		assertEquals("abc", StreamEx.of("a", "b", "c").joining());
+		assertEquals("a,b,c", StreamEx.of("a", "b", "c").joining(","));
+		assertEquals("[1;2;3]", StreamEx.of(1, 2, 3).joining(";", "[", "]"));
 	}
 }

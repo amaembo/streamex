@@ -45,15 +45,19 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
 		return new StreamEx<>(stream.flatMap(mapper));
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public <TT extends T> StreamEx<TT> select(Class<TT> clazz) {
-		return new StreamEx<>(stream.filter(clazz::isInstance).map(e -> (TT) e));
+		return new StreamEx<>((Stream)stream.filter(clazz::isInstance));
 	}
 	
+	public <V> EntryStream<T, V> mapToEntry(Function<T, V> valueMapper) {
+		return new EntryStream<T, V>(stream, Function.identity(), valueMapper);
+	}
+
 	public <K, V> EntryStream<K, V> mapToEntry(Function<T, K> keyMapper, Function<T, V> valueMapper) {
 		return new EntryStream<K, V>(stream, keyMapper, valueMapper);
 	}
-
+	
 	public <R> StreamEx<R> flatCollection(
 			Function<? super T, ? extends Collection<? extends R>> mapper) {
 		return flatMap(mapper.andThen(Collection::stream));

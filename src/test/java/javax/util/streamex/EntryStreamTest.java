@@ -19,6 +19,13 @@ public class EntryStreamTest {
 	public void testCreate() {
 		Map<String, Integer> data = createMap();
 		assertEquals(data, EntryStream.of(data).toMap());
+		Map<String, Integer> expected = new HashMap<>();
+		expected.put("aaa", 3);
+		expected.put("bbb", 3);
+		expected.put("c", 1);
+		assertEquals(expected, StreamEx.of("aaa", "bbb", "c").mapToEntry(String::length).toMap());
+		assertEquals(expected, StreamEx.of("aaa", "bbb", "c").mapToEntry(s -> s, String::length).toMap());
+		assertEquals(Collections.singletonMap("foo", 1), EntryStream.of("foo", 1).toMap());
 	}
 	
 	@Test
@@ -93,6 +100,11 @@ public class EntryStreamTest {
 	}
 	
 	@Test
+	public void testSetValue() {
+		assertEquals(Collections.singletonMap("aaa", 6), EntryStream.of("aaa", 5).peek(e -> e.setValue(6)).toMap());
+	}
+	
+	@Test
 	public void testGrouping() {
 		Map<String, Integer> data = new LinkedHashMap<>();
 		data.put("ab", 1);
@@ -122,6 +134,42 @@ public class EntryStreamTest {
 		assertEquals(expected, result);
 		TreeMap<String, Set<Integer>> resultTree = EntryStream.of(data).mapKeys(k -> k.substring(0, 1)).groupingTo(TreeMap::new, HashSet::new);
 		assertEquals(expected, resultTree);
+	}
+	
+	@Test
+	public void testDistinct() {
+		Map<String, List<Integer>> expected = new LinkedHashMap<>();
+		expected.put("aaa", Arrays.asList(3));
+		expected.put("bbb", Arrays.asList(3, 3));
+		expected.put("cc", Arrays.asList(2));
+		assertEquals(expected, StreamEx.of("aaa", "bbb", "bbb", "cc").mapToEntry(String::length).grouping());
+
+		Map<String, List<Integer>> expectedDistinct = new LinkedHashMap<>();
+		expectedDistinct.put("aaa", Arrays.asList(3));
+		expectedDistinct.put("bbb", Arrays.asList(3));
+		expectedDistinct.put("cc", Arrays.asList(2));
+		assertEquals(expectedDistinct, StreamEx.of("aaa", "bbb", "bbb", "cc").mapToEntry(String::length).distinct().grouping());
+	}
+	
+	@Test
+	public void testNonNull() {
+		Map<String, String> input = new LinkedHashMap<>();
+		input.put("a", "b");
+		input.put("b", null);
+		input.put(null, "c");
+		assertEquals(Arrays.asList("b", null), EntryStream.of(input).nonNullKeys().values().toList());
+		assertEquals(Arrays.asList("a", null), EntryStream.of(input).nonNullValues().keys().toList());
+		assertEquals(Collections.singletonMap("a", "b"), EntryStream.of(input).nonNullValues().nonNullKeys().toMap());
+	}
+	
+	@Test
+	public void testSelect() {
+		Map<Object, Object> map = new LinkedHashMap<>();
+		map.put("a", 1);
+		map.put("b", "2");
+		map.put(3, "c");
+		assertEquals(Collections.singletonMap("a", 1), EntryStream.of(map).selectValues(Integer.class).toMap());
+		assertEquals(Collections.singletonMap(3, "c"), EntryStream.of(map).selectKeys(Integer.class).toMap());
 	}
 	
 	private Map<String, Integer> createMap() {
