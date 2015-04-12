@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Map.Entry;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -96,9 +97,33 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         this(stream.map(e -> new EntryImpl<>(keyMapper.apply(e), valueMapper.apply(e))));
     }
 
+    /**
+     * Returns a stream consisting of the results of applying the given
+     * function to the elements of this stream.
+     *
+     * <p>This is an intermediate operation.
+     *
+     * @param <R> The element type of the new stream
+     * @param mapper a non-interfering, stateless function to apply to each element
+     * @return the new stream
+     */
     @Override
     public <R> StreamEx<R> map(Function<? super Entry<K, V>, ? extends R> mapper) {
         return new StreamEx<>(stream.map(mapper));
+    }
+
+    /**
+     * Returns a stream consisting of the results of applying the given
+     * function to the keys and values of this stream.
+     *
+     * <p>This is an intermediate operation.
+     *
+     * @param <R> The element type of the new stream
+     * @param mapper a non-interfering, stateless function to apply to key and value of each {@link Entry} in this stream
+     * @return the new stream
+     */
+    public <R> StreamEx<R> mapKeyValue(BiFunction<? super K, ? super V, ? extends R> mapper) {
+        return new StreamEx<>(stream.map(entry -> mapper.apply(entry.getKey(), entry.getValue())));
     }
 
     @Override

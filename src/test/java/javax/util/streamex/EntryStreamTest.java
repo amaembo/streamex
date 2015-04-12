@@ -54,6 +54,11 @@ public class EntryStreamTest {
     }
     
     @Test
+    public void testMapKeyValue() {
+        assertEquals(Arrays.asList("1a", "22bb", "33ccc"), EntryStream.of(createMap()).mapKeyValue((k, v) -> v + k).toList());
+    }
+    
+    @Test
     public void testFilter() {
         assertEquals(Collections.singletonMap("a", 1), EntryStream.of(createMap()).filterKeys(s -> s.length() < 2)
                 .toMap());
