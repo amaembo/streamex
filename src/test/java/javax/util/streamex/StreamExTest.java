@@ -127,9 +127,29 @@ public class StreamExTest {
     public void testSortedBy() {
         List<String> data = Arrays.asList("a", "bbb", "cc");
         assertEquals(Arrays.asList("a", "cc", "bbb"), StreamEx.of(data).sortedByInt(String::length).toList());
+        assertEquals(Arrays.asList("a", "cc", "bbb"), StreamEx.of(data).sortedByLong(String::length).toList());
+        assertEquals(Arrays.asList("a", "cc", "bbb"), StreamEx.of(data).sortedByDouble(String::length).toList());
         assertEquals(Arrays.asList("a", "cc", "bbb"), StreamEx.of(data).sortedBy(s -> s.length()).toList());
     }
 
+    @Test
+    public void testMinBy() {
+        List<String> data = Arrays.asList("a", "bbb", "cc");
+        assertEquals("a", StreamEx.of(data).minByInt(String::length).get());
+        assertEquals("a", StreamEx.of(data).minByLong(String::length).get());
+        assertEquals("a", StreamEx.of(data).minByDouble(String::length).get());
+        assertEquals("a", StreamEx.of(data).minBy(s -> s.length()).get());
+    }
+    
+    @Test
+    public void testMaxBy() {
+        List<String> data = Arrays.asList("a", "bbb", "cc");
+        assertEquals("bbb", StreamEx.of(data).maxByInt(String::length).get());
+        assertEquals("bbb", StreamEx.of(data).maxByLong(String::length).get());
+        assertEquals("bbb", StreamEx.of(data).maxByDouble(String::length).get());
+        assertEquals("bbb", StreamEx.of(data).maxBy(s -> s.length()).get());
+    }
+    
     @Test
     public void testFind() {
         assertEquals("bb", StreamEx.of("a", "bb", "c").findFirst(s -> s.length() == 2).get());

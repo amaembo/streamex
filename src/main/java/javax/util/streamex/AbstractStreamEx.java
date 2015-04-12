@@ -328,6 +328,38 @@ import java.util.stream.Stream;
         return supply(stream.sorted(Comparator.comparingDouble(keyExtractor)));
     }
 
+    public <V extends Comparable<? super V>> Optional<T> minBy(Function<T, ? extends V> keyExtractor) {
+        return stream.min(Comparator.comparing(keyExtractor));
+    }
+    
+    public Optional<T> minByInt(ToIntFunction<T> keyExtractor) {
+        return stream.min(Comparator.comparingInt(keyExtractor));
+    }
+    
+    public Optional<T> minByLong(ToLongFunction<T> keyExtractor) {
+        return stream.min(Comparator.comparingLong(keyExtractor));
+    }
+    
+    public Optional<T> minByDouble(ToDoubleFunction<T> keyExtractor) {
+        return stream.min(Comparator.comparingDouble(keyExtractor));
+    }
+    
+    public <V extends Comparable<? super V>> Optional<T> maxBy(Function<T, ? extends V> keyExtractor) {
+        return stream.max(Comparator.comparing(keyExtractor));
+    }
+    
+    public Optional<T> maxByInt(ToIntFunction<T> keyExtractor) {
+        return stream.max(Comparator.comparingInt(keyExtractor));
+    }
+    
+    public Optional<T> maxByLong(ToLongFunction<T> keyExtractor) {
+        return stream.max(Comparator.comparingLong(keyExtractor));
+    }
+    
+    public Optional<T> maxByDouble(ToDoubleFunction<T> keyExtractor) {
+        return stream.max(Comparator.comparingDouble(keyExtractor));
+    }
+    
     /**
      * Creates a lazily concatenated stream whose elements are all the
      * elements of this stream followed by all the elements of the
