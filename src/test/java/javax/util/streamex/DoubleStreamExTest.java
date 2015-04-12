@@ -16,6 +16,7 @@
 package javax.util.streamex;
 
 import java.util.Arrays;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
@@ -29,6 +30,8 @@ public class DoubleStreamExTest {
         assertArrayEquals(new double[] { 1 }, DoubleStreamEx.of(1).toArray(), 0.0);
         assertArrayEquals(new double[] { 1, 2, 3 }, DoubleStreamEx.of(1, 2, 3).toArray(), 0.0);
         assertArrayEquals(new double[] { 1, 2, 3 }, DoubleStreamEx.of(Arrays.asList(1.0, 2.0, 3.0)).toArray(), 0.0);
+        assertEquals(10, DoubleStreamEx.of(new Random(), 10).count());
+        assertTrue(DoubleStreamEx.of(new Random(), 100, 1, 10).allMatch(x -> x >= 1 && x < 10));
     }
 
     @Test
@@ -46,6 +49,8 @@ public class DoubleStreamExTest {
         assertEquals(0, IntStreamEx.range(0, 4).asDoubleStream().min().getAsDouble(), 0);
         assertEquals(1.5, IntStreamEx.range(0, 4).asDoubleStream().average().getAsDouble(), 0.000001);
         assertEquals(4, IntStreamEx.range(0, 4).asDoubleStream().summaryStatistics().getCount());
+        assertArrayEquals(new double[] { 1, 2, 3 }, IntStreamEx.range(0, 5).asDoubleStream().skip(1).limit(3).toArray(), 0.0);
+        assertArrayEquals(new double[] { 1, 2, 3 }, DoubleStreamEx.of(3,1,2).sorted().toArray(), 0.0);
     }
 
     @Test
