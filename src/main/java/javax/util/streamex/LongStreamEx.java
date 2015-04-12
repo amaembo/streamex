@@ -35,6 +35,11 @@ import java.util.function.ObjLongConsumer;
 import java.util.function.Supplier;
 import java.util.stream.LongStream;
 
+/**
+ * A {@link LongStream} implementation with additional functionality
+ * 
+ * @author Tagir Valeev
+ */
 public class LongStreamEx implements LongStream {
     private static final LongStreamEx EMPTY = new LongStreamEx(LongStream.empty());
 

@@ -34,6 +34,11 @@ import java.util.function.ObjDoubleConsumer;
 import java.util.function.Supplier;
 import java.util.stream.DoubleStream;
 
+/**
+ * A {@link DoubleStream} implementation with additional functionality
+ * 
+ * @author Tagir Valeev
+ */
 public class DoubleStreamEx implements DoubleStream {
     private static final DoubleStreamEx EMPTY = new DoubleStreamEx(DoubleStream.empty());
 

@@ -36,6 +36,11 @@ import java.util.function.ObjIntConsumer;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
+/**
+ * An {@link IntStream} implementation with additional functionality
+ * 
+ * @author Tagir Valeev
+ */
 public class IntStreamEx implements IntStream {
     private static final IntStreamEx EMPTY = new IntStreamEx(IntStream.empty());
 

@@ -35,6 +35,13 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+/**
+ * A {@link Stream} implementation with additional functionality
+ * 
+ * @author Tagir Valeev
+ *
+ * @param <T> the type of the stream elements
+ */
 public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     @SuppressWarnings("rawtypes")
     private static final StreamEx EMPTY = StreamEx.of(Stream.empty());
