@@ -289,6 +289,11 @@ public class DoubleStreamEx implements DoubleStream {
         return EMPTY;
     }
 
+    /**
+     * Create {@link DoubleStreamEx} containing single element
+     * @param element
+     * @return created {@link DoubleStreamEx}
+     */
     public static DoubleStreamEx of(double element) {
         return new DoubleStreamEx(DoubleStream.of(element));
     }

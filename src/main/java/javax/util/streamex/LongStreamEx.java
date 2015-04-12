@@ -299,6 +299,11 @@ public class LongStreamEx implements LongStream {
         return EMPTY;
     }
 
+    /**
+     * Create {@link LongStreamEx} containing single element
+     * @param element
+     * @return created {@link LongStreamEx}
+     */
     public static LongStreamEx of(long element) {
         return new LongStreamEx(LongStream.of(element));
     }

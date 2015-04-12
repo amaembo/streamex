@@ -305,26 +305,90 @@ public class IntStreamEx implements IntStream {
         return EMPTY;
     }
 
+    /**
+     * Returns a sequential {@code IntStreamEx} containing a single element.
+     *
+     * @param t the single element
+     * @return a singleton sequential stream
+     */
     public static IntStreamEx of(int element) {
         return new IntStreamEx(IntStream.of(element));
     }
 
+    /**
+     * Returns a sequential ordered {@code IntStreamEx} whose elements are the specified values.
+     *
+     * @param values the elements of the new stream
+     * @return the new stream
+     */
     public static IntStreamEx of(int... elements) {
         return new IntStreamEx(IntStream.of(elements));
     }
 
+    /**
+     * Returns an {@code IntStreamEx} of indices for which the specified {@link BitSet}
+     * contains a bit in the set state. The indices are returned
+     * in order, from lowest to highest. The size of the stream
+     * is the number of bits in the set state, equal to the value
+     * returned by the {@link BitSet#cardinality()} method.
+     *
+     * <p>The bit set must remain constant during the execution of the
+     * terminal stream operation.  Otherwise, the result of the terminal
+     * stream operation is undefined.
+     *
+     * @param bitSet a {@link BitSet} to produce the stream from
+     * @return a stream of integers representing set indices
+     * @see BitSet#stream()
+     */
     public static IntStreamEx of(BitSet bitSet) {
         return new IntStreamEx(bitSet.stream());
     }
 
+    /**
+     * Returns an {@code IntStreamEx} containing primitive
+     * integers from given collection
+     *
+     * @param c a collection to produce the stream from
+     * @return the new stream
+     * @see Collection#stream()
+     */
     public static IntStreamEx of(Collection<Integer> c) {
         return new IntStreamEx(c.stream().mapToInt(Integer::intValue));
     }
 
+    /**
+     * Returns an effectively unlimited stream of pseudorandom {@code int}
+     * values produced by given {@link Random} object.
+     *
+     * <p>A pseudorandom {@code int} value is generated as if it's the result of
+     * calling the method {@link Random#nextInt()}.
+     *
+     * @implNote This method is implemented to be equivalent to {@code
+     * ints(Long.MAX_VALUE)}.
+     *
+     * @param random a {@link Random} object to produce the stream from
+     * @return a stream of pseudorandom {@code int} values
+     * @see Random#ints()
+     */
     public static IntStreamEx of(Random random) {
         return new IntStreamEx(random.ints());
     }
 
+    /**
+     * Returns a stream producing the given {@code streamSize} number of
+     * pseudorandom {@code int} values.
+     *
+     * <p>A pseudorandom {@code int} value is generated as if it's the result of
+     * calling the method {@link Random#nextInt()}.
+     *
+     * @implNote This method is implemented to be equivalent to {@code
+     * ints(Long.MAX_VALUE)}.
+     *
+     * @param random a {@link Random} object to produce the stream from
+     * @param streamSize the number of values to generate
+     * @return a stream of pseudorandom {@code int} values
+     * @see Random#ints(long)
+     */
     public static IntStreamEx of(Random random, long streamSize) {
         return new IntStreamEx(random.ints(streamSize));
     }
