@@ -49,6 +49,11 @@ public class EntryStreamTest {
     }
     
     @Test
+    public void testMap() {
+        assertEquals(Arrays.asList("1a", "22bb", "33ccc"), EntryStream.of(createMap()).map(entry -> entry.getValue()+entry.getKey()).toList());
+    }
+    
+    @Test
     public void testFilter() {
         assertEquals(Collections.singletonMap("a", 1), EntryStream.of(createMap()).filterKeys(s -> s.length() < 2)
                 .toMap());
@@ -239,6 +244,13 @@ public class EntryStreamTest {
     @Test(expected=IllegalStateException.class)
     public void testCollision() {
         StreamEx.of("aa", "aa").mapToEntry(String::length).toMap(LinkedHashMap::new);
+    }
+
+    @Test
+    public void testForKeyValue() {
+        Map<String, Integer> output = new HashMap<>();
+        EntryStream.of(createMap()).forKeyValue(output::put);
+        assertEquals(output, createMap());
     }
 
     private Map<String, Integer> createMap() {

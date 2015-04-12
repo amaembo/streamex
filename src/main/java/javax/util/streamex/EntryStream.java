@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Map.Entry;
+import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -327,6 +328,26 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
             Supplier<C> collectionFactory) {
         return stream.collect(Collectors.groupingBy(Entry::getKey, mapSupplier,
                 Collectors.mapping(Entry::getValue, Collectors.toCollection(collectionFactory))));
+    }
+    
+    /**
+     * Performs an action for each key-value pair of this stream.
+     *
+     * <p>This is a terminal operation.
+     *
+     * <p>The behavior of this operation is explicitly nondeterministic.
+     * For parallel stream pipelines, this operation does <em>not</em>
+     * guarantee to respect the encounter order of the stream, as doing so
+     * would sacrifice the benefit of parallelism.  For any given element, the
+     * action may be performed at whatever time and in whatever thread the
+     * library chooses.  If the action accesses shared state, it is
+     * responsible for providing the required synchronization.
+     *
+     * @param action a non-interfering action to perform on the key and value
+     * @see #forEach(java.util.function.Consumer)
+     */
+    public void forKeyValue(BiConsumer<? super K, ? super V> action) {
+        stream.forEach(entry -> action.accept(entry.getKey(), entry.getValue()));
     }
 
     public static <K, V> EntryStream<K, V> of(Stream<Entry<K, V>> stream) {
