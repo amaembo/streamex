@@ -55,6 +55,16 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return new StreamEx<>(stream);
     }
 
+    /**
+     * Returns a stream consisting of the results of applying the given
+     * function to the elements of this stream.
+     *
+     * <p>This is an intermediate operation.
+     *
+     * @param <R> The element type of the new stream
+     * @param mapper a non-interfering, stateless function to apply to each element
+     * @return the new stream
+     */
     @Override
     public <R> StreamEx<R> map(Function<? super T, ? extends R> mapper) {
         return new StreamEx<>(stream.map(mapper));
