@@ -28,6 +28,14 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * A {@link Stream} of {@link Map.Entry} objects which provides additional specific functionality
+ * 
+ * @author Tagir Valeev
+ *
+ * @param <K> the type of {@code Entry} keys
+ * @param <V> the type of {@code Entry} values
+ */
 public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream<K, V>> {
     private static class EntryImpl<K, V> implements Entry<K, V> {
         private final K key;
@@ -133,30 +141,101 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return new EntryStream<>(stream.map(e -> new EntryImpl<>(e.getKey(), valueMapper.apply(e))));
     }
     
+    /**
+     * Returns a stream consisting of the {@link Entry} objects which keys are the values
+     * of this stream elements and vice versa 
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @return the new stream
+     */
     public EntryStream<V, K> invert() {
         return new EntryStream<>(stream.map(e -> new EntryImpl<>(e.getValue(), e.getKey())));
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream which keys
+     * match the given predicate.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param keyPredicate
+     *            a non-interfering, stateless predicate to apply to the 
+     *            key of each element to determine if it should be included
+     * @return the new stream
+     */
     public EntryStream<K, V> filterKeys(Predicate<K> keyPredicate) {
         return new EntryStream<>(stream.filter(e -> keyPredicate.test(e.getKey())));
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream which values
+     * match the given predicate.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param valuePredicate
+     *            a non-interfering, stateless predicate to apply to the 
+     *            value of each element to determine if it should be included
+     * @return the new stream
+     */
     public EntryStream<K, V> filterValues(Predicate<V> valuePredicate) {
         return new EntryStream<>(stream.filter(e -> valuePredicate.test(e.getValue())));
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream which keys
+     * don't match the given predicate.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param keyPredicate
+     *            a non-interfering, stateless predicate to apply to the 
+     *            key of each element to determine if it should be excluded
+     * @return the new stream
+     */
     public EntryStream<K, V> removeKeys(Predicate<K> keyPredicate) {
         return filterKeys(keyPredicate.negate());
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream which values
+     * don't match the given predicate.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param valuePredicate
+     *            a non-interfering, stateless predicate to apply to the 
+     *            value of each element to determine if it should be excluded
+     * @return the new stream
+     */
     public EntryStream<K, V> removeValues(Predicate<V> valuePredicate) {
         return filterValues(valuePredicate.negate());
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream which key is not null.
+     *
+     * <p>This is an intermediate operation.
+     *
+     * @return the new stream
+     */
     public EntryStream<K, V> nonNullKeys() {
         return new EntryStream<>(stream.filter(e -> e.getKey() != null));
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream which value is not null.
+     *
+     * <p>This is an intermediate operation.
+     *
+     * @return the new stream
+     */
     public EntryStream<K, V> nonNullValues() {
         return new EntryStream<>(stream.filter(e -> e.getValue() != null));
     }
@@ -171,14 +250,40 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return new EntryStream<>((Stream) stream.filter(e -> clazz.isInstance(e.getValue())));
     }
 
+    /**
+     * Returns a stream consisting of the keys of this stream elements.
+     *
+     * <p>This is an intermediate operation.
+     *
+     * @return the new stream
+     */
     public StreamEx<K> keys() {
         return new StreamEx<>(stream.map(Entry::getKey));
     }
 
+    /**
+     * Returns a stream consisting of the values of this stream elements.
+     *
+     * <p>This is an intermediate operation.
+     *
+     * @return the new stream
+     */
     public StreamEx<V> values() {
         return new StreamEx<>(stream.map(Entry::getValue));
     }
 
+    /**
+     * Returns a {@link Map} containing the elements of this stream. There are
+     * no guarantees on the type, mutability, serializability, or thread-safety
+     * of the {@code Map} returned; if more control over the returned
+     * {@code Map} is required, use {@link #toMap(Supplier)}.
+     *
+     * <p>This is a terminal operation.
+     *
+     * @return a {@code Map} containing the elements of this stream
+     * @throws IllegalStateException if duplicate key was encountered in the stream
+     * @see Collectors#toSet()
+     */
     public Map<K, V> toMap() {
         return stream.collect(Collectors.toMap(Entry::getKey, Entry::getValue));
     }

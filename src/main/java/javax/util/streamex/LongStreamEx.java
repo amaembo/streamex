@@ -300,9 +300,10 @@ public class LongStreamEx implements LongStream {
     }
 
     /**
-     * Create {@link LongStreamEx} containing single element
-     * @param element
-     * @return created {@link LongStreamEx}
+     * Returns a sequential {@code LongStreamEx} containing a single element.
+     *
+     * @param element the single element
+     * @return a singleton sequential stream
      */
     public static LongStreamEx of(long element) {
         return new LongStreamEx(LongStream.of(element));

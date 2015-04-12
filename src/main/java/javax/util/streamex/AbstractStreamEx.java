@@ -240,18 +240,70 @@ import java.util.stream.Stream;
         return stream.findAny();
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream that don't match
+     * the given predicate.
+     *
+     * <p>This is an intermediate operation.
+     *
+     * @param predicate a non-interfering, stateless predicate to apply 
+     * to each element to determine if it should be excluded
+     * @return the new stream
+     */
     public S remove(Predicate<T> predicate) {
         return supply(stream.filter(predicate.negate()));
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream that aren't null.
+     *
+     * <p>This is an intermediate operation.
+     *
+     * @return the new stream
+     */
     public S nonNull() {
         return supply(stream.filter(Objects::nonNull));
     }
 
+    /**
+     * Returns an {@link Optional} describing some element of the stream, 
+     * which matches given predicate, or an empty {@code Optional} if there's 
+     * no matching element.
+     *
+     * <p>This is a short-circuiting terminal operation.
+     *
+     * <p>The behavior of this operation is explicitly nondeterministic; it is
+     * free to select any element in the stream.  This is to allow for maximal
+     * performance in parallel operations; the cost is that multiple invocations
+     * on the same source may not return the same result.  (If a stable result
+     * is desired, use {@link #findFirst(Predicate)} instead.)
+     *
+     * @param predicate a non-interfering, stateless predicate which 
+     * returned value should match
+     * @return an {@code Optional} describing some element of this stream, or an
+     * empty {@code Optional} if the stream is empty
+     * @throws NullPointerException if the element selected is null
+     * @see Stream#findAny()
+     * @see #findFirst(Predicate)
+     */
     public Optional<T> findAny(Predicate<T> predicate) {
         return stream.filter(predicate).findAny();
     }
 
+    /**
+     * Returns an {@link Optional} describing the first element of this stream,
+     * which matches given predicate, or an empty {@code Optional} if there's 
+     * no matching element.
+     *
+     * <p>This is a short-circuiting terminal operation.
+     *
+     * @param predicate a non-interfering, stateless predicate which 
+     * returned value should match
+     * @return an {@code Optional} describing the first element of this stream,
+     * or an empty {@code Optional} if the stream is empty
+     * @throws NullPointerException if the element selected is null
+     * @see Stream#findFirst()
+     */
     public Optional<T> findFirst(Predicate<T> predicate) {
         return stream.filter(predicate).findFirst();
     }
@@ -276,22 +328,80 @@ import java.util.stream.Stream;
         return supply(stream.sorted(Comparator.comparingDouble(keyExtractor)));
     }
 
+    /**
+     * Creates a lazily concatenated stream whose elements are all the
+     * elements of this stream followed by all the elements of the
+     * other stream.  The resulting stream is ordered if both
+     * of the input streams are ordered, and parallel if either of the input
+     * streams is parallel.  When the resulting stream is closed, the close
+     * handlers for both input streams are invoked.
+     *
+     * @param other the other stream
+     * @return this stream appended by the other stream
+     * @see Stream#concat(Stream, Stream)
+     */
     public S append(Stream<T> other) {
         return supply(Stream.concat(stream, other));
     }
 
+    /**
+     * Creates a lazily concatenated stream whose elements are all the
+     * elements of the other stream followed by all the elements of 
+     * this stream.  The resulting stream is ordered if both
+     * of the input streams are ordered, and parallel if either of the input
+     * streams is parallel.  When the resulting stream is closed, the close
+     * handlers for both input streams are invoked.
+     *
+     * @param other the other stream
+     * @return this stream prepended by the other stream
+     * @see Stream#concat(Stream, Stream)
+     */
     public S prepend(Stream<T> other) {
         return supply(Stream.concat(other, stream));
     }
 
+    /**
+     * Returns a {@link List} containing the elements of this stream. There are
+     * no guarantees on the type, mutability, serializability, or thread-safety
+     * of the {@code List} returned; if more control over the returned
+     * {@code List} is required, use {@link #toCollection(Supplier)}.
+     *
+     * <p>This is a terminal operation.
+     *
+     * @return a {@code List} containing the elements of this stream
+     * @see Collectors#toList()
+     */
     public List<T> toList() {
         return stream.collect(Collectors.toList());
     }
 
+    /**
+     * Returns a {@link Set} containing the elements of this stream. There are
+     * no guarantees on the type, mutability, serializability, or thread-safety
+     * of the {@code Set} returned; if more control over the returned
+     * {@code Set} is required, use {@link #toCollection(Supplier)}.
+     *
+     * <p>This is a terminal operation.
+     *
+     * @return a {@code Set} containing the elements of this stream
+     * @see Collectors#toSet()
+     */
     public Set<T> toSet() {
         return stream.collect(Collectors.toSet());
     }
 
+    /**
+     * Returns a {@link Collection} containing the elements of this stream. The
+     * {@code Collection} is created by the provided factory.
+     *
+     * <p>This is a terminal operation.
+     *
+     * @param <C> the type of the resulting {@code Collection}
+     * @param collectionFactory a {@code Supplier} which returns a new, empty
+     * {@code Collection} of the appropriate type
+     * @return a {@code Collection} containing the elements of this stream
+     * @see Collectors#toCollection(Supplier)
+     */
     public <C extends Collection<T>> C toCollection(Supplier<C> collectionFactory) {
         return stream.collect(Collectors.toCollection(collectionFactory));
     }

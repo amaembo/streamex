@@ -290,9 +290,10 @@ public class DoubleStreamEx implements DoubleStream {
     }
 
     /**
-     * Create {@link DoubleStreamEx} containing single element
-     * @param element
-     * @return created {@link DoubleStreamEx}
+     * Returns a sequential {@code DoubleStreamEx} containing a single element.
+     *
+     * @param element the single element
+     * @return a singleton sequential stream
      */
     public static DoubleStreamEx of(double element) {
         return new DoubleStreamEx(DoubleStream.of(element));

@@ -308,7 +308,7 @@ public class IntStreamEx implements IntStream {
     /**
      * Returns a sequential {@code IntStreamEx} containing a single element.
      *
-     * @param t the single element
+     * @param element the single element
      * @return a singleton sequential stream
      */
     public static IntStreamEx of(int element) {
@@ -318,7 +318,7 @@ public class IntStreamEx implements IntStream {
     /**
      * Returns a sequential ordered {@code IntStreamEx} whose elements are the specified values.
      *
-     * @param values the elements of the new stream
+     * @param elements the elements of the new stream
      * @return the new stream
      */
     public static IntStreamEx of(int... elements) {
@@ -363,9 +363,6 @@ public class IntStreamEx implements IntStream {
      * <p>A pseudorandom {@code int} value is generated as if it's the result of
      * calling the method {@link Random#nextInt()}.
      *
-     * @implNote This method is implemented to be equivalent to {@code
-     * ints(Long.MAX_VALUE)}.
-     *
      * @param random a {@link Random} object to produce the stream from
      * @return a stream of pseudorandom {@code int} values
      * @see Random#ints()
@@ -380,9 +377,6 @@ public class IntStreamEx implements IntStream {
      *
      * <p>A pseudorandom {@code int} value is generated as if it's the result of
      * calling the method {@link Random#nextInt()}.
-     *
-     * @implNote This method is implemented to be equivalent to {@code
-     * ints(Long.MAX_VALUE)}.
      *
      * @param random a {@link Random} object to produce the stream from
      * @param streamSize the number of values to generate
