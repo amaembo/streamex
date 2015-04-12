@@ -54,6 +54,10 @@ public class IntStreamExTest {
         assertEquals(4, IntStreamEx.range(0, 4).summaryStatistics().getCount());
         assertArrayEquals(new int[] { 1, 2, 3 }, IntStreamEx.range(0, 5).skip(1).limit(3).toArray());
         assertArrayEquals(new int[] { 1, 2, 3 }, IntStreamEx.of(3,1,2).sorted().toArray());
+        assertArrayEquals(new int[] { 2, 4, 6 }, IntStreamEx.range(1, 4).map(x -> x*2).toArray());
+        assertArrayEquals(new long[] { 2, 4, 6 }, IntStreamEx.range(1, 4).mapToLong(x -> x*2).toArray());
+        assertArrayEquals(new double[] { 2, 4, 6 }, IntStreamEx.range(1, 4).mapToDouble(x -> x*2).toArray(), 0.0);
+        assertArrayEquals(new int[] { 1, 3 }, IntStreamEx.range(0, 5).filter(x -> x % 2 == 1).toArray());
     }
 
     @Test
