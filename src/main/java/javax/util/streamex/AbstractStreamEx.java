@@ -90,6 +90,16 @@ import java.util.stream.Stream;
         stream.close();
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream that match
+     * the given predicate.
+     *
+     * <p>This is an intermediate operation.
+     *
+     * @param predicate a non-interfering, stateless predicate 
+     * to apply to each element to determine if it should be included
+     * @return the new stream
+     */
     @Override
     public S filter(Predicate<? super T> predicate) {
         return supply(stream.filter(predicate));

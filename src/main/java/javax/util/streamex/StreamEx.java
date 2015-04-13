@@ -75,6 +75,15 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return new StreamEx<>(stream.flatMap(mapper));
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream 
+     * which are instances of given class.
+     *
+     * <p>This is an intermediate operation.
+     *
+     * @param clazz a class which instances should be selected
+     * @return the new stream
+     */
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public <TT extends T> StreamEx<TT> select(Class<TT> clazz) {
         return new StreamEx<>((Stream) stream.filter(clazz::isInstance));
