@@ -81,6 +81,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *
      * <p>This is an intermediate operation.
      *
+     * @param <TT> a type of instances to select.
      * @param clazz a class which instances should be selected
      * @return the new stream
      */
