@@ -55,13 +55,15 @@ public Map<String, List<String>> invert(Map<String, List<String>> map) {
 }
 
 public Map<String, String> stringMap(Map<Object, Object> map) {
-    return EntryStream.of(map).mapKeys(String::valueOf).mapValues(String::valueOf).toMap();
+    return EntryStream.of(map).mapKeys(String::valueOf)
+        .mapValues(String::valueOf).toMap();
 }
 
 Map<String, Group> nameToGroup;
 
 public Map<String, List<User>> getGroupMembers(Collection<String> groupNames) {
-    return StreamEx.of(groupNames).mapToEntry(nameToGroup::get).nonNullValues().mapValues(Group::getMembers).toMap();
+    return StreamEx.of(groupNames).mapToEntry(nameToGroup::get)
+        .nonNullValues().mapValues(Group::getMembers).toMap();
 }
 ```
 
