@@ -309,8 +309,24 @@ public class LongStreamEx implements LongStream {
         return new LongStreamEx(LongStream.of(element));
     }
 
+    /**
+     * Returns a sequential ordered {@code LongStreamEx} whose elements are the specified values.
+     *
+     * @param elements the elements of the new stream
+     * @return the new stream
+     */
     public static LongStreamEx of(long... elements) {
         return new LongStreamEx(LongStream.of(elements));
+    }
+
+    /**
+     * Returns a {@code LongStreamEx} object which wraps given {@link LongStream}
+     * @param stream original stream
+     * @return the wrapped stream
+     * @since 0.0.8
+     */
+    public static LongStreamEx of(LongStream stream) {
+        return stream instanceof LongStreamEx ? (LongStreamEx) stream : new LongStreamEx(stream);
     }
 
     public static LongStreamEx of(Collection<Long> c) {

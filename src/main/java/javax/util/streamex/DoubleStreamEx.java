@@ -299,8 +299,24 @@ public class DoubleStreamEx implements DoubleStream {
         return new DoubleStreamEx(DoubleStream.of(element));
     }
 
+    /**
+     * Returns a sequential ordered {@code DoubleStreamEx} whose elements are the specified values.
+     *
+     * @param elements the elements of the new stream
+     * @return the new stream
+     */
     public static DoubleStreamEx of(double... elements) {
         return new DoubleStreamEx(DoubleStream.of(elements));
+    }
+
+    /**
+     * Returns a {@code DoubleStreamEx} object which wraps given {@link DoubleStream}
+     * @param stream original stream
+     * @return the wrapped stream
+     * @since 0.0.8
+     */
+    public static DoubleStreamEx of(DoubleStream stream) {
+        return stream instanceof DoubleStreamEx ? (DoubleStreamEx) stream : new DoubleStreamEx(stream);
     }
 
     public static DoubleStreamEx of(Collection<Double> c) {

@@ -26,7 +26,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.Map.Entry;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import org.junit.Test;
 
@@ -34,6 +36,7 @@ public class EntryStreamTest {
     @Test
     public void testCreate() {
         Map<String, Integer> data = createMap();
+        assertEquals(0, EntryStream.empty().count());
         assertEquals(data, EntryStream.of(data).toMap());
         assertEquals(data, EntryStream.of(data.entrySet().stream()).toMap());
         Map<String, Integer> expected = new HashMap<>();
@@ -46,6 +49,9 @@ public class EntryStreamTest {
         
         assertEquals(expected, StreamEx.of(Collections.singletonMap("aaa", 3), Collections.singletonMap("bbb", 3),
                 Collections.singletonMap("c", 1), Collections.emptyMap()).flatMapToEntry(m -> m).toMap());
+        
+        Stream<Entry<String,Integer>> stream = EntryStream.of(data);
+        assertSame(stream, EntryStream.of(stream));
     }
     
     @Test

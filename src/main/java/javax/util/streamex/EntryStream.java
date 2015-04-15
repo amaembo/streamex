@@ -39,6 +39,9 @@ import java.util.stream.Stream;
  * @param <V> the type of {@code Entry} values
  */
 public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream<K, V>> {
+    @SuppressWarnings("rawtypes")
+    private static final EntryStream EMPTY = EntryStream.of(Stream.empty());
+
     private static class EntryImpl<K, V> implements Entry<K, V> {
         private final K key;
         private V value;
@@ -375,14 +378,44 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         stream.forEach(entry -> action.accept(entry.getKey(), entry.getValue()));
     }
 
+    /**
+     * Returns an empty sequential {@code EntryStream}.
+     *
+     * @param <K> the type of stream element keys
+     * @param <V> the type of stream element values
+     * @return an empty sequential stream
+     * @since 0.0.8
+     */
+    @SuppressWarnings("unchecked")
+    public static <K, V> EntryStream<K, V> empty() {
+        return EntryStream.EMPTY;
+    }
+
+    /**
+     * Returns an {@code EntryStream} object which wraps given {@link Stream} of {@link Entry} elements
+     * @param <K> the type of original stream keys
+     * @param <V> the type of original stream values
+     * @param stream original stream
+     * @return the wrapped stream
+     */
+    @SuppressWarnings("unchecked")
     public static <K, V> EntryStream<K, V> of(Stream<Entry<K, V>> stream) {
-        return new EntryStream<>(stream);
+        return stream instanceof EntryStream ? (EntryStream<K, V>) stream : new EntryStream<>(stream);
     }
 
     public static <K, V> EntryStream<K, V> of(Map<K, V> map) {
         return new EntryStream<>(map.entrySet().stream());
     }
     
+    /**
+     * Returns a sequential {@code EntryStream} containing a single key-value pair
+     *
+     * @param <K> the type of key
+     * @param <V> the type of value
+     * @param key the key of the single element
+     * @param value the value of the single element
+     * @return a singleton sequential stream
+     */
     public static <K, V> EntryStream<K, V> of(K key, V value) {
         return new EntryStream<>(Stream.of(new EntryImpl<>(key, value)));
     }

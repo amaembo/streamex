@@ -154,11 +154,24 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return stream.anyMatch(element::equals);
     }
 
+    /**
+     * Returns an empty sequential {@code StreamEx}.
+     *
+     * @param <T> the type of stream elements
+     * @return an empty sequential stream
+     */
     @SuppressWarnings("unchecked")
     public static <T> StreamEx<T> empty() {
         return StreamEx.EMPTY;
     }
 
+    /**
+     * Returns a sequential {@code StreamEx} containing a single element.
+     *
+     * @param <T> the type of stream element
+     * @param element the single element
+     * @return a singleton sequential stream
+     */
     public static <T> StreamEx<T> of(T element) {
         return new StreamEx<>(Stream.of(element));
     }
@@ -172,8 +185,14 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return new StreamEx<>(collection.stream());
     }
 
+    /**
+     * Returns an {@link StreamEx} object which wraps given {@link Stream}
+     * @param <T> the type of stream elements
+     * @param stream original stream
+     * @return the wrapped stream
+     */
     public static <T> StreamEx<T> of(Stream<T> stream) {
-        return new StreamEx<>(stream);
+        return stream instanceof StreamEx ? (StreamEx<T>) stream : new StreamEx<>(stream);
     }
 
     public static StreamEx<String> ofLines(BufferedReader reader) {

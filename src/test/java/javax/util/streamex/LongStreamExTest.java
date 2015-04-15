@@ -18,6 +18,7 @@ package javax.util.streamex;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.LongStream;
 
 import org.junit.Test;
 
@@ -29,11 +30,15 @@ public class LongStreamExTest {
         assertArrayEquals(new long[] {}, LongStreamEx.empty().toArray());
         assertArrayEquals(new long[] { 1 }, LongStreamEx.of(1).toArray());
         assertArrayEquals(new long[] { 1, 2, 3 }, LongStreamEx.of(1, 2, 3).toArray());
+        assertArrayEquals(new long[] { 1, 2, 3 }, LongStreamEx.of(LongStream.of(1, 2, 3)).toArray());
         assertArrayEquals(new long[] { 1, 2, 3 }, LongStreamEx.of(Arrays.asList(1L, 2L, 3L)).toArray());
         assertArrayEquals(new long[] { 1, 2, 3 }, LongStreamEx.range(1, 4).toArray());
         assertArrayEquals(new long[] { 1, 2, 3 }, LongStreamEx.rangeClosed(1, 3).toArray());
         assertEquals(10, LongStreamEx.of(new Random(), 10).count());
         assertTrue(LongStreamEx.of(new Random(), 100, 1, 10).allMatch(x -> x >= 1 && x < 10));
+        
+        LongStream stream = LongStreamEx.of(1, 2, 3);
+        assertSame(stream, LongStreamEx.of(stream));
     }
 
     @Test

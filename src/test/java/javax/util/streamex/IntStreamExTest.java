@@ -18,6 +18,7 @@ package javax.util.streamex;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 
 import org.junit.Test;
 
@@ -29,12 +30,16 @@ public class IntStreamExTest {
         assertArrayEquals(new int[] {}, IntStreamEx.empty().toArray());
         assertArrayEquals(new int[] { 1 }, IntStreamEx.of(1).toArray());
         assertArrayEquals(new int[] { 1, 2, 3 }, IntStreamEx.of(1, 2, 3).toArray());
+        assertArrayEquals(new int[] { 1, 2, 3 }, IntStreamEx.of(IntStream.of(1, 2, 3)).toArray());
         assertArrayEquals(new int[] { 1, 2, 3 }, IntStreamEx.of(Arrays.asList(1, 2, 3)).toArray());
         assertArrayEquals(new int[] { 1, 2, 3 }, IntStreamEx.range(1, 4).toArray());
         assertArrayEquals(new int[] { 1, 2, 3 }, IntStreamEx.rangeClosed(1, 3).toArray());
         assertArrayEquals(new int[] { 'a', 'b', 'c' }, IntStreamEx.ofChars("abc").toArray());
         assertEquals(10, IntStreamEx.of(new Random(), 10).count());
         assertTrue(IntStreamEx.of(new Random(), 100, 1, 10).allMatch(x -> x >= 1 && x < 10));
+        
+        IntStream stream = IntStreamEx.of(1, 2, 3);
+        assertSame(stream, IntStreamEx.of(stream));
     }
 
     @Test

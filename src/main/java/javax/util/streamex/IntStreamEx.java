@@ -326,6 +326,16 @@ public class IntStreamEx implements IntStream {
     }
 
     /**
+     * Returns an {@code IntStreamEx} object which wraps given {@link IntStream}
+     * @param stream original stream
+     * @return the wrapped stream
+     * @since 0.0.8
+     */
+    public static IntStreamEx of(IntStream stream) {
+        return stream instanceof IntStreamEx ? (IntStreamEx) stream : new IntStreamEx(stream);
+    }
+
+    /**
      * Returns an {@code IntStreamEx} of indices for which the specified {@link BitSet}
      * contains a bit in the set state. The indices are returned
      * in order, from lowest to highest. The size of the stream

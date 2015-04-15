@@ -46,6 +46,9 @@ public class StreamExTest {
         assertEquals(Arrays.asList("a", "b"), StreamEx.ofLines(new StringReader("a\nb")).toList());
         assertEquals(Arrays.asList("a", "b"), StreamEx.ofLines(new BufferedReader(new StringReader("a\nb"))).toList());
         assertEquals(Arrays.asList("a", "b"), StreamEx.ofLines(getReader()).toList());
+        
+        StreamEx<String> stream = StreamEx.of("foo", "bar");
+        assertSame(stream, StreamEx.of(stream));
     }
 
     private Reader getReader() {
