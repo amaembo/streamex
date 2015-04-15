@@ -104,6 +104,14 @@ public class LongStreamEx implements LongStream {
         return new LongStreamEx(stream.distinct());
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream in sorted
+     * order.
+     *
+     * <p>This is a stateful intermediate operation.
+     *
+     * @return the new stream
+     */
     @Override
     public LongStreamEx sorted() {
         return new LongStreamEx(stream.sorted());
@@ -289,6 +297,19 @@ public class LongStreamEx implements LongStream {
         return new LongStreamEx(stream.boxed().sorted(comparator).mapToLong(Long::longValue));
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream in reverse 
+     * sorted order.
+     *
+     * <p>This is a stateful intermediate operation.
+     *
+     * @return the new stream
+     * @since 0.0.8
+     */
+    public LongStreamEx reverseSorted() {
+        return sorted((a, b) -> b.compareTo(a));
+    }
+    
     public <V extends Comparable<? super V>> LongStreamEx sortedBy(LongFunction<V> keyExtractor) {
         return new LongStreamEx(stream.boxed().sorted(Comparator.comparing(i -> keyExtractor.apply(i)))
                 .mapToLong(Long::longValue));

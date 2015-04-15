@@ -108,6 +108,7 @@ public class IntStreamExTest {
                 .toArray());
         assertArrayEquals(new int[] { 10, 11, 5, 6, 7, 8, 9 }, IntStreamEx.range(5, 12).sortedBy(String::valueOf)
                 .toArray());
-
+        assertArrayEquals(new int[] { Integer.MAX_VALUE, 1000, 1, 0, -10, Integer.MIN_VALUE },
+                IntStreamEx.of(0, 1, 1000, -10, Integer.MIN_VALUE, Integer.MAX_VALUE).reverseSorted().toArray());
     }
 }

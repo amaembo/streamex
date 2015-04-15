@@ -103,6 +103,15 @@ public class DoubleStreamEx implements DoubleStream {
         return new DoubleStreamEx(stream.distinct());
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream in sorted
+     * order. The elements are compared for equality according to
+     * {@link java.lang.Double#compare(double, double)}.
+     *
+     * <p>This is a stateful intermediate operation.
+     *
+     * @return the new stream
+     */
     @Override
     public DoubleStreamEx sorted() {
         return new DoubleStreamEx(stream.sorted());
@@ -277,6 +286,20 @@ public class DoubleStreamEx implements DoubleStream {
 
     public DoubleStreamEx sorted(Comparator<Double> comparator) {
         return new DoubleStreamEx(stream.boxed().sorted(comparator).mapToDouble(Double::doubleValue));
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream in reverse 
+     * sorted order. The elements are compared for equality according to
+     * {@link java.lang.Double#compare(double, double)}.
+     *
+     * <p>This is a stateful intermediate operation.
+     *
+     * @return the new stream
+     * @since 0.0.8
+     */
+    public DoubleStreamEx reverseSorted() {
+        return sorted((a, b) -> b.compareTo(a));
     }
 
     public <V extends Comparable<? super V>> DoubleStreamEx sortedBy(DoubleFunction<V> keyExtractor) {

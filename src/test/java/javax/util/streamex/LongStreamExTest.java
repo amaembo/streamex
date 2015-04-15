@@ -97,5 +97,7 @@ public class LongStreamExTest {
                 LongStreamEx.range(0, 9).sortedByLong(i -> i % 3 * 3 + i / 3).toArray());
         assertArrayEquals(new long[] { 10, 11, 5, 6, 7, 8, 9 }, LongStreamEx.range(5, 12).sortedBy(String::valueOf)
                 .toArray());
+        assertArrayEquals(new long[] { Long.MAX_VALUE, 1000, 1, 0, -10, Long.MIN_VALUE },
+                LongStreamEx.of(0, 1, 1000, -10, Long.MIN_VALUE, Long.MAX_VALUE).reverseSorted().toArray());
     }
 }

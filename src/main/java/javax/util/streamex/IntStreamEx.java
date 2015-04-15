@@ -105,6 +105,14 @@ public class IntStreamEx implements IntStream {
         return new IntStreamEx(stream.distinct());
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream in sorted
+     * order.
+     *
+     * <p>This is a stateful intermediate operation.
+     *
+     * @return the new stream
+     */
     @Override
     public IntStreamEx sorted() {
         return new IntStreamEx(stream.sorted());
@@ -293,6 +301,19 @@ public class IntStreamEx implements IntStream {
 
     public IntStreamEx sorted(Comparator<Integer> comparator) {
         return new IntStreamEx(stream.boxed().sorted(comparator).mapToInt(Integer::intValue));
+    }
+    
+    /**
+     * Returns a stream consisting of the elements of this stream in reverse 
+     * sorted order.
+     *
+     * <p>This is a stateful intermediate operation.
+     *
+     * @return the new stream
+     * @since 0.0.8
+     */
+    public IntStreamEx reverseSorted() {
+        return sorted((a, b) -> b.compareTo(a));
     }
 
     public <V extends Comparable<? super V>> IntStreamEx sortedBy(IntFunction<V> keyExtractor) {
