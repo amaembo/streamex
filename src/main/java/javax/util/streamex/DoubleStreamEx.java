@@ -233,6 +233,13 @@ public class DoubleStreamEx implements DoubleStream {
         return stream.spliterator();
     }
 
+    /**
+     * Returns a new {@code DoubleStreamEx} which is a concatenation of this stream
+     * and the stream containing supplied values
+     * 
+     * @param values the values to append to the stream
+     * @return the new stream
+     */
     public DoubleStreamEx append(double... values) {
         return new DoubleStreamEx(DoubleStream.concat(stream, DoubleStream.of(values)));
     }
@@ -241,6 +248,13 @@ public class DoubleStreamEx implements DoubleStream {
         return new DoubleStreamEx(DoubleStream.concat(stream, other));
     }
 
+    /**
+     * Returns a new {@code DoubleStreamEx} which is a concatenation of
+     * the stream containing supplied values and this stream
+     *  
+     * @param values the values to prepend to the stream
+     * @return the new stream
+     */
     public DoubleStreamEx prepend(double... values) {
         return new DoubleStreamEx(DoubleStream.concat(DoubleStream.of(values), stream));
     }

@@ -239,6 +239,13 @@ public class LongStreamEx implements LongStream {
         return stream.spliterator();
     }
 
+    /**
+     * Returns a new {@code LongStreamEx} which is a concatenation of this stream
+     * and the stream containing supplied values
+     * 
+     * @param values the values to append to the stream
+     * @return the new stream
+     */
     public LongStreamEx append(long... values) {
         return new LongStreamEx(LongStream.concat(stream, LongStream.of(values)));
     }
@@ -247,6 +254,13 @@ public class LongStreamEx implements LongStream {
         return new LongStreamEx(LongStream.concat(stream, other));
     }
 
+    /**
+     * Returns a new {@code LongStreamEx} which is a concatenation of
+     * the stream containing supplied values and this stream
+     *  
+     * @param values the values to prepend to the stream
+     * @return the new stream
+     */
     public LongStreamEx prepend(long... values) {
         return new LongStreamEx(LongStream.concat(LongStream.of(values), stream));
     }

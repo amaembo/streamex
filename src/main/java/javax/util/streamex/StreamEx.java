@@ -140,10 +140,24 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return stream.collect(Collectors.toMap(keyMapper, valMapper));
     }
 
+    /**
+     * Returns a new {@code StreamEx} which is a concatenation of this stream
+     * and the stream containing supplied values
+     * 
+     * @param values the values to append to the stream
+     * @return the new stream
+     */
     public StreamEx<T> append(@SuppressWarnings("unchecked") T... values) {
         return append(Stream.of(values));
     }
 
+    /**
+     * Returns a new {@code StreamEx} which is a concatenation of
+     * the stream containing supplied values and this stream
+     *  
+     * @param values the values to prepend to the stream
+     * @return the new stream
+     */
     public StreamEx<T> prepend(@SuppressWarnings("unchecked") T... values) {
         return prepend(Stream.of(values));
     }

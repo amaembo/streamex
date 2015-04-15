@@ -245,6 +245,13 @@ public class IntStreamEx implements IntStream {
         return stream.spliterator();
     }
 
+    /**
+     * Returns a new {@code IntStreamEx} which is a concatenation of this stream
+     * and the stream containing supplied values
+     * 
+     * @param values the values to append to the stream
+     * @return the new stream
+     */
     public IntStreamEx append(int... values) {
         return new IntStreamEx(IntStream.concat(stream, IntStream.of(values)));
     }
@@ -253,6 +260,13 @@ public class IntStreamEx implements IntStream {
         return new IntStreamEx(IntStream.concat(stream, other));
     }
 
+    /**
+     * Returns a new {@code IntStreamEx} which is a concatenation of
+     * the stream containing supplied values and this stream
+     *  
+     * @param values the values to prepend to the stream
+     * @return the new stream
+     */
     public IntStreamEx prepend(int... values) {
         return new IntStreamEx(IntStream.concat(IntStream.of(values), stream));
     }
