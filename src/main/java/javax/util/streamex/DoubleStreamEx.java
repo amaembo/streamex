@@ -360,6 +360,18 @@ public class DoubleStreamEx implements DoubleStream {
         return new DoubleStreamEx(c.stream().mapToDouble(Double::doubleValue));
     }
 
+    /**
+     * Returns an effectively unlimited stream of pseudorandom {@code
+     * double} values, each between zero (inclusive) and one
+     * (exclusive) produced by given {@link Random} object.
+     *
+     * <p>A pseudorandom {@code double} value is generated as if it's the result of
+     * calling the method {@link Random#nextDouble()}.
+     *
+     * @param random a {@link Random} object to produce the stream from
+     * @return a stream of pseudorandom {@code double} values
+     * @see Random#doubles()
+     */
     public static DoubleStreamEx of(Random random) {
         return new DoubleStreamEx(random.doubles());
     }

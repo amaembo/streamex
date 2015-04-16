@@ -289,6 +289,15 @@ public class LongStreamEx implements LongStream {
         return stream.filter(predicate).findFirst();
     }
 
+    /**
+     * Returns true if this stream contains the specified value
+     *
+     * <p>This is a short-circuiting terminal operation.
+     * 
+     * @param value the value too look for in the stream
+     * @return true if this stream contains the specified value
+     * @see LongStream#anyMatch(LongPredicate)
+     */
     public boolean has(long value) {
         return stream.anyMatch(x -> x == value);
     }
@@ -368,6 +377,17 @@ public class LongStreamEx implements LongStream {
         return new LongStreamEx(c.stream().mapToLong(Long::longValue));
     }
 
+    /**
+     * Returns an effectively unlimited stream of pseudorandom {@code long}
+     * values produced by given {@link Random} object.
+     *
+     * <p>A pseudorandom {@code long} value is generated as if it's the result of
+     * calling the method {@link Random#nextLong()}.
+     *
+     * @param random a {@link Random} object to produce the stream from
+     * @return a stream of pseudorandom {@code long} values
+     * @see Random#longs()
+     */
     public static LongStreamEx of(Random random) {
         return new LongStreamEx(random.longs());
     }
