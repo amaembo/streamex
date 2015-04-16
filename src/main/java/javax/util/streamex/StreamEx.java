@@ -90,12 +90,36 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return new StreamEx<>((Stream) stream.filter(clazz::isInstance));
     }
 
+    /**
+     * Returns an {@link EntryStream} consisting of the {@link Entry} objects
+     * which keys are elements of this stream and values are results of 
+     * applying the given function to the elements of this stream.
+     *
+     * <p>This is an intermediate operation.
+     *
+     * @param <V> The {@code Entry} value type
+     * @param valueMapper a non-interfering, stateless function to apply to each element
+     * @return the new stream
+     */
     public <V> EntryStream<T, V> mapToEntry(Function<T, V> valueMapper) {
-        return new EntryStream<T, V>(stream, Function.identity(), valueMapper);
+        return new EntryStream<>(stream, Function.identity(), valueMapper);
     }
 
+    /**
+     * Returns an {@link EntryStream} consisting of the {@link Entry} objects
+     * which keys and values are results of applying the given functions to 
+     * the elements of this stream.
+     *
+     * <p>This is an intermediate operation.
+     *
+     * @param <K> The {@code Entry} key type
+     * @param <V> The {@code Entry} value type
+     * @param keyMapper a non-interfering, stateless function to apply to each element
+     * @param valueMapper a non-interfering, stateless function to apply to each element
+     * @return the new stream
+     */
     public <K, V> EntryStream<K, V> mapToEntry(Function<T, K> keyMapper, Function<T, V> valueMapper) {
-        return new EntryStream<K, V>(stream, keyMapper, valueMapper);
+        return new EntryStream<>(stream, keyMapper, valueMapper);
     }
 
     public <R> StreamEx<R> flatCollection(Function<? super T, ? extends Collection<? extends R>> mapper) {
@@ -103,7 +127,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     public <K, V> EntryStream<K, V> flatMapToEntry(Function<? super T, Map<K, V>> mapper) {
-        return new EntryStream<K, V>(stream.flatMap(e -> mapper.apply(e).entrySet().stream()));
+        return new EntryStream<>(stream.flatMap(e -> mapper.apply(e).entrySet().stream()));
     }
     
     public <K> Map<K, List<T>> groupingBy(Function<? super T, ? extends K> classifier) {
@@ -120,16 +144,29 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return stream.collect(Collectors.groupingBy(classifier, mapFactory, downstream));
     }
 
+    /**
+     * Returns a {@link String} which contains the results of calling {@link String#valueOf(Object)}
+     * on each element of this stream in encounter order.
+     *
+     * @return a {@code String}. For empty input stream empty String is returned. 
+     */
     public String joining() {
         return stream.map(String::valueOf).collect(Collectors.joining());
     }
 
-    public String joining(CharSequence separator) {
-        return stream.map(String::valueOf).collect(Collectors.joining(separator));
+    /**
+     * Returns a {@link String} which contains the results of calling {@link String#valueOf(Object)}
+     * on each element of this stream, separated by the specified delimiter, in encounter order.
+     *
+     * @param delimiter the delimiter to be used between each element
+     * @return a {@code String}. For empty input stream empty String is returned. 
+     */
+    public String joining(CharSequence delimiter) {
+        return stream.map(String::valueOf).collect(Collectors.joining(delimiter));
     }
 
-    public String joining(CharSequence separator, CharSequence prefix, CharSequence suffix) {
-        return stream.map(String::valueOf).collect(Collectors.joining(separator, prefix, suffix));
+    public String joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
+        return stream.map(String::valueOf).collect(Collectors.joining(delimiter, prefix, suffix));
     }
 
     public <V> Map<T, V> toMap(Function<T, V> valMapper) {
