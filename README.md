@@ -39,7 +39,7 @@ public void copyNonEmptyLines(Reader reader, Writer writer) throws IOException {
 }
 ```
 
-Selecting map values by key predicate:
+Selecting map keys by value predicate:
 ```java
 Map<String, Role> nameToRole;
 
