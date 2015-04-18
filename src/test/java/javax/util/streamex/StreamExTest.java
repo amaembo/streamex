@@ -49,6 +49,8 @@ public class StreamExTest {
         assertEquals(Arrays.asList("a", "b"), StreamEx.ofLines(new StringReader("a\nb")).toList());
         assertEquals(Arrays.asList("a", "b"), StreamEx.ofLines(new BufferedReader(new StringReader("a\nb"))).toList());
         assertEquals(Arrays.asList("a", "b"), StreamEx.ofLines(getReader()).toList());
+        assertEquals(Arrays.asList("a", "aa", "aaa", "aaaa"), StreamEx.iterate("a", x -> x+"a").limit(4).toList());
+        assertEquals(Arrays.asList("a", "a", "a", "a"), StreamEx.generate(() -> "a").limit(4).toList());
         
         StreamEx<String> stream = StreamEx.of("foo", "bar");
         assertSame(stream, StreamEx.of(stream));
@@ -68,6 +70,7 @@ public class StreamExTest {
             assertEquals(1, s.count());
         }
         assertEquals(1, i.get());
+        assertEquals(Arrays.asList(1, 2), StreamEx.of("a", "bb").map(String::length).toList());
     }
     
     @Test
@@ -93,6 +96,18 @@ public class StreamExTest {
         assertEquals(expected2, parallelMap2);
         assertFalse(seqMap2 instanceof ConcurrentMap);
         assertTrue(parallelMap2 instanceof ConcurrentMap);
+        
+        Map<Integer, String> expected3 = new HashMap<>();
+        expected3.put(1, "a");
+        expected3.put(2, "bbbb");
+        expected3.put(3, "ccc");
+        Map<Integer, String> seqMap3 = StreamEx.of("a", "bb", "ccc", "bb").toMap(String::length, Function.identity(), String::concat);
+        Map<Integer, String> parallelMap3 = StreamEx.of("a", "bb", "ccc", "bb").parallel().toMap(String::length, Function.identity(), String::concat);
+        assertEquals(expected3, seqMap3);
+        assertEquals(expected3, parallelMap3);
+        assertFalse(seqMap3 instanceof ConcurrentMap);
+        assertTrue(parallelMap3 instanceof ConcurrentMap);
+        
     }
     
     @Test

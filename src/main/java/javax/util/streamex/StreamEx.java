@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -70,6 +72,25 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return new StreamEx<>(stream.map(mapper));
     }
 
+    /**
+     * Returns a stream consisting of the results of replacing each element of
+     * this stream with the contents of a mapped stream produced by applying
+     * the provided mapping function to each element.  Each mapped stream is
+     * {@link java.util.stream.BaseStream#close() closed} after its contents
+     * have been placed into this stream.  (If a mapped stream is {@code null}
+     * an empty stream is used, instead.)
+     *
+     * <p>This is an intermediate operation.
+     *
+     * <p>The {@code flatMap()} operation has the effect of applying a one-to-many
+     * transformation to the elements of the stream, and then flattening the
+     * resulting elements into a new stream.
+     *
+     * @param <R> The element type of the new stream
+     * @param mapper a non-interfering, stateless function to apply 
+     *               to each element which produces a stream of new values
+     * @return the new stream
+     */
     @Override
     public <R> StreamEx<R> flatMap(Function<? super T, ? extends Stream<? extends R>> mapper) {
         return new StreamEx<>(stream.flatMap(mapper));
@@ -243,6 +264,50 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return stream.collect(Collectors.toMap(keyMapper, valMapper));
     }
 
+    /**
+     * Returns a {@link Map} whose keys and values are the result of applying
+     * the provided mapping functions to the input elements.
+     *
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * If the mapped keys contains duplicates (according to
+     * {@link Object#equals(Object)}), the value mapping function is applied to
+     * each equal element, and the results are merged using the provided merging
+     * function.
+     *
+     * <p>
+     * For parallel stream the concurrent {@code Map} is created.
+     *
+     * @param <K>
+     *            the output type of the key mapping function
+     * @param <V>
+     *            the output type of the value mapping function
+     * @param keyMapper
+     *            a mapping function to produce keys
+     * @param valMapper
+     *            a mapping function to produce values
+     * @param mergeFunction
+     *            a merge function, used to resolve collisions between values
+     *            associated with the same key, as supplied to
+     *            {@link Map#merge(Object, Object, BiFunction)}
+     * @return a {@code Map} whose keys are the result of applying a key mapping
+     *         function to the input elements, and whose values are the result
+     *         of applying a value mapping function to all input elements equal
+     *         to the key and combining them using the merge function
+     *
+     * @see Collectors#toMap(Function, Function, BinaryOperator)
+     * @see Collectors#toConcurrentMap(Function, Function, BinaryOperator)
+     * @see #toMap(Function, Function)
+     * @since 0.0.9
+     */
+    public <K, V> Map<K, V> toMap(Function<T, K> keyMapper, Function<T, V> valMapper, BinaryOperator<V> mergeFunction) {
+        if(stream.isParallel())
+            return stream.collect(Collectors.toConcurrentMap(keyMapper, valMapper, mergeFunction));
+        return stream.collect(Collectors.toMap(keyMapper, valMapper, mergeFunction));
+    }
+    
     /**
      * Returns a new {@code StreamEx} which is a concatenation of this stream
      * and the stream containing supplied values
