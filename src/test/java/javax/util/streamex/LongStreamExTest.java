@@ -60,6 +60,7 @@ public class LongStreamExTest {
         assertEquals(4, LongStreamEx.range(0, 4).summaryStatistics().getCount());
         assertArrayEquals(new long[] { 1, 2, 3 }, LongStreamEx.range(0, 5).skip(1).limit(3).toArray());
         assertArrayEquals(new long[] { 1, 2, 3 }, LongStreamEx.of(3,1,2).sorted().toArray());
+        assertArrayEquals(new long[] { 1, 2, 3 }, LongStreamEx.of(1, 2, 1, 3, 2).distinct().toArray());
         assertArrayEquals(new int[] { 2, 4, 6 }, LongStreamEx.range(1, 4).mapToInt(x -> (int)x*2).toArray());
         assertArrayEquals(new long[] { 2, 4, 6 }, LongStreamEx.range(1, 4).map(x -> x*2).toArray());
         assertArrayEquals(new double[] { 2, 4, 6 }, LongStreamEx.range(1, 4).mapToDouble(x -> x*2).toArray(), 0.0);
