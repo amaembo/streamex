@@ -167,7 +167,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *
      * <p>This is a terminal operation.
 
-     * @param <T> the type of the input elements
      * @param <K> the type of the keys
      * @param classifier the classifier function mapping input elements to keys
      * @return a {@code Map} containing the results of the group-by operation
@@ -407,6 +406,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     /**
      * Returns a sequential {@code StreamEx} with given collection as its source.
      *
+     * @param <T> the type of collection elements
      * @param collection collection to create the stream of
      * @return a sequential {@code StreamEx} over the elements in given collection
      * @see Collection#stream()
@@ -439,6 +439,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * Returns a sequential {@code StreamEx} with keySet of given {@link Map} as
      * its source.
      *
+     * @param <T> the type of map keys
      * @param map input map
      * @return a sequential {@code StreamEx} over the keys of given {@code Map}
      * @throws NullPointerException if map is null
@@ -457,6 +458,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * Returns a sequential {@code StreamEx} with values of given {@link Map} as
      * its source.
      *
+     * @param <T> the type of map keys
      * @param map input map
      * @return a sequential {@code StreamEx} over the values of given {@code Map}
      * @throws NullPointerException if map is null
