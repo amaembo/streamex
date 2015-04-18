@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
@@ -151,17 +152,48 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return new EntryStream<>(stream.flatMap(e -> mapper.apply(e).entrySet().stream()));
     }
     
+    /**
+     * Returns a {@code Map} whose keys are the
+     * values resulting from applying the classification function to the input
+     * elements, and whose corresponding values are {@code List}s containing the
+     * input elements which map to the associated key under the classification
+     * function.
+     *
+     * <p>There are no guarantees on the type, mutability or serializability of 
+     * the {@code Map} or {@code List} objects returned.
+     * 
+     * <p>For parallel stream concurrent collector is used and ConcurrentMap is 
+     * returned.
+     *
+     * <p>This is a terminal operation.
+
+     * @param <T> the type of the input elements
+     * @param <K> the type of the keys
+     * @param classifier the classifier function mapping input elements to keys
+     * @return a {@code Map} containing the results of the group-by operation
+     *
+     * @see #groupingBy(Function, Collector)
+     * @see Collectors#groupingBy(Function)
+     * @see Collectors#groupingByConcurrent(Function)
+     */
     public <K> Map<K, List<T>> groupingBy(Function<? super T, ? extends K> classifier) {
+        if(stream.isParallel())
+            return stream.collect(Collectors.groupingByConcurrent(classifier));
         return stream.collect(Collectors.groupingBy(classifier));
     }
 
     public <K, D> Map<K, D> groupingBy(Function<? super T, ? extends K> classifier,
             Collector<? super T, ?, D> downstream) {
+        if(stream.isParallel())
+            return stream.collect(Collectors.groupingByConcurrent(classifier, downstream));
         return stream.collect(Collectors.groupingBy(classifier, downstream));
     }
 
+    @SuppressWarnings("unchecked")
     public <K, D, M extends Map<K, D>> M groupingBy(Function<? super T, ? extends K> classifier,
             Supplier<M> mapFactory, Collector<? super T, ?, D> downstream) {
+        if(stream.isParallel() && mapFactory.get() instanceof ConcurrentMap)
+            return (M) stream.collect(Collectors.groupingByConcurrent(classifier, (Supplier<ConcurrentMap<K, D>>)mapFactory, downstream));
         return stream.collect(Collectors.groupingBy(classifier, mapFactory, downstream));
     }
 
@@ -196,7 +228,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * and suffix in encounter order.
      *
      * <p>This is a terminal operation.
-
+     * 
      * @param delimiter the delimiter to be used between each element
      * @param prefix the sequence of characters to be used at the beginning
      *                of the joined result
@@ -353,16 +385,32 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @param <T> the type of stream element
      * @param element the single element
      * @return a singleton sequential stream
+     * @see Stream#of(Object)
      */
     public static <T> StreamEx<T> of(T element) {
         return new StreamEx<>(Stream.of(element));
     }
 
+    /**
+     * Returns a sequential ordered {@code StreamEx} whose elements are the specified values.
+     *
+     * @param <T> the type of stream elements
+     * @param elements the elements of the new stream
+     * @return the new stream
+     * @see Stream#of(Object...)
+     */
     @SafeVarargs
     public static <T> StreamEx<T> of(T... elements) {
         return new StreamEx<>(Stream.of(elements));
     }
 
+    /**
+     * Returns a sequential {@code StreamEx} with given collection as its source.
+     *
+     * @param collection collection to create the stream of
+     * @return a sequential {@code StreamEx} over the elements in given collection
+     * @see Collection#stream()
+     */
     public static <T> StreamEx<T> of(Collection<T> collection) {
         return new StreamEx<>(collection.stream());
     }
@@ -387,6 +435,15 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return new StreamEx<>(new BufferedReader(reader).lines());
     }
 
+    /**
+     * Returns a sequential {@code StreamEx} with keySet of given {@link Map} as
+     * its source.
+     *
+     * @param map input map
+     * @return a sequential {@code StreamEx} over the keys of given {@code Map}
+     * @throws NullPointerException if map is null
+     * @see Map#keySet()
+     */
     public static <T> StreamEx<T> ofKeys(Map<T, ?> map) {
         return new StreamEx<>(map.keySet().stream());
     }
@@ -396,6 +453,15 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
                 .map(Entry::getKey));
     }
 
+    /**
+     * Returns a sequential {@code StreamEx} with values of given {@link Map} as
+     * its source.
+     *
+     * @param map input map
+     * @return a sequential {@code StreamEx} over the values of given {@code Map}
+     * @throws NullPointerException if map is null
+     * @see Map#values()
+     */
     public static <T> StreamEx<T> ofValues(Map<?, T> map) {
         return new StreamEx<>(map.values().stream());
     }
