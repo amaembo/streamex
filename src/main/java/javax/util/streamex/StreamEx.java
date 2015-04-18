@@ -148,6 +148,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * Returns a {@link String} which contains the results of calling {@link String#valueOf(Object)}
      * on each element of this stream in encounter order.
      *
+     * <p>This is a terminal operation.
+
      * @return a {@code String}. For empty input stream empty String is returned. 
      */
     public String joining() {
@@ -158,6 +160,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * Returns a {@link String} which contains the results of calling {@link String#valueOf(Object)}
      * on each element of this stream, separated by the specified delimiter, in encounter order.
      *
+     * <p>This is a terminal operation.
+
      * @param delimiter the delimiter to be used between each element
      * @return a {@code String}. For empty input stream empty String is returned. 
      */
@@ -165,15 +169,77 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return stream.map(String::valueOf).collect(Collectors.joining(delimiter));
     }
 
+    /**
+     * Returns a {@link String} which contains the results of calling {@link String#valueOf(Object)}
+     * on each element of this stream, separated by the specified delimiter, with the specified prefix 
+     * and suffix in encounter order.
+     *
+     * <p>This is a terminal operation.
+
+     * @param delimiter the delimiter to be used between each element
+     * @param prefix the sequence of characters to be used at the beginning
+     *                of the joined result
+     * @param suffix the sequence of characters to be used at the end
+     *                of the joined result
+     * @return a {@code String}. For empty input stream empty String is returned. 
+     */
     public String joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return stream.map(String::valueOf).collect(Collectors.joining(delimiter, prefix, suffix));
     }
 
+    /**
+     * Returns a {@link Map} whose keys are elements from this stream and values are 
+     * the result of applying the provided mapping functions to the input elements.
+     *
+     * <p>This is a terminal operation.
+
+     * <p>If this stream contains duplicates (according to
+     * {@link Object#equals(Object)}), an {@code IllegalStateException} is
+     * thrown when the collection operation is performed.
+     *
+     * <p>For parallel stream the concurrent {@code Map} is created.
+     *
+     * @param <V> the output type of the value mapping function
+     * @param valMapper a mapping function to produce values
+     * @return a {@code Map} whose keys are elements from this stream and 
+     * values are the result of applying mapping function to the input elements
+     *
+     * @see Collectors#toMap(Function, Function)
+     * @see Collectors#toConcurrentMap(Function, Function)
+     * @see #toMap(Function, Function)
+     */
     public <V> Map<T, V> toMap(Function<T, V> valMapper) {
+        if(stream.isParallel())
+            return stream.collect(Collectors.toConcurrentMap(Function.identity(), valMapper));
         return stream.collect(Collectors.toMap(Function.identity(), valMapper));
     }
 
+    /**
+     * Returns a {@link Map} whose keys and values are 
+     * the result of applying the provided mapping functions to the input elements.
+     *
+     * <p>This is a terminal operation.
+
+     * <p>If the mapped keys contains duplicates (according to
+     * {@link Object#equals(Object)}), an {@code IllegalStateException} is
+     * thrown when the collection operation is performed.
+     *
+     * <p>For parallel stream the concurrent {@code Map} is created.
+     *
+     * @param <K> the output type of the key mapping function
+     * @param <V> the output type of the value mapping function
+     * @param keyMapper a mapping function to produce keys
+     * @param valMapper a mapping function to produce values
+     * @return a {@code Map} whose keys and values are 
+     * the result of applying mapping functions to the input elements
+     *
+     * @see Collectors#toMap(Function, Function)
+     * @see Collectors#toConcurrentMap(Function, Function)
+     * @see #toMap(Function)
+     */
     public <K, V> Map<K, V> toMap(Function<T, K> keyMapper, Function<T, V> valMapper) {
+        if(stream.isParallel())
+            return stream.collect(Collectors.toConcurrentMap(keyMapper, valMapper));
         return stream.collect(Collectors.toMap(keyMapper, valMapper));
     }
 

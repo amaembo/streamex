@@ -20,11 +20,14 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -65,6 +68,31 @@ public class StreamExTest {
             assertEquals(1, s.count());
         }
         assertEquals(1, i.get());
+    }
+    
+    @Test
+    public void testToMap() {
+        Map<String, Integer> expected = new HashMap<>();
+        expected.put("a", 1);
+        expected.put("bb", 2);
+        expected.put("ccc", 3);
+        Map<String, Integer> seqMap = StreamEx.of("a", "bb", "ccc").toMap(String::length);
+        Map<String, Integer> parallelMap = StreamEx.of("a", "bb", "ccc").parallel().toMap(String::length);
+        assertEquals(expected, seqMap);
+        assertEquals(expected, parallelMap);
+        assertFalse(seqMap instanceof ConcurrentMap);
+        assertTrue(parallelMap instanceof ConcurrentMap);
+        
+        Map<Integer, String> expected2 = new HashMap<>();
+        expected2.put(1, "a");
+        expected2.put(2, "bb");
+        expected2.put(3, "ccc");
+        Map<Integer, String> seqMap2 = StreamEx.of("a", "bb", "ccc").toMap(String::length, Function.identity());
+        Map<Integer, String> parallelMap2 = StreamEx.of("a", "bb", "ccc").parallel().toMap(String::length, Function.identity());
+        assertEquals(expected2, seqMap2);
+        assertEquals(expected2, parallelMap2);
+        assertFalse(seqMap2 instanceof ConcurrentMap);
+        assertTrue(parallelMap2 instanceof ConcurrentMap);
     }
     
     @Test
