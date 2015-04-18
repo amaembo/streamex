@@ -43,6 +43,19 @@ public class IntStreamExTest {
         IntStream stream = IntStreamEx.of(1, 2, 3);
         assertSame(stream, IntStreamEx.of(stream));
     }
+    
+    @Test
+    public void testCreateFromArray() {
+        assertArrayEquals(new int[] {}, IntStreamEx.ofIndices(new int[0]).toArray());
+        assertArrayEquals(new int[] {0,1,2}, IntStreamEx.ofIndices(new int[] {5,-100,1}).toArray());
+        assertArrayEquals(new int[] {0,2}, IntStreamEx.ofIndices(new int[] {5,-100,1}, i -> i > 0).toArray());
+        assertArrayEquals(new int[] {0,1,2}, IntStreamEx.ofIndices(new long[] {5,-100,1}).toArray());
+        assertArrayEquals(new int[] {0,2}, IntStreamEx.ofIndices(new long[] {5,-100,1}, i -> i > 0).toArray());
+        assertArrayEquals(new int[] {0,1,2}, IntStreamEx.ofIndices(new double[] {5,-100,1}).toArray());
+        assertArrayEquals(new int[] {0,2}, IntStreamEx.ofIndices(new double[] {5,-100,1}, i -> i > 0).toArray());
+        assertArrayEquals(new int[] {0,1,2}, IntStreamEx.ofIndices(new String[] {"a", "b", "c"}).toArray());
+        assertArrayEquals(new int[] {1}, IntStreamEx.ofIndices(new String[] {"a", "", "c"}, String::isEmpty).toArray());
+    }
 
     @Test
     public void testBasics() {
