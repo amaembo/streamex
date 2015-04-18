@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -107,6 +109,42 @@ public class StreamExTest {
         expected3.put(3, "ccc");
         Map<Integer, String> seqMap3 = StreamEx.of("a", "bb", "ccc", "bb").toMap(String::length, Function.identity(), String::concat);
         Map<Integer, String> parallelMap3 = StreamEx.of("a", "bb", "ccc", "bb").parallel().toMap(String::length, Function.identity(), String::concat);
+        assertEquals(expected3, seqMap3);
+        assertEquals(expected3, parallelMap3);
+        assertFalse(seqMap3 instanceof ConcurrentMap);
+        assertTrue(parallelMap3 instanceof ConcurrentMap);
+    }
+    
+    @Test
+    public void testToSortedMap() {
+        SortedMap<String, Integer> expected = new TreeMap<>();
+        expected.put("a", 1);
+        expected.put("bb", 2);
+        expected.put("ccc", 3);
+        SortedMap<String, Integer> seqMap = StreamEx.of("a", "bb", "ccc").toSortedMap(String::length);
+        SortedMap<String, Integer> parallelMap = StreamEx.of("a", "bb", "ccc").parallel().toSortedMap(String::length);
+        assertEquals(expected, seqMap);
+        assertEquals(expected, parallelMap);
+        assertFalse(seqMap instanceof ConcurrentMap);
+        assertTrue(parallelMap instanceof ConcurrentMap);
+        
+        SortedMap<Integer, String> expected2 = new TreeMap<>();
+        expected2.put(1, "a");
+        expected2.put(2, "bb");
+        expected2.put(3, "ccc");
+        SortedMap<Integer, String> seqMap2 = StreamEx.of("a", "bb", "ccc").toSortedMap(String::length, Function.identity());
+        SortedMap<Integer, String> parallelMap2 = StreamEx.of("a", "bb", "ccc").parallel().toSortedMap(String::length, Function.identity());
+        assertEquals(expected2, seqMap2);
+        assertEquals(expected2, parallelMap2);
+        assertFalse(seqMap2 instanceof ConcurrentMap);
+        assertTrue(parallelMap2 instanceof ConcurrentMap);
+        
+        SortedMap<Integer, String> expected3 = new TreeMap<>();
+        expected3.put(1, "a");
+        expected3.put(2, "bbbb");
+        expected3.put(3, "ccc");
+        SortedMap<Integer, String> seqMap3 = StreamEx.of("a", "bb", "ccc", "bb").toSortedMap(String::length, Function.identity(), String::concat);
+        SortedMap<Integer, String> parallelMap3 = StreamEx.of("a", "bb", "ccc", "bb").parallel().toSortedMap(String::length, Function.identity(), String::concat);
         assertEquals(expected3, seqMap3);
         assertEquals(expected3, parallelMap3);
         assertFalse(seqMap3 instanceof ConcurrentMap);

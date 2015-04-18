@@ -25,8 +25,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -141,13 +144,34 @@ public class EntryStreamTest {
 
     @Test
     public void testToMap() {
-        TreeMap<String, Integer> result = EntryStream.of(createMap()).toMap(TreeMap::new);
+        TreeMap<String, Integer> result = EntryStream.of(createMap()).toCustomMap(TreeMap::new);
         assertEquals(createMap(), result);
         
         Map<String, Integer> expected = new HashMap<>();
         expected.put("aaa", 3);
         expected.put("bb", 4);
-        assertEquals(expected, StreamEx.of("aaa", "bb", "bb").mapToEntry(String::length).toMap(Integer::sum, HashMap::new));
+        assertEquals(expected, StreamEx.of("aaa", "bb", "bb").mapToEntry(String::length).toCustomMap(Integer::sum, HashMap::new));
+        Map<String, Integer> map = StreamEx.of("aaa", "bb", "bb").mapToEntry(String::length).toMap(Integer::sum);
+        assertEquals(expected, map);
+        assertFalse(map instanceof ConcurrentMap);
+        map = StreamEx.of("aaa", "bb", "bb").mapToEntry(String::length).parallel().toMap(Integer::sum);
+        assertTrue(map instanceof ConcurrentMap);
+        assertEquals(expected, map);
+        SortedMap<String, Integer> sortedMap = StreamEx.of("aaa", "bb", "bb").mapToEntry(String::length).toSortedMap(Integer::sum);
+        assertEquals(expected, sortedMap);
+        assertFalse(sortedMap instanceof ConcurrentMap);
+        sortedMap = StreamEx.of("aaa", "bb", "bb").mapToEntry(String::length).parallel().toSortedMap(Integer::sum);
+        assertEquals(expected, sortedMap);
+        assertTrue(sortedMap instanceof ConcurrentMap);
+        
+        assertEquals(createMap(), EntryStream.of(createMap()).parallel().toMap());
+        assertTrue(EntryStream.of(createMap()).parallel().toMap() instanceof ConcurrentMap);
+        sortedMap = EntryStream.of(createMap()).toSortedMap();
+        assertEquals(createMap(), sortedMap);
+        assertFalse(sortedMap instanceof ConcurrentMap);
+        sortedMap = EntryStream.of(createMap()).parallel().toSortedMap();
+        assertEquals(createMap(), sortedMap);
+        assertTrue(sortedMap instanceof ConcurrentMap);
     }
     
     @Test
@@ -169,7 +193,7 @@ public class EntryStreamTest {
     public void testSetValue() {
         assertEquals(Collections.singletonMap("aaa", 6), EntryStream.of("aaa", 5).peek(e -> e.setValue(6)).toMap());
     }
-
+    
     @Test
     public void testGrouping() {
         Map<String, Integer> data = new LinkedHashMap<>();
@@ -200,9 +224,23 @@ public class EntryStreamTest {
         Map<String, Set<Integer>> result = EntryStream.of(data).mapKeys(k -> k.substring(0, 1))
                 .groupingTo(HashSet::new);
         assertEquals(expected, result);
-        TreeMap<String, Set<Integer>> resultTree = EntryStream.of(data).mapKeys(k -> k.substring(0, 1))
+        assertFalse(result instanceof ConcurrentMap);
+        result = EntryStream.of(data).mapKeys(k -> k.substring(0, 1)).parallel()
+                .groupingTo(HashSet::new);
+        assertEquals(expected, result);
+        assertTrue(result instanceof ConcurrentMap);
+        SortedMap<String, Set<Integer>> resultTree = EntryStream.of(data).mapKeys(k -> k.substring(0, 1))
                 .groupingTo(TreeMap::new, HashSet::new);
         assertEquals(expected, resultTree);
+        assertFalse(resultTree instanceof ConcurrentMap);
+        resultTree = EntryStream.of(data).mapKeys(k -> k.substring(0, 1)).parallel()
+                .groupingTo(TreeMap::new, HashSet::new);
+        assertEquals(expected, resultTree);
+        assertFalse(resultTree instanceof ConcurrentMap);
+        resultTree = EntryStream.of(data).mapKeys(k -> k.substring(0, 1)).parallel()
+                .groupingTo(ConcurrentSkipListMap::new, HashSet::new);
+        assertEquals(expected, resultTree);
+        assertTrue(resultTree instanceof ConcurrentMap);
     }
 
     @Test
@@ -254,7 +292,7 @@ public class EntryStreamTest {
     
     @Test(expected=IllegalStateException.class)
     public void testCollision() {
-        StreamEx.of("aa", "aa").mapToEntry(String::length).toMap(LinkedHashMap::new);
+        StreamEx.of("aa", "aa").mapToEntry(String::length).toCustomMap(LinkedHashMap::new);
     }
 
     @Test

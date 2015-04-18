@@ -50,6 +50,12 @@ import java.util.stream.Stream;
 
     abstract S supply(Stream<T> stream);
 
+    static <V> BinaryOperator<V> throwingMerger() {
+        return (u, v) -> {
+            throw new IllegalStateException(String.format("Duplicate key %s", u));
+        };
+    }
+
     @Override
     public Iterator<T> iterator() {
         return stream.iterator();
@@ -447,4 +453,5 @@ import java.util.stream.Stream;
     public <C extends Collection<T>> C toCollection(Supplier<C> collectionFactory) {
         return stream.collect(Collectors.toCollection(collectionFactory));
     }
+
 }
