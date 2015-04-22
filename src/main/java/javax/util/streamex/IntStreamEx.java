@@ -381,6 +381,7 @@ public class IntStreamEx implements IntStream {
      * @param list list to get the stream of its indices
      * @return a sequential {@code IntStreamEx} for the range of {@code int}
      *         elements starting from 0 to (not inclusive) list.size()
+     * @since 0.1.1
      */
     public static <T> IntStreamEx ofIndices(List<T> list) {
         return range(0, list.size());
@@ -398,9 +399,10 @@ public class IntStreamEx implements IntStream {
      * @param list list to get the stream of its indices
      * @param predicate a predicate to test list elements 
      * @return a sequential {@code IntStreamEx} of the matched list indices
+     * @since 0.1.1
      */
     public static <T> IntStreamEx ofIndices(List<T> list, Predicate<T> predicate) {
-        return range(0, list.size()).filter(i -> predicate.test(list.get(i)));
+        return new IntStreamEx(IntStream.range(0, list.size()).filter(i -> predicate.test(list.get(i))));
     }
     
     /**
@@ -411,6 +413,7 @@ public class IntStreamEx implements IntStream {
      * @param array array to get the stream of its indices
      * @return a sequential {@code IntStreamEx} for the range of {@code int}
      *         elements starting from 0 to (not inclusive) array.length
+     * @since 0.1.1
      */
     public static <T> IntStreamEx ofIndices(T[] array) {
         return range(0, array.length);
@@ -424,9 +427,10 @@ public class IntStreamEx implements IntStream {
      * @param array array to get the stream of its indices
      * @param predicate a predicate to test array elements 
      * @return a sequential {@code IntStreamEx} of the matched array indices
+     * @since 0.1.1
      */
     public static <T> IntStreamEx ofIndices(T[] array, Predicate<T> predicate) {
-        return range(0, array.length).filter(i -> predicate.test(array[i]));
+        return new IntStreamEx(IntStream.range(0, array.length).filter(i -> predicate.test(array[i])));
     }
     
     /**
@@ -436,6 +440,7 @@ public class IntStreamEx implements IntStream {
      * @param array array to get the stream of its indices
      * @return a sequential {@code IntStreamEx} for the range of {@code int}
      *         elements starting from 0 to (not inclusive) array.length
+     * @since 0.1.1
      */
     public static IntStreamEx ofIndices(int[] array) {
         return range(0, array.length);
@@ -448,9 +453,10 @@ public class IntStreamEx implements IntStream {
      * @param array array to get the stream of its indices
      * @param predicate a predicate to test array elements 
      * @return a sequential {@code IntStreamEx} of the matched array indices
+     * @since 0.1.1
      */
     public static IntStreamEx ofIndices(int[] array, IntPredicate predicate) {
-        return range(0, array.length).filter(i -> predicate.test(array[i]));
+        return new IntStreamEx(IntStream.range(0, array.length).filter(i -> predicate.test(array[i])));
     }
     
     /**
@@ -460,6 +466,7 @@ public class IntStreamEx implements IntStream {
      * @param array array to get the stream of its indices
      * @return a sequential {@code IntStreamEx} for the range of {@code int}
      *         elements starting from 0 to (not inclusive) array.length
+     * @since 0.1.1
      */
     public static IntStreamEx ofIndices(long[] array) {
         return range(0, array.length);
@@ -472,9 +479,10 @@ public class IntStreamEx implements IntStream {
      * @param array array to get the stream of its indices
      * @param predicate a predicate to test array elements 
      * @return a sequential {@code IntStreamEx} of the matched array indices
+     * @since 0.1.1
      */
     public static IntStreamEx ofIndices(long[] array, LongPredicate predicate) {
-        return range(0, array.length).filter(i -> predicate.test(array[i]));
+        return new IntStreamEx(IntStream.range(0, array.length).filter(i -> predicate.test(array[i])));
     }
     
     /**
@@ -484,6 +492,7 @@ public class IntStreamEx implements IntStream {
      * @param array array to get the stream of its indices
      * @return a sequential {@code IntStreamEx} for the range of {@code int}
      *         elements starting from 0 to (not inclusive) array.length
+     * @since 0.1.1
      */
     public static IntStreamEx ofIndices(double[] array) {
         return range(0, array.length);
@@ -496,9 +505,10 @@ public class IntStreamEx implements IntStream {
      * @param array array to get the stream of its indices
      * @param predicate a predicate to test array elements 
      * @return a sequential {@code IntStreamEx} of the matched array indices
+     * @since 0.1.1
      */
     public static IntStreamEx ofIndices(double[] array, DoublePredicate predicate) {
-        return range(0, array.length).filter(i -> predicate.test(array[i]));
+        return new IntStreamEx(IntStream.range(0, array.length).filter(i -> predicate.test(array[i])));
     }
     
     /**
