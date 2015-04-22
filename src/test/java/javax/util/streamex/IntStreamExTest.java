@@ -34,6 +34,7 @@ public class IntStreamExTest {
         assertArrayEquals(new int[] { 1 }, IntStreamEx.of(OptionalInt.of(1)).toArray());
         assertArrayEquals(new int[] {}, IntStreamEx.of(OptionalInt.empty()).toArray());
         assertArrayEquals(new int[] { 1, 2, 3 }, IntStreamEx.of(1, 2, 3).toArray());
+        assertArrayEquals(new int[] { 4, 6 }, IntStreamEx.of(new int[] {2, 4, 6, 8, 10}, 1, 3).toArray());
         assertArrayEquals(new int[] { 1, 2, 3 }, IntStreamEx.of(IntStream.of(1, 2, 3)).toArray());
         assertArrayEquals(new int[] { 1, 2, 3 }, IntStreamEx.of(Arrays.asList(1, 2, 3)).toArray());
         assertArrayEquals(new int[] { 0, 1, 2 }, IntStreamEx.range(3).toArray());

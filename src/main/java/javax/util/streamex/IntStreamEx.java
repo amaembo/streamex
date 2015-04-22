@@ -15,6 +15,7 @@
  */
 package javax.util.streamex;
 
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Comparator;
@@ -369,6 +370,25 @@ public class IntStreamEx implements IntStream {
      */
     public static IntStreamEx of(int... elements) {
         return new IntStreamEx(IntStream.of(elements));
+    }
+    
+    /**
+     * Returns a sequential {@link IntStreamEx} with the specified range of the
+     * specified array as its source.
+     *
+     * @param array the array, assumed to be unmodified during use
+     * @param startInclusive the first index to cover, inclusive
+     * @param endExclusive index immediately past the last index to cover
+     * @return an {@code IntStreamEx} for the array range
+     * @throws ArrayIndexOutOfBoundsException if {@code startInclusive} is
+     *         negative, {@code endExclusive} is less than
+     *         {@code startInclusive}, or {@code endExclusive} is greater than
+     *         the array size
+     * @since 0.1.1
+     * @see Arrays#stream(int[], int, int)
+     */
+    public static IntStreamEx of(int[] array, int startInclusive, int endExclusive) {
+        return new IntStreamEx(Arrays.stream(array, startInclusive, endExclusive));
     }
     
     /**

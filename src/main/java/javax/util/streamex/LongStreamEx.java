@@ -15,6 +15,7 @@
  */
 package javax.util.streamex;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.LongSummaryStatistics;
@@ -361,6 +362,25 @@ public class LongStreamEx implements LongStream {
         return new LongStreamEx(LongStream.of(elements));
     }
 
+    /**
+     * Returns a sequential {@link LongStreamEx} with the specified range of the
+     * specified array as its source.
+     *
+     * @param array the array, assumed to be unmodified during use
+     * @param startInclusive the first index to cover, inclusive
+     * @param endExclusive index immediately past the last index to cover
+     * @return an {@code LongStreamEx} for the array range
+     * @throws ArrayIndexOutOfBoundsException if {@code startInclusive} is
+     *         negative, {@code endExclusive} is less than
+     *         {@code startInclusive}, or {@code endExclusive} is greater than
+     *         the array size
+     * @since 0.1.1
+     * @see Arrays#stream(long[], int, int)
+     */
+    public static LongStreamEx of(long[] array, int startInclusive, int endExclusive) {
+        return new LongStreamEx(Arrays.stream(array, startInclusive, endExclusive));
+    }
+    
     /**
      * Returns a {@code LongStreamEx} object which wraps given {@link LongStream}
      * @param stream original stream
