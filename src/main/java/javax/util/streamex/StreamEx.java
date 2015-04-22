@@ -529,7 +529,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *            the values to append to the stream
      * @return the new stream
      */
-    public StreamEx<T> append(@SuppressWarnings("unchecked") T... values) {
+    @SuppressWarnings("unchecked")
+    public StreamEx<T> append(T... values) {
         return append(Stream.of(values));
     }
 
@@ -541,7 +542,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *            the values to prepend to the stream
      * @return the new stream
      */
-    public StreamEx<T> prepend(@SuppressWarnings("unchecked") T... values) {
+    @SuppressWarnings("unchecked")
+    public StreamEx<T> prepend(T... values) {
         return prepend(Stream.of(values));
     }
 
