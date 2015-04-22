@@ -384,7 +384,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.1
      */
     public static <T> IntStreamEx ofIndices(List<T> list) {
-        return range(0, list.size());
+        return range(list.size());
     }
 
     /**
@@ -416,7 +416,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.1
      */
     public static <T> IntStreamEx ofIndices(T[] array) {
-        return range(0, array.length);
+        return range(array.length);
     }
 
     /**
@@ -443,7 +443,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.1
      */
     public static IntStreamEx ofIndices(int[] array) {
-        return range(0, array.length);
+        return range(array.length);
     }
     
     /**
@@ -469,7 +469,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.1
      */
     public static IntStreamEx ofIndices(long[] array) {
-        return range(0, array.length);
+        return range(array.length);
     }
     
     /**
@@ -495,7 +495,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.1
      */
     public static IntStreamEx ofIndices(double[] array) {
-        return range(0, array.length);
+        return range(array.length);
     }
     
     /**
@@ -661,6 +661,21 @@ public class IntStreamEx implements IntStream {
     }
 
     /**
+     * Returns a sequential ordered {@code IntStreamEx} from 0
+     * (inclusive) to {@code endExclusive} (exclusive) by an incremental step of
+     * {@code 1}.
+     *
+     * @param endExclusive the exclusive upper bound
+     * @return a sequential {@code IntStreamEx} for the range of {@code int}
+     *         elements
+     * @see #range(int, int)
+     * @since 0.1.1
+     */
+    public static IntStreamEx range(int endExclusive) {
+        return new IntStreamEx(IntStream.range(0, endExclusive));
+    }
+
+    /**
      * Returns a sequential ordered {@code IntStreamEx} from {@code startInclusive}
      * (inclusive) to {@code endExclusive} (exclusive) by an incremental step of
      * {@code 1}.
@@ -669,11 +684,23 @@ public class IntStreamEx implements IntStream {
      * @param endExclusive the exclusive upper bound
      * @return a sequential {@code IntStreamEx} for the range of {@code int}
      *         elements
+     * @see IntStream#range(int, int)
      */
     public static IntStreamEx range(int startInclusive, int endExclusive) {
         return new IntStreamEx(IntStream.range(startInclusive, endExclusive));
     }
 
+    /**
+     * Returns a sequential ordered {@code IntStreamEx} from {@code startInclusive}
+     * (inclusive) to {@code endInclusive} (inclusive) by an incremental step of
+     * {@code 1}.
+     *
+     * @param startInclusive the (inclusive) initial value
+     * @param endInclusive the inclusive upper bound
+     * @return a sequential {@code IntStreamEx} for the range of {@code int}
+     *         elements
+     * @see IntStream#rangeClosed(int, int)
+     */
     public static IntStreamEx rangeClosed(int startInclusive, int endInclusive) {
         return new IntStreamEx(IntStream.rangeClosed(startInclusive, endInclusive));
     }

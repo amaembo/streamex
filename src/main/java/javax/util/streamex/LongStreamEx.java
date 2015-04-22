@@ -438,10 +438,47 @@ public class LongStreamEx implements LongStream {
         return new LongStreamEx(LongStream.generate(s));
     }
 
+    /**
+     * Returns a sequential ordered {@code LongStreamEx} from 0
+     * (inclusive) to {@code endExclusive} (exclusive) by an incremental step of
+     * {@code 1}.
+     *
+     * @param endExclusive the exclusive upper bound
+     * @return a sequential {@code LongStreamEx} for the range of {@code int}
+     *         elements
+     * @see #range(long, long)
+     * @since 0.1.1
+     */
+    public static LongStreamEx range(long endExclusive) {
+        return new LongStreamEx(LongStream.range(0, endExclusive));
+    }
+
+    /**
+     * Returns a sequential ordered {@code LongStreamEx} from {@code startInclusive}
+     * (inclusive) to {@code endExclusive} (exclusive) by an incremental step of
+     * {@code 1}.
+     *
+     * @param startInclusive the (inclusive) initial value
+     * @param endExclusive the exclusive upper bound
+     * @return a sequential {@code LongStreamEx} for the range of {@code long}
+     *         elements
+     * @see LongStream#range(long, long)
+     */
     public static LongStreamEx range(long startInclusive, long endExclusive) {
         return new LongStreamEx(LongStream.range(startInclusive, endExclusive));
     }
 
+    /**
+     * Returns a sequential ordered {@code LongStreamEx} from {@code startInclusive}
+     * (inclusive) to {@code endInclusive} (inclusive) by an incremental step of
+     * {@code 1}.
+     *
+     * @param startInclusive the (inclusive) initial value
+     * @param endInclusive the inclusive upper bound
+     * @return a sequential {@code LongStreamEx} for the range of {@code long}
+     *         elements
+     * @see LongStream#rangeClosed(long, long)
+     */
     public static LongStreamEx rangeClosed(long startInclusive, long endInclusive) {
         return new LongStreamEx(LongStream.rangeClosed(startInclusive, endInclusive));
     }

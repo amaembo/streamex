@@ -32,7 +32,8 @@ public class LongStreamExTest {
         assertArrayEquals(new long[] { 1, 2, 3 }, LongStreamEx.of(1, 2, 3).toArray());
         assertArrayEquals(new long[] { 1, 2, 3 }, LongStreamEx.of(LongStream.of(1, 2, 3)).toArray());
         assertArrayEquals(new long[] { 1, 2, 3 }, LongStreamEx.of(Arrays.asList(1L, 2L, 3L)).toArray());
-        assertArrayEquals(new long[] { 1, 2, 3 }, LongStreamEx.range(1, 4).toArray());
+        assertArrayEquals(new long[] { 1, 2, 3 }, LongStreamEx.range(1L, 4L).toArray());
+        assertArrayEquals(new long[] { 0, 1, 2 }, LongStreamEx.range(3L).toArray());
         assertArrayEquals(new long[] { 1, 2, 3 }, LongStreamEx.rangeClosed(1, 3).toArray());
         assertArrayEquals(new long[] { 1, 2, 4, 8, 16 }, LongStreamEx.iterate(1, x -> x*2).limit(5).toArray());
         assertArrayEquals(new long[] { 1, 1, 1, 1 }, LongStreamEx.generate(() -> 1).limit(4).toArray());
