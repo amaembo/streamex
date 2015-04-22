@@ -32,6 +32,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -84,6 +85,21 @@ public class StreamExTest {
         }
         assertEquals(1, i.get());
         assertEquals(Arrays.asList(1, 2), StreamEx.of("a", "bb").map(String::length).toList());
+        assertFalse(StreamEx.empty().findAny().isPresent());
+        assertEquals("a", StreamEx.of("a").findAny().get());
+        assertFalse(StreamEx.empty().findFirst().isPresent());
+        assertEquals("a", StreamEx.of("a", "b").findFirst().get());
+        assertEquals(Arrays.asList("b", "c"), StreamEx.of("a", "b", "c").skip(1).toList());
+        
+        AtomicBoolean b = new AtomicBoolean(false);
+        try(Stream<String> stream = StreamEx.of("a").onClose(() -> b.set(true)))
+        {
+            assertFalse(b.get());
+            assertEquals(1, stream.count());
+            assertFalse(b.get());
+        }
+        assertTrue(b.get());
+                
     }
     
     @Test

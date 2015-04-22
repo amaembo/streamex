@@ -45,6 +45,7 @@ public class IntStreamExTest {
         assertArrayEquals(new int[] { 'a', 'b', 'c' }, IntStreamEx.ofChars("abc").toArray());
         assertEquals(10, IntStreamEx.of(new Random(), 10).count());
         assertTrue(IntStreamEx.of(new Random(), 100, 1, 10).allMatch(x -> x >= 1 && x < 10));
+        assertArrayEquals(IntStreamEx.of(new Random(1), 100, 1, 10).toArray(), IntStreamEx.of(new Random(1), 1, 10).limit(100).toArray());
         
         IntStream stream = IntStreamEx.of(1, 2, 3);
         assertSame(stream, IntStreamEx.of(stream));
@@ -87,6 +88,7 @@ public class IntStreamExTest {
         assertArrayEquals(new long[] { 2, 4, 6 }, IntStreamEx.range(1, 4).mapToLong(x -> x*2).toArray());
         assertArrayEquals(new double[] { 2, 4, 6 }, IntStreamEx.range(1, 4).mapToDouble(x -> x*2).toArray(), 0.0);
         assertArrayEquals(new int[] { 1, 3 }, IntStreamEx.range(0, 5).filter(x -> x % 2 == 1).toArray());
+        assertEquals(6, IntStreamEx.of(1, 2, 3).reduce(Integer::sum).getAsInt());
     }
 
     @Test

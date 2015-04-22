@@ -41,6 +41,7 @@ public class DoubleStreamExTest {
         assertArrayEquals(new double[] { 1, 1, 1, 1 }, DoubleStreamEx.generate(() -> 1).limit(4).toArray(), 0.0);
         assertEquals(10, DoubleStreamEx.of(new Random(), 10).count());
         assertTrue(DoubleStreamEx.of(new Random(), 100, 1, 10).allMatch(x -> x >= 1 && x < 10));
+        assertArrayEquals(DoubleStreamEx.of(new Random(1), 100, 1, 10).toArray(), DoubleStreamEx.of(new Random(1), 1, 10).limit(100).toArray(), 0.0);
 
         DoubleStream stream = DoubleStreamEx.of(1, 2, 3);
         assertSame(stream, DoubleStreamEx.of(stream));
@@ -73,6 +74,7 @@ public class DoubleStreamExTest {
                 0.0);
         assertArrayEquals(new double[] { 1, 3 }, IntStreamEx.range(0, 5).asDoubleStream().filter(x -> x % 2 == 1)
                 .toArray(), 0.0);
+        assertEquals(6.0, DoubleStreamEx.of(1.0, 2.0, 3.0).reduce(Double::sum).getAsDouble(), 0.0);
     }
 
     @Test

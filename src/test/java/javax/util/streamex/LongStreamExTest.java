@@ -44,6 +44,7 @@ public class LongStreamExTest {
         assertArrayEquals(new long[] { 1, 1, 1, 1 }, LongStreamEx.generate(() -> 1).limit(4).toArray());
         assertEquals(10, LongStreamEx.of(new Random(), 10).count());
         assertTrue(LongStreamEx.of(new Random(), 100, 1, 10).allMatch(x -> x >= 1 && x < 10));
+        assertArrayEquals(LongStreamEx.of(new Random(1), 100, 1, 10).toArray(), LongStreamEx.of(new Random(1), 1, 10).limit(100).toArray());
         
         LongStream stream = LongStreamEx.of(1, 2, 3);
         assertSame(stream, LongStreamEx.of(stream));
@@ -71,6 +72,7 @@ public class LongStreamExTest {
         assertArrayEquals(new long[] { 2, 4, 6 }, LongStreamEx.range(1, 4).map(x -> x*2).toArray());
         assertArrayEquals(new double[] { 2, 4, 6 }, LongStreamEx.range(1, 4).mapToDouble(x -> x*2).toArray(), 0.0);
         assertArrayEquals(new long[] { 1, 3 }, LongStreamEx.range(0, 5).filter(x -> x % 2 == 1).toArray());
+        assertEquals(6, LongStreamEx.of(1, 2, 3).reduce(Long::sum).getAsLong());
     }
 
     @Test
