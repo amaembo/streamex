@@ -58,7 +58,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     @Override
     EntryStream<K, V> supply(Stream<Map.Entry<K, V>> stream) {
         return new EntryStream<>(stream);
-    };
+    }
 
     <T> EntryStream(Stream<T> stream, Function<T, K> keyMapper, Function<T, V> valueMapper) {
         this(stream.map(e -> new SimpleEntry<>(keyMapper.apply(e), valueMapper.apply(e))));
