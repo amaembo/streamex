@@ -7,7 +7,7 @@
 * Added IntStreamEx#range(int) and LongStreamEx#range(long)
 * Added StreamEx#ofNullable
 * Added construction of the streams from optionals
-* Added construction of the primitive streams from array subrange
+* Added construction of the streams from array subrange
 * Updated documentation
 
 ### 0.1.0

@@ -17,6 +17,7 @@ package javax.util.streamex;
 
 import java.io.BufferedReader;
 import java.io.Reader;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -592,6 +593,26 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     @SafeVarargs
     public static <T> StreamEx<T> of(T... elements) {
         return new StreamEx<>(Stream.of(elements));
+    }
+    
+    /**
+     * Returns a sequential {@link StreamEx} with the specified range of the
+     * specified array as its source.
+     *
+     * @param <T> the type of stream elements
+     * @param array the array, assumed to be unmodified during use
+     * @param startInclusive the first index to cover, inclusive
+     * @param endExclusive index immediately past the last index to cover
+     * @return a {@code StreamEx} for the array range
+     * @throws ArrayIndexOutOfBoundsException if {@code startInclusive} is
+     *         negative, {@code endExclusive} is less than
+     *         {@code startInclusive}, or {@code endExclusive} is greater than
+     *         the array size
+     * @since 0.1.1
+     * @see Arrays#stream(Object[], int, int)
+     */
+    public static <T> StreamEx<T> of(T[] array, int startInclusive, int endExclusive) {
+        return new StreamEx<>(Arrays.stream(array, startInclusive, endExclusive));
     }
 
     /**
