@@ -16,6 +16,7 @@
 package javax.util.streamex;
 
 import java.util.Arrays;
+import java.util.OptionalLong;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.LongStream;
@@ -30,6 +31,8 @@ public class LongStreamExTest {
         assertArrayEquals(new long[] {}, LongStreamEx.empty().toArray());
         assertArrayEquals(new long[] {}, LongStreamEx.empty().toArray()); // double check is intended
         assertArrayEquals(new long[] { 1 }, LongStreamEx.of(1).toArray());
+        assertArrayEquals(new long[] { 1 }, LongStreamEx.of(OptionalLong.of(1)).toArray());
+        assertArrayEquals(new long[] {}, LongStreamEx.of(OptionalLong.empty()).toArray());
         assertArrayEquals(new long[] { 1, 2, 3 }, LongStreamEx.of(1, 2, 3).toArray());
         assertArrayEquals(new long[] { 1, 2, 3 }, LongStreamEx.of(LongStream.of(1, 2, 3)).toArray());
         assertArrayEquals(new long[] { 1, 2, 3 }, LongStreamEx.of(Arrays.asList(1L, 2L, 3L)).toArray());

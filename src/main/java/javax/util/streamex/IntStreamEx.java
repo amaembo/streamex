@@ -520,6 +520,18 @@ public class IntStreamEx implements IntStream {
     }
 
     /**
+     * Returns a sequential {@code IntStreamEx} containing an {@link OptionalInt} value, if
+     * present, otherwise returns an empty {@code IntStreamEx}.
+     *
+     * @param optional the optional to create a stream of
+     * @return a stream with an {@code OptionalInt} value if present, otherwise an empty stream
+     * @since 0.1.1
+     */
+    public static IntStreamEx of(OptionalInt optional) {
+        return optional.isPresent() ? of(optional.getAsInt()) : empty();
+    }
+    
+    /**
      * Returns an {@code IntStreamEx} of indices for which the specified {@link BitSet}
      * contains a bit in the set state. The indices are returned
      * in order, from lowest to highest. The size of the stream

@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
@@ -618,6 +619,33 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public static <T> StreamEx<T> of(Stream<T> stream) {
         return stream instanceof StreamEx ? (StreamEx<T>) stream : new StreamEx<>(stream);
+    }
+    
+    /**
+     * Returns a sequential {@code StreamEx} containing an {@link Optional} value, if
+     * present, otherwise returns an empty {@code StreamEx}.
+     *
+     * @param <T> the type of stream elements
+     * @param optional the optional to create a stream of
+     * @return a stream with an {@code Optional} value if present, otherwise an empty stream
+     * @since 0.1.1
+     */
+    public static <T> StreamEx<T> of(Optional<T> optional) {
+        return optional.isPresent() ? of(optional.get()) : empty();
+    }
+    
+    /**
+     * Returns a sequential {@code StreamEx} containing a single element, if
+     * non-null, otherwise returns an empty {@code StreamEx}.
+     *
+     * @param element the single element
+     * @param <T> the type of stream elements
+     * @return a stream with a single element if the specified element
+     *         is non-null, otherwise an empty stream
+     * @since 0.1.1
+     */
+    public static <T> StreamEx<T> ofNullable(T element) {
+        return element == null ? empty() : of(element);
     }
 
     public static StreamEx<String> ofLines(BufferedReader reader) {

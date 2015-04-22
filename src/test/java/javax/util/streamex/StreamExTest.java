@@ -26,6 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -47,6 +48,11 @@ public class StreamExTest {
         assertEquals(Arrays.asList(), StreamEx.empty().toList());
         assertEquals(Arrays.asList(), StreamEx.empty().toList()); // double check is intended
         assertEquals(Arrays.asList("a"), StreamEx.of("a").toList());
+        assertEquals(Arrays.asList("a"), StreamEx.of(Optional.of("a")).toList());
+        assertEquals(Arrays.asList(), StreamEx.of(Optional.ofNullable(null)).toList());
+        assertEquals(Arrays.asList(), StreamEx.ofNullable(null).toList());
+        assertEquals(Arrays.asList("a"), StreamEx.ofNullable("a").toList());
+        assertEquals(Arrays.asList((String)null), StreamEx.of((String)null).toList());
         assertEquals(Arrays.asList("a", "b"), StreamEx.of("a", "b").toList());
         assertEquals(Arrays.asList("a", "b"), StreamEx.of(Arrays.asList("a", "b")).toList());
         assertEquals(Arrays.asList("a", "b"), StreamEx.of(Arrays.asList("a", "b").stream()).toList());

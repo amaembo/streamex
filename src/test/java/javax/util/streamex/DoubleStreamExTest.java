@@ -16,6 +16,7 @@
 package javax.util.streamex;
 
 import java.util.Arrays;
+import java.util.OptionalDouble;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.DoubleStream;
@@ -30,6 +31,8 @@ public class DoubleStreamExTest {
         assertArrayEquals(new double[] {}, DoubleStreamEx.empty().toArray(), 0.0);
         assertArrayEquals(new double[] {}, DoubleStreamEx.empty().toArray(), 0.0); // double check is intended
         assertArrayEquals(new double[] { 1 }, DoubleStreamEx.of(1).toArray(), 0.0);
+        assertArrayEquals(new double[] { 1 }, DoubleStreamEx.of(OptionalDouble.of(1)).toArray(), 0.0);
+        assertArrayEquals(new double[] {}, DoubleStreamEx.of(OptionalDouble.empty()).toArray(), 0.0);
         assertArrayEquals(new double[] { 1, 2, 3 }, DoubleStreamEx.of(1, 2, 3).toArray(), 0.0);
         assertArrayEquals(new double[] { 1, 2, 3 }, DoubleStreamEx.of(DoubleStream.of(1, 2, 3)).toArray(), 0.0);
         assertArrayEquals(new double[] { 1, 2, 3 }, DoubleStreamEx.of(Arrays.asList(1.0, 2.0, 3.0)).toArray(), 0.0);

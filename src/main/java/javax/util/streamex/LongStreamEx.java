@@ -371,6 +371,18 @@ public class LongStreamEx implements LongStream {
         return stream instanceof LongStreamEx ? (LongStreamEx) stream : new LongStreamEx(stream);
     }
 
+    /**
+     * Returns a sequential {@code LongStreamEx} containing an {@link OptionalLong} value, if
+     * present, otherwise returns an empty {@code LongStreamEx}.
+     *
+     * @param optional the optional to create a stream of
+     * @return a stream with an {@code OptionalLong} value if present, otherwise an empty stream
+     * @since 0.1.1
+     */
+    public static LongStreamEx of(OptionalLong optional) {
+        return optional.isPresent() ? of(optional.getAsLong()) : empty();
+    }
+    
     public static LongStreamEx of(Collection<Long> c) {
         return new LongStreamEx(c.stream().mapToLong(Long::longValue));
     }

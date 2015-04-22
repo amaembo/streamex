@@ -354,6 +354,18 @@ public class DoubleStreamEx implements DoubleStream {
         return stream instanceof DoubleStreamEx ? (DoubleStreamEx) stream : new DoubleStreamEx(stream);
     }
 
+    /**
+     * Returns a sequential {@code DoubleStreamEx} containing an {@link OptionalDouble} value, if
+     * present, otherwise returns an empty {@code DoubleStreamEx}.
+     *
+     * @param optional the optional to create a stream of
+     * @return a stream with an {@code OptionalDouble} value if present, otherwise an empty stream
+     * @since 0.1.1
+     */
+    public static DoubleStreamEx of(OptionalDouble optional) {
+        return optional.isPresent() ? of(optional.getAsDouble()) : empty();
+    }
+    
     public static DoubleStreamEx of(Collection<Double> c) {
         return new DoubleStreamEx(c.stream().mapToDouble(Double::doubleValue));
     }
