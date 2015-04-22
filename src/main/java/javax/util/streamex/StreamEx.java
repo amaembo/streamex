@@ -52,9 +52,6 @@ import java.util.zip.ZipFile;
  *            the type of the stream elements
  */
 public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
-    @SuppressWarnings("rawtypes")
-    private static final StreamEx EMPTY = StreamEx.of(Stream.empty());
-
     StreamEx(Stream<T> stream) {
         super(stream);
     }
@@ -560,9 +557,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *            the type of stream elements
      * @return an empty sequential stream
      */
-    @SuppressWarnings("unchecked")
     public static <T> StreamEx<T> empty() {
-        return StreamEx.EMPTY;
+        return new StreamEx<>(Stream.empty());
     }
 
     /**

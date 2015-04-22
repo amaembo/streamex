@@ -40,8 +40,6 @@ import java.util.stream.DoubleStream;
  * @author Tagir Valeev
  */
 public class DoubleStreamEx implements DoubleStream {
-    private static final DoubleStreamEx EMPTY = new DoubleStreamEx(DoubleStream.empty());
-
     private final DoubleStream stream;
 
     DoubleStreamEx(DoubleStream stream) {
@@ -323,7 +321,7 @@ public class DoubleStreamEx implements DoubleStream {
     }
 
     public static DoubleStreamEx empty() {
-        return EMPTY;
+        return new DoubleStreamEx(DoubleStream.empty());
     }
 
     /**

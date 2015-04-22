@@ -38,8 +38,9 @@ import org.junit.Test;
 public class EntryStreamTest {
     @Test
     public void testCreate() {
-        Map<String, Integer> data = createMap();
         assertEquals(0, EntryStream.empty().count());
+        assertEquals(0, EntryStream.empty().count());
+        Map<String, Integer> data = createMap();
         assertEquals(data, EntryStream.of(data).toMap());
         assertEquals(data, EntryStream.of(data.entrySet().stream()).toMap());
         Map<String, Integer> expected = new HashMap<>();

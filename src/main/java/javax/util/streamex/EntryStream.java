@@ -48,9 +48,6 @@ import java.util.stream.Stream;
  *            the type of {@code Entry} values
  */
 public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream<K, V>> {
-    @SuppressWarnings("rawtypes")
-    private static final EntryStream EMPTY = EntryStream.of(Stream.empty());
-
     EntryStream(Stream<Entry<K, V>> stream) {
         super(stream);
     }
@@ -494,9 +491,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return an empty sequential stream
      * @since 0.0.8
      */
-    @SuppressWarnings("unchecked")
     public static <K, V> EntryStream<K, V> empty() {
-        return EntryStream.EMPTY;
+        return new EntryStream<>(Stream.empty());
     }
 
     /**

@@ -46,8 +46,6 @@ import java.util.stream.IntStream;
  * @author Tagir Valeev
  */
 public class IntStreamEx implements IntStream {
-    private static final IntStreamEx EMPTY = new IntStreamEx(IntStream.empty());
-
     private final IntStream stream;
 
     IntStreamEx(IntStream stream) {
@@ -350,7 +348,7 @@ public class IntStreamEx implements IntStream {
     }
 
     public static IntStreamEx empty() {
-        return EMPTY;
+        return new IntStreamEx(IntStream.empty());
     }
 
     /**

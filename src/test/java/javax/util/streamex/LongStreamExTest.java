@@ -28,6 +28,7 @@ public class LongStreamExTest {
     @Test
     public void testCreate() {
         assertArrayEquals(new long[] {}, LongStreamEx.empty().toArray());
+        assertArrayEquals(new long[] {}, LongStreamEx.empty().toArray()); // double check is intended
         assertArrayEquals(new long[] { 1 }, LongStreamEx.of(1).toArray());
         assertArrayEquals(new long[] { 1, 2, 3 }, LongStreamEx.of(1, 2, 3).toArray());
         assertArrayEquals(new long[] { 1, 2, 3 }, LongStreamEx.of(LongStream.of(1, 2, 3)).toArray());

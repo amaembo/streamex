@@ -41,8 +41,6 @@ import java.util.stream.LongStream;
  * @author Tagir Valeev
  */
 public class LongStreamEx implements LongStream {
-    private static final LongStreamEx EMPTY = new LongStreamEx(LongStream.empty());
-
     private final LongStream stream;
 
     LongStreamEx(LongStream stream) {
@@ -340,7 +338,7 @@ public class LongStreamEx implements LongStream {
     }
 
     public static LongStreamEx empty() {
-        return EMPTY;
+        return new LongStreamEx(LongStream.empty());
     }
 
     /**

@@ -45,6 +45,7 @@ public class StreamExTest {
     @Test
     public void testCreate() {
         assertEquals(Arrays.asList(), StreamEx.empty().toList());
+        assertEquals(Arrays.asList(), StreamEx.empty().toList()); // double check is intended
         assertEquals(Arrays.asList("a"), StreamEx.of("a").toList());
         assertEquals(Arrays.asList("a", "b"), StreamEx.of("a", "b").toList());
         assertEquals(Arrays.asList("a", "b"), StreamEx.of(Arrays.asList("a", "b")).toList());

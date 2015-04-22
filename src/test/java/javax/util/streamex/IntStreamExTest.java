@@ -28,6 +28,7 @@ public class IntStreamExTest {
     @Test
     public void testCreate() {
         assertArrayEquals(new int[] {}, IntStreamEx.empty().toArray());
+        assertArrayEquals(new int[] {}, IntStreamEx.empty().toArray()); // double check is intended
         assertArrayEquals(new int[] { 1 }, IntStreamEx.of(1).toArray());
         assertArrayEquals(new int[] { 1, 2, 3 }, IntStreamEx.of(1, 2, 3).toArray());
         assertArrayEquals(new int[] { 1, 2, 3 }, IntStreamEx.of(IntStream.of(1, 2, 3)).toArray());
