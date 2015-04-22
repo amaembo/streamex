@@ -45,7 +45,7 @@ public class IntStreamExTest {
     }
     
     @Test
-    public void testCreateFromArray() {
+    public void testOfIndices() {
         assertArrayEquals(new int[] {}, IntStreamEx.ofIndices(new int[0]).toArray());
         assertArrayEquals(new int[] {0,1,2}, IntStreamEx.ofIndices(new int[] {5,-100,1}).toArray());
         assertArrayEquals(new int[] {0,2}, IntStreamEx.ofIndices(new int[] {5,-100,1}, i -> i > 0).toArray());
@@ -55,6 +55,8 @@ public class IntStreamExTest {
         assertArrayEquals(new int[] {0,2}, IntStreamEx.ofIndices(new double[] {5,-100,1}, i -> i > 0).toArray());
         assertArrayEquals(new int[] {0,1,2}, IntStreamEx.ofIndices(new String[] {"a", "b", "c"}).toArray());
         assertArrayEquals(new int[] {1}, IntStreamEx.ofIndices(new String[] {"a", "", "c"}, String::isEmpty).toArray());
+        assertArrayEquals(new int[] {0,1,2}, IntStreamEx.ofIndices(Arrays.asList("a", "b", "c")).toArray());
+        assertArrayEquals(new int[] {1}, IntStreamEx.ofIndices(Arrays.asList("a", "", "c"), String::isEmpty).toArray());
     }
 
     @Test

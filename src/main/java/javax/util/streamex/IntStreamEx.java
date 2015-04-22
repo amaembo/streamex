@@ -19,6 +19,7 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.IntSummaryStatistics;
+import java.util.List;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.Random;
@@ -370,6 +371,36 @@ public class IntStreamEx implements IntStream {
      */
     public static IntStreamEx of(int... elements) {
         return new IntStreamEx(IntStream.of(elements));
+    }
+    
+    /**
+     * Returns a sequential ordered {@code IntStreamEx} containing all the
+     * indices of the supplied list.
+     *
+     * @param <T> list element type
+     * @param list list to get the stream of its indices
+     * @return a sequential {@code IntStreamEx} for the range of {@code int}
+     *         elements starting from 0 to (not inclusive) list.size()
+     */
+    public static <T> IntStreamEx ofIndices(List<T> list) {
+        return range(0, list.size());
+    }
+
+    /**
+     * Returns a sequential ordered {@code IntStreamEx} containing all the
+     * indices of the supplied list elements which match given predicate.
+     * 
+     * The list elements are accessed using {@link List#get(int)}, so the
+     * list should provide fast random access. The list is assumed to be
+     * unmodifiable during the stream operations.
+     *
+     * @param <T> list element type
+     * @param list list to get the stream of its indices
+     * @param predicate a predicate to test list elements 
+     * @return a sequential {@code IntStreamEx} of the matched list indices
+     */
+    public static <T> IntStreamEx ofIndices(List<T> list, Predicate<T> predicate) {
+        return range(0, list.size()).filter(i -> predicate.test(list.get(i)));
     }
     
     /**
