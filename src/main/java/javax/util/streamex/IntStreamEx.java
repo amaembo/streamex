@@ -78,21 +78,58 @@ public class IntStreamEx implements IntStream {
         return new IntStreamEx(stream.filter(predicate));
     }
 
+    /**
+     * Returns an {@link IntStreamEx} consisting of the results of applying the
+     * given function to the elements of this stream.
+     *
+     * <p>This is an intermediate operation.
+     *
+     * @param mapper a non-interfering, stateless function to apply to each element
+     * @return the new stream
+     */
     @Override
     public IntStreamEx map(IntUnaryOperator mapper) {
         return new IntStreamEx(stream.map(mapper));
     }
 
+    /**
+     * Returns an object-valued {@link StreamEx} consisting of the results of
+     * applying the given function to the elements of this stream.
+     *
+     * <p>This is an intermediate operation.
+     *
+     * @param <U> the element type of the new stream
+     * @param mapper a non-interfering, stateless function to apply to each element
+     * @return the new stream
+     */
     @Override
     public <U> StreamEx<U> mapToObj(IntFunction<? extends U> mapper) {
         return new StreamEx<>(stream.mapToObj(mapper));
     }
 
+    /**
+     * Returns a {@link LongStreamEx} consisting of the results of applying the
+     * given function to the elements of this stream.
+     *
+     * <p>This is an intermediate operation.
+     *
+     * @param mapper a non-interfering, stateless function to apply to each element
+     * @return the new stream
+     */
     @Override
     public LongStreamEx mapToLong(IntToLongFunction mapper) {
         return new LongStreamEx(stream.mapToLong(mapper));
     }
 
+    /**
+     * Returns a {@link DoubleStreamEx} consisting of the results of applying the
+     * given function to the elements of this stream.
+     *
+     * <p>This is an intermediate operation.
+     *
+     * @param mapper a non-interfering, stateless function to apply to each element
+     * @return the new stream
+     */
     @Override
     public DoubleStreamEx mapToDouble(IntToDoubleFunction mapper) {
         return new DoubleStreamEx(stream.mapToDouble(mapper));

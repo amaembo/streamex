@@ -72,21 +72,58 @@ public class DoubleStreamEx implements DoubleStream {
         return new DoubleStreamEx(stream.filter(predicate));
     }
 
+    /**
+     * Returns a {@link DoubleStreamEx} consisting of the results of applying the
+     * given function to the elements of this stream.
+     *
+     * <p>This is an intermediate operation.
+     *
+     * @param mapper a non-interfering, stateless function to apply to each element
+     * @return the new stream
+     */
     @Override
     public DoubleStreamEx map(DoubleUnaryOperator mapper) {
         return new DoubleStreamEx(stream.map(mapper));
     }
 
+    /**
+     * Returns an object-valued {@link StreamEx} consisting of the results of
+     * applying the given function to the elements of this stream.
+     *
+     * <p>This is an intermediate operation.
+     *
+     * @param <U> the element type of the new stream
+     * @param mapper a non-interfering, stateless function to apply to each element
+     * @return the new stream
+     */
     @Override
     public <U> StreamEx<U> mapToObj(DoubleFunction<? extends U> mapper) {
         return new StreamEx<>(stream.mapToObj(mapper));
     }
 
+    /**
+     * Returns an {@link IntStreamEx} consisting of the results of applying the
+     * given function to the elements of this stream.
+     *
+     * <p>This is an intermediate operation.
+     *
+     * @param mapper a non-interfering, stateless function to apply to each element
+     * @return the new stream
+     */
     @Override
     public IntStreamEx mapToInt(DoubleToIntFunction mapper) {
         return new IntStreamEx(stream.mapToInt(mapper));
     }
 
+    /**
+     * Returns a {@link LongStreamEx} consisting of the results of applying the
+     * given function to the elements of this stream.
+     *
+     * <p>This is an intermediate operation.
+     *
+     * @param mapper a non-interfering, stateless function to apply to each element
+     * @return the new stream
+     */
     @Override
     public LongStreamEx mapToLong(DoubleToLongFunction mapper) {
         return new LongStreamEx(stream.mapToLong(mapper));
