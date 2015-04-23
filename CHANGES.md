@@ -3,6 +3,8 @@
 ### 0.1.2-SNAPSHOT
 
 * Added IntStreamEx#elements methods family
+* Added construction of the constant stream
+* Updated documentation
 
 ### 0.1.1
 
