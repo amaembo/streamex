@@ -77,9 +77,11 @@ public class LongStreamEx implements LongStream {
      * Returns a {@link LongStreamEx} consisting of the results of applying the
      * given function to the elements of this stream.
      *
-     * <p>This is an intermediate operation.
+     * <p>
+     * This is an intermediate operation.
      *
-     * @param mapper a non-interfering, stateless function to apply to each element
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
      * @return the new stream
      */
     @Override
@@ -91,10 +93,13 @@ public class LongStreamEx implements LongStream {
      * Returns an object-valued {@link StreamEx} consisting of the results of
      * applying the given function to the elements of this stream.
      *
-     * <p>This is an intermediate operation.
+     * <p>
+     * This is an intermediate operation.
      *
-     * @param <U> the element type of the new stream
-     * @param mapper a non-interfering, stateless function to apply to each element
+     * @param <U>
+     *            the element type of the new stream
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
      * @return the new stream
      */
     @Override
@@ -106,9 +111,11 @@ public class LongStreamEx implements LongStream {
      * Returns an {@link IntStreamEx} consisting of the results of applying the
      * given function to the elements of this stream.
      *
-     * <p>This is an intermediate operation.
+     * <p>
+     * This is an intermediate operation.
      *
-     * @param mapper a non-interfering, stateless function to apply to each element
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
      * @return the new stream
      */
     @Override
@@ -117,12 +124,14 @@ public class LongStreamEx implements LongStream {
     }
 
     /**
-     * Returns a {@link DoubleStreamEx} consisting of the results of applying the
-     * given function to the elements of this stream.
+     * Returns a {@link DoubleStreamEx} consisting of the results of applying
+     * the given function to the elements of this stream.
      *
-     * <p>This is an intermediate operation.
+     * <p>
+     * This is an intermediate operation.
      *
-     * @param mapper a non-interfering, stateless function to apply to each element
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
      * @return the new stream
      */
     @Override
@@ -144,7 +153,8 @@ public class LongStreamEx implements LongStream {
      * Returns a stream consisting of the elements of this stream in sorted
      * order.
      *
-     * <p>This is a stateful intermediate operation.
+     * <p>
+     * This is a stateful intermediate operation.
      *
      * @return the new stream
      */
@@ -284,10 +294,11 @@ public class LongStreamEx implements LongStream {
     }
 
     /**
-     * Returns a new {@code LongStreamEx} which is a concatenation of this stream
-     * and the stream containing supplied values
+     * Returns a new {@code LongStreamEx} which is a concatenation of this
+     * stream and the stream containing supplied values
      * 
-     * @param values the values to append to the stream
+     * @param values
+     *            the values to append to the stream
      * @return the new stream
      */
     public LongStreamEx append(long... values) {
@@ -299,10 +310,11 @@ public class LongStreamEx implements LongStream {
     }
 
     /**
-     * Returns a new {@code LongStreamEx} which is a concatenation of
-     * the stream containing supplied values and this stream
-     *  
-     * @param values the values to prepend to the stream
+     * Returns a new {@code LongStreamEx} which is a concatenation of the stream
+     * containing supplied values and this stream
+     * 
+     * @param values
+     *            the values to prepend to the stream
      * @return the new stream
      */
     public LongStreamEx prepend(long... values) {
@@ -328,9 +340,11 @@ public class LongStreamEx implements LongStream {
     /**
      * Returns true if this stream contains the specified value
      *
-     * <p>This is a short-circuiting terminal operation.
+     * <p>
+     * This is a short-circuiting terminal operation.
      * 
-     * @param value the value too look for in the stream
+     * @param value
+     *            the value too look for in the stream
      * @return true if this stream contains the specified value
      * @see LongStream#anyMatch(LongPredicate)
      */
@@ -343,10 +357,11 @@ public class LongStreamEx implements LongStream {
     }
 
     /**
-     * Returns a stream consisting of the elements of this stream in reverse 
+     * Returns a stream consisting of the elements of this stream in reverse
      * sorted order.
      *
-     * <p>This is a stateful intermediate operation.
+     * <p>
+     * This is a stateful intermediate operation.
      *
      * @return the new stream
      * @since 0.0.8
@@ -354,7 +369,7 @@ public class LongStreamEx implements LongStream {
     public LongStreamEx reverseSorted() {
         return sorted((a, b) -> b.compareTo(a));
     }
-    
+
     public <V extends Comparable<? super V>> LongStreamEx sortedBy(LongFunction<V> keyExtractor) {
         return new LongStreamEx(stream.boxed().sorted(Comparator.comparing(i -> keyExtractor.apply(i)))
                 .mapToLong(Long::longValue));
@@ -382,7 +397,8 @@ public class LongStreamEx implements LongStream {
     /**
      * Returns a sequential {@code LongStreamEx} containing a single element.
      *
-     * @param element the single element
+     * @param element
+     *            the single element
      * @return a singleton sequential stream
      */
     public static LongStreamEx of(long element) {
@@ -390,9 +406,11 @@ public class LongStreamEx implements LongStream {
     }
 
     /**
-     * Returns a sequential ordered {@code LongStreamEx} whose elements are the specified values.
+     * Returns a sequential ordered {@code LongStreamEx} whose elements are the
+     * specified values.
      *
-     * @param elements the elements of the new stream
+     * @param elements
+     *            the elements of the new stream
      * @return the new stream
      */
     public static LongStreamEx of(long... elements) {
@@ -403,24 +421,30 @@ public class LongStreamEx implements LongStream {
      * Returns a sequential {@link LongStreamEx} with the specified range of the
      * specified array as its source.
      *
-     * @param array the array, assumed to be unmodified during use
-     * @param startInclusive the first index to cover, inclusive
-     * @param endExclusive index immediately past the last index to cover
+     * @param array
+     *            the array, assumed to be unmodified during use
+     * @param startInclusive
+     *            the first index to cover, inclusive
+     * @param endExclusive
+     *            index immediately past the last index to cover
      * @return an {@code LongStreamEx} for the array range
-     * @throws ArrayIndexOutOfBoundsException if {@code startInclusive} is
-     *         negative, {@code endExclusive} is less than
-     *         {@code startInclusive}, or {@code endExclusive} is greater than
-     *         the array size
+     * @throws ArrayIndexOutOfBoundsException
+     *             if {@code startInclusive} is negative, {@code endExclusive}
+     *             is less than {@code startInclusive}, or {@code endExclusive}
+     *             is greater than the array size
      * @since 0.1.1
      * @see Arrays#stream(long[], int, int)
      */
     public static LongStreamEx of(long[] array, int startInclusive, int endExclusive) {
         return new LongStreamEx(Arrays.stream(array, startInclusive, endExclusive));
     }
-    
+
     /**
-     * Returns a {@code LongStreamEx} object which wraps given {@link LongStream}
-     * @param stream original stream
+     * Returns a {@code LongStreamEx} object which wraps given
+     * {@link LongStream}
+     * 
+     * @param stream
+     *            original stream
      * @return the wrapped stream
      * @since 0.0.8
      */
@@ -429,17 +453,20 @@ public class LongStreamEx implements LongStream {
     }
 
     /**
-     * Returns a sequential {@code LongStreamEx} containing an {@link OptionalLong} value, if
-     * present, otherwise returns an empty {@code LongStreamEx}.
+     * Returns a sequential {@code LongStreamEx} containing an
+     * {@link OptionalLong} value, if present, otherwise returns an empty
+     * {@code LongStreamEx}.
      *
-     * @param optional the optional to create a stream of
-     * @return a stream with an {@code OptionalLong} value if present, otherwise an empty stream
+     * @param optional
+     *            the optional to create a stream of
+     * @return a stream with an {@code OptionalLong} value if present, otherwise
+     *         an empty stream
      * @since 0.1.1
      */
     public static LongStreamEx of(OptionalLong optional) {
         return optional.isPresent() ? of(optional.getAsLong()) : empty();
     }
-    
+
     public static LongStreamEx of(Collection<Long> c) {
         return new LongStreamEx(c.stream().mapToLong(Long::longValue));
     }
@@ -448,10 +475,12 @@ public class LongStreamEx implements LongStream {
      * Returns an effectively unlimited stream of pseudorandom {@code long}
      * values produced by given {@link Random} object.
      *
-     * <p>A pseudorandom {@code long} value is generated as if it's the result of
+     * <p>
+     * A pseudorandom {@code long} value is generated as if it's the result of
      * calling the method {@link Random#nextLong()}.
      *
-     * @param random a {@link Random} object to produce the stream from
+     * @param random
+     *            a {@link Random} object to produce the stream from
      * @return a stream of pseudorandom {@code long} values
      * @see Random#longs()
      */
@@ -472,19 +501,22 @@ public class LongStreamEx implements LongStream {
     }
 
     /**
-     * Returns an infinite sequential ordered {@code LongStreamEx} produced by iterative
-     * application of a function {@code f} to an initial element {@code seed},
-     * producing a stream consisting of {@code seed}, {@code f(seed)},
-     * {@code f(f(seed))}, etc.
+     * Returns an infinite sequential ordered {@code LongStreamEx} produced by
+     * iterative application of a function {@code f} to an initial element
+     * {@code seed}, producing a stream consisting of {@code seed},
+     * {@code f(seed)}, {@code f(f(seed))}, etc.
      *
-     * <p>The first element (position {@code 0}) in the {@code LongStreamEx} will be
-     * the provided {@code seed}.  For {@code n > 0}, the element at position
+     * <p>
+     * The first element (position {@code 0}) in the {@code LongStreamEx} will
+     * be the provided {@code seed}. For {@code n > 0}, the element at position
      * {@code n}, will be the result of applying the function {@code f} to the
      * element at position {@code n - 1}.
      *
-     * @param seed the initial element
-     * @param f a function to be applied to to the previous element to produce
-     *          a new element
+     * @param seed
+     *            the initial element
+     * @param f
+     *            a function to be applied to to the previous element to produce
+     *            a new element
      * @return A new sequential {@code LongStream}
      * @see LongStream#iterate(long, LongUnaryOperator)
      */
@@ -494,10 +526,11 @@ public class LongStreamEx implements LongStream {
 
     /**
      * Returns an infinite sequential unordered stream where each element is
-     * generated by the provided {@code LongSupplier}.  This is suitable for
+     * generated by the provided {@code LongSupplier}. This is suitable for
      * generating constant streams, streams of random elements, etc.
      *
-     * @param s the {@code LongSupplier} for generated elements
+     * @param s
+     *            the {@code LongSupplier} for generated elements
      * @return a new infinite sequential unordered {@code LongStreamEx}
      * @see LongStream#generate(LongSupplier)
      */
@@ -506,11 +539,11 @@ public class LongStreamEx implements LongStream {
     }
 
     /**
-     * Returns a sequential ordered {@code LongStreamEx} from 0
-     * (inclusive) to {@code endExclusive} (exclusive) by an incremental step of
-     * {@code 1}.
+     * Returns a sequential ordered {@code LongStreamEx} from 0 (inclusive) to
+     * {@code endExclusive} (exclusive) by an incremental step of {@code 1}.
      *
-     * @param endExclusive the exclusive upper bound
+     * @param endExclusive
+     *            the exclusive upper bound
      * @return a sequential {@code LongStreamEx} for the range of {@code int}
      *         elements
      * @see #range(long, long)
@@ -521,12 +554,14 @@ public class LongStreamEx implements LongStream {
     }
 
     /**
-     * Returns a sequential ordered {@code LongStreamEx} from {@code startInclusive}
-     * (inclusive) to {@code endExclusive} (exclusive) by an incremental step of
-     * {@code 1}.
+     * Returns a sequential ordered {@code LongStreamEx} from
+     * {@code startInclusive} (inclusive) to {@code endExclusive} (exclusive) by
+     * an incremental step of {@code 1}.
      *
-     * @param startInclusive the (inclusive) initial value
-     * @param endExclusive the exclusive upper bound
+     * @param startInclusive
+     *            the (inclusive) initial value
+     * @param endExclusive
+     *            the exclusive upper bound
      * @return a sequential {@code LongStreamEx} for the range of {@code long}
      *         elements
      * @see LongStream#range(long, long)
@@ -536,12 +571,14 @@ public class LongStreamEx implements LongStream {
     }
 
     /**
-     * Returns a sequential ordered {@code LongStreamEx} from {@code startInclusive}
-     * (inclusive) to {@code endInclusive} (inclusive) by an incremental step of
-     * {@code 1}.
+     * Returns a sequential ordered {@code LongStreamEx} from
+     * {@code startInclusive} (inclusive) to {@code endInclusive} (inclusive) by
+     * an incremental step of {@code 1}.
      *
-     * @param startInclusive the (inclusive) initial value
-     * @param endInclusive the inclusive upper bound
+     * @param startInclusive
+     *            the (inclusive) initial value
+     * @param endInclusive
+     *            the inclusive upper bound
      * @return a sequential {@code LongStreamEx} for the range of {@code long}
      *         elements
      * @see LongStream#rangeClosed(long, long)

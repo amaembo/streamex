@@ -73,12 +73,14 @@ public class DoubleStreamEx implements DoubleStream {
     }
 
     /**
-     * Returns a {@link DoubleStreamEx} consisting of the results of applying the
-     * given function to the elements of this stream.
+     * Returns a {@link DoubleStreamEx} consisting of the results of applying
+     * the given function to the elements of this stream.
      *
-     * <p>This is an intermediate operation.
+     * <p>
+     * This is an intermediate operation.
      *
-     * @param mapper a non-interfering, stateless function to apply to each element
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
      * @return the new stream
      */
     @Override
@@ -90,10 +92,13 @@ public class DoubleStreamEx implements DoubleStream {
      * Returns an object-valued {@link StreamEx} consisting of the results of
      * applying the given function to the elements of this stream.
      *
-     * <p>This is an intermediate operation.
+     * <p>
+     * This is an intermediate operation.
      *
-     * @param <U> the element type of the new stream
-     * @param mapper a non-interfering, stateless function to apply to each element
+     * @param <U>
+     *            the element type of the new stream
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
      * @return the new stream
      */
     @Override
@@ -105,9 +110,11 @@ public class DoubleStreamEx implements DoubleStream {
      * Returns an {@link IntStreamEx} consisting of the results of applying the
      * given function to the elements of this stream.
      *
-     * <p>This is an intermediate operation.
+     * <p>
+     * This is an intermediate operation.
      *
-     * @param mapper a non-interfering, stateless function to apply to each element
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
      * @return the new stream
      */
     @Override
@@ -119,9 +126,11 @@ public class DoubleStreamEx implements DoubleStream {
      * Returns a {@link LongStreamEx} consisting of the results of applying the
      * given function to the elements of this stream.
      *
-     * <p>This is an intermediate operation.
+     * <p>
+     * This is an intermediate operation.
      *
-     * @param mapper a non-interfering, stateless function to apply to each element
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
      * @return the new stream
      */
     @Override
@@ -144,7 +153,8 @@ public class DoubleStreamEx implements DoubleStream {
      * order. The elements are compared for equality according to
      * {@link java.lang.Double#compare(double, double)}.
      *
-     * <p>This is a stateful intermediate operation.
+     * <p>
+     * This is a stateful intermediate operation.
      *
      * @return the new stream
      */
@@ -279,10 +289,11 @@ public class DoubleStreamEx implements DoubleStream {
     }
 
     /**
-     * Returns a new {@code DoubleStreamEx} which is a concatenation of this stream
-     * and the stream containing supplied values
+     * Returns a new {@code DoubleStreamEx} which is a concatenation of this
+     * stream and the stream containing supplied values
      * 
-     * @param values the values to append to the stream
+     * @param values
+     *            the values to append to the stream
      * @return the new stream
      */
     public DoubleStreamEx append(double... values) {
@@ -294,10 +305,11 @@ public class DoubleStreamEx implements DoubleStream {
     }
 
     /**
-     * Returns a new {@code DoubleStreamEx} which is a concatenation of
-     * the stream containing supplied values and this stream
-     *  
-     * @param values the values to prepend to the stream
+     * Returns a new {@code DoubleStreamEx} which is a concatenation of the
+     * stream containing supplied values and this stream
+     * 
+     * @param values
+     *            the values to prepend to the stream
      * @return the new stream
      */
     public DoubleStreamEx prepend(double... values) {
@@ -325,11 +337,12 @@ public class DoubleStreamEx implements DoubleStream {
     }
 
     /**
-     * Returns a stream consisting of the elements of this stream in reverse 
+     * Returns a stream consisting of the elements of this stream in reverse
      * sorted order. The elements are compared for equality according to
      * {@link java.lang.Double#compare(double, double)}.
      *
-     * <p>This is a stateful intermediate operation.
+     * <p>
+     * This is a stateful intermediate operation.
      *
      * @return the new stream
      * @since 0.0.8
@@ -365,7 +378,8 @@ public class DoubleStreamEx implements DoubleStream {
     /**
      * Returns a sequential {@code DoubleStreamEx} containing a single element.
      *
-     * @param element the single element
+     * @param element
+     *            the single element
      * @return a singleton sequential stream
      */
     public static DoubleStreamEx of(double element) {
@@ -373,9 +387,11 @@ public class DoubleStreamEx implements DoubleStream {
     }
 
     /**
-     * Returns a sequential ordered {@code DoubleStreamEx} whose elements are the specified values.
+     * Returns a sequential ordered {@code DoubleStreamEx} whose elements are
+     * the specified values.
      *
-     * @param elements the elements of the new stream
+     * @param elements
+     *            the elements of the new stream
      * @return the new stream
      */
     public static DoubleStreamEx of(double... elements) {
@@ -383,27 +399,33 @@ public class DoubleStreamEx implements DoubleStream {
     }
 
     /**
-     * Returns a sequential {@link DoubleStreamEx} with the specified range of the
-     * specified array as its source.
+     * Returns a sequential {@link DoubleStreamEx} with the specified range of
+     * the specified array as its source.
      *
-     * @param array the array, assumed to be unmodified during use
-     * @param startInclusive the first index to cover, inclusive
-     * @param endExclusive index immediately past the last index to cover
+     * @param array
+     *            the array, assumed to be unmodified during use
+     * @param startInclusive
+     *            the first index to cover, inclusive
+     * @param endExclusive
+     *            index immediately past the last index to cover
      * @return an {@code DoubleStreamEx} for the array range
-     * @throws ArrayIndexOutOfBoundsException if {@code startInclusive} is
-     *         negative, {@code endExclusive} is less than
-     *         {@code startInclusive}, or {@code endExclusive} is greater than
-     *         the array size
+     * @throws ArrayIndexOutOfBoundsException
+     *             if {@code startInclusive} is negative, {@code endExclusive}
+     *             is less than {@code startInclusive}, or {@code endExclusive}
+     *             is greater than the array size
      * @since 0.1.1
      * @see Arrays#stream(double[], int, int)
      */
     public static DoubleStreamEx of(double[] array, int startInclusive, int endExclusive) {
         return new DoubleStreamEx(Arrays.stream(array, startInclusive, endExclusive));
     }
-    
+
     /**
-     * Returns a {@code DoubleStreamEx} object which wraps given {@link DoubleStream}
-     * @param stream original stream
+     * Returns a {@code DoubleStreamEx} object which wraps given
+     * {@link DoubleStream}
+     * 
+     * @param stream
+     *            original stream
      * @return the wrapped stream
      * @since 0.0.8
      */
@@ -412,30 +434,35 @@ public class DoubleStreamEx implements DoubleStream {
     }
 
     /**
-     * Returns a sequential {@code DoubleStreamEx} containing an {@link OptionalDouble} value, if
-     * present, otherwise returns an empty {@code DoubleStreamEx}.
+     * Returns a sequential {@code DoubleStreamEx} containing an
+     * {@link OptionalDouble} value, if present, otherwise returns an empty
+     * {@code DoubleStreamEx}.
      *
-     * @param optional the optional to create a stream of
-     * @return a stream with an {@code OptionalDouble} value if present, otherwise an empty stream
+     * @param optional
+     *            the optional to create a stream of
+     * @return a stream with an {@code OptionalDouble} value if present,
+     *         otherwise an empty stream
      * @since 0.1.1
      */
     public static DoubleStreamEx of(OptionalDouble optional) {
         return optional.isPresent() ? of(optional.getAsDouble()) : empty();
     }
-    
+
     public static DoubleStreamEx of(Collection<Double> c) {
         return new DoubleStreamEx(c.stream().mapToDouble(Double::doubleValue));
     }
 
     /**
-     * Returns an effectively unlimited stream of pseudorandom {@code
-     * double} values, each between zero (inclusive) and one
-     * (exclusive) produced by given {@link Random} object.
+     * Returns an effectively unlimited stream of pseudorandom {@code double}
+     * values, each between zero (inclusive) and one (exclusive) produced by
+     * given {@link Random} object.
      *
-     * <p>A pseudorandom {@code double} value is generated as if it's the result of
+     * <p>
+     * A pseudorandom {@code double} value is generated as if it's the result of
      * calling the method {@link Random#nextDouble()}.
      *
-     * @param random a {@link Random} object to produce the stream from
+     * @param random
+     *            a {@link Random} object to produce the stream from
      * @return a stream of pseudorandom {@code double} values
      * @see Random#doubles()
      */
@@ -456,19 +483,22 @@ public class DoubleStreamEx implements DoubleStream {
     }
 
     /**
-     * Returns an infinite sequential ordered {@code DoubleStreamEx} produced by iterative
-     * application of a function {@code f} to an initial element {@code seed},
-     * producing a stream consisting of {@code seed}, {@code f(seed)},
-     * {@code f(f(seed))}, etc.
+     * Returns an infinite sequential ordered {@code DoubleStreamEx} produced by
+     * iterative application of a function {@code f} to an initial element
+     * {@code seed}, producing a stream consisting of {@code seed},
+     * {@code f(seed)}, {@code f(f(seed))}, etc.
      *
-     * <p>The first element (position {@code 0}) in the {@code DoubleStreamEx} will be
-     * the provided {@code seed}.  For {@code n > 0}, the element at position
+     * <p>
+     * The first element (position {@code 0}) in the {@code DoubleStreamEx} will
+     * be the provided {@code seed}. For {@code n > 0}, the element at position
      * {@code n}, will be the result of applying the function {@code f} to the
      * element at position {@code n - 1}.
      *
-     * @param seed the initial element
-     * @param f a function to be applied to to the previous element to produce
-     *          a new element
+     * @param seed
+     *            the initial element
+     * @param f
+     *            a function to be applied to to the previous element to produce
+     *            a new element
      * @return A new sequential {@code DoubleStream}
      * @see DoubleStream#iterate(double, DoubleUnaryOperator)
      */
@@ -478,10 +508,11 @@ public class DoubleStreamEx implements DoubleStream {
 
     /**
      * Returns an infinite sequential unordered stream where each element is
-     * generated by the provided {@code DoubleSupplier}.  This is suitable for
+     * generated by the provided {@code DoubleSupplier}. This is suitable for
      * generating constant streams, streams of random elements, etc.
      *
-     * @param s the {@code DoubleSupplier} for generated elements
+     * @param s
+     *            the {@code DoubleSupplier} for generated elements
      * @return a new infinite sequential unordered {@code DoubleStreamEx}
      * @see DoubleStream#generate(DoubleSupplier)
      */
