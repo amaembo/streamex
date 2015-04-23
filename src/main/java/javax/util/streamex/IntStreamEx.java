@@ -419,6 +419,29 @@ public class IntStreamEx implements IntStream {
     }
 
     /**
+     * Returns an object-valued {@link StreamEx} consisting of the elements of
+     * given {@link List} corresponding to the indices which appear in this stream.
+     *
+     * <p>
+     * The list elements are accessed using {@link List#get(int)}, so the list
+     * should provide fast random access. The list is assumed to be unmodifiable
+     * during the stream operations.
+
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param <U>
+     *            the element type of the new stream
+     * @param list
+     *            the list to take the elements from
+     * @return the new stream
+     * @since 0.1.2
+     */
+    public <U> StreamEx<U> elements(List<U> list) {
+        return new StreamEx<>(stream.mapToObj(list::get));
+    }
+
+    /**
      * Returns an {@link IntStreamEx} consisting of the elements of given array
      * corresponding to the indices which appear in this stream.
      *
@@ -535,6 +558,7 @@ public class IntStreamEx implements IntStream {
      * Returns a sequential ordered {@code IntStreamEx} containing all the
      * indices of the supplied list elements which match given predicate.
      * 
+     * <p>
      * The list elements are accessed using {@link List#get(int)}, so the list
      * should provide fast random access. The list is assumed to be unmodifiable
      * during the stream operations.

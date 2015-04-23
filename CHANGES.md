@@ -1,5 +1,9 @@
 # StreamEx changes
 
+### 0.1.2-SNAPSHOT
+
+* Added IntStreamEx#elements methods family
+
 ### 0.1.1
 
 * Fixed: empty() method of all the streams worked incorrectly when used several times

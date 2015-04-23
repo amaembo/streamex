@@ -94,6 +94,7 @@ public class IntStreamExTest {
     @Test
     public void testElements() {
         assertEquals(Arrays.asList("f", "d", "b"), IntStreamEx.of(5,3,1).elements("abcdef".split("")).toList());
+        assertEquals(Arrays.asList("f", "d", "b"), IntStreamEx.of(5,3,1).elements(Arrays.asList("a", "b", "c", "d", "e", "f")).toList());
         assertArrayEquals(new int[] {10,6,2}, IntStreamEx.of(5,3,1).elements(new int[] {0,2,4,6,8,10}).toArray());
         assertArrayEquals(new long[] {10,6,2}, IntStreamEx.of(5,3,1).elements(new long[] {0,2,4,6,8,10}).toArray());
         assertArrayEquals(new double[] {10,6,2}, IntStreamEx.of(5,3,1).elements(new double[] {0,2,4,6,8,10}).toArray(), 0.0);
