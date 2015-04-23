@@ -82,9 +82,11 @@ public class IntStreamEx implements IntStream {
      * Returns an {@link IntStreamEx} consisting of the results of applying the
      * given function to the elements of this stream.
      *
-     * <p>This is an intermediate operation.
+     * <p>
+     * This is an intermediate operation.
      *
-     * @param mapper a non-interfering, stateless function to apply to each element
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
      * @return the new stream
      */
     @Override
@@ -96,10 +98,13 @@ public class IntStreamEx implements IntStream {
      * Returns an object-valued {@link StreamEx} consisting of the results of
      * applying the given function to the elements of this stream.
      *
-     * <p>This is an intermediate operation.
+     * <p>
+     * This is an intermediate operation.
      *
-     * @param <U> the element type of the new stream
-     * @param mapper a non-interfering, stateless function to apply to each element
+     * @param <U>
+     *            the element type of the new stream
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
      * @return the new stream
      */
     @Override
@@ -111,9 +116,11 @@ public class IntStreamEx implements IntStream {
      * Returns a {@link LongStreamEx} consisting of the results of applying the
      * given function to the elements of this stream.
      *
-     * <p>This is an intermediate operation.
+     * <p>
+     * This is an intermediate operation.
      *
-     * @param mapper a non-interfering, stateless function to apply to each element
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
      * @return the new stream
      */
     @Override
@@ -122,12 +129,14 @@ public class IntStreamEx implements IntStream {
     }
 
     /**
-     * Returns a {@link DoubleStreamEx} consisting of the results of applying the
-     * given function to the elements of this stream.
+     * Returns a {@link DoubleStreamEx} consisting of the results of applying
+     * the given function to the elements of this stream.
      *
-     * <p>This is an intermediate operation.
+     * <p>
+     * This is an intermediate operation.
      *
-     * @param mapper a non-interfering, stateless function to apply to each element
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
      * @return the new stream
      */
     @Override
@@ -149,7 +158,8 @@ public class IntStreamEx implements IntStream {
      * Returns a stream consisting of the elements of this stream in sorted
      * order.
      *
-     * <p>This is a stateful intermediate operation.
+     * <p>
+     * This is a stateful intermediate operation.
      *
      * @return the new stream
      */
@@ -297,7 +307,8 @@ public class IntStreamEx implements IntStream {
      * Returns a new {@code IntStreamEx} which is a concatenation of this stream
      * and the stream containing supplied values
      * 
-     * @param values the values to append to the stream
+     * @param values
+     *            the values to append to the stream
      * @return the new stream
      */
     public IntStreamEx append(int... values) {
@@ -309,10 +320,11 @@ public class IntStreamEx implements IntStream {
     }
 
     /**
-     * Returns a new {@code IntStreamEx} which is a concatenation of
-     * the stream containing supplied values and this stream
-     *  
-     * @param values the values to prepend to the stream
+     * Returns a new {@code IntStreamEx} which is a concatenation of the stream
+     * containing supplied values and this stream
+     * 
+     * @param values
+     *            the values to prepend to the stream
      * @return the new stream
      */
     public IntStreamEx prepend(int... values) {
@@ -338,9 +350,11 @@ public class IntStreamEx implements IntStream {
     /**
      * Returns true if this stream contains the specified value
      *
-     * <p>This is a short-circuiting terminal operation.
+     * <p>
+     * This is a short-circuiting terminal operation.
      * 
-     * @param value the value too look for in the stream
+     * @param value
+     *            the value too look for in the stream
      * @return true if this stream contains the specified value
      * @see IntStream#anyMatch(IntPredicate)
      */
@@ -351,12 +365,13 @@ public class IntStreamEx implements IntStream {
     public IntStreamEx sorted(Comparator<Integer> comparator) {
         return new IntStreamEx(stream.boxed().sorted(comparator).mapToInt(Integer::intValue));
     }
-    
+
     /**
-     * Returns a stream consisting of the elements of this stream in reverse 
+     * Returns a stream consisting of the elements of this stream in reverse
      * sorted order.
      *
-     * <p>This is a stateful intermediate operation.
+     * <p>
+     * This is a stateful intermediate operation.
      *
      * @return the new stream
      * @since 0.0.8
@@ -385,6 +400,72 @@ public class IntStreamEx implements IntStream {
                 .mapToInt(Integer::intValue));
     }
 
+    /**
+     * Returns an object-valued {@link StreamEx} consisting of the elements of
+     * given array corresponding to the indices which appear in this stream.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param <U>
+     *            the element type of the new stream
+     * @param array
+     *            the array to take the elements from
+     * @return the new stream
+     * @since 0.1.2
+     */
+    public <U> StreamEx<U> elements(U[] array) {
+        return new StreamEx<>(stream.mapToObj(idx -> array[idx]));
+    }
+
+    /**
+     * Returns an {@link IntStreamEx} consisting of the elements of given array
+     * corresponding to the indices which appear in this stream.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param array
+     *            the array to take the elements from
+     * @return the new stream
+     * @since 0.1.2
+     */
+    public IntStreamEx elements(int[] array) {
+        return new IntStreamEx(stream.map(idx -> array[idx]));
+    }
+
+    /**
+     * Returns a {@link LongStreamEx} consisting of the elements of given array
+     * corresponding to the indices which appear in this stream.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param array
+     *            the array to take the elements from
+     * @return the new stream
+     * @since 0.1.2
+     */
+    public LongStreamEx elements(long[] array) {
+        return new LongStreamEx(stream.mapToLong(idx -> array[idx]));
+    }
+
+    /**
+     * Returns a {@link DoubleStreamEx} consisting of the elements of given
+     * array corresponding to the indices which appear in this stream.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param array
+     *            the array to take the elements from
+     * @return the new stream
+     * @since 0.1.2
+     */
+    public DoubleStreamEx elements(double[] array) {
+        return new DoubleStreamEx(stream.mapToDouble(idx -> array[idx]));
+    }
+
     public static IntStreamEx empty() {
         return new IntStreamEx(IntStream.empty());
     }
@@ -392,7 +473,8 @@ public class IntStreamEx implements IntStream {
     /**
      * Returns a sequential {@code IntStreamEx} containing a single element.
      *
-     * @param element the single element
+     * @param element
+     *            the single element
      * @return a singleton sequential stream
      */
     public static IntStreamEx of(int element) {
@@ -400,40 +482,47 @@ public class IntStreamEx implements IntStream {
     }
 
     /**
-     * Returns a sequential ordered {@code IntStreamEx} whose elements are the specified values.
+     * Returns a sequential ordered {@code IntStreamEx} whose elements are the
+     * specified values.
      *
-     * @param elements the elements of the new stream
+     * @param elements
+     *            the elements of the new stream
      * @return the new stream
      */
     public static IntStreamEx of(int... elements) {
         return new IntStreamEx(IntStream.of(elements));
     }
-    
+
     /**
      * Returns a sequential {@link IntStreamEx} with the specified range of the
      * specified array as its source.
      *
-     * @param array the array, assumed to be unmodified during use
-     * @param startInclusive the first index to cover, inclusive
-     * @param endExclusive index immediately past the last index to cover
+     * @param array
+     *            the array, assumed to be unmodified during use
+     * @param startInclusive
+     *            the first index to cover, inclusive
+     * @param endExclusive
+     *            index immediately past the last index to cover
      * @return an {@code IntStreamEx} for the array range
-     * @throws ArrayIndexOutOfBoundsException if {@code startInclusive} is
-     *         negative, {@code endExclusive} is less than
-     *         {@code startInclusive}, or {@code endExclusive} is greater than
-     *         the array size
+     * @throws ArrayIndexOutOfBoundsException
+     *             if {@code startInclusive} is negative, {@code endExclusive}
+     *             is less than {@code startInclusive}, or {@code endExclusive}
+     *             is greater than the array size
      * @since 0.1.1
      * @see Arrays#stream(int[], int, int)
      */
     public static IntStreamEx of(int[] array, int startInclusive, int endExclusive) {
         return new IntStreamEx(Arrays.stream(array, startInclusive, endExclusive));
     }
-    
+
     /**
      * Returns a sequential ordered {@code IntStreamEx} containing all the
      * indices of the supplied list.
      *
-     * @param <T> list element type
-     * @param list list to get the stream of its indices
+     * @param <T>
+     *            list element type
+     * @param list
+     *            list to get the stream of its indices
      * @return a sequential {@code IntStreamEx} for the range of {@code int}
      *         elements starting from 0 to (not inclusive) list.size()
      * @since 0.1.1
@@ -446,26 +535,31 @@ public class IntStreamEx implements IntStream {
      * Returns a sequential ordered {@code IntStreamEx} containing all the
      * indices of the supplied list elements which match given predicate.
      * 
-     * The list elements are accessed using {@link List#get(int)}, so the
-     * list should provide fast random access. The list is assumed to be
-     * unmodifiable during the stream operations.
+     * The list elements are accessed using {@link List#get(int)}, so the list
+     * should provide fast random access. The list is assumed to be unmodifiable
+     * during the stream operations.
      *
-     * @param <T> list element type
-     * @param list list to get the stream of its indices
-     * @param predicate a predicate to test list elements 
+     * @param <T>
+     *            list element type
+     * @param list
+     *            list to get the stream of its indices
+     * @param predicate
+     *            a predicate to test list elements
      * @return a sequential {@code IntStreamEx} of the matched list indices
      * @since 0.1.1
      */
     public static <T> IntStreamEx ofIndices(List<T> list, Predicate<T> predicate) {
         return new IntStreamEx(IntStream.range(0, list.size()).filter(i -> predicate.test(list.get(i))));
     }
-    
+
     /**
      * Returns a sequential ordered {@code IntStreamEx} containing all the
      * indices of the supplied array.
      *
-     * @param <T> array element type
-     * @param array array to get the stream of its indices
+     * @param <T>
+     *            array element type
+     * @param array
+     *            array to get the stream of its indices
      * @return a sequential {@code IntStreamEx} for the range of {@code int}
      *         elements starting from 0 to (not inclusive) array.length
      * @since 0.1.1
@@ -478,21 +572,25 @@ public class IntStreamEx implements IntStream {
      * Returns a sequential ordered {@code IntStreamEx} containing all the
      * indices of the supplied array elements which match given predicate.
      *
-     * @param <T> array element type
-     * @param array array to get the stream of its indices
-     * @param predicate a predicate to test array elements 
+     * @param <T>
+     *            array element type
+     * @param array
+     *            array to get the stream of its indices
+     * @param predicate
+     *            a predicate to test array elements
      * @return a sequential {@code IntStreamEx} of the matched array indices
      * @since 0.1.1
      */
     public static <T> IntStreamEx ofIndices(T[] array, Predicate<T> predicate) {
         return new IntStreamEx(IntStream.range(0, array.length).filter(i -> predicate.test(array[i])));
     }
-    
+
     /**
      * Returns a sequential ordered {@code IntStreamEx} containing all the
      * indices of supplied array.
      *
-     * @param array array to get the stream of its indices
+     * @param array
+     *            array to get the stream of its indices
      * @return a sequential {@code IntStreamEx} for the range of {@code int}
      *         elements starting from 0 to (not inclusive) array.length
      * @since 0.1.1
@@ -500,25 +598,28 @@ public class IntStreamEx implements IntStream {
     public static IntStreamEx ofIndices(int[] array) {
         return range(array.length);
     }
-    
+
     /**
      * Returns a sequential ordered {@code IntStreamEx} containing all the
      * indices of the supplied array elements which match given predicate.
      *
-     * @param array array to get the stream of its indices
-     * @param predicate a predicate to test array elements 
+     * @param array
+     *            array to get the stream of its indices
+     * @param predicate
+     *            a predicate to test array elements
      * @return a sequential {@code IntStreamEx} of the matched array indices
      * @since 0.1.1
      */
     public static IntStreamEx ofIndices(int[] array, IntPredicate predicate) {
         return new IntStreamEx(IntStream.range(0, array.length).filter(i -> predicate.test(array[i])));
     }
-    
+
     /**
      * Returns a sequential ordered {@code IntStreamEx} containing all the
      * indices of supplied array.
      *
-     * @param array array to get the stream of its indices
+     * @param array
+     *            array to get the stream of its indices
      * @return a sequential {@code IntStreamEx} for the range of {@code int}
      *         elements starting from 0 to (not inclusive) array.length
      * @since 0.1.1
@@ -526,25 +627,28 @@ public class IntStreamEx implements IntStream {
     public static IntStreamEx ofIndices(long[] array) {
         return range(array.length);
     }
-    
+
     /**
      * Returns a sequential ordered {@code IntStreamEx} containing all the
      * indices of the supplied array elements which match given predicate.
      *
-     * @param array array to get the stream of its indices
-     * @param predicate a predicate to test array elements 
+     * @param array
+     *            array to get the stream of its indices
+     * @param predicate
+     *            a predicate to test array elements
      * @return a sequential {@code IntStreamEx} of the matched array indices
      * @since 0.1.1
      */
     public static IntStreamEx ofIndices(long[] array, LongPredicate predicate) {
         return new IntStreamEx(IntStream.range(0, array.length).filter(i -> predicate.test(array[i])));
     }
-    
+
     /**
      * Returns a sequential ordered {@code IntStreamEx} containing all the
      * indices of supplied array.
      *
-     * @param array array to get the stream of its indices
+     * @param array
+     *            array to get the stream of its indices
      * @return a sequential {@code IntStreamEx} for the range of {@code int}
      *         elements starting from 0 to (not inclusive) array.length
      * @since 0.1.1
@@ -552,23 +656,27 @@ public class IntStreamEx implements IntStream {
     public static IntStreamEx ofIndices(double[] array) {
         return range(array.length);
     }
-    
+
     /**
      * Returns a sequential ordered {@code IntStreamEx} containing all the
      * indices of the supplied array elements which match given predicate.
      *
-     * @param array array to get the stream of its indices
-     * @param predicate a predicate to test array elements 
+     * @param array
+     *            array to get the stream of its indices
+     * @param predicate
+     *            a predicate to test array elements
      * @return a sequential {@code IntStreamEx} of the matched array indices
      * @since 0.1.1
      */
     public static IntStreamEx ofIndices(double[] array, DoublePredicate predicate) {
         return new IntStreamEx(IntStream.range(0, array.length).filter(i -> predicate.test(array[i])));
     }
-    
+
     /**
      * Returns an {@code IntStreamEx} object which wraps given {@link IntStream}
-     * @param stream original stream
+     * 
+     * @param stream
+     *            original stream
      * @return the wrapped stream
      * @since 0.0.8
      */
@@ -577,29 +685,34 @@ public class IntStreamEx implements IntStream {
     }
 
     /**
-     * Returns a sequential {@code IntStreamEx} containing an {@link OptionalInt} value, if
-     * present, otherwise returns an empty {@code IntStreamEx}.
+     * Returns a sequential {@code IntStreamEx} containing an
+     * {@link OptionalInt} value, if present, otherwise returns an empty
+     * {@code IntStreamEx}.
      *
-     * @param optional the optional to create a stream of
-     * @return a stream with an {@code OptionalInt} value if present, otherwise an empty stream
+     * @param optional
+     *            the optional to create a stream of
+     * @return a stream with an {@code OptionalInt} value if present, otherwise
+     *         an empty stream
      * @since 0.1.1
      */
     public static IntStreamEx of(OptionalInt optional) {
         return optional.isPresent() ? of(optional.getAsInt()) : empty();
     }
-    
+
     /**
-     * Returns an {@code IntStreamEx} of indices for which the specified {@link BitSet}
-     * contains a bit in the set state. The indices are returned
-     * in order, from lowest to highest. The size of the stream
-     * is the number of bits in the set state, equal to the value
-     * returned by the {@link BitSet#cardinality()} method.
+     * Returns an {@code IntStreamEx} of indices for which the specified
+     * {@link BitSet} contains a bit in the set state. The indices are returned
+     * in order, from lowest to highest. The size of the stream is the number of
+     * bits in the set state, equal to the value returned by the
+     * {@link BitSet#cardinality()} method.
      *
-     * <p>The bit set must remain constant during the execution of the
-     * terminal stream operation.  Otherwise, the result of the terminal
-     * stream operation is undefined.
+     * <p>
+     * The bit set must remain constant during the execution of the terminal
+     * stream operation. Otherwise, the result of the terminal stream operation
+     * is undefined.
      *
-     * @param bitSet a {@link BitSet} to produce the stream from
+     * @param bitSet
+     *            a {@link BitSet} to produce the stream from
      * @return a stream of integers representing set indices
      * @see BitSet#stream()
      */
@@ -608,10 +721,11 @@ public class IntStreamEx implements IntStream {
     }
 
     /**
-     * Returns an {@code IntStreamEx} containing primitive
-     * integers from given collection
+     * Returns an {@code IntStreamEx} containing primitive integers from given
+     * collection
      *
-     * @param c a collection to produce the stream from
+     * @param c
+     *            a collection to produce the stream from
      * @return the new stream
      * @see Collection#stream()
      */
@@ -623,10 +737,12 @@ public class IntStreamEx implements IntStream {
      * Returns an effectively unlimited stream of pseudorandom {@code int}
      * values produced by given {@link Random} object.
      *
-     * <p>A pseudorandom {@code int} value is generated as if it's the result of
+     * <p>
+     * A pseudorandom {@code int} value is generated as if it's the result of
      * calling the method {@link Random#nextInt()}.
      *
-     * @param random a {@link Random} object to produce the stream from
+     * @param random
+     *            a {@link Random} object to produce the stream from
      * @return a stream of pseudorandom {@code int} values
      * @see Random#ints()
      */
@@ -638,11 +754,14 @@ public class IntStreamEx implements IntStream {
      * Returns a stream producing the given {@code streamSize} number of
      * pseudorandom {@code int} values.
      *
-     * <p>A pseudorandom {@code int} value is generated as if it's the result of
+     * <p>
+     * A pseudorandom {@code int} value is generated as if it's the result of
      * calling the method {@link Random#nextInt()}.
      *
-     * @param random a {@link Random} object to produce the stream from
-     * @param streamSize the number of values to generate
+     * @param random
+     *            a {@link Random} object to produce the stream from
+     * @param streamSize
+     *            the number of values to generate
      * @return a stream of pseudorandom {@code int} values
      * @see Random#ints(long)
      */
@@ -659,14 +778,16 @@ public class IntStreamEx implements IntStream {
     }
 
     /**
-     * Returns an {@code IntStreamEx} of {@code int} zero-extending the {@code char} values
-     * from the supplied {@link CharSequence}.  Any char which maps to a 
-     * surrogate code point is passed through uninterpreted.
+     * Returns an {@code IntStreamEx} of {@code int} zero-extending the
+     * {@code char} values from the supplied {@link CharSequence}. Any char
+     * which maps to a surrogate code point is passed through uninterpreted.
      *
-     * <p>If the sequence is mutated while the stream is being read, the
-     * result is undefined.
+     * <p>
+     * If the sequence is mutated while the stream is being read, the result is
+     * undefined.
      *
-     * @param seq sequence to read characters from
+     * @param seq
+     *            sequence to read characters from
      * @return an IntStreamEx of char values from the sequence
      * @see CharSequence#chars()
      */
@@ -675,17 +796,20 @@ public class IntStreamEx implements IntStream {
     }
 
     /**
-     * Returns an {@code IntStreamEx} of code point values from the supplied {@link CharSequence}.
-     * Any surrogate pairs encountered in the sequence are combined as if by 
-     * {@linkplain Character#toCodePoint Character.toCodePoint} and the result is passed
-     * to the stream. Any other code units, including ordinary BMP characters,
-     * unpaired surrogates, and undefined code units, are zero-extended to
-     * {@code int} values which are then passed to the stream.
+     * Returns an {@code IntStreamEx} of code point values from the supplied
+     * {@link CharSequence}. Any surrogate pairs encountered in the sequence are
+     * combined as if by {@linkplain Character#toCodePoint
+     * Character.toCodePoint} and the result is passed to the stream. Any other
+     * code units, including ordinary BMP characters, unpaired surrogates, and
+     * undefined code units, are zero-extended to {@code int} values which are
+     * then passed to the stream.
      *
-     * <p>If the sequence is mutated while the stream is being read, the result
-     * is undefined.
+     * <p>
+     * If the sequence is mutated while the stream is being read, the result is
+     * undefined.
      *
-     * @param seq sequence to read code points from
+     * @param seq
+     *            sequence to read code points from
      * @return an IntStreamEx of Unicode code points from this sequence
      * @see CharSequence#codePoints()
      */
@@ -694,19 +818,22 @@ public class IntStreamEx implements IntStream {
     }
 
     /**
-     * Returns an infinite sequential ordered {@code IntStreamEx} produced by iterative
-     * application of a function {@code f} to an initial element {@code seed},
-     * producing a stream consisting of {@code seed}, {@code f(seed)},
-     * {@code f(f(seed))}, etc.
+     * Returns an infinite sequential ordered {@code IntStreamEx} produced by
+     * iterative application of a function {@code f} to an initial element
+     * {@code seed}, producing a stream consisting of {@code seed},
+     * {@code f(seed)}, {@code f(f(seed))}, etc.
      *
-     * <p>The first element (position {@code 0}) in the {@code IntStreamEx} will be
-     * the provided {@code seed}.  For {@code n > 0}, the element at position
+     * <p>
+     * The first element (position {@code 0}) in the {@code IntStreamEx} will be
+     * the provided {@code seed}. For {@code n > 0}, the element at position
      * {@code n}, will be the result of applying the function {@code f} to the
      * element at position {@code n - 1}.
      *
-     * @param seed the initial element
-     * @param f a function to be applied to to the previous element to produce
-     *          a new element
+     * @param seed
+     *            the initial element
+     * @param f
+     *            a function to be applied to to the previous element to produce
+     *            a new element
      * @return A new sequential {@code IntStream}
      * @see IntStream#iterate(int, IntUnaryOperator)
      */
@@ -716,10 +843,11 @@ public class IntStreamEx implements IntStream {
 
     /**
      * Returns an infinite sequential unordered stream where each element is
-     * generated by the provided {@code IntSupplier}.  This is suitable for
+     * generated by the provided {@code IntSupplier}. This is suitable for
      * generating constant streams, streams of random elements, etc.
      *
-     * @param s the {@code IntSupplier} for generated elements
+     * @param s
+     *            the {@code IntSupplier} for generated elements
      * @return a new infinite sequential unordered {@code IntStreamEx}
      * @see IntStream#generate(IntSupplier)
      */
@@ -728,11 +856,11 @@ public class IntStreamEx implements IntStream {
     }
 
     /**
-     * Returns a sequential ordered {@code IntStreamEx} from 0
-     * (inclusive) to {@code endExclusive} (exclusive) by an incremental step of
-     * {@code 1}.
+     * Returns a sequential ordered {@code IntStreamEx} from 0 (inclusive) to
+     * {@code endExclusive} (exclusive) by an incremental step of {@code 1}.
      *
-     * @param endExclusive the exclusive upper bound
+     * @param endExclusive
+     *            the exclusive upper bound
      * @return a sequential {@code IntStreamEx} for the range of {@code int}
      *         elements
      * @see #range(int, int)
@@ -743,12 +871,14 @@ public class IntStreamEx implements IntStream {
     }
 
     /**
-     * Returns a sequential ordered {@code IntStreamEx} from {@code startInclusive}
-     * (inclusive) to {@code endExclusive} (exclusive) by an incremental step of
-     * {@code 1}.
+     * Returns a sequential ordered {@code IntStreamEx} from
+     * {@code startInclusive} (inclusive) to {@code endExclusive} (exclusive) by
+     * an incremental step of {@code 1}.
      *
-     * @param startInclusive the (inclusive) initial value
-     * @param endExclusive the exclusive upper bound
+     * @param startInclusive
+     *            the (inclusive) initial value
+     * @param endExclusive
+     *            the exclusive upper bound
      * @return a sequential {@code IntStreamEx} for the range of {@code int}
      *         elements
      * @see IntStream#range(int, int)
@@ -758,12 +888,14 @@ public class IntStreamEx implements IntStream {
     }
 
     /**
-     * Returns a sequential ordered {@code IntStreamEx} from {@code startInclusive}
-     * (inclusive) to {@code endInclusive} (inclusive) by an incremental step of
-     * {@code 1}.
+     * Returns a sequential ordered {@code IntStreamEx} from
+     * {@code startInclusive} (inclusive) to {@code endInclusive} (inclusive) by
+     * an incremental step of {@code 1}.
      *
-     * @param startInclusive the (inclusive) initial value
-     * @param endInclusive the inclusive upper bound
+     * @param startInclusive
+     *            the (inclusive) initial value
+     * @param endInclusive
+     *            the inclusive upper bound
      * @return a sequential {@code IntStreamEx} for the range of {@code int}
      *         elements
      * @see IntStream#rangeClosed(int, int)
