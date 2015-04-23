@@ -586,4 +586,17 @@ public class LongStreamEx implements LongStream {
     public static LongStreamEx rangeClosed(long startInclusive, long endInclusive) {
         return new LongStreamEx(LongStream.rangeClosed(startInclusive, endInclusive));
     }
+
+    /**
+     * Returns a sequential unordered {@code LongStreamEx} of given length which elements are
+     * equal to supplied value.
+     * 
+     * @param value the constant value
+     * @param length the length of the stream
+     * @return a new {@code LongStreamEx}
+     * @since 0.1.2
+     */
+    public static LongStreamEx constant(long value, long length) {
+        return new LongStreamEx(LongStream.generate(() -> value).limit(length));
+    }
 }

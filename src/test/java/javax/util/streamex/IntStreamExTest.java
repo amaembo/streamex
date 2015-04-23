@@ -42,6 +42,7 @@ public class IntStreamExTest {
         assertArrayEquals(new int[] { 1, 2, 3 }, IntStreamEx.rangeClosed(1, 3).toArray());
         assertArrayEquals(new int[] { 1, 2, 4, 8, 16 }, IntStreamEx.iterate(1, x -> x*2).limit(5).toArray());
         assertArrayEquals(new int[] { 1, 1, 1, 1 }, IntStreamEx.generate(() -> 1).limit(4).toArray());
+        assertArrayEquals(new int[] { 1, 1, 1, 1 }, IntStreamEx.constant(1, 4).toArray());
         assertArrayEquals(new int[] { 'a', 'b', 'c' }, IntStreamEx.ofChars("abc").toArray());
         assertEquals(10, IntStreamEx.of(new Random(), 10).count());
         assertTrue(IntStreamEx.of(new Random(), 100, 1, 10).allMatch(x -> x >= 1 && x < 10));

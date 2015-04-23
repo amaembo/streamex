@@ -65,6 +65,7 @@ public class StreamExTest {
         assertEquals(Arrays.asList("a", "b"), StreamEx.ofLines(getReader()).toList());
         assertEquals(Arrays.asList("a", "aa", "aaa", "aaaa"), StreamEx.iterate("a", x -> x+"a").limit(4).toList());
         assertEquals(Arrays.asList("a", "a", "a", "a"), StreamEx.generate(() -> "a").limit(4).toList());
+        assertEquals(Arrays.asList("a", "a", "a", "a"), StreamEx.constant("a", 4).toList());
         assertEquals(Arrays.asList("c", "d", "e"), StreamEx.of("abcdef".split(""), 2, 5).toList());
         
         StreamEx<String> stream = StreamEx.of("foo", "bar");

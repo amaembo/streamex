@@ -927,4 +927,17 @@ public class IntStreamEx implements IntStream {
     public static IntStreamEx rangeClosed(int startInclusive, int endInclusive) {
         return new IntStreamEx(IntStream.rangeClosed(startInclusive, endInclusive));
     }
+
+    /**
+     * Returns a sequential unordered {@code IntStreamEx} of given length which elements are
+     * equal to supplied value.
+     * 
+     * @param value the constant value
+     * @param length the length of the stream
+     * @return a new {@code IntStreamEx}
+     * @since 0.1.2
+     */
+    public static IntStreamEx constant(int value, long length) {
+        return new IntStreamEx(IntStream.generate(() -> value).limit(length));
+    }
 }

@@ -519,4 +519,17 @@ public class DoubleStreamEx implements DoubleStream {
     public static DoubleStreamEx generate(DoubleSupplier s) {
         return new DoubleStreamEx(DoubleStream.generate(s));
     }
+
+    /**
+     * Returns a sequential unordered {@code DoubleStreamEx} of given length which elements are
+     * equal to supplied value.
+     * 
+     * @param value the constant value
+     * @param length the length of the stream
+     * @return a new {@code DoubleStreamEx}
+     * @since 0.1.2
+     */
+    public static DoubleStreamEx constant(double value, long length) {
+        return new DoubleStreamEx(DoubleStream.generate(() -> value).limit(length));
+    }
 }
