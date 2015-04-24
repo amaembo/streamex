@@ -61,7 +61,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
 
     @Override
     StreamEx<T> supply(Stream<T> stream) {
-        return new StreamEx<>(stream);
+        return strategy().newStreamEx(stream);
     }
 
     /**
@@ -79,7 +79,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     @Override
     public <R> StreamEx<R> map(Function<? super T, ? extends R> mapper) {
-        return new StreamEx<>(stream.map(mapper));
+        return strategy().newStreamEx(stream.map(mapper));
     }
 
     /**
@@ -107,7 +107,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     @Override
     public <R> StreamEx<R> flatMap(Function<? super T, ? extends Stream<? extends R>> mapper) {
-        return new StreamEx<>(stream.flatMap(mapper));
+        return strategy().newStreamEx(stream.flatMap(mapper));
     }
 
     /**
@@ -143,7 +143,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return the new stream
      */
     public <V> EntryStream<T, V> mapToEntry(Function<T, V> valueMapper) {
-        return new EntryStream<>(stream.map(e -> new SimpleEntry<>(e, valueMapper.apply(e))));
+        return strategy().newEntryStream(stream.map(e -> new SimpleEntry<>(e, valueMapper.apply(e))));
     }
 
     /**
@@ -165,7 +165,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return the new stream
      */
     public <K, V> EntryStream<K, V> mapToEntry(Function<T, K> keyMapper, Function<T, V> valueMapper) {
-        return new EntryStream<>(stream.map(e -> new SimpleEntry<>(keyMapper.apply(e), valueMapper.apply(e))));
+        return strategy().newEntryStream(stream.map(e -> new SimpleEntry<>(keyMapper.apply(e), valueMapper.apply(e))));
     }
 
     public <R> StreamEx<R> flatCollection(Function<? super T, ? extends Collection<? extends R>> mapper) {
@@ -173,7 +173,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     public <K, V> EntryStream<K, V> flatMapToEntry(Function<? super T, Map<K, V>> mapper) {
-        return new EntryStream<>(stream.flatMap(e -> mapper.apply(e).entrySet().stream()));
+        return strategy().newEntryStream(stream.flatMap(e -> mapper.apply(e).entrySet().stream()));
     }
 
     /**

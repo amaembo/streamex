@@ -47,6 +47,10 @@ import java.util.stream.Stream;
     AbstractStreamEx(Stream<T> stream) {
         this.stream = stream;
     }
+    
+    StreamManagingStrategy strategy() {
+        return StreamManagingStrategy.DEFAULT;
+    }
 
     abstract S supply(Stream<T> stream);
 
@@ -115,32 +119,32 @@ import java.util.stream.Stream;
 
     @Override
     public IntStreamEx mapToInt(ToIntFunction<? super T> mapper) {
-        return new IntStreamEx(stream.mapToInt(mapper));
+        return strategy().newIntStreamEx(stream.mapToInt(mapper));
     }
 
     @Override
     public LongStreamEx mapToLong(ToLongFunction<? super T> mapper) {
-        return new LongStreamEx(stream.mapToLong(mapper));
+        return strategy().newLongStreamEx(stream.mapToLong(mapper));
     }
 
     @Override
     public DoubleStreamEx mapToDouble(ToDoubleFunction<? super T> mapper) {
-        return new DoubleStreamEx(stream.mapToDouble(mapper));
+        return strategy().newDoubleStreamEx(stream.mapToDouble(mapper));
     }
 
     @Override
     public IntStreamEx flatMapToInt(Function<? super T, ? extends IntStream> mapper) {
-        return new IntStreamEx(stream.flatMapToInt(mapper));
+        return strategy().newIntStreamEx(stream.flatMapToInt(mapper));
     }
 
     @Override
     public LongStreamEx flatMapToLong(Function<? super T, ? extends LongStream> mapper) {
-        return new LongStreamEx(stream.flatMapToLong(mapper));
+        return strategy().newLongStreamEx(stream.flatMapToLong(mapper));
     }
 
     @Override
     public DoubleStreamEx flatMapToDouble(Function<? super T, ? extends DoubleStream> mapper) {
-        return new DoubleStreamEx(stream.flatMapToDouble(mapper));
+        return strategy().newDoubleStreamEx(stream.flatMapToDouble(mapper));
     }
 
     @Override

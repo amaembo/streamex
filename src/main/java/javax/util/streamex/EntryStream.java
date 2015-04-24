@@ -54,7 +54,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
 
     @Override
     EntryStream<K, V> supply(Stream<Map.Entry<K, V>> stream) {
-        return new EntryStream<>(stream);
+        return strategy().newEntryStream(stream);
     }
 
     /**
@@ -72,7 +72,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     @Override
     public <R> StreamEx<R> map(Function<? super Entry<K, V>, ? extends R> mapper) {
-        return new StreamEx<>(stream.map(mapper));
+        return strategy().newStreamEx(stream.map(mapper));
     }
 
     /**
@@ -95,16 +95,16 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
 
     @Override
     public <R> StreamEx<R> flatMap(Function<? super Entry<K, V>, ? extends Stream<? extends R>> mapper) {
-        return new StreamEx<>(stream.flatMap(mapper));
+        return strategy().newStreamEx(stream.flatMap(mapper));
     }
 
     public <KK> EntryStream<KK, V> flatMapKeys(Function<? super K, ? extends Stream<? extends KK>> mapper) {
-        return new EntryStream<>(stream.flatMap(e -> mapper.apply(e.getKey()).map(
+        return strategy().newEntryStream(stream.flatMap(e -> mapper.apply(e.getKey()).map(
                 k -> new SimpleEntry<KK, V>(k, e.getValue()))));
     }
 
     public <VV> EntryStream<K, VV> flatMapValues(Function<? super V, ? extends Stream<? extends VV>> mapper) {
-        return new EntryStream<>(stream.flatMap(e -> mapper.apply(e.getValue()).map(
+        return strategy().newEntryStream(stream.flatMap(e -> mapper.apply(e.getValue()).map(
                 v -> new SimpleEntry<>(e.getKey(), v))));
     }
 
@@ -113,27 +113,27 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     }
 
     public EntryStream<K, V> append(K key, V value) {
-        return new EntryStream<>(Stream.concat(stream, Stream.of(new SimpleEntry<>(key, value))));
+        return strategy().newEntryStream(Stream.concat(stream, Stream.of(new SimpleEntry<>(key, value))));
     }
 
     public EntryStream<K, V> prepend(K key, V value) {
-        return new EntryStream<>(Stream.concat(Stream.of(new SimpleEntry<>(key, value)), stream));
+        return supply(Stream.concat(Stream.of(new SimpleEntry<>(key, value)), stream));
     }
 
     public <KK> EntryStream<KK, V> mapKeys(Function<K, KK> keyMapper) {
-        return new EntryStream<>(stream.map(e -> new SimpleEntry<>(keyMapper.apply(e.getKey()), e.getValue())));
+        return strategy().newEntryStream(stream.map(e -> new SimpleEntry<>(keyMapper.apply(e.getKey()), e.getValue())));
     }
 
     public <VV> EntryStream<K, VV> mapValues(Function<V, VV> valueMapper) {
-        return new EntryStream<>(stream.map(e -> new SimpleEntry<>(e.getKey(), valueMapper.apply(e.getValue()))));
+        return strategy().newEntryStream(stream.map(e -> new SimpleEntry<>(e.getKey(), valueMapper.apply(e.getValue()))));
     }
 
     public <KK> EntryStream<KK, V> mapEntryKeys(Function<Entry<K, V>, KK> keyMapper) {
-        return new EntryStream<>(stream.map(e -> new SimpleEntry<>(keyMapper.apply(e), e.getValue())));
+        return strategy().newEntryStream(stream.map(e -> new SimpleEntry<>(keyMapper.apply(e), e.getValue())));
     }
 
     public <VV> EntryStream<K, VV> mapEntryValues(Function<Entry<K, V>, VV> valueMapper) {
-        return new EntryStream<>(stream.map(e -> new SimpleEntry<>(e.getKey(), valueMapper.apply(e))));
+        return strategy().newEntryStream(stream.map(e -> new SimpleEntry<>(e.getKey(), valueMapper.apply(e))));
     }
 
     /**
@@ -146,7 +146,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public EntryStream<V, K> invert() {
-        return new EntryStream<>(stream.map(e -> new SimpleEntry<>(e.getValue(), e.getKey())));
+        return strategy().newEntryStream(stream.map(e -> new SimpleEntry<>(e.getValue(), e.getKey())));
     }
 
     /**
