@@ -326,15 +326,15 @@ public class LongStreamEx implements LongStream {
     }
 
     public LongStreamEx remove(LongPredicate predicate) {
-        return new LongStreamEx(stream.filter(predicate.negate()));
+        return filter(predicate.negate());
     }
 
     public OptionalLong findAny(LongPredicate predicate) {
-        return stream.filter(predicate).findAny();
+        return filter(predicate).findAny();
     }
 
     public OptionalLong findFirst(LongPredicate predicate) {
-        return stream.filter(predicate).findFirst();
+        return filter(predicate).findFirst();
     }
 
     /**
@@ -349,7 +349,7 @@ public class LongStreamEx implements LongStream {
      * @see LongStream#anyMatch(LongPredicate)
      */
     public boolean has(long value) {
-        return stream.anyMatch(x -> x == value);
+        return anyMatch(x -> x == value);
     }
 
     public LongStreamEx sorted(Comparator<Long> comparator) {
@@ -401,7 +401,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.1.2
      */
     public OptionalLong min(Comparator<Long> comparator) {
-        return stream.reduce((a, b) -> comparator.compare(a, b) > 0 ? b : a);
+        return reduce((a, b) -> comparator.compare(a, b) > 0 ? b : a);
     }
 
     /**
@@ -421,7 +421,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.1.2
      */
     public <V extends Comparable<? super V>> OptionalLong minBy(LongFunction<V> keyExtractor) {
-        return stream.reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? b : a);
+        return reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? b : a);
     }
 
     /**
@@ -439,7 +439,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.1.2
      */
     public OptionalLong minByInt(LongToIntFunction keyExtractor) {
-        return stream.reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? b : a);
+        return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? b : a);
     }
 
     /**
@@ -457,7 +457,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.1.2
      */
     public OptionalLong minByLong(LongUnaryOperator keyExtractor) {
-        return stream.reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? b : a);
+        return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? b : a);
     }
 
     /**
@@ -475,7 +475,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.1.2
      */
     public OptionalLong minByDouble(LongToDoubleFunction keyExtractor) {
-        return stream.reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? b : a);
+        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? b : a);
     }
 
     /**
@@ -492,7 +492,7 @@ public class LongStreamEx implements LongStream {
      *         stream, or an empty {@code OptionalLong} if the stream is empty
      */
     public OptionalLong max(Comparator<Long> comparator) {
-        return stream.reduce((a, b) -> comparator.compare(a, b) > 0 ? a : b);
+        return reduce((a, b) -> comparator.compare(a, b) > 0 ? a : b);
     }
 
     /**
@@ -512,7 +512,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.1.2
      */
     public <V extends Comparable<? super V>> OptionalLong maxBy(LongFunction<V> keyExtractor) {
-        return stream.reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? a : b);
+        return reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? a : b);
     }
 
     /**
@@ -530,7 +530,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.1.2
      */
     public OptionalLong maxByInt(LongToIntFunction keyExtractor) {
-        return stream.reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? a : b);
+        return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? a : b);
     }
 
     /**
@@ -548,7 +548,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.1.2
      */
     public OptionalLong maxByLong(LongUnaryOperator keyExtractor) {
-        return stream.reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? a : b);
+        return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? a : b);
     }
 
     /**
@@ -566,7 +566,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.1.2
      */
     public OptionalLong maxByDouble(LongToDoubleFunction keyExtractor) {
-        return stream.reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? a : b);
+        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? a : b);
     }
 
     public static LongStreamEx empty() {

@@ -90,7 +90,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public <R> StreamEx<R> mapKeyValue(BiFunction<? super K, ? super V, ? extends R> mapper) {
-        return new StreamEx<>(stream.map(entry -> mapper.apply(entry.getKey(), entry.getValue())));
+        return map(entry -> mapper.apply(entry.getKey(), entry.getValue()));
     }
 
     @Override
@@ -162,7 +162,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public EntryStream<K, V> filterKeys(Predicate<K> keyPredicate) {
-        return new EntryStream<>(stream.filter(e -> keyPredicate.test(e.getKey())));
+        return filter(e -> keyPredicate.test(e.getKey()));
     }
 
     /**
@@ -178,7 +178,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public EntryStream<K, V> filterValues(Predicate<V> valuePredicate) {
-        return new EntryStream<>(stream.filter(e -> valuePredicate.test(e.getValue())));
+        return filter(e -> valuePredicate.test(e.getValue()));
     }
 
     /**
@@ -223,7 +223,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public EntryStream<K, V> nonNullKeys() {
-        return new EntryStream<>(stream.filter(e -> e.getKey() != null));
+        return filter(e -> e.getKey() != null);
     }
 
     /**
@@ -236,17 +236,17 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public EntryStream<K, V> nonNullValues() {
-        return new EntryStream<>(stream.filter(e -> e.getValue() != null));
+        return filter(e -> e.getValue() != null);
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({ "unchecked" })
     public <KK extends K> EntryStream<KK, V> selectKeys(Class<KK> clazz) {
-        return new EntryStream<>((Stream) stream.filter(e -> clazz.isInstance(e.getKey())));
+        return (EntryStream<KK, V>) filter(e -> clazz.isInstance(e.getKey()));
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({ "unchecked" })
     public <VV extends V> EntryStream<K, VV> selectValues(Class<VV> clazz) {
-        return new EntryStream<>((Stream) stream.filter(e -> clazz.isInstance(e.getValue())));
+        return (EntryStream<K, VV>) filter(e -> clazz.isInstance(e.getValue()));
     }
 
     /**
@@ -258,7 +258,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public StreamEx<K> keys() {
-        return new StreamEx<>(stream.map(Entry::getKey));
+        return map(Entry::getKey);
     }
 
     /**
@@ -270,7 +270,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public StreamEx<V> values() {
-        return new StreamEx<>(stream.map(Entry::getValue));
+        return map(Entry::getValue);
     }
 
     /**
@@ -335,9 +335,9 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     public Map<K, V> toMap(BinaryOperator<V> mergeFunction) {
         if (stream.isParallel())
-            return stream.collect(Collectors.toConcurrentMap(Entry::getKey, Entry::getValue, mergeFunction,
+            return collect(Collectors.toConcurrentMap(Entry::getKey, Entry::getValue, mergeFunction,
                     ConcurrentHashMap::new));
-        return stream.collect(Collectors.toMap(Entry::getKey, Entry::getValue, mergeFunction, HashMap::new));
+        return collect(Collectors.toMap(Entry::getKey, Entry::getValue, mergeFunction, HashMap::new));
     }
 
     public <M extends Map<K, V>> M toCustomMap(Supplier<M> mapSupplier) {
@@ -347,9 +347,9 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     @SuppressWarnings("unchecked")
     public <M extends Map<K, V>> M toCustomMap(BinaryOperator<V> mergeFunction, Supplier<M> mapSupplier) {
         if (stream.isParallel() && mapSupplier.get() instanceof ConcurrentMap)
-            return (M) stream.collect(Collectors.toConcurrentMap(Entry::getKey, Entry::getValue, mergeFunction,
+            return (M) collect(Collectors.toConcurrentMap(Entry::getKey, Entry::getValue, mergeFunction,
                     (Supplier<? extends ConcurrentMap<K, V>>) mapSupplier));
-        return stream.collect(Collectors.toMap(Entry::getKey, Entry::getValue, mergeFunction, mapSupplier));
+        return collect(Collectors.toMap(Entry::getKey, Entry::getValue, mergeFunction, mapSupplier));
     }
 
     /**
@@ -415,9 +415,9 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     public SortedMap<K, V> toSortedMap(BinaryOperator<V> mergeFunction) {
         if (stream.isParallel())
-            return stream.collect(Collectors.toConcurrentMap(Entry::getKey, Entry::getValue, mergeFunction,
+            return collect(Collectors.toConcurrentMap(Entry::getKey, Entry::getValue, mergeFunction,
                     ConcurrentSkipListMap::new));
-        return stream.collect(Collectors.toMap(Entry::getKey, Entry::getValue, mergeFunction, TreeMap::new));
+        return collect(Collectors.toMap(Entry::getKey, Entry::getValue, mergeFunction, TreeMap::new));
     }
 
     public Map<K, List<V>> grouping() {
@@ -430,19 +430,19 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
 
     public <A, D> Map<K, D> grouping(Collector<? super V, A, D> downstream) {
         if (stream.isParallel())
-            return stream.collect(Collectors.groupingByConcurrent(Entry::getKey,
+            return collect(Collectors.groupingByConcurrent(Entry::getKey,
                     Collectors.<Entry<K, V>, V, A, D> mapping(Entry::getValue, downstream)));
-        return stream.collect(Collectors.groupingBy(Entry::getKey,
+        return collect(Collectors.groupingBy(Entry::getKey,
                 Collectors.<Entry<K, V>, V, A, D> mapping(Entry::getValue, downstream)));
     }
 
     @SuppressWarnings("unchecked")
     public <A, D, M extends Map<K, D>> M grouping(Supplier<M> mapSupplier, Collector<? super V, A, D> downstream) {
         if (stream.isParallel() && mapSupplier.get() instanceof ConcurrentMap)
-            return (M) stream.collect(Collectors.groupingByConcurrent(Entry::getKey,
+            return (M) collect(Collectors.groupingByConcurrent(Entry::getKey,
                     (Supplier<? extends ConcurrentMap<K, D>>) mapSupplier,
                     Collectors.<Entry<K, V>, V, A, D> mapping(Entry::getValue, downstream)));
-        return stream.collect(Collectors.groupingBy(Entry::getKey, mapSupplier,
+        return collect(Collectors.groupingBy(Entry::getKey, mapSupplier,
                 Collectors.<Entry<K, V>, V, A, D> mapping(Entry::getValue, downstream)));
     }
 
@@ -475,7 +475,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @see #forEach(java.util.function.Consumer)
      */
     public void forKeyValue(BiConsumer<? super K, ? super V> action) {
-        stream.forEach(entry -> action.accept(entry.getKey(), entry.getValue()));
+        forEach(entry -> action.accept(entry.getKey(), entry.getValue()));
     }
 
     /**

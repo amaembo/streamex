@@ -321,15 +321,15 @@ public class DoubleStreamEx implements DoubleStream {
     }
 
     public DoubleStreamEx remove(DoublePredicate predicate) {
-        return new DoubleStreamEx(stream.filter(predicate.negate()));
+        return filter(predicate.negate());
     }
 
     public OptionalDouble findAny(DoublePredicate predicate) {
-        return stream.filter(predicate).findAny();
+        return filter(predicate).findAny();
     }
 
     public OptionalDouble findFirst(DoublePredicate predicate) {
-        return stream.filter(predicate).findFirst();
+        return filter(predicate).findFirst();
     }
 
     public DoubleStreamEx sorted(Comparator<Double> comparator) {
@@ -382,7 +382,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.1.2
      */
     public OptionalDouble min(Comparator<Double> comparator) {
-        return stream.reduce((a, b) -> comparator.compare(a, b) > 0 ? b : a);
+        return reduce((a, b) -> comparator.compare(a, b) > 0 ? b : a);
     }
 
     /**
@@ -402,7 +402,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.1.2
      */
     public <V extends Comparable<? super V>> OptionalDouble minBy(DoubleFunction<V> keyExtractor) {
-        return stream.reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? b : a);
+        return reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? b : a);
     }
 
     /**
@@ -420,7 +420,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.1.2
      */
     public OptionalDouble minByInt(DoubleToIntFunction keyExtractor) {
-        return stream.reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? b : a);
+        return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? b : a);
     }
 
     /**
@@ -438,7 +438,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.1.2
      */
     public OptionalDouble minByLong(DoubleToLongFunction keyExtractor) {
-        return stream.reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? b : a);
+        return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? b : a);
     }
 
     /**
@@ -456,7 +456,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.1.2
      */
     public OptionalDouble minByDouble(DoubleUnaryOperator keyExtractor) {
-        return stream.reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? b : a);
+        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? b : a);
     }
 
     /**
@@ -473,7 +473,7 @@ public class DoubleStreamEx implements DoubleStream {
      *         stream, or an empty {@code OptionalDouble} if the stream is empty
      */
     public OptionalDouble max(Comparator<Double> comparator) {
-        return stream.reduce((a, b) -> comparator.compare(a, b) > 0 ? a : b);
+        return reduce((a, b) -> comparator.compare(a, b) > 0 ? a : b);
     }
 
     /**
@@ -493,7 +493,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.1.2
      */
     public <V extends Comparable<? super V>> OptionalDouble maxBy(DoubleFunction<V> keyExtractor) {
-        return stream.reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? a : b);
+        return reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? a : b);
     }
 
     /**
@@ -511,7 +511,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.1.2
      */
     public OptionalDouble maxByInt(DoubleToIntFunction keyExtractor) {
-        return stream.reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? a : b);
+        return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? a : b);
     }
 
     /**
@@ -529,7 +529,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.1.2
      */
     public OptionalDouble maxByLong(DoubleToLongFunction keyExtractor) {
-        return stream.reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? a : b);
+        return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? a : b);
     }
 
     /**
@@ -547,7 +547,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.1.2
      */
     public OptionalDouble maxByDouble(DoubleUnaryOperator keyExtractor) {
-        return stream.reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? a : b);
+        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? a : b);
     }
 
     public static DoubleStreamEx empty() {

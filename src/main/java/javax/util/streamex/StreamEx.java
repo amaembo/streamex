@@ -123,9 +123,9 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *            a class which instances should be selected
      * @return the new stream
      */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({ "unchecked" })
     public <TT extends T> StreamEx<TT> select(Class<TT> clazz) {
-        return new StreamEx<>((Stream) stream.filter(clazz::isInstance));
+        return (StreamEx<TT>) filter(clazz::isInstance);
     }
 
     /**
@@ -205,24 +205,24 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public <K> Map<K, List<T>> groupingBy(Function<? super T, ? extends K> classifier) {
         if (stream.isParallel())
-            return stream.collect(Collectors.groupingByConcurrent(classifier));
-        return stream.collect(Collectors.groupingBy(classifier));
+            return collect(Collectors.groupingByConcurrent(classifier));
+        return collect(Collectors.groupingBy(classifier));
     }
 
     public <K, D> Map<K, D> groupingBy(Function<? super T, ? extends K> classifier,
             Collector<? super T, ?, D> downstream) {
         if (stream.isParallel())
-            return stream.collect(Collectors.groupingByConcurrent(classifier, downstream));
-        return stream.collect(Collectors.groupingBy(classifier, downstream));
+            return collect(Collectors.groupingByConcurrent(classifier, downstream));
+        return collect(Collectors.groupingBy(classifier, downstream));
     }
 
     @SuppressWarnings("unchecked")
     public <K, D, M extends Map<K, D>> M groupingBy(Function<? super T, ? extends K> classifier,
             Supplier<M> mapFactory, Collector<? super T, ?, D> downstream) {
         if (stream.isParallel() && mapFactory.get() instanceof ConcurrentMap)
-            return (M) stream.collect(Collectors.groupingByConcurrent(classifier,
+            return (M) collect(Collectors.groupingByConcurrent(classifier,
                     (Supplier<ConcurrentMap<K, D>>) mapFactory, downstream));
-        return stream.collect(Collectors.groupingBy(classifier, mapFactory, downstream));
+        return collect(Collectors.groupingBy(classifier, mapFactory, downstream));
     }
 
     /**
@@ -237,7 +237,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *         returned.
      */
     public String joining() {
-        return stream.map(String::valueOf).collect(Collectors.joining());
+        return map(String::valueOf).collect(Collectors.joining());
     }
 
     /**
@@ -254,7 +254,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *         returned.
      */
     public String joining(CharSequence delimiter) {
-        return stream.map(String::valueOf).collect(Collectors.joining(delimiter));
+        return map(String::valueOf).collect(Collectors.joining(delimiter));
     }
 
     /**
@@ -278,7 +278,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *         returned.
      */
     public String joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
-        return stream.map(String::valueOf).collect(Collectors.joining(delimiter, prefix, suffix));
+        return map(String::valueOf).collect(Collectors.joining(delimiter, prefix, suffix));
     }
 
     /**
@@ -395,9 +395,9 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public <K, V> Map<K, V> toMap(Function<T, K> keyMapper, Function<T, V> valMapper, BinaryOperator<V> mergeFunction) {
         if (stream.isParallel())
-            return stream.collect(Collectors.toConcurrentMap(keyMapper, valMapper, mergeFunction,
+            return collect(Collectors.toConcurrentMap(keyMapper, valMapper, mergeFunction,
                     ConcurrentHashMap::new));
-        return stream.collect(Collectors.toMap(keyMapper, valMapper, mergeFunction, HashMap::new));
+        return collect(Collectors.toMap(keyMapper, valMapper, mergeFunction, HashMap::new));
     }
 
     /**
@@ -518,9 +518,9 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public <K, V> SortedMap<K, V> toSortedMap(Function<T, K> keyMapper, Function<T, V> valMapper,
             BinaryOperator<V> mergeFunction) {
         if (stream.isParallel())
-            return stream.collect(Collectors.toConcurrentMap(keyMapper, valMapper, mergeFunction,
+            return collect(Collectors.toConcurrentMap(keyMapper, valMapper, mergeFunction,
                     ConcurrentSkipListMap::new));
-        return stream.collect(Collectors.toMap(keyMapper, valMapper, mergeFunction, TreeMap::new));
+        return collect(Collectors.toMap(keyMapper, valMapper, mergeFunction, TreeMap::new));
     }
 
     /**
@@ -551,8 +551,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
 
     public boolean has(T element) {
         if (element == null)
-            return stream.anyMatch(Objects::isNull);
-        return stream.anyMatch(element::equals);
+            return anyMatch(Objects::isNull);
+        return anyMatch(element::equals);
     }
 
     /**

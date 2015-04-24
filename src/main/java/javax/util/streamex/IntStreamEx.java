@@ -336,15 +336,15 @@ public class IntStreamEx implements IntStream {
     }
 
     public IntStreamEx remove(IntPredicate predicate) {
-        return new IntStreamEx(stream.filter(predicate.negate()));
+        return filter(predicate.negate());
     }
 
     public OptionalInt findAny(IntPredicate predicate) {
-        return stream.filter(predicate).findAny();
+        return filter(predicate).findAny();
     }
 
     public OptionalInt findFirst(IntPredicate predicate) {
-        return stream.filter(predicate).findFirst();
+        return filter(predicate).findFirst();
     }
 
     /**
@@ -359,7 +359,7 @@ public class IntStreamEx implements IntStream {
      * @see IntStream#anyMatch(IntPredicate)
      */
     public boolean has(int value) {
-        return stream.anyMatch(x -> x == value);
+        return anyMatch(x -> x == value);
     }
 
     public IntStreamEx sorted(Comparator<Integer> comparator) {
@@ -411,7 +411,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.2
      */
     public OptionalInt min(Comparator<Integer> comparator) {
-        return stream.reduce((a, b) -> comparator.compare(a, b) > 0 ? b : a);
+        return reduce((a, b) -> comparator.compare(a, b) > 0 ? b : a);
     }
 
     /**
@@ -431,7 +431,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.2
      */
     public <V extends Comparable<? super V>> OptionalInt minBy(IntFunction<V> keyExtractor) {
-        return stream.reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? b : a);
+        return reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? b : a);
     }
 
     /**
@@ -449,7 +449,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.2
      */
     public OptionalInt minByInt(IntUnaryOperator keyExtractor) {
-        return stream.reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? b : a);
+        return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? b : a);
     }
 
     /**
@@ -467,7 +467,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.2
      */
     public OptionalInt minByLong(IntToLongFunction keyExtractor) {
-        return stream.reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? b : a);
+        return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? b : a);
     }
 
     /**
@@ -485,7 +485,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.2
      */
     public OptionalInt minByDouble(IntToDoubleFunction keyExtractor) {
-        return stream.reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? b : a);
+        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? b : a);
     }
 
     /**
@@ -502,7 +502,7 @@ public class IntStreamEx implements IntStream {
      *         stream, or an empty {@code OptionalInt} if the stream is empty
      */
     public OptionalInt max(Comparator<Integer> comparator) {
-        return stream.reduce((a, b) -> comparator.compare(a, b) > 0 ? a : b);
+        return reduce((a, b) -> comparator.compare(a, b) > 0 ? a : b);
     }
 
     /**
@@ -522,7 +522,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.2
      */
     public <V extends Comparable<? super V>> OptionalInt maxBy(IntFunction<V> keyExtractor) {
-        return stream.reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? a : b);
+        return reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? a : b);
     }
 
     /**
@@ -540,7 +540,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.2
      */
     public OptionalInt maxByInt(IntUnaryOperator keyExtractor) {
-        return stream.reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? a : b);
+        return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? a : b);
     }
 
     /**
@@ -558,7 +558,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.2
      */
     public OptionalInt maxByLong(IntToLongFunction keyExtractor) {
-        return stream.reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? a : b);
+        return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? a : b);
     }
 
     /**
@@ -576,7 +576,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.2
      */
     public OptionalInt maxByDouble(IntToDoubleFunction keyExtractor) {
-        return stream.reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? a : b);
+        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? a : b);
     }
 
     /**
@@ -594,7 +594,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.2
      */
     public <U> StreamEx<U> elements(U[] array) {
-        return new StreamEx<>(stream.mapToObj(idx -> array[idx]));
+        return mapToObj(idx -> array[idx]);
     }
 
     /**
@@ -618,7 +618,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.2
      */
     public <U> StreamEx<U> elements(List<U> list) {
-        return new StreamEx<>(stream.mapToObj(list::get));
+        return mapToObj(list::get);
     }
 
     /**
@@ -634,7 +634,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.2
      */
     public IntStreamEx elements(int[] array) {
-        return new IntStreamEx(stream.map(idx -> array[idx]));
+        return map(idx -> array[idx]);
     }
 
     /**
@@ -650,7 +650,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.2
      */
     public LongStreamEx elements(long[] array) {
-        return new LongStreamEx(stream.mapToLong(idx -> array[idx]));
+        return mapToLong(idx -> array[idx]);
     }
 
     /**
@@ -666,7 +666,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.2
      */
     public DoubleStreamEx elements(double[] array) {
-        return new DoubleStreamEx(stream.mapToDouble(idx -> array[idx]));
+        return mapToDouble(idx -> array[idx]);
     }
 
     public static IntStreamEx empty() {

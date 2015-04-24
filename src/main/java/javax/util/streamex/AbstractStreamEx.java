@@ -271,7 +271,7 @@ import java.util.stream.Stream;
      * @return the new stream
      */
     public S remove(Predicate<T> predicate) {
-        return supply(stream.filter(predicate.negate()));
+        return filter(predicate.negate());
     }
 
     /**
@@ -284,7 +284,7 @@ import java.util.stream.Stream;
      * @return the new stream
      */
     public S nonNull() {
-        return supply(stream.filter(Objects::nonNull));
+        return filter(Objects::nonNull);
     }
 
     /**
@@ -313,7 +313,7 @@ import java.util.stream.Stream;
      * @see #findFirst(Predicate)
      */
     public Optional<T> findAny(Predicate<T> predicate) {
-        return stream.filter(predicate).findAny();
+        return filter(predicate).findAny();
     }
 
     /**
@@ -334,7 +334,7 @@ import java.util.stream.Stream;
      * @see Stream#findFirst()
      */
     public Optional<T> findFirst(Predicate<T> predicate) {
-        return stream.filter(predicate).findFirst();
+        return filter(predicate).findFirst();
     }
 
     public S reverseSorted(Comparator<? super T> comparator) {
@@ -358,35 +358,35 @@ import java.util.stream.Stream;
     }
 
     public <V extends Comparable<? super V>> Optional<T> minBy(Function<T, ? extends V> keyExtractor) {
-        return stream.min(Comparator.comparing(keyExtractor));
+        return min(Comparator.comparing(keyExtractor));
     }
 
     public Optional<T> minByInt(ToIntFunction<T> keyExtractor) {
-        return stream.min(Comparator.comparingInt(keyExtractor));
+        return min(Comparator.comparingInt(keyExtractor));
     }
 
     public Optional<T> minByLong(ToLongFunction<T> keyExtractor) {
-        return stream.min(Comparator.comparingLong(keyExtractor));
+        return min(Comparator.comparingLong(keyExtractor));
     }
 
     public Optional<T> minByDouble(ToDoubleFunction<T> keyExtractor) {
-        return stream.min(Comparator.comparingDouble(keyExtractor));
+        return min(Comparator.comparingDouble(keyExtractor));
     }
 
     public <V extends Comparable<? super V>> Optional<T> maxBy(Function<T, ? extends V> keyExtractor) {
-        return stream.max(Comparator.comparing(keyExtractor));
+        return max(Comparator.comparing(keyExtractor));
     }
 
     public Optional<T> maxByInt(ToIntFunction<T> keyExtractor) {
-        return stream.max(Comparator.comparingInt(keyExtractor));
+        return max(Comparator.comparingInt(keyExtractor));
     }
 
     public Optional<T> maxByLong(ToLongFunction<T> keyExtractor) {
-        return stream.max(Comparator.comparingLong(keyExtractor));
+        return max(Comparator.comparingLong(keyExtractor));
     }
 
     public Optional<T> maxByDouble(ToDoubleFunction<T> keyExtractor) {
-        return stream.max(Comparator.comparingDouble(keyExtractor));
+        return max(Comparator.comparingDouble(keyExtractor));
     }
 
     /**
@@ -434,7 +434,7 @@ import java.util.stream.Stream;
      * @see Collectors#toList()
      */
     public List<T> toList() {
-        return stream.collect(Collectors.toList());
+        return collect(Collectors.toList());
     }
 
     /**
@@ -450,7 +450,7 @@ import java.util.stream.Stream;
      * @see Collectors#toSet()
      */
     public Set<T> toSet() {
-        return stream.collect(Collectors.toSet());
+        return collect(Collectors.toSet());
     }
 
     /**
@@ -469,7 +469,7 @@ import java.util.stream.Stream;
      * @see Collectors#toCollection(Supplier)
      */
     public <C extends Collection<T>> C toCollection(Supplier<C> collectionFactory) {
-        return stream.collect(Collectors.toCollection(collectionFactory));
+        return collect(Collectors.toCollection(collectionFactory));
     }
 
 }
