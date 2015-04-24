@@ -433,7 +433,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     }
 
     public <A, D> Map<K, D> grouping(Collector<? super V, A, D> downstream) {
-        if(stream.isParallel())
+        if (stream.isParallel())
             return stream.collect(Collectors.groupingByConcurrent(Entry::getKey,
                     Collectors.<Entry<K, V>, V, A, D> mapping(Entry::getValue, downstream)));
         return stream.collect(Collectors.groupingBy(Entry::getKey,
@@ -442,8 +442,9 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
 
     @SuppressWarnings("unchecked")
     public <A, D, M extends Map<K, D>> M grouping(Supplier<M> mapSupplier, Collector<? super V, A, D> downstream) {
-        if(stream.isParallel() && mapSupplier.get() instanceof ConcurrentMap)
-            return (M) stream.collect(Collectors.groupingByConcurrent(Entry::getKey, (Supplier<? extends ConcurrentMap<K, D>>)mapSupplier,
+        if (stream.isParallel() && mapSupplier.get() instanceof ConcurrentMap)
+            return (M) stream.collect(Collectors.groupingByConcurrent(Entry::getKey,
+                    (Supplier<? extends ConcurrentMap<K, D>>) mapSupplier,
                     Collectors.<Entry<K, V>, V, A, D> mapping(Entry::getValue, downstream)));
         return stream.collect(Collectors.groupingBy(Entry::getKey, mapSupplier,
                 Collectors.<Entry<K, V>, V, A, D> mapping(Entry::getValue, downstream)));
