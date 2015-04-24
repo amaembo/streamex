@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.IntSummaryStatistics;
 import java.util.List;
+import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.Random;
@@ -397,6 +398,187 @@ public class IntStreamEx implements IntStream {
     }
 
     /**
+     * Returns the minimum element of this stream according to the provided
+     * {@code Comparator}.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param comparator
+     *            a non-interfering, stateless {@link Comparator} to compare
+     *            elements of this stream
+     * @return an {@code OptionalInt} describing the minimum element of this
+     *         stream, or an empty {@code OptionalInt} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalInt min(Comparator<Integer> comparator) {
+        Optional<Integer> min = stream.boxed().min(comparator);
+        return min.isPresent() ? OptionalInt.of(min.get()) : OptionalInt.empty();
+    }
+
+    /**
+     * Returns the minimum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalInt} describing some element of this stream for
+     *         which the lowest value was returned by key extractor, or an empty
+     *         {@code OptionalInt} if the stream is empty
+     * @since 0.1.2
+     */
+    public <V extends Comparable<? super V>> OptionalInt minBy(IntFunction<V> keyExtractor) {
+        return min(Comparator.comparing(i -> keyExtractor.apply(i)));
+    }
+
+    /**
+     * Returns the minimum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalInt} describing some element of this stream for
+     *         which the lowest value was returned by key extractor, or an empty
+     *         {@code OptionalInt} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalInt minByInt(IntUnaryOperator keyExtractor) {
+        return min(Comparator.comparingInt(i -> keyExtractor.applyAsInt(i)));
+    }
+
+    /**
+     * Returns the minimum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalInt} describing some element of this stream for
+     *         which the lowest value was returned by key extractor, or an empty
+     *         {@code OptionalInt} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalInt minByLong(IntToLongFunction keyExtractor) {
+        return min(Comparator.comparingLong(i -> keyExtractor.applyAsLong(i)));
+    }
+
+    /**
+     * Returns the minimum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalInt} describing some element of this stream for
+     *         which the lowest value was returned by key extractor, or an empty
+     *         {@code OptionalInt} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalInt minByDouble(IntToDoubleFunction keyExtractor) {
+        return min(Comparator.comparingDouble(i -> keyExtractor.applyAsDouble(i)));
+    }
+
+    /**
+     * Returns the maximum element of this stream according to the provided
+     * {@code Comparator}.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param comparator
+     *            a non-interfering, stateless {@link Comparator} to compare
+     *            elements of this stream
+     * @return an {@code OptionalInt} describing the minimum element of this
+     *         stream, or an empty {@code OptionalInt} if the stream is empty
+     */
+    public OptionalInt max(Comparator<Integer> comparator) {
+        Optional<Integer> max = stream.boxed().max(comparator);
+        return max.isPresent() ? OptionalInt.of(max.get()) : OptionalInt.empty();
+    }
+
+    /**
+     * Returns the maximum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalInt} describing some element of this stream for
+     *         which the highest value was returned by key extractor, or an empty
+     *         {@code OptionalInt} if the stream is empty
+     * @since 0.1.2
+     */
+    public <V extends Comparable<? super V>> OptionalInt maxBy(IntFunction<V> keyExtractor) {
+        return max(Comparator.comparing(i -> keyExtractor.apply(i)));
+    }
+
+    /**
+     * Returns the maximum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalInt} describing some element of this stream for
+     *         which the highest value was returned by key extractor, or an empty
+     *         {@code OptionalInt} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalInt maxByInt(IntUnaryOperator keyExtractor) {
+        return max(Comparator.comparingInt(i -> keyExtractor.applyAsInt(i)));
+    }
+
+    /**
+     * Returns the maximum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalInt} describing some element of this stream for
+     *         which the highest value was returned by key extractor, or an empty
+     *         {@code OptionalInt} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalInt maxByLong(IntToLongFunction keyExtractor) {
+        return max(Comparator.comparingLong(i -> keyExtractor.applyAsLong(i)));
+    }
+
+    /**
+     * Returns the maximum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalInt} describing some element of this stream for
+     *         which the highest value was returned by key extractor, or an empty
+     *         {@code OptionalInt} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalInt maxByDouble(IntToDoubleFunction keyExtractor) {
+        return max(Comparator.comparingDouble(i -> keyExtractor.applyAsDouble(i)));
+    }
+
+    /**
      * Returns an object-valued {@link StreamEx} consisting of the elements of
      * given array corresponding to the indices which appear in this stream.
      *
@@ -416,13 +598,14 @@ public class IntStreamEx implements IntStream {
 
     /**
      * Returns an object-valued {@link StreamEx} consisting of the elements of
-     * given {@link List} corresponding to the indices which appear in this stream.
+     * given {@link List} corresponding to the indices which appear in this
+     * stream.
      *
      * <p>
      * The list elements are accessed using {@link List#get(int)}, so the list
      * should provide fast random access. The list is assumed to be unmodifiable
      * during the stream operations.
-
+     * 
      * <p>
      * This is an intermediate operation.
      *
@@ -925,11 +1108,13 @@ public class IntStreamEx implements IntStream {
     }
 
     /**
-     * Returns a sequential unordered {@code IntStreamEx} of given length which elements are
-     * equal to supplied value.
+     * Returns a sequential unordered {@code IntStreamEx} of given length which
+     * elements are equal to supplied value.
      * 
-     * @param value the constant value
-     * @param length the length of the stream
+     * @param value
+     *            the constant value
+     * @param length
+     *            the length of the stream
      * @return a new {@code IntStreamEx}
      * @since 0.1.2
      */

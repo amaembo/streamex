@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.LongSummaryStatistics;
+import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalLong;
 import java.util.Random;
@@ -386,6 +387,187 @@ public class LongStreamEx implements LongStream {
         return sorted(Comparator.comparingDouble(i -> keyExtractor.applyAsDouble(i)));
     }
 
+    /**
+     * Returns the minimum element of this stream according to the provided
+     * {@code Comparator}.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param comparator
+     *            a non-interfering, stateless {@link Comparator} to compare
+     *            elements of this stream
+     * @return an {@code OptionalLong} describing the minimum element of this
+     *         stream, or an empty {@code OptionalLong} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalLong min(Comparator<Long> comparator) {
+        Optional<Long> min = stream.boxed().min(comparator);
+        return min.isPresent() ? OptionalLong.of(min.get()) : OptionalLong.empty();
+    }
+
+    /**
+     * Returns the minimum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalLong} describing some element of this stream
+     *         for which the lowest value was returned by key extractor, or an
+     *         empty {@code OptionalLong} if the stream is empty
+     * @since 0.1.2
+     */
+    public <V extends Comparable<? super V>> OptionalLong minBy(LongFunction<V> keyExtractor) {
+        return min(Comparator.comparing(i -> keyExtractor.apply(i)));
+    }
+
+    /**
+     * Returns the minimum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalLong} describing some element of this stream
+     *         for which the lowest value was returned by key extractor, or an
+     *         empty {@code OptionalLong} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalLong minByInt(LongToIntFunction keyExtractor) {
+        return min(Comparator.comparingInt(i -> keyExtractor.applyAsInt(i)));
+    }
+
+    /**
+     * Returns the minimum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalLong} describing some element of this stream
+     *         for which the lowest value was returned by key extractor, or an
+     *         empty {@code OptionalLong} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalLong minByLong(LongUnaryOperator keyExtractor) {
+        return min(Comparator.comparingLong(i -> keyExtractor.applyAsLong(i)));
+    }
+
+    /**
+     * Returns the minimum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalLong} describing some element of this stream
+     *         for which the lowest value was returned by key extractor, or an
+     *         empty {@code OptionalLong} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalLong minByDouble(LongToDoubleFunction keyExtractor) {
+        return min(Comparator.comparingDouble(i -> keyExtractor.applyAsDouble(i)));
+    }
+
+    /**
+     * Returns the maximum element of this stream according to the provided
+     * {@code Comparator}.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param comparator
+     *            a non-interfering, stateless {@link Comparator} to compare
+     *            elements of this stream
+     * @return an {@code OptionalLong} describing the minimum element of this
+     *         stream, or an empty {@code OptionalLong} if the stream is empty
+     */
+    public OptionalLong max(Comparator<Long> comparator) {
+        Optional<Long> max = stream.boxed().max(comparator);
+        return max.isPresent() ? OptionalLong.of(max.get()) : OptionalLong.empty();
+    }
+
+    /**
+     * Returns the maximum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalLong} describing some element of this stream
+     *         for which the highest value was returned by key extractor, or an
+     *         empty {@code OptionalLong} if the stream is empty
+     * @since 0.1.2
+     */
+    public <V extends Comparable<? super V>> OptionalLong maxBy(LongFunction<V> keyExtractor) {
+        return max(Comparator.comparing(i -> keyExtractor.apply(i)));
+    }
+
+    /**
+     * Returns the maximum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalLong} describing some element of this stream
+     *         for which the highest value was returned by key extractor, or an
+     *         empty {@code OptionalLong} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalLong maxByInt(LongToIntFunction keyExtractor) {
+        return max(Comparator.comparingInt(i -> keyExtractor.applyAsInt(i)));
+    }
+
+    /**
+     * Returns the maximum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalLong} describing some element of this stream
+     *         for which the highest value was returned by key extractor, or an
+     *         empty {@code OptionalLong} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalLong maxByLong(LongUnaryOperator keyExtractor) {
+        return max(Comparator.comparingLong(i -> keyExtractor.applyAsLong(i)));
+    }
+
+    /**
+     * Returns the maximum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalLong} describing some element of this stream
+     *         for which the highest value was returned by key extractor, or an
+     *         empty {@code OptionalLong} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalLong maxByDouble(LongToDoubleFunction keyExtractor) {
+        return max(Comparator.comparingDouble(i -> keyExtractor.applyAsDouble(i)));
+    }
+
     public static LongStreamEx empty() {
         return new LongStreamEx(LongStream.empty());
     }
@@ -584,11 +766,13 @@ public class LongStreamEx implements LongStream {
     }
 
     /**
-     * Returns a sequential unordered {@code LongStreamEx} of given length which elements are
-     * equal to supplied value.
+     * Returns a sequential unordered {@code LongStreamEx} of given length which
+     * elements are equal to supplied value.
      * 
-     * @param value the constant value
-     * @param length the length of the stream
+     * @param value
+     *            the constant value
+     * @param length
+     *            the length of the stream
      * @return a new {@code LongStreamEx}
      * @since 0.1.2
      */
