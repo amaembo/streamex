@@ -41,7 +41,7 @@ import java.util.stream.DoubleStream;
  * @author Tagir Valeev
  */
 public class DoubleStreamEx implements DoubleStream {
-    private final DoubleStream stream;
+    final DoubleStream stream;
 
     DoubleStreamEx(DoubleStream stream) {
         this.stream = stream;
