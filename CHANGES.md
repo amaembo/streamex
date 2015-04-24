@@ -4,6 +4,7 @@
 
 * Added IntStreamEx#elements methods family
 * Added construction of the constant stream
+* Added minBy/maxBy methods family for primitive streams
 * Updated documentation
 
 ### 0.1.1
