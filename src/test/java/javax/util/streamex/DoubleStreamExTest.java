@@ -109,4 +109,18 @@ public class DoubleStreamExTest {
                         .of(0, 1, 1000, -10, -Double.MAX_VALUE, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY,
                                 Double.MAX_VALUE, -0.0, Double.MIN_VALUE).reverseSorted().toArray(), 0.0);
     }
+
+    @Test
+    public void testMinMax() {
+        assertEquals(9, IntStreamEx.range(5, 12).asDoubleStream().max((a, b) -> String.valueOf(a).compareTo(String.valueOf(b))).getAsDouble(), 0.0);
+        assertEquals(10, IntStreamEx.range(5, 12).asDoubleStream().min((a, b) -> String.valueOf(a).compareTo(String.valueOf(b))).getAsDouble(), 0.0);
+        assertEquals(9, IntStreamEx.range(5, 12).asDoubleStream().maxBy(String::valueOf).getAsDouble(), 0.0);
+        assertEquals(10, IntStreamEx.range(5, 12).asDoubleStream().minBy(String::valueOf).getAsDouble(), 0.0);
+        assertEquals(5, IntStreamEx.range(5, 12).asDoubleStream().maxByDouble(x -> 1.0/x).getAsDouble(), 0.0);
+        assertEquals(11, IntStreamEx.range(5, 12).asDoubleStream().minByDouble(x -> 1.0/x).getAsDouble(), 0.0);
+        assertEquals(29.0, DoubleStreamEx.of(15, 8, 31, 47, 19, 29).maxByInt(x -> (int)(x % 10 * 10 + x / 10)).getAsDouble(), 0.0);
+        assertEquals(31.0, DoubleStreamEx.of(15, 8, 31, 47, 19, 29).minByInt(x -> (int)(x % 10 * 10 + x / 10)).getAsDouble(), 0.0);
+        assertEquals(29.0, DoubleStreamEx.of(15, 8, 31, 47, 19, 29).maxByLong(x -> (long)(x % 10 * 10 + x / 10)).getAsDouble(), 0.0);
+        assertEquals(31.0, DoubleStreamEx.of(15, 8, 31, 47, 19, 29).minByLong(x -> (long)(x % 10 * 10 + x / 10)).getAsDouble(), 0.0);
+    }
 }

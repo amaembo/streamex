@@ -112,4 +112,18 @@ public class LongStreamExTest {
         assertArrayEquals(new long[] { Long.MAX_VALUE, 1000, 1, 0, -10, Long.MIN_VALUE },
                 LongStreamEx.of(0, 1, 1000, -10, Long.MIN_VALUE, Long.MAX_VALUE).reverseSorted().toArray());
     }
+
+    @Test
+    public void testMinMax() {
+        assertEquals(9, LongStreamEx.range(5, 12).max((a, b) -> String.valueOf(a).compareTo(String.valueOf(b))).getAsLong());
+        assertEquals(10, LongStreamEx.range(5, 12).min((a, b) -> String.valueOf(a).compareTo(String.valueOf(b))).getAsLong());
+        assertEquals(9, LongStreamEx.range(5, 12).maxBy(String::valueOf).getAsLong());
+        assertEquals(10, LongStreamEx.range(5, 12).minBy(String::valueOf).getAsLong());
+        assertEquals(5, LongStreamEx.range(5, 12).maxByDouble(x -> 1.0/x).getAsLong());
+        assertEquals(11, LongStreamEx.range(5, 12).minByDouble(x -> 1.0/x).getAsLong());
+        assertEquals(29, LongStreamEx.of(15, 8, 31, 47, 19, 29).maxByInt(x -> (int)(x % 10 * 10 + x / 10)).getAsLong());
+        assertEquals(31, LongStreamEx.of(15, 8, 31, 47, 19, 29).minByInt(x -> (int)(x % 10 * 10 + x / 10)).getAsLong());
+        assertEquals(29, LongStreamEx.of(15, 8, 31, 47, 19, 29).maxByLong(x -> x % 10 * 10 + x / 10).getAsLong());
+        assertEquals(31, LongStreamEx.of(15, 8, 31, 47, 19, 29).minByLong(x -> x % 10 * 10 + x / 10).getAsLong());
+    }
 }

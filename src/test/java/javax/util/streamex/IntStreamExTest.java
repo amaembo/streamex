@@ -147,4 +147,18 @@ public class IntStreamExTest {
         assertArrayEquals(new int[] { Integer.MAX_VALUE, 1000, 1, 0, -10, Integer.MIN_VALUE },
                 IntStreamEx.of(0, 1, 1000, -10, Integer.MIN_VALUE, Integer.MAX_VALUE).reverseSorted().toArray());
     }
+
+    @Test
+    public void testMinMax() {
+        assertEquals(9, IntStreamEx.range(5, 12).max((a, b) -> String.valueOf(a).compareTo(String.valueOf(b))).getAsInt());
+        assertEquals(10, IntStreamEx.range(5, 12).min((a, b) -> String.valueOf(a).compareTo(String.valueOf(b))).getAsInt());
+        assertEquals(9, IntStreamEx.range(5, 12).maxBy(String::valueOf).getAsInt());
+        assertEquals(10, IntStreamEx.range(5, 12).minBy(String::valueOf).getAsInt());
+        assertEquals(5, IntStreamEx.range(5, 12).maxByDouble(x -> 1.0/x).getAsInt());
+        assertEquals(11, IntStreamEx.range(5, 12).minByDouble(x -> 1.0/x).getAsInt());
+        assertEquals(29, IntStreamEx.of(15, 8, 31, 47, 19, 29).maxByInt(x -> x % 10 * 10 + x / 10).getAsInt());
+        assertEquals(31, IntStreamEx.of(15, 8, 31, 47, 19, 29).minByInt(x -> x % 10 * 10 + x / 10).getAsInt());
+        assertEquals(29, IntStreamEx.of(15, 8, 31, 47, 19, 29).maxByLong(x -> Long.MIN_VALUE + x % 10 * 10 + x / 10).getAsInt());
+        assertEquals(31, IntStreamEx.of(15, 8, 31, 47, 19, 29).minByLong(x -> Long.MIN_VALUE + x % 10 * 10 + x / 10).getAsInt());
+    }
 }
