@@ -25,6 +25,7 @@ import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.Random;
 import java.util.PrimitiveIterator.OfInt;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
 import java.util.function.DoublePredicate;
 import java.util.function.IntBinaryOperator;
@@ -295,6 +296,10 @@ public class IntStreamEx implements IntStream {
     @Override
     public IntStreamEx parallel() {
         return strategy().newIntStreamEx(stream.parallel());
+    }
+
+    public IntStreamEx parallel(ForkJoinPool fjp) {
+        return StreamManagingStrategy.forCustomPool(fjp).newIntStreamEx(stream.parallel());
     }
 
     @Override

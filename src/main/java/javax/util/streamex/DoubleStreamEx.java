@@ -22,6 +22,7 @@ import java.util.DoubleSummaryStatistics;
 import java.util.OptionalDouble;
 import java.util.Random;
 import java.util.PrimitiveIterator.OfDouble;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleConsumer;
@@ -280,6 +281,10 @@ public class DoubleStreamEx implements DoubleStream {
     @Override
     public DoubleStreamEx parallel() {
         return strategy().newDoubleStreamEx(stream.parallel());
+    }
+
+    public DoubleStreamEx parallel(ForkJoinPool fjp) {
+        return StreamManagingStrategy.forCustomPool(fjp).newDoubleStreamEx(stream.parallel());
     }
 
     @Override

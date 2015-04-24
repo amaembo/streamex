@@ -31,6 +31,7 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
@@ -62,6 +63,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     @Override
     StreamEx<T> supply(Stream<T> stream) {
         return strategy().newStreamEx(stream);
+    }
+
+    public StreamEx<T> parallel(ForkJoinPool fjp) {
+        return StreamManagingStrategy.forCustomPool(fjp).newStreamEx(stream.parallel());
     }
 
     /**

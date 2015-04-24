@@ -23,6 +23,7 @@ import java.util.OptionalDouble;
 import java.util.OptionalLong;
 import java.util.Random;
 import java.util.PrimitiveIterator.OfLong;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
 import java.util.function.LongBinaryOperator;
 import java.util.function.LongConsumer;
@@ -285,6 +286,10 @@ public class LongStreamEx implements LongStream {
     @Override
     public LongStreamEx parallel() {
         return strategy().newLongStreamEx(stream.parallel());
+    }
+
+    public LongStreamEx parallel(ForkJoinPool fjp) {
+        return StreamManagingStrategy.forCustomPool(fjp).newLongStreamEx(stream.parallel());
     }
 
     @Override

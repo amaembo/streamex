@@ -26,6 +26,7 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
@@ -55,6 +56,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     @Override
     EntryStream<K, V> supply(Stream<Map.Entry<K, V>> stream) {
         return strategy().newEntryStream(stream);
+    }
+
+    public EntryStream<K, V> parallel(ForkJoinPool fjp) {
+        return StreamManagingStrategy.forCustomPool(fjp).newEntryStream(stream.parallel());
     }
 
     /**
