@@ -371,23 +371,19 @@ public class LongStreamEx implements LongStream {
     }
 
     public <V extends Comparable<? super V>> LongStreamEx sortedBy(LongFunction<V> keyExtractor) {
-        return new LongStreamEx(stream.boxed().sorted(Comparator.comparing(i -> keyExtractor.apply(i)))
-                .mapToLong(Long::longValue));
+        return sorted(Comparator.comparing(i -> keyExtractor.apply(i)));
     }
 
     public LongStreamEx sortedByInt(LongToIntFunction keyExtractor) {
-        return new LongStreamEx(stream.boxed().sorted(Comparator.comparingInt(i -> keyExtractor.applyAsInt(i)))
-                .mapToLong(Long::longValue));
+        return sorted(Comparator.comparingInt(i -> keyExtractor.applyAsInt(i)));
     }
 
     public LongStreamEx sortedByLong(LongUnaryOperator keyExtractor) {
-        return new LongStreamEx(stream.boxed().sorted(Comparator.comparingLong(i -> keyExtractor.applyAsLong(i)))
-                .mapToLong(Long::longValue));
+        return sorted(Comparator.comparingLong(i -> keyExtractor.applyAsLong(i)));
     }
 
     public LongStreamEx sortedByDouble(LongToDoubleFunction keyExtractor) {
-        return new LongStreamEx(stream.boxed().sorted(Comparator.comparingDouble(i -> keyExtractor.applyAsDouble(i)))
-                .mapToLong(Long::longValue));
+        return sorted(Comparator.comparingDouble(i -> keyExtractor.applyAsDouble(i)));
     }
 
     public static LongStreamEx empty() {

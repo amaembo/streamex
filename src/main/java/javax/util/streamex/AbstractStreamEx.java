@@ -325,23 +325,23 @@ import java.util.stream.Stream;
     }
 
     public S reverseSorted(Comparator<? super T> comparator) {
-        return supply(stream.sorted(comparator.reversed()));
+        return sorted(comparator.reversed());
     }
 
     public <V extends Comparable<? super V>> S sortedBy(Function<T, ? extends V> keyExtractor) {
-        return supply(stream.sorted(Comparator.comparing(keyExtractor)));
+        return sorted(Comparator.comparing(keyExtractor));
     }
 
     public S sortedByInt(ToIntFunction<T> keyExtractor) {
-        return supply(stream.sorted(Comparator.comparingInt(keyExtractor)));
+        return sorted(Comparator.comparingInt(keyExtractor));
     }
 
     public S sortedByLong(ToLongFunction<T> keyExtractor) {
-        return supply(stream.sorted(Comparator.comparingLong(keyExtractor)));
+        return sorted(Comparator.comparingLong(keyExtractor));
     }
 
     public S sortedByDouble(ToDoubleFunction<T> keyExtractor) {
-        return supply(stream.sorted(Comparator.comparingDouble(keyExtractor)));
+        return sorted(Comparator.comparingDouble(keyExtractor));
     }
 
     public <V extends Comparable<? super V>> Optional<T> minBy(Function<T, ? extends V> keyExtractor) {

@@ -381,23 +381,19 @@ public class IntStreamEx implements IntStream {
     }
 
     public <V extends Comparable<? super V>> IntStreamEx sortedBy(IntFunction<V> keyExtractor) {
-        return new IntStreamEx(stream.boxed().sorted(Comparator.comparing(i -> keyExtractor.apply(i)))
-                .mapToInt(Integer::intValue));
+        return sorted(Comparator.comparing(i -> keyExtractor.apply(i)));
     }
 
     public IntStreamEx sortedByInt(IntUnaryOperator keyExtractor) {
-        return new IntStreamEx(stream.boxed().sorted(Comparator.comparingInt(i -> keyExtractor.applyAsInt(i)))
-                .mapToInt(Integer::intValue));
+        return sorted(Comparator.comparingInt(i -> keyExtractor.applyAsInt(i)));
     }
 
     public IntStreamEx sortedByLong(IntToLongFunction keyExtractor) {
-        return new IntStreamEx(stream.boxed().sorted(Comparator.comparingLong(i -> keyExtractor.applyAsLong(i)))
-                .mapToInt(Integer::intValue));
+        return sorted(Comparator.comparingLong(i -> keyExtractor.applyAsLong(i)));
     }
 
     public IntStreamEx sortedByDouble(IntToDoubleFunction keyExtractor) {
-        return new IntStreamEx(stream.boxed().sorted(Comparator.comparingDouble(i -> keyExtractor.applyAsDouble(i)))
-                .mapToInt(Integer::intValue));
+        return sorted(Comparator.comparingDouble(i -> keyExtractor.applyAsDouble(i)));
     }
 
     /**

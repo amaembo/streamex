@@ -352,23 +352,19 @@ public class DoubleStreamEx implements DoubleStream {
     }
 
     public <V extends Comparable<? super V>> DoubleStreamEx sortedBy(DoubleFunction<V> keyExtractor) {
-        return new DoubleStreamEx(stream.boxed().sorted(Comparator.comparing(i -> keyExtractor.apply(i)))
-                .mapToDouble(Double::doubleValue));
+        return sorted(Comparator.comparing(i -> keyExtractor.apply(i)));
     }
 
     public DoubleStreamEx sortedByInt(DoubleToIntFunction keyExtractor) {
-        return new DoubleStreamEx(stream.boxed().sorted(Comparator.comparingInt(i -> keyExtractor.applyAsInt(i)))
-                .mapToDouble(Double::doubleValue));
+        return sorted(Comparator.comparingInt(i -> keyExtractor.applyAsInt(i)));
     }
 
     public DoubleStreamEx sortedByLong(DoubleToLongFunction keyExtractor) {
-        return new DoubleStreamEx(stream.boxed().sorted(Comparator.comparingLong(i -> keyExtractor.applyAsLong(i)))
-                .mapToDouble(Double::doubleValue));
+        return sorted(Comparator.comparingLong(i -> keyExtractor.applyAsLong(i)));
     }
 
     public DoubleStreamEx sortedByDouble(DoubleUnaryOperator keyExtractor) {
-        return new DoubleStreamEx(stream.boxed().sorted(Comparator.comparingDouble(i -> keyExtractor.applyAsDouble(i)))
-                .mapToDouble(Double::doubleValue));
+        return sorted(Comparator.comparingDouble(i -> keyExtractor.applyAsDouble(i)));
     }
 
     public static DoubleStreamEx empty() {
