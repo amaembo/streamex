@@ -16,7 +16,9 @@
 package javax.util.streamex;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.Reader;
+import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -681,6 +683,33 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return element == null ? empty() : of(element);
     }
 
+    /**
+     * Returns a {@code StreamEx}, the elements of which are lines read from
+     * the supplied {@link BufferedReader}. The {@code StreamEx} is lazily populated,
+     * i.e., read only occurs during the terminal
+     * stream operation.
+     *
+     * <p> The reader must not be operated on during the execution of the
+     * terminal stream operation. Otherwise, the result of the terminal stream
+     * operation is undefined.
+     *
+     * <p> After execution of the terminal stream operation there are no
+     * guarantees that the reader will be at a specific position from which to
+     * read the next character or line.
+     *
+     * <p> If an {@link IOException} is thrown when accessing the underlying
+     * {@code BufferedReader}, it is wrapped in an {@link
+     * UncheckedIOException} which will be thrown from the {@code StreamEx}
+     * method that caused the read to take place. This method will return a
+     * StreamEx if invoked on a BufferedReader that is closed. Any operation on
+     * that stream that requires reading from the BufferedReader after it is
+     * closed, will cause an UncheckedIOException to be thrown.
+     *
+     * @param reader the reader to get the lines from
+     * @return a {@code StreamEx<String>} providing the lines of text
+     *         described by this {@code BufferedReader}
+     * @see BufferedReader#lines()
+     */
     public static StreamEx<String> ofLines(BufferedReader reader) {
         return new StreamEx<>(reader.lines());
     }
