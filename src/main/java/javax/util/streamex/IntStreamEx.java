@@ -21,7 +21,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.IntSummaryStatistics;
 import java.util.List;
-import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.Random;
@@ -412,8 +411,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.2
      */
     public OptionalInt min(Comparator<Integer> comparator) {
-        Optional<Integer> min = stream.boxed().min(comparator);
-        return min.isPresent() ? OptionalInt.of(min.get()) : OptionalInt.empty();
+        return stream.reduce((a, b) -> comparator.compare(a, b) > 0 ? b : a);
     }
 
     /**
@@ -433,7 +431,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.2
      */
     public <V extends Comparable<? super V>> OptionalInt minBy(IntFunction<V> keyExtractor) {
-        return min(Comparator.comparing(i -> keyExtractor.apply(i)));
+        return stream.reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? b : a);
     }
 
     /**
@@ -451,7 +449,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.2
      */
     public OptionalInt minByInt(IntUnaryOperator keyExtractor) {
-        return min(Comparator.comparingInt(i -> keyExtractor.applyAsInt(i)));
+        return stream.reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? b : a);
     }
 
     /**
@@ -469,7 +467,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.2
      */
     public OptionalInt minByLong(IntToLongFunction keyExtractor) {
-        return min(Comparator.comparingLong(i -> keyExtractor.applyAsLong(i)));
+        return stream.reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? b : a);
     }
 
     /**
@@ -487,7 +485,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.2
      */
     public OptionalInt minByDouble(IntToDoubleFunction keyExtractor) {
-        return min(Comparator.comparingDouble(i -> keyExtractor.applyAsDouble(i)));
+        return stream.reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? b : a);
     }
 
     /**
@@ -504,8 +502,7 @@ public class IntStreamEx implements IntStream {
      *         stream, or an empty {@code OptionalInt} if the stream is empty
      */
     public OptionalInt max(Comparator<Integer> comparator) {
-        Optional<Integer> max = stream.boxed().max(comparator);
-        return max.isPresent() ? OptionalInt.of(max.get()) : OptionalInt.empty();
+        return stream.reduce((a, b) -> comparator.compare(a, b) > 0 ? a : b);
     }
 
     /**
@@ -525,7 +522,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.2
      */
     public <V extends Comparable<? super V>> OptionalInt maxBy(IntFunction<V> keyExtractor) {
-        return max(Comparator.comparing(i -> keyExtractor.apply(i)));
+        return stream.reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? a : b);
     }
 
     /**
@@ -543,7 +540,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.2
      */
     public OptionalInt maxByInt(IntUnaryOperator keyExtractor) {
-        return max(Comparator.comparingInt(i -> keyExtractor.applyAsInt(i)));
+        return stream.reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? a : b);
     }
 
     /**
@@ -561,7 +558,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.2
      */
     public OptionalInt maxByLong(IntToLongFunction keyExtractor) {
-        return max(Comparator.comparingLong(i -> keyExtractor.applyAsLong(i)));
+        return stream.reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? a : b);
     }
 
     /**
@@ -579,7 +576,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.2
      */
     public OptionalInt maxByDouble(IntToDoubleFunction keyExtractor) {
-        return max(Comparator.comparingDouble(i -> keyExtractor.applyAsDouble(i)));
+        return stream.reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? a : b);
     }
 
     /**
