@@ -52,6 +52,10 @@ public class IntStreamEx implements IntStream {
     IntStreamEx(IntStream stream) {
         this.stream = stream;
     }
+    
+    StreamManagingStrategy strategy() {
+        return StreamManagingStrategy.DEFAULT;
+    }
 
     @Override
     public boolean isParallel() {
@@ -60,12 +64,12 @@ public class IntStreamEx implements IntStream {
 
     @Override
     public IntStreamEx unordered() {
-        return new IntStreamEx(stream.unordered());
+        return strategy().newIntStreamEx(stream.unordered());
     }
 
     @Override
     public IntStreamEx onClose(Runnable closeHandler) {
-        return new IntStreamEx(stream.onClose(closeHandler));
+        return strategy().newIntStreamEx(stream.onClose(closeHandler));
     }
 
     @Override
@@ -75,7 +79,7 @@ public class IntStreamEx implements IntStream {
 
     @Override
     public IntStreamEx filter(IntPredicate predicate) {
-        return new IntStreamEx(stream.filter(predicate));
+        return strategy().newIntStreamEx(stream.filter(predicate));
     }
 
     /**
@@ -91,7 +95,7 @@ public class IntStreamEx implements IntStream {
      */
     @Override
     public IntStreamEx map(IntUnaryOperator mapper) {
-        return new IntStreamEx(stream.map(mapper));
+        return strategy().newIntStreamEx(stream.map(mapper));
     }
 
     /**
@@ -109,7 +113,7 @@ public class IntStreamEx implements IntStream {
      */
     @Override
     public <U> StreamEx<U> mapToObj(IntFunction<? extends U> mapper) {
-        return new StreamEx<>(stream.mapToObj(mapper));
+        return strategy().newStreamEx(stream.mapToObj(mapper));
     }
 
     /**
@@ -125,7 +129,7 @@ public class IntStreamEx implements IntStream {
      */
     @Override
     public LongStreamEx mapToLong(IntToLongFunction mapper) {
-        return new LongStreamEx(stream.mapToLong(mapper));
+        return strategy().newLongStreamEx(stream.mapToLong(mapper));
     }
 
     /**
@@ -141,17 +145,17 @@ public class IntStreamEx implements IntStream {
      */
     @Override
     public DoubleStreamEx mapToDouble(IntToDoubleFunction mapper) {
-        return new DoubleStreamEx(stream.mapToDouble(mapper));
+        return strategy().newDoubleStreamEx(stream.mapToDouble(mapper));
     }
 
     @Override
     public IntStreamEx flatMap(IntFunction<? extends IntStream> mapper) {
-        return new IntStreamEx(stream.flatMap(mapper));
+        return strategy().newIntStreamEx(stream.flatMap(mapper));
     }
 
     @Override
     public IntStreamEx distinct() {
-        return new IntStreamEx(stream.distinct());
+        return strategy().newIntStreamEx(stream.distinct());
     }
 
     /**
@@ -165,142 +169,142 @@ public class IntStreamEx implements IntStream {
      */
     @Override
     public IntStreamEx sorted() {
-        return new IntStreamEx(stream.sorted());
+        return strategy().newIntStreamEx(stream.sorted());
     }
 
     @Override
     public IntStreamEx peek(IntConsumer action) {
-        return new IntStreamEx(stream.peek(action));
+        return strategy().newIntStreamEx(stream.peek(action));
     }
 
     @Override
     public IntStreamEx limit(long maxSize) {
-        return new IntStreamEx(stream.limit(maxSize));
+        return strategy().newIntStreamEx(stream.limit(maxSize));
     }
 
     @Override
     public IntStreamEx skip(long n) {
-        return new IntStreamEx(stream.skip(n));
+        return strategy().newIntStreamEx(stream.skip(n));
     }
 
     @Override
     public void forEach(IntConsumer action) {
-        stream.forEach(action);
+        strategy().terminate(() -> {stream.forEach(action); return null;});
     }
 
     @Override
     public void forEachOrdered(IntConsumer action) {
-        stream.forEachOrdered(action);
+        strategy().terminate(() -> {stream.forEachOrdered(action); return null;});
     }
 
     @Override
     public int[] toArray() {
-        return stream.toArray();
+        return strategy().terminate(stream::toArray);
     }
 
     @Override
     public int reduce(int identity, IntBinaryOperator op) {
-        return stream.reduce(identity, op);
+        return strategy().terminate(() -> stream.reduce(identity, op));
     }
 
     @Override
     public OptionalInt reduce(IntBinaryOperator op) {
-        return stream.reduce(op);
+        return strategy().terminate(() -> stream.reduce(op));
     }
 
     @Override
     public <R> R collect(Supplier<R> supplier, ObjIntConsumer<R> accumulator, BiConsumer<R, R> combiner) {
-        return stream.collect(supplier, accumulator, combiner);
+        return strategy().terminate(() -> stream.collect(supplier, accumulator, combiner));
     }
 
     @Override
     public int sum() {
-        return stream.sum();
+        return strategy().terminate(() -> stream.sum());
     }
 
     @Override
     public OptionalInt min() {
-        return stream.min();
+        return strategy().terminate(() -> stream.min());
     }
 
     @Override
     public OptionalInt max() {
-        return stream.max();
+        return strategy().terminate(() -> stream.max());
     }
 
     @Override
     public long count() {
-        return stream.count();
+        return strategy().terminate(() -> stream.count());
     }
 
     @Override
     public OptionalDouble average() {
-        return stream.average();
+        return strategy().terminate(() -> stream.average());
     }
 
     @Override
     public IntSummaryStatistics summaryStatistics() {
-        return stream.summaryStatistics();
+        return strategy().terminate(() -> stream.summaryStatistics());
     }
 
     @Override
     public boolean anyMatch(IntPredicate predicate) {
-        return stream.anyMatch(predicate);
+        return strategy().terminate(() -> stream.anyMatch(predicate));
     }
 
     @Override
     public boolean allMatch(IntPredicate predicate) {
-        return stream.allMatch(predicate);
+        return strategy().terminate(() -> stream.allMatch(predicate));
     }
 
     @Override
     public boolean noneMatch(IntPredicate predicate) {
-        return stream.noneMatch(predicate);
+        return strategy().terminate(() -> stream.noneMatch(predicate));
     }
 
     @Override
     public OptionalInt findFirst() {
-        return stream.findFirst();
+        return strategy().terminate(() -> stream.findFirst());
     }
 
     @Override
     public OptionalInt findAny() {
-        return stream.findAny();
+        return strategy().terminate(() -> stream.findAny());
     }
 
     @Override
     public LongStreamEx asLongStream() {
-        return new LongStreamEx(stream.asLongStream());
+        return strategy().newLongStreamEx(stream.asLongStream());
     }
 
     @Override
     public DoubleStreamEx asDoubleStream() {
-        return new DoubleStreamEx(stream.asDoubleStream());
+        return strategy().newDoubleStreamEx(stream.asDoubleStream());
     }
 
     @Override
     public StreamEx<Integer> boxed() {
-        return new StreamEx<>(stream.boxed());
+        return strategy().newStreamEx(stream.boxed());
     }
 
     @Override
     public IntStreamEx sequential() {
-        return new IntStreamEx(stream.sequential());
+        return strategy().newIntStreamEx(stream.sequential());
     }
 
     @Override
     public IntStreamEx parallel() {
-        return new IntStreamEx(stream.parallel());
+        return strategy().newIntStreamEx(stream.parallel());
     }
 
     @Override
     public OfInt iterator() {
-        return stream.iterator();
+        return strategy().terminate(stream::iterator);
     }
 
     @Override
     public java.util.Spliterator.OfInt spliterator() {
-        return stream.spliterator();
+        return strategy().terminate(stream::spliterator);
     }
 
     /**
@@ -312,11 +316,11 @@ public class IntStreamEx implements IntStream {
      * @return the new stream
      */
     public IntStreamEx append(int... values) {
-        return new IntStreamEx(IntStream.concat(stream, IntStream.of(values)));
+        return strategy().newIntStreamEx(IntStream.concat(stream, IntStream.of(values)));
     }
 
     public IntStreamEx append(IntStream other) {
-        return new IntStreamEx(IntStream.concat(stream, other));
+        return strategy().newIntStreamEx(IntStream.concat(stream, other));
     }
 
     /**
@@ -328,11 +332,11 @@ public class IntStreamEx implements IntStream {
      * @return the new stream
      */
     public IntStreamEx prepend(int... values) {
-        return new IntStreamEx(IntStream.concat(IntStream.of(values), stream));
+        return strategy().newIntStreamEx(IntStream.concat(IntStream.of(values), stream));
     }
 
     public IntStreamEx prepend(IntStream other) {
-        return new IntStreamEx(IntStream.concat(other, stream));
+        return strategy().newIntStreamEx(IntStream.concat(other, stream));
     }
 
     public IntStreamEx remove(IntPredicate predicate) {
@@ -363,7 +367,7 @@ public class IntStreamEx implements IntStream {
     }
 
     public IntStreamEx sorted(Comparator<Integer> comparator) {
-        return new IntStreamEx(stream.boxed().sorted(comparator).mapToInt(Integer::intValue));
+        return strategy().newIntStreamEx(stream.boxed().sorted(comparator).mapToInt(Integer::intValue));
     }
 
     /**
