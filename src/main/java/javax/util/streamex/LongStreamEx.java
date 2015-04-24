@@ -280,12 +280,12 @@ public class LongStreamEx implements LongStream {
 
     @Override
     public LongStreamEx sequential() {
-        return strategy().newLongStreamEx(stream.sequential());
+        return StreamManagingStrategy.DEFAULT.newLongStreamEx(stream.sequential());
     }
 
     @Override
     public LongStreamEx parallel() {
-        return strategy().newLongStreamEx(stream.parallel());
+        return StreamManagingStrategy.DEFAULT.newLongStreamEx(stream.parallel());
     }
 
     public LongStreamEx parallel(ForkJoinPool fjp) {

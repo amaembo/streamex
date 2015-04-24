@@ -76,16 +76,6 @@ import java.util.stream.Stream;
     }
 
     @Override
-    public S sequential() {
-        return supply(stream.sequential());
-    }
-
-    @Override
-    public S parallel() {
-        return supply(stream.parallel());
-    }
-
-    @Override
     public S unordered() {
         return supply(stream.unordered());
     }

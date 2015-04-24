@@ -275,12 +275,12 @@ public class DoubleStreamEx implements DoubleStream {
 
     @Override
     public DoubleStreamEx sequential() {
-        return strategy().newDoubleStreamEx(stream.sequential());
+        return StreamManagingStrategy.DEFAULT.newDoubleStreamEx(stream.sequential());
     }
 
     @Override
     public DoubleStreamEx parallel() {
-        return strategy().newDoubleStreamEx(stream.parallel());
+        return StreamManagingStrategy.DEFAULT.newDoubleStreamEx(stream.parallel());
     }
 
     public DoubleStreamEx parallel(ForkJoinPool fjp) {

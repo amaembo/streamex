@@ -24,11 +24,6 @@ import java.util.stream.Stream;
                 StreamManagingStrategy strategy() {
                     return CustomPoolStreamManagingStrategy.this;
                 }
-
-                @Override
-                public StreamEx<T> sequential() {
-                    return StreamManagingStrategy.DEFAULT.newStreamEx(stream.sequential());
-                }
             };
         }
 
@@ -38,11 +33,6 @@ import java.util.stream.Stream;
                 @Override
                 StreamManagingStrategy strategy() {
                     return CustomPoolStreamManagingStrategy.this;
-                }
-
-                @Override
-                public EntryStream<K, V> sequential() {
-                    return StreamManagingStrategy.DEFAULT.newEntryStream(stream.sequential());
                 }
             };
         }
@@ -54,11 +44,6 @@ import java.util.stream.Stream;
                 StreamManagingStrategy strategy() {
                     return CustomPoolStreamManagingStrategy.this;
                 }
-
-                @Override
-                public LongStreamEx sequential() {
-                    return StreamManagingStrategy.DEFAULT.newLongStreamEx(stream.sequential());
-                }
             };
         }
 
@@ -69,11 +54,6 @@ import java.util.stream.Stream;
                 StreamManagingStrategy strategy() {
                     return CustomPoolStreamManagingStrategy.this;
                 }
-
-                @Override
-                public IntStreamEx sequential() {
-                    return StreamManagingStrategy.DEFAULT.newIntStreamEx(stream.sequential());
-                }
             };
         }
 
@@ -83,11 +63,6 @@ import java.util.stream.Stream;
                 @Override
                 StreamManagingStrategy strategy() {
                     return CustomPoolStreamManagingStrategy.this;
-                }
-
-                @Override
-                public DoubleStreamEx sequential() {
-                    return StreamManagingStrategy.DEFAULT.newDoubleStreamEx(stream.sequential());
                 }
             };
         }

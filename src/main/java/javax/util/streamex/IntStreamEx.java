@@ -290,12 +290,12 @@ public class IntStreamEx implements IntStream {
 
     @Override
     public IntStreamEx sequential() {
-        return strategy().newIntStreamEx(stream.sequential());
+        return StreamManagingStrategy.DEFAULT.newIntStreamEx(stream.sequential());
     }
 
     @Override
     public IntStreamEx parallel() {
-        return strategy().newIntStreamEx(stream.parallel());
+        return StreamManagingStrategy.DEFAULT.newIntStreamEx(stream.parallel());
     }
 
     public IntStreamEx parallel(ForkJoinPool fjp) {
