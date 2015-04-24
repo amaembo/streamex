@@ -42,7 +42,7 @@ import java.util.stream.LongStream;
  * @author Tagir Valeev
  */
 public class LongStreamEx implements LongStream {
-    private final LongStream stream;
+    final LongStream stream;
 
     LongStreamEx(LongStream stream) {
         this.stream = stream;

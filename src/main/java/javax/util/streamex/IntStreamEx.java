@@ -47,7 +47,7 @@ import java.util.stream.IntStream;
  * @author Tagir Valeev
  */
 public class IntStreamEx implements IntStream {
-    private final IntStream stream;
+    final IntStream stream;
 
     IntStreamEx(IntStream stream) {
         this.stream = stream;
