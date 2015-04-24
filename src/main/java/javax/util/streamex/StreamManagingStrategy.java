@@ -9,7 +9,7 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
-interface StreamManagingStrategy {
+/* package */interface StreamManagingStrategy {
     static class CustomPoolStreamManagingStrategy implements StreamManagingStrategy {
         private final ForkJoinPool fjp;
 
