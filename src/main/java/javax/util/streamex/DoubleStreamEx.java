@@ -47,6 +47,10 @@ public class DoubleStreamEx implements DoubleStream {
         this.stream = stream;
     }
 
+    StreamManagingStrategy strategy() {
+        return StreamManagingStrategy.DEFAULT;
+    }
+
     @Override
     public boolean isParallel() {
         return stream.isParallel();
@@ -54,12 +58,12 @@ public class DoubleStreamEx implements DoubleStream {
 
     @Override
     public DoubleStreamEx unordered() {
-        return new DoubleStreamEx(stream.unordered());
+        return strategy().newDoubleStreamEx(stream.unordered());
     }
 
     @Override
     public DoubleStreamEx onClose(Runnable closeHandler) {
-        return new DoubleStreamEx(stream.onClose(closeHandler));
+        return strategy().newDoubleStreamEx(stream.onClose(closeHandler));
     }
 
     @Override
@@ -69,7 +73,7 @@ public class DoubleStreamEx implements DoubleStream {
 
     @Override
     public DoubleStreamEx filter(DoublePredicate predicate) {
-        return new DoubleStreamEx(stream.filter(predicate));
+        return strategy().newDoubleStreamEx(stream.filter(predicate));
     }
 
     /**
@@ -85,7 +89,7 @@ public class DoubleStreamEx implements DoubleStream {
      */
     @Override
     public DoubleStreamEx map(DoubleUnaryOperator mapper) {
-        return new DoubleStreamEx(stream.map(mapper));
+        return strategy().newDoubleStreamEx(stream.map(mapper));
     }
 
     /**
@@ -103,7 +107,7 @@ public class DoubleStreamEx implements DoubleStream {
      */
     @Override
     public <U> StreamEx<U> mapToObj(DoubleFunction<? extends U> mapper) {
-        return new StreamEx<>(stream.mapToObj(mapper));
+        return strategy().newStreamEx(stream.mapToObj(mapper));
     }
 
     /**
@@ -119,7 +123,7 @@ public class DoubleStreamEx implements DoubleStream {
      */
     @Override
     public IntStreamEx mapToInt(DoubleToIntFunction mapper) {
-        return new IntStreamEx(stream.mapToInt(mapper));
+        return strategy().newIntStreamEx(stream.mapToInt(mapper));
     }
 
     /**
@@ -135,17 +139,17 @@ public class DoubleStreamEx implements DoubleStream {
      */
     @Override
     public LongStreamEx mapToLong(DoubleToLongFunction mapper) {
-        return new LongStreamEx(stream.mapToLong(mapper));
+        return strategy().newLongStreamEx(stream.mapToLong(mapper));
     }
 
     @Override
     public DoubleStreamEx flatMap(DoubleFunction<? extends DoubleStream> mapper) {
-        return new DoubleStreamEx(stream.flatMap(mapper));
+        return strategy().newDoubleStreamEx(stream.flatMap(mapper));
     }
 
     @Override
     public DoubleStreamEx distinct() {
-        return new DoubleStreamEx(stream.distinct());
+        return strategy().newDoubleStreamEx(stream.distinct());
     }
 
     /**
@@ -160,132 +164,132 @@ public class DoubleStreamEx implements DoubleStream {
      */
     @Override
     public DoubleStreamEx sorted() {
-        return new DoubleStreamEx(stream.sorted());
+        return strategy().newDoubleStreamEx(stream.sorted());
     }
 
     @Override
     public DoubleStreamEx peek(DoubleConsumer action) {
-        return new DoubleStreamEx(stream.peek(action));
+        return strategy().newDoubleStreamEx(stream.peek(action));
     }
 
     @Override
     public DoubleStreamEx limit(long maxSize) {
-        return new DoubleStreamEx(stream.limit(maxSize));
+        return strategy().newDoubleStreamEx(stream.limit(maxSize));
     }
 
     @Override
     public DoubleStreamEx skip(long n) {
-        return new DoubleStreamEx(stream.skip(n));
+        return strategy().newDoubleStreamEx(stream.skip(n));
     }
 
     @Override
     public void forEach(DoubleConsumer action) {
-        stream.forEach(action);
+        strategy().terminate(() -> {stream.forEach(action); return null;});
     }
 
     @Override
     public void forEachOrdered(DoubleConsumer action) {
-        stream.forEachOrdered(action);
+        strategy().terminate(() -> {stream.forEachOrdered(action); return null;});
     }
 
     @Override
     public double[] toArray() {
-        return stream.toArray();
+        return strategy().terminate(stream::toArray);
     }
 
     @Override
     public double reduce(double identity, DoubleBinaryOperator op) {
-        return stream.reduce(identity, op);
+        return strategy().terminate(() -> stream.reduce(identity, op));
     }
 
     @Override
     public OptionalDouble reduce(DoubleBinaryOperator op) {
-        return stream.reduce(op);
+        return strategy().terminate(() -> stream.reduce(op));
     }
 
     @Override
     public <R> R collect(Supplier<R> supplier, ObjDoubleConsumer<R> accumulator, BiConsumer<R, R> combiner) {
-        return stream.collect(supplier, accumulator, combiner);
+        return strategy().terminate(() -> stream.collect(supplier, accumulator, combiner));
     }
 
     @Override
     public double sum() {
-        return stream.sum();
+        return strategy().terminate(() -> stream.sum());
     }
 
     @Override
     public OptionalDouble min() {
-        return stream.min();
+        return strategy().terminate(stream::min);
     }
 
     @Override
     public OptionalDouble max() {
-        return stream.max();
+        return strategy().terminate(stream::max);
     }
 
     @Override
     public long count() {
-        return stream.count();
+        return strategy().terminate(() -> stream.count());
     }
 
     @Override
     public OptionalDouble average() {
-        return stream.average();
+        return strategy().terminate(stream::average);
     }
 
     @Override
     public DoubleSummaryStatistics summaryStatistics() {
-        return stream.summaryStatistics();
+        return strategy().terminate(stream::summaryStatistics);
     }
 
     @Override
     public boolean anyMatch(DoublePredicate predicate) {
-        return stream.anyMatch(predicate);
+        return strategy().terminate(() -> stream.anyMatch(predicate));
     }
 
     @Override
     public boolean allMatch(DoublePredicate predicate) {
-        return stream.allMatch(predicate);
+        return strategy().terminate(() -> stream.allMatch(predicate));
     }
 
     @Override
     public boolean noneMatch(DoublePredicate predicate) {
-        return stream.noneMatch(predicate);
+        return strategy().terminate(() -> stream.noneMatch(predicate));
     }
 
     @Override
     public OptionalDouble findFirst() {
-        return stream.findFirst();
+        return strategy().terminate(() -> stream.findFirst());
     }
 
     @Override
     public OptionalDouble findAny() {
-        return stream.findAny();
+        return strategy().terminate(() -> stream.findAny());
     }
 
     @Override
     public StreamEx<Double> boxed() {
-        return new StreamEx<>(stream.boxed());
+        return strategy().newStreamEx(stream.boxed());
     }
 
     @Override
     public DoubleStreamEx sequential() {
-        return new DoubleStreamEx(stream.sequential());
+        return strategy().newDoubleStreamEx(stream.sequential());
     }
 
     @Override
     public DoubleStreamEx parallel() {
-        return new DoubleStreamEx(stream.parallel());
+        return strategy().newDoubleStreamEx(stream.parallel());
     }
 
     @Override
     public OfDouble iterator() {
-        return stream.iterator();
+        return strategy().terminate(stream::iterator);
     }
 
     @Override
     public java.util.Spliterator.OfDouble spliterator() {
-        return stream.spliterator();
+        return strategy().terminate(stream::spliterator);
     }
 
     /**
@@ -297,11 +301,11 @@ public class DoubleStreamEx implements DoubleStream {
      * @return the new stream
      */
     public DoubleStreamEx append(double... values) {
-        return new DoubleStreamEx(DoubleStream.concat(stream, DoubleStream.of(values)));
+        return strategy().newDoubleStreamEx(DoubleStream.concat(stream, DoubleStream.of(values)));
     }
 
     public DoubleStreamEx append(DoubleStream other) {
-        return new DoubleStreamEx(DoubleStream.concat(stream, other));
+        return strategy().newDoubleStreamEx(DoubleStream.concat(stream, other));
     }
 
     /**
@@ -313,11 +317,11 @@ public class DoubleStreamEx implements DoubleStream {
      * @return the new stream
      */
     public DoubleStreamEx prepend(double... values) {
-        return new DoubleStreamEx(DoubleStream.concat(DoubleStream.of(values), stream));
+        return strategy().newDoubleStreamEx(DoubleStream.concat(DoubleStream.of(values), stream));
     }
 
     public DoubleStreamEx prepend(DoubleStream other) {
-        return new DoubleStreamEx(DoubleStream.concat(other, stream));
+        return strategy().newDoubleStreamEx(DoubleStream.concat(other, stream));
     }
 
     public DoubleStreamEx remove(DoublePredicate predicate) {
@@ -333,7 +337,7 @@ public class DoubleStreamEx implements DoubleStream {
     }
 
     public DoubleStreamEx sorted(Comparator<Double> comparator) {
-        return new DoubleStreamEx(stream.boxed().sorted(comparator).mapToDouble(Double::doubleValue));
+        return strategy().newDoubleStreamEx(stream.boxed().sorted(comparator).mapToDouble(Double::doubleValue));
     }
 
     /**

@@ -224,12 +224,12 @@ public class IntStreamEx implements IntStream {
 
     @Override
     public OptionalInt min() {
-        return strategy().terminate(() -> stream.min());
+        return strategy().terminate(stream::min);
     }
 
     @Override
     public OptionalInt max() {
-        return strategy().terminate(() -> stream.max());
+        return strategy().terminate(stream::max);
     }
 
     @Override
@@ -239,12 +239,12 @@ public class IntStreamEx implements IntStream {
 
     @Override
     public OptionalDouble average() {
-        return strategy().terminate(() -> stream.average());
+        return strategy().terminate(stream::average);
     }
 
     @Override
     public IntSummaryStatistics summaryStatistics() {
-        return strategy().terminate(() -> stream.summaryStatistics());
+        return strategy().terminate(stream::summaryStatistics);
     }
 
     @Override

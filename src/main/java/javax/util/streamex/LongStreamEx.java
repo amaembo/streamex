@@ -48,6 +48,10 @@ public class LongStreamEx implements LongStream {
         this.stream = stream;
     }
 
+    StreamManagingStrategy strategy() {
+        return StreamManagingStrategy.DEFAULT;
+    }
+
     @Override
     public boolean isParallel() {
         return stream.isParallel();
@@ -55,12 +59,12 @@ public class LongStreamEx implements LongStream {
 
     @Override
     public LongStreamEx unordered() {
-        return new LongStreamEx(stream.unordered());
+        return strategy().newLongStreamEx(stream.unordered());
     }
 
     @Override
     public LongStreamEx onClose(Runnable closeHandler) {
-        return new LongStreamEx(stream.onClose(closeHandler));
+        return strategy().newLongStreamEx(stream.onClose(closeHandler));
     }
 
     @Override
@@ -70,7 +74,7 @@ public class LongStreamEx implements LongStream {
 
     @Override
     public LongStreamEx filter(LongPredicate predicate) {
-        return new LongStreamEx(stream.filter(predicate));
+        return strategy().newLongStreamEx(stream.filter(predicate));
     }
 
     /**
@@ -86,7 +90,7 @@ public class LongStreamEx implements LongStream {
      */
     @Override
     public LongStreamEx map(LongUnaryOperator mapper) {
-        return new LongStreamEx(stream.map(mapper));
+        return strategy().newLongStreamEx(stream.map(mapper));
     }
 
     /**
@@ -104,7 +108,7 @@ public class LongStreamEx implements LongStream {
      */
     @Override
     public <U> StreamEx<U> mapToObj(LongFunction<? extends U> mapper) {
-        return new StreamEx<>(stream.mapToObj(mapper));
+        return strategy().newStreamEx(stream.mapToObj(mapper));
     }
 
     /**
@@ -120,7 +124,7 @@ public class LongStreamEx implements LongStream {
      */
     @Override
     public IntStreamEx mapToInt(LongToIntFunction mapper) {
-        return new IntStreamEx(stream.mapToInt(mapper));
+        return strategy().newIntStreamEx(stream.mapToInt(mapper));
     }
 
     /**
@@ -136,17 +140,17 @@ public class LongStreamEx implements LongStream {
      */
     @Override
     public DoubleStreamEx mapToDouble(LongToDoubleFunction mapper) {
-        return new DoubleStreamEx(stream.mapToDouble(mapper));
+        return strategy().newDoubleStreamEx(stream.mapToDouble(mapper));
     }
 
     @Override
     public LongStreamEx flatMap(LongFunction<? extends LongStream> mapper) {
-        return new LongStreamEx(stream.flatMap(mapper));
+        return strategy().newLongStreamEx(stream.flatMap(mapper));
     }
 
     @Override
     public LongStreamEx distinct() {
-        return new LongStreamEx(stream.distinct());
+        return strategy().newLongStreamEx(stream.distinct());
     }
 
     /**
@@ -160,137 +164,137 @@ public class LongStreamEx implements LongStream {
      */
     @Override
     public LongStreamEx sorted() {
-        return new LongStreamEx(stream.sorted());
+        return strategy().newLongStreamEx(stream.sorted());
     }
 
     @Override
     public LongStreamEx peek(LongConsumer action) {
-        return new LongStreamEx(stream.peek(action));
+        return strategy().newLongStreamEx(stream.peek(action));
     }
 
     @Override
     public LongStreamEx limit(long maxSize) {
-        return new LongStreamEx(stream.limit(maxSize));
+        return strategy().newLongStreamEx(stream.limit(maxSize));
     }
 
     @Override
     public LongStreamEx skip(long n) {
-        return new LongStreamEx(stream.skip(n));
+        return strategy().newLongStreamEx(stream.skip(n));
     }
 
     @Override
     public void forEach(LongConsumer action) {
-        stream.forEach(action);
+        strategy().terminate(() -> {stream.forEach(action); return null;});
     }
 
     @Override
     public void forEachOrdered(LongConsumer action) {
-        stream.forEachOrdered(action);
+        strategy().terminate(() -> {stream.forEachOrdered(action); return null;});
     }
 
     @Override
     public long[] toArray() {
-        return stream.toArray();
+        return strategy().terminate(stream::toArray);
     }
 
     @Override
     public long reduce(long identity, LongBinaryOperator op) {
-        return stream.reduce(identity, op);
+        return strategy().terminate(() -> stream.reduce(identity, op));
     }
 
     @Override
     public OptionalLong reduce(LongBinaryOperator op) {
-        return stream.reduce(op);
+        return strategy().terminate(() -> stream.reduce(op));
     }
 
     @Override
     public <R> R collect(Supplier<R> supplier, ObjLongConsumer<R> accumulator, BiConsumer<R, R> combiner) {
-        return stream.collect(supplier, accumulator, combiner);
+        return strategy().terminate(() -> stream.collect(supplier, accumulator, combiner));
     }
 
     @Override
     public long sum() {
-        return stream.sum();
+        return strategy().terminate(() -> stream.sum());
     }
 
     @Override
     public OptionalLong min() {
-        return stream.min();
+        return strategy().terminate(stream::min);
     }
 
     @Override
     public OptionalLong max() {
-        return stream.max();
+        return strategy().terminate(stream::max);
     }
 
     @Override
     public long count() {
-        return stream.count();
+        return strategy().terminate(() -> stream.count());
     }
 
     @Override
     public OptionalDouble average() {
-        return stream.average();
+        return strategy().terminate(stream::average);
     }
 
     @Override
     public LongSummaryStatistics summaryStatistics() {
-        return stream.summaryStatistics();
+        return strategy().terminate(stream::summaryStatistics);
     }
 
     @Override
     public boolean anyMatch(LongPredicate predicate) {
-        return stream.anyMatch(predicate);
+        return strategy().terminate(() -> stream.anyMatch(predicate));
     }
 
     @Override
     public boolean allMatch(LongPredicate predicate) {
-        return stream.allMatch(predicate);
+        return strategy().terminate(() -> stream.allMatch(predicate));
     }
 
     @Override
     public boolean noneMatch(LongPredicate predicate) {
-        return stream.noneMatch(predicate);
+        return strategy().terminate(() -> stream.noneMatch(predicate));
     }
 
     @Override
     public OptionalLong findFirst() {
-        return stream.findFirst();
+        return strategy().terminate(() -> stream.findFirst());
     }
 
     @Override
     public OptionalLong findAny() {
-        return stream.findAny();
+        return strategy().terminate(() -> stream.findAny());
     }
 
     @Override
     public DoubleStreamEx asDoubleStream() {
-        return new DoubleStreamEx(stream.asDoubleStream());
+        return strategy().newDoubleStreamEx(stream.asDoubleStream());
     }
 
     @Override
     public StreamEx<Long> boxed() {
-        return new StreamEx<>(stream.boxed());
+        return strategy().newStreamEx(stream.boxed());
     }
 
     @Override
     public LongStreamEx sequential() {
-        return new LongStreamEx(stream.sequential());
+        return strategy().newLongStreamEx(stream.sequential());
     }
 
     @Override
     public LongStreamEx parallel() {
-        return new LongStreamEx(stream.parallel());
+        return strategy().newLongStreamEx(stream.parallel());
     }
 
     @Override
     public OfLong iterator() {
-        return stream.iterator();
+        return strategy().terminate(stream::iterator);
     }
 
     @Override
     public java.util.Spliterator.OfLong spliterator() {
-        return stream.spliterator();
+        return strategy().terminate(stream::spliterator);
     }
 
     /**
@@ -302,11 +306,11 @@ public class LongStreamEx implements LongStream {
      * @return the new stream
      */
     public LongStreamEx append(long... values) {
-        return new LongStreamEx(LongStream.concat(stream, LongStream.of(values)));
+        return strategy().newLongStreamEx(LongStream.concat(stream, LongStream.of(values)));
     }
 
     public LongStreamEx append(LongStream other) {
-        return new LongStreamEx(LongStream.concat(stream, other));
+        return strategy().newLongStreamEx(LongStream.concat(stream, other));
     }
 
     /**
@@ -318,11 +322,11 @@ public class LongStreamEx implements LongStream {
      * @return the new stream
      */
     public LongStreamEx prepend(long... values) {
-        return new LongStreamEx(LongStream.concat(LongStream.of(values), stream));
+        return strategy().newLongStreamEx(LongStream.concat(LongStream.of(values), stream));
     }
 
     public LongStreamEx prepend(LongStream other) {
-        return new LongStreamEx(LongStream.concat(other, stream));
+        return strategy().newLongStreamEx(LongStream.concat(other, stream));
     }
 
     public LongStreamEx remove(LongPredicate predicate) {
@@ -353,7 +357,7 @@ public class LongStreamEx implements LongStream {
     }
 
     public LongStreamEx sorted(Comparator<Long> comparator) {
-        return new LongStreamEx(stream.boxed().sorted(comparator).mapToLong(Long::longValue));
+        return strategy().newLongStreamEx(stream.boxed().sorted(comparator).mapToLong(Long::longValue));
     }
 
     /**
