@@ -423,6 +423,8 @@ public class IntStreamEx implements IntStream {
      * <p>
      * This is a terminal operation.
      *
+     * @param <V>
+     *            the type of the {@code Comparable} sort key
      * @param keyExtractor
      *            a non-interfering, stateless function
      * @return an {@code OptionalInt} describing some element of this stream for
@@ -513,6 +515,8 @@ public class IntStreamEx implements IntStream {
      * <p>
      * This is a terminal operation.
      *
+     * @param <V>
+     *            the type of the {@code Comparable} sort key
      * @param keyExtractor
      *            a non-interfering, stateless function
      * @return an {@code OptionalInt} describing some element of this stream for

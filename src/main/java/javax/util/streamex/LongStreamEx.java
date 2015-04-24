@@ -413,6 +413,8 @@ public class LongStreamEx implements LongStream {
      * <p>
      * This is a terminal operation.
      *
+     * @param <V>
+     *            the type of the {@code Comparable} sort key
      * @param keyExtractor
      *            a non-interfering, stateless function
      * @return an {@code OptionalLong} describing some element of this stream
@@ -503,6 +505,8 @@ public class LongStreamEx implements LongStream {
      * <p>
      * This is a terminal operation.
      *
+     * @param <V>
+     *            the type of the {@code Comparable} sort key
      * @param keyExtractor
      *            a non-interfering, stateless function
      * @return an {@code OptionalLong} describing some element of this stream
