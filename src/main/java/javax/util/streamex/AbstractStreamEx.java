@@ -97,13 +97,15 @@ import java.util.stream.Stream;
     }
 
     /**
-     * Returns a stream consisting of the elements of this stream that match
-     * the given predicate.
+     * Returns a stream consisting of the elements of this stream that match the
+     * given predicate.
      *
-     * <p>This is an intermediate operation.
+     * <p>
+     * This is an intermediate operation.
      *
-     * @param predicate a non-interfering, stateless predicate 
-     * to apply to each element to determine if it should be included
+     * @param predicate
+     *            a non-interfering, stateless predicate to apply to each
+     *            element to determine if it should be included
      * @return the new stream
      */
     @Override
@@ -257,13 +259,15 @@ import java.util.stream.Stream;
     }
 
     /**
-     * Returns a stream consisting of the elements of this stream that don't match
-     * the given predicate.
+     * Returns a stream consisting of the elements of this stream that don't
+     * match the given predicate.
      *
-     * <p>This is an intermediate operation.
+     * <p>
+     * This is an intermediate operation.
      *
-     * @param predicate a non-interfering, stateless predicate to apply 
-     * to each element to determine if it should be excluded
+     * @param predicate
+     *            a non-interfering, stateless predicate to apply to each
+     *            element to determine if it should be excluded
      * @return the new stream
      */
     public S remove(Predicate<T> predicate) {
@@ -271,9 +275,11 @@ import java.util.stream.Stream;
     }
 
     /**
-     * Returns a stream consisting of the elements of this stream that aren't null.
+     * Returns a stream consisting of the elements of this stream that aren't
+     * null.
      *
-     * <p>This is an intermediate operation.
+     * <p>
+     * This is an intermediate operation.
      *
      * @return the new stream
      */
@@ -282,23 +288,27 @@ import java.util.stream.Stream;
     }
 
     /**
-     * Returns an {@link Optional} describing some element of the stream, 
-     * which matches given predicate, or an empty {@code Optional} if there's 
-     * no matching element.
+     * Returns an {@link Optional} describing some element of the stream, which
+     * matches given predicate, or an empty {@code Optional} if there's no
+     * matching element.
      *
-     * <p>This is a short-circuiting terminal operation.
+     * <p>
+     * This is a short-circuiting terminal operation.
      *
-     * <p>The behavior of this operation is explicitly nondeterministic; it is
-     * free to select any element in the stream.  This is to allow for maximal
+     * <p>
+     * The behavior of this operation is explicitly nondeterministic; it is free
+     * to select any element in the stream. This is to allow for maximal
      * performance in parallel operations; the cost is that multiple invocations
-     * on the same source may not return the same result.  (If a stable result
-     * is desired, use {@link #findFirst(Predicate)} instead.)
+     * on the same source may not return the same result. (If a stable result is
+     * desired, use {@link #findFirst(Predicate)} instead.)
      *
-     * @param predicate a non-interfering, stateless predicate which 
-     * returned value should match
+     * @param predicate
+     *            a non-interfering, stateless predicate which returned value
+     *            should match
      * @return an {@code Optional} describing some element of this stream, or an
-     * empty {@code Optional} if the stream is empty
-     * @throws NullPointerException if the element selected is null
+     *         empty {@code Optional} if the stream is empty
+     * @throws NullPointerException
+     *             if the element selected is null
      * @see Stream#findAny()
      * @see #findFirst(Predicate)
      */
@@ -308,16 +318,19 @@ import java.util.stream.Stream;
 
     /**
      * Returns an {@link Optional} describing the first element of this stream,
-     * which matches given predicate, or an empty {@code Optional} if there's 
-     * no matching element.
+     * which matches given predicate, or an empty {@code Optional} if there's no
+     * matching element.
      *
-     * <p>This is a short-circuiting terminal operation.
+     * <p>
+     * This is a short-circuiting terminal operation.
      *
-     * @param predicate a non-interfering, stateless predicate which 
-     * returned value should match
+     * @param predicate
+     *            a non-interfering, stateless predicate which returned value
+     *            should match
      * @return an {@code Optional} describing the first element of this stream,
-     * or an empty {@code Optional} if the stream is empty
-     * @throws NullPointerException if the element selected is null
+     *         or an empty {@code Optional} if the stream is empty
+     * @throws NullPointerException
+     *             if the element selected is null
      * @see Stream#findFirst()
      */
     public Optional<T> findFirst(Predicate<T> predicate) {
@@ -347,44 +360,44 @@ import java.util.stream.Stream;
     public <V extends Comparable<? super V>> Optional<T> minBy(Function<T, ? extends V> keyExtractor) {
         return stream.min(Comparator.comparing(keyExtractor));
     }
-    
+
     public Optional<T> minByInt(ToIntFunction<T> keyExtractor) {
         return stream.min(Comparator.comparingInt(keyExtractor));
     }
-    
+
     public Optional<T> minByLong(ToLongFunction<T> keyExtractor) {
         return stream.min(Comparator.comparingLong(keyExtractor));
     }
-    
+
     public Optional<T> minByDouble(ToDoubleFunction<T> keyExtractor) {
         return stream.min(Comparator.comparingDouble(keyExtractor));
     }
-    
+
     public <V extends Comparable<? super V>> Optional<T> maxBy(Function<T, ? extends V> keyExtractor) {
         return stream.max(Comparator.comparing(keyExtractor));
     }
-    
+
     public Optional<T> maxByInt(ToIntFunction<T> keyExtractor) {
         return stream.max(Comparator.comparingInt(keyExtractor));
     }
-    
+
     public Optional<T> maxByLong(ToLongFunction<T> keyExtractor) {
         return stream.max(Comparator.comparingLong(keyExtractor));
     }
-    
+
     public Optional<T> maxByDouble(ToDoubleFunction<T> keyExtractor) {
         return stream.max(Comparator.comparingDouble(keyExtractor));
     }
-    
+
     /**
-     * Creates a lazily concatenated stream whose elements are all the
-     * elements of this stream followed by all the elements of the
-     * other stream.  The resulting stream is ordered if both
-     * of the input streams are ordered, and parallel if either of the input
-     * streams is parallel.  When the resulting stream is closed, the close
-     * handlers for both input streams are invoked.
+     * Creates a lazily concatenated stream whose elements are all the elements
+     * of this stream followed by all the elements of the other stream. The
+     * resulting stream is ordered if both of the input streams are ordered, and
+     * parallel if either of the input streams is parallel. When the resulting
+     * stream is closed, the close handlers for both input streams are invoked.
      *
-     * @param other the other stream
+     * @param other
+     *            the other stream
      * @return this stream appended by the other stream
      * @see Stream#concat(Stream, Stream)
      */
@@ -393,14 +406,14 @@ import java.util.stream.Stream;
     }
 
     /**
-     * Creates a lazily concatenated stream whose elements are all the
-     * elements of the other stream followed by all the elements of 
-     * this stream.  The resulting stream is ordered if both
-     * of the input streams are ordered, and parallel if either of the input
-     * streams is parallel.  When the resulting stream is closed, the close
-     * handlers for both input streams are invoked.
+     * Creates a lazily concatenated stream whose elements are all the elements
+     * of the other stream followed by all the elements of this stream. The
+     * resulting stream is ordered if both of the input streams are ordered, and
+     * parallel if either of the input streams is parallel. When the resulting
+     * stream is closed, the close handlers for both input streams are invoked.
      *
-     * @param other the other stream
+     * @param other
+     *            the other stream
      * @return this stream prepended by the other stream
      * @see Stream#concat(Stream, Stream)
      */
@@ -414,7 +427,8 @@ import java.util.stream.Stream;
      * of the {@code List} returned; if more control over the returned
      * {@code List} is required, use {@link #toCollection(Supplier)}.
      *
-     * <p>This is a terminal operation.
+     * <p>
+     * This is a terminal operation.
      *
      * @return a {@code List} containing the elements of this stream
      * @see Collectors#toList()
@@ -429,7 +443,8 @@ import java.util.stream.Stream;
      * of the {@code Set} returned; if more control over the returned
      * {@code Set} is required, use {@link #toCollection(Supplier)}.
      *
-     * <p>This is a terminal operation.
+     * <p>
+     * This is a terminal operation.
      *
      * @return a {@code Set} containing the elements of this stream
      * @see Collectors#toSet()
@@ -442,11 +457,14 @@ import java.util.stream.Stream;
      * Returns a {@link Collection} containing the elements of this stream. The
      * {@code Collection} is created by the provided factory.
      *
-     * <p>This is a terminal operation.
+     * <p>
+     * This is a terminal operation.
      *
-     * @param <C> the type of the resulting {@code Collection}
-     * @param collectionFactory a {@code Supplier} which returns a new, empty
-     * {@code Collection} of the appropriate type
+     * @param <C>
+     *            the type of the resulting {@code Collection}
+     * @param collectionFactory
+     *            a {@code Supplier} which returns a new, empty
+     *            {@code Collection} of the appropriate type
      * @return a {@code Collection} containing the elements of this stream
      * @see Collectors#toCollection(Supplier)
      */
