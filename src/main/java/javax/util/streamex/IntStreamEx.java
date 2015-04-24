@@ -220,17 +220,17 @@ public class IntStreamEx implements IntStream {
 
     @Override
     public int sum() {
-        return strategy().terminate(() -> stream.sum());
+        return reduce(0, Integer::sum);
     }
 
     @Override
     public OptionalInt min() {
-        return strategy().terminate(stream::min);
+        return reduce(Integer::min);
     }
 
     @Override
     public OptionalInt max() {
-        return strategy().terminate(stream::max);
+        return reduce(Integer::max);
     }
 
     @Override
@@ -245,7 +245,8 @@ public class IntStreamEx implements IntStream {
 
     @Override
     public IntSummaryStatistics summaryStatistics() {
-        return strategy().terminate(stream::summaryStatistics);
+        return collect(IntSummaryStatistics::new, IntSummaryStatistics::accept,
+                IntSummaryStatistics::combine);
     }
 
     @Override

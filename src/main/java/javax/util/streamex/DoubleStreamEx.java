@@ -220,12 +220,12 @@ public class DoubleStreamEx implements DoubleStream {
 
     @Override
     public OptionalDouble min() {
-        return strategy().terminate(stream::min);
+        return reduce(Math::min);
     }
 
     @Override
     public OptionalDouble max() {
-        return strategy().terminate(stream::max);
+        return reduce(Math::max);
     }
 
     @Override
@@ -240,7 +240,8 @@ public class DoubleStreamEx implements DoubleStream {
 
     @Override
     public DoubleSummaryStatistics summaryStatistics() {
-        return strategy().terminate(stream::summaryStatistics);
+        return collect(DoubleSummaryStatistics::new, DoubleSummaryStatistics::accept,
+                DoubleSummaryStatistics::combine);
     }
 
     @Override

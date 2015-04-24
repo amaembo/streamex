@@ -215,17 +215,17 @@ public class LongStreamEx implements LongStream {
 
     @Override
     public long sum() {
-        return strategy().terminate(() -> stream.sum());
+        return reduce(0, Long::sum);
     }
 
     @Override
     public OptionalLong min() {
-        return strategy().terminate(stream::min);
+        return reduce(Long::min);
     }
 
     @Override
     public OptionalLong max() {
-        return strategy().terminate(stream::max);
+        return reduce(Long::max);
     }
 
     @Override
@@ -240,7 +240,8 @@ public class LongStreamEx implements LongStream {
 
     @Override
     public LongSummaryStatistics summaryStatistics() {
-        return strategy().terminate(stream::summaryStatistics);
+        return collect(LongSummaryStatistics::new, LongSummaryStatistics::accept,
+                LongSummaryStatistics::combine);
     }
 
     @Override

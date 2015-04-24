@@ -179,7 +179,7 @@ import java.util.stream.Stream;
 
     @Override
     public Object[] toArray() {
-        return strategy().terminate(stream::toArray);
+        return toArray(Object[]::new);
     }
 
     @Override
@@ -214,12 +214,12 @@ import java.util.stream.Stream;
 
     @Override
     public Optional<T> min(Comparator<? super T> comparator) {
-        return strategy().terminate(() -> stream.min(comparator));
+        return reduce(BinaryOperator.minBy(comparator));
     }
 
     @Override
     public Optional<T> max(Comparator<? super T> comparator) {
-        return strategy().terminate(() -> stream.max(comparator));
+        return reduce(BinaryOperator.maxBy(comparator));
     }
 
     @Override
