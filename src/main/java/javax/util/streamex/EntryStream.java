@@ -57,10 +57,6 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return new EntryStream<>(stream);
     }
 
-    <T> EntryStream(Stream<T> stream, Function<T, K> keyMapper, Function<T, V> valueMapper) {
-        this(stream.map(e -> new SimpleEntry<>(keyMapper.apply(e), valueMapper.apply(e))));
-    }
-
     /**
      * Returns a stream consisting of the results of applying the given function
      * to the elements of this stream.

@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
@@ -142,7 +143,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return the new stream
      */
     public <V> EntryStream<T, V> mapToEntry(Function<T, V> valueMapper) {
-        return new EntryStream<>(stream, Function.identity(), valueMapper);
+        return new EntryStream<>(stream.map(e -> new SimpleEntry<>(e, valueMapper.apply(e))));
     }
 
     /**
@@ -164,7 +165,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return the new stream
      */
     public <K, V> EntryStream<K, V> mapToEntry(Function<T, K> keyMapper, Function<T, V> valueMapper) {
-        return new EntryStream<>(stream, keyMapper, valueMapper);
+        return new EntryStream<>(stream.map(e -> new SimpleEntry<>(keyMapper.apply(e), valueMapper.apply(e))));
     }
 
     public <R> StreamEx<R> flatCollection(Function<? super T, ? extends Collection<? extends R>> mapper) {
