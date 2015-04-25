@@ -53,6 +53,7 @@ public class CustomPoolTest {
         assertFalse(StreamEx.of("a", "b").parallel(pool).peek(this::checkThread).allMatch("a"::equals));
         assertFalse(StreamEx.of("a", "b").parallel(pool).peek(this::checkThread).noneMatch("a"::equals));
         assertEquals(Arrays.asList("b", "c"), StreamEx.of("a", "b", "c").parallel(pool).peek(this::checkThread).skip(1).toList());
+        assertEquals(6, StreamEx.of("a", "bb", "ccc").parallel(pool).peek(this::checkThread).collect(StringBuilder::new, StringBuilder::append, StringBuilder::append).length());
     }
     
     @Test

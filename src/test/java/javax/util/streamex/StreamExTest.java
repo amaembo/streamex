@@ -108,6 +108,8 @@ public class StreamExTest {
         assertFalse(StreamEx.of("a", "b").allMatch("c"::equals));
         assertFalse(StreamEx.of("a", "b").noneMatch("a"::equals));
         assertTrue(StreamEx.of("a", "b").noneMatch("c"::equals));
+        
+        assertEquals("abbccc", StreamEx.of("a", "bb", "ccc").collect(StringBuilder::new, StringBuilder::append, StringBuilder::append).toString());
     }
     
     @Test
