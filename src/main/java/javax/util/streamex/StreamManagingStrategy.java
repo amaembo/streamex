@@ -38,7 +38,7 @@ import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
 /* package */abstract class StreamManagingStrategy {
-    private static final class DefaultStreamManagingStrategy extends StreamManagingStrategy {
+    static final class DefaultStreamManagingStrategy extends StreamManagingStrategy {
         @Override
         public <T> StreamEx<T> newStreamEx(Stream<T> src) {
             return new StreamEx<>(src);
@@ -66,11 +66,12 @@ import java.util.stream.Stream;
 
         @Override
         public <T> T terminate(Supplier<T> terminalOperation) {
-            return terminalOperation.get();
+            // Normally should not be called
+            throw new AssertionError();
         }
     }
 
-    private static class CustomPoolStreamManagingStrategy extends StreamManagingStrategy {
+    static class CustomPoolStreamManagingStrategy extends StreamManagingStrategy {
         private final ForkJoinPool fjp;
 
         public CustomPoolStreamManagingStrategy(ForkJoinPool fjp) {
