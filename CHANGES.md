@@ -1,6 +1,6 @@
 # StreamEx changes
 
-### 0.1.2-SNAPSHOT
+### 0.1.2
 
 * Added IntStreamEx#elements methods family
 * Added construction of the constant stream

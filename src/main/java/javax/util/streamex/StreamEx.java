@@ -16,7 +16,9 @@
 package javax.util.streamex;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.Reader;
+import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -235,8 +237,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public <K, D, M extends Map<K, D>> M groupingBy(Function<? super T, ? extends K> classifier,
             Supplier<M> mapFactory, Collector<? super T, ?, D> downstream) {
         if (stream.isParallel() && mapFactory.get() instanceof ConcurrentMap)
-            return (M) collect(Collectors.groupingByConcurrent(classifier,
-                    (Supplier<ConcurrentMap<K, D>>) mapFactory, downstream));
+            return (M) collect(Collectors.groupingByConcurrent(classifier, (Supplier<ConcurrentMap<K, D>>) mapFactory,
+                    downstream));
         return collect(Collectors.groupingBy(classifier, mapFactory, downstream));
     }
 
@@ -410,8 +412,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public <K, V> Map<K, V> toMap(Function<T, K> keyMapper, Function<T, V> valMapper, BinaryOperator<V> mergeFunction) {
         if (stream.isParallel())
-            return collect(Collectors.toConcurrentMap(keyMapper, valMapper, mergeFunction,
-                    ConcurrentHashMap::new));
+            return collect(Collectors.toConcurrentMap(keyMapper, valMapper, mergeFunction, ConcurrentHashMap::new));
         return collect(Collectors.toMap(keyMapper, valMapper, mergeFunction, HashMap::new));
     }
 
@@ -533,8 +534,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public <K, V> SortedMap<K, V> toSortedMap(Function<T, K> keyMapper, Function<T, V> valMapper,
             BinaryOperator<V> mergeFunction) {
         if (stream.isParallel())
-            return collect(Collectors.toConcurrentMap(keyMapper, valMapper, mergeFunction,
-                    ConcurrentSkipListMap::new));
+            return collect(Collectors.toConcurrentMap(keyMapper, valMapper, mergeFunction, ConcurrentSkipListMap::new));
         return collect(Collectors.toMap(keyMapper, valMapper, mergeFunction, TreeMap::new));
     }
 
@@ -696,6 +696,36 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return element == null ? empty() : of(element);
     }
 
+    /**
+     * Returns a {@code StreamEx}, the elements of which are lines read from the
+     * supplied {@link BufferedReader}. The {@code StreamEx} is lazily
+     * populated, i.e., read only occurs during the terminal stream operation.
+     *
+     * <p>
+     * The reader must not be operated on during the execution of the terminal
+     * stream operation. Otherwise, the result of the terminal stream operation
+     * is undefined.
+     *
+     * <p>
+     * After execution of the terminal stream operation there are no guarantees
+     * that the reader will be at a specific position from which to read the
+     * next character or line.
+     *
+     * <p>
+     * If an {@link IOException} is thrown when accessing the underlying
+     * {@code BufferedReader}, it is wrapped in an {@link UncheckedIOException}
+     * which will be thrown from the {@code StreamEx} method that caused the
+     * read to take place. This method will return a StreamEx if invoked on a
+     * BufferedReader that is closed. Any operation on that stream that requires
+     * reading from the BufferedReader after it is closed, will cause an
+     * UncheckedIOException to be thrown.
+     *
+     * @param reader
+     *            the reader to get the lines from
+     * @return a {@code StreamEx<String>} providing the lines of text described
+     *         by this {@code BufferedReader}
+     * @see BufferedReader#lines()
+     */
     public static StreamEx<String> ofLines(BufferedReader reader) {
         return new StreamEx<>(reader.lines());
     }
@@ -759,6 +789,42 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return new StreamEx<>(file.stream());
     }
 
+    /**
+     * Creates a stream from the given input sequence around matches of the
+     * given pattern.
+     *
+     * <p>
+     * The stream returned by this method contains each substring of the input
+     * sequence that is terminated by another subsequence that matches this
+     * pattern or is terminated by the end of the input sequence. The substrings
+     * in the stream are in the order in which they occur in the input. Trailing
+     * empty strings will be discarded and not encountered in the stream.
+     *
+     * <p>
+     * If the given pattern does not match any subsequence of the input then the
+     * resulting stream has just one element, namely the input sequence in
+     * string form.
+     *
+     * <p>
+     * When there is a positive-width match at the beginning of the input
+     * sequence then an empty leading substring is included at the beginning of
+     * the stream. A zero-width match at the beginning however never produces
+     * such empty leading substring.
+     *
+     * <p>
+     * If the input sequence is mutable, it must remain constant during the
+     * execution of the terminal stream operation. Otherwise, the result of the
+     * terminal stream operation is undefined.
+     *
+     * @param str
+     *            The character sequence to be split
+     * @param pattern
+     *            The pattern to use for splitting
+     *
+     * @return The stream of strings computed by splitting the input around
+     *         matches of this pattern
+     * @see Pattern#splitAsStream(CharSequence)
+     */
     public static StreamEx<String> split(CharSequence str, Pattern pattern) {
         return new StreamEx<>(pattern.splitAsStream(str));
     }
@@ -767,6 +833,28 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return new StreamEx<>(Pattern.compile(regex).splitAsStream(str));
     }
 
+    /**
+     * Returns an infinite sequential ordered {@code StreamEx} produced by
+     * iterative application of a function {@code f} to an initial element
+     * {@code seed}, producing a {@code StreamEx} consisting of {@code seed},
+     * {@code f(seed)}, {@code f(f(seed))}, etc.
+     *
+     * <p>
+     * The first element (position {@code 0}) in the {@code StreamEx} will be
+     * the provided {@code seed}. For {@code n > 0}, the element at position
+     * {@code n}, will be the result of applying the function {@code f} to the
+     * element at position {@code n - 1}.
+     *
+     * @param <T>
+     *            the type of stream elements
+     * @param seed
+     *            the initial element
+     * @param f
+     *            a function to be applied to to the previous element to produce
+     *            a new element
+     * @return a new sequential {@code StreamEx}
+     * @see Stream#iterate(Object, UnaryOperator)
+     */
     public static <T> StreamEx<T> iterate(final T seed, final UnaryOperator<T> f) {
         return new StreamEx<>(Stream.iterate(seed, f));
     }
