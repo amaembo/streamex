@@ -75,6 +75,10 @@ public class CustomPoolTest {
         assertEquals(4, IntStreamEx.range(0, 4).parallel(pool).peek(this::checkThread).summaryStatistics().getCount());
         assertArrayEquals(new int[] { 1, 2, 3 }, IntStreamEx.range(0, 5).parallel(pool).peek(this::checkThread).skip(1).limit(3).toArray());
         assertEquals(6, IntStreamEx.of(1, 2, 3).parallel(pool).peek(this::checkThread).reduce(Integer::sum).getAsInt());
+        assertTrue(IntStreamEx.of(1, 2, 3).parallel(pool).peek(this::checkThread).has(1));
+        assertTrue(IntStreamEx.of(1, 2, 3).parallel(pool).peek(this::checkThread).anyMatch(x -> x == 2));
+        assertFalse(IntStreamEx.of(1, 2, 3).parallel(pool).peek(this::checkThread).allMatch(x -> x == 2));
+        assertFalse(IntStreamEx.of(1, 2, 3).parallel(pool).peek(this::checkThread).noneMatch(x -> x == 2));
     }
 
     @Test
@@ -88,6 +92,10 @@ public class CustomPoolTest {
         assertEquals(4, LongStreamEx.range(0, 4).parallel(pool).peek(this::checkThread).summaryStatistics().getCount());
         assertArrayEquals(new long[] { 1, 2, 3 }, LongStreamEx.range(0, 5).parallel(pool).peek(this::checkThread).skip(1).limit(3).toArray());
         assertEquals(6, LongStreamEx.of(1, 2, 3).parallel(pool).peek(this::checkThread).reduce(Long::sum).getAsLong());
+        assertTrue(LongStreamEx.of(1, 2, 3).parallel(pool).peek(this::checkThread).has(1));
+        assertTrue(LongStreamEx.of(1, 2, 3).parallel(pool).peek(this::checkThread).anyMatch(x -> x == 2));
+        assertFalse(LongStreamEx.of(1, 2, 3).parallel(pool).peek(this::checkThread).allMatch(x -> x == 2));
+        assertFalse(LongStreamEx.of(1, 2, 3).parallel(pool).peek(this::checkThread).noneMatch(x -> x == 2));
     }
 
     @Test
@@ -101,5 +109,8 @@ public class CustomPoolTest {
         assertArrayEquals(new double[] { 1, 2, 3 },
                 IntStreamEx.range(0, 5).asDoubleStream().skip(1).limit(3).parallel(pool).peek(this::checkThread).toArray(), 0.0);
         assertEquals(6.0, DoubleStreamEx.of(1.0, 2.0, 3.0).parallel(pool).peek(this::checkThread).reduce(Double::sum).getAsDouble(), 0.0);
+        assertTrue(DoubleStreamEx.of(1, 2, 3).parallel(pool).peek(this::checkThread).anyMatch(x -> x == 2));
+        assertFalse(DoubleStreamEx.of(1, 2, 3).parallel(pool).peek(this::checkThread).allMatch(x -> x == 2));
+        assertFalse(DoubleStreamEx.of(1, 2, 3).parallel(pool).peek(this::checkThread).noneMatch(x -> x == 2));
     }
 }

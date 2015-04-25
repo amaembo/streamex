@@ -261,7 +261,7 @@ public class IntStreamEx implements IntStream {
 
     @Override
     public boolean noneMatch(IntPredicate predicate) {
-        return stream.noneMatch(predicate);
+        return !anyMatch(predicate);
     }
 
     @Override
