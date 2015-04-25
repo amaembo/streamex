@@ -284,11 +284,45 @@ public class LongStreamEx implements LongStream {
         return StreamManagingStrategy.DEFAULT.newLongStreamEx(stream.sequential());
     }
 
+    /**
+     * Returns an equivalent stream that is parallel. May return itself, either
+     * because the stream was already parallel, or because the underlying stream
+     * state was modified to be parallel.
+     *
+     * <p>
+     * This is an intermediate operation.
+     * 
+     * <p>
+     * If this stream was created using {@link #parallel(ForkJoinPool)}, the new
+     * stream forgets about supplied custom {@link ForkJoinPool} and its
+     * terminal operation will be executed in common pool.
+     *
+     * @return a parallel stream
+     */
     @Override
     public LongStreamEx parallel() {
         return StreamManagingStrategy.DEFAULT.newLongStreamEx(stream.parallel());
     }
 
+    /**
+     * Returns an equivalent stream that is parallel and bound to the supplied
+     * {@link ForkJoinPool}.
+     *
+     * <p>
+     * This is an intermediate operation.
+     * 
+     * <p>
+     * The terminal operation of this stream or any derived stream (except the
+     * streams created via {@link #parallel()} or {@link #sequential()} methods)
+     * will be executed inside the supplied {@code ForkJoinPool}. If current
+     * thread does not belong to that pool, it will wait till calculation
+     * finishes.
+     *
+     * @param fjp
+     *            a {@code ForkJoinPool} to submit the stream operation to.
+     * @return a parallel stream bound to the supplied {@code ForkJoinPool}
+     * @since 0.2.0
+     */
     public LongStreamEx parallel(ForkJoinPool fjp) {
         return StreamManagingStrategy.forCustomPool(fjp).newLongStreamEx(stream.parallel());
     }
