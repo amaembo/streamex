@@ -62,12 +62,12 @@ import java.util.stream.Stream;
 
     @Override
     public Iterator<T> iterator() {
-        return strategy().terminate(stream::iterator);
+        return stream.iterator();
     }
 
     @Override
     public Spliterator<T> spliterator() {
-        return strategy().terminate(stream::spliterator);
+        return stream.spliterator();
     }
 
     @Override
@@ -169,12 +169,12 @@ import java.util.stream.Stream;
 
     @Override
     public void forEach(Consumer<? super T> action) {
-        strategy().terminate(() -> {stream.forEach(action); return null;});
+        stream.forEach(action);
     }
 
     @Override
     public void forEachOrdered(Consumer<? super T> action) {
-        strategy().terminate(() -> {stream.forEachOrdered(action); return null;});
+        stream.forEachOrdered(action);
     }
 
     @Override
@@ -184,32 +184,32 @@ import java.util.stream.Stream;
 
     @Override
     public <A> A[] toArray(IntFunction<A[]> generator) {
-        return strategy().terminate(() -> stream.toArray(generator));
+        return stream.toArray(generator);
     }
 
     @Override
     public T reduce(T identity, BinaryOperator<T> accumulator) {
-        return strategy().terminate(() -> stream.reduce(identity, accumulator));
+        return stream.reduce(identity, accumulator);
     }
 
     @Override
     public Optional<T> reduce(BinaryOperator<T> accumulator) {
-        return strategy().terminate(() -> stream.reduce(accumulator));
+        return stream.reduce(accumulator);
     }
 
     @Override
     public <U> U reduce(U identity, BiFunction<U, ? super T, U> accumulator, BinaryOperator<U> combiner) {
-        return strategy().terminate(() -> stream.reduce(identity, accumulator, combiner));
+        return stream.reduce(identity, accumulator, combiner);
     }
 
     @Override
     public <R> R collect(Supplier<R> supplier, BiConsumer<R, ? super T> accumulator, BiConsumer<R, R> combiner) {
-        return strategy().terminate(() -> stream.collect(supplier, accumulator, combiner));
+        return stream.collect(supplier, accumulator, combiner);
     }
 
     @Override
     public <R, A> R collect(Collector<? super T, A, R> collector) {
-        return strategy().terminate(() -> stream.collect(collector));
+        return stream.collect(collector);
     }
 
     @Override
@@ -224,32 +224,32 @@ import java.util.stream.Stream;
 
     @Override
     public long count() {
-        return strategy().terminate(() -> stream.count());
+        return stream.count();
     }
 
     @Override
     public boolean anyMatch(Predicate<? super T> predicate) {
-        return strategy().terminate(() -> stream.anyMatch(predicate));
+        return stream.anyMatch(predicate);
     }
 
     @Override
     public boolean allMatch(Predicate<? super T> predicate) {
-        return strategy().terminate(() -> stream.allMatch(predicate));
+        return stream.allMatch(predicate);
     }
 
     @Override
     public boolean noneMatch(Predicate<? super T> predicate) {
-        return strategy().terminate(() -> stream.noneMatch(predicate));
+        return !anyMatch(predicate);
     }
 
     @Override
     public Optional<T> findFirst() {
-        return strategy().terminate(() -> stream.findFirst());
+        return stream.findFirst();
     }
 
     @Override
     public Optional<T> findAny() {
-        return strategy().terminate(() -> stream.findAny());
+        return stream.findAny();
     }
 
     /**
