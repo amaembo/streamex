@@ -1,5 +1,11 @@
 # StreamEx changes
 
+### 0.2.0-SNAPSHOT
+
+* Added parallel(fjc) method for all stream types
+* Added reverseSorted() method for StreamEx
+* Updated documentation
+
 ### 0.1.2
 
 * Added IntStreamEx#elements methods family
