@@ -21,6 +21,7 @@ import java.io.Reader;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -568,6 +569,27 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         if (element == null)
             return anyMatch(Objects::isNull);
         return anyMatch(element::equals);
+    }
+
+    /**
+     * Returns a {@code StreamEx} consisting of the elements of this stream,
+     * sorted according to reverse natural order. If the elements of this stream
+     * are not {@code Comparable}, a {@link java.lang.ClassCastException} may be
+     * thrown when the terminal operation is executed.
+     *
+     * <p>
+     * For ordered streams, the sort is stable. For unordered streams, no
+     * stability guarantees are made.
+     *
+     * <p>
+     * This is a stateful intermediate operation.
+     *
+     * @return the new stream
+     * @since 0.2.0
+     */
+    @SuppressWarnings("unchecked")
+    public StreamEx<T> reverseSorted() {
+        return sorted((Comparator<? super T>) Comparator.reverseOrder());
     }
 
     /**
