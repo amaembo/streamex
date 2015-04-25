@@ -39,32 +39,17 @@ import java.util.stream.Stream;
 
         @Override
         public LongStreamEx newLongStreamEx(LongStream src) {
-            return new LongStreamEx(src) {
-                @Override
-                StreamManagingStrategy strategy() {
-                    return CustomPoolStreamManagingStrategy.this;
-                }
-            };
+            return new LongStreamEx.CustomLongStreamEx(src, this);
         }
 
         @Override
         public IntStreamEx newIntStreamEx(IntStream src) {
-            return new IntStreamEx(src) {
-                @Override
-                StreamManagingStrategy strategy() {
-                    return CustomPoolStreamManagingStrategy.this;
-                }
-            };
+            return new IntStreamEx.CustomIntStreamEx(src, this);
         }
 
         @Override
         public DoubleStreamEx newDoubleStreamEx(DoubleStream src) {
-            return new DoubleStreamEx(src) {
-                @Override
-                StreamManagingStrategy strategy() {
-                    return CustomPoolStreamManagingStrategy.this;
-                }
-            };
+            return new DoubleStreamEx.CustomDoubleStreamEx(src, this);
         }
 
         @Override

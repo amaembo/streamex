@@ -57,6 +57,85 @@ public class IntStreamEx implements IntStream {
     StreamManagingStrategy strategy() {
         return StreamManagingStrategy.DEFAULT;
     }
+    
+    static class CustomIntStreamEx extends IntStreamEx {
+        private final StreamManagingStrategy strategy;
+
+        CustomIntStreamEx(IntStream stream, StreamManagingStrategy strategy) {
+            super(stream);
+            this.strategy = strategy;
+        }
+
+        @Override
+        StreamManagingStrategy strategy() {
+            return strategy;
+        }
+
+        @Override
+        public void forEach(IntConsumer action) {
+            strategy().terminate(() -> {stream.forEach(action); return null;});
+        }
+
+        @Override
+        public void forEachOrdered(IntConsumer action) {
+            strategy().terminate(() -> {stream.forEachOrdered(action); return null;});
+        }
+
+        @Override
+        public int[] toArray() {
+            return strategy().terminate(stream::toArray);
+        }
+
+        @Override
+        public int reduce(int identity, IntBinaryOperator op) {
+            return strategy().terminate(() -> stream.reduce(identity, op));
+        }
+
+        @Override
+        public OptionalInt reduce(IntBinaryOperator op) {
+            return strategy().terminate(() -> stream.reduce(op));
+        }
+
+        @Override
+        public long count() {
+            return strategy().terminate(stream::count);
+        }
+
+        @Override
+        public OptionalDouble average() {
+            return strategy().terminate(stream::average);
+        }
+
+        @Override
+        public boolean anyMatch(IntPredicate predicate) {
+            return strategy().terminate(() -> stream.anyMatch(predicate));
+        }
+
+        @Override
+        public boolean allMatch(IntPredicate predicate) {
+            return strategy().terminate(() -> stream.allMatch(predicate));
+        }
+
+        @Override
+        public OptionalInt findFirst() {
+            return strategy().terminate(stream::findFirst);
+        }
+
+        @Override
+        public OptionalInt findAny() {
+            return strategy().terminate(stream::findAny);
+        }
+
+        @Override
+        public OfInt iterator() {
+            return strategy().terminate(stream::iterator);
+        }
+
+        @Override
+        public java.util.Spliterator.OfInt spliterator() {
+            return strategy().terminate(stream::spliterator);
+        }
+    }
 
     @Override
     public boolean isParallel() {

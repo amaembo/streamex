@@ -52,6 +52,85 @@ public class LongStreamEx implements LongStream {
     StreamManagingStrategy strategy() {
         return StreamManagingStrategy.DEFAULT;
     }
+    
+    static class CustomLongStreamEx extends LongStreamEx {
+        private final StreamManagingStrategy strategy;
+
+        CustomLongStreamEx(LongStream stream, StreamManagingStrategy strategy) {
+            super(stream);
+            this.strategy = strategy;
+        }
+
+        @Override
+        StreamManagingStrategy strategy() {
+            return strategy;
+        }
+
+        @Override
+        public void forEach(LongConsumer action) {
+            strategy().terminate(() -> {stream.forEach(action); return null;});
+        }
+
+        @Override
+        public void forEachOrdered(LongConsumer action) {
+            strategy().terminate(() -> {stream.forEachOrdered(action); return null;});
+        }
+
+        @Override
+        public long[] toArray() {
+            return strategy().terminate(stream::toArray);
+        }
+
+        @Override
+        public long reduce(long identity, LongBinaryOperator op) {
+            return strategy().terminate(() -> stream.reduce(identity, op));
+        }
+
+        @Override
+        public OptionalLong reduce(LongBinaryOperator op) {
+            return strategy().terminate(() -> stream.reduce(op));
+        }
+
+        @Override
+        public long count() {
+            return strategy().terminate(stream::count);
+        }
+
+        @Override
+        public OptionalDouble average() {
+            return strategy().terminate(stream::average);
+        }
+
+        @Override
+        public boolean anyMatch(LongPredicate predicate) {
+            return strategy().terminate(() -> stream.anyMatch(predicate));
+        }
+
+        @Override
+        public boolean allMatch(LongPredicate predicate) {
+            return strategy().terminate(() -> stream.allMatch(predicate));
+        }
+
+        @Override
+        public OptionalLong findFirst() {
+            return strategy().terminate(stream::findFirst);
+        }
+
+        @Override
+        public OptionalLong findAny() {
+            return strategy().terminate(stream::findAny);
+        }
+
+        @Override
+        public OfLong iterator() {
+            return strategy().terminate(stream::iterator);
+        }
+
+        @Override
+        public java.util.Spliterator.OfLong spliterator() {
+            return strategy().terminate(stream::spliterator);
+        }
+    }
 
     @Override
     public boolean isParallel() {
@@ -185,32 +264,32 @@ public class LongStreamEx implements LongStream {
 
     @Override
     public void forEach(LongConsumer action) {
-        strategy().terminate(() -> {stream.forEach(action); return null;});
+        stream.forEach(action);
     }
 
     @Override
     public void forEachOrdered(LongConsumer action) {
-        strategy().terminate(() -> {stream.forEachOrdered(action); return null;});
+        stream.forEachOrdered(action);
     }
 
     @Override
     public long[] toArray() {
-        return strategy().terminate(stream::toArray);
+        return stream.toArray();
     }
 
     @Override
     public long reduce(long identity, LongBinaryOperator op) {
-        return strategy().terminate(() -> stream.reduce(identity, op));
+        return stream.reduce(identity, op);
     }
 
     @Override
     public OptionalLong reduce(LongBinaryOperator op) {
-        return strategy().terminate(() -> stream.reduce(op));
+        return stream.reduce(op);
     }
 
     @Override
     public <R> R collect(Supplier<R> supplier, ObjLongConsumer<R> accumulator, BiConsumer<R, R> combiner) {
-        return strategy().terminate(() -> stream.collect(supplier, accumulator, combiner));
+        return stream.collect(supplier, accumulator, combiner);
     }
 
     @Override
@@ -230,12 +309,12 @@ public class LongStreamEx implements LongStream {
 
     @Override
     public long count() {
-        return strategy().terminate(() -> stream.count());
+        return stream.count();
     }
 
     @Override
     public OptionalDouble average() {
-        return strategy().terminate(stream::average);
+        return stream.average();
     }
 
     @Override
@@ -246,27 +325,27 @@ public class LongStreamEx implements LongStream {
 
     @Override
     public boolean anyMatch(LongPredicate predicate) {
-        return strategy().terminate(() -> stream.anyMatch(predicate));
+        return stream.anyMatch(predicate);
     }
 
     @Override
     public boolean allMatch(LongPredicate predicate) {
-        return strategy().terminate(() -> stream.allMatch(predicate));
+        return stream.allMatch(predicate);
     }
 
     @Override
     public boolean noneMatch(LongPredicate predicate) {
-        return strategy().terminate(() -> stream.noneMatch(predicate));
+        return !anyMatch(predicate);
     }
 
     @Override
     public OptionalLong findFirst() {
-        return strategy().terminate(() -> stream.findFirst());
+        return stream.findFirst();
     }
 
     @Override
     public OptionalLong findAny() {
-        return strategy().terminate(() -> stream.findAny());
+        return stream.findAny();
     }
 
     @Override
@@ -295,12 +374,12 @@ public class LongStreamEx implements LongStream {
 
     @Override
     public OfLong iterator() {
-        return strategy().terminate(stream::iterator);
+        return stream.iterator();
     }
 
     @Override
     public java.util.Spliterator.OfLong spliterator() {
-        return strategy().terminate(stream::spliterator);
+        return stream.spliterator();
     }
 
     /**
