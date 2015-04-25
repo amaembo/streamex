@@ -102,6 +102,12 @@ public class StreamExTest {
         }
         assertTrue(b.get());
                 
+        assertTrue(StreamEx.of("a", "b").anyMatch("a"::equals));
+        assertFalse(StreamEx.of("a", "b").anyMatch("c"::equals));
+        assertFalse(StreamEx.of("a", "b").allMatch("a"::equals));
+        assertFalse(StreamEx.of("a", "b").allMatch("c"::equals));
+        assertFalse(StreamEx.of("a", "b").noneMatch("a"::equals));
+        assertTrue(StreamEx.of("a", "b").noneMatch("c"::equals));
     }
     
     @Test

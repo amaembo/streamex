@@ -27,6 +27,8 @@ import java.util.function.LongBinaryOperator;
 import java.util.function.LongConsumer;
 import java.util.function.LongPredicate;
 import java.util.function.ObjDoubleConsumer;
+import java.util.function.ObjIntConsumer;
+import java.util.function.ObjLongConsumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
@@ -325,6 +327,11 @@ import java.util.stream.Stream;
         }
     
         @Override
+        public <R> R collect(Supplier<R> supplier, ObjIntConsumer<R> accumulator, BiConsumer<R, R> combiner) {
+            return strategy().terminate(() -> stream.collect(supplier, accumulator, combiner));
+        }
+    
+        @Override
         public long count() {
             return strategy().terminate(stream::count);
         }
@@ -401,6 +408,11 @@ import java.util.stream.Stream;
         @Override
         public OptionalLong reduce(LongBinaryOperator op) {
             return strategy().terminate(() -> stream.reduce(op));
+        }
+    
+        @Override
+        public <R> R collect(Supplier<R> supplier, ObjLongConsumer<R> accumulator, BiConsumer<R, R> combiner) {
+            return strategy().terminate(() -> stream.collect(supplier, accumulator, combiner));
         }
     
         @Override

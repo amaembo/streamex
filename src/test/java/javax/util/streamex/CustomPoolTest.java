@@ -15,34 +15,91 @@
  */
 package javax.util.streamex;
 
+import java.util.Arrays;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinWorkerThread;
-import java.util.concurrent.ForkJoinPool.ForkJoinWorkerThreadFactory;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
 public class CustomPoolTest {
-    private static class MyForkJoinWorkerThread extends ForkJoinWorkerThread {
-        protected MyForkJoinWorkerThread(ForkJoinPool pool) {
-            super(pool);
-        }
+    ForkJoinPool pool = new ForkJoinPool(3);
+    
+    private void checkThread(Object element) {
+        Thread thread = Thread.currentThread();
+        if(!(thread instanceof ForkJoinWorkerThread))
+            throw new IllegalStateException("Not inside FJP");
+        if(((ForkJoinWorkerThread)thread).getPool() != pool)
+            throw new IllegalStateException("FJP is incorrect");
+    }
+    
+    @Test(expected=IllegalStateException.class)
+    public void testCheckThreadSequential() {
+        StreamEx.of("a", "b").peek(this::checkThread).joining();
+    }
+    
+    @Test(expected=IllegalStateException.class)
+    public void testCheckThreadParallel() {
+        StreamEx.of("a", "b").parallel().peek(this::checkThread).joining();
     }
     
     @Test
-    public void testBasics() {
-        AtomicLong threadCount = new AtomicLong();
-        ForkJoinPool pool = new ForkJoinPool(3, new ForkJoinWorkerThreadFactory() {
-            @Override
-            public ForkJoinWorkerThread newThread(ForkJoinPool pool) {
-                threadCount.incrementAndGet();
-                return new MyForkJoinWorkerThread(pool);
-            }
-        }, null, false);
-        assertEquals(0, threadCount.get());
-        assertEquals(999999000000L, IntStreamEx.range(1000000).parallel(pool).asLongStream().map(x -> x*2).sum());
-        assertEquals(3, threadCount.get());
+    public void testStreamEx() {
+        assertEquals(Arrays.asList(1, 2), StreamEx.of("a", "bb").parallel(pool).peek(this::checkThread).map(String::length).toList());
+        assertEquals("a", StreamEx.of("a").parallel(pool).peek(this::checkThread).findAny().get());
+        assertEquals("a", StreamEx.of("a", "b").parallel(pool).peek(this::checkThread).findFirst().get());
+        assertTrue(StreamEx.of("a", "b").parallel(pool).peek(this::checkThread).anyMatch("a"::equals));
+        assertFalse(StreamEx.of("a", "b").parallel(pool).peek(this::checkThread).allMatch("a"::equals));
+        assertFalse(StreamEx.of("a", "b").parallel(pool).peek(this::checkThread).noneMatch("a"::equals));
+        assertEquals(Arrays.asList("b", "c"), StreamEx.of("a", "b", "c").parallel(pool).peek(this::checkThread).skip(1).toList());
+    }
+    
+    @Test
+    public void testEntryStream() {
+        assertEquals(Integer.valueOf(1), EntryStream.of("a", 1).parallel(pool).peek(this::checkThread).toMap().get("a"));
+        assertEquals(Integer.valueOf(1), EntryStream.of("a", 1).parallel(pool).peek(this::checkThread).findAny(e -> e.getKey().equals("a")).get().getValue());
+        assertEquals(Integer.valueOf(1), EntryStream.of("a", 1).parallel(pool).peek(this::checkThread).findFirst(e -> e.getKey().equals("a")).get().getValue());
+        assertTrue(EntryStream.of("a", 1).parallel(pool).peek(this::checkThread).anyMatch(e -> e.getKey().equals("a")));
+        assertTrue(EntryStream.of("a", 1).parallel(pool).peek(this::checkThread).allMatch(e -> e.getKey().equals("a")));
+        assertFalse(EntryStream.of("a", 1).parallel(pool).peek(this::checkThread).noneMatch(e -> e.getKey().equals("a")));
+    }
+    
+    @Test
+    public void testIntStreamEx() {
+        IntStreamEx.range(0, 4).parallel(pool).forEach(this::checkThread);
+        assertEquals(6, IntStreamEx.range(0, 4).parallel(pool).peek(this::checkThread).sum());
+        assertEquals(3, IntStreamEx.range(0, 4).parallel(pool).peek(this::checkThread).max().getAsInt());
+        assertEquals(0, IntStreamEx.range(0, 4).parallel(pool).peek(this::checkThread).min().getAsInt());
+        assertEquals(1.5, IntStreamEx.range(0, 4).parallel(pool).peek(this::checkThread).average().getAsDouble(), 0.000001);
+        assertEquals(4, IntStreamEx.range(0, 4).parallel(pool).peek(this::checkThread).summaryStatistics().getCount());
+        assertArrayEquals(new int[] { 1, 2, 3 }, IntStreamEx.range(0, 5).parallel(pool).peek(this::checkThread).skip(1).limit(3).toArray());
+        assertEquals(6, IntStreamEx.of(1, 2, 3).parallel(pool).peek(this::checkThread).reduce(Integer::sum).getAsInt());
+    }
+
+    @Test
+    public void testLongStreamEx() {
+        LongStreamEx.range(0, 4).parallel(pool).forEach(this::checkThread);
+        assertEquals(999999000000L, IntStreamEx.range(1000000).parallel(pool).peek(this::checkThread).asLongStream().map(x -> x*2).sum());
+        assertEquals(6, LongStreamEx.range(0, 4).parallel(pool).peek(this::checkThread).sum());
+        assertEquals(3, LongStreamEx.range(0, 4).parallel(pool).peek(this::checkThread).max().getAsLong());
+        assertEquals(0, LongStreamEx.range(0, 4).parallel(pool).peek(this::checkThread).min().getAsLong());
+        assertEquals(1.5, LongStreamEx.range(0, 4).parallel(pool).peek(this::checkThread).average().getAsDouble(), 0.000001);
+        assertEquals(4, LongStreamEx.range(0, 4).parallel(pool).peek(this::checkThread).summaryStatistics().getCount());
+        assertArrayEquals(new long[] { 1, 2, 3 }, LongStreamEx.range(0, 5).parallel(pool).peek(this::checkThread).skip(1).limit(3).toArray());
+        assertEquals(6, LongStreamEx.of(1, 2, 3).parallel(pool).peek(this::checkThread).reduce(Long::sum).getAsLong());
+    }
+
+    @Test
+    public void testDoubleStreamEx() {
+        LongStreamEx.range(0, 4).asDoubleStream().parallel(pool).forEach(this::checkThread);
+        assertEquals(6, IntStreamEx.range(0, 4).parallel(pool).peek(this::checkThread).asDoubleStream().sum(), 0);
+        assertEquals(3, IntStreamEx.range(0, 4).parallel(pool).peek(this::checkThread).asDoubleStream().max().getAsDouble(), 0);
+        assertEquals(0, IntStreamEx.range(0, 4).parallel(pool).peek(this::checkThread).asDoubleStream().min().getAsDouble(), 0);
+        assertEquals(1.5, IntStreamEx.range(0, 4).parallel(pool).peek(this::checkThread).asDoubleStream().average().getAsDouble(), 0.000001);
+        assertEquals(4, IntStreamEx.range(0, 4).parallel(pool).peek(this::checkThread).asDoubleStream().summaryStatistics().getCount());
+        assertArrayEquals(new double[] { 1, 2, 3 },
+                IntStreamEx.range(0, 5).asDoubleStream().skip(1).limit(3).parallel(pool).peek(this::checkThread).toArray(), 0.0);
+        assertEquals(6.0, DoubleStreamEx.of(1.0, 2.0, 3.0).parallel(pool).peek(this::checkThread).reduce(Double::sum).getAsDouble(), 0.0);
     }
 }

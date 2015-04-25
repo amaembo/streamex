@@ -190,32 +190,32 @@ public class IntStreamEx implements IntStream {
 
     @Override
     public void forEach(IntConsumer action) {
-        strategy().terminate(() -> {stream.forEach(action); return null;});
+        stream.forEach(action);;
     }
 
     @Override
     public void forEachOrdered(IntConsumer action) {
-        strategy().terminate(() -> {stream.forEachOrdered(action); return null;});
+        stream.forEachOrdered(action);
     }
 
     @Override
     public int[] toArray() {
-        return strategy().terminate(stream::toArray);
+        return stream.toArray();
     }
 
     @Override
     public int reduce(int identity, IntBinaryOperator op) {
-        return strategy().terminate(() -> stream.reduce(identity, op));
+        return stream.reduce(identity, op);
     }
 
     @Override
     public OptionalInt reduce(IntBinaryOperator op) {
-        return strategy().terminate(() -> stream.reduce(op));
+        return stream.reduce(op);
     }
 
     @Override
     public <R> R collect(Supplier<R> supplier, ObjIntConsumer<R> accumulator, BiConsumer<R, R> combiner) {
-        return strategy().terminate(() -> stream.collect(supplier, accumulator, combiner));
+        return stream.collect(supplier, accumulator, combiner);
     }
 
     @Override
@@ -235,12 +235,12 @@ public class IntStreamEx implements IntStream {
 
     @Override
     public long count() {
-        return strategy().terminate(() -> stream.count());
+        return stream.count();
     }
 
     @Override
     public OptionalDouble average() {
-        return strategy().terminate(stream::average);
+        return stream.average();
     }
 
     @Override
@@ -251,27 +251,27 @@ public class IntStreamEx implements IntStream {
 
     @Override
     public boolean anyMatch(IntPredicate predicate) {
-        return strategy().terminate(() -> stream.anyMatch(predicate));
+        return stream.anyMatch(predicate);
     }
 
     @Override
     public boolean allMatch(IntPredicate predicate) {
-        return strategy().terminate(() -> stream.allMatch(predicate));
+        return stream.allMatch(predicate);
     }
 
     @Override
     public boolean noneMatch(IntPredicate predicate) {
-        return strategy().terminate(() -> stream.noneMatch(predicate));
+        return stream.noneMatch(predicate);
     }
 
     @Override
     public OptionalInt findFirst() {
-        return strategy().terminate(() -> stream.findFirst());
+        return stream.findFirst();
     }
 
     @Override
     public OptionalInt findAny() {
-        return strategy().terminate(() -> stream.findAny());
+        return stream.findAny();
     }
 
     @Override
@@ -305,12 +305,12 @@ public class IntStreamEx implements IntStream {
 
     @Override
     public OfInt iterator() {
-        return strategy().terminate(stream::iterator);
+        return stream.iterator();
     }
 
     @Override
     public java.util.Spliterator.OfInt spliterator() {
-        return strategy().terminate(stream::spliterator);
+        return stream.spliterator();
     }
 
     /**
