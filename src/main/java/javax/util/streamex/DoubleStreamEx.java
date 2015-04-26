@@ -52,6 +52,13 @@ public class DoubleStreamEx implements DoubleStream {
         return StreamManagingStrategy.DEFAULT;
     }
     
+    /**
+     * Returns whether this stream, if a terminal operation were to be executed,
+     * would execute in parallel.  Calling this method after invoking an
+     * terminal stream operation method may yield unpredictable results.
+     *
+     * @return {@code true} if this stream would execute in parallel if executed
+     */
     @Override
     public boolean isParallel() {
         return stream.isParallel();
