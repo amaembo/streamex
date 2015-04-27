@@ -339,8 +339,13 @@ public class StreamExTest {
     @Test
     public void testFoldLeft() {
         assertEquals("c;b;a;", StreamEx.of("a", "b", "c").foldLeft("", (u,v) -> v+";"+u));
-        assertTrue(StreamEx.of("a", "b", "c").foldLeft(false, (acc,s) -> acc | s.equals("b")));
-        assertFalse(StreamEx.of("a", "b", "c").foldLeft(false, (acc,s) -> acc | s.equals("d")));
+        // Removing types here causes internal error in Javac compiler
+        // java.lang.AssertionError: attribution shouldn't be happening here
+        // Bug appears in javac 1.8.0.20 and javac 1.8.0.45
+        // javac 1.9.0b55 and ecj compiles normally
+        // Probably this ticket: https://bugs.openjdk.java.net/browse/JDK-8068399
+        assertTrue(StreamEx.of("a", "b", "c").foldLeft(false, (Boolean acc, String s) -> acc || s.equals("b")));
+        assertFalse(StreamEx.of("a", "b", "c").foldLeft(false, (Boolean acc, String s) -> acc || s.equals("d")));
         assertEquals(Integer.valueOf(6), StreamEx.of("a", "bb", "ccc").foldLeft(0, (acc,v) -> acc+v.length()));
         assertEquals(
                 "{ccc={bb={a={}}}}",
@@ -348,8 +353,8 @@ public class StreamExTest {
                         .foldLeft(Collections.emptyMap(), (acc, v) -> Collections.singletonMap(v, acc)).toString());
 
         assertEquals("c;b;a;", StreamEx.of("a", "b", "c").parallel().foldLeft("", (u,v) -> v+";"+u));
-        assertTrue(StreamEx.of("a", "b", "c").parallel().foldLeft(false, (acc,s) -> acc | s.equals("b")));
-        assertFalse(StreamEx.of("a", "b", "c").parallel().foldLeft(false, (acc,s) -> acc | s.equals("d")));
+        assertTrue(StreamEx.of("a", "b", "c").parallel().foldLeft(false, (Boolean acc, String s) -> acc | s.equals("b")));
+        assertFalse(StreamEx.of("a", "b", "c").parallel().foldLeft(false, (Boolean acc, String s) -> acc | s.equals("d")));
         assertEquals(Integer.valueOf(6), StreamEx.of("a", "bb", "ccc").parallel().foldLeft(0, (acc,v) -> acc+v.length()));
         assertEquals(
                 "{ccc={bb={a={}}}}",
