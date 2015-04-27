@@ -52,11 +52,11 @@ public class LongStreamEx implements LongStream {
     StreamManagingStrategy strategy() {
         return StreamManagingStrategy.DEFAULT;
     }
-    
+
     /**
      * Returns whether this stream, if a terminal operation were to be executed,
-     * would execute in parallel.  Calling this method after invoking an
-     * terminal stream operation method may yield unpredictable results.
+     * would execute in parallel. Calling this method after invoking an terminal
+     * stream operation method may yield unpredictable results.
      *
      * @return {@code true} if this stream would execute in parallel if executed
      */
@@ -200,6 +200,14 @@ public class LongStreamEx implements LongStream {
         stream.forEachOrdered(action);
     }
 
+    /**
+     * Returns an array containing the elements of this stream.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @return an array containing the elements of this stream
+     */
     @Override
     public long[] toArray() {
         return stream.toArray();
@@ -247,8 +255,7 @@ public class LongStreamEx implements LongStream {
 
     @Override
     public LongSummaryStatistics summaryStatistics() {
-        return collect(LongSummaryStatistics::new, LongSummaryStatistics::accept,
-                LongSummaryStatistics::combine);
+        return collect(LongSummaryStatistics::new, LongSummaryStatistics::accept, LongSummaryStatistics::combine);
     }
 
     @Override
@@ -526,7 +533,8 @@ public class LongStreamEx implements LongStream {
      * @since 0.1.2
      */
     public OptionalLong minByDouble(LongToDoubleFunction keyExtractor) {
-        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? b : a);
+        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? b
+                : a);
     }
 
     /**
@@ -617,7 +625,8 @@ public class LongStreamEx implements LongStream {
      * @since 0.1.2
      */
     public OptionalLong maxByDouble(LongToDoubleFunction keyExtractor) {
-        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? a : b);
+        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? a
+                : b);
     }
 
     public static LongStreamEx empty() {

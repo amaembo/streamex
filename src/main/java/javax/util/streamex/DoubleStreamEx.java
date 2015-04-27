@@ -51,11 +51,11 @@ public class DoubleStreamEx implements DoubleStream {
     StreamManagingStrategy strategy() {
         return StreamManagingStrategy.DEFAULT;
     }
-    
+
     /**
      * Returns whether this stream, if a terminal operation were to be executed,
-     * would execute in parallel.  Calling this method after invoking an
-     * terminal stream operation method may yield unpredictable results.
+     * would execute in parallel. Calling this method after invoking an terminal
+     * stream operation method may yield unpredictable results.
      *
      * @return {@code true} if this stream would execute in parallel if executed
      */
@@ -200,6 +200,14 @@ public class DoubleStreamEx implements DoubleStream {
         stream.forEachOrdered(action);
     }
 
+    /**
+     * Returns an array containing the elements of this stream.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @return an array containing the elements of this stream
+     */
     @Override
     public double[] toArray() {
         return stream.toArray();
@@ -247,8 +255,7 @@ public class DoubleStreamEx implements DoubleStream {
 
     @Override
     public DoubleSummaryStatistics summaryStatistics() {
-        return collect(DoubleSummaryStatistics::new, DoubleSummaryStatistics::accept,
-                DoubleSummaryStatistics::combine);
+        return collect(DoubleSummaryStatistics::new, DoubleSummaryStatistics::accept, DoubleSummaryStatistics::combine);
     }
 
     @Override
@@ -507,7 +514,8 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.1.2
      */
     public OptionalDouble minByDouble(DoubleUnaryOperator keyExtractor) {
-        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? b : a);
+        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? b
+                : a);
     }
 
     /**
@@ -598,7 +606,8 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.1.2
      */
     public OptionalDouble maxByDouble(DoubleUnaryOperator keyExtractor) {
-        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? a : b);
+        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? a
+                : b);
     }
 
     public static DoubleStreamEx empty() {
@@ -648,6 +657,23 @@ public class DoubleStreamEx implements DoubleStream {
      */
     public static DoubleStreamEx of(double[] array, int startInclusive, int endExclusive) {
         return new DoubleStreamEx(Arrays.stream(array, startInclusive, endExclusive));
+    }
+
+    /**
+     * Returns a sequential ordered {@code DoubleStreamEx} whose elements are
+     * the specified float values casted to double.
+     *
+     * @param elements
+     *            the elements of the new stream
+     * @return the new stream
+     * @since 0.2.0
+     */
+    public static DoubleStreamEx of(float... elements) {
+        return IntStreamEx.range(elements.length).mapToDouble(i -> elements[i]);
+    }
+
+    public static DoubleStreamEx of(float[] array, int startInclusive, int endExclusive) {
+        return IntStreamEx.range(startInclusive, endExclusive).mapToDouble(i -> array[i]);
     }
 
     /**

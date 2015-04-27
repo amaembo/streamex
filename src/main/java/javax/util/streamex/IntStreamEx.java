@@ -53,15 +53,15 @@ public class IntStreamEx implements IntStream {
     IntStreamEx(IntStream stream) {
         this.stream = stream;
     }
-    
+
     StreamManagingStrategy strategy() {
         return StreamManagingStrategy.DEFAULT;
     }
-    
+
     /**
      * Returns whether this stream, if a terminal operation were to be executed,
-     * would execute in parallel.  Calling this method after invoking an
-     * terminal stream operation method may yield unpredictable results.
+     * would execute in parallel. Calling this method after invoking an terminal
+     * stream operation method may yield unpredictable results.
      *
      * @return {@code true} if this stream would execute in parallel if executed
      */
@@ -197,7 +197,8 @@ public class IntStreamEx implements IntStream {
 
     @Override
     public void forEach(IntConsumer action) {
-        stream.forEach(action);;
+        stream.forEach(action);
+        ;
     }
 
     @Override
@@ -205,6 +206,14 @@ public class IntStreamEx implements IntStream {
         stream.forEachOrdered(action);
     }
 
+    /**
+     * Returns an array containing the elements of this stream.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @return an array containing the elements of this stream
+     */
     @Override
     public int[] toArray() {
         return stream.toArray();
@@ -252,8 +261,7 @@ public class IntStreamEx implements IntStream {
 
     @Override
     public IntSummaryStatistics summaryStatistics() {
-        return collect(IntSummaryStatistics::new, IntSummaryStatistics::accept,
-                IntSummaryStatistics::combine);
+        return collect(IntSummaryStatistics::new, IntSummaryStatistics::accept, IntSummaryStatistics::combine);
     }
 
     @Override
@@ -536,7 +544,8 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.2
      */
     public OptionalInt minByDouble(IntToDoubleFunction keyExtractor) {
-        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? b : a);
+        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? b
+                : a);
     }
 
     /**
@@ -568,8 +577,8 @@ public class IntStreamEx implements IntStream {
      * @param keyExtractor
      *            a non-interfering, stateless function
      * @return an {@code OptionalInt} describing some element of this stream for
-     *         which the highest value was returned by key extractor, or an empty
-     *         {@code OptionalInt} if the stream is empty
+     *         which the highest value was returned by key extractor, or an
+     *         empty {@code OptionalInt} if the stream is empty
      * @since 0.1.2
      */
     public <V extends Comparable<? super V>> OptionalInt maxBy(IntFunction<V> keyExtractor) {
@@ -586,8 +595,8 @@ public class IntStreamEx implements IntStream {
      * @param keyExtractor
      *            a non-interfering, stateless function
      * @return an {@code OptionalInt} describing some element of this stream for
-     *         which the highest value was returned by key extractor, or an empty
-     *         {@code OptionalInt} if the stream is empty
+     *         which the highest value was returned by key extractor, or an
+     *         empty {@code OptionalInt} if the stream is empty
      * @since 0.1.2
      */
     public OptionalInt maxByInt(IntUnaryOperator keyExtractor) {
@@ -604,8 +613,8 @@ public class IntStreamEx implements IntStream {
      * @param keyExtractor
      *            a non-interfering, stateless function
      * @return an {@code OptionalInt} describing some element of this stream for
-     *         which the highest value was returned by key extractor, or an empty
-     *         {@code OptionalInt} if the stream is empty
+     *         which the highest value was returned by key extractor, or an
+     *         empty {@code OptionalInt} if the stream is empty
      * @since 0.1.2
      */
     public OptionalInt maxByLong(IntToLongFunction keyExtractor) {
@@ -622,12 +631,13 @@ public class IntStreamEx implements IntStream {
      * @param keyExtractor
      *            a non-interfering, stateless function
      * @return an {@code OptionalInt} describing some element of this stream for
-     *         which the highest value was returned by key extractor, or an empty
-     *         {@code OptionalInt} if the stream is empty
+     *         which the highest value was returned by key extractor, or an
+     *         empty {@code OptionalInt} if the stream is empty
      * @since 0.1.2
      */
     public OptionalInt maxByDouble(IntToDoubleFunction keyExtractor) {
-        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? a : b);
+        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? a
+                : b);
     }
 
     /**
@@ -720,6 +730,20 @@ public class IntStreamEx implements IntStream {
         return mapToDouble(idx -> array[idx]);
     }
 
+    /**
+     * Returns a {@link BitSet} containing the elements of this stream.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @return a {@code BitSet} which set bits correspond to the elements of
+     *         this stream.
+     * @since 0.2.0
+     */
+    public BitSet toBitSet() {
+        return collect(BitSet::new, BitSet::set, BitSet::or);
+    }
+
     public static IntStreamEx empty() {
         return new IntStreamEx(IntStream.empty());
     }
@@ -767,6 +791,57 @@ public class IntStreamEx implements IntStream {
      */
     public static IntStreamEx of(int[] array, int startInclusive, int endExclusive) {
         return new IntStreamEx(Arrays.stream(array, startInclusive, endExclusive));
+    }
+
+    /**
+     * Returns a sequential ordered {@code IntStreamEx} whose elements are the
+     * specified values casted to int.
+     *
+     * @param elements
+     *            the elements of the new stream
+     * @return the new stream
+     * @since 0.2.0
+     */
+    public static IntStreamEx of(byte... elements) {
+        return range(elements.length).map(i -> elements[i]);
+    }
+
+    public static IntStreamEx of(byte[] array, int startInclusive, int endExclusive) {
+        return range(startInclusive, endExclusive).map(i -> array[i]);
+    }
+
+    /**
+     * Returns a sequential ordered {@code IntStreamEx} whose elements are the
+     * specified values casted to int.
+     *
+     * @param elements
+     *            the elements of the new stream
+     * @return the new stream
+     * @since 0.2.0
+     */
+    public static IntStreamEx of(char... elements) {
+        return range(elements.length).map(i -> elements[i]);
+    }
+
+    public static IntStreamEx of(char[] array, int startInclusive, int endExclusive) {
+        return range(startInclusive, endExclusive).map(i -> array[i]);
+    }
+
+    /**
+     * Returns a sequential ordered {@code IntStreamEx} whose elements are the
+     * specified values casted to int.
+     *
+     * @param elements
+     *            the elements of the new stream
+     * @return the new stream
+     * @since 0.2.0
+     */
+    public static IntStreamEx of(short... elements) {
+        return range(elements.length).map(i -> elements[i]);
+    }
+
+    public static IntStreamEx of(short[] array, int startInclusive, int endExclusive) {
+        return range(startInclusive, endExclusive).map(i -> array[i]);
     }
 
     /**

@@ -35,6 +35,8 @@ public class DoubleStreamExTest {
         assertArrayEquals(new double[] {}, DoubleStreamEx.of(OptionalDouble.empty()).toArray(), 0.0);
         assertArrayEquals(new double[] { 1, 2, 3 }, DoubleStreamEx.of(1, 2, 3).toArray(), 0.0);
         assertArrayEquals(new double[] { 4, 6 }, DoubleStreamEx.of(new double[] {2, 4, 6, 8, 10}, 1, 3).toArray(), 0.0);
+        assertArrayEquals(new double[] { 1, 2, 3 }, DoubleStreamEx.of(1.0f, 2.0f, 3.0f).toArray(), 0.0);
+        assertArrayEquals(new double[] { 4, 6 }, DoubleStreamEx.of(new float[] {2.0f, 4.0f, 6.0f, 8.0f, 10.0f}, 1, 3).toArray(), 0.0);
         assertArrayEquals(new double[] { 1, 2, 3 }, DoubleStreamEx.of(DoubleStream.of(1, 2, 3)).toArray(), 0.0);
         assertArrayEquals(new double[] { 1, 2, 3 }, DoubleStreamEx.of(Arrays.asList(1.0, 2.0, 3.0)).toArray(), 0.0);
         assertArrayEquals(new double[] { 1, 2, 4, 8, 16 }, DoubleStreamEx.iterate(1, x -> x*2).limit(5).toArray(), 0.0);

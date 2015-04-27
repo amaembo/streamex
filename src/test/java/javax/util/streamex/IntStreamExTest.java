@@ -35,6 +35,12 @@ public class IntStreamExTest {
         assertArrayEquals(new int[] {}, IntStreamEx.of(OptionalInt.empty()).toArray());
         assertArrayEquals(new int[] { 1, 2, 3 }, IntStreamEx.of(1, 2, 3).toArray());
         assertArrayEquals(new int[] { 4, 6 }, IntStreamEx.of(new int[] {2, 4, 6, 8, 10}, 1, 3).toArray());
+        assertArrayEquals(new int[] { 1, 2, 3 }, IntStreamEx.of(new byte[] {1,2,3}).toArray());
+        assertArrayEquals(new int[] { 4, 6 }, IntStreamEx.of(new byte[] {2, 4, 6, 8, 10}, 1, 3).toArray());
+        assertArrayEquals(new int[] { 1, 2, 3 }, IntStreamEx.of(new short[] {1,2,3}).toArray());
+        assertArrayEquals(new int[] { 4, 6 }, IntStreamEx.of(new short[] {2, 4, 6, 8, 10}, 1, 3).toArray());
+        assertArrayEquals(new int[] { 'a', 'b', 'c' }, IntStreamEx.of('a', 'b', 'c').toArray());
+        assertArrayEquals(new int[] { '1', 'b' }, IntStreamEx.of(new char[] {'a', '1', 'b', '2', 'c', '3'}, 1, 3).toArray());
         assertArrayEquals(new int[] { 1, 2, 3 }, IntStreamEx.of(IntStream.of(1, 2, 3)).toArray());
         assertArrayEquals(new int[] { 1, 2, 3 }, IntStreamEx.of(Arrays.asList(1, 2, 3)).toArray());
         assertArrayEquals(new int[] { 0, 1, 2 }, IntStreamEx.range(3).toArray());
@@ -115,6 +121,12 @@ public class IntStreamExTest {
     public void testHas() {
         assertTrue(IntStreamEx.range(1, 4).has(3));
         assertFalse(IntStreamEx.range(1, 4).has(4));
+    }
+    
+    @Test
+    public void testToBitSet() {
+        assertEquals("{0, 1, 2, 3, 4}", IntStreamEx.range(5).toBitSet().toString());
+        assertEquals("{0, 2, 3, 4, 10}", IntStreamEx.of(0, 2, 0, 3, 0, 4, 0, 10).parallel().toBitSet().toString());
     }
 
     @Test
