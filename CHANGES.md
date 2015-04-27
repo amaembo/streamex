@@ -1,9 +1,10 @@
 # StreamEx changes
 
-### 0.2.0-SNAPSHOT
+### 0.2.0
 
 * Added parallel(fjc) method for all stream types
 * Added StreamEx.reverseSorted() method
+* Added StreamEx.foldLeft() and EntryStream.foldLeft() methods
 * Added IntStreramEx.toBitSet() method
 * Added construction of IntStreamEx from char[], short[], byte[] arrays
 * Added construction of DoubleStreamEx from float[] array

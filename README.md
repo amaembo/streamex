@@ -83,7 +83,7 @@ To use from maven add this snippet to the pom.xml `dependencies` section:
 <dependency>
   <groupId>io.github.amaembo</groupId>
   <artifactId>streamex</artifactId>
-  <version>0.1.2</version>
+  <version>0.2.0</version>
 </dependency>
 ```
 
