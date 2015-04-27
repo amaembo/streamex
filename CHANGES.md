@@ -3,7 +3,10 @@
 ### 0.2.0-SNAPSHOT
 
 * Added parallel(fjc) method for all stream types
-* Added reverseSorted() method for StreamEx
+* Added StreamEx.reverseSorted() method
+* Added IntStreramEx.toBitSet() method
+* Added construction of IntStreamEx from char[], short[], byte[] arrays
+* Added construction of DoubleStreamEx from float[] array
 * Updated documentation
 
 ### 0.1.2
