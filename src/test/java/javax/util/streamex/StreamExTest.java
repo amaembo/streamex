@@ -20,6 +20,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -332,5 +333,26 @@ public class StreamExTest {
         assertEquals("abc", StreamEx.of("a", "b", "c").joining());
         assertEquals("a,b,c", StreamEx.of("a", "b", "c").joining(","));
         assertEquals("[1;2;3]", StreamEx.of(1, 2, 3).joining(";", "[", "]"));
+    }
+    
+    @Test
+    public void testFoldLeft() {
+        assertEquals("c;b;a;", StreamEx.of("a", "b", "c").foldLeft("", (u,v) -> v+";"+u));
+        assertTrue(StreamEx.of("a", "b", "c").foldLeft(false, (acc,s) -> acc | s.equals("b")));
+        assertFalse(StreamEx.of("a", "b", "c").foldLeft(false, (acc,s) -> acc | s.equals("d")));
+        assertEquals(Integer.valueOf(6), StreamEx.of("a", "bb", "ccc").foldLeft(0, (acc,v) -> acc+v.length()));
+        assertEquals(
+                "{ccc={bb={a={}}}}",
+                StreamEx.of("a", "bb", "ccc")
+                        .foldLeft(Collections.emptyMap(), (acc, v) -> Collections.singletonMap(v, acc)).toString());
+
+        assertEquals("c;b;a;", StreamEx.of("a", "b", "c").parallel().foldLeft("", (u,v) -> v+";"+u));
+        assertTrue(StreamEx.of("a", "b", "c").parallel().foldLeft(false, (acc,s) -> acc | s.equals("b")));
+        assertFalse(StreamEx.of("a", "b", "c").parallel().foldLeft(false, (acc,s) -> acc | s.equals("d")));
+        assertEquals(Integer.valueOf(6), StreamEx.of("a", "bb", "ccc").parallel().foldLeft(0, (acc,v) -> acc+v.length()));
+        assertEquals(
+                "{ccc={bb={a={}}}}",
+                StreamEx.of("a", "bb", "ccc").parallel()
+                        .foldLeft(Collections.emptyMap(), (acc, v) -> Collections.singletonMap(v, acc)).toString());
     }
 }

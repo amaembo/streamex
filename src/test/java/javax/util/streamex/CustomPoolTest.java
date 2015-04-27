@@ -16,6 +16,7 @@
 package javax.util.streamex;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinWorkerThread;
 
@@ -56,6 +57,8 @@ public class CustomPoolTest {
         assertEquals(6, StreamEx.of("a", "bb", "ccc").parallel(pool).peek(this::checkThread).collect(StringBuilder::new, StringBuilder::append, StringBuilder::append).length());
         assertArrayEquals(new String[] {"a", "b", "c"}, StreamEx.of("a", "b", "c").parallel(pool).peek(this::checkThread).toArray(String[]::new));
         assertArrayEquals(new Object[] {"a", "b", "c"}, StreamEx.of("a", "b", "c").parallel(pool).peek(this::checkThread).toArray());
+        assertEquals("{ccc={bb={a={}}}}", StreamEx.of("a", "bb", "ccc").parallel(pool).peek(this::checkThread)
+                .foldLeft(Collections.emptyMap(), (acc, v) -> Collections.singletonMap(v, acc)).toString());
     }
     
     @Test

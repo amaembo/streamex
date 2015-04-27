@@ -23,6 +23,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Spliterator;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
@@ -47,7 +48,7 @@ import java.util.stream.Stream;
     AbstractStreamEx(Stream<T> stream) {
         this.stream = stream;
     }
-    
+
     StreamManagingStrategy strategy() {
         return StreamManagingStrategy.DEFAULT;
     }
@@ -85,8 +86,8 @@ import java.util.stream.Stream;
 
     /**
      * Returns whether this stream, if a terminal operation were to be executed,
-     * would execute in parallel.  Calling this method after invoking an
-     * terminal stream operation method may yield unpredictable results.
+     * would execute in parallel. Calling this method after invoking an terminal
+     * stream operation method may yield unpredictable results.
      *
      * @return {@code true} if this stream would execute in parallel if executed
      */
@@ -499,5 +500,49 @@ import java.util.stream.Stream;
      */
     public <C extends Collection<T>> C toCollection(Supplier<C> collectionFactory) {
         return collect(Collectors.toCollection(collectionFactory));
+    }
+
+    /**
+     * Folds the elements of this stream using the provided identity object and
+     * accumulation function, going left to right. This is equivalent to:
+     * 
+     * <pre>
+     * {@code
+     *     U result = identity;
+     *     for (T element : this stream)
+     *         result = accumulator.apply(result, element)
+     *     return result;
+     * }
+     * </pre>
+     *
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * This method may work slowly on parallel streams as it must process
+     * elements strictly left to right. If your accumulator function is
+     * associative and you can provide a combiner function, consider using
+     * {@link #reduce(Object, BiFunction, BinaryOperator)} method.
+     * 
+     * <p>
+     * For parallel stream it's not guaranteed that accumulator will always be
+     * executed in the same thread.
+     *
+     * @param <U>
+     *            The type of the result
+     * @param identity
+     *            the identity value for the combiner function
+     * @param accumulator
+     *            a non-interfering, stateless function for incorporating an
+     *            additional element into a result
+     * @return the result of the folding
+     * @see #reduce(Object, BinaryOperator)
+     * @see #reduce(Object, BiFunction, BinaryOperator)
+     * @since 0.2.0
+     */
+    public <U> U foldLeft(U identity, BiFunction<U, ? super T, U> accumulator) {
+        AtomicReference<U> result = new AtomicReference<>(identity);
+        forEachOrdered(t -> result.set(accumulator.apply(result.get(), t)));
+        return result.get();
     }
 }
