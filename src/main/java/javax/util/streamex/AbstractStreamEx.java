@@ -63,7 +63,7 @@ import java.util.stream.Stream;
 
     static void rangeCheck(int arrayLength, int startInclusive, int endExclusive) {
         if (startInclusive > endExclusive) {
-            throw new IllegalArgumentException("startInclusive(" + startInclusive + ") > endExclusive(" + endExclusive
+            throw new ArrayIndexOutOfBoundsException("startInclusive(" + startInclusive + ") > endExclusive(" + endExclusive
                     + ")");
         }
         if (startInclusive < 0) {

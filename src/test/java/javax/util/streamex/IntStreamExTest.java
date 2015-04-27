@@ -58,6 +58,26 @@ public class IntStreamExTest {
         assertSame(stream, IntStreamEx.of(stream));
     }
     
+    @Test(expected=ArrayIndexOutOfBoundsException.class)
+    public void testArrayOffsetUnderflow() {
+        IntStreamEx.of(new byte[] {2, 4, 6, 8, 10}, -1, 3).findAny();
+    }
+    
+    @Test(expected=ArrayIndexOutOfBoundsException.class)
+    public void testArrayOffsetWrong() {
+        IntStreamEx.of(new byte[] {2, 4, 6, 8, 10}, 3, 1).findAny();
+    }
+    
+    @Test(expected=ArrayIndexOutOfBoundsException.class)
+    public void testArrayLengthOverflow() {
+        IntStreamEx.of(new byte[] {2, 4, 6, 8, 10}, 3, 6).findAny();
+    }
+    
+    @Test
+    public void testArrayLengthOk() {
+        assertEquals(10, IntStreamEx.of(new byte[] {2, 4, 6, 8, 10}, 3, 5).skip(1).findFirst().getAsInt());
+    }
+    
     @Test
     public void testOfIndices() {
         assertArrayEquals(new int[] {}, IntStreamEx.ofIndices(new int[0]).toArray());
