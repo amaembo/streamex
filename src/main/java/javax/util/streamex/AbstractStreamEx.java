@@ -60,6 +60,19 @@ import java.util.stream.Stream;
         };
     }
 
+    static void rangeCheck(int arrayLength, int startInclusive, int endExclusive) {
+        if (startInclusive > endExclusive) {
+            throw new IllegalArgumentException("startInclusive(" + startInclusive + ") > endExclusive(" + endExclusive
+                    + ")");
+        }
+        if (startInclusive < 0) {
+            throw new ArrayIndexOutOfBoundsException(startInclusive);
+        }
+        if (endExclusive > arrayLength) {
+            throw new ArrayIndexOutOfBoundsException(endExclusive);
+        }
+    }
+
     @Override
     public Iterator<T> iterator() {
         return stream.iterator();
@@ -487,5 +500,4 @@ import java.util.stream.Stream;
     public <C extends Collection<T>> C toCollection(Supplier<C> collectionFactory) {
         return collect(Collectors.toCollection(collectionFactory));
     }
-
 }

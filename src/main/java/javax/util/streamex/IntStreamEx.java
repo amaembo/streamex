@@ -806,7 +806,25 @@ public class IntStreamEx implements IntStream {
         return range(elements.length).map(i -> elements[i]);
     }
 
+    /**
+     * Returns a sequential {@link IntStreamEx} with the specified range of the
+     * specified array as its source. Array values will be casted to int.
+     *
+     * @param array
+     *            the array, assumed to be unmodified during use
+     * @param startInclusive
+     *            the first index to cover, inclusive
+     * @param endExclusive
+     *            index immediately past the last index to cover
+     * @return an {@code IntStreamEx} for the array range
+     * @throws ArrayIndexOutOfBoundsException
+     *             if {@code startInclusive} is negative, {@code endExclusive}
+     *             is less than {@code startInclusive}, or {@code endExclusive}
+     *             is greater than the array size
+     * @since 0.2.0
+     */
     public static IntStreamEx of(byte[] array, int startInclusive, int endExclusive) {
+        AbstractStreamEx.rangeCheck(array.length, startInclusive, endExclusive);
         return range(startInclusive, endExclusive).map(i -> array[i]);
     }
 
@@ -823,7 +841,25 @@ public class IntStreamEx implements IntStream {
         return range(elements.length).map(i -> elements[i]);
     }
 
+    /**
+     * Returns a sequential {@link IntStreamEx} with the specified range of the
+     * specified array as its source. Array values will be casted to int.
+     *
+     * @param array
+     *            the array, assumed to be unmodified during use
+     * @param startInclusive
+     *            the first index to cover, inclusive
+     * @param endExclusive
+     *            index immediately past the last index to cover
+     * @return an {@code IntStreamEx} for the array range
+     * @throws ArrayIndexOutOfBoundsException
+     *             if {@code startInclusive} is negative, {@code endExclusive}
+     *             is less than {@code startInclusive}, or {@code endExclusive}
+     *             is greater than the array size
+     * @since 0.2.0
+     */
     public static IntStreamEx of(char[] array, int startInclusive, int endExclusive) {
+        AbstractStreamEx.rangeCheck(array.length, startInclusive, endExclusive);
         return range(startInclusive, endExclusive).map(i -> array[i]);
     }
 
@@ -840,7 +876,25 @@ public class IntStreamEx implements IntStream {
         return range(elements.length).map(i -> elements[i]);
     }
 
+    /**
+     * Returns a sequential {@link IntStreamEx} with the specified range of the
+     * specified array as its source. Array values will be casted to int.
+     *
+     * @param array
+     *            the array, assumed to be unmodified during use
+     * @param startInclusive
+     *            the first index to cover, inclusive
+     * @param endExclusive
+     *            index immediately past the last index to cover
+     * @return an {@code IntStreamEx} for the array range
+     * @throws ArrayIndexOutOfBoundsException
+     *             if {@code startInclusive} is negative, {@code endExclusive}
+     *             is less than {@code startInclusive}, or {@code endExclusive}
+     *             is greater than the array size
+     * @since 0.2.0
+     */
     public static IntStreamEx of(short[] array, int startInclusive, int endExclusive) {
+        AbstractStreamEx.rangeCheck(array.length, startInclusive, endExclusive);
         return range(startInclusive, endExclusive).map(i -> array[i]);
     }
 

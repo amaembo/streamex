@@ -672,7 +672,25 @@ public class DoubleStreamEx implements DoubleStream {
         return IntStreamEx.range(elements.length).mapToDouble(i -> elements[i]);
     }
 
+    /**
+     * Returns a sequential {@link DoubleStreamEx} with the specified range of the
+     * specified array as its source. Array values will be casted to double.
+     *
+     * @param array
+     *            the array, assumed to be unmodified during use
+     * @param startInclusive
+     *            the first index to cover, inclusive
+     * @param endExclusive
+     *            index immediately past the last index to cover
+     * @return an {@code IntStreamEx} for the array range
+     * @throws ArrayIndexOutOfBoundsException
+     *             if {@code startInclusive} is negative, {@code endExclusive}
+     *             is less than {@code startInclusive}, or {@code endExclusive}
+     *             is greater than the array size
+     * @since 0.2.0
+     */
     public static DoubleStreamEx of(float[] array, int startInclusive, int endExclusive) {
+        AbstractStreamEx.rangeCheck(array.length, startInclusive, endExclusive);
         return IntStreamEx.range(startInclusive, endExclusive).mapToDouble(i -> array[i]);
     }
 
