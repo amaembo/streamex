@@ -198,7 +198,6 @@ public class IntStreamEx implements IntStream {
     @Override
     public void forEach(IntConsumer action) {
         stream.forEach(action);
-        ;
     }
 
     @Override
