@@ -114,6 +114,7 @@ public class StreamExTest {
         assertEquals("abbccc", StreamEx.of("a", "bb", "ccc").collect(StringBuilder::new, StringBuilder::append, StringBuilder::append).toString());
         assertArrayEquals(new String[] {"a", "b", "c"}, StreamEx.of("a", "b", "c").toArray(String[]::new));
         assertArrayEquals(new Object[] {"a", "b", "c"}, StreamEx.of("a", "b", "c").toArray());
+        assertEquals(3, StreamEx.of("a", "b", "c").spliterator().getExactSizeIfKnown());
     }
     
     @Test

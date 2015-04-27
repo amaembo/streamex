@@ -78,6 +78,7 @@ public class DoubleStreamExTest {
         assertArrayEquals(new double[] { 1, 3 }, IntStreamEx.range(0, 5).asDoubleStream().filter(x -> x % 2 == 1)
                 .toArray(), 0.0);
         assertEquals(6.0, DoubleStreamEx.of(1.0, 2.0, 3.0).reduce(Double::sum).getAsDouble(), 0.0);
+        assertEquals(Long.MAX_VALUE, LongStreamEx.rangeClosed(1, Long.MAX_VALUE).asDoubleStream().spliterator().getExactSizeIfKnown());
     }
 
     @Test

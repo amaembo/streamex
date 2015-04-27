@@ -116,6 +116,7 @@ public class IntStreamExTest {
         assertArrayEquals(new double[] { 2, 4, 6 }, IntStreamEx.range(1, 4).mapToDouble(x -> x*2).toArray(), 0.0);
         assertArrayEquals(new int[] { 1, 3 }, IntStreamEx.range(0, 5).filter(x -> x % 2 == 1).toArray());
         assertEquals(6, IntStreamEx.of(1, 2, 3).reduce(Integer::sum).getAsInt());
+        assertEquals(Integer.MAX_VALUE, IntStreamEx.rangeClosed(1, Integer.MAX_VALUE).spliterator().getExactSizeIfKnown());
     }
     
     @Test

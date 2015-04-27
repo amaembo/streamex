@@ -47,6 +47,7 @@ public class CustomPoolTest {
     
     @Test
     public void testStreamEx() {
+        StreamEx.of("a", "b", "c").parallel(pool).forEach(this::checkThread);
         assertEquals(Arrays.asList(1, 2), StreamEx.of("a", "bb").parallel(pool).peek(this::checkThread).map(String::length).toList());
         assertEquals("a", StreamEx.of("a").parallel(pool).peek(this::checkThread).findAny().get());
         assertEquals("a", StreamEx.of("a", "b").parallel(pool).peek(this::checkThread).findFirst().get());
@@ -63,6 +64,7 @@ public class CustomPoolTest {
     
     @Test
     public void testEntryStream() {
+        EntryStream.of("a", 1).parallel(pool).forEach(this::checkThread);
         assertEquals(Integer.valueOf(1), EntryStream.of("a", 1).parallel(pool).peek(this::checkThread).toMap().get("a"));
         assertEquals(Integer.valueOf(1), EntryStream.of("a", 1).parallel(pool).peek(this::checkThread).findAny(e -> e.getKey().equals("a")).get().getValue());
         assertEquals(Integer.valueOf(1), EntryStream.of("a", 1).parallel(pool).peek(this::checkThread).findFirst(e -> e.getKey().equals("a")).get().getValue());

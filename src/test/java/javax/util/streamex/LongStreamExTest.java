@@ -74,6 +74,7 @@ public class LongStreamExTest {
         assertArrayEquals(new double[] { 2, 4, 6 }, LongStreamEx.range(1, 4).mapToDouble(x -> x*2).toArray(), 0.0);
         assertArrayEquals(new long[] { 1, 3 }, LongStreamEx.range(0, 5).filter(x -> x % 2 == 1).toArray());
         assertEquals(6, LongStreamEx.of(1, 2, 3).reduce(Long::sum).getAsLong());
+        assertEquals(Long.MAX_VALUE, LongStreamEx.rangeClosed(1, Long.MAX_VALUE).spliterator().getExactSizeIfKnown());
     }
 
     @Test
