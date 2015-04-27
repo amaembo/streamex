@@ -531,7 +531,7 @@ import java.util.stream.Stream;
      * @param <U>
      *            The type of the result
      * @param identity
-     *            the identity value for the combiner function
+     *            the identity value
      * @param accumulator
      *            a non-interfering, stateless function for incorporating an
      *            additional element into a result
