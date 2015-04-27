@@ -13,7 +13,7 @@ StreamEx.of(1,2,3).joining("; "); // "1; 2; 3"
 Selecting stream elements of specific type
 ```java
 public List<Element> elementsOf(NodeList nodeList) {
-    return IntStreamEx.range(0, nodeList.getLength())
+    return IntStreamEx.range(nodeList.getLength())
       .mapToObj(nodeList::item).select(Element.class).toList();
 }
 ```
