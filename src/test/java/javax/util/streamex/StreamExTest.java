@@ -266,6 +266,8 @@ public class StreamExTest {
                 StreamEx.of("a", "b", "c", "dd").remove(s -> s.length() > 1).append("d", "e").toList());
         assertEquals(Arrays.asList("a", "b", "c", "d", "e"),
                 StreamEx.of("a", "b", "c").append(Arrays.asList("d", "e").stream()).toList());
+        assertEquals(Arrays.asList("a", "b", "c", "d", "e"),
+                StreamEx.of("a", "b", "c").append(Arrays.asList("d", "e")).toList());
     }
 
     @Test
@@ -274,6 +276,8 @@ public class StreamExTest {
                 StreamEx.of("a", "b", "c", "dd").remove(s -> s.length() > 1).prepend("d", "e").toList());
         assertEquals(Arrays.asList("d", "e", "a", "b", "c"),
                 StreamEx.of("a", "b", "c").prepend(Arrays.asList("d", "e").stream()).toList());
+        assertEquals(Arrays.asList("d", "e", "a", "b", "c"),
+                StreamEx.of("a", "b", "c").prepend(Arrays.asList("d", "e")).toList());
     }
 
     @Test

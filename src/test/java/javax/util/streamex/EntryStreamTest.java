@@ -50,24 +50,28 @@ public class EntryStreamTest {
         assertEquals(expected, StreamEx.of("aaa", "bbb", "c").mapToEntry(String::length).toMap());
         assertEquals(expected, StreamEx.of("aaa", "bbb", "c").mapToEntry(s -> s, String::length).toMap());
         assertEquals(Collections.singletonMap("foo", 1), EntryStream.of("foo", 1).toMap());
-        
-        assertEquals(expected, StreamEx.of(Collections.singletonMap("aaa", 3), Collections.singletonMap("bbb", 3),
-                Collections.singletonMap("c", 1), Collections.emptyMap()).flatMapToEntry(m -> m).toMap());
-        
-        Stream<Entry<String,Integer>> stream = EntryStream.of(data);
+
+        assertEquals(
+                expected,
+                StreamEx.of(Collections.singletonMap("aaa", 3), Collections.singletonMap("bbb", 3),
+                        Collections.singletonMap("c", 1), Collections.emptyMap()).flatMapToEntry(m -> m).toMap());
+
+        Stream<Entry<String, Integer>> stream = EntryStream.of(data);
         assertSame(stream, EntryStream.of(stream));
     }
-    
+
     @Test
     public void testMap() {
-        assertEquals(Arrays.asList("1a", "22bb", "33ccc"), EntryStream.of(createMap()).map(entry -> entry.getValue()+entry.getKey()).toList());
+        assertEquals(Arrays.asList("1a", "22bb", "33ccc"),
+                EntryStream.of(createMap()).map(entry -> entry.getValue() + entry.getKey()).toList());
     }
-    
+
     @Test
     public void testMapKeyValue() {
-        assertEquals(Arrays.asList("1a", "22bb", "33ccc"), EntryStream.of(createMap()).mapKeyValue((k, v) -> v + k).toList());
+        assertEquals(Arrays.asList("1a", "22bb", "33ccc"), EntryStream.of(createMap()).mapKeyValue((k, v) -> v + k)
+                .toList());
     }
-    
+
     @Test
     public void testFilter() {
         assertEquals(Collections.singletonMap("a", 1), EntryStream.of(createMap()).filterKeys(s -> s.length() < 2)
@@ -75,14 +79,15 @@ public class EntryStreamTest {
         assertEquals(Collections.singletonMap("bb", 22), EntryStream.of(createMap()).filterValues(v -> v % 2 == 0)
                 .toMap());
     }
-    
+
     @Test
     public void testRemove() {
         Map<String, List<Integer>> data = new HashMap<>();
         data.put("aaa", Collections.emptyList());
         data.put("bbb", Collections.singletonList(1));
         assertEquals(Arrays.asList("bbb"), EntryStream.of(data).removeValues(List::isEmpty).keys().toList());
-        assertEquals(Arrays.asList("aaa"), EntryStream.of(data).removeKeys(Pattern.compile("bbb").asPredicate()).keys().toList());
+        assertEquals(Arrays.asList("aaa"), EntryStream.of(data).removeKeys(Pattern.compile("bbb").asPredicate()).keys()
+                .toList());
     }
 
     @Test
@@ -133,38 +138,41 @@ public class EntryStreamTest {
 
     @Test
     public void testAppend() {
-        assertEquals(Arrays.asList(22, 33, 5),
-                EntryStream.of(createMap()).append("dddd", 5).filterKeys(k -> k.length() > 1).values().toList());
+        assertEquals(Arrays.asList(22, 33, 5, 22, 33), EntryStream.of(createMap()).append("dddd", 5)
+                .append(createMap()).filterKeys(k -> k.length() > 1).values().toList());
     }
 
     @Test
     public void testPrepend() {
-        assertEquals(Arrays.asList(5, 22, 33),
-                EntryStream.of(createMap()).prepend("dddd", 5).filterKeys(k -> k.length() > 1).values().toList());
+        assertEquals(Arrays.asList(5, 22, 33, 22, 33),
+                EntryStream.of(createMap()).prepend(createMap()).prepend("dddd", 5).filterKeys(k -> k.length() > 1)
+                        .values().toList());
     }
 
     @Test
     public void testToMap() {
         TreeMap<String, Integer> result = EntryStream.of(createMap()).toCustomMap(TreeMap::new);
         assertEquals(createMap(), result);
-        
+
         Map<String, Integer> expected = new HashMap<>();
         expected.put("aaa", 3);
         expected.put("bb", 4);
-        assertEquals(expected, StreamEx.of("aaa", "bb", "bb").mapToEntry(String::length).toCustomMap(Integer::sum, HashMap::new));
+        assertEquals(expected,
+                StreamEx.of("aaa", "bb", "bb").mapToEntry(String::length).toCustomMap(Integer::sum, HashMap::new));
         Map<String, Integer> map = StreamEx.of("aaa", "bb", "bb").mapToEntry(String::length).toMap(Integer::sum);
         assertEquals(expected, map);
         assertFalse(map instanceof ConcurrentMap);
         map = StreamEx.of("aaa", "bb", "bb").mapToEntry(String::length).parallel().toMap(Integer::sum);
         assertTrue(map instanceof ConcurrentMap);
         assertEquals(expected, map);
-        SortedMap<String, Integer> sortedMap = StreamEx.of("aaa", "bb", "bb").mapToEntry(String::length).toSortedMap(Integer::sum);
+        SortedMap<String, Integer> sortedMap = StreamEx.of("aaa", "bb", "bb").mapToEntry(String::length)
+                .toSortedMap(Integer::sum);
         assertEquals(expected, sortedMap);
         assertFalse(sortedMap instanceof ConcurrentMap);
         sortedMap = StreamEx.of("aaa", "bb", "bb").mapToEntry(String::length).parallel().toSortedMap(Integer::sum);
         assertEquals(expected, sortedMap);
         assertTrue(sortedMap instanceof ConcurrentMap);
-        
+
         assertEquals(createMap(), EntryStream.of(createMap()).parallel().toMap());
         assertTrue(EntryStream.of(createMap()).parallel().toMap() instanceof ConcurrentMap);
         sortedMap = EntryStream.of(createMap()).toSortedMap();
@@ -174,7 +182,7 @@ public class EntryStreamTest {
         assertEquals(createMap(), sortedMap);
         assertTrue(sortedMap instanceof ConcurrentMap);
     }
-    
+
     @Test
     public void testFlatMapValues() {
         Map<String, List<Integer>> data1 = new HashMap<>();
@@ -183,7 +191,8 @@ public class EntryStreamTest {
         Map<String, List<Integer>> data2 = new HashMap<>();
         data2.put("aaa", Arrays.asList(10));
         data2.put("bb", Arrays.asList(20));
-        Map<String, List<Integer>> result = StreamEx.of(data1, data2).flatMapToEntry(m -> m).flatMapValues(List::stream).grouping();
+        Map<String, List<Integer>> result = StreamEx.of(data1, data2).flatMapToEntry(m -> m)
+                .flatMapValues(List::stream).grouping();
         Map<String, List<Integer>> expected = new HashMap<>();
         expected.put("aaa", Arrays.asList(1, 2, 3, 10));
         expected.put("bb", Arrays.asList(4, 5, 6, 20));
@@ -194,7 +203,7 @@ public class EntryStreamTest {
     public void testSetValue() {
         assertEquals(Collections.singletonMap("aaa", 6), EntryStream.of("aaa", 5).peek(e -> e.setValue(6)).toMap());
     }
-    
+
     @Test
     public void testGrouping() {
         Map<String, Integer> data = new LinkedHashMap<>();
@@ -226,8 +235,7 @@ public class EntryStreamTest {
                 .groupingTo(HashSet::new);
         assertEquals(expected, result);
         assertFalse(result instanceof ConcurrentMap);
-        result = EntryStream.of(data).mapKeys(k -> k.substring(0, 1)).parallel()
-                .groupingTo(HashSet::new);
+        result = EntryStream.of(data).mapKeys(k -> k.substring(0, 1)).parallel().groupingTo(HashSet::new);
         assertEquals(expected, result);
         assertTrue(result instanceof ConcurrentMap);
         SortedMap<String, Set<Integer>> resultTree = EntryStream.of(data).mapKeys(k -> k.substring(0, 1))
@@ -280,7 +288,7 @@ public class EntryStreamTest {
         assertEquals(Collections.singletonMap("a", 1), EntryStream.of(map).selectValues(Integer.class).toMap());
         assertEquals(Collections.singletonMap(3, "c"), EntryStream.of(map).selectKeys(Integer.class).toMap());
     }
-    
+
     @Test
     public void testInvert() {
         Map<Integer, String> result = EntryStream.of(createMap()).invert().toMap();
@@ -290,8 +298,8 @@ public class EntryStreamTest {
         expected.put(33, "ccc");
         assertEquals(expected, result);
     }
-    
-    @Test(expected=IllegalStateException.class)
+
+    @Test(expected = IllegalStateException.class)
     public void testCollision() {
         StreamEx.of("aa", "aa").mapToEntry(String::length).toCustomMap(LinkedHashMap::new);
     }

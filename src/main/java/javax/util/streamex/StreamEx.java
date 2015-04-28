@@ -575,7 +575,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
 
     /**
      * Returns a new {@code StreamEx} which is a concatenation of this stream
-     * and the stream containing supplied values
+     * and the stream containing supplied values.
      * 
      * @param values
      *            the values to append to the stream
@@ -587,8 +587,21 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
+     * Returns a new {@code StreamEx} which is a concatenation of this stream
+     * and the stream created from supplied collection.
+     * 
+     * @param collection
+     *            the collection to append to the stream
+     * @return the new stream
+     * @since 0.2.1
+     */
+    public StreamEx<T> append(Collection<T> collection) {
+        return append(collection.stream());
+    }
+
+    /**
      * Returns a new {@code StreamEx} which is a concatenation of the stream
-     * containing supplied values and this stream
+     * containing supplied values and this stream.
      * 
      * @param values
      *            the values to prepend to the stream
@@ -597,6 +610,19 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     @SuppressWarnings("unchecked")
     public StreamEx<T> prepend(T... values) {
         return prepend(Stream.of(values));
+    }
+
+    /**
+     * Returns a new {@code StreamEx} which is a concatenation of the stream
+     * created from supplied collection and this stream.
+     * 
+     * @param collection
+     *            the collection to prepend to the stream
+     * @return the new stream
+     * @since 0.2.1
+     */
+    public StreamEx<T> prepend(Collection<T> collection) {
+        return prepend(collection.stream());
     }
 
     public boolean has(T element) {

@@ -161,12 +161,38 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return flatMap(mapper.andThen(Collection::stream));
     }
 
+    /**
+     * Returns a new {@code EntryStream} which is a concatenation of this stream
+     * and the stream created from the supplied map entries.
+     * 
+     * @param map
+     *            the map to prepend to the stream
+     * @return the new stream
+     * @since 0.2.1
+     */
+    public EntryStream<K, V> append(Map<K, V> map) {
+        return append(map.entrySet().stream());
+    }
+
     public EntryStream<K, V> append(K key, V value) {
-        return strategy().newEntryStream(Stream.concat(stream, Stream.of(new SimpleEntry<>(key, value))));
+        return append(Stream.of(new SimpleEntry<>(key, value)));
+    }
+
+    /**
+     * Returns a new {@code EntryStream} which is a concatenation of the stream
+     * created from the supplied map entries and this stream.
+     * 
+     * @param map
+     *            the map to prepend to the stream
+     * @return the new stream
+     * @since 0.2.1
+     */
+    public EntryStream<K, V> prepend(Map<K, V> map) {
+        return append(map.entrySet().stream());
     }
 
     public EntryStream<K, V> prepend(K key, V value) {
-        return supply(Stream.concat(Stream.of(new SimpleEntry<>(key, value)), stream));
+        return prepend(Stream.of(new SimpleEntry<>(key, value)));
     }
 
     public <KK> EntryStream<KK, V> mapKeys(Function<K, KK> keyMapper) {
