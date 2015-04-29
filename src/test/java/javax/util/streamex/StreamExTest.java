@@ -385,9 +385,5 @@ public class StreamExTest {
                         .mapToObj(c -> Character.valueOf((char) c))
                         .pairMap((c1, c2) -> !Character.isLetter(c1) && Character.isLetter(c2) ? 
                                 Character.toTitleCase(c2) : Character.toLowerCase(c2)).joining());
-        assertEquals("Test Capitalization Stream",
-                IntStreamEx.ofChars("test caPiTaliZation streaM").parallel().prepend(0)
-                        .pairMap((c1, c2) -> !Character.isLetter(c1) && Character.isLetter(c2) ? 
-                                Character.toTitleCase(c2) : Character.toLowerCase(c2)).mapToObj(c -> (char)c).joining());
     }
 }
