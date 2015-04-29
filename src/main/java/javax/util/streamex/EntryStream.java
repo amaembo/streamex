@@ -60,7 +60,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
 
     @Override
     public EntryStream<K, V> sequential() {
-        return StreamManagingStrategy.DEFAULT.newEntryStream(stream.sequential());
+        return StreamFactory.DEFAULT.newEntryStream(stream.sequential());
     }
 
     /**
@@ -80,7 +80,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     @Override
     public EntryStream<K, V> parallel() {
-        return StreamManagingStrategy.DEFAULT.newEntryStream(stream.parallel());
+        return StreamFactory.DEFAULT.newEntryStream(stream.parallel());
     }
 
     /**
@@ -103,7 +103,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.0
      */
     public EntryStream<K, V> parallel(ForkJoinPool fjp) {
-        return StreamManagingStrategy.forCustomPool(fjp).newEntryStream(stream.parallel());
+        return StreamFactory.forCustomPool(fjp).newEntryStream(stream.parallel());
     }
 
     /**

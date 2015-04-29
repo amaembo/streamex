@@ -55,8 +55,8 @@ public class IntStreamEx implements IntStream {
         this.stream = stream;
     }
 
-    StreamManagingStrategy strategy() {
-        return StreamManagingStrategy.DEFAULT;
+    StreamFactory strategy() {
+        return StreamFactory.DEFAULT;
     }
 
     /**
@@ -306,7 +306,7 @@ public class IntStreamEx implements IntStream {
 
     @Override
     public IntStreamEx sequential() {
-        return StreamManagingStrategy.DEFAULT.newIntStreamEx(stream.sequential());
+        return StreamFactory.DEFAULT.newIntStreamEx(stream.sequential());
     }
 
     /**
@@ -326,7 +326,7 @@ public class IntStreamEx implements IntStream {
      */
     @Override
     public IntStreamEx parallel() {
-        return StreamManagingStrategy.DEFAULT.newIntStreamEx(stream.parallel());
+        return StreamFactory.DEFAULT.newIntStreamEx(stream.parallel());
     }
 
     /**
@@ -349,7 +349,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.2.0
      */
     public IntStreamEx parallel(ForkJoinPool fjp) {
-        return StreamManagingStrategy.forCustomPool(fjp).newIntStreamEx(stream.parallel());
+        return StreamFactory.forCustomPool(fjp).newIntStreamEx(stream.parallel());
     }
 
     @Override

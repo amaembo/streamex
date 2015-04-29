@@ -71,7 +71,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
 
     @Override
     public StreamEx<T> sequential() {
-        return StreamManagingStrategy.DEFAULT.newStreamEx(stream.sequential());
+        return StreamFactory.DEFAULT.newStreamEx(stream.sequential());
     }
 
     /**
@@ -91,7 +91,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     @Override
     public StreamEx<T> parallel() {
-        return StreamManagingStrategy.DEFAULT.newStreamEx(stream.parallel());
+        return StreamFactory.DEFAULT.newStreamEx(stream.parallel());
     }
 
     /**
@@ -114,7 +114,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.2.0
      */
     public StreamEx<T> parallel(ForkJoinPool fjp) {
-        return StreamManagingStrategy.forCustomPool(fjp).newStreamEx(stream.parallel());
+        return StreamFactory.forCustomPool(fjp).newStreamEx(stream.parallel());
     }
 
     /**
