@@ -386,7 +386,7 @@ public class StreamExTest {
                 IntStreamEx.range(10000).boxed().pairMap((a, b) -> b - a).groupingBy(Function.identity(), Collectors.counting()));
         assertEquals(Collections.singletonMap(1, 9999L),
                 IntStreamEx.range(10000).parallel().boxed().pairMap((a, b) -> b - a).groupingBy(Function.identity(), Collectors.counting()));
-        Integer[] data = new Random(1).ints(100000, 1, 1000).boxed().toArray(Integer[]::new);
+        Integer[] data = new Random(1).ints(1000, 1, 1000).boxed().toArray(Integer[]::new);
         Double[] expected = new Double[data.length-1];
         for(int i=0; i<expected.length; i++) expected[i] = (data[i+1]-data[i])*3.14;
         Double[] result = StreamEx.of(data).parallel().pairMap((a, b) -> (b - a)*3.14).toArray(Double[]::new);

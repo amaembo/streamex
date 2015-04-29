@@ -138,5 +138,6 @@ public class DoubleStreamExTest {
         assertArrayEquals(expected, result, 0.0);
         result = IntStreamEx.of(data).asDoubleStream().pairMap((a, b) -> (b - a)*3.14).toArray();
         assertArrayEquals(expected, result, 0.0);
+        assertEquals(984.0, IntStreamEx.of(data).asDoubleStream().parallel().pairMap((a, b) -> Math.abs(a - b)).max().getAsDouble(), 0.0);
     }
 }
