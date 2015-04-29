@@ -198,6 +198,10 @@ public class IntStreamExTest {
         assertEquals(31, IntStreamEx.of(15, 8, 31, 47, 19, 29).minByLong(x -> Long.MIN_VALUE + x % 10 * 10 + x / 10).getAsInt());
     }
     
+    private IntStreamEx dropLast(IntStreamEx s) {
+        return s.pairMap((a, b) -> a);
+    }
+    
     @Test
     public void testPairMap() {
         assertEquals(Collections.singletonMap(1, 9999L),
@@ -208,5 +212,6 @@ public class IntStreamExTest {
                 IntStreamEx.ofChars("test caPiTaliZation streaM").parallel().prepend(0)
                         .pairMap((c1, c2) -> !Character.isLetter(c1) && Character.isLetter(c2) ? 
                                 Character.toTitleCase(c2) : Character.toLowerCase(c2)).charsToString());
+        assertArrayEquals(IntStreamEx.range(9999).toArray(), dropLast(IntStreamEx.range(10000)).toArray());
     }
 }

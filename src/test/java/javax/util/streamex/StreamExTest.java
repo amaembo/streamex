@@ -20,6 +20,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -33,6 +34,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -367,6 +369,14 @@ public class StreamExTest {
                         .foldLeft(Collections.emptyMap(), (acc, v) -> Collections.singletonMap(v, acc)).toString());
     }
     
+    private <T extends Comparable<? super T>> boolean isSorted(Collection<T> c) {
+        return StreamEx.of(c).parallel().pairMap(Comparable::compareTo).allMatch(r -> r <= 0);
+    }
+    
+    private <T extends Comparable<? super T>> Optional<T> firstMisplaced(Collection<T> c) {
+        return StreamEx.of(c).parallel().pairMap((a, b) -> a.compareTo(b) > 0 ? a : null).nonNull().findFirst();
+    }
+    
     @Test
     public void testPairMap() {
         assertEquals(Collections.singletonMap(1, 9999L),
@@ -385,5 +395,10 @@ public class StreamExTest {
                         .mapToObj(c -> Character.valueOf((char) c))
                         .pairMap((c1, c2) -> !Character.isLetter(c1) && Character.isLetter(c2) ? 
                                 Character.toTitleCase(c2) : Character.toLowerCase(c2)).joining());
+        assertTrue(isSorted(Arrays.asList("a", "bb", "bb", "c")));
+        assertFalse(isSorted(Arrays.asList("a", "bb", "bb", "bba", "bb", "c")));
+        assertTrue(isSorted(IntStreamEx.of(new Random(1)).boxed().distinct().limit(1000).toCollection(TreeSet::new)));
+        assertEquals("bba", firstMisplaced(Arrays.asList("a", "bb", "bb", "bba", "bb", "c")).get());
+        assertFalse(firstMisplaced(Arrays.asList("a", "bb", "bb", "bb", "c")).isPresent());
     }
 }
