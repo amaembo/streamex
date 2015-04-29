@@ -17,6 +17,7 @@ package javax.util.streamex;
 
 import static org.junit.Assert.*;
 
+import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -287,6 +288,11 @@ public class EntryStreamTest {
         map.put(3, "c");
         assertEquals(Collections.singletonMap("a", 1), EntryStream.of(map).selectValues(Integer.class).toMap());
         assertEquals(Collections.singletonMap(3, "c"), EntryStream.of(map).selectKeys(Integer.class).toMap());
+        
+        Object[] interleavingArray = {"a", 1, "bb", 22, "ccc", 33};
+        Map<String, Integer> result = EntryStream.of(StreamEx.of(interleavingArray).pairMap(SimpleEntry<Object, Object>::new))
+                .selectKeys(String.class).selectValues(Integer.class).toMap();
+        assertEquals(createMap(), result);
     }
 
     @Test
