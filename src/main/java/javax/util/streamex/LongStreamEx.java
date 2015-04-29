@@ -49,8 +49,8 @@ public class LongStreamEx implements LongStream {
         this.stream = stream;
     }
 
-    StreamManagingStrategy strategy() {
-        return StreamManagingStrategy.DEFAULT;
+    StreamFactory strategy() {
+        return StreamFactory.DEFAULT;
     }
 
     /**
@@ -295,7 +295,7 @@ public class LongStreamEx implements LongStream {
 
     @Override
     public LongStreamEx sequential() {
-        return StreamManagingStrategy.DEFAULT.newLongStreamEx(stream.sequential());
+        return StreamFactory.DEFAULT.newLongStreamEx(stream.sequential());
     }
 
     /**
@@ -315,7 +315,7 @@ public class LongStreamEx implements LongStream {
      */
     @Override
     public LongStreamEx parallel() {
-        return StreamManagingStrategy.DEFAULT.newLongStreamEx(stream.parallel());
+        return StreamFactory.DEFAULT.newLongStreamEx(stream.parallel());
     }
 
     /**
@@ -338,7 +338,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.2.0
      */
     public LongStreamEx parallel(ForkJoinPool fjp) {
-        return StreamManagingStrategy.forCustomPool(fjp).newLongStreamEx(stream.parallel());
+        return StreamFactory.forCustomPool(fjp).newLongStreamEx(stream.parallel());
     }
 
     @Override

@@ -48,8 +48,8 @@ public class DoubleStreamEx implements DoubleStream {
         this.stream = stream;
     }
 
-    StreamManagingStrategy strategy() {
-        return StreamManagingStrategy.DEFAULT;
+    StreamFactory strategy() {
+        return StreamFactory.DEFAULT;
     }
 
     /**
@@ -290,7 +290,7 @@ public class DoubleStreamEx implements DoubleStream {
 
     @Override
     public DoubleStreamEx sequential() {
-        return StreamManagingStrategy.DEFAULT.newDoubleStreamEx(stream.sequential());
+        return StreamFactory.DEFAULT.newDoubleStreamEx(stream.sequential());
     }
 
     /**
@@ -310,7 +310,7 @@ public class DoubleStreamEx implements DoubleStream {
      */
     @Override
     public DoubleStreamEx parallel() {
-        return StreamManagingStrategy.DEFAULT.newDoubleStreamEx(stream.parallel());
+        return StreamFactory.DEFAULT.newDoubleStreamEx(stream.parallel());
     }
 
     /**
@@ -333,7 +333,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.2.0
      */
     public DoubleStreamEx parallel(ForkJoinPool fjp) {
-        return StreamManagingStrategy.forCustomPool(fjp).newDoubleStreamEx(stream.parallel());
+        return StreamFactory.forCustomPool(fjp).newDoubleStreamEx(stream.parallel());
     }
 
     @Override

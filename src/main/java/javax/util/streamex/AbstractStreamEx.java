@@ -49,8 +49,8 @@ import java.util.stream.Stream;
         this.stream = stream;
     }
 
-    StreamManagingStrategy strategy() {
-        return StreamManagingStrategy.DEFAULT;
+    StreamFactory strategy() {
+        return StreamFactory.DEFAULT;
     }
 
     abstract S supply(Stream<T> stream);
