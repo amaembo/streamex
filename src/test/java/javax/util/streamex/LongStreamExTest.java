@@ -127,4 +127,11 @@ public class LongStreamExTest {
         assertEquals(29, LongStreamEx.of(15, 8, 31, 47, 19, 29).maxByLong(x -> x % 10 * 10 + x / 10).getAsLong());
         assertEquals(31, LongStreamEx.of(15, 8, 31, 47, 19, 29).minByLong(x -> x % 10 * 10 + x / 10).getAsLong());
     }
+    
+    @Test
+    public void testPairMap() {
+        assertArrayEquals(new long[] {6, 7, 8, 9, 10}, LongStreamEx.of(1, 5, 2, 6, 3, 7).pairMap(Long::sum).toArray());
+        assertArrayEquals(LongStreamEx.range(999).map(x -> x * 2 + 1).toArray(), LongStreamEx.range(1000).parallel().map(x -> x * x)
+                .pairMap((a, b) -> b - a).toArray());
+    }
 }
