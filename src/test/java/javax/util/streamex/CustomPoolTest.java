@@ -30,9 +30,9 @@ public class CustomPoolTest {
     private void checkThread(Object element) {
         Thread thread = Thread.currentThread();
         if(!(thread instanceof ForkJoinWorkerThread))
-            throw new IllegalStateException("Not inside FJP");
+            throw new IllegalStateException("Not inside FJP (element: "+element+")");
         if(((ForkJoinWorkerThread)thread).getPool() != pool)
-            throw new IllegalStateException("FJP is incorrect");
+            throw new IllegalStateException("FJP is incorrect (element: "+element+")");
     }
     
     @Test(expected=IllegalStateException.class)
