@@ -130,6 +130,8 @@ public class LongStreamExTest {
     
     @Test
     public void testPairMap() {
+        assertEquals(0, LongStreamEx.range(0).pairMap(Long::sum).count());
+        assertEquals(0, LongStreamEx.range(1).pairMap(Long::sum).count());
         assertArrayEquals(new long[] {6, 7, 8, 9, 10}, LongStreamEx.of(1, 5, 2, 6, 3, 7).pairMap(Long::sum).toArray());
         assertArrayEquals(LongStreamEx.range(999).map(x -> x * 2 + 1).toArray(), LongStreamEx.range(1000).parallel().map(x -> x * x)
                 .pairMap((a, b) -> b - a).toArray());

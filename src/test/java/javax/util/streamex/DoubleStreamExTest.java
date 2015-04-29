@@ -129,6 +129,8 @@ public class DoubleStreamExTest {
     
     @Test
     public void testPairMap() {
+        assertEquals(0, DoubleStreamEx.of().pairMap(Double::sum).count());
+        assertEquals(0, DoubleStreamEx.of(1.0).pairMap(Double::sum).count());
         int[] data = new Random(1).ints(1000, 1, 1000).toArray();
         double[] expected = new double[data.length-1];
         for(int i=0; i<expected.length; i++) expected[i] = (data[i+1]-data[i])*3.14;

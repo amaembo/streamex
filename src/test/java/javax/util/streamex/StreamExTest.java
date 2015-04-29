@@ -379,6 +379,9 @@ public class StreamExTest {
     
     @Test
     public void testPairMap() {
+        assertEquals(0, StreamEx.<String>empty().pairMap(String::concat).count());
+        assertEquals(0, StreamEx.of("a").pairMap(String::concat).count());
+        assertEquals(Arrays.asList("aa","aa","aa"), StreamEx.generate(() -> "a").pairMap(String::concat).limit(3).toList());
         assertEquals(Collections.singletonMap(1, 9999L),
                 IntStreamEx.range(10000).boxed().pairMap((a, b) -> b - a).groupingBy(Function.identity(), Collectors.counting()));
         assertEquals(Collections.singletonMap(1, 9999L),
