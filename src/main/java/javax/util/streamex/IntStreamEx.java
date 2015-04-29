@@ -742,6 +742,14 @@ public class IntStreamEx implements IntStream {
     public BitSet toBitSet() {
         return collect(BitSet::new, BitSet::set, BitSet::or);
     }
+    
+    public String charsToString() {
+        return collect(StringBuilder::new, (sb, c) -> sb.append((char) c), StringBuilder::append).toString();
+    }
+    
+    public String codePointsToString() {
+        return collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append).toString();
+    }
 
     public static IntStreamEx empty() {
         return new IntStreamEx(IntStream.empty());
