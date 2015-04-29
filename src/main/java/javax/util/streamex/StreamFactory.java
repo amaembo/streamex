@@ -15,16 +15,11 @@
  */
 package javax.util.streamex;
 
-import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
-import java.util.PrimitiveIterator.OfDouble;
-import java.util.PrimitiveIterator.OfInt;
-import java.util.PrimitiveIterator.OfLong;
-import java.util.Spliterator;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 import java.util.function.BiConsumer;
@@ -132,16 +127,6 @@ import java.util.stream.Stream;
         }
 
         @Override
-        public Iterator<Entry<K, V>> iterator() {
-            return strategy.terminate(stream::iterator);
-        }
-
-        @Override
-        public Spliterator<Entry<K, V>> spliterator() {
-            return strategy.terminate(stream::spliterator);
-        }
-
-        @Override
         public void forEach(Consumer<? super Entry<K, V>> action) {
             strategy.terminate(() -> {
                 stream.forEach(action);
@@ -225,16 +210,6 @@ import java.util.stream.Stream;
         @Override
         StreamFactory strategy() {
             return strategy;
-        }
-
-        @Override
-        public Iterator<T> iterator() {
-            return strategy.terminate(stream::iterator);
-        }
-
-        @Override
-        public Spliterator<T> spliterator() {
-            return strategy.terminate(stream::spliterator);
         }
 
         @Override
@@ -387,16 +362,6 @@ import java.util.stream.Stream;
         public OptionalInt findAny() {
             return strategy.terminate(stream::findAny);
         }
-
-        @Override
-        public OfInt iterator() {
-            return strategy.terminate(stream::iterator);
-        }
-
-        @Override
-        public Spliterator.OfInt spliterator() {
-            return strategy.terminate(stream::spliterator);
-        }
     }
 
     static class CustomLongStreamEx extends LongStreamEx {
@@ -476,16 +441,6 @@ import java.util.stream.Stream;
         @Override
         public OptionalLong findAny() {
             return strategy.terminate(stream::findAny);
-        }
-
-        @Override
-        public OfLong iterator() {
-            return strategy.terminate(stream::iterator);
-        }
-
-        @Override
-        public Spliterator.OfLong spliterator() {
-            return strategy.terminate(stream::spliterator);
         }
     }
 
@@ -571,16 +526,6 @@ import java.util.stream.Stream;
         @Override
         public OptionalDouble findAny() {
             return strategy.terminate(() -> stream.findAny());
-        }
-
-        @Override
-        public OfDouble iterator() {
-            return strategy.terminate(stream::iterator);
-        }
-
-        @Override
-        public Spliterator.OfDouble spliterator() {
-            return strategy.terminate(stream::spliterator);
         }
     }
 
