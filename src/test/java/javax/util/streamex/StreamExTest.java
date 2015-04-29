@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -364,5 +365,29 @@ public class StreamExTest {
                 "{ccc={bb={a={}}}}",
                 StreamEx.of("a", "bb", "ccc").parallel()
                         .foldLeft(Collections.emptyMap(), (acc, v) -> Collections.singletonMap(v, acc)).toString());
+    }
+    
+    @Test
+    public void testPairMap() {
+        assertEquals(Collections.singletonMap(1, 9999L),
+                IntStreamEx.range(10000).boxed().pairMap((a, b) -> b - a).groupingBy(Function.identity(), Collectors.counting()));
+        assertEquals(Collections.singletonMap(1, 9999L),
+                IntStreamEx.range(10000).parallel().boxed().pairMap((a, b) -> b - a).groupingBy(Function.identity(), Collectors.counting()));
+        Integer[] data = new Random(1).ints(100000, 1, 1000).boxed().toArray(Integer[]::new);
+        Double[] expected = new Double[data.length-1];
+        for(int i=0; i<expected.length; i++) expected[i] = (data[i+1]-data[i])*3.14;
+        Double[] result = StreamEx.of(data).parallel().pairMap((a, b) -> (b - a)*3.14).toArray(Double[]::new);
+        assertArrayEquals(expected, result);
+        result = StreamEx.of(data).pairMap((a, b) -> (b - a)*3.14).toArray(Double[]::new);
+        assertArrayEquals(expected, result);
+        assertEquals("Test Capitalization Stream",
+                IntStreamEx.ofChars("test caPiTaliZation streaM").parallel().prepend(0)
+                        .mapToObj(c -> Character.valueOf((char) c))
+                        .pairMap((c1, c2) -> !Character.isLetter(c1) && Character.isLetter(c2) ? 
+                                Character.toTitleCase(c2) : Character.toLowerCase(c2)).joining());
+        assertEquals("Test Capitalization Stream",
+                IntStreamEx.ofChars("test caPiTaliZation streaM").parallel().prepend(0)
+                        .pairMap((c1, c2) -> !Character.isLetter(c1) && Character.isLetter(c2) ? 
+                                Character.toTitleCase(c2) : Character.toLowerCase(c2)).mapToObj(c -> (char)c).joining());
     }
 }

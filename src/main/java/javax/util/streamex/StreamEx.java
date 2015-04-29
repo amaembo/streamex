@@ -47,6 +47,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -650,6 +651,12 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     @SuppressWarnings("unchecked")
     public StreamEx<T> reverseSorted() {
         return sorted((Comparator<? super T>) Comparator.reverseOrder());
+    }
+
+    public <R> StreamEx<R> pairMap(BiFunction<T, T, R> mapper) {
+        return strategy().newStreamEx(
+                StreamSupport.stream(new PairSpliterator.PSOfRef<>(mapper, stream.spliterator(), null, false, null, false),
+                        stream.isParallel()));
     }
 
     /**

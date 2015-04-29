@@ -16,9 +16,12 @@
 package javax.util.streamex;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.OptionalInt;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.junit.Test;
@@ -193,5 +196,17 @@ public class IntStreamExTest {
         assertEquals(31, IntStreamEx.of(15, 8, 31, 47, 19, 29).minByInt(x -> x % 10 * 10 + x / 10).getAsInt());
         assertEquals(29, IntStreamEx.of(15, 8, 31, 47, 19, 29).maxByLong(x -> Long.MIN_VALUE + x % 10 * 10 + x / 10).getAsInt());
         assertEquals(31, IntStreamEx.of(15, 8, 31, 47, 19, 29).minByLong(x -> Long.MIN_VALUE + x % 10 * 10 + x / 10).getAsInt());
+    }
+    
+    @Test
+    public void testPairMap() {
+        assertEquals(Collections.singletonMap(1, 9999L),
+                IntStreamEx.range(10000).pairMap((a, b) -> b - a).boxed().groupingBy(Function.identity(), Collectors.counting()));
+        assertEquals(Collections.singletonMap(1, 9999L),
+                IntStreamEx.range(10000).parallel().pairMap((a, b) -> b - a).boxed().groupingBy(Function.identity(), Collectors.counting()));
+        assertEquals("Test Capitalization Stream",
+                IntStreamEx.ofChars("test caPiTaliZation streaM").parallel().prepend(0)
+                        .pairMap((c1, c2) -> !Character.isLetter(c1) && Character.isLetter(c2) ? 
+                                Character.toTitleCase(c2) : Character.toLowerCase(c2)).charsToString());
     }
 }
