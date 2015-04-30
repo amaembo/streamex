@@ -841,6 +841,23 @@ public class DoubleStreamEx implements DoubleStream {
         return new DoubleStreamEx(DoubleStream.generate(() -> value).limit(length));
     }
 
+    /**
+     * Returns a sequential {@code DoubleStreamEx} containing the results of
+     * applying the given function to the corresponding pairs of values in given
+     * two arrays.
+     * 
+     * @param first
+     *            the first array
+     * @param second
+     *            the second array
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each pair of
+     *            the corresponding array elements.
+     * @return a new {@code DoubleStreamEx}
+     * @throws IllegalArgumentException
+     *             if length of the arrays differs.
+     * @since 0.2.1
+     */
     public static DoubleStreamEx zip(double[] first, double[] second, DoubleBinaryOperator mapper) {
         return AbstractStreamEx.intStreamForLength(first.length, second.length).mapToDouble(
                 i -> mapper.applyAsDouble(first[i], second[i]));

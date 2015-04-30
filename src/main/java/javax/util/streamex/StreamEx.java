@@ -967,10 +967,61 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return new StreamEx<>(Stream.generate(() -> value).limit(length));
     }
 
+    /**
+     * Returns a sequential {@code StreamEx} containing the results of applying
+     * the given function to the corresponding pairs of values in given two
+     * lists.
+     * 
+     * <p>
+     * The list values are accessed using {@link List#get(int)}, so the lists
+     * should provide fast random access. The lists are assumed to be
+     * unmodifiable during the stream operations.
+     * 
+     * @param <U>
+     *            the type of the first list elements
+     * @param <V>
+     *            the type of the second list elements
+     * @param <T>
+     *            the type of the resulting stream elements
+     * @param first
+     *            the first list, assumed to be unmodified during use
+     * @param second
+     *            the second list, assumed to be unmodified during use
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each pair of
+     *            the corresponding list elements.
+     * @return a new {@code StreamEx}
+     * @throws IllegalArgumentException
+     *             if length of the lists differs.
+     * @since 0.2.1
+     */
     public static <U, V, T> StreamEx<T> zip(List<U> first, List<V> second, BiFunction<U, V, T> mapper) {
         return intStreamForLength(first.size(), second.size()).mapToObj(i -> mapper.apply(first.get(i), second.get(i)));
     }
 
+    /**
+     * Returns a sequential {@code StreamEx} containing the results of applying
+     * the given function to the corresponding pairs of values in given two
+     * arrays.
+     * 
+     * @param <U>
+     *            the type of the first array elements
+     * @param <V>
+     *            the type of the second array elements
+     * @param <T>
+     *            the type of the resulting stream elements
+     * @param first
+     *            the first array
+     * @param second
+     *            the second array
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each pair of
+     *            the corresponding array elements.
+     * @return a new {@code StreamEx}
+     * @throws IllegalArgumentException
+     *             if length of the arrays differs.
+     * @since 0.2.1
+     */
     public static <U, V, T> StreamEx<T> zip(U[] first, V[] second, BiFunction<U, V, T> mapper) {
         return zip(Arrays.asList(first), Arrays.asList(second), mapper);
     }

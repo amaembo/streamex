@@ -1363,6 +1363,23 @@ public class IntStreamEx implements IntStream {
         return new IntStreamEx(IntStream.generate(() -> value).limit(length));
     }
 
+    /**
+     * Returns a sequential {@code IntStreamEx} containing the results of
+     * applying the given function to the corresponding pairs of values in given
+     * two arrays.
+     * 
+     * @param first
+     *            the first array
+     * @param second
+     *            the second array
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each pair of
+     *            the corresponding array elements.
+     * @return a new {@code IntStreamEx}
+     * @throws IllegalArgumentException
+     *             if length of the arrays differs.
+     * @since 0.2.1
+     */
     public static IntStreamEx zip(int[] first, int[] second, IntBinaryOperator mapper) {
         return AbstractStreamEx.intStreamForLength(first.length, second.length).map(
                 i -> mapper.applyAsInt(first[i], second[i]));

@@ -874,6 +874,23 @@ public class LongStreamEx implements LongStream {
         return new LongStreamEx(LongStream.generate(() -> value).limit(length));
     }
 
+    /**
+     * Returns a sequential {@code LongStreamEx} containing the results of
+     * applying the given function to the corresponding pairs of values in given
+     * two arrays.
+     * 
+     * @param first
+     *            the first array
+     * @param second
+     *            the second array
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each pair of
+     *            the corresponding array elements.
+     * @return a new {@code LongStreamEx}
+     * @throws IllegalArgumentException
+     *             if length of the arrays differs.
+     * @since 0.2.1
+     */
     public static LongStreamEx zip(long[] first, long[] second, LongBinaryOperator mapper) {
         return AbstractStreamEx.intStreamForLength(first.length, second.length).mapToLong(
                 i -> mapper.applyAsLong(first[i], second[i]));
