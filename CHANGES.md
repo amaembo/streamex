@@ -2,8 +2,12 @@
 
 ### 0.2.1-SNAPSHOT
 
+* Fixed: flatCollection method now correctly handles null value returned by mapper
 * Added IntStreamEx.charsToString, IntStreamEx.codePointsToString methods
+* Added StreamEx.scanLeft() and EntryStream.scanLeft() methods
+* Added construction of EntryStream by zipping keys and values from two arrays/lists
 * The append/prepend methods of StreamEx/EntryStream can accept a Collection now 
+* Updated documentation
 
 ### 0.2.0
 

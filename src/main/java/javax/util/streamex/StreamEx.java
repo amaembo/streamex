@@ -48,12 +48,19 @@ import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 /**
- * A {@link Stream} implementation with additional functionality
+ * A {@link Stream} implementation with additional functionality.
  * 
+ * <p>
+ * While {@code StreamEx} implements {@code Iterable}, it is not a
+ * general-purpose {@code Iterable} as it supports only a single
+ * {@code Iterator}; invoking the {@link #iterator iterator} method to obtain a
+ * second or subsequent iterator throws {@code IllegalStateException}.
+ *
  * @author Tagir Valeev
  *
  * @param <T>
@@ -69,9 +76,19 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return strategy().newStreamEx(stream);
     }
 
+    /**
+     * Returns an equivalent stream that is sequential. May return itself,
+     * either because the stream was already sequential, or because the
+     * underlying stream state was modified to be sequential.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @return a sequential stream
+     */
     @Override
     public StreamEx<T> sequential() {
-        return StreamManagingStrategy.DEFAULT.newStreamEx(stream.sequential());
+        return StreamFactory.DEFAULT.newStreamEx(stream.sequential());
     }
 
     /**
@@ -91,7 +108,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     @Override
     public StreamEx<T> parallel() {
-        return StreamManagingStrategy.DEFAULT.newStreamEx(stream.parallel());
+        return StreamFactory.DEFAULT.newStreamEx(stream.parallel());
     }
 
     /**
@@ -114,53 +131,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.2.0
      */
     public StreamEx<T> parallel(ForkJoinPool fjp) {
-        return StreamManagingStrategy.forCustomPool(fjp).newStreamEx(stream.parallel());
-    }
-
-    /**
-     * Returns a stream consisting of the results of applying the given function
-     * to the elements of this stream.
-     *
-     * <p>
-     * This is an intermediate operation.
-     *
-     * @param <R>
-     *            The element type of the new stream
-     * @param mapper
-     *            a non-interfering, stateless function to apply to each element
-     * @return the new stream
-     */
-    @Override
-    public <R> StreamEx<R> map(Function<? super T, ? extends R> mapper) {
-        return strategy().newStreamEx(stream.map(mapper));
-    }
-
-    /**
-     * Returns a stream consisting of the results of replacing each element of
-     * this stream with the contents of a mapped stream produced by applying the
-     * provided mapping function to each element. Each mapped stream is
-     * {@link java.util.stream.BaseStream#close() closed} after its contents
-     * have been placed into this stream. (If a mapped stream is {@code null} an
-     * empty stream is used, instead.)
-     *
-     * <p>
-     * This is an intermediate operation.
-     *
-     * <p>
-     * The {@code flatMap()} operation has the effect of applying a one-to-many
-     * transformation to the elements of the stream, and then flattening the
-     * resulting elements into a new stream.
-     *
-     * @param <R>
-     *            The element type of the new stream
-     * @param mapper
-     *            a non-interfering, stateless function to apply to each element
-     *            which produces a stream of new values
-     * @return the new stream
-     */
-    @Override
-    public <R> StreamEx<R> flatMap(Function<? super T, ? extends Stream<? extends R>> mapper) {
-        return strategy().newStreamEx(stream.flatMap(mapper));
+        return StreamFactory.forCustomPool(fjp).newStreamEx(stream.parallel());
     }
 
     /**
@@ -219,10 +190,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public <K, V> EntryStream<K, V> mapToEntry(Function<T, K> keyMapper, Function<T, V> valueMapper) {
         return strategy().newEntryStream(stream.map(e -> new SimpleEntry<>(keyMapper.apply(e), valueMapper.apply(e))));
-    }
-
-    public <R> StreamEx<R> flatCollection(Function<? super T, ? extends Collection<? extends R>> mapper) {
-        return flatMap(mapper.andThen(Collection::stream));
     }
 
     public <K, V> EntryStream<K, V> flatMapToEntry(Function<? super T, Map<K, V>> mapper) {
@@ -666,6 +633,12 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         });
     }
     
+    public <R> StreamEx<R> pairMap(BiFunction<T, T, R> mapper) {
+        return strategy().newStreamEx(
+                StreamSupport.stream(new PairSpliterator.PSOfRef<>(mapper, stream.spliterator(), null, false, null, false),
+                        stream.isParallel()));
+    }
+
     /**
      * Returns an empty sequential {@code StreamEx}.
      *

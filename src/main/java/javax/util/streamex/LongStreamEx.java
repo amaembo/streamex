@@ -36,6 +36,7 @@ import java.util.function.LongUnaryOperator;
 import java.util.function.ObjLongConsumer;
 import java.util.function.Supplier;
 import java.util.stream.LongStream;
+import java.util.stream.StreamSupport;
 
 /**
  * A {@link LongStream} implementation with additional functionality
@@ -49,8 +50,8 @@ public class LongStreamEx implements LongStream {
         this.stream = stream;
     }
 
-    StreamManagingStrategy strategy() {
-        return StreamManagingStrategy.DEFAULT;
+    StreamFactory strategy() {
+        return StreamFactory.DEFAULT;
     }
 
     /**
@@ -295,7 +296,7 @@ public class LongStreamEx implements LongStream {
 
     @Override
     public LongStreamEx sequential() {
-        return StreamManagingStrategy.DEFAULT.newLongStreamEx(stream.sequential());
+        return StreamFactory.DEFAULT.newLongStreamEx(stream.sequential());
     }
 
     /**
@@ -315,7 +316,7 @@ public class LongStreamEx implements LongStream {
      */
     @Override
     public LongStreamEx parallel() {
-        return StreamManagingStrategy.DEFAULT.newLongStreamEx(stream.parallel());
+        return StreamFactory.DEFAULT.newLongStreamEx(stream.parallel());
     }
 
     /**
@@ -338,7 +339,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.2.0
      */
     public LongStreamEx parallel(ForkJoinPool fjp) {
-        return StreamManagingStrategy.forCustomPool(fjp).newLongStreamEx(stream.parallel());
+        return StreamFactory.forCustomPool(fjp).newLongStreamEx(stream.parallel());
     }
 
     @Override
@@ -627,6 +628,12 @@ public class LongStreamEx implements LongStream {
     public OptionalLong maxByDouble(LongToDoubleFunction keyExtractor) {
         return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? a
                 : b);
+    }
+
+    public LongStreamEx pairMap(LongBinaryOperator mapper) {
+        return strategy().newLongStreamEx(
+                StreamSupport.longStream(new PairSpliterator.PSOfLong(mapper, stream.spliterator(), 0, false, 0, false),
+                        stream.isParallel()));
     }
 
     public static LongStreamEx empty() {

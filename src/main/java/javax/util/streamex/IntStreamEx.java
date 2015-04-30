@@ -41,6 +41,7 @@ import java.util.function.ObjIntConsumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
+import java.util.stream.StreamSupport;
 
 /**
  * An {@link IntStream} implementation with additional functionality
@@ -54,8 +55,8 @@ public class IntStreamEx implements IntStream {
         this.stream = stream;
     }
 
-    StreamManagingStrategy strategy() {
-        return StreamManagingStrategy.DEFAULT;
+    StreamFactory strategy() {
+        return StreamFactory.DEFAULT;
     }
 
     /**
@@ -305,7 +306,7 @@ public class IntStreamEx implements IntStream {
 
     @Override
     public IntStreamEx sequential() {
-        return StreamManagingStrategy.DEFAULT.newIntStreamEx(stream.sequential());
+        return StreamFactory.DEFAULT.newIntStreamEx(stream.sequential());
     }
 
     /**
@@ -325,7 +326,7 @@ public class IntStreamEx implements IntStream {
      */
     @Override
     public IntStreamEx parallel() {
-        return StreamManagingStrategy.DEFAULT.newIntStreamEx(stream.parallel());
+        return StreamFactory.DEFAULT.newIntStreamEx(stream.parallel());
     }
 
     /**
@@ -348,7 +349,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.2.0
      */
     public IntStreamEx parallel(ForkJoinPool fjp) {
-        return StreamManagingStrategy.forCustomPool(fjp).newIntStreamEx(stream.parallel());
+        return StreamFactory.forCustomPool(fjp).newIntStreamEx(stream.parallel());
     }
 
     @Override
@@ -742,13 +743,40 @@ public class IntStreamEx implements IntStream {
     public BitSet toBitSet() {
         return collect(BitSet::new, BitSet::set, BitSet::or);
     }
-    
+
+    /**
+     * Returns a {@link String} consisting of chars from this stream.
+     * 
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * During string creation stream elements are casted to char.   
+     * 
+     * @return a new {@code String}
+     * @since 0.2.1
+     */
     public String charsToString() {
         return collect(StringBuilder::new, (sb, c) -> sb.append((char) c), StringBuilder::append).toString();
     }
     
+    /**
+     * Returns a {@link String} consisting of code points from this stream.
+     * 
+     * <p>
+     * This is a terminal operation.
+     * 
+     * @return a new {@code String}
+     * @since 0.2.1
+     */
     public String codePointsToString() {
         return collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append).toString();
+    }
+
+    public IntStreamEx pairMap(IntBinaryOperator mapper) {
+        return strategy().newIntStreamEx(
+                StreamSupport.intStream(new PairSpliterator.PSOfInt(mapper, stream.spliterator(), 0, false, 0, false),
+                        stream.isParallel()));
     }
 
     public static IntStreamEx empty() {

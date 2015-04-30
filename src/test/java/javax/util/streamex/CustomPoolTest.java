@@ -15,7 +15,9 @@
  */
 package javax.util.streamex;
 
+import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinWorkerThread;
@@ -60,6 +62,7 @@ public class CustomPoolTest {
         assertArrayEquals(new Object[] {"a", "b", "c"}, StreamEx.of("a", "b", "c").parallel(pool).peek(this::checkThread).toArray());
         assertEquals("{ccc={bb={a={}}}}", StreamEx.of("a", "bb", "ccc").parallel(pool).peek(this::checkThread)
                 .foldLeft(Collections.emptyMap(), (acc, v) -> Collections.singletonMap(v, acc)).toString());
+        assertEquals(1000, IntStreamEx.constant(1, 1000).boxed().parallel(pool).peek(this::checkThread).foldLeft(0, Integer::sum).intValue());
     }
     
     @Test
@@ -120,5 +123,19 @@ public class CustomPoolTest {
         assertTrue(DoubleStreamEx.of(1, 2, 3).parallel(pool).peek(this::checkThread).anyMatch(x -> x == 2));
         assertFalse(DoubleStreamEx.of(1, 2, 3).parallel(pool).peek(this::checkThread).allMatch(x -> x == 2));
         assertFalse(DoubleStreamEx.of(1, 2, 3).parallel(pool).peek(this::checkThread).noneMatch(x -> x == 2));
+    }
+    
+    @Test
+    public void testPairMap() {
+        BitSet bits = IntStreamEx.range(3, 199).toBitSet();
+        IntStreamEx.range(200).parallel(pool).filter(i -> {
+            checkThread(i);
+            return i > 2;
+        }).boxed().pairMap(SimpleEntry<Integer, Integer>::new).forEach(p -> {
+            checkThread(p);
+            assertEquals(1, p.getValue() - p.getKey());
+            assertTrue(p.getKey().toString(), bits.get(p.getKey()));
+            bits.clear(p.getKey());
+        });
     }
 }

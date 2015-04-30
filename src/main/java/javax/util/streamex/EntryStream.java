@@ -16,6 +16,7 @@
 package javax.util.streamex;
 
 import java.util.AbstractMap.SimpleEntry;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -35,11 +36,18 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
  * A {@link Stream} of {@link Map.Entry} objects which provides additional
- * specific functionality
+ * specific functionality.
+ * 
+ * <p>
+ * While {@code EntryStream} implements {@code Iterable}, it is not a
+ * general-purpose {@code Iterable} as it supports only a single
+ * {@code Iterator}; invoking the {@link #iterator iterator} method to obtain a
+ * second or subsequent iterator throws {@code IllegalStateException}.
  * 
  * @author Tagir Valeev
  *
@@ -60,7 +68,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
 
     @Override
     public EntryStream<K, V> sequential() {
-        return StreamManagingStrategy.DEFAULT.newEntryStream(stream.sequential());
+        return StreamFactory.DEFAULT.newEntryStream(stream.sequential());
     }
 
     /**
@@ -80,7 +88,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     @Override
     public EntryStream<K, V> parallel() {
-        return StreamManagingStrategy.DEFAULT.newEntryStream(stream.parallel());
+        return StreamFactory.DEFAULT.newEntryStream(stream.parallel());
     }
 
     /**
@@ -103,25 +111,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.0
      */
     public EntryStream<K, V> parallel(ForkJoinPool fjp) {
-        return StreamManagingStrategy.forCustomPool(fjp).newEntryStream(stream.parallel());
-    }
-
-    /**
-     * Returns a stream consisting of the results of applying the given function
-     * to the elements of this stream.
-     *
-     * <p>
-     * This is an intermediate operation.
-     *
-     * @param <R>
-     *            The element type of the new stream
-     * @param mapper
-     *            a non-interfering, stateless function to apply to each element
-     * @return the new stream
-     */
-    @Override
-    public <R> StreamEx<R> map(Function<? super Entry<K, V>, ? extends R> mapper) {
-        return strategy().newStreamEx(stream.map(mapper));
+        return StreamFactory.forCustomPool(fjp).newEntryStream(stream.parallel());
     }
 
     /**
@@ -142,11 +132,6 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return map(entry -> mapper.apply(entry.getKey(), entry.getValue()));
     }
 
-    @Override
-    public <R> StreamEx<R> flatMap(Function<? super Entry<K, V>, ? extends Stream<? extends R>> mapper) {
-        return strategy().newStreamEx(stream.flatMap(mapper));
-    }
-
     public <KK> EntryStream<KK, V> flatMapKeys(Function<? super K, ? extends Stream<? extends KK>> mapper) {
         return strategy().newEntryStream(
                 stream.flatMap(e -> mapper.apply(e.getKey()).map(k -> new SimpleEntry<KK, V>(k, e.getValue()))));
@@ -155,10 +140,6 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     public <VV> EntryStream<K, VV> flatMapValues(Function<? super V, ? extends Stream<? extends VV>> mapper) {
         return strategy().newEntryStream(
                 stream.flatMap(e -> mapper.apply(e.getValue()).map(v -> new SimpleEntry<>(e.getKey(), v))));
-    }
-
-    public <R> StreamEx<R> flatCollection(Function<? super Entry<K, V>, ? extends Collection<? extends R>> mapper) {
-        return flatMap(mapper.andThen(Collection::stream));
     }
 
     /**
@@ -605,5 +586,47 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     public static <K, V> EntryStream<K, V> of(K key, V value) {
         return new EntryStream<>(Stream.of(new SimpleEntry<>(key, value)));
+    }
+
+    /**
+     * Returns a sequential {@code EntryStream} containing {@code Entry} objects
+     * composed from corresponding key and value in given two lists.
+     * 
+     * <p>
+     * The keys and values are accessed using {@link List#get(int)}, so the
+     * lists should provide fast random access. The lists are assumed to be
+     * unmodifiable during the stream operations.
+     * 
+     * @param keys
+     *            the list of keys, assumed to be unmodified during use
+     * @param values
+     *            the list of values, assumed to be unmodified during use
+     * @return a new {@code EntryStream}
+     * @throws IllegalArgumentException
+     *             if length of the lists differs.
+     * @since 0.2.1
+     */
+    public static <K, V> EntryStream<K, V> zip(List<K> keys, List<V> values) {
+        if (keys.size() != values.size())
+            throw new IllegalArgumentException(keys.size() + " != " + values.size());
+        return new EntryStream<>(IntStream.range(0, keys.size()).mapToObj(
+                i -> new SimpleEntry<>(keys.get(i), values.get(i))));
+    }
+    
+    /**
+     * Returns a sequential {@code EntryStream} containing {@code Entry} objects
+     * composed from corresponding key and value in given two arrays.
+     * 
+     * @param keys
+     *            the array of keys
+     * @param values
+     *            the array of values
+     * @return a new {@code EntryStream}
+     * @throws IllegalArgumentException
+     *             if length of the arrays differs.
+     * @since 0.2.1
+     */
+    public static <K, V> EntryStream<K, V> zip(K[] keys, V[] values) {
+        return zip(Arrays.asList(keys), Arrays.asList(values));
     }
 }

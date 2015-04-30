@@ -17,6 +17,7 @@ package javax.util.streamex;
 
 import static org.junit.Assert.*;
 
+import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -49,6 +50,8 @@ public class EntryStreamTest {
         expected.put("c", 1);
         assertEquals(expected, StreamEx.of("aaa", "bbb", "c").mapToEntry(String::length).toMap());
         assertEquals(expected, StreamEx.of("aaa", "bbb", "c").mapToEntry(s -> s, String::length).toMap());
+        assertEquals(expected, EntryStream.zip(Arrays.asList("aaa", "bbb", "c"), Arrays.asList(3, 3, 1)).toMap());
+        assertEquals(expected, EntryStream.zip(new String[] {"aaa", "bbb", "c"}, new Integer[] {3, 3, 1}).toMap());
         assertEquals(Collections.singletonMap("foo", 1), EntryStream.of("foo", 1).toMap());
 
         assertEquals(
@@ -182,6 +185,14 @@ public class EntryStreamTest {
         assertEquals(createMap(), sortedMap);
         assertTrue(sortedMap instanceof ConcurrentMap);
     }
+    
+    @Test
+    public void testFlatMap() {
+        assertEquals(Arrays.asList((int)'a', (int)'b', (int)'b', (int)'c', (int)'c', (int)'c'),
+                EntryStream.of(createMap()).flatMap(entry -> entry.getKey().chars().boxed()).toList());
+        assertEquals(Arrays.asList("a", "b", "b", "c", "c", "c"),
+                EntryStream.of(createMap()).flatCollection(entry -> Arrays.asList(entry.getKey().split(""))).toList());
+    }
 
     @Test
     public void testFlatMapValues() {
@@ -287,6 +298,11 @@ public class EntryStreamTest {
         map.put(3, "c");
         assertEquals(Collections.singletonMap("a", 1), EntryStream.of(map).selectValues(Integer.class).toMap());
         assertEquals(Collections.singletonMap(3, "c"), EntryStream.of(map).selectKeys(Integer.class).toMap());
+        
+        Object[] interleavingArray = {"a", 1, "bb", 22, "ccc", 33};
+        Map<String, Integer> result = EntryStream.of(StreamEx.of(interleavingArray).pairMap(SimpleEntry<Object, Object>::new))
+                .selectKeys(String.class).selectValues(Integer.class).toMap();
+        assertEquals(createMap(), result);
     }
 
     @Test

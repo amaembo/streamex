@@ -15,16 +15,11 @@
  */
 package javax.util.streamex;
 
-import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
-import java.util.PrimitiveIterator.OfDouble;
-import java.util.PrimitiveIterator.OfInt;
-import java.util.PrimitiveIterator.OfLong;
-import java.util.Spliterator;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 import java.util.function.BiConsumer;
@@ -52,8 +47,8 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
-/* package */abstract class StreamManagingStrategy {
-    static final class DefaultStreamManagingStrategy extends StreamManagingStrategy {
+/* package */abstract class StreamFactory {
+    static final class DefaultStreamFactory extends StreamFactory {
         @Override
         public <T> StreamEx<T> newStreamEx(Stream<T> src) {
             return new StreamEx<>(src);
@@ -78,18 +73,12 @@ import java.util.stream.Stream;
         public DoubleStreamEx newDoubleStreamEx(DoubleStream src) {
             return new DoubleStreamEx(src);
         }
-
-        @Override
-        public <T> T terminate(Supplier<T> terminalOperation) {
-            // Normally should not be called
-            throw new AssertionError();
-        }
     }
 
-    static class CustomPoolStreamManagingStrategy extends StreamManagingStrategy {
+    static class CustomPoolStreamFactory extends StreamFactory {
         private final ForkJoinPool fjp;
 
-        public CustomPoolStreamManagingStrategy(ForkJoinPool fjp) {
+        public CustomPoolStreamFactory(ForkJoinPool fjp) {
             this.fjp = fjp;
         }
 
@@ -118,7 +107,6 @@ import java.util.stream.Stream;
             return new CustomDoubleStreamEx(src, this);
         }
 
-        @Override
         public <T> T terminate(Supplier<T> terminalOperation) {
             ForkJoinTask<T> task = fjp.submit(terminalOperation::get);
             return task.join();
@@ -126,31 +114,21 @@ import java.util.stream.Stream;
     }
 
     static class CustomEntryStream<K, V> extends EntryStream<K, V> {
-        private final StreamManagingStrategy strategy;
+        private final CustomPoolStreamFactory strategy;
 
-        CustomEntryStream(Stream<Entry<K, V>> stream, StreamManagingStrategy strategy) {
+        CustomEntryStream(Stream<Entry<K, V>> stream, CustomPoolStreamFactory strategy) {
             super(stream);
             this.strategy = strategy;
         }
 
         @Override
-        StreamManagingStrategy strategy() {
+        StreamFactory strategy() {
             return strategy;
         }
 
         @Override
-        public Iterator<Entry<K, V>> iterator() {
-            return strategy().terminate(stream::iterator);
-        }
-
-        @Override
-        public Spliterator<Entry<K, V>> spliterator() {
-            return strategy().terminate(stream::spliterator);
-        }
-
-        @Override
         public void forEach(Consumer<? super Entry<K, V>> action) {
-            strategy().terminate(() -> {
+            strategy.terminate(() -> {
                 stream.forEach(action);
                 return null;
             });
@@ -158,7 +136,7 @@ import java.util.stream.Stream;
 
         @Override
         public void forEachOrdered(Consumer<? super Entry<K, V>> action) {
-            strategy().terminate(() -> {
+            strategy.terminate(() -> {
                 stream.forEachOrdered(action);
                 return null;
             });
@@ -166,87 +144,77 @@ import java.util.stream.Stream;
 
         @Override
         public <A> A[] toArray(IntFunction<A[]> generator) {
-            return strategy().terminate(() -> stream.toArray(generator));
+            return strategy.terminate(() -> stream.toArray(generator));
         }
 
         @Override
         public Entry<K, V> reduce(Entry<K, V> identity, BinaryOperator<Entry<K, V>> accumulator) {
-            return strategy().terminate(() -> stream.reduce(identity, accumulator));
+            return strategy.terminate(() -> stream.reduce(identity, accumulator));
         }
 
         @Override
         public Optional<Entry<K, V>> reduce(BinaryOperator<Entry<K, V>> accumulator) {
-            return strategy().terminate(() -> stream.reduce(accumulator));
+            return strategy.terminate(() -> stream.reduce(accumulator));
         }
 
         @Override
         public <U> U reduce(U identity, BiFunction<U, ? super Entry<K, V>, U> accumulator, BinaryOperator<U> combiner) {
-            return strategy().terminate(() -> stream.reduce(identity, accumulator, combiner));
+            return strategy.terminate(() -> stream.reduce(identity, accumulator, combiner));
         }
 
         @Override
         public <R> R collect(Supplier<R> supplier, BiConsumer<R, ? super Entry<K, V>> accumulator,
                 BiConsumer<R, R> combiner) {
-            return strategy().terminate(() -> stream.collect(supplier, accumulator, combiner));
+            return strategy.terminate(() -> stream.collect(supplier, accumulator, combiner));
         }
 
         @Override
         public <R, A> R collect(Collector<? super Entry<K, V>, A, R> collector) {
-            return strategy().terminate(() -> stream.collect(collector));
+            return strategy.terminate(() -> stream.collect(collector));
         }
 
         @Override
         public long count() {
-            return strategy().terminate(stream::count);
+            return strategy.terminate(stream::count);
         }
 
         @Override
         public boolean anyMatch(Predicate<? super Entry<K, V>> predicate) {
-            return strategy().terminate(() -> stream.anyMatch(predicate));
+            return strategy.terminate(() -> stream.anyMatch(predicate));
         }
 
         @Override
         public boolean allMatch(Predicate<? super Entry<K, V>> predicate) {
-            return strategy().terminate(() -> stream.allMatch(predicate));
+            return strategy.terminate(() -> stream.allMatch(predicate));
         }
 
         @Override
         public Optional<Entry<K, V>> findFirst() {
-            return strategy().terminate(stream::findFirst);
+            return strategy.terminate(stream::findFirst);
         }
 
         @Override
         public Optional<Entry<K, V>> findAny() {
-            return strategy().terminate(stream::findAny);
+            return strategy.terminate(stream::findAny);
         }
     }
 
     static class CustomStreamEx<T> extends StreamEx<T> {
-        private final StreamManagingStrategy strategy;
+        private final CustomPoolStreamFactory strategy;
 
-        CustomStreamEx(Stream<T> stream, StreamManagingStrategy strategy) {
+        CustomStreamEx(Stream<T> stream, CustomPoolStreamFactory strategy) {
             super(stream);
             this.strategy = strategy;
         }
 
         @Override
-        StreamManagingStrategy strategy() {
+        StreamFactory strategy() {
             return strategy;
         }
 
         @Override
-        public Iterator<T> iterator() {
-            return strategy().terminate(stream::iterator);
-        }
-
-        @Override
-        public Spliterator<T> spliterator() {
-            return strategy().terminate(stream::spliterator);
-        }
-
-        @Override
         public void forEach(Consumer<? super T> action) {
-            strategy().terminate(() -> {
+            strategy.terminate(() -> {
                 stream.forEach(action);
                 return null;
             });
@@ -254,7 +222,7 @@ import java.util.stream.Stream;
 
         @Override
         public void forEachOrdered(Consumer<? super T> action) {
-            strategy().terminate(() -> {
+            strategy.terminate(() -> {
                 stream.forEachOrdered(action);
                 return null;
             });
@@ -262,76 +230,76 @@ import java.util.stream.Stream;
 
         @Override
         public <A> A[] toArray(IntFunction<A[]> generator) {
-            return strategy().terminate(() -> stream.toArray(generator));
+            return strategy.terminate(() -> stream.toArray(generator));
         }
 
         @Override
         public T reduce(T identity, BinaryOperator<T> accumulator) {
-            return strategy().terminate(() -> stream.reduce(identity, accumulator));
+            return strategy.terminate(() -> stream.reduce(identity, accumulator));
         }
 
         @Override
         public Optional<T> reduce(BinaryOperator<T> accumulator) {
-            return strategy().terminate(() -> stream.reduce(accumulator));
+            return strategy.terminate(() -> stream.reduce(accumulator));
         }
 
         @Override
         public <U> U reduce(U identity, BiFunction<U, ? super T, U> accumulator, BinaryOperator<U> combiner) {
-            return strategy().terminate(() -> stream.reduce(identity, accumulator, combiner));
+            return strategy.terminate(() -> stream.reduce(identity, accumulator, combiner));
         }
 
         @Override
         public <R> R collect(Supplier<R> supplier, BiConsumer<R, ? super T> accumulator, BiConsumer<R, R> combiner) {
-            return strategy().terminate(() -> stream.collect(supplier, accumulator, combiner));
+            return strategy.terminate(() -> stream.collect(supplier, accumulator, combiner));
         }
 
         @Override
         public <R, A> R collect(Collector<? super T, A, R> collector) {
-            return strategy().terminate(() -> stream.collect(collector));
+            return strategy.terminate(() -> stream.collect(collector));
         }
 
         @Override
         public long count() {
-            return strategy().terminate(stream::count);
+            return strategy.terminate(stream::count);
         }
 
         @Override
         public boolean anyMatch(Predicate<? super T> predicate) {
-            return strategy().terminate(() -> stream.anyMatch(predicate));
+            return strategy.terminate(() -> stream.anyMatch(predicate));
         }
 
         @Override
         public boolean allMatch(Predicate<? super T> predicate) {
-            return strategy().terminate(() -> stream.allMatch(predicate));
+            return strategy.terminate(() -> stream.allMatch(predicate));
         }
 
         @Override
         public Optional<T> findFirst() {
-            return strategy().terminate(stream::findFirst);
+            return strategy.terminate(stream::findFirst);
         }
 
         @Override
         public Optional<T> findAny() {
-            return strategy().terminate(stream::findAny);
+            return strategy.terminate(stream::findAny);
         }
     }
 
     static class CustomIntStreamEx extends IntStreamEx {
-        private final StreamManagingStrategy strategy;
+        private final CustomPoolStreamFactory strategy;
 
-        CustomIntStreamEx(IntStream stream, StreamManagingStrategy strategy) {
+        CustomIntStreamEx(IntStream stream, CustomPoolStreamFactory strategy) {
             super(stream);
             this.strategy = strategy;
         }
 
         @Override
-        StreamManagingStrategy strategy() {
+        StreamFactory strategy() {
             return strategy;
         }
 
         @Override
         public void forEach(IntConsumer action) {
-            strategy().terminate(() -> {
+            strategy.terminate(() -> {
                 stream.forEach(action);
                 return null;
             });
@@ -339,7 +307,7 @@ import java.util.stream.Stream;
 
         @Override
         public void forEachOrdered(IntConsumer action) {
-            strategy().terminate(() -> {
+            strategy.terminate(() -> {
                 stream.forEachOrdered(action);
                 return null;
             });
@@ -347,81 +315,71 @@ import java.util.stream.Stream;
 
         @Override
         public int[] toArray() {
-            return strategy().terminate(stream::toArray);
+            return strategy.terminate(stream::toArray);
         }
 
         @Override
         public int reduce(int identity, IntBinaryOperator op) {
-            return strategy().terminate(() -> stream.reduce(identity, op));
+            return strategy.terminate(() -> stream.reduce(identity, op));
         }
 
         @Override
         public OptionalInt reduce(IntBinaryOperator op) {
-            return strategy().terminate(() -> stream.reduce(op));
+            return strategy.terminate(() -> stream.reduce(op));
         }
 
         @Override
         public <R> R collect(Supplier<R> supplier, ObjIntConsumer<R> accumulator, BiConsumer<R, R> combiner) {
-            return strategy().terminate(() -> stream.collect(supplier, accumulator, combiner));
+            return strategy.terminate(() -> stream.collect(supplier, accumulator, combiner));
         }
 
         @Override
         public long count() {
-            return strategy().terminate(stream::count);
+            return strategy.terminate(stream::count);
         }
 
         @Override
         public OptionalDouble average() {
-            return strategy().terminate(stream::average);
+            return strategy.terminate(stream::average);
         }
 
         @Override
         public boolean anyMatch(IntPredicate predicate) {
-            return strategy().terminate(() -> stream.anyMatch(predicate));
+            return strategy.terminate(() -> stream.anyMatch(predicate));
         }
 
         @Override
         public boolean allMatch(IntPredicate predicate) {
-            return strategy().terminate(() -> stream.allMatch(predicate));
+            return strategy.terminate(() -> stream.allMatch(predicate));
         }
 
         @Override
         public OptionalInt findFirst() {
-            return strategy().terminate(stream::findFirst);
+            return strategy.terminate(stream::findFirst);
         }
 
         @Override
         public OptionalInt findAny() {
-            return strategy().terminate(stream::findAny);
-        }
-
-        @Override
-        public OfInt iterator() {
-            return strategy().terminate(stream::iterator);
-        }
-
-        @Override
-        public Spliterator.OfInt spliterator() {
-            return strategy().terminate(stream::spliterator);
+            return strategy.terminate(stream::findAny);
         }
     }
 
     static class CustomLongStreamEx extends LongStreamEx {
-        private final StreamManagingStrategy strategy;
+        private final CustomPoolStreamFactory strategy;
 
-        CustomLongStreamEx(LongStream stream, StreamManagingStrategy strategy) {
+        CustomLongStreamEx(LongStream stream, CustomPoolStreamFactory strategy) {
             super(stream);
             this.strategy = strategy;
         }
 
         @Override
-        StreamManagingStrategy strategy() {
+        StreamFactory strategy() {
             return strategy;
         }
 
         @Override
         public void forEach(LongConsumer action) {
-            strategy().terminate(() -> {
+            strategy.terminate(() -> {
                 stream.forEach(action);
                 return null;
             });
@@ -429,7 +387,7 @@ import java.util.stream.Stream;
 
         @Override
         public void forEachOrdered(LongConsumer action) {
-            strategy().terminate(() -> {
+            strategy.terminate(() -> {
                 stream.forEachOrdered(action);
                 return null;
             });
@@ -437,82 +395,71 @@ import java.util.stream.Stream;
 
         @Override
         public long[] toArray() {
-            return strategy().terminate(stream::toArray);
+            return strategy.terminate(stream::toArray);
         }
 
         @Override
         public long reduce(long identity, LongBinaryOperator op) {
-            return strategy().terminate(() -> stream.reduce(identity, op));
+            return strategy.terminate(() -> stream.reduce(identity, op));
         }
 
         @Override
         public OptionalLong reduce(LongBinaryOperator op) {
-            return strategy().terminate(() -> stream.reduce(op));
+            return strategy.terminate(() -> stream.reduce(op));
         }
 
         @Override
         public <R> R collect(Supplier<R> supplier, ObjLongConsumer<R> accumulator, BiConsumer<R, R> combiner) {
-            return strategy().terminate(() -> stream.collect(supplier, accumulator, combiner));
+            return strategy.terminate(() -> stream.collect(supplier, accumulator, combiner));
         }
 
         @Override
         public long count() {
-            return strategy().terminate(stream::count);
+            return strategy.terminate(stream::count);
         }
 
         @Override
         public OptionalDouble average() {
-            return strategy().terminate(stream::average);
+            return strategy.terminate(stream::average);
         }
 
         @Override
         public boolean anyMatch(LongPredicate predicate) {
-            return strategy().terminate(() -> stream.anyMatch(predicate));
+            return strategy.terminate(() -> stream.anyMatch(predicate));
         }
 
         @Override
         public boolean allMatch(LongPredicate predicate) {
-            return strategy().terminate(() -> stream.allMatch(predicate));
+            return strategy.terminate(() -> stream.allMatch(predicate));
         }
 
         @Override
         public OptionalLong findFirst() {
-            return strategy().terminate(stream::findFirst);
+            return strategy.terminate(stream::findFirst);
         }
 
         @Override
         public OptionalLong findAny() {
-            return strategy().terminate(stream::findAny);
-        }
-
-        @Override
-        public OfLong iterator() {
-            return strategy().terminate(stream::iterator);
-        }
-
-        @Override
-        public Spliterator.OfLong spliterator() {
-            return strategy().terminate(stream::spliterator);
+            return strategy.terminate(stream::findAny);
         }
     }
 
     static class CustomDoubleStreamEx extends DoubleStreamEx {
+        private final CustomPoolStreamFactory strategy;
 
-        private final StreamManagingStrategy strategy;
-
-        CustomDoubleStreamEx(DoubleStream stream, StreamManagingStrategy strategy) {
+        CustomDoubleStreamEx(DoubleStream stream, CustomPoolStreamFactory strategy) {
             super(stream);
             this.strategy = strategy;
         }
 
         @Override
-        StreamManagingStrategy strategy() {
+        StreamFactory strategy() {
             return strategy;
         }
 
         @Override
         public void forEach(DoubleConsumer action) {
-            strategy().terminate(() -> {
+            strategy.terminate(() -> {
                 stream.forEach(action);
                 return null;
             });
@@ -520,7 +467,7 @@ import java.util.stream.Stream;
 
         @Override
         public void forEachOrdered(DoubleConsumer action) {
-            strategy().terminate(() -> {
+            strategy.terminate(() -> {
                 stream.forEachOrdered(action);
                 return null;
             });
@@ -528,67 +475,57 @@ import java.util.stream.Stream;
 
         @Override
         public double[] toArray() {
-            return strategy().terminate(stream::toArray);
+            return strategy.terminate(stream::toArray);
         }
 
         @Override
         public double reduce(double identity, DoubleBinaryOperator op) {
-            return strategy().terminate(() -> stream.reduce(identity, op));
+            return strategy.terminate(() -> stream.reduce(identity, op));
         }
 
         @Override
         public OptionalDouble reduce(DoubleBinaryOperator op) {
-            return strategy().terminate(() -> stream.reduce(op));
+            return strategy.terminate(() -> stream.reduce(op));
         }
 
         @Override
         public <R> R collect(Supplier<R> supplier, ObjDoubleConsumer<R> accumulator, BiConsumer<R, R> combiner) {
-            return strategy().terminate(() -> stream.collect(supplier, accumulator, combiner));
+            return strategy.terminate(() -> stream.collect(supplier, accumulator, combiner));
         }
 
         @Override
         public double sum() {
-            return strategy().terminate(stream::sum);
+            return strategy.terminate(stream::sum);
         }
 
         @Override
         public long count() {
-            return strategy().terminate(stream::count);
+            return strategy.terminate(stream::count);
         }
 
         @Override
         public OptionalDouble average() {
-            return strategy().terminate(stream::average);
+            return strategy.terminate(stream::average);
         }
 
         @Override
         public boolean anyMatch(DoublePredicate predicate) {
-            return strategy().terminate(() -> stream.anyMatch(predicate));
+            return strategy.terminate(() -> stream.anyMatch(predicate));
         }
 
         @Override
         public boolean allMatch(DoublePredicate predicate) {
-            return strategy().terminate(() -> stream.allMatch(predicate));
+            return strategy.terminate(() -> stream.allMatch(predicate));
         }
 
         @Override
         public OptionalDouble findFirst() {
-            return strategy().terminate(() -> stream.findFirst());
+            return strategy.terminate(() -> stream.findFirst());
         }
 
         @Override
         public OptionalDouble findAny() {
-            return strategy().terminate(() -> stream.findAny());
-        }
-
-        @Override
-        public OfDouble iterator() {
-            return strategy().terminate(stream::iterator);
-        }
-
-        @Override
-        public Spliterator.OfDouble spliterator() {
-            return strategy().terminate(stream::spliterator);
+            return strategy.terminate(() -> stream.findAny());
         }
     }
 
@@ -602,11 +539,9 @@ import java.util.stream.Stream;
 
     abstract DoubleStreamEx newDoubleStreamEx(DoubleStream src);
 
-    abstract <T> T terminate(Supplier<T> terminalOperation);
+    static final StreamFactory DEFAULT = new DefaultStreamFactory();
 
-    static final StreamManagingStrategy DEFAULT = new DefaultStreamManagingStrategy();
-
-    static StreamManagingStrategy forCustomPool(ForkJoinPool fjp) {
-        return new CustomPoolStreamManagingStrategy(fjp);
+    static StreamFactory forCustomPool(ForkJoinPool fjp) {
+        return new CustomPoolStreamFactory(fjp);
     }
 }

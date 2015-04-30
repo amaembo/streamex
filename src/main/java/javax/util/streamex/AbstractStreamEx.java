@@ -15,6 +15,7 @@
  */
 package javax.util.streamex;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -23,7 +24,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Spliterator;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
@@ -49,8 +49,8 @@ import java.util.stream.Stream;
         this.stream = stream;
     }
 
-    StreamManagingStrategy strategy() {
-        return StreamManagingStrategy.DEFAULT;
+    StreamFactory strategy() {
+        return StreamFactory.DEFAULT;
     }
 
     abstract S supply(Stream<T> stream);
@@ -63,8 +63,8 @@ import java.util.stream.Stream;
 
     static void rangeCheck(int arrayLength, int startInclusive, int endExclusive) {
         if (startInclusive > endExclusive) {
-            throw new ArrayIndexOutOfBoundsException("startInclusive(" + startInclusive + ") > endExclusive(" + endExclusive
-                    + ")");
+            throw new ArrayIndexOutOfBoundsException("startInclusive(" + startInclusive + ") > endExclusive("
+                    + endExclusive + ")");
         }
         if (startInclusive < 0) {
             throw new ArrayIndexOutOfBoundsException(startInclusive);
@@ -126,6 +126,52 @@ import java.util.stream.Stream;
     @Override
     public S filter(Predicate<? super T> predicate) {
         return supply(stream.filter(predicate));
+    }
+
+    /**
+     * Returns a stream consisting of the results of replacing each element of
+     * this stream with the contents of a mapped stream produced by applying the
+     * provided mapping function to each element. Each mapped stream is
+     * {@link java.util.stream.BaseStream#close() closed} after its contents
+     * have been placed into this stream. (If a mapped stream is {@code null} an
+     * empty stream is used, instead.)
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * <p>
+     * The {@code flatMap()} operation has the effect of applying a one-to-many
+     * transformation to the elements of the stream, and then flattening the
+     * resulting elements into a new stream.
+     *
+     * @param <R>
+     *            The element type of the new stream
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
+     *            which produces a stream of new values
+     * @return the new stream
+     */
+    @Override
+    public <R> StreamEx<R> flatMap(Function<? super T, ? extends Stream<? extends R>> mapper) {
+        return strategy().newStreamEx(stream.flatMap(mapper));
+    }
+
+    /**
+     * Returns a stream consisting of the results of applying the given function
+     * to the elements of this stream.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param <R>
+     *            The element type of the new stream
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
+     * @return the new stream
+     */
+    @Override
+    public <R> StreamEx<R> map(Function<? super T, ? extends R> mapper) {
+        return strategy().newStreamEx(stream.map(mapper));
     }
 
     @Override
@@ -286,6 +332,34 @@ import java.util.stream.Stream;
     @Override
     public Optional<T> findAny() {
         return stream.findAny();
+    }
+
+    /**
+     * Returns a stream consisting of the results of replacing each element of
+     * this stream with the contents of a mapped collection produced by applying
+     * the provided mapping function to each element. (If a mapped collection is
+     * {@code null} nothing is added for given element to the resulting stream.)
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * <p>
+     * The {@code flatCollection()} operation has the effect of applying a one-to-many
+     * transformation to the elements of the stream, and then flattening the
+     * resulting elements into a new stream.
+     *
+     * @param <R>
+     *            The element type of the new stream
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
+     *            which produces a {@link Collection} of new values
+     * @return the new stream
+     */
+    public <R> StreamEx<R> flatCollection(Function<? super T, ? extends Collection<? extends R>> mapper) {
+        return flatMap(t -> {
+            Collection<? extends R> c = mapper.apply(t);
+            return c == null ? null : c.stream();
+        });
     }
 
     /**
@@ -540,9 +614,50 @@ import java.util.stream.Stream;
      * @see #reduce(Object, BiFunction, BinaryOperator)
      * @since 0.2.0
      */
+    @SuppressWarnings("unchecked")
     public <U> U foldLeft(U identity, BiFunction<U, ? super T, U> accumulator) {
-        AtomicReference<U> result = new AtomicReference<>(identity);
-        forEachOrdered(t -> result.set(accumulator.apply(result.get(), t)));
-        return result.get();
+        Object[] result = new Object[] { identity };
+        forEachOrdered(t -> result[0] = accumulator.apply((U) result[0], t));
+        return (U) result[0];
+    }
+
+    /**
+     * Produces a collection containing cumulative results of applying the
+     * accumulation function going left to right.
+     * 
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * The result {@link List} is guaranteed to be mutable.
+     * 
+     * <p>
+     * For parallel stream it's not guaranteed that accumulator will always be
+     * executed in the same thread.
+     * 
+     * <p>
+     * This method cannot take all the advantages of parallel streams as it must
+     * process elements strictly left to right.
+     *
+     * @param <U>
+     *            The type of the result
+     * @param identity
+     *            the identity value
+     * @param accumulator
+     *            a non-interfering, stateless function for incorporating an
+     *            additional element into a result
+     * @return the {@code List} where the first element is the identity and
+     *         every successor element is the result of applying accumulator
+     *         function to the previous list element and the corresponding
+     *         stream element. The resulting list is one element longer than
+     *         this stream.
+     * @see #foldLeft(Object, BiFunction)
+     * @since 0.2.1
+     */
+    public <U> List<U> scanLeft(U identity, BiFunction<U, ? super T, U> accumulator) {
+        List<U> result = new ArrayList<>();
+        result.add(identity);
+        forEachOrdered(t -> result.add(accumulator.apply(result.get(result.size() - 1), t)));
+        return result;
     }
 }

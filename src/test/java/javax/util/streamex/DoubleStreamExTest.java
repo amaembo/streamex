@@ -126,4 +126,18 @@ public class DoubleStreamExTest {
         assertEquals(29.0, DoubleStreamEx.of(15, 8, 31, 47, 19, 29).maxByLong(x -> (long)(x % 10 * 10 + x / 10)).getAsDouble(), 0.0);
         assertEquals(31.0, DoubleStreamEx.of(15, 8, 31, 47, 19, 29).minByLong(x -> (long)(x % 10 * 10 + x / 10)).getAsDouble(), 0.0);
     }
+    
+    @Test
+    public void testPairMap() {
+        assertEquals(0, DoubleStreamEx.of().pairMap(Double::sum).count());
+        assertEquals(0, DoubleStreamEx.of(1.0).pairMap(Double::sum).count());
+        int[] data = new Random(1).ints(1000, 1, 1000).toArray();
+        double[] expected = new double[data.length-1];
+        for(int i=0; i<expected.length; i++) expected[i] = (data[i+1]-data[i])*3.14;
+        double[] result = IntStreamEx.of(data).parallel().asDoubleStream().pairMap((a, b) -> (b - a)*3.14).toArray();
+        assertArrayEquals(expected, result, 0.0);
+        result = IntStreamEx.of(data).asDoubleStream().pairMap((a, b) -> (b - a)*3.14).toArray();
+        assertArrayEquals(expected, result, 0.0);
+        assertEquals(984.0, IntStreamEx.of(data).asDoubleStream().parallel().pairMap((a, b) -> Math.abs(a - b)).max().getAsDouble(), 0.0);
+    }
 }

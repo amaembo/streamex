@@ -35,6 +35,7 @@ import java.util.function.DoubleUnaryOperator;
 import java.util.function.ObjDoubleConsumer;
 import java.util.function.Supplier;
 import java.util.stream.DoubleStream;
+import java.util.stream.StreamSupport;
 
 /**
  * A {@link DoubleStream} implementation with additional functionality
@@ -48,8 +49,8 @@ public class DoubleStreamEx implements DoubleStream {
         this.stream = stream;
     }
 
-    StreamManagingStrategy strategy() {
-        return StreamManagingStrategy.DEFAULT;
+    StreamFactory strategy() {
+        return StreamFactory.DEFAULT;
     }
 
     /**
@@ -290,7 +291,7 @@ public class DoubleStreamEx implements DoubleStream {
 
     @Override
     public DoubleStreamEx sequential() {
-        return StreamManagingStrategy.DEFAULT.newDoubleStreamEx(stream.sequential());
+        return StreamFactory.DEFAULT.newDoubleStreamEx(stream.sequential());
     }
 
     /**
@@ -310,7 +311,7 @@ public class DoubleStreamEx implements DoubleStream {
      */
     @Override
     public DoubleStreamEx parallel() {
-        return StreamManagingStrategy.DEFAULT.newDoubleStreamEx(stream.parallel());
+        return StreamFactory.DEFAULT.newDoubleStreamEx(stream.parallel());
     }
 
     /**
@@ -333,7 +334,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.2.0
      */
     public DoubleStreamEx parallel(ForkJoinPool fjp) {
-        return StreamManagingStrategy.forCustomPool(fjp).newDoubleStreamEx(stream.parallel());
+        return StreamFactory.forCustomPool(fjp).newDoubleStreamEx(stream.parallel());
     }
 
     @Override
@@ -608,6 +609,12 @@ public class DoubleStreamEx implements DoubleStream {
     public OptionalDouble maxByDouble(DoubleUnaryOperator keyExtractor) {
         return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? a
                 : b);
+    }
+
+    public DoubleStreamEx pairMap(DoubleBinaryOperator mapper) {
+        return strategy().newDoubleStreamEx(
+                StreamSupport.doubleStream(new PairSpliterator.PSOfDouble(mapper, stream.spliterator(), 0, false, 0, false),
+                        stream.isParallel()));
     }
 
     public static DoubleStreamEx empty() {
