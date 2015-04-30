@@ -74,7 +74,7 @@ public class StreamExTest {
         assertEquals(Arrays.asList("c", "d", "e"), StreamEx.of("abcdef".split(""), 2, 5).toList());
         
         StreamEx<String> stream = StreamEx.of("foo", "bar");
-        assertSame(stream, StreamEx.of(stream));
+        assertSame(stream.stream, StreamEx.of(stream).stream);
     }
 
     private Reader getReader() {
