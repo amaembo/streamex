@@ -49,6 +49,8 @@ public class EntryStreamTest {
         expected.put("c", 1);
         assertEquals(expected, StreamEx.of("aaa", "bbb", "c").mapToEntry(String::length).toMap());
         assertEquals(expected, StreamEx.of("aaa", "bbb", "c").mapToEntry(s -> s, String::length).toMap());
+        assertEquals(expected, EntryStream.zip(Arrays.asList("aaa", "bbb", "c"), Arrays.asList(3, 3, 1)).toMap());
+        assertEquals(expected, EntryStream.zip(new String[] {"aaa", "bbb", "c"}, new Integer[] {3, 3, 1}).toMap());
         assertEquals(Collections.singletonMap("foo", 1), EntryStream.of("foo", 1).toMap());
 
         assertEquals(

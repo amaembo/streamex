@@ -16,6 +16,7 @@
 package javax.util.streamex;
 
 import java.util.AbstractMap.SimpleEntry;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +36,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -584,5 +586,47 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     public static <K, V> EntryStream<K, V> of(K key, V value) {
         return new EntryStream<>(Stream.of(new SimpleEntry<>(key, value)));
+    }
+
+    /**
+     * Returns a sequential {@code EntryStream} containing {@code Entry} objects
+     * composed from corresponding key and value in given two lists.
+     * 
+     * <p>
+     * The keys and values are accessed using {@link List#get(int)}, so the
+     * lists should provide fast random access. The lists are assumed to be
+     * unmodifiable during the stream operations.
+     * 
+     * @param keys
+     *            the list of keys, assumed to be unmodified during use
+     * @param values
+     *            the list of values, assumed to be unmodified during use
+     * @return a new {@code EntryStream}
+     * @throws IllegalArgumentException
+     *             if length of the lists differs.
+     * @since 0.2.1
+     */
+    public static <K, V> EntryStream<K, V> zip(List<K> keys, List<V> values) {
+        if (keys.size() != values.size())
+            throw new IllegalArgumentException(keys.size() + " != " + values.size());
+        return new EntryStream<>(IntStream.range(0, keys.size()).mapToObj(
+                i -> new SimpleEntry<>(keys.get(i), values.get(i))));
+    }
+    
+    /**
+     * Returns a sequential {@code EntryStream} containing {@code Entry} objects
+     * composed from corresponding key and value in given two arrays.
+     * 
+     * @param keys
+     *            the array of keys
+     * @param values
+     *            the array of values
+     * @return a new {@code EntryStream}
+     * @throws IllegalArgumentException
+     *             if length of the arrays differs.
+     * @since 0.2.1
+     */
+    public static <K, V> EntryStream<K, V> zip(K[] keys, V[] values) {
+        return zip(Arrays.asList(keys), Arrays.asList(values));
     }
 }
