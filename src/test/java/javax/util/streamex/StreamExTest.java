@@ -388,6 +388,11 @@ public class StreamExTest {
         assertEquals(0, StreamEx.<String>empty().pairMap(String::concat).count());
         assertEquals(0, StreamEx.of("a").pairMap(String::concat).count());
         assertEquals(Arrays.asList("aa","aa","aa"), StreamEx.generate(() -> "a").pairMap(String::concat).limit(3).toList());
+        AtomicBoolean flag = new AtomicBoolean();
+        assertFalse(flag.get());
+        StreamEx<String> stream = StreamEx.of("a", "b").onClose(() -> flag.set(true)).pairMap(String::concat);
+        stream.close();
+        assertTrue(flag.get());
         assertEquals(Collections.singletonMap(1, 9999L),
                 IntStreamEx.range(10000).boxed().pairMap((a, b) -> b - a).groupingBy(Function.identity(), Collectors.counting()));
         assertEquals(Collections.singletonMap(1, 9999L),

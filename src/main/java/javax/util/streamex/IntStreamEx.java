@@ -801,7 +801,7 @@ public class IntStreamEx implements IntStream {
     public IntStreamEx pairMap(IntBinaryOperator mapper) {
         return strategy().newIntStreamEx(
                 StreamSupport.intStream(new PairSpliterator.PSOfInt(mapper, stream.spliterator(), 0, false, 0, false),
-                        stream.isParallel()));
+                        stream.isParallel()).onClose(stream::close));
     }
 
     public static IntStreamEx empty() {

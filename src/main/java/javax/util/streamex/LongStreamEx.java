@@ -659,7 +659,7 @@ public class LongStreamEx implements LongStream {
         return strategy().newLongStreamEx(
                 StreamSupport.longStream(
                         new PairSpliterator.PSOfLong(mapper, stream.spliterator(), 0, false, 0, false),
-                        stream.isParallel()));
+                        stream.isParallel()).onClose(stream::close));
     }
 
     public static LongStreamEx empty() {
