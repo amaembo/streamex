@@ -49,6 +49,10 @@ public class LongStreamExTest {
         
         LongStream stream = LongStreamEx.of(1, 2, 3);
         assertSame(stream, LongStreamEx.of(stream));
+
+        assertArrayEquals(new long[] { 4, 2, 0, -2, -4 },
+                LongStreamEx.zip(new long[] { 5, 4, 3, 2, 1 }, new long[] { 1, 2, 3, 4, 5 }, (a, b) -> a - b)
+                        .toArray());
     }
 
     @Test
