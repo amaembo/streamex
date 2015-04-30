@@ -20,6 +20,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -29,9 +30,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -365,6 +368,45 @@ public class StreamExTest {
                 "{ccc={bb={a={}}}}",
                 StreamEx.of("a", "bb", "ccc").parallel()
                         .foldLeft(Collections.emptyMap(), (acc, v) -> Collections.singletonMap(v, acc)).toString());
+    }
+    
+    private <T extends Comparable<? super T>> boolean isSorted(Collection<T> c) {
+        return StreamEx.of(c).parallel().pairMap(Comparable::compareTo).allMatch(r -> r <= 0);
+    }
+    
+    private <T extends Comparable<? super T>> Optional<T> firstMisplaced(Collection<T> c) {
+        return StreamEx.of(c).parallel().pairMap((a, b) -> a.compareTo(b) > 0 ? a : null).nonNull().findFirst();
+    }
+    
+    @Test
+    public void testPairMap() {
+        assertEquals(0, StreamEx.<String>empty().pairMap(String::concat).count());
+        assertEquals(0, StreamEx.of("a").pairMap(String::concat).count());
+        assertEquals(Arrays.asList("aa","aa","aa"), StreamEx.generate(() -> "a").pairMap(String::concat).limit(3).toList());
+        assertEquals(Collections.singletonMap(1, 9999L),
+                IntStreamEx.range(10000).boxed().pairMap((a, b) -> b - a).groupingBy(Function.identity(), Collectors.counting()));
+        assertEquals(Collections.singletonMap(1, 9999L),
+                IntStreamEx.range(10000).parallel().boxed().pairMap((a, b) -> b - a).groupingBy(Function.identity(), Collectors.counting()));
+        Integer[] data = new Random(1).ints(1000, 1, 1000).boxed().toArray(Integer[]::new);
+        Double[] expected = new Double[data.length-1];
+        for(int i=0; i<expected.length; i++) expected[i] = (data[i+1]-data[i])*3.14;
+        Double[] result = StreamEx.of(data).parallel().pairMap((a, b) -> (b - a)*3.14).toArray(Double[]::new);
+        assertArrayEquals(expected, result);
+        result = StreamEx.of(data).pairMap((a, b) -> (b - a)*3.14).toArray(Double[]::new);
+        assertArrayEquals(expected, result);
+        assertEquals("Test Capitalization Stream",
+                IntStreamEx.ofChars("test caPiTaliZation streaM").parallel().prepend(0)
+                        .mapToObj(c -> Character.valueOf((char) c))
+                        .pairMap((c1, c2) -> !Character.isLetter(c1) && Character.isLetter(c2) ? 
+                                Character.toTitleCase(c2) : Character.toLowerCase(c2)).joining());
+        assertTrue(isSorted(Arrays.asList("a", "bb", "bb", "c")));
+        assertFalse(isSorted(Arrays.asList("a", "bb", "bb", "bba", "bb", "c")));
+        assertTrue(isSorted(IntStreamEx.of(new Random(1)).boxed().distinct().limit(1000).toCollection(TreeSet::new)));
+        assertEquals("bba", firstMisplaced(Arrays.asList("a", "bb", "bb", "bba", "bb", "c")).get());
+        assertFalse(firstMisplaced(Arrays.asList("a", "bb", "bb", "bb", "c")).isPresent());
+        int[] random = IntStreamEx.of(new Random(1), 1000).toArray();
+        List<Integer> scanLeft = IntStreamEx.of(random).boxed().parallel().scanLeft(0, Integer::sum);
+        assertArrayEquals(random, IntStreamEx.of(scanLeft).parallel().pairMap((a, b) -> (b-a)).toArray());
     }
     
     @Test

@@ -36,6 +36,7 @@ import java.util.function.LongUnaryOperator;
 import java.util.function.ObjLongConsumer;
 import java.util.function.Supplier;
 import java.util.stream.LongStream;
+import java.util.stream.StreamSupport;
 
 /**
  * A {@link LongStream} implementation with additional functionality
@@ -627,6 +628,12 @@ public class LongStreamEx implements LongStream {
     public OptionalLong maxByDouble(LongToDoubleFunction keyExtractor) {
         return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? a
                 : b);
+    }
+
+    public LongStreamEx pairMap(LongBinaryOperator mapper) {
+        return strategy().newLongStreamEx(
+                StreamSupport.longStream(new PairSpliterator.PSOfLong(mapper, stream.spliterator(), 0, false, 0, false),
+                        stream.isParallel()));
     }
 
     public static LongStreamEx empty() {

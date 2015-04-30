@@ -16,9 +16,12 @@
 package javax.util.streamex;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.OptionalInt;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.junit.Test;
@@ -199,5 +202,35 @@ public class IntStreamExTest {
         assertEquals(31, IntStreamEx.of(15, 8, 31, 47, 19, 29).minByInt(x -> x % 10 * 10 + x / 10).getAsInt());
         assertEquals(29, IntStreamEx.of(15, 8, 31, 47, 19, 29).maxByLong(x -> Long.MIN_VALUE + x % 10 * 10 + x / 10).getAsInt());
         assertEquals(31, IntStreamEx.of(15, 8, 31, 47, 19, 29).minByLong(x -> Long.MIN_VALUE + x % 10 * 10 + x / 10).getAsInt());
+    }
+    
+    private IntStreamEx dropLast(IntStreamEx s) {
+        return s.pairMap((a, b) -> a);
+    }
+    
+    @Test
+    public void testPairMap() {
+        assertEquals(0, IntStreamEx.range(0).pairMap(Integer::sum).count());
+        assertEquals(0, IntStreamEx.range(1).pairMap(Integer::sum).count());
+        assertEquals(Collections.singletonMap(1, 9999L),
+                IntStreamEx.range(10000).pairMap((a, b) -> b - a).boxed().groupingBy(Function.identity(), Collectors.counting()));
+        assertEquals(Collections.singletonMap(1, 9999L),
+                IntStreamEx.range(10000).parallel().pairMap((a, b) -> b - a).boxed().groupingBy(Function.identity(), Collectors.counting()));
+        assertEquals("Test Capitalization Stream",
+                IntStreamEx.ofChars("test caPiTaliZation streaM").parallel().prepend(0)
+                        .pairMap((c1, c2) -> !Character.isLetter(c1) && Character.isLetter(c2) ? 
+                                Character.toTitleCase(c2) : Character.toLowerCase(c2)).charsToString());
+        assertArrayEquals(IntStreamEx.range(9999).toArray(), dropLast(IntStreamEx.range(10000)).toArray());
+        
+        int data[] = new Random(1).ints(1000, 1, 1000).toArray();
+        int[] expected = new int[data.length-1];
+        int lastSquare = data[0]*data[0];
+        for(int i=0; i<expected.length; i++) {
+          int newSquare = data[i+1]*data[i+1];
+          expected[i] = newSquare - lastSquare;
+          lastSquare = newSquare;
+        }
+        int[] result = IntStreamEx.of(data).map(x -> x*x).pairMap((a, b) -> b - a).toArray();
+        assertArrayEquals(expected, result);
     }
 }

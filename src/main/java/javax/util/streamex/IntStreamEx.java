@@ -41,6 +41,7 @@ import java.util.function.ObjIntConsumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
+import java.util.stream.StreamSupport;
 
 /**
  * An {@link IntStream} implementation with additional functionality
@@ -770,6 +771,12 @@ public class IntStreamEx implements IntStream {
      */
     public String codePointsToString() {
         return collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append).toString();
+    }
+
+    public IntStreamEx pairMap(IntBinaryOperator mapper) {
+        return strategy().newIntStreamEx(
+                StreamSupport.intStream(new PairSpliterator.PSOfInt(mapper, stream.spliterator(), 0, false, 0, false),
+                        stream.isParallel()));
     }
 
     public static IntStreamEx empty() {

@@ -35,6 +35,7 @@ import java.util.function.DoubleUnaryOperator;
 import java.util.function.ObjDoubleConsumer;
 import java.util.function.Supplier;
 import java.util.stream.DoubleStream;
+import java.util.stream.StreamSupport;
 
 /**
  * A {@link DoubleStream} implementation with additional functionality
@@ -608,6 +609,12 @@ public class DoubleStreamEx implements DoubleStream {
     public OptionalDouble maxByDouble(DoubleUnaryOperator keyExtractor) {
         return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? a
                 : b);
+    }
+
+    public DoubleStreamEx pairMap(DoubleBinaryOperator mapper) {
+        return strategy().newDoubleStreamEx(
+                StreamSupport.doubleStream(new PairSpliterator.PSOfDouble(mapper, stream.spliterator(), 0, false, 0, false),
+                        stream.isParallel()));
     }
 
     public static DoubleStreamEx empty() {
