@@ -1362,4 +1362,9 @@ public class IntStreamEx implements IntStream {
     public static IntStreamEx constant(int value, long length) {
         return new IntStreamEx(IntStream.generate(() -> value).limit(length));
     }
+
+    public static IntStreamEx zip(int[] first, int[] second, IntBinaryOperator mapper) {
+        return AbstractStreamEx.intStreamForLength(first.length, second.length).map(
+                i -> mapper.applyAsInt(first[i], second[i]));
+    }
 }

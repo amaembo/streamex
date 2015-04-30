@@ -60,6 +60,12 @@ import java.util.stream.Stream;
             throw new IllegalStateException(String.format("Duplicate key %s", u));
         };
     }
+    
+    static IntStreamEx intStreamForLength(int a, int b) {
+        if( a != b )
+            throw new IllegalArgumentException("Length differs: "+a + " != " + b);
+        return IntStreamEx.range(0, a);
+    }
 
     static void rangeCheck(int arrayLength, int startInclusive, int endExclusive) {
         if (startInclusive > endExclusive) {

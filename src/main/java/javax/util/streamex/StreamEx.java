@@ -966,4 +966,12 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public static <T> StreamEx<T> constant(T value, long length) {
         return new StreamEx<>(Stream.generate(() -> value).limit(length));
     }
+
+    public static <U, V, T> StreamEx<T> zip(List<U> first, List<V> second, BiFunction<U, V, T> mapper) {
+        return intStreamForLength(first.size(), second.size()).mapToObj(i -> mapper.apply(first.get(i), second.get(i)));
+    }
+
+    public static <U, V, T> StreamEx<T> zip(U[] first, V[] second, BiFunction<U, V, T> mapper) {
+        return zip(Arrays.asList(first), Arrays.asList(second), mapper);
+    }
 }

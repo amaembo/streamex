@@ -36,7 +36,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -612,9 +611,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.1
      */
     public static <K, V> EntryStream<K, V> zip(List<K> keys, List<V> values) {
-        if (keys.size() != values.size())
-            throw new IllegalArgumentException(keys.size() + " != " + values.size());
-        return new EntryStream<>(IntStream.range(0, keys.size()).mapToObj(
+        return of(intStreamForLength(keys.size(), values.size()).mapToObj(
                 i -> new SimpleEntry<>(keys.get(i), values.get(i))));
     }
     

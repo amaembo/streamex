@@ -840,4 +840,9 @@ public class DoubleStreamEx implements DoubleStream {
     public static DoubleStreamEx constant(double value, long length) {
         return new DoubleStreamEx(DoubleStream.generate(() -> value).limit(length));
     }
+
+    public static DoubleStreamEx zip(double[] first, double[] second, DoubleBinaryOperator mapper) {
+        return AbstractStreamEx.intStreamForLength(first.length, second.length).mapToDouble(
+                i -> mapper.applyAsDouble(first[i], second[i]));
+    }
 }
