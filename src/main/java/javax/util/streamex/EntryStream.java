@@ -597,6 +597,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * lists should provide fast random access. The lists are assumed to be
      * unmodifiable during the stream operations.
      * 
+     * @param <K>
+     *            the type of stream element keys
+     * @param <V>
+     *            the type of stream element values
      * @param keys
      *            the list of keys, assumed to be unmodified during use
      * @param values
@@ -617,6 +621,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * Returns a sequential {@code EntryStream} containing {@code Entry} objects
      * composed from corresponding key and value in given two arrays.
      * 
+     * @param <K>
+     *            the type of stream element keys
+     * @param <V>
+     *            the type of stream element values
      * @param keys
      *            the array of keys
      * @param values
