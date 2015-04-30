@@ -156,6 +156,24 @@ import java.util.stream.Stream;
         return strategy().newStreamEx(stream.flatMap(mapper));
     }
 
+    /**
+     * Returns a stream consisting of the results of applying the given function
+     * to the elements of this stream.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param <R>
+     *            The element type of the new stream
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
+     * @return the new stream
+     */
+    @Override
+    public <R> StreamEx<R> map(Function<? super T, ? extends R> mapper) {
+        return strategy().newStreamEx(stream.map(mapper));
+    }
+
     @Override
     public IntStreamEx mapToInt(ToIntFunction<? super T> mapper) {
         return strategy().newIntStreamEx(stream.mapToInt(mapper));

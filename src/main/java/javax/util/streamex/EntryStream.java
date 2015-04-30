@@ -108,24 +108,6 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
 
     /**
      * Returns a stream consisting of the results of applying the given function
-     * to the elements of this stream.
-     *
-     * <p>
-     * This is an intermediate operation.
-     *
-     * @param <R>
-     *            The element type of the new stream
-     * @param mapper
-     *            a non-interfering, stateless function to apply to each element
-     * @return the new stream
-     */
-    @Override
-    public <R> StreamEx<R> map(Function<? super Entry<K, V>, ? extends R> mapper) {
-        return strategy().newStreamEx(stream.map(mapper));
-    }
-
-    /**
-     * Returns a stream consisting of the results of applying the given function
      * to the keys and values of this stream.
      *
      * <p>
