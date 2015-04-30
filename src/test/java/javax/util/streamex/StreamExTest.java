@@ -85,6 +85,11 @@ public class StreamExTest {
     private Reader getReader() {
         return new BufferedReader(new StringReader("a\nb"));
     }
+    
+    @Test(expected=IllegalArgumentException.class)
+    public void testZipThrows() {
+        StreamEx.zip(Arrays.asList("A"), Arrays.asList("b", "c"), String::concat);
+    }
 
     @Test
     public void testBasics() {
