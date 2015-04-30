@@ -6,6 +6,7 @@
 * Added IntStreamEx.charsToString, IntStreamEx.codePointsToString methods
 * Added StreamEx.scanLeft() and EntryStream.scanLeft() methods
 * Added construction of EntryStream by zipping keys and values from two arrays/lists
+* Added construction of StreamEx/IntStreamEx/LongStreamEx/DoubleStreamEx by zip-mapping two arrays/lists
 * Added pairMap method for handling adjacent pairs
 * The append/prepend methods of StreamEx/EntryStream can accept a Collection now 
 * Updated documentation
