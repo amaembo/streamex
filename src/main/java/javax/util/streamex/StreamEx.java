@@ -68,6 +68,16 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return strategy().newStreamEx(stream);
     }
 
+    /**
+     * Returns an equivalent stream that is sequential. May return itself,
+     * either because the stream was already sequential, or because the
+     * underlying stream state was modified to be sequential.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @return a sequential stream
+     */
     @Override
     public StreamEx<T> sequential() {
         return StreamFactory.DEFAULT.newStreamEx(stream.sequential());
@@ -135,34 +145,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
-     * Returns a stream consisting of the results of replacing each element of
-     * this stream with the contents of a mapped stream produced by applying the
-     * provided mapping function to each element. Each mapped stream is
-     * {@link java.util.stream.BaseStream#close() closed} after its contents
-     * have been placed into this stream. (If a mapped stream is {@code null} an
-     * empty stream is used, instead.)
-     *
-     * <p>
-     * This is an intermediate operation.
-     *
-     * <p>
-     * The {@code flatMap()} operation has the effect of applying a one-to-many
-     * transformation to the elements of the stream, and then flattening the
-     * resulting elements into a new stream.
-     *
-     * @param <R>
-     *            The element type of the new stream
-     * @param mapper
-     *            a non-interfering, stateless function to apply to each element
-     *            which produces a stream of new values
-     * @return the new stream
-     */
-    @Override
-    public <R> StreamEx<R> flatMap(Function<? super T, ? extends Stream<? extends R>> mapper) {
-        return strategy().newStreamEx(stream.flatMap(mapper));
-    }
-
-    /**
      * Returns a stream consisting of the elements of this stream which are
      * instances of given class.
      *
@@ -218,10 +200,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public <K, V> EntryStream<K, V> mapToEntry(Function<T, K> keyMapper, Function<T, V> valueMapper) {
         return strategy().newEntryStream(stream.map(e -> new SimpleEntry<>(keyMapper.apply(e), valueMapper.apply(e))));
-    }
-
-    public <R> StreamEx<R> flatCollection(Function<? super T, ? extends Collection<? extends R>> mapper) {
-        return flatMap(mapper.andThen(Collection::stream));
     }
 
     public <K, V> EntryStream<K, V> flatMapToEntry(Function<? super T, Map<K, V>> mapper) {

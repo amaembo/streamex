@@ -182,6 +182,14 @@ public class EntryStreamTest {
         assertEquals(createMap(), sortedMap);
         assertTrue(sortedMap instanceof ConcurrentMap);
     }
+    
+    @Test
+    public void testFlatMap() {
+        assertEquals(Arrays.asList((int)'a', (int)'b', (int)'b', (int)'c', (int)'c', (int)'c'),
+                EntryStream.of(createMap()).flatMap(entry -> entry.getKey().chars().boxed()).toList());
+        assertEquals(Arrays.asList("a", "b", "b", "c", "c", "c"),
+                EntryStream.of(createMap()).flatCollection(entry -> Arrays.asList(entry.getKey().split(""))).toList());
+    }
 
     @Test
     public void testFlatMapValues() {

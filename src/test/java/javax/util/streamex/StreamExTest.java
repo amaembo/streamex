@@ -256,6 +256,7 @@ public class StreamExTest {
         Map<Integer, List<String>> data = new LinkedHashMap<>();
         data.put(1, Arrays.asList("a", "b"));
         data.put(2, Arrays.asList("c", "d"));
+        data.put(3, null);
         assertEquals(Arrays.asList("a", "b", "c", "d"), StreamEx.of(data.entrySet()).flatCollection(Entry::getValue)
                 .toList());
     }

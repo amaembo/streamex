@@ -142,11 +142,6 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return map(entry -> mapper.apply(entry.getKey(), entry.getValue()));
     }
 
-    @Override
-    public <R> StreamEx<R> flatMap(Function<? super Entry<K, V>, ? extends Stream<? extends R>> mapper) {
-        return strategy().newStreamEx(stream.flatMap(mapper));
-    }
-
     public <KK> EntryStream<KK, V> flatMapKeys(Function<? super K, ? extends Stream<? extends KK>> mapper) {
         return strategy().newEntryStream(
                 stream.flatMap(e -> mapper.apply(e.getKey()).map(k -> new SimpleEntry<KK, V>(k, e.getValue()))));
@@ -155,10 +150,6 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     public <VV> EntryStream<K, VV> flatMapValues(Function<? super V, ? extends Stream<? extends VV>> mapper) {
         return strategy().newEntryStream(
                 stream.flatMap(e -> mapper.apply(e.getValue()).map(v -> new SimpleEntry<>(e.getKey(), v))));
-    }
-
-    public <R> StreamEx<R> flatCollection(Function<? super Entry<K, V>, ? extends Collection<? extends R>> mapper) {
-        return flatMap(mapper.andThen(Collection::stream));
     }
 
     /**

@@ -128,6 +128,34 @@ import java.util.stream.Stream;
         return supply(stream.filter(predicate));
     }
 
+    /**
+     * Returns a stream consisting of the results of replacing each element of
+     * this stream with the contents of a mapped stream produced by applying the
+     * provided mapping function to each element. Each mapped stream is
+     * {@link java.util.stream.BaseStream#close() closed} after its contents
+     * have been placed into this stream. (If a mapped stream is {@code null} an
+     * empty stream is used, instead.)
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * <p>
+     * The {@code flatMap()} operation has the effect of applying a one-to-many
+     * transformation to the elements of the stream, and then flattening the
+     * resulting elements into a new stream.
+     *
+     * @param <R>
+     *            The element type of the new stream
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
+     *            which produces a stream of new values
+     * @return the new stream
+     */
+    @Override
+    public <R> StreamEx<R> flatMap(Function<? super T, ? extends Stream<? extends R>> mapper) {
+        return strategy().newStreamEx(stream.flatMap(mapper));
+    }
+
     @Override
     public IntStreamEx mapToInt(ToIntFunction<? super T> mapper) {
         return strategy().newIntStreamEx(stream.mapToInt(mapper));
@@ -286,6 +314,34 @@ import java.util.stream.Stream;
     @Override
     public Optional<T> findAny() {
         return stream.findAny();
+    }
+
+    /**
+     * Returns a stream consisting of the results of replacing each element of
+     * this stream with the contents of a mapped collection produced by applying
+     * the provided mapping function to each element. (If a mapped collection is
+     * {@code null} nothing is added for given element to the resulting stream.)
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * <p>
+     * The {@code flatCollection()} operation has the effect of applying a one-to-many
+     * transformation to the elements of the stream, and then flattening the
+     * resulting elements into a new stream.
+     *
+     * @param <R>
+     *            The element type of the new stream
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
+     *            which produces a {@link Collection} of new values
+     * @return the new stream
+     */
+    public <R> StreamEx<R> flatCollection(Function<? super T, ? extends Collection<? extends R>> mapper) {
+        return flatMap(t -> {
+            Collection<? extends R> c = mapper.apply(t);
+            return c == null ? null : c.stream();
+        });
     }
 
     /**
