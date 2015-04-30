@@ -39,7 +39,13 @@ import java.util.stream.Stream;
 
 /**
  * A {@link Stream} of {@link Map.Entry} objects which provides additional
- * specific functionality
+ * specific functionality.
+ * 
+ * <p>
+ * While {@code EntryStream} implements {@code Iterable}, it is not a
+ * general-purpose {@code Iterable} as it supports only a single
+ * {@code Iterator}; invoking the {@link #iterator iterator} method to obtain a
+ * second or subsequent iterator throws {@code IllegalStateException}.
  * 
  * @author Tagir Valeev
  *

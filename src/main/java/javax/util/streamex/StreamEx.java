@@ -51,8 +51,14 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 /**
- * A {@link Stream} implementation with additional functionality
+ * A {@link Stream} implementation with additional functionality.
  * 
+ * <p>
+ * While {@code StreamEx} implements {@code Iterable}, it is not a
+ * general-purpose {@code Iterable} as it supports only a single
+ * {@code Iterator}; invoking the {@link #iterator iterator} method to obtain a
+ * second or subsequent iterator throws {@code IllegalStateException}.
+ *
  * @author Tagir Valeev
  *
  * @param <T>
