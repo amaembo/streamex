@@ -365,4 +365,12 @@ public class StreamExTest {
                 StreamEx.of("a", "bb", "ccc").parallel()
                         .foldLeft(Collections.emptyMap(), (acc, v) -> Collections.singletonMap(v, acc)).toString());
     }
+    
+    @Test
+    public void testScanLeft() {
+        assertEquals(Arrays.asList(0, 1, 3, 6, 10), IntStreamEx.rangeClosed(1, 4).boxed().scanLeft(0, Integer::sum));
+        assertEquals(Arrays.asList(0, 1, 3, 6, 10), IntStreamEx.rangeClosed(1, 4).boxed().parallel().scanLeft(0, Integer::sum));
+        assertEquals(167167000, IntStreamEx.rangeClosed(1, 1000).boxed().parallel().scanLeft(0, Integer::sum).stream()
+                .mapToLong(x -> x).sum());
+    }
 }
