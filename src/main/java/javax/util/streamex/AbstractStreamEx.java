@@ -15,6 +15,7 @@
  */
 package javax.util.streamex;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -23,7 +24,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Spliterator;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
@@ -63,8 +63,8 @@ import java.util.stream.Stream;
 
     static void rangeCheck(int arrayLength, int startInclusive, int endExclusive) {
         if (startInclusive > endExclusive) {
-            throw new ArrayIndexOutOfBoundsException("startInclusive(" + startInclusive + ") > endExclusive(" + endExclusive
-                    + ")");
+            throw new ArrayIndexOutOfBoundsException("startInclusive(" + startInclusive + ") > endExclusive("
+                    + endExclusive + ")");
         }
         if (startInclusive < 0) {
             throw new ArrayIndexOutOfBoundsException(startInclusive);
@@ -540,9 +540,50 @@ import java.util.stream.Stream;
      * @see #reduce(Object, BiFunction, BinaryOperator)
      * @since 0.2.0
      */
+    @SuppressWarnings("unchecked")
     public <U> U foldLeft(U identity, BiFunction<U, ? super T, U> accumulator) {
-        AtomicReference<U> result = new AtomicReference<>(identity);
-        forEachOrdered(t -> result.set(accumulator.apply(result.get(), t)));
-        return result.get();
+        Object[] result = new Object[] { identity };
+        forEachOrdered(t -> result[0] = accumulator.apply((U) result[0], t));
+        return (U) result[0];
+    }
+
+    /**
+     * Produces a collection containing cumulative results of applying the
+     * accumulation function going left to right.
+     * 
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * The result {@link List} is guaranteed to be mutable.
+     * 
+     * <p>
+     * For parallel stream it's not guaranteed that accumulator will always be
+     * executed in the same thread.
+     * 
+     * <p>
+     * This method cannot take all the advantages of parallel streams as it must
+     * process elements strictly left to right.
+     *
+     * @param <U>
+     *            The type of the result
+     * @param identity
+     *            the identity value
+     * @param accumulator
+     *            a non-interfering, stateless function for incorporating an
+     *            additional element into a result
+     * @return the {@code List} where the first element is the identity and
+     *         every successor element is the result of applying accumulator
+     *         function to the previous list element and the corresponding
+     *         stream element. The resulting list is one element longer than
+     *         this stream.
+     * @see #foldLeft(Object, BiFunction)
+     * @since 0.2.1
+     */
+    public <U> List<U> scanLeft(U identity, BiFunction<U, ? super T, U> accumulator) {
+        List<U> result = new ArrayList<>();
+        result.add(identity);
+        forEachOrdered(t -> result.add(accumulator.apply(result.get(result.size() - 1), t)));
+        return result;
     }
 }

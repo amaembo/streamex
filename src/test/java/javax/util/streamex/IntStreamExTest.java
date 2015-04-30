@@ -183,6 +183,12 @@ public class IntStreamExTest {
         assertArrayEquals(new int[] { Integer.MAX_VALUE, 1000, 1, 0, -10, Integer.MIN_VALUE },
                 IntStreamEx.of(0, 1, 1000, -10, Integer.MIN_VALUE, Integer.MAX_VALUE).reverseSorted().toArray());
     }
+    
+    @Test
+    public void testToString() {
+        assertEquals("LOWERCASE", IntStreamEx.ofChars("lowercase").map(c -> Character.toUpperCase((char)c)).charsToString());
+        assertEquals("LOWERCASE", IntStreamEx.ofCodePoints("lowercase").map(Character::toUpperCase).codePointsToString());
+    }
 
     @Test
     public void testMinMax() {

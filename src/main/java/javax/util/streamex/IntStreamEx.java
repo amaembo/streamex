@@ -743,11 +743,32 @@ public class IntStreamEx implements IntStream {
     public BitSet toBitSet() {
         return collect(BitSet::new, BitSet::set, BitSet::or);
     }
-    
+
+    /**
+     * Returns a {@link String} consisting of chars from this stream.
+     * 
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * During string creation stream elements are casted to char.   
+     * 
+     * @return a new {@code String}
+     * @since 0.2.1
+     */
     public String charsToString() {
         return collect(StringBuilder::new, (sb, c) -> sb.append((char) c), StringBuilder::append).toString();
     }
     
+    /**
+     * Returns a {@link String} consisting of code points from this stream.
+     * 
+     * <p>
+     * This is a terminal operation.
+     * 
+     * @return a new {@code String}
+     * @since 0.2.1
+     */
     public String codePointsToString() {
         return collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append).toString();
     }

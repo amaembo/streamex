@@ -3,6 +3,7 @@
 ### 0.2.1-SNAPSHOT
 
 * Added IntStreamEx.charsToString, IntStreamEx.codePointsToString methods
+* Added StreamEx.scanLeft() and EntryStream.scanLeft() methods
 * The append/prepend methods of StreamEx/EntryStream can accept a Collection now 
 
 ### 0.2.0
