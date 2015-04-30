@@ -244,6 +244,14 @@ public class LongStreamEx implements LongStream {
         return reduce(Long::max);
     }
 
+    /**
+     * Returns the count of elements in this stream.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @return the count of elements in this stream
+     */
     @Override
     public long count() {
         return stream.count();
@@ -632,7 +640,8 @@ public class LongStreamEx implements LongStream {
 
     public LongStreamEx pairMap(LongBinaryOperator mapper) {
         return strategy().newLongStreamEx(
-                StreamSupport.longStream(new PairSpliterator.PSOfLong(mapper, stream.spliterator(), 0, false, 0, false),
+                StreamSupport.longStream(
+                        new PairSpliterator.PSOfLong(mapper, stream.spliterator(), 0, false, 0, false),
                         stream.isParallel()));
     }
 

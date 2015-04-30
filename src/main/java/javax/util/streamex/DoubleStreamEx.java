@@ -244,6 +244,14 @@ public class DoubleStreamEx implements DoubleStream {
         return reduce(Math::max);
     }
 
+    /**
+     * Returns the count of elements in this stream.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @return the count of elements in this stream
+     */
     @Override
     public long count() {
         return stream.count();
@@ -613,8 +621,8 @@ public class DoubleStreamEx implements DoubleStream {
 
     public DoubleStreamEx pairMap(DoubleBinaryOperator mapper) {
         return strategy().newDoubleStreamEx(
-                StreamSupport.doubleStream(new PairSpliterator.PSOfDouble(mapper, stream.spliterator(), 0, false, 0, false),
-                        stream.isParallel()));
+                StreamSupport.doubleStream(new PairSpliterator.PSOfDouble(mapper, stream.spliterator(), 0, false, 0,
+                        false), stream.isParallel()));
     }
 
     public static DoubleStreamEx empty() {
@@ -680,8 +688,8 @@ public class DoubleStreamEx implements DoubleStream {
     }
 
     /**
-     * Returns a sequential {@link DoubleStreamEx} with the specified range of the
-     * specified array as its source. Array values will be casted to double.
+     * Returns a sequential {@link DoubleStreamEx} with the specified range of
+     * the specified array as its source. Array values will be casted to double.
      *
      * @param array
      *            the array, assumed to be unmodified during use

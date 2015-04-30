@@ -304,6 +304,14 @@ import java.util.stream.Stream;
         return reduce(BinaryOperator.maxBy(comparator));
     }
 
+    /**
+     * Returns the count of elements in this stream.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @return the count of elements in this stream
+     */
     @Override
     public long count() {
         return stream.count();

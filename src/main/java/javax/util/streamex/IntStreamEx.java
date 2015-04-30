@@ -249,6 +249,14 @@ public class IntStreamEx implements IntStream {
         return reduce(Integer::max);
     }
 
+    /**
+     * Returns the count of elements in this stream.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @return the count of elements in this stream
+     */
     @Override
     public long count() {
         return stream.count();
@@ -751,7 +759,7 @@ public class IntStreamEx implements IntStream {
      * This is a terminal operation.
      * 
      * <p>
-     * During string creation stream elements are casted to char.   
+     * During string creation stream elements are casted to char.
      * 
      * @return a new {@code String}
      * @since 0.2.1
@@ -759,7 +767,7 @@ public class IntStreamEx implements IntStream {
     public String charsToString() {
         return collect(StringBuilder::new, (sb, c) -> sb.append((char) c), StringBuilder::append).toString();
     }
-    
+
     /**
      * Returns a {@link String} consisting of code points from this stream.
      * 
