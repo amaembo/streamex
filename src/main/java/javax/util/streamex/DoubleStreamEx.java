@@ -619,6 +619,23 @@ public class DoubleStreamEx implements DoubleStream {
                 : b);
     }
 
+    /**
+     * Returns a stream consisting of the results of applying the given function
+     * to the every adjacent pair of elements of this stream.
+     *
+     * <p>
+     * This is an intermediate operation.
+     * 
+     * <p>
+     * The output stream will contain one element less than this stream. If this
+     * stream contains zero or one element the output stream will be empty.
+     *
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each
+     *            adjacent pair of this stream elements.
+     * @return the new stream
+     * @since 0.2.1
+     */
     public DoubleStreamEx pairMap(DoubleBinaryOperator mapper) {
         return strategy().newDoubleStreamEx(
                 StreamSupport.doubleStream(new PairSpliterator.PSOfDouble(mapper, stream.spliterator(), 0, false, 0,

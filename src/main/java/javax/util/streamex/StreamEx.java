@@ -619,10 +619,29 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return sorted((Comparator<? super T>) Comparator.reverseOrder());
     }
 
+    /**
+     * Returns a stream consisting of the results of applying the given function
+     * to the every adjacent pair of elements of this stream.
+     *
+     * <p>
+     * This is an intermediate operation.
+     * 
+     * <p>
+     * The output stream will contain one element less than this stream. If this
+     * stream contains zero or one element the output stream will be empty.
+     *
+     * @param <R>
+     *            The element type of the new stream
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each
+     *            adjacent pair of this stream elements.
+     * @return the new stream
+     * @since 0.2.1
+     */
     public <R> StreamEx<R> pairMap(BiFunction<T, T, R> mapper) {
         return strategy().newStreamEx(
-                StreamSupport.stream(new PairSpliterator.PSOfRef<>(mapper, stream.spliterator(), null, false, null, false),
-                        stream.isParallel()));
+                StreamSupport.stream(new PairSpliterator.PSOfRef<>(mapper, stream.spliterator(), null, false, null,
+                        false), stream.isParallel()));
     }
 
     /**
