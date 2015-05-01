@@ -69,6 +69,11 @@ public Map<String, List<User>> getGroupMembers(Collection<String> groupNames) {
 
 And more!
 
+### JavaDoc
+
+API documentation is available [here](http://amaembo.github.io/streamex/javadoc/). Currently it's incomplete, so
+pull requests with documentation updates are appreciated. 
+
 ### License
 
 This project is licensed under [Apache License, version 2.0](https://www.apache.org/licenses/LICENSE-2.0)
