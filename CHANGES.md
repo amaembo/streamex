@@ -1,6 +1,6 @@
 # StreamEx changes
 
-### 0.2.1-SNAPSHOT
+### 0.2.1
 
 * Fixed: flatCollection method now correctly handles null value returned by mapper
 * Added IntStreamEx.charsToString, IntStreamEx.codePointsToString methods
