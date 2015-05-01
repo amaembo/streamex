@@ -634,6 +634,15 @@ import java.util.stream.Stream;
         forEachOrdered(t -> result[0] = accumulator.apply((U) result[0], t));
         return (U) result[0];
     }
+    
+    public <U> U foldRight(U identity, BiFunction<? super T, U, U> accumulator) {
+        return collect(Collectors.collectingAndThen(Collectors.toList(), list -> {
+            U result = identity;
+            for(int i = list.size()-1; i>=0; i--)
+                result = accumulator.apply(list.get(i), result);
+            return result;
+        }));
+    }
 
     /**
      * Produces a collection containing cumulative results of applying the
@@ -673,5 +682,18 @@ import java.util.stream.Stream;
         result.add(identity);
         forEachOrdered(t -> result.add(accumulator.apply(result.get(result.size() - 1), t)));
         return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <U> List<U> scanRight(U identity, BiFunction<? super T, U, U> accumulator) {
+        return collect(Collectors.collectingAndThen(Collectors.toList(), list -> {
+            // Reusing the list for different object type as it will save memory
+            List<U> result = (List<U>)list;
+            result.add(identity);
+            for(int i = result.size()-2; i>=0; i--) {
+                result.set(i, accumulator.apply((T) result.get(i), result.get(i+1)));
+            }
+            return result;
+        }));
     }
 }

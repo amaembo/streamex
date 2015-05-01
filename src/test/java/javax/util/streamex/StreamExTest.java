@@ -380,6 +380,19 @@ public class StreamExTest {
                         .foldLeft(Collections.emptyMap(), (acc, v) -> Collections.singletonMap(v, acc)).toString());
     }
     
+    @Test
+    public void testFoldRight() {
+        assertEquals(";c;b;a", StreamEx.of("a", "b", "c").parallel().foldRight("", (u,v) -> v+";"+u));
+        assertEquals(
+                "{a={bb={ccc={}}}}",
+                StreamEx.of("a", "bb", "ccc")
+                        .foldRight(Collections.emptyMap(), (v, acc) -> Collections.singletonMap(v, acc)).toString());
+        assertEquals(
+                "{a={bb={ccc={}}}}",
+                StreamEx.of("a", "bb", "ccc").parallel()
+                        .foldRight(Collections.emptyMap(), (v, acc) -> Collections.singletonMap(v, acc)).toString());
+    }
+    
     private <T extends Comparable<? super T>> boolean isSorted(Collection<T> c) {
         return StreamEx.of(c).parallel().pairMap(Comparable::compareTo).allMatch(r -> r <= 0);
     }
@@ -429,6 +442,14 @@ public class StreamExTest {
         assertEquals(Arrays.asList(0, 1, 3, 6, 10), IntStreamEx.rangeClosed(1, 4).boxed().scanLeft(0, Integer::sum));
         assertEquals(Arrays.asList(0, 1, 3, 6, 10), IntStreamEx.rangeClosed(1, 4).boxed().parallel().scanLeft(0, Integer::sum));
         assertEquals(167167000, IntStreamEx.rangeClosed(1, 1000).boxed().parallel().scanLeft(0, Integer::sum).stream()
+                .mapToLong(x -> x).sum());
+    }
+    
+    @Test
+    public void testScanRight() {
+        assertEquals(Arrays.asList(10, 9, 7, 4, 0), IntStreamEx.rangeClosed(1, 4).boxed().scanRight(0, Integer::sum));
+        assertEquals(Arrays.asList(10, 9, 7, 4, 0), IntStreamEx.rangeClosed(1, 4).boxed().parallel().scanRight(0, Integer::sum));
+        assertEquals(333833500, IntStreamEx.rangeClosed(1, 1000).boxed().parallel().scanRight(0, Integer::sum).stream()
                 .mapToLong(x -> x).sum());
     }
 }
