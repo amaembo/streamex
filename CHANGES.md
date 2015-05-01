@@ -1,5 +1,9 @@
 # StreamEx changes
 
+### 0.2.2-SNAPSHOT
+
+* Fixed: StreamEx.flatMapToEntry, EntryStream.flatMapKeys and EntryStream.flatMapValues now correctly handles null value returned by mapper 
+
 ### 0.2.1
 
 * Fixed: flatCollection method now correctly handles null value returned by mapper

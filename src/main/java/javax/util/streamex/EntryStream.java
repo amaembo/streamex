@@ -133,12 +133,18 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
 
     public <KK> EntryStream<KK, V> flatMapKeys(Function<? super K, ? extends Stream<? extends KK>> mapper) {
         return strategy().newEntryStream(
-                stream.flatMap(e -> mapper.apply(e.getKey()).map(k -> new SimpleEntry<KK, V>(k, e.getValue()))));
+                stream.flatMap(e -> {
+                    Stream<? extends KK> s = mapper.apply(e.getKey());
+                    return s == null ? null : s.map(k -> new SimpleEntry<KK, V>(k, e.getValue()));
+                }));
     }
 
     public <VV> EntryStream<K, VV> flatMapValues(Function<? super V, ? extends Stream<? extends VV>> mapper) {
         return strategy().newEntryStream(
-                stream.flatMap(e -> mapper.apply(e.getValue()).map(v -> new SimpleEntry<>(e.getKey(), v))));
+                stream.flatMap(e -> {
+                    Stream<? extends VV> s = mapper.apply(e.getValue());
+                    return s == null ? null : s.map(v -> new SimpleEntry<>(e.getKey(), v));
+                }));
     }
 
     /**

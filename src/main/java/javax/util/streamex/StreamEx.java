@@ -192,7 +192,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     public <K, V> EntryStream<K, V> flatMapToEntry(Function<? super T, Map<K, V>> mapper) {
-        return strategy().newEntryStream(stream.flatMap(e -> mapper.apply(e).entrySet().stream()));
+        return strategy().newEntryStream(stream.flatMap(e -> {
+            Map<K, V> s = mapper.apply(e);
+            return s == null ? null : s.entrySet().stream();
+        }));
     }
 
     /**

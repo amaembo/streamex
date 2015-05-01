@@ -31,6 +31,7 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.regex.Pattern;
+
 import org.junit.Test;
 
 public class EntryStreamTest {
@@ -191,6 +192,20 @@ public class EntryStreamTest {
         assertEquals(Arrays.asList("a", "b", "b", "c", "c", "c"),
                 EntryStream.of(createMap()).flatCollection(entry -> Arrays.asList(entry.getKey().split(""))).toList());
     }
+    
+    @Test
+    public void testFlatMapKeys() {
+        Map<String, List<Integer>> data = new HashMap<>();
+        data.put("aaa", Arrays.asList(1, 2, 3));
+        data.put("bb", Arrays.asList(2, 3, 4));
+        Map<Integer, List<String>> result = EntryStream.of(data).invert().flatMapKeys(List::stream).grouping();
+        Map<Integer, List<String>> expected = new HashMap<>();
+        expected.put(1, Arrays.asList("aaa"));
+        expected.put(2, Arrays.asList("aaa", "bb"));
+        expected.put(3, Arrays.asList("aaa", "bb"));
+        expected.put(4, Arrays.asList("bb"));
+        assertEquals(expected, result);
+    }
 
     @Test
     public void testFlatMapValues() {
@@ -200,8 +215,9 @@ public class EntryStreamTest {
         Map<String, List<Integer>> data2 = new HashMap<>();
         data2.put("aaa", Arrays.asList(10));
         data2.put("bb", Arrays.asList(20));
-        Map<String, List<Integer>> result = StreamEx.of(data1, data2).flatMapToEntry(m -> m)
-                .flatMapValues(List::stream).grouping();
+        data2.put("cc", null);
+        Map<String, List<Integer>> result = StreamEx.of(data1, data2, null).flatMapToEntry(m -> m)
+                .flatMapValues(l -> l == null ? null : l.stream()).grouping();
         Map<String, List<Integer>> expected = new HashMap<>();
         expected.put("aaa", Arrays.asList(1, 2, 3, 10));
         expected.put("bb", Arrays.asList(4, 5, 6, 20));
