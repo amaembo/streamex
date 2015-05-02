@@ -35,6 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ForkJoinPool;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
@@ -645,6 +646,13 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return strategy().newStreamEx(
                 StreamSupport.stream(new PairSpliterator.PSOfRef<>(mapper, stream.spliterator(), null, false, null,
                         false), stream.isParallel()).onClose(stream::close));
+    }
+    
+    public void forPairs(BiConsumer<T, T> consumer) {
+        pairMap((a, b) -> {
+            consumer.accept(a, b);
+            return null;
+        }).reduce(null, (a, b) -> null);
     }
 
     /**

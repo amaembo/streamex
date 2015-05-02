@@ -458,6 +458,34 @@ public class StreamExTest {
         assertEquals(0.4, interpolate(points, 100.6), 0.000001);
     }
     
+    static class Node {
+        Node parent;
+        String name;
+        
+        public Node(String name) {
+            this.name = name;
+        }
+        
+        public void link(Node parent) {
+            this.parent = parent;
+        }
+        
+        @Override
+        public String toString() {
+            return parent == null ? name : parent+":"+name;
+        }
+    }
+    
+    @Test
+    public void testForPairs() {
+        List<Node> nodes = StreamEx.of("one", "two", "three", "four").map(Node::new).toList();
+        StreamEx.of(nodes).forPairs(Node::link);
+        assertEquals("four:three:two:one", nodes.get(0).toString());
+        nodes = StreamEx.of("one", "two", "three", "four").map(Node::new).toList();
+        StreamEx.of(nodes).parallel().forPairs(Node::link);
+        assertEquals("four:three:two:one", nodes.get(0).toString());
+    }
+    
     @Test
     public void testScanLeft() {
         assertEquals(Arrays.asList(0, 1, 3, 6, 10), IntStreamEx.rangeClosed(1, 4).boxed().scanLeft(0, Integer::sum));
