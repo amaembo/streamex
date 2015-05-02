@@ -60,10 +60,10 @@ import java.util.stream.Stream;
             throw new IllegalStateException(String.format("Duplicate key %s", u));
         };
     }
-    
+
     static IntStreamEx intStreamForLength(int a, int b) {
-        if( a != b )
-            throw new IllegalArgumentException("Length differs: "+a + " != " + b);
+        if (a != b)
+            throw new IllegalArgumentException("Length differs: " + a + " != " + b);
         return IntStreamEx.range(0, a);
     }
 
@@ -358,9 +358,9 @@ import java.util.stream.Stream;
      * This is an intermediate operation.
      *
      * <p>
-     * The {@code flatCollection()} operation has the effect of applying a one-to-many
-     * transformation to the elements of the stream, and then flattening the
-     * resulting elements into a new stream.
+     * The {@code flatCollection()} operation has the effect of applying a
+     * one-to-many transformation to the elements of the stream, and then
+     * flattening the resulting elements into a new stream.
      *
      * @param <R>
      *            The element type of the new stream
@@ -624,6 +624,7 @@ import java.util.stream.Stream;
      *            a non-interfering, stateless function for incorporating an
      *            additional element into a result
      * @return the result of the folding
+     * @see #foldRight(Object, BiFunction)
      * @see #reduce(Object, BinaryOperator)
      * @see #reduce(Object, BiFunction, BinaryOperator)
      * @since 0.2.0
@@ -634,11 +635,43 @@ import java.util.stream.Stream;
         forEachOrdered(t -> result[0] = accumulator.apply((U) result[0], t));
         return (U) result[0];
     }
-    
+
+    /**
+     * Folds the elements of this stream using the provided identity object and
+     * accumulation function, going right to left.
+     * 
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * As this method must process elements strictly right to left, it cannot
+     * start processing till all the previous stream stages complete. Also it
+     * requires intermediate memory to store the whole content of the stream as
+     * the stream natural order is left to right. If your accumulator function
+     * is associative and you can provide a combiner function, consider using
+     * {@link #reduce(Object, BiFunction, BinaryOperator)} method.
+     * 
+     * <p>
+     * For parallel stream it's not guaranteed that accumulator will always be
+     * executed in the same thread.
+     *
+     * @param <U>
+     *            The type of the result
+     * @param identity
+     *            the identity value
+     * @param accumulator
+     *            a non-interfering, stateless function for incorporating an
+     *            additional element into a result
+     * @return the result of the folding
+     * @see #foldLeft(Object, BiFunction)
+     * @see #reduce(Object, BinaryOperator)
+     * @see #reduce(Object, BiFunction, BinaryOperator)
+     * @since 0.2.2
+     */
     public <U> U foldRight(U identity, BiFunction<? super T, U, U> accumulator) {
         return collect(Collectors.collectingAndThen(Collectors.toList(), list -> {
             U result = identity;
-            for(int i = list.size()-1; i>=0; i--)
+            for (int i = list.size() - 1; i >= 0; i--)
                 result = accumulator.apply(list.get(i), result);
             return result;
         }));
@@ -675,6 +708,7 @@ import java.util.stream.Stream;
      *         stream element. The resulting list is one element longer than
      *         this stream.
      * @see #foldLeft(Object, BiFunction)
+     * @see #scanRight(Object, BiFunction)
      * @since 0.2.1
      */
     public <U> List<U> scanLeft(U identity, BiFunction<U, ? super T, U> accumulator) {
@@ -684,16 +718,50 @@ import java.util.stream.Stream;
         return result;
     }
 
+    /**
+     * Produces a collection containing cumulative results of applying the
+     * accumulation function going right to left.
+     * 
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * The result {@link List} is guaranteed to be mutable.
+     * 
+     * <p>
+     * For parallel stream it's not guaranteed that accumulator will always be
+     * executed in the same thread.
+     * 
+     * <p>
+     * This method cannot take all the advantages of parallel streams as it must
+     * process elements strictly right to left.
+     *
+     * @param <U>
+     *            The type of the result
+     * @param identity
+     *            the identity value
+     * @param accumulator
+     *            a non-interfering, stateless function for incorporating an
+     *            additional element into a result
+     * @return the {@code List} where the last element is the identity and every
+     *         predecessor element is the result of applying accumulator
+     *         function to the corresponding stream element and the next list
+     *         element. The resulting list is one element longer than this
+     *         stream.
+     * @see #scanLeft(Object, BiFunction)
+     * @see #foldRight(Object, BiFunction)
+     * @since 0.2.2
+     */
     @SuppressWarnings("unchecked")
     public <U> List<U> scanRight(U identity, BiFunction<? super T, U, U> accumulator) {
         return collect(Collectors.collectingAndThen(Collectors.toList(), list -> {
-            // Reusing the list for different object type as it will save memory
-            List<U> result = (List<U>)list;
-            result.add(identity);
-            for(int i = result.size()-2; i>=0; i--) {
-                result.set(i, accumulator.apply((T) result.get(i), result.get(i+1)));
-            }
-            return result;
-        }));
+                // Reusing the list for different object type as it will save memory
+                List<U> result = (List<U>) list;
+                result.add(identity);
+                for (int i = result.size() - 2; i >= 0; i--) {
+                    result.set(i, accumulator.apply((T) result.get(i), result.get(i + 1)));
+                }
+                return result;
+            }));
     }
 }
