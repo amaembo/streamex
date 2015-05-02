@@ -401,6 +401,22 @@ public class StreamExTest {
         return StreamEx.of(c).parallel().pairMap((a, b) -> a.compareTo(b) > 0 ? a : null).nonNull().findFirst();
     }
     
+    static class Point {
+        double x, y;
+        
+        Point(double x, double y) {
+            this.x = x;
+            this.y = y;
+        }
+    }
+    
+    private double interpolate(Point[] points, double x) {
+        return StreamEx.of(points)
+                .parallel()
+                .pairMap((p1, p2) -> p1.x <= x && p2.x >= x ? (x - p1.x) / (p2.x - p1.x) * (p2.y - p1.y) + p1.y : null)
+                .nonNull().findAny().orElse(Double.NaN);
+    }
+    
     @Test
     public void testPairMap() {
         assertEquals(0, StreamEx.<String>empty().pairMap(String::concat).count());
@@ -435,6 +451,11 @@ public class StreamExTest {
         int[] random = IntStreamEx.of(new Random(1), 1000).toArray();
         List<Integer> scanLeft = IntStreamEx.of(random).boxed().parallel().scanLeft(0, Integer::sum);
         assertArrayEquals(random, IntStreamEx.of(scanLeft).parallel().pairMap((a, b) -> (b-a)).toArray());
+        Point[] points = IntStreamEx.range(1000).mapToObj(i -> new Point(i, i % 2 == 0 ? 1 : 0)).toArray(Point[]::new);
+        assertEquals(1, interpolate(points, 10), 0.0);
+        assertEquals(0, interpolate(points, 999), 0.0);
+        assertTrue(Double.isNaN(interpolate(points, -10)));
+        assertEquals(0.4, interpolate(points, 100.6), 0.000001);
     }
     
     @Test
