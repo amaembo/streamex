@@ -132,19 +132,17 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     }
 
     public <KK> EntryStream<KK, V> flatMapKeys(Function<? super K, ? extends Stream<? extends KK>> mapper) {
-        return strategy().newEntryStream(
-                stream.flatMap(e -> {
-                    Stream<? extends KK> s = mapper.apply(e.getKey());
-                    return s == null ? null : s.map(k -> new SimpleEntry<KK, V>(k, e.getValue()));
-                }));
+        return strategy().newEntryStream(stream.flatMap(e -> {
+            Stream<? extends KK> s = mapper.apply(e.getKey());
+            return s == null ? null : s.map(k -> new SimpleEntry<KK, V>(k, e.getValue()));
+        }));
     }
 
     public <VV> EntryStream<K, VV> flatMapValues(Function<? super V, ? extends Stream<? extends VV>> mapper) {
-        return strategy().newEntryStream(
-                stream.flatMap(e -> {
-                    Stream<? extends VV> s = mapper.apply(e.getValue());
-                    return s == null ? null : s.map(v -> new SimpleEntry<>(e.getKey(), v));
-                }));
+        return strategy().newEntryStream(stream.flatMap(e -> {
+            Stream<? extends VV> s = mapper.apply(e.getValue());
+            return s == null ? null : s.map(v -> new SimpleEntry<>(e.getKey(), v));
+        }));
     }
 
     /**
@@ -160,6 +158,16 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return append(map.entrySet().stream());
     }
 
+    /**
+     * Returns a new {@code EntryStream} which is a concatenation of this stream
+     * and the supplied key-value pair.
+     * 
+     * @param key
+     *            the key of the new {@code Entry} to append to this stream
+     * @param value
+     *            the value of the new {@code Entry} to append to this stream
+     * @return the new stream
+     */
     public EntryStream<K, V> append(K key, V value) {
         return append(Stream.of(new SimpleEntry<>(key, value)));
     }
@@ -177,6 +185,16 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return append(map.entrySet().stream());
     }
 
+    /**
+     * Returns a new {@code EntryStream} which is a concatenation of the
+     * supplied key-value pair and this stream.
+     * 
+     * @param key
+     *            the key of the new {@code Entry} to prepend to this stream
+     * @param value
+     *            the value of the new {@code Entry} to prepend to this stream
+     * @return the new stream
+     */
     public EntryStream<K, V> prepend(K key, V value) {
         return prepend(Stream.of(new SimpleEntry<>(key, value)));
     }
@@ -620,7 +638,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return of(intStreamForLength(keys.size(), values.size()).mapToObj(
                 i -> new SimpleEntry<>(keys.get(i), values.get(i))));
     }
-    
+
     /**
      * Returns a sequential {@code EntryStream} containing {@code Entry} objects
      * composed from corresponding key and value in given two arrays.
