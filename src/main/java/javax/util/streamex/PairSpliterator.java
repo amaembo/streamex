@@ -52,7 +52,7 @@ abstract class PairSpliterator<T, S extends Spliterator<T>, R> implements Splite
         return NONNULL | (source.characteristics() & (SIZED | SUBSIZED | CONCURRENT | IMMUTABLE | ORDERED));
     }
     
-    static class PSOfRef<T, R> extends PairSpliterator<T, Spliterator<T>, R> {
+    static final class PSOfRef<T, R> extends PairSpliterator<T, Spliterator<T>, R> {
         private T cur;
         private final T last;
         private final BiFunction<T, T, R> mapper;
@@ -103,7 +103,7 @@ abstract class PairSpliterator<T, S extends Spliterator<T>, R> implements Splite
         }
     }
 
-    static class PSOfInt extends PairSpliterator<Integer, Spliterator.OfInt, Integer> implements Spliterator.OfInt {
+    static final class PSOfInt extends PairSpliterator<Integer, Spliterator.OfInt, Integer> implements Spliterator.OfInt {
         private int cur;
         private final int last;
         private final IntBinaryOperator mapper;
@@ -154,7 +154,7 @@ abstract class PairSpliterator<T, S extends Spliterator<T>, R> implements Splite
         }
     }
 
-    static class PSOfLong extends PairSpliterator<Long, Spliterator.OfLong, Long> implements Spliterator.OfLong {
+    static final class PSOfLong extends PairSpliterator<Long, Spliterator.OfLong, Long> implements Spliterator.OfLong {
         private long cur;
         private final long last;
         private final LongBinaryOperator mapper;
@@ -205,7 +205,7 @@ abstract class PairSpliterator<T, S extends Spliterator<T>, R> implements Splite
         }
     }
 
-    static class PSOfDouble extends PairSpliterator<Double, Spliterator.OfDouble, Double> implements Spliterator.OfDouble {
+    static final class PSOfDouble extends PairSpliterator<Double, Spliterator.OfDouble, Double> implements Spliterator.OfDouble {
         private double cur;
         private final double last;
         private final DoubleBinaryOperator mapper;
