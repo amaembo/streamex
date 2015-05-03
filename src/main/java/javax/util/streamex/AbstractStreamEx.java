@@ -255,6 +255,24 @@ import java.util.stream.Stream;
         return supply(stream.skip(n));
     }
 
+    /**
+     * Performs an action for each element of this stream.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * <p>
+     * The behavior of this operation is explicitly nondeterministic. For
+     * parallel stream pipelines, this operation does <em>not</em> guarantee to
+     * respect the encounter order of the stream, as doing so would sacrifice
+     * the benefit of parallelism. For any given element, the action may be
+     * performed at whatever time and in whatever thread the library chooses. If
+     * the action accesses shared state, it is responsible for providing the
+     * required synchronization.
+     *
+     * @param action
+     *            a non-interfering action to perform on the elements
+     */
     @Override
     public void forEach(Consumer<? super T> action) {
         stream.forEach(action);
@@ -755,7 +773,7 @@ import java.util.stream.Stream;
     @SuppressWarnings("unchecked")
     public <U> List<U> scanRight(U identity, BiFunction<? super T, U, U> accumulator) {
         return collect(Collectors.collectingAndThen(Collectors.toList(), list -> {
-                // Reusing the list for different object type as it will save memory
+            // Reusing the list for different object type as it will save memory
                 List<U> result = (List<U>) list;
                 result.add(identity);
                 for (int i = result.size() - 2; i >= 0; i--) {
