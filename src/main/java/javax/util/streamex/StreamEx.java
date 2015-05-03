@@ -644,13 +644,33 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public <R> StreamEx<R> pairMap(BiFunction<T, T, R> mapper) {
         return strategy().newStreamEx(
-                StreamSupport.stream(new PairSpliterator.PSOfRef<>(mapper, stream.spliterator(), null, false, null,
-                        false), stream.isParallel()).onClose(stream::close));
+                StreamSupport.stream(
+                        new PairSpliterator.PSOfRef<>(mapper, stream.spliterator(), null, false, null, false),
+                        stream.isParallel()).onClose(stream::close));
     }
-    
-    public void forPairs(BiConsumer<T, T> consumer) {
+
+    /**
+     * Performs an action for each adjacent pair of elements of this stream.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * <p>
+     * The behavior of this operation is explicitly nondeterministic. For
+     * parallel stream pipelines, this operation does <em>not</em> guarantee to
+     * respect the encounter order of the stream, as doing so would sacrifice
+     * the benefit of parallelism. For any given element, the action may be
+     * performed at whatever time and in whatever thread the library chooses. If
+     * the action accesses shared state, it is responsible for providing the
+     * required synchronization.
+     *
+     * @param action
+     *            a non-interfering action to perform on the elements
+     * @since 0.2.2
+     */
+    public void forPairs(BiConsumer<T, T> action) {
         pairMap((a, b) -> {
-            consumer.accept(a, b);
+            action.accept(a, b);
             return null;
         }).reduce(null, (a, b) -> null);
     }
