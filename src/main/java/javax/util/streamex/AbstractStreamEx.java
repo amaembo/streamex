@@ -102,6 +102,16 @@ import java.util.stream.Stream;
         return stream.isParallel();
     }
 
+    /**
+     * Returns an equivalent stream that is unordered. May return itself, either
+     * because the stream was already unordered, or because the underlying
+     * stream state was modified to be unordered.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @return an unordered stream
+     */
     @Override
     public S unordered() {
         return supply(stream.unordered());

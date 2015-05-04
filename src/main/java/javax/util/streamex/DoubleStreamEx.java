@@ -65,6 +65,16 @@ public class DoubleStreamEx implements DoubleStream {
         return stream.isParallel();
     }
 
+    /**
+     * Returns an equivalent stream that is unordered. May return itself, either
+     * because the stream was already unordered, or because the underlying
+     * stream state was modified to be unordered.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @return an unordered stream
+     */
     @Override
     public DoubleStreamEx unordered() {
         return strategy().newDoubleStreamEx(stream.unordered());
