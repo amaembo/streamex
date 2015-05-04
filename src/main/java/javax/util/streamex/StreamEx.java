@@ -596,10 +596,24 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return prepend(collection.stream());
     }
 
-    public boolean has(T element) {
-        if (element == null)
+    /**
+     * Returns true if this stream contains the specified value.
+     *
+     * <p>
+     * This is a short-circuiting terminal operation.
+     * 
+     * @param value
+     *            the value too look for in the stream. If the value is null
+     *            then the method will return true if this stream contains at
+     *            least one null. Otherwise {@code value.equals()} will be
+     *            called to compare stream elements with the value.
+     * @return true if this stream contains the specified value
+     * @see Stream#anyMatch(Predicate)
+     */
+    public boolean has(T value) {
+        if (value == null)
             return anyMatch(Objects::isNull);
-        return anyMatch(element::equals);
+        return anyMatch(value::equals);
     }
 
     /**
@@ -859,6 +873,24 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return new StreamEx<>(map.keySet().stream());
     }
 
+    /**
+     * Returns a sequential {@code StreamEx} of given {@link Map} keys which
+     * corresponding values match the supplied filter.
+     *
+     * @param <T>
+     *            the type of map keys and created stream elements
+     * @param <V>
+     *            the type of map values
+     * @param map
+     *            input map
+     * @param valueFilter
+     *            a predicate used to test values
+     * @return a sequential {@code StreamEx} over the keys of given {@code Map}
+     *         which corresponding values match the supplied filter.
+     * @throws NullPointerException
+     *             if map is null
+     * @see Map#keySet()
+     */
     public static <T, V> StreamEx<T> ofKeys(Map<T, V> map, Predicate<V> valueFilter) {
         return new StreamEx<>(map.entrySet().stream().filter(entry -> valueFilter.test(entry.getValue()))
                 .map(Entry::getKey));
@@ -882,6 +914,24 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return new StreamEx<>(map.values().stream());
     }
 
+    /**
+     * Returns a sequential {@code StreamEx} of given {@link Map} values which
+     * corresponding keys match the supplied filter.
+     *
+     * @param <K>
+     *            the type of map keys
+     * @param <T>
+     *            the type of map values and created stream elements
+     * @param map
+     *            input map
+     * @param keyFilter
+     *            a predicate used to test keys
+     * @return a sequential {@code StreamEx} over the values of given
+     *         {@code Map} which corresponding keys match the supplied filter.
+     * @throws NullPointerException
+     *             if map is null
+     * @see Map#values()
+     */
     public static <K, T> StreamEx<T> ofValues(Map<K, T> map, Predicate<K> keyFilter) {
         return new StreamEx<>(map.entrySet().stream().filter(entry -> keyFilter.test(entry.getKey()))
                 .map(Entry::getValue));
