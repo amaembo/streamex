@@ -425,7 +425,7 @@ public class IntStreamEx implements IntStream {
     }
 
     /**
-     * Returns true if this stream contains the specified value
+     * Returns true if this stream contains the specified value.
      *
      * <p>
      * This is a short-circuiting terminal operation.
