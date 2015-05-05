@@ -256,15 +256,66 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return groupingBy(classifier, mapFactory, Collectors.toCollection(collectionFactory));
     }
 
+    /**
+     * Returns a {@code Map<Boolean, List<T>>} which contains two partitions of
+     * the input elements according to a {@code Predicate}.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code Map} returned.
+     *
+     * @param predicate
+     *            a predicate used for classifying input elements
+     * @return a {@code Map<Boolean, List<T>>} which {@link Boolean.TRUE} key is
+     *         mapped to the list of the stream elements for which predicate is
+     *         true and {@link Boolean.FALSE} key is mapped to the list of all
+     *         other stream elements.
+     *
+     * @see #partitioningBy(Predicate, Collector)
+     * @see Collectors#partitioningBy(Predicate)
+     * @since 0.2.2
+     */
     public Map<Boolean, List<T>> partitioningBy(Predicate<? super T> predicate) {
         return collect(Collectors.partitioningBy(predicate));
     }
 
+    /**
+     * Returns a {@code Map<Boolean, D>} which contains two partitions of the
+     * input elements according to a {@code Predicate}, which are reduced
+     * according to the supplied {@code Collector}.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code Map} returned.
+     *
+     * @param <D>
+     *            the result type of the downstream reduction
+     * @param predicate
+     *            a predicate used for classifying input elements
+     * @param downstream
+     *            a {@code Collector} implementing the downstream reduction
+     * @return a {@code Map<Boolean, List<T>>} which {@link Boolean.TRUE} key is
+     *         mapped to the result of downstream {@code Collector} collecting
+     *         the the stream elements for which predicate is true and
+     *         {@link Boolean.FALSE} key is mapped to the result of downstream
+     *         {@code Collector} collecting the other stream elements.
+     *
+     * @see #partitioningBy(Predicate)
+     * @see Collectors#partitioningBy(Predicate, Collector)
+     * @since 0.2.2
+     */
     public <D> Map<Boolean, D> partitioningBy(Predicate<? super T> predicate, Collector<? super T, ?, D> downstream) {
         return collect(Collectors.partitioningBy(predicate, downstream));
     }
 
-    public <C extends Collection<T>> Map<Boolean, C> partitioningTo(Predicate<? super T> predicate, Supplier<C> collectionFactory) {
+    public <C extends Collection<T>> Map<Boolean, C> partitioningTo(Predicate<? super T> predicate,
+            Supplier<C> collectionFactory) {
         return collect(Collectors.partitioningBy(predicate, Collectors.toCollection(collectionFactory)));
     }
 
