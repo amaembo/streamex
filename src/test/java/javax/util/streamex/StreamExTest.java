@@ -26,6 +26,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -210,10 +211,14 @@ public class StreamExTest {
         expected.put(3, Arrays.asList("ccc"));
         Map<Integer, List<String>> seqMap = StreamEx.of("a", "bb", "bb", "ccc").groupingBy(String::length);
         Map<Integer, List<String>> parallelMap = StreamEx.of("a", "bb", "bb", "ccc").parallel().groupingBy(String::length);
+        Map<Integer, List<String>> mapLinkedList = StreamEx.of("a", "bb", "bb", "ccc").parallel().groupingTo(String::length, LinkedList::new);
         assertEquals(expected, seqMap);
         assertEquals(expected, parallelMap);
+        assertEquals(expected, mapLinkedList);
         assertFalse(seqMap instanceof ConcurrentMap);
         assertTrue(parallelMap instanceof ConcurrentMap);
+        assertTrue(mapLinkedList instanceof ConcurrentMap);
+        assertTrue(mapLinkedList.get(1) instanceof LinkedList);
 
         Map<Integer, Set<String>> expectedMapSet = new HashMap<>();
         expectedMapSet.put(1, new HashSet<>(Arrays.asList("a")));
@@ -235,6 +240,24 @@ public class StreamExTest {
         parallelMapSet = StreamEx.of("a", "bb", "bb", "ccc").parallel().groupingBy(String::length, ConcurrentHashMap::new, Collectors.toSet());
         assertEquals(expectedMapSet, parallelMapSet);
         assertTrue(parallelMapSet instanceof ConcurrentMap);
+        parallelMapSet = StreamEx.of("a", "bb", "bb", "ccc").parallel().groupingTo(String::length, ConcurrentHashMap::new, TreeSet::new);
+        assertEquals(expectedMapSet, parallelMapSet);
+        assertTrue(parallelMapSet instanceof ConcurrentMap);
+        assertTrue(parallelMapSet.get(1) instanceof TreeSet);
+    }
+    
+    @Test
+    public void testPartitioning() {
+        Map<Boolean, List<String>> map = StreamEx.of("a", "bb", "c", "dd").partitioningBy(s -> s.length() > 1);
+        assertEquals(Arrays.asList("bb", "dd"), map.get(true));
+        assertEquals(Arrays.asList("a", "c"), map.get(false));
+        Map<Boolean, Long> counts = StreamEx.of("a", "bb", "c", "dd", "eee").partitioningBy(s -> s.length() > 1, Collectors.counting());
+        assertEquals(3L, (long)counts.get(true));
+        assertEquals(2L, (long)counts.get(false));
+        Map<Boolean, List<String>> mapLinked = StreamEx.of("a", "bb", "c", "dd").partitioningTo(s -> s.length() > 1, LinkedList::new);
+        assertEquals(Arrays.asList("bb", "dd"), mapLinked.get(true));
+        assertEquals(Arrays.asList("a", "c"), mapLinked.get(false));
+        assertTrue(mapLinked.get(true) instanceof LinkedList);
     }
     
     @Test
