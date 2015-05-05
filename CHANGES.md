@@ -6,6 +6,9 @@
 * Added StreamEx.scanRight() and EntryStream.scanRight() methods
 * Added StreamEx.foldRight() and EntryStream.foldRight() methods
 * Added StreamEx.forPairs() method
+* Added StreamEx.partitioningBy() methods
+* Added StreamEx.partitioningTo() method
+* Added StreamEx.groupingTo() methods
 * Updated documentation
 
 ### 0.2.1

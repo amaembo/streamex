@@ -227,9 +227,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Collectors#groupingByConcurrent(Function)
      */
     public <K> Map<K, List<T>> groupingBy(Function<? super T, ? extends K> classifier) {
-        if (stream.isParallel())
-            return collect(Collectors.groupingByConcurrent(classifier));
-        return collect(Collectors.groupingBy(classifier));
+        return groupingBy(classifier, Collectors.toList());
     }
 
     public <K, D> Map<K, D> groupingBy(Function<? super T, ? extends K> classifier,
@@ -246,6 +244,28 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             return (M) collect(Collectors.groupingByConcurrent(classifier, (Supplier<ConcurrentMap<K, D>>) mapFactory,
                     downstream));
         return collect(Collectors.groupingBy(classifier, mapFactory, downstream));
+    }
+
+    public <K, C extends Collection<T>> Map<K, C> groupingTo(Function<? super T, ? extends K> classifier,
+            Supplier<C> collectionFactory) {
+        return groupingBy(classifier, Collectors.toCollection(collectionFactory));
+    }
+
+    public <K, C extends Collection<T>, M extends Map<K, C>> M groupingTo(Function<? super T, ? extends K> classifier,
+            Supplier<M> mapFactory, Supplier<C> collectionFactory) {
+        return groupingBy(classifier, mapFactory, Collectors.toCollection(collectionFactory));
+    }
+
+    public Map<Boolean, List<T>> partitioningBy(Predicate<? super T> predicate) {
+        return collect(Collectors.partitioningBy(predicate));
+    }
+
+    public <D> Map<Boolean, D> partitioningBy(Predicate<? super T> predicate, Collector<? super T, ?, D> downstream) {
+        return collect(Collectors.partitioningBy(predicate, downstream));
+    }
+
+    public <C extends Collection<T>> Map<Boolean, C> partitioningTo(Predicate<? super T> predicate, Supplier<C> collectionFactory) {
+        return collect(Collectors.partitioningBy(predicate, Collectors.toCollection(collectionFactory)));
     }
 
     /**
