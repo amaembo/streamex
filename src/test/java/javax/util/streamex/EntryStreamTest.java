@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -222,6 +223,9 @@ public class EntryStreamTest {
         expected.put("aaa", Arrays.asList(1, 2, 3, 10));
         expected.put("bb", Arrays.asList(4, 5, 6, 20));
         assertEquals(expected, result);
+        
+        // Find the key which contains the biggest value in the list
+        assertEquals("bb", EntryStream.of(data1).flatMapValues(List::stream).maxByInt(Entry::getValue).map(Entry::getKey).orElse(null));
     }
 
     @Test
@@ -313,6 +317,7 @@ public class EntryStreamTest {
         assertEquals(Collections.singletonMap("a", 1), EntryStream.of(map).selectValues(Integer.class).toMap());
         assertEquals(Collections.singletonMap(3, "c"), EntryStream.of(map).selectKeys(Integer.class).toMap());
         
+        // Weird way to create a map from the array. Don't do this in production code!
         Object[] interleavingArray = {"a", 1, "bb", 22, "ccc", 33};
         Map<String, Integer> result = EntryStream.of(StreamEx.of(interleavingArray).pairMap(SimpleEntry<Object, Object>::new))
                 .selectKeys(String.class).selectValues(Integer.class).toMap();
