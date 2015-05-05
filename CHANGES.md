@@ -9,6 +9,7 @@
 * Added StreamEx.partitioningBy() methods
 * Added StreamEx.partitioningTo() method
 * Added StreamEx.groupingTo() methods
+* Added EntryStream.join() methods
 * Updated documentation
 
 ### 0.2.1

@@ -345,6 +345,13 @@ public class EntryStreamTest {
         EntryStream.of(createMap()).forKeyValue(output::put);
         assertEquals(output, createMap());
     }
+    
+    @Test
+    public void testJoin() {
+        assertEquals("a = 1; bb = 22; ccc = 33", EntryStream.of(createMap()).join(" = ").joining("; "));
+        assertEquals("{[a = 1]; [bb = 22]; [ccc = 33]}",
+                EntryStream.of(createMap()).join(" = ", "[", "]").joining("; ", "{", "}"));
+    }
 
     private Map<String, Integer> createMap() {
         Map<String, Integer> data = new LinkedHashMap<>();

@@ -114,8 +114,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     }
 
     /**
-     * Returns a stream consisting of the results of applying the given function
-     * to the keys and values of this stream.
+     * Returns a {@link StreamEx} consisting of the results of applying the
+     * given function to the keys and values of this stream.
      *
      * <p>
      * This is an intermediate operation.
@@ -129,6 +129,47 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     public <R> StreamEx<R> mapKeyValue(BiFunction<? super K, ? super V, ? extends R> mapper) {
         return map(entry -> mapper.apply(entry.getKey(), entry.getValue()));
+    }
+
+    /**
+     * Returns a {@link StreamEx} of strings which are created joining the keys
+     * and values of the current stream using the specified delimiter.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param delimiter
+     *            the delimiter to be used between key and value
+     * @return the new stream
+     * @since 0.2.2
+     */
+    public StreamEx<String> join(CharSequence delimiter) {
+        return map(entry -> new StringBuilder().append(entry.getKey()).append(delimiter).append(entry.getValue())
+                .toString());
+    }
+
+    /**
+     * Returns a {@link StreamEx} of strings which are created joining the keys
+     * and values of the current stream using the specified delimiter, with the
+     * specified prefix and suffix.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param delimiter
+     *            the delimiter to be used between key and value
+     * @param prefix
+     *            the sequence of characters to be used at the beginning of each
+     *            resulting string
+     * @param suffix
+     *            the sequence of characters to be used at the end of each
+     *            resulting string
+     * @return the new stream
+     * @since 0.2.2
+     */
+    public StreamEx<String> join(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
+        return map(entry -> new StringBuilder(prefix).append(entry.getKey()).append(delimiter).append(entry.getValue())
+                .append(suffix).toString());
     }
 
     public <KK> EntryStream<KK, V> flatMapKeys(Function<? super K, ? extends Stream<? extends KK>> mapper) {
