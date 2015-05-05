@@ -524,4 +524,13 @@ public class StreamExTest {
         assertEquals(333833500, IntStreamEx.rangeClosed(1, 1000).boxed().parallel().scanRight(0, Integer::sum).stream()
                 .mapToLong(x -> x).sum());
     }
+    
+    @Test
+    public void testPermutations() {
+        assertEquals(
+                new HashSet<>(Arrays.asList("[1, 2, 3]", "[1, 3, 2]", "[2, 1, 3]", "[2, 3, 1]", "[3, 1, 2]",
+                        "[3, 2, 1]")), StreamEx.ofPermutations(new int[] { 1, 2, 3 }).map(Arrays::toString).toSet());
+        assertEquals(new HashSet<>(Arrays.asList("abc", "cba", "bca", "bac", "acb", "cab")),
+                StreamEx.ofPermutations("abc".split("")).map(perm -> StreamEx.of(perm).joining()).toSet());
+    }
 }
