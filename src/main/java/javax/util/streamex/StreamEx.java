@@ -1059,6 +1059,15 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
                 }).unordered();
     }
 
+    public static StreamEx<int[]> ofPermutations2(int[] source) {
+        int length = source.length;
+        return new StreamEx<>(StreamSupport.stream(new PermutationSpliterator(length), false).map(perm -> {
+                    int[] arr = new int[length];
+                    for(int i=0; i<length; i++) arr[i] = source[perm[i]];
+                    return arr;
+                }));
+    }
+    
     public static StreamEx<long[]> ofPermutations(long[] source) {
         int length = source.length;
         return LongStreamEx.range(getFactorial(length))
