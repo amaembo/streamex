@@ -13,7 +13,9 @@ final class PermutationSpliterator implements Spliterator<int[]> {
     private final long fence;
 
     public PermutationSpliterator(int length) {
-        if (length > factorials.length)
+        if (length < 0)
+            throw new IllegalArgumentException("Length must be non-negative");
+        if (length >= factorials.length)
             throw new IllegalArgumentException("Length "+length+" is bigger than "+factorials.length+": not supported");
         this.value = new int[length];
         for (int i = 0; i < length; i++)

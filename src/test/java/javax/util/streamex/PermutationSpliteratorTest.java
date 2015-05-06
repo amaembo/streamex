@@ -51,6 +51,16 @@ public class PermutationSpliteratorTest {
         collectRandomSplit(spliterator, r, strings);
     }
     
+    @Test(expected=IllegalArgumentException.class)
+    public void testOverflow() {
+        new PermutationSpliterator(21);
+    }
+    
+    @Test(expected=IllegalArgumentException.class)
+    public void testUnderflow() {
+        new PermutationSpliterator(-1);
+    }
+    
     @Test
     public void testAdvance3() {
         Spliterator<int[]> spliterator = new PermutationSpliterator(3);
