@@ -1017,31 +1017,49 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return new StreamEx<>(file.stream());
     }
 
+    /**
+     * Returns a new {@code StreamEx} of {@code int[]} arrays containing all the
+     * possible permutations of numbers from 0 to length-1 in lexicographic
+     * order.
+     * 
+     * @param length
+     *            length of permutations array. Lengths bigger than 20 are not
+     *            supported currently.
+     * @return new sequential {@code StreamEx} of possible permutations.
+     * @since 0.2.2
+     */
+    public static StreamEx<int[]> ofPermutations(int length) {
+        return new StreamEx<>(StreamSupport.stream(new PermutationSpliterator(length), false).map(perm -> perm.clone()));
+    }
+
     public static StreamEx<int[]> ofPermutations(int[] source) {
         int length = source.length;
         return new StreamEx<>(StreamSupport.stream(new PermutationSpliterator(length), false).map(perm -> {
-                    int[] arr = new int[length];
-                    for(int i=0; i<length; i++) arr[i] = source[perm[i]];
-                    return arr;
-                }));
+            int[] arr = new int[length];
+            for (int i = 0; i < length; i++)
+                arr[i] = source[perm[i]];
+            return arr;
+        }));
     }
-    
+
     public static StreamEx<long[]> ofPermutations(long[] source) {
         int length = source.length;
         return new StreamEx<>(StreamSupport.stream(new PermutationSpliterator(length), false).map(perm -> {
-                    long[] arr = new long[length];
-                    for(int i=0; i<length; i++) arr[i] = source[perm[i]];
-                    return arr;
-                }));
+            long[] arr = new long[length];
+            for (int i = 0; i < length; i++)
+                arr[i] = source[perm[i]];
+            return arr;
+        }));
     }
 
     public static StreamEx<double[]> ofPermutations(double[] source) {
         int length = source.length;
         return new StreamEx<>(StreamSupport.stream(new PermutationSpliterator(length), false).map(perm -> {
-                    double[] arr = new double[length];
-                    for(int i=0; i<length; i++) arr[i] = source[perm[i]];
-                    return arr;
-                }));
+            double[] arr = new double[length];
+            for (int i = 0; i < length; i++)
+                arr[i] = source[perm[i]];
+            return arr;
+        }));
     }
 
     @SuppressWarnings("unchecked")
@@ -1049,10 +1067,22 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         int length = source.length;
         Class<?> componentType = source.getClass().getComponentType();
         return new StreamEx<>(StreamSupport.stream(new PermutationSpliterator(length), false).map(perm -> {
-                    T[] arr = (T[]) Array.newInstance(componentType, length);
-                    for(int i=0; i<length; i++) arr[i] = source[perm[i]];
-                    return arr;
-                }));
+            T[] arr = (T[]) Array.newInstance(componentType, length);
+            for (int i = 0; i < length; i++)
+                arr[i] = source[perm[i]];
+            return arr;
+        }));
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> StreamEx<List<T>> ofPermutations(List<T> source) {
+        int length = source.size();
+        return new StreamEx<>(StreamSupport.stream(new PermutationSpliterator(length), false).map(perm -> {
+            Object[] arr = new Object[length];
+            for (int i = 0; i < length; i++)
+                arr[i] = source.get(perm[i]);
+            return (List<T>) Arrays.asList(arr);
+        }));
     }
 
     /**
