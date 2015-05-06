@@ -524,4 +524,10 @@ public class StreamExTest {
         assertEquals(333833500, IntStreamEx.rangeClosed(1, 1000).boxed().parallel().scanRight(0, Integer::sum).stream()
                 .mapToLong(x -> x).sum());
     }
+    
+    @Test
+    public void testPermutations() {
+        assertEquals("[0, 1, 2];[0, 2, 1];[1, 0, 2];[1, 2, 0];[2, 0, 1];[2, 1, 0]",
+                StreamEx.ofPermutations(3).map(Arrays::toString).joining(";"));
+    }
 }

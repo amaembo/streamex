@@ -1017,6 +1017,21 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
+     * Returns a new {@code StreamEx} of {@code int[]} arrays containing all the
+     * possible permutations of numbers from 0 to length-1 in lexicographic
+     * order.
+     * 
+     * @param length
+     *            length of permutations array. Lengths bigger than 20 are not
+     *            supported currently.
+     * @return new sequential {@code StreamEx} of possible permutations.
+     * @since 0.2.2
+     */
+    public static StreamEx<int[]> ofPermutations(int length) {
+        return new StreamEx<>(StreamSupport.stream(new PermutationSpliterator(length), false).map(perm -> perm.clone()));
+    }
+
+    /**
      * Creates a stream from the given input sequence around matches of the
      * given pattern.
      *
