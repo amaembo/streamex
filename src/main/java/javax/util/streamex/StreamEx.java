@@ -21,7 +21,6 @@ import java.io.Reader;
 import java.io.UncheckedIOException;
 import java.lang.reflect.Array;
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -41,7 +40,6 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
-import java.util.function.IntBinaryOperator;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
@@ -1019,47 +1017,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return new StreamEx<>(file.stream());
     }
 
-    private static void generatePermutation(int length, long permutationNumber, IntBinaryOperator op) {
-        BitSet usedIndices = new BitSet();
-        for (int i = 0; i < length; i++) {
-            int curIdx = (int) (permutationNumber % (length - i));
-            permutationNumber /= (length - i);
-            int freeIdx = -1;
-            while (curIdx >= 0) {
-                do {
-                    freeIdx++;
-                } while (usedIndices.get(freeIdx));
-                curIdx--;
-            }
-            usedIndices.set(freeIdx);
-            op.applyAsInt(i, freeIdx);
-        }
-    }
-
-    private static final long[] factorials = new long[] { 1L, 1L, 2L, 6L, 24L, 120L, 720L, 5040L, 40320L, 362880L,
-            3628800L, 39916800L, 479001600L, 6227020800L, 87178291200L, 1307674368000L, 20922789888000L,
-            355687428096000L, 6402373705728000L, 121645100408832000L, 2432902008176640000L };
-
-    private static final long getFactorial(int length) {
-        if (length > factorials.length) {
-            throw new IllegalArgumentException("Source array is longer than " + length
-                    + "; too many permutations expected.");
-        }
-        long factorial = factorials[length];
-        return factorial;
-    }
-
     public static StreamEx<int[]> ofPermutations(int[] source) {
-        int length = source.length;
-        return LongStreamEx.range(getFactorial(length))
-                .mapToObj(perm -> {
-                    int[] arr = new int[length];
-                    generatePermutation(length, perm, (pos, val) -> {arr[pos] = source[val]; return 0;});
-                    return arr;
-                }).unordered();
-    }
-
-    public static StreamEx<int[]> ofPermutations2(int[] source) {
         int length = source.length;
         return new StreamEx<>(StreamSupport.stream(new PermutationSpliterator(length), false).map(perm -> {
                     int[] arr = new int[length];
@@ -1070,35 +1028,31 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     
     public static StreamEx<long[]> ofPermutations(long[] source) {
         int length = source.length;
-        return LongStreamEx.range(getFactorial(length))
-                .mapToObj(perm -> {
+        return new StreamEx<>(StreamSupport.stream(new PermutationSpliterator(length), false).map(perm -> {
                     long[] arr = new long[length];
-                    generatePermutation(length, perm, (pos, val) -> {arr[pos] = source[val]; return 0;});
+                    for(int i=0; i<length; i++) arr[i] = source[perm[i]];
                     return arr;
-                }).unordered();
+                }));
     }
 
     public static StreamEx<double[]> ofPermutations(double[] source) {
         int length = source.length;
-        return LongStreamEx.range(getFactorial(length))
-                .mapToObj(perm -> {
+        return new StreamEx<>(StreamSupport.stream(new PermutationSpliterator(length), false).map(perm -> {
                     double[] arr = new double[length];
-                    generatePermutation(length, perm, (pos, val) -> {arr[pos] = source[val]; return 0;});
+                    for(int i=0; i<length; i++) arr[i] = source[perm[i]];
                     return arr;
-                }).unordered();
+                }));
     }
 
     @SuppressWarnings("unchecked")
     public static <T> StreamEx<T[]> ofPermutations(T[] source) {
         int length = source.length;
         Class<?> componentType = source.getClass().getComponentType();
-        return LongStreamEx
-                .range(getFactorial(length))
-                .mapToObj(perm -> {
+        return new StreamEx<>(StreamSupport.stream(new PermutationSpliterator(length), false).map(perm -> {
                     T[] arr = (T[]) Array.newInstance(componentType, length);
-                    generatePermutation(length, perm, (pos, val) -> {arr[pos] = source[val]; return 0;});
+                    for(int i=0; i<length; i++) arr[i] = source[perm[i]];
                     return arr;
-                }).unordered();
+                }));
     }
 
     /**

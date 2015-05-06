@@ -1,6 +1,5 @@
 package javax.util.streamex;
 
-import java.util.BitSet;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 
@@ -11,28 +10,20 @@ final class PermutationSpliterator implements Spliterator<int[]> {
 
     private final int[] value;
     private long remainingSize;
-    private long pos;
+    private final long fence;
 
     public PermutationSpliterator(int length) {
-        this(init(length), 0, getSize(length));
-    }
-
-    private static long getSize(int length) {
         if (length > factorials.length)
-            throw new IllegalArgumentException("Length is too big");
-        return factorials[length];
-    }
-
-    private static int[] init(int length) {
-        int[] initValue = new int[length];
+            throw new IllegalArgumentException("Length "+length+" is bigger than "+factorials.length+": not supported");
+        this.value = new int[length];
         for (int i = 0; i < length; i++)
-            initValue[i] = i;
-        return initValue;
+            this.value[i] = i;
+        this.fence = this.remainingSize = factorials[length];
     }
 
-    public PermutationSpliterator(int[] startValue, long pos, long remainingSize) {
+    public PermutationSpliterator(int[] startValue, long fence, long remainingSize) {
         this.value = startValue;
-        this.pos = pos;
+        this.fence = fence;
         this.remainingSize = remainingSize;
     }
 
@@ -40,24 +31,21 @@ final class PermutationSpliterator implements Spliterator<int[]> {
     public boolean tryAdvance(Consumer<? super int[]> action) {
         if (remainingSize == 0)
             return false;
+        int[] value = this.value;
         action.accept(value);
-        remainingSize--;
-        pos++;
-        if (remainingSize > 0) {
-            int k = value.length - 2;
+        if (--remainingSize > 0) {
+            int r = value.length - 1, k = r - 1;
             while (value[k] > value[k + 1])
                 k--;
-            int vk = value[k];
-            int l = value.length - 1;
+            int vk = value[k], l = r;
             while (vk > value[l])
                 l--;
             value[k] = value[l];
             value[l] = vk;
-            int rem = value.length + k + 1;
-            for (int i = k + 1; i < rem / 2; i++) {
-                int tmp = value[i];
-                value[i] = value[rem - 1 - i];
-                value[rem - 1 - i] = tmp;
+            for (k++; k < r; k++, r--) {
+                int tmp = value[k];
+                value[k] = value[r];
+                value[r] = tmp;
             }
         }
         return true;
@@ -68,9 +56,9 @@ final class PermutationSpliterator implements Spliterator<int[]> {
         if (remainingSize <= 1)
             return null;
         int[] newValue = value.clone();
-        BitSet b = new BitSet();
+        long used = -1L;  // clear bit = used position
         long newRemainingSize = remainingSize / 2;
-        long newPos = pos + newRemainingSize;
+        long newPos = fence - remainingSize + newRemainingSize;
         long s = newPos;
         for (int i = 0; i < value.length; i++) {
             long f = factorials[value.length - i - 1];
@@ -78,15 +66,14 @@ final class PermutationSpliterator implements Spliterator<int[]> {
             s %= f;
             int idx = -1;
             while (rem >= 0) {
-                idx = b.nextClearBit(idx+1);
+                idx = Long.numberOfTrailingZeros(used >> (idx+1))+idx+1;
                 rem--;
             }
-            b.set(idx);
+            used &= ~(1 << idx);
             value[i] = idx;
         }
-        PermutationSpliterator prefixSpliterator = new PermutationSpliterator(newValue, pos, newRemainingSize);
-        remainingSize = remainingSize - newRemainingSize;
-        pos = newPos;
+        PermutationSpliterator prefixSpliterator = new PermutationSpliterator(newValue, newPos, newRemainingSize);
+        remainingSize -= newRemainingSize;
         return prefixSpliterator;
     }
 
