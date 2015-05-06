@@ -532,4 +532,64 @@ public class StreamExTest {
                 StreamEx.ofPermutations(3).map(Arrays::toString).joining(";"));
         assertEquals(720, StreamEx.ofPermutations(7).parallel().filter(i -> i[3] == 5).count());
     }
+    
+    static class TreeNode {
+        String title;
+
+        public TreeNode(String title) {
+            this.title = title;
+        }
+        
+        @Override
+        public String toString() {
+            return title;
+        }
+    }
+    
+    static class CompositeNode extends TreeNode {
+        List<TreeNode> nodes = new ArrayList<>();
+
+        public CompositeNode(String title) {
+            super(title);
+        }
+
+        public CompositeNode add(TreeNode node) {
+            nodes.add(node);
+            return this;
+        }
+        
+        public Stream<TreeNode> elements() {
+            return nodes.stream();
+        }
+    }
+    
+    static class RootNode extends CompositeNode {
+        public RootNode(String title) {
+            super(title);
+        }
+        
+        public StreamEx<TreeNode> flatStream() {
+            return StreamEx.ofTree(this, CompositeNode.class, CompositeNode::elements);
+        }
+    }
+    
+    @Test
+    public void testOfTree() {
+        String inputSimple = "bbb";
+        List<Object> input = Arrays.asList(
+                "aa", null,
+                Arrays.asList(Arrays.asList("bbbb", "cc", null, Arrays.asList()), "ddd", Arrays.asList("e"),
+                        Arrays.asList("fff")), "ggg");
+        assertEquals("bbb", StreamEx.ofTree(inputSimple, List.class, List::stream).select(String.class).joining(","));
+        StreamEx<Object> ofTree = StreamEx.ofTree(input, List.class, List::stream);
+        assertEquals("aa,bbbb,cc,ddd,e,fff,ggg", ofTree.select(String.class).joining(","));
+        assertEquals(14, StreamEx.ofTree(input, List.class, List::stream).select(List.class).mapToInt(List::size).sum());
+        
+        RootNode r = new RootNode("root");
+        r.add(new CompositeNode("childA").add(new TreeNode("grandA1")).add(new TreeNode("grandA2")));
+        r.add(new CompositeNode("childB").add(new TreeNode("grandB1")));
+        r.add(new TreeNode("childC"));
+        assertEquals("root,childA,grandA1,grandA2,childB,grandB1,childC", r.flatStream().joining(","));
+        assertEquals("root,childA,grandA1,grandA2,childB,grandB1,childC", r.flatStream().parallel().joining(","));
+    }
 }

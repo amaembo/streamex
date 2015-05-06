@@ -80,6 +80,13 @@ import java.util.stream.Stream;
         }
     }
 
+    static <T> Stream<T> flatTraverse(Stream<T> src, Function<T, Stream<T>> streamProvider) {
+        return src.flatMap(t -> {
+            Stream<T> result = streamProvider.apply(t);
+            return result == null ? Stream.of(t) : Stream.concat(Stream.of(t), flatTraverse(result, streamProvider));
+        });
+    }
+
     @Override
     public Iterator<T> iterator() {
         return stream.iterator();

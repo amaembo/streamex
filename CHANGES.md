@@ -10,6 +10,7 @@
 * Added StreamEx.partitioningTo() method
 * Added StreamEx.groupingTo() methods
 * Added StreamEx.ofPermutations(int) constructor
+* Added StreamEx.ofTree constructors
 * Added EntryStream.join() methods
 * Updated documentation
 

@@ -280,8 +280,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     /**
      * Returns a {@code Map} whose keys are the values resulting from applying
      * the classification function to the input elements, and whose
-     * corresponding values are the collections of the input elements
-     * which map to the associated key under the classification function.
+     * corresponding values are the collections of the input elements which map
+     * to the associated key under the classification function.
      *
      * <p>
      * There are no guarantees on the type, mutability or serializability of the
@@ -297,7 +297,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @param <K>
      *            the type of the keys
      * @param <C>
-     *            the type of the collection used in resulting {@code Map} values
+     *            the type of the collection used in resulting {@code Map}
+     *            values
      * @param classifier
      *            the classifier function mapping input elements to keys
      * @param collectionFactory
@@ -1283,5 +1284,51 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public static <U, V, T> StreamEx<T> zip(U[] first, V[] second, BiFunction<U, V, T> mapper) {
         return zip(Arrays.asList(first), Arrays.asList(second), mapper);
+    }
+
+    /**
+     * Return a new {@link StreamEx} containing all the nodes of tree-like data
+     * structure in depth-first order.
+     * 
+     * @param <T>
+     *            the type of tree nodes
+     * @param root
+     *            root node of the tree
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each tree
+     *            node which returns null for leaf nodes or stream of direct
+     *            children for non-leaf nodes.
+     * @return the new sequential ordered stream
+     * @since 0.2.2
+     */
+    public static <T> StreamEx<T> ofTree(T root, Function<T, Stream<T>> mapper) {
+        Stream<T> rootStream = mapper.apply(root);
+        return rootStream == null ? of(root) : of(flatTraverse(rootStream, mapper)).prepend(
+                Stream.of(root));
+    }
+
+    /**
+     * Return a new {@link StreamEx} containing all the nodes of tree-like data
+     * structure in depth-first order.
+     * 
+     * @param <T>
+     *            the base type of tree nodes
+     * @param <TT>
+     *            the sub-type of composite tree nodes which may have children
+     * @param root
+     *            root node of the tree
+     * @param collectionClass
+     *            a class representing the composite tree node
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each
+     *            composite tree node which returns stream of direct children.
+     *            May return null if the given node has no children.
+     * @return the new sequential ordered stream
+     * @since 0.2.2
+     */
+    @SuppressWarnings("unchecked")
+    public static <T, TT extends T> StreamEx<T> ofTree(T root, Class<TT> collectionClass,
+            Function<TT, Stream<T>> mapper) {
+        return ofTree(root, t -> collectionClass.isInstance(t) ? mapper.apply((TT) t) : null);
     }
 }
