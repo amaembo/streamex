@@ -529,5 +529,6 @@ public class StreamExTest {
     public void testPermutations() {
         assertEquals("[0, 1, 2];[0, 2, 1];[1, 0, 2];[1, 2, 0];[2, 0, 1];[2, 1, 0]",
                 StreamEx.ofPermutations(3).map(Arrays::toString).joining(";"));
+        assertEquals(720, StreamEx.ofPermutations(7).parallel().filter(i -> i[3] == 5).count());
     }
 }
