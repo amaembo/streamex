@@ -529,5 +529,10 @@ public class StreamExTest {
     public void testPermutations() {
         assertEquals("[0, 1, 2];[0, 2, 1];[1, 0, 2];[1, 2, 0];[2, 0, 1];[2, 1, 0]",
                 StreamEx.ofPermutations(3).map(Arrays::toString).joining(";"));
+        
+        assertEquals(Arrays.asList("[1, 2, 3]", "[1, 3, 2]", "[2, 1, 3]", "[2, 3, 1]", "[3, 1, 2]",
+                        "[3, 2, 1]"), StreamEx.ofPermutations(new int[] { 1, 2, 3 }).map(Arrays::toString).toList());
+        assertEquals(new HashSet<>(Arrays.asList("abc", "cba", "bca", "bac", "acb", "cab")),
+                StreamEx.ofPermutations("abc".split("")).map(perm -> StreamEx.of(perm).joining()).toSet());
     }
 }

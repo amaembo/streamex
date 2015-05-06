@@ -19,6 +19,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.UncheckedIOException;
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -1029,6 +1030,59 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public static StreamEx<int[]> ofPermutations(int length) {
         return new StreamEx<>(StreamSupport.stream(new PermutationSpliterator(length), false).map(perm -> perm.clone()));
+    }
+
+    public static StreamEx<int[]> ofPermutations(int[] source) {
+        int length = source.length;
+        return new StreamEx<>(StreamSupport.stream(new PermutationSpliterator(length), false).map(perm -> {
+            int[] arr = new int[length];
+            for (int i = 0; i < length; i++)
+                arr[i] = source[perm[i]];
+            return arr;
+        }));
+    }
+
+    public static StreamEx<long[]> ofPermutations(long[] source) {
+        int length = source.length;
+        return new StreamEx<>(StreamSupport.stream(new PermutationSpliterator(length), false).map(perm -> {
+            long[] arr = new long[length];
+            for (int i = 0; i < length; i++)
+                arr[i] = source[perm[i]];
+            return arr;
+        }));
+    }
+
+    public static StreamEx<double[]> ofPermutations(double[] source) {
+        int length = source.length;
+        return new StreamEx<>(StreamSupport.stream(new PermutationSpliterator(length), false).map(perm -> {
+            double[] arr = new double[length];
+            for (int i = 0; i < length; i++)
+                arr[i] = source[perm[i]];
+            return arr;
+        }));
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> StreamEx<T[]> ofPermutations(T[] source) {
+        int length = source.length;
+        Class<?> componentType = source.getClass().getComponentType();
+        return new StreamEx<>(StreamSupport.stream(new PermutationSpliterator(length), false).map(perm -> {
+            T[] arr = (T[]) Array.newInstance(componentType, length);
+            for (int i = 0; i < length; i++)
+                arr[i] = source[perm[i]];
+            return arr;
+        }));
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> StreamEx<List<T>> ofPermutations(List<T> source) {
+        int length = source.size();
+        return new StreamEx<>(StreamSupport.stream(new PermutationSpliterator(length), false).map(perm -> {
+            Object[] arr = new Object[length];
+            for (int i = 0; i < length; i++)
+                arr[i] = source.get(perm[i]);
+            return (List<T>) Arrays.asList(arr);
+        }));
     }
 
     /**
