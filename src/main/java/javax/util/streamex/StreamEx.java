@@ -268,6 +268,41 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return collect(Collectors.groupingBy(classifier, downstream));
     }
 
+    /**
+     * Returns a {@code Map} whose keys are the values resulting from applying
+     * the classification function to the input elements, and whose
+     * corresponding values are the result of reduction of the input elements
+     * which map to the associated key under the classification function.
+     *
+     * <p>
+     * The {@code Map} will be created using the provided factory function.
+     * 
+     * <p>
+     * If the stream is parallel and map factory produces a
+     * {@link ConcurrentMap} then concurrent collector is used.
+     *
+     * <p>
+     * This is a terminal operation.
+     * 
+     * @param <K>
+     *            the type of the keys
+     * @param <D>
+     *            the result type of the downstream reduction
+     * @param <M>
+     *            the type of the resulting {@code Map}
+     * @param classifier
+     *            the classifier function mapping input elements to keys
+     * @param mapFactory
+     *            a function which, when called, produces a new empty
+     *            {@code Map} of the desired type
+     * @param downstream
+     *            a {@code Collector} implementing the downstream reduction
+     * @return a {@code Map} containing the results of the group-by operation
+     *
+     * @see #groupingBy(Function)
+     * @see Collectors#groupingBy(Function, Supplier, Collector)
+     * @see Collectors#groupingByConcurrent(Function, Supplier, Collector)
+     */
     @SuppressWarnings("unchecked")
     public <K, D, M extends Map<K, D>> M groupingBy(Function<? super T, ? extends K> classifier,
             Supplier<M> mapFactory, Collector<? super T, ?, D> downstream) {
@@ -316,6 +351,44 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return groupingBy(classifier, Collectors.toCollection(collectionFactory));
     }
 
+    /**
+     * Returns a {@code Map} whose keys are the values resulting from applying
+     * the classification function to the input elements, and whose
+     * corresponding values are the collections of the input elements which map
+     * to the associated key under the classification function.
+     *
+     * <p>
+     * The {@code Map} will be created using the provided factory function.
+     * 
+     * <p>
+     * If the stream is parallel and map factory produces a
+     * {@link ConcurrentMap} then concurrent collector is used.
+     *
+     * <p>
+     * This is a terminal operation.
+     * 
+     * @param <K>
+     *            the type of the keys
+     * @param <C>
+     *            the type of the collection used in resulting {@code Map}
+     *            values
+     * @param <M>
+     *            the type of the resulting {@code Map}
+     * @param classifier
+     *            the classifier function mapping input elements to keys
+     * @param mapFactory
+     *            a function which, when called, produces a new empty
+     *            {@code Map} of the desired type
+     * @param collectionFactory
+     *            a function which returns a new empty {@code Collection} which
+     *            will be used to store the stream elements.
+     * @return a {@code Map} containing the results of the group-by operation
+     *
+     * @see #groupingTo(Function, Supplier)
+     * @see Collectors#groupingBy(Function, Supplier, Collector)
+     * @see Collectors#groupingByConcurrent(Function, Supplier, Collector)
+     * @since 0.2.2
+     */
     public <K, C extends Collection<T>, M extends Map<K, C>> M groupingTo(Function<? super T, ? extends K> classifier,
             Supplier<M> mapFactory, Supplier<C> collectionFactory) {
         return groupingBy(classifier, mapFactory, Collectors.toCollection(collectionFactory));
