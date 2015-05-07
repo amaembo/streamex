@@ -1,6 +1,6 @@
 # StreamEx changes
 
-### 0.2.2-SNAPSHOT
+### 0.2.2
 
 * Fixed: StreamEx.flatMapToEntry, EntryStream.flatMapKeys and EntryStream.flatMapValues now correctly handles null value returned by mapper
 * Added StreamEx.scanRight() and EntryStream.scanRight() methods
