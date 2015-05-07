@@ -429,6 +429,22 @@ public class LongStreamEx implements LongStream {
         return anyMatch(x -> x == value);
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream that don't
+     * equal to the given value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            the value to remove from the stream.
+     * @return the new stream
+     * @since 0.2.2
+     */
+    public LongStreamEx without(long value) {
+        return filter(val -> val != value);
+    }
+
     public LongStreamEx sorted(Comparator<Long> comparator) {
         return strategy().newLongStreamEx(stream.boxed().sorted(comparator).mapToLong(Long::longValue));
     }

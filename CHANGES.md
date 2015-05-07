@@ -11,6 +11,7 @@
 * Added StreamEx.groupingTo() methods
 * Added StreamEx.ofPermutations(int) constructor
 * Added StreamEx.ofTree constructors
+* Added StreamEx.without(), IntStreamEx.without(), LongStreamEx.without() methods
 * Added EntryStream.join() methods
 * Updated documentation
 

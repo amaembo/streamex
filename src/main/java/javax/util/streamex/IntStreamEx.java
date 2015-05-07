@@ -439,6 +439,22 @@ public class IntStreamEx implements IntStream {
         return anyMatch(x -> x == value);
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream that don't
+     * equal to the given value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            the value to remove from the stream.
+     * @return the new stream
+     * @since 0.2.2
+     */
+    public IntStreamEx without(int value) {
+        return filter(val -> val != value);
+    }
+
     public IntStreamEx sorted(Comparator<Integer> comparator) {
         return strategy().newIntStreamEx(stream.boxed().sorted(comparator).mapToInt(Integer::intValue));
     }

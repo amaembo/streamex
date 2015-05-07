@@ -767,10 +767,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * This is a short-circuiting terminal operation.
      * 
      * @param value
-     *            the value too look for in the stream. If the value is null
-     *            then the method will return true if this stream contains at
-     *            least one null. Otherwise {@code value.equals()} will be
-     *            called to compare stream elements with the value.
+     *            the value to look for in the stream. If the value is null then
+     *            the method will return true if this stream contains at least
+     *            one null. Otherwise {@code value.equals()} will be called to
+     *            compare stream elements with the value.
      * @return true if this stream contains the specified value
      * @see Stream#anyMatch(Predicate)
      */
@@ -778,6 +778,27 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         if (value == null)
             return anyMatch(Objects::isNull);
         return anyMatch(value::equals);
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream that don't
+     * equal to the given value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            the value to remove from the stream. If the value is null then
+     *            all nulls will be removed (like {@link #nonNull()} works).
+     *            Otherwise {@code value.equals()} will be used to test stream
+     *            values and matching elements will be removed.
+     * @return the new stream
+     * @since 0.2.2
+     */
+    public StreamEx<T> without(T value) {
+        if (value == null)
+            return filter(Objects::nonNull);
+        return remove(value::equals);
     }
 
     /**
@@ -1302,8 +1323,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public static <T> StreamEx<T> ofTree(T root, Function<T, Stream<T>> mapper) {
         Stream<T> rootStream = mapper.apply(root);
-        return rootStream == null ? of(root) : of(flatTraverse(rootStream, mapper)).prepend(
-                Stream.of(root));
+        return rootStream == null ? of(root) : of(flatTraverse(rootStream, mapper)).prepend(Stream.of(root));
     }
 
     /**
@@ -1326,8 +1346,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.2.2
      */
     @SuppressWarnings("unchecked")
-    public static <T, TT extends T> StreamEx<T> ofTree(T root, Class<TT> collectionClass,
-            Function<TT, Stream<T>> mapper) {
+    public static <T, TT extends T> StreamEx<T> ofTree(T root, Class<TT> collectionClass, Function<TT, Stream<T>> mapper) {
         return ofTree(root, t -> collectionClass.isInstance(t) ? mapper.apply((TT) t) : null);
     }
 }
