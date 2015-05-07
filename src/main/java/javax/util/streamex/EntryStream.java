@@ -625,10 +625,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      *            original stream
      * @return the wrapped stream
      */
-    @SuppressWarnings("unchecked")
     public static <K, V> EntryStream<K, V> of(Stream<Entry<K, V>> stream) {
-        return new EntryStream<>(
-                stream instanceof AbstractStreamEx ? ((AbstractStreamEx<Entry<K, V>, ?>) stream).stream : stream);
+        return new EntryStream<>(unwrap(stream));
     }
 
     public static <K, V> EntryStream<K, V> of(Map<K, V> map) {

@@ -87,6 +87,11 @@ import java.util.stream.Stream;
         });
     }
 
+    @SuppressWarnings("unchecked")
+    static <T> Stream<T> unwrap(Stream<T> stream) {
+        return stream instanceof AbstractStreamEx ? ((AbstractStreamEx<T, ?>) stream).stream : stream;
+    }
+
     @Override
     public Iterator<T> iterator() {
         return stream.iterator();
@@ -555,7 +560,7 @@ import java.util.stream.Stream;
      * @see Stream#concat(Stream, Stream)
      */
     public S append(Stream<T> other) {
-        return supply(Stream.concat(stream, other));
+        return supply(Stream.concat(stream, unwrap(other)));
     }
 
     /**
@@ -571,7 +576,7 @@ import java.util.stream.Stream;
      * @see Stream#concat(Stream, Stream)
      */
     public S prepend(Stream<T> other) {
-        return supply(Stream.concat(other, stream));
+        return supply(Stream.concat(unwrap(other), stream));
     }
 
     /**

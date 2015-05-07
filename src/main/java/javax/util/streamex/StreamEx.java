@@ -943,9 +943,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *            original stream
      * @return the wrapped stream
      */
-    @SuppressWarnings("unchecked")
     public static <T> StreamEx<T> of(Stream<T> stream) {
-        return new StreamEx<>(stream instanceof AbstractStreamEx ? ((AbstractStreamEx<T, ?>) stream).stream : stream);
+        return new StreamEx<>(unwrap(stream));
     }
 
     /**
