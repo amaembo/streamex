@@ -280,6 +280,14 @@ public class EntryStreamTest {
         assertEquals(expected, resultTree);
         assertTrue(resultTree instanceof ConcurrentMap);
     }
+    
+    @Test
+    public void testSorting() {
+        Map<String, Integer> data = createMap();
+        LinkedHashMap<String, Integer> result = EntryStream.of(data).reverseSorted(Entry.comparingByValue())
+                .toCustomMap(LinkedHashMap::new);
+        assertEquals("{ccc=33, bb=22, a=1}", result.toString());
+    }
 
     @Test
     public void testDistinct() {
