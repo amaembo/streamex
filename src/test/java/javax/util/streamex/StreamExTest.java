@@ -479,6 +479,11 @@ public class StreamExTest {
         assertEquals(0, interpolate(points, 999), 0.0);
         assertTrue(Double.isNaN(interpolate(points, -10)));
         assertEquals(0.4, interpolate(points, 100.6), 0.000001);
+        
+        // Find all numbers where the integer preceded a larger value.
+        Collection<Integer> numbers = Arrays.asList(10, 1, 15, 30, 2, 6);
+        List<Integer> res = StreamEx.of(numbers).pairMap((a, b) -> a < b ? a : null).nonNull().toList();
+        assertEquals(Arrays.asList(1, 15, 2), res);
     }
     
     static class Node {
