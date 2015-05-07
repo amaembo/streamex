@@ -369,6 +369,14 @@ public class StreamExTest {
         assertFalse(StreamEx.of("a", "bb", "c").has(null));
         assertTrue(StreamEx.of("a", "bb", null, "c").has(null));
     }
+    
+    @Test
+    public void testWithout() {
+        assertEquals(Arrays.asList("a", "bb", null), StreamEx.of("a", "bb", null, "c").without("c").toList());
+        assertEquals(Arrays.asList("a", "bb", "c"), StreamEx.of("a", "bb", null, "c", null).without(null).toList());
+        assertTrue(StreamEx.of("bb", "bb", "bb").without("bb").toList().isEmpty());
+        assertEquals(Arrays.asList("bb", "bb", "bb"), StreamEx.of("bb", "bb", "bb").without(null).toList());
+    }
 
     @Test
     public void testJoining() {

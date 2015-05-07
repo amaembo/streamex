@@ -152,6 +152,12 @@ public class IntStreamExTest {
     }
     
     @Test
+    public void testWithout() {
+        assertArrayEquals(new int[] {1, 2}, IntStreamEx.range(1, 4).without(3).toArray());
+        assertArrayEquals(new int[] {1, 2, 3}, IntStreamEx.range(1, 4).without(5).toArray());
+    }
+    
+    @Test
     public void testToBitSet() {
         assertEquals("{0, 1, 2, 3, 4}", IntStreamEx.range(5).toBitSet().toString());
         assertEquals("{0, 2, 3, 4, 10}", IntStreamEx.of(0, 2, 0, 3, 0, 4, 0, 10).parallel().toBitSet().toString());

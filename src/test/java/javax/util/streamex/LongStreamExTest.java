@@ -98,6 +98,12 @@ public class LongStreamExTest {
     }
 
     @Test
+    public void testWithout() {
+        assertArrayEquals(new long[] {1, 2}, LongStreamEx.range(1, 4).without(3).toArray());
+        assertArrayEquals(new long[] {1, 2, 3}, LongStreamEx.range(1, 4).without(5).toArray());
+    }
+    
+    @Test
     public void testFind() {
         assertEquals(6, LongStreamEx.range(1, 10).findFirst(i -> i > 5).getAsLong());
         assertFalse(LongStreamEx.range(1, 10).findAny(i -> i > 10).isPresent());
