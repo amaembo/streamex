@@ -49,7 +49,7 @@ abstract class PairSpliterator<T, S extends Spliterator<T>, R> implements Splite
 
     @Override
     public int characteristics() {
-        return NONNULL | (source.characteristics() & (SIZED | SUBSIZED | CONCURRENT | IMMUTABLE | ORDERED));
+        return source.characteristics() & (SIZED | SUBSIZED | CONCURRENT | IMMUTABLE | ORDERED);
     }
     
     static final class PSOfRef<T, R> extends PairSpliterator<T, Spliterator<T>, R> {
