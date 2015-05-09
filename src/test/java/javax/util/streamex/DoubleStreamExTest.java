@@ -15,7 +15,9 @@
  */
 package javax.util.streamex;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.OptionalDouble;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -91,6 +93,13 @@ public class DoubleStreamExTest {
         assertArrayEquals(new double[] { 4, 2, 0, -2, -4 },
                 DoubleStreamEx.zip(new double[] { 5, 4, 3, 2, 1 }, new double[] { 1, 2, 3, 4, 5 }, (a, b) -> a - b)
                         .toArray(), 0.0);
+        assertEquals("1.0; 0.5; 0.25; 0.125", DoubleStreamEx.of(1.0, 0.5, 0.25, 0.125).mapToObj(String::valueOf).joining("; "));
+        List<Double> list = new ArrayList<>();
+        DoubleStreamEx.of(1.0, 0.5, 0.25, 0.125).forEach(list::add);
+        assertEquals(Arrays.asList(1.0, 0.5, 0.25, 0.125), list);
+        list = new ArrayList<>();
+        DoubleStreamEx.of(1.0, 0.5, 0.25, 0.125).parallel().forEachOrdered(list::add);
+        assertEquals(Arrays.asList(1.0, 0.5, 0.25, 0.125), list);
     }
 
     @Test
