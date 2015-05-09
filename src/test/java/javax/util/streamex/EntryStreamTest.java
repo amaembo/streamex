@@ -50,7 +50,7 @@ public class EntryStreamTest {
         assertEquals(expected, StreamEx.of("aaa", "bbb", "c").mapToEntry(String::length).toMap());
         assertEquals(expected, StreamEx.of("aaa", "bbb", "c").mapToEntry(s -> s, String::length).toMap());
         assertEquals(expected, EntryStream.zip(Arrays.asList("aaa", "bbb", "c"), Arrays.asList(3, 3, 1)).toMap());
-        assertEquals(expected, EntryStream.zip(new String[] {"aaa", "bbb", "c"}, new Integer[] {3, 3, 1}).toMap());
+        assertEquals(expected, EntryStream.zip(new String[] { "aaa", "bbb", "c" }, new Integer[] { 3, 3, 1 }).toMap());
         assertEquals(Collections.singletonMap("foo", 1), EntryStream.of("foo", 1).toMap());
 
         assertEquals(
@@ -185,15 +185,15 @@ public class EntryStreamTest {
         assertEquals(createMap(), sortedMap);
         assertTrue(sortedMap instanceof ConcurrentMap);
     }
-    
+
     @Test
     public void testFlatMap() {
-        assertEquals(Arrays.asList((int)'a', (int)'b', (int)'b', (int)'c', (int)'c', (int)'c'),
+        assertEquals(Arrays.asList((int) 'a', (int) 'b', (int) 'b', (int) 'c', (int) 'c', (int) 'c'),
                 EntryStream.of(createMap()).flatMap(entry -> entry.getKey().chars().boxed()).toList());
         assertEquals(Arrays.asList("a", "b", "b", "c", "c", "c"),
                 EntryStream.of(createMap()).flatCollection(entry -> Arrays.asList(entry.getKey().split(""))).toList());
     }
-    
+
     @Test
     public void testFlatMapKeys() {
         Map<String, List<Integer>> data = new HashMap<>();
@@ -223,9 +223,12 @@ public class EntryStreamTest {
         expected.put("aaa", Arrays.asList(1, 2, 3, 10));
         expected.put("bb", Arrays.asList(4, 5, 6, 20));
         assertEquals(expected, result);
-        
+
         // Find the key which contains the biggest value in the list
-        assertEquals("bb", EntryStream.of(data1).flatMapValues(List::stream).maxByInt(Entry::getValue).map(Entry::getKey).orElse(null));
+        assertEquals(
+                "bb",
+                EntryStream.of(data1).flatMapValues(List::stream).maxByInt(Entry::getValue).map(Entry::getKey)
+                        .orElse(null));
     }
 
     @Test
@@ -280,7 +283,7 @@ public class EntryStreamTest {
         assertEquals(expected, resultTree);
         assertTrue(resultTree instanceof ConcurrentMap);
     }
-    
+
     @Test
     public void testSorting() {
         Map<String, Integer> data = createMap();
@@ -324,11 +327,13 @@ public class EntryStreamTest {
         map.put(3, "c");
         assertEquals(Collections.singletonMap("a", 1), EntryStream.of(map).selectValues(Integer.class).toMap());
         assertEquals(Collections.singletonMap(3, "c"), EntryStream.of(map).selectKeys(Integer.class).toMap());
-        
-        // Weird way to create a map from the array. Don't do this in production code!
-        Object[] interleavingArray = {"a", 1, "bb", 22, "ccc", 33};
-        Map<String, Integer> result = EntryStream.of(StreamEx.of(interleavingArray).pairMap(SimpleEntry<Object, Object>::new))
-                .selectKeys(String.class).selectValues(Integer.class).toMap();
+
+        // Weird way to create a map from the array. Don't do this in production
+        // code!
+        Object[] interleavingArray = { "a", 1, "bb", 22, "ccc", 33 };
+        Map<String, Integer> result = EntryStream
+                .of(StreamEx.of(interleavingArray).pairMap(SimpleEntry<Object, Object>::new)).selectKeys(String.class)
+                .selectValues(Integer.class).toMap();
         assertEquals(createMap(), result);
     }
 
@@ -353,7 +358,7 @@ public class EntryStreamTest {
         EntryStream.of(createMap()).forKeyValue(output::put);
         assertEquals(output, createMap());
     }
-    
+
     @Test
     public void testJoin() {
         assertEquals("a = 1; bb = 22; ccc = 33", EntryStream.of(createMap()).join(" = ").joining("; "));

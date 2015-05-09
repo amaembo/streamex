@@ -38,11 +38,11 @@ abstract class PairSpliterator<T, S extends Spliterator<T>, R> implements Splite
     @Override
     public long estimateSize() {
         long size = source.estimateSize();
-        if(size == Long.MAX_VALUE)
+        if (size == Long.MAX_VALUE)
             return size;
-        if(hasLast)
+        if (hasLast)
             size++;
-        if(!hasPrev && size > 0)
+        if (!hasPrev && size > 0)
             size--;
         return size;
     }
@@ -51,34 +51,35 @@ abstract class PairSpliterator<T, S extends Spliterator<T>, R> implements Splite
     public int characteristics() {
         return source.characteristics() & (SIZED | SUBSIZED | CONCURRENT | IMMUTABLE | ORDERED);
     }
-    
+
     static final class PSOfRef<T, R> extends PairSpliterator<T, Spliterator<T>, R> {
         private T cur;
         private final T last;
         private final BiFunction<T, T, R> mapper;
-        
-        public PSOfRef(BiFunction<T, T, R> mapper, Spliterator<T> source, T prev, boolean hasPrev, T last, boolean hasLast) {
+
+        public PSOfRef(BiFunction<T, T, R> mapper, Spliterator<T> source, T prev, boolean hasPrev, T last,
+                boolean hasLast) {
             super(source, hasPrev, hasLast);
             this.cur = prev;
             this.last = last;
             this.mapper = mapper;
         }
-        
+
         void setCur(T t) {
             cur = t;
         }
-        
+
         @Override
         public boolean tryAdvance(Consumer<? super R> action) {
-            if(!hasPrev) {
-                if(!source.tryAdvance(this::setCur)) {
+            if (!hasPrev) {
+                if (!source.tryAdvance(this::setCur)) {
                     return false;
                 }
                 hasPrev = true;
             }
             T prev = cur;
-            if(!source.tryAdvance(this::setCur)) {
-                if(!hasLast)
+            if (!source.tryAdvance(this::setCur)) {
+                if (!hasLast)
                     return false;
                 hasLast = false;
                 cur = last;
@@ -90,10 +91,10 @@ abstract class PairSpliterator<T, S extends Spliterator<T>, R> implements Splite
         @Override
         public Spliterator<R> trySplit() {
             Spliterator<T> prefixSource = source.trySplit();
-            if(prefixSource == null)
+            if (prefixSource == null)
                 return null;
             T prev = cur;
-            if(!source.tryAdvance(this::setCur)) {
+            if (!source.tryAdvance(this::setCur)) {
                 source = prefixSource;
                 return null;
             }
@@ -103,7 +104,8 @@ abstract class PairSpliterator<T, S extends Spliterator<T>, R> implements Splite
         }
     }
 
-    static final class PSOfInt extends PairSpliterator<Integer, Spliterator.OfInt, Integer> implements Spliterator.OfInt {
+    static final class PSOfInt extends PairSpliterator<Integer, Spliterator.OfInt, Integer> implements
+            Spliterator.OfInt {
         private int cur;
         private final int last;
         private final IntBinaryOperator mapper;
@@ -114,22 +116,22 @@ abstract class PairSpliterator<T, S extends Spliterator<T>, R> implements Splite
             this.last = last;
             this.mapper = mapper;
         }
-        
+
         void setCur(int t) {
             cur = t;
         }
-        
+
         @Override
         public boolean tryAdvance(IntConsumer action) {
-            if(!hasPrev) {
-                if(!source.tryAdvance((IntConsumer)this::setCur)) {
+            if (!hasPrev) {
+                if (!source.tryAdvance((IntConsumer) this::setCur)) {
                     return false;
                 }
                 hasPrev = true;
             }
             int prev = cur;
-            if(!source.tryAdvance((IntConsumer)this::setCur)) {
-                if(!hasLast)
+            if (!source.tryAdvance((IntConsumer) this::setCur)) {
+                if (!hasLast)
                     return false;
                 hasLast = false;
                 cur = last;
@@ -141,10 +143,10 @@ abstract class PairSpliterator<T, S extends Spliterator<T>, R> implements Splite
         @Override
         public Spliterator.OfInt trySplit() {
             Spliterator.OfInt prefixSource = source.trySplit();
-            if(prefixSource == null)
+            if (prefixSource == null)
                 return null;
             int prev = cur;
-            if(!source.tryAdvance((IntConsumer)this::setCur)) {
+            if (!source.tryAdvance((IntConsumer) this::setCur)) {
                 source = prefixSource;
                 return null;
             }
@@ -159,28 +161,29 @@ abstract class PairSpliterator<T, S extends Spliterator<T>, R> implements Splite
         private final long last;
         private final LongBinaryOperator mapper;
 
-        PSOfLong(LongBinaryOperator mapper, Spliterator.OfLong source, long prev, boolean hasPrev, long last, boolean hasLast) {
+        PSOfLong(LongBinaryOperator mapper, Spliterator.OfLong source, long prev, boolean hasPrev, long last,
+                boolean hasLast) {
             super(source, hasPrev, hasLast);
             this.cur = prev;
             this.last = last;
             this.mapper = mapper;
         }
-        
+
         void setCur(long t) {
             cur = t;
         }
-        
+
         @Override
         public boolean tryAdvance(LongConsumer action) {
-            if(!hasPrev) {
-                if(!source.tryAdvance((LongConsumer)this::setCur)) {
+            if (!hasPrev) {
+                if (!source.tryAdvance((LongConsumer) this::setCur)) {
                     return false;
                 }
                 hasPrev = true;
             }
             long prev = cur;
-            if(!source.tryAdvance((LongConsumer)this::setCur)) {
-                if(!hasLast)
+            if (!source.tryAdvance((LongConsumer) this::setCur)) {
+                if (!hasLast)
                     return false;
                 hasLast = false;
                 cur = last;
@@ -192,10 +195,10 @@ abstract class PairSpliterator<T, S extends Spliterator<T>, R> implements Splite
         @Override
         public Spliterator.OfLong trySplit() {
             Spliterator.OfLong prefixSource = source.trySplit();
-            if(prefixSource == null)
+            if (prefixSource == null)
                 return null;
             long prev = cur;
-            if(!source.tryAdvance((LongConsumer)this::setCur)) {
+            if (!source.tryAdvance((LongConsumer) this::setCur)) {
                 source = prefixSource;
                 return null;
             }
@@ -205,33 +208,35 @@ abstract class PairSpliterator<T, S extends Spliterator<T>, R> implements Splite
         }
     }
 
-    static final class PSOfDouble extends PairSpliterator<Double, Spliterator.OfDouble, Double> implements Spliterator.OfDouble {
+    static final class PSOfDouble extends PairSpliterator<Double, Spliterator.OfDouble, Double> implements
+            Spliterator.OfDouble {
         private double cur;
         private final double last;
         private final DoubleBinaryOperator mapper;
 
-        PSOfDouble(DoubleBinaryOperator mapper, Spliterator.OfDouble source, double prev, boolean hasPrev, double last, boolean hasLast) {
+        PSOfDouble(DoubleBinaryOperator mapper, Spliterator.OfDouble source, double prev, boolean hasPrev, double last,
+                boolean hasLast) {
             super(source, hasPrev, hasLast);
             this.cur = prev;
             this.last = last;
             this.mapper = mapper;
         }
-        
+
         void setCur(double t) {
             cur = t;
         }
-        
+
         @Override
         public boolean tryAdvance(DoubleConsumer action) {
-            if(!hasPrev) {
-                if(!source.tryAdvance((DoubleConsumer)this::setCur)) {
+            if (!hasPrev) {
+                if (!source.tryAdvance((DoubleConsumer) this::setCur)) {
                     return false;
                 }
                 hasPrev = true;
             }
             double prev = cur;
-            if(!source.tryAdvance((DoubleConsumer)this::setCur)) {
-                if(!hasLast)
+            if (!source.tryAdvance((DoubleConsumer) this::setCur)) {
+                if (!hasLast)
                     return false;
                 hasLast = false;
                 cur = last;
@@ -243,10 +248,10 @@ abstract class PairSpliterator<T, S extends Spliterator<T>, R> implements Splite
         @Override
         public Spliterator.OfDouble trySplit() {
             Spliterator.OfDouble prefixSource = source.trySplit();
-            if(prefixSource == null)
+            if (prefixSource == null)
                 return null;
             double prev = cur;
-            if(!source.tryAdvance((DoubleConsumer)this::setCur)) {
+            if (!source.tryAdvance((DoubleConsumer) this::setCur)) {
                 source = prefixSource;
                 return null;
             }

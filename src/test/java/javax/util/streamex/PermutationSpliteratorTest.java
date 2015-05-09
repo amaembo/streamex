@@ -36,31 +36,31 @@ public class PermutationSpliteratorTest {
         spliterator.forEachRemaining(i -> strings.add(IntStreamEx.of(i).mapToObj(String::valueOf).joining()));
         return strings;
     }
-    
+
     private void collectRandomSplit(Spliterator<int[]> spliterator, Random r, List<String> strings) {
-        if(spliterator.estimateSize() == 0)
+        if (spliterator.estimateSize() == 0)
             return;
-        int n = r.nextInt((int) spliterator.estimateSize())+1;
-        for(int i=0; i<n; i++) {
-            if(!spliterator.tryAdvance(is -> strings.add(IntStreamEx.of(is).mapToObj(String::valueOf).joining())))
+        int n = r.nextInt((int) spliterator.estimateSize()) + 1;
+        for (int i = 0; i < n; i++) {
+            if (!spliterator.tryAdvance(is -> strings.add(IntStreamEx.of(is).mapToObj(String::valueOf).joining())))
                 return;
         }
         Spliterator<int[]> prefix = spliterator.trySplit();
-        if(prefix != null)
+        if (prefix != null)
             collectRandomSplit(prefix, r, strings);
         collectRandomSplit(spliterator, r, strings);
     }
-    
-    @Test(expected=IllegalArgumentException.class)
+
+    @Test(expected = IllegalArgumentException.class)
     public void testOverflow() {
         new PermutationSpliterator(21);
     }
-    
-    @Test(expected=IllegalArgumentException.class)
+
+    @Test(expected = IllegalArgumentException.class)
     public void testUnderflow() {
         new PermutationSpliterator(-1);
     }
-    
+
     @Test
     public void testAdvance3() {
         Spliterator<int[]> spliterator = new PermutationSpliterator(3);
@@ -85,17 +85,17 @@ public class PermutationSpliteratorTest {
         strings.addAll(collect(spliterator));
         assertEquals(PERMUTATIONS_3, String.join(",", strings));
     }
-    
+
     @Test
     public void testSplit3Random() {
         Random r = new Random(1);
-        for(int i=0; i<100; i++) {
+        for (int i = 0; i < 100; i++) {
             List<String> strings = new ArrayList<>();
             collectRandomSplit(new PermutationSpliterator(3), r, strings);
             assertEquals(String.valueOf(i), PERMUTATIONS_3, String.join(",", strings));
         }
     }
-    
+
     @Test
     public void testSplit4() {
         Spliterator<int[]> spliterator = new PermutationSpliterator(4);
@@ -112,7 +112,7 @@ public class PermutationSpliteratorTest {
     @Test
     public void testSplit4Random() {
         Random r = new Random(1);
-        for(int i=0; i<100; i++) {
+        for (int i = 0; i < 100; i++) {
             List<String> strings = new ArrayList<>();
             collectRandomSplit(new PermutationSpliterator(4), r, strings);
             assertEquals(String.valueOf(i), PERMUTATIONS_4, String.join(",", strings));

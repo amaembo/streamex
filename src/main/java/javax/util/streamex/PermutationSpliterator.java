@@ -16,7 +16,8 @@ final class PermutationSpliterator implements Spliterator<int[]> {
         if (length < 0)
             throw new IllegalArgumentException("Length must be non-negative");
         if (length >= factorials.length)
-            throw new IllegalArgumentException("Length "+length+" is bigger than "+factorials.length+": not supported");
+            throw new IllegalArgumentException("Length " + length + " is bigger than " + factorials.length
+                    + ": not supported");
         this.value = new int[length];
         for (int i = 0; i < length; i++)
             this.value[i] = i;
@@ -58,17 +59,17 @@ final class PermutationSpliterator implements Spliterator<int[]> {
         if (remainingSize <= 1)
             return null;
         int[] newValue = value.clone();
-        long used = -1L;  // clear bit = used position
+        long used = -1L; // clear bit = used position
         long newRemainingSize = remainingSize / 2;
         long newPos = fence - remainingSize + newRemainingSize;
         long s = newPos;
         for (int i = 0; i < value.length; i++) {
             long f = factorials[value.length - i - 1];
-            int rem = (int)(s / f);
+            int rem = (int) (s / f);
             s %= f;
             int idx = -1;
             while (rem >= 0) {
-                idx = Long.numberOfTrailingZeros(used >> (idx+1))+idx+1;
+                idx = Long.numberOfTrailingZeros(used >> (idx + 1)) + idx + 1;
                 rem--;
             }
             used &= ~(1 << idx);

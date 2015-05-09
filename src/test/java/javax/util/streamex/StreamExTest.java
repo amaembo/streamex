@@ -53,13 +53,14 @@ public class StreamExTest {
     @Test
     public void testCreate() {
         assertEquals(Arrays.asList(), StreamEx.empty().toList());
-        assertEquals(Arrays.asList(), StreamEx.empty().toList()); // double check is intended
+        // double test is intended
+        assertEquals(Arrays.asList(), StreamEx.empty().toList());
         assertEquals(Arrays.asList("a"), StreamEx.of("a").toList());
         assertEquals(Arrays.asList("a"), StreamEx.of(Optional.of("a")).toList());
         assertEquals(Arrays.asList(), StreamEx.of(Optional.ofNullable(null)).toList());
         assertEquals(Arrays.asList(), StreamEx.ofNullable(null).toList());
         assertEquals(Arrays.asList("a"), StreamEx.ofNullable("a").toList());
-        assertEquals(Arrays.asList((String)null), StreamEx.of((String)null).toList());
+        assertEquals(Arrays.asList((String) null), StreamEx.of((String) null).toList());
         assertEquals(Arrays.asList("a", "b"), StreamEx.of("a", "b").toList());
         assertEquals(Arrays.asList("a", "b"), StreamEx.of(Arrays.asList("a", "b")).toList());
         assertEquals(Arrays.asList("a", "b"), StreamEx.of(Arrays.asList("a", "b").stream()).toList());
@@ -69,25 +70,25 @@ public class StreamExTest {
         assertEquals(Arrays.asList("a", "b"), StreamEx.ofLines(new StringReader("a\nb")).toList());
         assertEquals(Arrays.asList("a", "b"), StreamEx.ofLines(new BufferedReader(new StringReader("a\nb"))).toList());
         assertEquals(Arrays.asList("a", "b"), StreamEx.ofLines(getReader()).toList());
-        assertEquals(Arrays.asList("a", "aa", "aaa", "aaaa"), StreamEx.iterate("a", x -> x+"a").limit(4).toList());
+        assertEquals(Arrays.asList("a", "aa", "aaa", "aaaa"), StreamEx.iterate("a", x -> x + "a").limit(4).toList());
         assertEquals(Arrays.asList("a", "a", "a", "a"), StreamEx.generate(() -> "a").limit(4).toList());
         assertEquals(Arrays.asList("a", "a", "a", "a"), StreamEx.constant("a", 4).toList());
         assertEquals(Arrays.asList("c", "d", "e"), StreamEx.of("abcdef".split(""), 2, 5).toList());
-        
+
         StreamEx<String> stream = StreamEx.of("foo", "bar");
         assertSame(stream.stream, StreamEx.of(stream).stream);
-        
+
         assertEquals(Arrays.asList("a1", "b2", "c3"),
                 StreamEx.zip(Arrays.asList("a", "b", "c"), Arrays.asList(1, 2, 3), (s, i) -> s + i).toList());
         assertEquals(Arrays.asList("a1", "b2", "c3"),
-                StreamEx.zip(new String[] {"a", "b", "c"}, new Integer[] {1, 2, 3}, (s, i) -> s + i).toList());
+                StreamEx.zip(new String[] { "a", "b", "c" }, new Integer[] { 1, 2, 3 }, (s, i) -> s + i).toList());
     }
 
     private Reader getReader() {
         return new BufferedReader(new StringReader("a\nb"));
     }
-    
-    @Test(expected=IllegalArgumentException.class)
+
+    @Test(expected = IllegalArgumentException.class)
     public void testZipThrows() {
         StreamEx.zip(Arrays.asList("A"), Arrays.asList("b", "c"), String::concat);
     }
@@ -98,7 +99,7 @@ public class StreamExTest {
         assertTrue(StreamEx.of("a").parallel().isParallel());
         assertFalse(StreamEx.of("a").parallel().sequential().isParallel());
         AtomicInteger i = new AtomicInteger();
-        try(Stream<String> s = StreamEx.of("a").onClose(() -> i.incrementAndGet())) {
+        try (Stream<String> s = StreamEx.of("a").onClose(() -> i.incrementAndGet())) {
             assertEquals(1, s.count());
         }
         assertEquals(1, i.get());
@@ -108,29 +109,30 @@ public class StreamExTest {
         assertFalse(StreamEx.empty().findFirst().isPresent());
         assertEquals("a", StreamEx.of("a", "b").findFirst().get());
         assertEquals(Arrays.asList("b", "c"), StreamEx.of("a", "b", "c").skip(1).toList());
-        
+
         AtomicBoolean b = new AtomicBoolean(false);
-        try(Stream<String> stream = StreamEx.of("a").onClose(() -> b.set(true)))
-        {
+        try (Stream<String> stream = StreamEx.of("a").onClose(() -> b.set(true))) {
             assertFalse(b.get());
             assertEquals(1, stream.count());
             assertFalse(b.get());
         }
         assertTrue(b.get());
-                
+
         assertTrue(StreamEx.of("a", "b").anyMatch("a"::equals));
         assertFalse(StreamEx.of("a", "b").anyMatch("c"::equals));
         assertFalse(StreamEx.of("a", "b").allMatch("a"::equals));
         assertFalse(StreamEx.of("a", "b").allMatch("c"::equals));
         assertFalse(StreamEx.of("a", "b").noneMatch("a"::equals));
         assertTrue(StreamEx.of("a", "b").noneMatch("c"::equals));
-        
-        assertEquals("abbccc", StreamEx.of("a", "bb", "ccc").collect(StringBuilder::new, StringBuilder::append, StringBuilder::append).toString());
-        assertArrayEquals(new String[] {"a", "b", "c"}, StreamEx.of("a", "b", "c").toArray(String[]::new));
-        assertArrayEquals(new Object[] {"a", "b", "c"}, StreamEx.of("a", "b", "c").toArray());
+
+        assertEquals("abbccc",
+                StreamEx.of("a", "bb", "ccc").collect(StringBuilder::new, StringBuilder::append, StringBuilder::append)
+                        .toString());
+        assertArrayEquals(new String[] { "a", "b", "c" }, StreamEx.of("a", "b", "c").toArray(String[]::new));
+        assertArrayEquals(new Object[] { "a", "b", "c" }, StreamEx.of("a", "b", "c").toArray());
         assertEquals(3, StreamEx.of("a", "b", "c").spliterator().getExactSizeIfKnown());
     }
-    
+
     @Test
     public void testToMap() {
         Map<String, Integer> expected = new HashMap<>();
@@ -143,30 +145,33 @@ public class StreamExTest {
         assertEquals(expected, parallelMap);
         assertFalse(seqMap instanceof ConcurrentMap);
         assertTrue(parallelMap instanceof ConcurrentMap);
-        
+
         Map<Integer, String> expected2 = new HashMap<>();
         expected2.put(1, "a");
         expected2.put(2, "bb");
         expected2.put(3, "ccc");
         Map<Integer, String> seqMap2 = StreamEx.of("a", "bb", "ccc").toMap(String::length, Function.identity());
-        Map<Integer, String> parallelMap2 = StreamEx.of("a", "bb", "ccc").parallel().toMap(String::length, Function.identity());
+        Map<Integer, String> parallelMap2 = StreamEx.of("a", "bb", "ccc").parallel()
+                .toMap(String::length, Function.identity());
         assertEquals(expected2, seqMap2);
         assertEquals(expected2, parallelMap2);
         assertFalse(seqMap2 instanceof ConcurrentMap);
         assertTrue(parallelMap2 instanceof ConcurrentMap);
-        
+
         Map<Integer, String> expected3 = new HashMap<>();
         expected3.put(1, "a");
         expected3.put(2, "bbbb");
         expected3.put(3, "ccc");
-        Map<Integer, String> seqMap3 = StreamEx.of("a", "bb", "ccc", "bb").toMap(String::length, Function.identity(), String::concat);
-        Map<Integer, String> parallelMap3 = StreamEx.of("a", "bb", "ccc", "bb").parallel().toMap(String::length, Function.identity(), String::concat);
+        Map<Integer, String> seqMap3 = StreamEx.of("a", "bb", "ccc", "bb").toMap(String::length, Function.identity(),
+                String::concat);
+        Map<Integer, String> parallelMap3 = StreamEx.of("a", "bb", "ccc", "bb").parallel()
+                .toMap(String::length, Function.identity(), String::concat);
         assertEquals(expected3, seqMap3);
         assertEquals(expected3, parallelMap3);
         assertFalse(seqMap3 instanceof ConcurrentMap);
         assertTrue(parallelMap3 instanceof ConcurrentMap);
     }
-    
+
     @Test
     public void testToSortedMap() {
         SortedMap<String, Integer> expected = new TreeMap<>();
@@ -179,30 +184,34 @@ public class StreamExTest {
         assertEquals(expected, parallelMap);
         assertFalse(seqMap instanceof ConcurrentMap);
         assertTrue(parallelMap instanceof ConcurrentMap);
-        
+
         SortedMap<Integer, String> expected2 = new TreeMap<>();
         expected2.put(1, "a");
         expected2.put(2, "bb");
         expected2.put(3, "ccc");
-        SortedMap<Integer, String> seqMap2 = StreamEx.of("a", "bb", "ccc").toSortedMap(String::length, Function.identity());
-        SortedMap<Integer, String> parallelMap2 = StreamEx.of("a", "bb", "ccc").parallel().toSortedMap(String::length, Function.identity());
+        SortedMap<Integer, String> seqMap2 = StreamEx.of("a", "bb", "ccc").toSortedMap(String::length,
+                Function.identity());
+        SortedMap<Integer, String> parallelMap2 = StreamEx.of("a", "bb", "ccc").parallel()
+                .toSortedMap(String::length, Function.identity());
         assertEquals(expected2, seqMap2);
         assertEquals(expected2, parallelMap2);
         assertFalse(seqMap2 instanceof ConcurrentMap);
         assertTrue(parallelMap2 instanceof ConcurrentMap);
-        
+
         SortedMap<Integer, String> expected3 = new TreeMap<>();
         expected3.put(1, "a");
         expected3.put(2, "bbbb");
         expected3.put(3, "ccc");
-        SortedMap<Integer, String> seqMap3 = StreamEx.of("a", "bb", "ccc", "bb").toSortedMap(String::length, Function.identity(), String::concat);
-        SortedMap<Integer, String> parallelMap3 = StreamEx.of("a", "bb", "ccc", "bb").parallel().toSortedMap(String::length, Function.identity(), String::concat);
+        SortedMap<Integer, String> seqMap3 = StreamEx.of("a", "bb", "ccc", "bb").toSortedMap(String::length,
+                Function.identity(), String::concat);
+        SortedMap<Integer, String> parallelMap3 = StreamEx.of("a", "bb", "ccc", "bb").parallel()
+                .toSortedMap(String::length, Function.identity(), String::concat);
         assertEquals(expected3, seqMap3);
         assertEquals(expected3, parallelMap3);
         assertFalse(seqMap3 instanceof ConcurrentMap);
         assertTrue(parallelMap3 instanceof ConcurrentMap);
     }
-    
+
     @Test
     public void testGroupingBy() {
         Map<Integer, List<String>> expected = new HashMap<>();
@@ -210,8 +219,10 @@ public class StreamExTest {
         expected.put(2, Arrays.asList("bb", "bb"));
         expected.put(3, Arrays.asList("ccc"));
         Map<Integer, List<String>> seqMap = StreamEx.of("a", "bb", "bb", "ccc").groupingBy(String::length);
-        Map<Integer, List<String>> parallelMap = StreamEx.of("a", "bb", "bb", "ccc").parallel().groupingBy(String::length);
-        Map<Integer, List<String>> mapLinkedList = StreamEx.of("a", "bb", "bb", "ccc").parallel().groupingTo(String::length, LinkedList::new);
+        Map<Integer, List<String>> parallelMap = StreamEx.of("a", "bb", "bb", "ccc").parallel()
+                .groupingBy(String::length);
+        Map<Integer, List<String>> mapLinkedList = StreamEx.of("a", "bb", "bb", "ccc").parallel()
+                .groupingTo(String::length, LinkedList::new);
         assertEquals(expected, seqMap);
         assertEquals(expected, parallelMap);
         assertEquals(expected, mapLinkedList);
@@ -224,8 +235,10 @@ public class StreamExTest {
         expectedMapSet.put(1, new HashSet<>(Arrays.asList("a")));
         expectedMapSet.put(2, new HashSet<>(Arrays.asList("bb", "bb")));
         expectedMapSet.put(3, new HashSet<>(Arrays.asList("ccc")));
-        Map<Integer, Set<String>> seqMapSet = StreamEx.of("a", "bb", "bb", "ccc").groupingBy(String::length, Collectors.toSet());
-        Map<Integer, Set<String>> parallelMapSet = StreamEx.of("a", "bb", "bb", "ccc").parallel().groupingBy(String::length, Collectors.toSet());
+        Map<Integer, Set<String>> seqMapSet = StreamEx.of("a", "bb", "bb", "ccc").groupingBy(String::length,
+                Collectors.toSet());
+        Map<Integer, Set<String>> parallelMapSet = StreamEx.of("a", "bb", "bb", "ccc").parallel()
+                .groupingBy(String::length, Collectors.toSet());
         assertEquals(expectedMapSet, seqMapSet);
         assertEquals(expectedMapSet, parallelMapSet);
         assertFalse(seqMapSet instanceof ConcurrentMap);
@@ -234,36 +247,41 @@ public class StreamExTest {
         seqMapSet = StreamEx.of("a", "bb", "bb", "ccc").groupingBy(String::length, HashMap::new, Collectors.toSet());
         assertEquals(expectedMapSet, seqMapSet);
         assertFalse(seqMapSet instanceof ConcurrentMap);
-        seqMapSet = StreamEx.of("a", "bb", "bb", "ccc").parallel().groupingBy(String::length, HashMap::new, Collectors.toSet());
+        seqMapSet = StreamEx.of("a", "bb", "bb", "ccc").parallel()
+                .groupingBy(String::length, HashMap::new, Collectors.toSet());
         assertEquals(expectedMapSet, seqMapSet);
         assertFalse(seqMapSet instanceof ConcurrentMap);
-        parallelMapSet = StreamEx.of("a", "bb", "bb", "ccc").parallel().groupingBy(String::length, ConcurrentHashMap::new, Collectors.toSet());
+        parallelMapSet = StreamEx.of("a", "bb", "bb", "ccc").parallel()
+                .groupingBy(String::length, ConcurrentHashMap::new, Collectors.toSet());
         assertEquals(expectedMapSet, parallelMapSet);
         assertTrue(parallelMapSet instanceof ConcurrentMap);
-        parallelMapSet = StreamEx.of("a", "bb", "bb", "ccc").parallel().groupingTo(String::length, ConcurrentHashMap::new, TreeSet::new);
+        parallelMapSet = StreamEx.of("a", "bb", "bb", "ccc").parallel()
+                .groupingTo(String::length, ConcurrentHashMap::new, TreeSet::new);
         assertEquals(expectedMapSet, parallelMapSet);
         assertTrue(parallelMapSet instanceof ConcurrentMap);
         assertTrue(parallelMapSet.get(1) instanceof TreeSet);
     }
-    
+
     @Test
     public void testPartitioning() {
         Map<Boolean, List<String>> map = StreamEx.of("a", "bb", "c", "dd").partitioningBy(s -> s.length() > 1);
         assertEquals(Arrays.asList("bb", "dd"), map.get(true));
         assertEquals(Arrays.asList("a", "c"), map.get(false));
-        Map<Boolean, Long> counts = StreamEx.of("a", "bb", "c", "dd", "eee").partitioningBy(s -> s.length() > 1, Collectors.counting());
-        assertEquals(3L, (long)counts.get(true));
-        assertEquals(2L, (long)counts.get(false));
-        Map<Boolean, List<String>> mapLinked = StreamEx.of("a", "bb", "c", "dd").partitioningTo(s -> s.length() > 1, LinkedList::new);
+        Map<Boolean, Long> counts = StreamEx.of("a", "bb", "c", "dd", "eee").partitioningBy(s -> s.length() > 1,
+                Collectors.counting());
+        assertEquals(3L, (long) counts.get(true));
+        assertEquals(2L, (long) counts.get(false));
+        Map<Boolean, List<String>> mapLinked = StreamEx.of("a", "bb", "c", "dd").partitioningTo(s -> s.length() > 1,
+                LinkedList::new);
         assertEquals(Arrays.asList("bb", "dd"), mapLinked.get(true));
         assertEquals(Arrays.asList("a", "c"), mapLinked.get(false));
         assertTrue(mapLinked.get(true) instanceof LinkedList);
     }
-    
+
     @Test
     public void testIterable() {
         List<String> result = new ArrayList<>();
-        for(String s : StreamEx.of("a", "b", "cc").filter(s -> s.length() < 2)) {
+        for (String s : StreamEx.of("a", "b", "cc").filter(s -> s.length() < 2)) {
             result.add(s);
         }
         assertEquals(Arrays.asList("a", "b"), result);
@@ -303,8 +321,8 @@ public class StreamExTest {
                 StreamEx.of("a", "b", "c", "dd").remove(s -> s.length() > 1).append("d", "e").toList());
         assertEquals(Arrays.asList("a", "b", "c", "d", "e"),
                 StreamEx.of("a", "b", "c").append(Arrays.asList("d", "e").stream()).toList());
-        assertEquals(Arrays.asList("a", "b", "c", "d", "e"),
-                StreamEx.of("a", "b", "c").append(Arrays.asList("d", "e")).toList());
+        assertEquals(Arrays.asList("a", "b", "c", "d", "e"), StreamEx.of("a", "b", "c").append(Arrays.asList("d", "e"))
+                .toList());
     }
 
     @Test
@@ -313,8 +331,8 @@ public class StreamExTest {
                 StreamEx.of("a", "b", "c", "dd").remove(s -> s.length() > 1).prepend("d", "e").toList());
         assertEquals(Arrays.asList("d", "e", "a", "b", "c"),
                 StreamEx.of("a", "b", "c").prepend(Arrays.asList("d", "e").stream()).toList());
-        assertEquals(Arrays.asList("d", "e", "a", "b", "c"),
-                StreamEx.of("a", "b", "c").prepend(Arrays.asList("d", "e")).toList());
+        assertEquals(Arrays.asList("d", "e", "a", "b", "c"), StreamEx.of("a", "b", "c")
+                .prepend(Arrays.asList("d", "e")).toList());
     }
 
     @Test
@@ -328,10 +346,12 @@ public class StreamExTest {
     public void testSorting() {
         assertEquals(Arrays.asList("a", "b", "c", "d"), StreamEx.of("b", "c", "a", "d").sorted().toList());
         assertEquals(Arrays.asList("d", "c", "b", "a"), StreamEx.of("b", "c", "a", "d").reverseSorted().toList());
-        
+
         List<String> data = Arrays.asList("a", "bbb", "cc");
-        assertEquals(Arrays.asList("a", "cc", "bbb"), StreamEx.of(data).sorted(Comparator.comparingInt(String::length)).toList());
-        assertEquals(Arrays.asList("bbb", "cc", "a"), StreamEx.of(data).reverseSorted(Comparator.comparingInt(String::length)).toList());
+        assertEquals(Arrays.asList("a", "cc", "bbb"), StreamEx.of(data).sorted(Comparator.comparingInt(String::length))
+                .toList());
+        assertEquals(Arrays.asList("bbb", "cc", "a"),
+                StreamEx.of(data).reverseSorted(Comparator.comparingInt(String::length)).toList());
         assertEquals(Arrays.asList("a", "cc", "bbb"), StreamEx.of(data).sortedByInt(String::length).toList());
         assertEquals(Arrays.asList("a", "cc", "bbb"), StreamEx.of(data).sortedByLong(String::length).toList());
         assertEquals(Arrays.asList("a", "cc", "bbb"), StreamEx.of(data).sortedByDouble(String::length).toList());
@@ -346,7 +366,7 @@ public class StreamExTest {
         assertEquals("a", StreamEx.of(data).minByDouble(String::length).get());
         assertEquals("a", StreamEx.of(data).minBy(s -> s.length()).get());
     }
-    
+
     @Test
     public void testMaxBy() {
         List<String> data = Arrays.asList("a", "bbb", "cc");
@@ -355,7 +375,7 @@ public class StreamExTest {
         assertEquals("bbb", StreamEx.of(data).maxByDouble(String::length).get());
         assertEquals("bbb", StreamEx.of(data).maxBy(s -> s.length()).get());
     }
-    
+
     @Test
     public void testFind() {
         assertEquals("bb", StreamEx.of("a", "bb", "c").findFirst(s -> s.length() == 2).get());
@@ -369,7 +389,7 @@ public class StreamExTest {
         assertFalse(StreamEx.of("a", "bb", "c").has(null));
         assertTrue(StreamEx.of("a", "bb", null, "c").has(null));
     }
-    
+
     @Test
     public void testWithout() {
         assertEquals(Arrays.asList("a", "bb", null), StreamEx.of("a", "bb", null, "c").without("c").toList());
@@ -384,36 +404,40 @@ public class StreamExTest {
         assertEquals("a,b,c", StreamEx.of("a", "b", "c").joining(","));
         assertEquals("[1;2;3]", StreamEx.of(1, 2, 3).joining(";", "[", "]"));
     }
-    
+
     @Test
     public void testFoldLeft() {
-        assertEquals("c;b;a;", StreamEx.of("a", "b", "c").foldLeft("", (u,v) -> v+";"+u));
+        assertEquals("c;b;a;", StreamEx.of("a", "b", "c").foldLeft("", (u, v) -> v + ";" + u));
         // Removing types here causes internal error in Javac compiler
         // java.lang.AssertionError: attribution shouldn't be happening here
         // Bug appears in javac 1.8.0.20 and javac 1.8.0.45
         // javac 1.9.0b55 and ecj compiles normally
-        // Probably this ticket: https://bugs.openjdk.java.net/browse/JDK-8068399
+        // Probably this ticket:
+        // https://bugs.openjdk.java.net/browse/JDK-8068399
         assertTrue(StreamEx.of("a", "b", "c").foldLeft(false, (Boolean acc, String s) -> acc || s.equals("b")));
         assertFalse(StreamEx.of("a", "b", "c").foldLeft(false, (Boolean acc, String s) -> acc || s.equals("d")));
-        assertEquals(Integer.valueOf(6), StreamEx.of("a", "bb", "ccc").foldLeft(0, (acc,v) -> acc+v.length()));
+        assertEquals(Integer.valueOf(6), StreamEx.of("a", "bb", "ccc").foldLeft(0, (acc, v) -> acc + v.length()));
         assertEquals(
                 "{ccc={bb={a={}}}}",
                 StreamEx.of("a", "bb", "ccc")
                         .foldLeft(Collections.emptyMap(), (acc, v) -> Collections.singletonMap(v, acc)).toString());
 
-        assertEquals("c;b;a;", StreamEx.of("a", "b", "c").parallel().foldLeft("", (u,v) -> v+";"+u));
-        assertTrue(StreamEx.of("a", "b", "c").parallel().foldLeft(false, (Boolean acc, String s) -> acc | s.equals("b")));
-        assertFalse(StreamEx.of("a", "b", "c").parallel().foldLeft(false, (Boolean acc, String s) -> acc | s.equals("d")));
-        assertEquals(Integer.valueOf(6), StreamEx.of("a", "bb", "ccc").parallel().foldLeft(0, (acc,v) -> acc+v.length()));
+        assertEquals("c;b;a;", StreamEx.of("a", "b", "c").parallel().foldLeft("", (u, v) -> v + ";" + u));
+        assertTrue(StreamEx.of("a", "b", "c").parallel()
+                .foldLeft(false, (Boolean acc, String s) -> acc | s.equals("b")));
+        assertFalse(StreamEx.of("a", "b", "c").parallel()
+                .foldLeft(false, (Boolean acc, String s) -> acc | s.equals("d")));
+        assertEquals(Integer.valueOf(6),
+                StreamEx.of("a", "bb", "ccc").parallel().foldLeft(0, (acc, v) -> acc + v.length()));
         assertEquals(
                 "{ccc={bb={a={}}}}",
                 StreamEx.of("a", "bb", "ccc").parallel()
                         .foldLeft(Collections.emptyMap(), (acc, v) -> Collections.singletonMap(v, acc)).toString());
     }
-    
+
     @Test
     public void testFoldRight() {
-        assertEquals(";c;b;a", StreamEx.of("a", "b", "c").parallel().foldRight("", (u,v) -> v+";"+u));
+        assertEquals(";c;b;a", StreamEx.of("a", "b", "c").parallel().foldRight("", (u, v) -> v + ";" + u));
         assertEquals(
                 "{a={bb={ccc={}}}}",
                 StreamEx.of("a", "bb", "ccc")
@@ -423,57 +447,65 @@ public class StreamExTest {
                 StreamEx.of("a", "bb", "ccc").parallel()
                         .foldRight(Collections.emptyMap(), (v, acc) -> Collections.singletonMap(v, acc)).toString());
     }
-    
+
     private <T extends Comparable<? super T>> boolean isSorted(Collection<T> c) {
         return StreamEx.of(c).parallel().pairMap(Comparable::compareTo).allMatch(r -> r <= 0);
     }
-    
+
     private <T extends Comparable<? super T>> Optional<T> firstMisplaced(Collection<T> c) {
         return StreamEx.of(c).parallel().pairMap((a, b) -> a.compareTo(b) > 0 ? a : null).nonNull().findFirst();
     }
-    
+
     static class Point {
         double x, y;
-        
+
         Point(double x, double y) {
             this.x = x;
             this.y = y;
         }
     }
-    
+
     private double interpolate(Point[] points, double x) {
-        return StreamEx.of(points)
-                .parallel()
+        return StreamEx.of(points).parallel()
                 .pairMap((p1, p2) -> p1.x <= x && p2.x >= x ? (x - p1.x) / (p2.x - p1.x) * (p2.y - p1.y) + p1.y : null)
                 .nonNull().findAny().orElse(Double.NaN);
     }
-    
+
     @Test
     public void testPairMap() {
-        assertEquals(0, StreamEx.<String>empty().pairMap(String::concat).count());
+        assertEquals(0, StreamEx.<String> empty().pairMap(String::concat).count());
         assertEquals(0, StreamEx.of("a").pairMap(String::concat).count());
-        assertEquals(Arrays.asList("aa","aa","aa"), StreamEx.generate(() -> "a").pairMap(String::concat).limit(3).toList());
+        assertEquals(Arrays.asList("aa", "aa", "aa"), StreamEx.generate(() -> "a").pairMap(String::concat).limit(3)
+                .toList());
         AtomicBoolean flag = new AtomicBoolean();
         assertFalse(flag.get());
         StreamEx<String> stream = StreamEx.of("a", "b").onClose(() -> flag.set(true)).pairMap(String::concat);
         stream.close();
         assertTrue(flag.get());
-        assertEquals(Collections.singletonMap(1, 9999L),
-                IntStreamEx.range(10000).boxed().pairMap((a, b) -> b - a).groupingBy(Function.identity(), Collectors.counting()));
-        assertEquals(Collections.singletonMap(1, 9999L),
-                IntStreamEx.range(10000).parallel().boxed().pairMap((a, b) -> b - a).groupingBy(Function.identity(), Collectors.counting()));
+        assertEquals(Collections.singletonMap(1, 9999L), IntStreamEx.range(10000).boxed().pairMap((a, b) -> b - a)
+                .groupingBy(Function.identity(), Collectors.counting()));
+        assertEquals(
+                Collections.singletonMap(1, 9999L),
+                IntStreamEx.range(10000).parallel().boxed().pairMap((a, b) -> b - a)
+                        .groupingBy(Function.identity(), Collectors.counting()));
         Integer[] data = new Random(1).ints(1000, 1, 1000).boxed().toArray(Integer[]::new);
-        Double[] expected = new Double[data.length-1];
-        for(int i=0; i<expected.length; i++) expected[i] = (data[i+1]-data[i])*3.14;
-        Double[] result = StreamEx.of(data).parallel().pairMap((a, b) -> (b - a)*3.14).toArray(Double[]::new);
+        Double[] expected = new Double[data.length - 1];
+        for (int i = 0; i < expected.length; i++)
+            expected[i] = (data[i + 1] - data[i]) * 3.14;
+        Double[] result = StreamEx.of(data).parallel().pairMap((a, b) -> (b - a) * 3.14).toArray(Double[]::new);
         assertArrayEquals(expected, result);
-        result = StreamEx.of(data).pairMap((a, b) -> (b - a)*3.14).toArray(Double[]::new);
+        result = StreamEx.of(data).pairMap((a, b) -> (b - a) * 3.14).toArray(Double[]::new);
         assertArrayEquals(expected, result);
-        assertEquals("Test Capitalization Stream",
-                IntStreamEx.ofChars("test caPiTaliZation streaM").parallel().prepend(0)
+        assertEquals(
+                "Test Capitalization Stream",
+                IntStreamEx
+                        .ofChars("test caPiTaliZation streaM")
+                        .parallel()
+                        .prepend(0)
                         .mapToObj(c -> Character.valueOf((char) c))
-                        .pairMap((c1, c2) -> !Character.isLetter(c1) && Character.isLetter(c2) ? 
-                                Character.toTitleCase(c2) : Character.toLowerCase(c2)).joining());
+                        .pairMap(
+                                (c1, c2) -> !Character.isLetter(c1) && Character.isLetter(c2) ? Character
+                                        .toTitleCase(c2) : Character.toLowerCase(c2)).joining());
         assertTrue(isSorted(Arrays.asList("a", "bb", "bb", "c")));
         assertFalse(isSorted(Arrays.asList("a", "bb", "bb", "bba", "bb", "c")));
         assertTrue(isSorted(IntStreamEx.of(new Random(1)).boxed().distinct().limit(1000).toCollection(TreeSet::new)));
@@ -481,37 +513,37 @@ public class StreamExTest {
         assertFalse(firstMisplaced(Arrays.asList("a", "bb", "bb", "bb", "c")).isPresent());
         int[] random = IntStreamEx.of(new Random(1), 1000).toArray();
         List<Integer> scanLeft = IntStreamEx.of(random).boxed().parallel().scanLeft(0, Integer::sum);
-        assertArrayEquals(random, IntStreamEx.of(scanLeft).parallel().pairMap((a, b) -> (b-a)).toArray());
+        assertArrayEquals(random, IntStreamEx.of(scanLeft).parallel().pairMap((a, b) -> (b - a)).toArray());
         Point[] points = IntStreamEx.range(1000).mapToObj(i -> new Point(i, i % 2 == 0 ? 1 : 0)).toArray(Point[]::new);
         assertEquals(1, interpolate(points, 10), 0.0);
         assertEquals(0, interpolate(points, 999), 0.0);
         assertTrue(Double.isNaN(interpolate(points, -10)));
         assertEquals(0.4, interpolate(points, 100.6), 0.000001);
-        
+
         // Find all numbers where the integer preceded a larger value.
         Collection<Integer> numbers = Arrays.asList(10, 1, 15, 30, 2, 6);
         List<Integer> res = StreamEx.of(numbers).pairMap((a, b) -> a < b ? a : null).nonNull().toList();
         assertEquals(Arrays.asList(1, 15, 2), res);
     }
-    
+
     static class Node {
         Node parent;
         String name;
-        
+
         public Node(String name) {
             this.name = name;
         }
-        
+
         public void link(Node parent) {
             this.parent = parent;
         }
-        
+
         @Override
         public String toString() {
-            return parent == null ? name : parent+":"+name;
+            return parent == null ? name : parent + ":" + name;
         }
     }
-    
+
     @Test
     public void testForPairs() {
         List<Node> nodes = StreamEx.of("one", "two", "three", "four").map(Node::new).toList();
@@ -521,23 +553,25 @@ public class StreamExTest {
         StreamEx.of(nodes).parallel().forPairs(Node::link);
         assertEquals("four:three:two:one", nodes.get(0).toString());
     }
-    
+
     @Test
     public void testScanLeft() {
         assertEquals(Arrays.asList(0, 1, 3, 6, 10), IntStreamEx.rangeClosed(1, 4).boxed().scanLeft(0, Integer::sum));
-        assertEquals(Arrays.asList(0, 1, 3, 6, 10), IntStreamEx.rangeClosed(1, 4).boxed().parallel().scanLeft(0, Integer::sum));
+        assertEquals(Arrays.asList(0, 1, 3, 6, 10),
+                IntStreamEx.rangeClosed(1, 4).boxed().parallel().scanLeft(0, Integer::sum));
         assertEquals(167167000, IntStreamEx.rangeClosed(1, 1000).boxed().parallel().scanLeft(0, Integer::sum).stream()
                 .mapToLong(x -> x).sum());
     }
-    
+
     @Test
     public void testScanRight() {
         assertEquals(Arrays.asList(10, 9, 7, 4, 0), IntStreamEx.rangeClosed(1, 4).boxed().scanRight(0, Integer::sum));
-        assertEquals(Arrays.asList(10, 9, 7, 4, 0), IntStreamEx.rangeClosed(1, 4).boxed().parallel().scanRight(0, Integer::sum));
+        assertEquals(Arrays.asList(10, 9, 7, 4, 0),
+                IntStreamEx.rangeClosed(1, 4).boxed().parallel().scanRight(0, Integer::sum));
         assertEquals(333833500, IntStreamEx.rangeClosed(1, 1000).boxed().parallel().scanRight(0, Integer::sum).stream()
                 .mapToLong(x -> x).sum());
     }
-    
+
     @Test
     public void testPermutations() {
         assertEquals("[]", StreamEx.ofPermutations(0).map(Arrays::toString).joining(";"));
@@ -545,20 +579,20 @@ public class StreamExTest {
                 StreamEx.ofPermutations(3).map(Arrays::toString).joining(";"));
         assertEquals(720, StreamEx.ofPermutations(7).parallel().filter(i -> i[3] == 5).count());
     }
-    
+
     static class TreeNode {
         String title;
 
         public TreeNode(String title) {
             this.title = title;
         }
-        
+
         @Override
         public String toString() {
             return title;
         }
     }
-    
+
     static class CompositeNode extends TreeNode {
         List<TreeNode> nodes = new ArrayList<>();
 
@@ -570,34 +604,35 @@ public class StreamExTest {
             nodes.add(node);
             return this;
         }
-        
+
         public Stream<TreeNode> elements() {
             return nodes.stream();
         }
     }
-    
+
     static class RootNode extends CompositeNode {
         public RootNode(String title) {
             super(title);
         }
-        
+
         public StreamEx<TreeNode> flatStream() {
             return StreamEx.ofTree(this, CompositeNode.class, CompositeNode::elements);
         }
     }
-    
+
     @Test
     public void testOfTree() {
         String inputSimple = "bbb";
         List<Object> input = Arrays.asList(
-                "aa", null,
+                "aa",
+                null,
                 Arrays.asList(Arrays.asList("bbbb", "cc", null, Arrays.asList()), "ddd", Arrays.asList("e"),
                         Arrays.asList("fff")), "ggg");
         assertEquals("bbb", StreamEx.ofTree(inputSimple, List.class, List::stream).select(String.class).joining(","));
         StreamEx<Object> ofTree = StreamEx.ofTree(input, List.class, List::stream);
         assertEquals("aa,bbbb,cc,ddd,e,fff,ggg", ofTree.select(String.class).joining(","));
         assertEquals(14, StreamEx.ofTree(input, List.class, List::stream).select(List.class).mapToInt(List::size).sum());
-        
+
         RootNode r = new RootNode("root");
         r.add(new CompositeNode("childA").add(new TreeNode("grandA1")).add(new TreeNode("grandA2")));
         r.add(new CompositeNode("childB").add(new TreeNode("grandB1")));
