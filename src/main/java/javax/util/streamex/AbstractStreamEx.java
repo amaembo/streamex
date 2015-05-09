@@ -129,6 +129,12 @@ import java.util.stream.Stream;
         return supply(stream.unordered());
     }
 
+    /**
+     * Closes this stream, causing all close handlers for this stream pipeline
+     * to be called.
+     *
+     * @see AutoCloseable#close()
+     */
     @Override
     public S onClose(Runnable closeHandler) {
         return supply(stream.onClose(closeHandler));

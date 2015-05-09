@@ -91,6 +91,12 @@ public class IntStreamEx implements IntStream {
         return strategy().newIntStreamEx(stream.onClose(closeHandler));
     }
 
+    /**
+     * Closes this stream, causing all close handlers for this stream pipeline
+     * to be called.
+     *
+     * @see AutoCloseable#close()
+     */
     @Override
     public void close() {
         stream.close();
