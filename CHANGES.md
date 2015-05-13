@@ -3,6 +3,8 @@
 ### 0.2.3
 
 * Added toListAndThen(), toSetAndThen() methods to StreamEx and EntryStream
+* Added construction of EntryStream from List/array (indices are used as keys)
+* Updated documentation
 
 ### 0.2.2
 

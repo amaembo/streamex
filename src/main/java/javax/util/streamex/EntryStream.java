@@ -36,6 +36,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -63,6 +64,31 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     @Override
     EntryStream<K, V> supply(Stream<Map.Entry<K, V>> stream) {
         return strategy().newEntryStream(stream);
+    }
+
+    static class IndexEntry<V> implements Entry<Integer, V> {
+        int index;
+        V value;
+        
+        IndexEntry(int index, V value) {
+            this.index = index;
+            this.value = value;
+        }
+        
+        @Override
+        public Integer getKey() {
+            return index;
+        }
+    
+        @Override
+        public V getValue() {
+            return value;
+        }
+    
+        @Override
+        public V setValue(V value) {
+            throw new UnsupportedOperationException();
+        }
     }
 
     @Override
@@ -629,8 +655,55 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return new EntryStream<>(unwrap(stream));
     }
 
+    /**
+     * Returns an {@code EntryStream} object which contains the entries
+     * of supplied {@code Map}.
+     * 
+     * @param <K>
+     *            the type of map keys
+     * @param <V>
+     *            the type of map values
+     * @param map
+     *            the map to create the stream from
+     * @return a new {@code EntryStream}
+     */
     public static <K, V> EntryStream<K, V> of(Map<K, V> map) {
         return new EntryStream<>(map.entrySet().stream());
+    }
+    
+    /**
+     * Returns an {@code EntryStream} object whose keys are indices of given
+     * list and the values are the corresponding list elements.
+     *   
+     * <p>
+     * The list elements are accessed using {@link List#get(int)}, so the list
+     * should provide fast random access. The list is assumed to be unmodifiable
+     * during the stream operations.
+
+     * @param <V>
+     *            list element type
+     * @param list
+     *            list to create the stream from
+     * @return a new {@code EntryStream}
+     * @since 0.2.3
+     */
+    public static <V> EntryStream<Integer, V> of(List<V> list) {
+        return EntryStream.of( IntStream.range( 0, list.size() ).mapToObj( i -> new IndexEntry<>( i, list.get(i) ) ) );
+    }
+    
+    /**
+     * Returns an {@code EntryStream} object whose keys are indices of given
+     * array and the values are the corresponding array elements.
+     *   
+     * @param <V>
+     *            array element type
+     * @param array
+     *            array to create the stream from
+     * @return a new {@code EntryStream}
+     * @since 0.2.3
+     */
+    public static <V> EntryStream<Integer, V> of(V[] array) {
+        return EntryStream.of( IntStream.range( 0, array.length ).mapToObj( i -> new IndexEntry<>( i, array[i] ) ) );
     }
 
     /**

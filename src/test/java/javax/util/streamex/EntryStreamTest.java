@@ -61,6 +61,14 @@ public class EntryStreamTest {
         EntryStream<String, Integer> stream = EntryStream.of(data);
         assertSame(stream.stream, EntryStream.of(stream).stream);
         assertSame(stream.stream, EntryStream.of(StreamEx.of(EntryStream.of(stream))).stream);
+        
+        Map<Integer, String> map = EntryStream.of(Arrays.asList("a", "bbb", "cc")).toMap();
+        assertEquals(3, map.size());
+        assertEquals("a", map.get(0));
+        assertEquals("bbb", map.get(1));
+        assertEquals("cc", map.get(2));
+        Map<Integer, String> map2 = EntryStream.of(new String[] {"a", "bbb", "cc"}).toMap();
+        assertEquals(map, map2);
     }
 
     @Test
