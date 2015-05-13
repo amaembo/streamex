@@ -1,5 +1,9 @@
 # StreamEx changes
 
+### 0.2.3
+
+* Added toListAndThen(), toSetAndThen() methods to StreamEx and EntryStream
+
 ### 0.2.2
 
 * Fixed: StreamEx.flatMapToEntry, EntryStream.flatMapKeys and EntryStream.flatMapValues now correctly handles null value returned by mapper

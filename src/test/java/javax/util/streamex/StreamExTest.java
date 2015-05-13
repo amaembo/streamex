@@ -171,6 +171,17 @@ public class StreamExTest {
         assertFalse(seqMap3 instanceof ConcurrentMap);
         assertTrue(parallelMap3 instanceof ConcurrentMap);
     }
+    
+    @Test
+    public void testAndThen() {
+        HashSet<String> set = StreamEx.of("a", "bb", "ccc").toListAndThen(HashSet<String>::new);
+        assertEquals(3, set.size());
+        assertTrue(set.contains("bb"));
+        
+        ArrayList<String> list = StreamEx.of("a", "bb", "ccc").toSetAndThen(ArrayList<String>::new);
+        assertEquals(3, list.size());
+        assertTrue(list.contains("bb"));
+    }
 
     @Test
     public void testToSortedMap() {

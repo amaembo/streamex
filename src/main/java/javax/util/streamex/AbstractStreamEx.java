@@ -602,6 +602,23 @@ import java.util.stream.Stream;
     }
 
     /**
+     * Collecting the stream producing a {@link List} containing all the stream
+     * elements and performing an additional finishing transformation.
+     * 
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param finisher
+     *            a function to be applied to the intermediate list
+     * @return result of applying the finisher transformation to the list of the
+     *         stream elements.
+     * @since 0.2.3
+     */
+    public <R> R toListAndThen(Function<List<T>, R> finisher) {
+        return collect(Collectors.collectingAndThen(Collectors.toList(), finisher));
+    }
+
+    /**
      * Returns a {@link Set} containing the elements of this stream. There are
      * no guarantees on the type, mutability, serializability, or thread-safety
      * of the {@code Set} returned; if more control over the returned
@@ -615,6 +632,23 @@ import java.util.stream.Stream;
      */
     public Set<T> toSet() {
         return collect(Collectors.toSet());
+    }
+
+    /**
+     * Collecting the stream producing a {@link Set} containing all the stream
+     * elements and performing an additional finishing transformation.
+     * 
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param finisher
+     *            a function to be applied to the intermediate set
+     * @return result of applying the finisher transformation to the set of the
+     *         stream elements.
+     * @since 0.2.3
+     */
+    public <R> R toSetAndThen(Function<Set<T>, R> finisher) {
+        return collect(Collectors.collectingAndThen(Collectors.toSet(), finisher));
     }
 
     /**
