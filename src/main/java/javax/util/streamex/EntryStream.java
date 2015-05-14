@@ -31,6 +31,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -395,7 +396,19 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     public <VV extends V> EntryStream<K, VV> selectValues(Class<VV> clazz) {
         return (EntryStream<K, VV>) filter(e -> clazz.isInstance(e.getValue()));
     }
+    
+    public EntryStream<K, V> peekKeys(Consumer<K> keyAction) {
+        return peek(e -> keyAction.accept(e.getKey()));
+    }
 
+    public EntryStream<K, V> peekValues(Consumer<V> valueAction) {
+        return peek(e -> valueAction.accept(e.getValue()));
+    }
+    
+    public EntryStream<K, V> peekKeyValue(BiConsumer<K, V> action) {
+        return peek(e -> action.accept(e.getKey(), e.getValue()));
+    }
+    
     /**
      * Returns a stream consisting of the keys of this stream elements.
      *
