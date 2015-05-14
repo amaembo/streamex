@@ -749,12 +749,12 @@ import java.util.stream.Stream;
      * @since 0.2.2
      */
     public <U> U foldRight(U identity, BiFunction<? super T, U, U> accumulator) {
-        return collect(Collectors.collectingAndThen(Collectors.toList(), list -> {
+        return toListAndThen(list -> {
             U result = identity;
             for (int i = list.size() - 1; i >= 0; i--)
                 result = accumulator.apply(list.get(i), result);
             return result;
-        }));
+        });
     }
 
     /**
@@ -834,7 +834,7 @@ import java.util.stream.Stream;
      */
     @SuppressWarnings("unchecked")
     public <U> List<U> scanRight(U identity, BiFunction<? super T, U, U> accumulator) {
-        return collect(Collectors.collectingAndThen(Collectors.toList(), list -> {
+        return toListAndThen(list -> {
             // Reusing the list for different object type as it will save memory
                 List<U> result = (List<U>) list;
                 result.add(identity);
@@ -842,6 +842,6 @@ import java.util.stream.Stream;
                     result.set(i, accumulator.apply((T) result.get(i), result.get(i + 1)));
                 }
                 return result;
-            }));
+            });
     }
 }
