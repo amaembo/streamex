@@ -18,6 +18,7 @@ package javax.util.streamex;
 import static org.junit.Assert.*;
 
 import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -89,6 +90,21 @@ public class EntryStreamTest {
                 .toMap());
         assertEquals(Collections.singletonMap("bb", 22), EntryStream.of(createMap()).filterValues(v -> v % 2 == 0)
                 .toMap());
+    }
+    
+    @Test
+    public void testPeek() {
+        List<String> keys = new ArrayList<>();
+        assertEquals(createMap(), EntryStream.of(createMap()).peekKeys(keys::add).toMap());
+        assertEquals(Arrays.asList("a", "bb", "ccc"), keys);
+        
+        List<Integer> values = new ArrayList<>();
+        assertEquals(createMap(), EntryStream.of(createMap()).peekValues(values::add).toMap());
+        assertEquals(Arrays.asList(1, 22, 33), values);
+        
+        Map<String, Integer> map = new LinkedHashMap<>();
+        assertEquals(createMap(), EntryStream.of(createMap()).peekKeyValue(map::put).toMap());
+        assertEquals(createMap(), map);
     }
 
     @Test
