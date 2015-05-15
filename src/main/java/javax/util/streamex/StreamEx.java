@@ -202,7 +202,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     @SuppressWarnings("unchecked")
     public <V> EntryStream<T, V> cross(V... other) {
         if(other.length == 0)
-            return strategy().newEntryStream(Stream.empty());
+            return strategy().<T, V>newEntryStream(Stream.empty()).onClose(stream::close);
         if(other.length == 1)
             return mapToEntry(e -> other[0]);
         return strategy().newEntryStream(stream.flatMap(a -> Arrays.stream(other).map(b -> new SimpleEntry<>(a, b))));
@@ -210,7 +210,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
 
     public <V> EntryStream<T, V> cross(Collection<V> other) {
         if(other.isEmpty())
-            return strategy().newEntryStream(Stream.empty());
+            return strategy().<T, V>newEntryStream(Stream.empty()).onClose(stream::close);
         return strategy().newEntryStream(stream.flatMap(a -> other.stream().map(b -> new SimpleEntry<>(a, b))));
     }
     
