@@ -654,4 +654,16 @@ public class StreamExTest {
         assertEquals("root,childA,grandA1,grandA2,childB,grandB1,childC", r.flatStream().joining(","));
         assertEquals("root,childA,grandA1,grandA2,childB,grandB1,childC", r.flatStream().parallel().joining(","));
     }
+    
+    @Test
+    public void testCross() {
+        assertEquals("a-1, a-2, a-3, b-1, b-2, b-3, c-1, c-2, c-3", StreamEx.of("a", "b", "c").cross(1, 2, 3).join("-").joining(", "));
+        assertEquals("a-1, b-1, c-1", StreamEx.of("a", "b", "c").cross(1).join("-").joining(", "));
+        assertEquals("", StreamEx.of("a", "b", "c").cross().join("-").joining(", "));
+        List<String> inputs = Arrays.asList("i", "j", "k");
+        List<String> outputs = Arrays.asList("x", "y", "z");
+        assertEquals("i->x, i->y, i->z, j->x, j->y, j->z, k->x, k->y, k->z", StreamEx.of(inputs).cross(outputs).mapKeyValue((input, output) -> input + "->" + output).joining(", "));
+        assertEquals("", StreamEx.of(inputs).cross(Collections.emptyList()).join("->").joining(", "));
+        assertEquals("i-i, j-j, k-k", StreamEx.of(inputs).cross(Stream::of).join("-").joining(", "));
+    }
 }

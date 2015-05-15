@@ -198,7 +198,26 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             return s == null ? null : s.entrySet().stream();
         }));
     }
+    
+    @SuppressWarnings("unchecked")
+    public <V> EntryStream<T, V> cross(V... other) {
+        if(other.length == 0)
+            return strategy().newEntryStream(Stream.empty());
+        if(other.length == 1)
+            return mapToEntry(e -> other[0]);
+        return strategy().newEntryStream(stream.flatMap(a -> Arrays.stream(other).map(b -> new SimpleEntry<>(a, b))));
+    }
 
+    public <V> EntryStream<T, V> cross(Collection<V> other) {
+        if(other.isEmpty())
+            return strategy().newEntryStream(Stream.empty());
+        return strategy().newEntryStream(stream.flatMap(a -> other.stream().map(b -> new SimpleEntry<>(a, b))));
+    }
+    
+    public <V> EntryStream<T, V> cross(Function<T, Stream<V>> other) {
+        return strategy().newEntryStream(stream.flatMap(a -> other.apply(a).map(b -> new SimpleEntry<>(a, b))));
+    }
+    
     /**
      * Returns a {@code Map} whose keys are the values resulting from applying
      * the classification function to the input elements, and whose

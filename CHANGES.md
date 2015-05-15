@@ -3,6 +3,8 @@
 ### 0.2.3
 
 * Added toListAndThen(), toSetAndThen() methods to StreamEx and EntryStream
+* Added StreamEx.cross() methods family
+* Added EntryStream.peekKeys(), EntryStream.peekValues(), EntryStream.peekKeyValue() methods
 * Added construction of EntryStream from List/array (indices are used as keys)
 * Updated documentation
 
