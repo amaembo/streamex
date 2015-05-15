@@ -871,9 +871,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Stream#anyMatch(Predicate)
      */
     public boolean has(T value) {
-        if (value == null)
-            return anyMatch(Objects::isNull);
-        return anyMatch(value::equals);
+        return anyMatch(Predicate.isEqual(value));
     }
 
     /**
