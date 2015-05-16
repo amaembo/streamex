@@ -168,6 +168,18 @@ public class IntStreamExTest {
         assertArrayEquals(new int[] { 1, 2 }, IntStreamEx.range(1, 4).without(3).toArray());
         assertArrayEquals(new int[] { 1, 2, 3 }, IntStreamEx.range(1, 4).without(5).toArray());
     }
+    
+    @Test
+    public void testRanges() {
+        assertArrayEquals(new int[] { 5, 4, Integer.MAX_VALUE }, IntStreamEx.of(1, 5, 3, 4, -1, Integer.MAX_VALUE)
+                .greater(3).toArray());
+        assertArrayEquals(new int[] { 5, 3, 4, Integer.MAX_VALUE }, IntStreamEx.of(1, 5, 3, 4, -1, Integer.MAX_VALUE)
+                .atLeast(3).toArray());
+        assertArrayEquals(new int[] { 1, -1 }, IntStreamEx.of(1, 5, 3, 4, -1, Integer.MAX_VALUE)
+                .less(3).toArray());
+        assertArrayEquals(new int[] { 1, 3, -1 }, IntStreamEx.of(1, 5, 3, 4, -1, Integer.MAX_VALUE)
+                .atMost(3).toArray());
+    }
 
     @Test
     public void testToBitSet() {

@@ -455,6 +455,22 @@ public class LongStreamEx implements LongStream {
         return filter(val -> val != value);
     }
 
+    public LongStreamEx greater(long value) {
+        return filter(val -> val > value);
+    }
+
+    public LongStreamEx atLeast(long value) {
+        return filter(val -> val >= value);
+    }
+
+    public LongStreamEx less(long value) {
+        return filter(val -> val < value);
+    }
+
+    public LongStreamEx atMost(long value) {
+        return filter(val -> val <= value);
+    }
+    
     public LongStreamEx sorted(Comparator<Long> comparator) {
         return strategy().newLongStreamEx(stream.boxed().sorted(comparator).mapToLong(Long::longValue));
     }

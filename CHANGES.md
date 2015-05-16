@@ -8,6 +8,7 @@
 * Added construction of EntryStream from List/array (indices are used as keys)
 * Added construction of EntryStream from two and three key-value pairs
 * Added EntryStream.append/prepend for two and three key-value pairs
+* Added greater/less/atLest/atMost filter methods for primitive streams
 * Updated documentation
 
 ### 0.2.2

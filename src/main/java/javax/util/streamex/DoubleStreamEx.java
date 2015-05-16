@@ -407,6 +407,22 @@ public class DoubleStreamEx implements DoubleStream {
         return strategy().newDoubleStreamEx(DoubleStream.concat(other, stream));
     }
 
+    public DoubleStreamEx greater(double value) {
+        return filter(val -> val > value);
+    }
+
+    public DoubleStreamEx atLeast(double value) {
+        return filter(val -> val >= value);
+    }
+
+    public DoubleStreamEx less(double value) {
+        return filter(val -> val < value);
+    }
+
+    public DoubleStreamEx atMost(double value) {
+        return filter(val -> val <= value);
+    }
+
     public DoubleStreamEx remove(DoublePredicate predicate) {
         return filter(predicate.negate());
     }

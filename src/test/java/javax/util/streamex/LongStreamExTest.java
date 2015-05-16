@@ -109,6 +109,22 @@ public class LongStreamExTest {
     }
 
     @Test
+    public void testRanges() {
+        assertArrayEquals(new long[] { 5, 4, Long.MAX_VALUE }, LongStreamEx.of(1, 5, 3, 4, -1, Long.MAX_VALUE)
+                .greater(3).toArray());
+        assertArrayEquals(new long[] { }, LongStreamEx.of(1, 5, 3, 4, -1, Long.MAX_VALUE)
+                .greater(Long.MAX_VALUE).toArray());
+        assertArrayEquals(new long[] { 5, 3, 4, Long.MAX_VALUE }, LongStreamEx.of(1, 5, 3, 4, -1, Long.MAX_VALUE)
+                .atLeast(3).toArray());
+        assertArrayEquals(new long[] { Long.MAX_VALUE }, LongStreamEx.of(1, 5, 3, 4, -1, Long.MAX_VALUE)
+                .atLeast(Long.MAX_VALUE).toArray());
+        assertArrayEquals(new long[] { 1, -1 }, LongStreamEx.of(1, 5, 3, 4, -1, Long.MAX_VALUE)
+                .less(3).toArray());
+        assertArrayEquals(new long[] { 1, 3, -1 }, LongStreamEx.of(1, 5, 3, 4, -1, Long.MAX_VALUE)
+                .atMost(3).toArray());
+    }
+
+    @Test
     public void testFind() {
         assertEquals(6, LongStreamEx.range(1, 10).findFirst(i -> i > 5).getAsLong());
         assertFalse(LongStreamEx.range(1, 10).findAny(i -> i > 10).isPresent());

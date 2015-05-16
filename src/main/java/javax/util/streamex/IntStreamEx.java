@@ -464,7 +464,23 @@ public class IntStreamEx implements IntStream {
     public IntStreamEx without(int value) {
         return filter(val -> val != value);
     }
+    
+    public IntStreamEx greater(int value) {
+        return filter(val -> val > value);
+    }
 
+    public IntStreamEx atLeast(int value) {
+        return filter(val -> val >= value);
+    }
+
+    public IntStreamEx less(int value) {
+        return filter(val -> val < value);
+    }
+
+    public IntStreamEx atMost(int value) {
+        return filter(val -> val <= value);
+    }
+    
     public IntStreamEx sorted(Comparator<Integer> comparator) {
         return strategy().newIntStreamEx(stream.boxed().sorted(comparator).mapToInt(Integer::intValue));
     }

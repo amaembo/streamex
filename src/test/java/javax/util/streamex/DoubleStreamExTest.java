@@ -113,6 +113,22 @@ public class DoubleStreamExTest {
     }
 
     @Test
+    public void testRanges() {
+        assertArrayEquals(new double[] { 5, 4, Double.POSITIVE_INFINITY }, DoubleStreamEx.of(1, 5, 3, 4, -1, Double.POSITIVE_INFINITY)
+                .greater(3).toArray(), 0.0);
+        assertArrayEquals(new double[] { }, DoubleStreamEx.of(1, 5, 3, 4, -1, Double.POSITIVE_INFINITY)
+                .greater(Double.POSITIVE_INFINITY).toArray(), 0.0);
+        assertArrayEquals(new double[] { 5, 3, 4, Double.POSITIVE_INFINITY }, DoubleStreamEx.of(1, 5, 3, 4, -1, Double.POSITIVE_INFINITY)
+                .atLeast(3).toArray(), 0.0);
+        assertArrayEquals(new double[] { Double.POSITIVE_INFINITY }, DoubleStreamEx.of(1, 5, 3, 4, -1, Double.POSITIVE_INFINITY)
+                .atLeast(Double.POSITIVE_INFINITY).toArray(), 0.0);
+        assertArrayEquals(new double[] { 1, -1 }, DoubleStreamEx.of(1, 5, 3, 4, -1, Double.POSITIVE_INFINITY)
+                .less(3).toArray(), 0.0);
+        assertArrayEquals(new double[] { 1, 3, -1 }, DoubleStreamEx.of(1, 5, 3, 4, -1, Double.POSITIVE_INFINITY)
+                .atMost(3).toArray(), 0.0);
+    }
+
+    @Test
     public void testFind() {
         assertEquals(6.0, LongStreamEx.range(1, 10).asDoubleStream().findFirst(i -> i > 5).getAsDouble(), 0.0);
         assertFalse(LongStreamEx.range(1, 10).asDoubleStream().findAny(i -> i > 10).isPresent());
