@@ -256,11 +256,6 @@ public class EntryStreamTest {
     }
 
     @Test
-    public void testSetValue() {
-        assertEquals(Collections.singletonMap("aaa", 6), EntryStream.of("aaa", 5).peek(e -> e.setValue(6)).toMap());
-    }
-
-    @Test
     public void testGrouping() {
         Map<String, Integer> data = new LinkedHashMap<>();
         data.put("ab", 1);

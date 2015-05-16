@@ -15,7 +15,7 @@
  */
 package javax.util.streamex;
 
-import java.util.AbstractMap.SimpleEntry;
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -202,14 +202,14 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     public <KK> EntryStream<KK, V> flatMapKeys(Function<? super K, ? extends Stream<? extends KK>> mapper) {
         return strategy().newEntryStream(stream.flatMap(e -> {
             Stream<? extends KK> s = mapper.apply(e.getKey());
-            return s == null ? null : s.map(k -> new SimpleEntry<KK, V>(k, e.getValue()));
+            return s == null ? null : s.map(k -> new SimpleImmutableEntry<KK, V>(k, e.getValue()));
         }));
     }
 
     public <VV> EntryStream<K, VV> flatMapValues(Function<? super V, ? extends Stream<? extends VV>> mapper) {
         return strategy().newEntryStream(stream.flatMap(e -> {
             Stream<? extends VV> s = mapper.apply(e.getValue());
-            return s == null ? null : s.map(v -> new SimpleEntry<>(e.getKey(), v));
+            return s == null ? null : s.map(v -> new SimpleImmutableEntry<>(e.getKey(), v));
         }));
     }
 
@@ -237,7 +237,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public EntryStream<K, V> append(K key, V value) {
-        return append(Stream.of(new SimpleEntry<>(key, value)));
+        return append(Stream.of(new SimpleImmutableEntry<>(key, value)));
     }
 
     /**
@@ -264,24 +264,24 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public EntryStream<K, V> prepend(K key, V value) {
-        return prepend(Stream.of(new SimpleEntry<>(key, value)));
+        return prepend(Stream.of(new SimpleImmutableEntry<>(key, value)));
     }
 
     public <KK> EntryStream<KK, V> mapKeys(Function<K, KK> keyMapper) {
-        return strategy().newEntryStream(stream.map(e -> new SimpleEntry<>(keyMapper.apply(e.getKey()), e.getValue())));
+        return strategy().newEntryStream(stream.map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e.getKey()), e.getValue())));
     }
 
     public <VV> EntryStream<K, VV> mapValues(Function<V, VV> valueMapper) {
         return strategy().newEntryStream(
-                stream.map(e -> new SimpleEntry<>(e.getKey(), valueMapper.apply(e.getValue()))));
+                stream.map(e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e.getValue()))));
     }
 
     public <KK> EntryStream<KK, V> mapEntryKeys(Function<Entry<K, V>, KK> keyMapper) {
-        return strategy().newEntryStream(stream.map(e -> new SimpleEntry<>(keyMapper.apply(e), e.getValue())));
+        return strategy().newEntryStream(stream.map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e), e.getValue())));
     }
 
     public <VV> EntryStream<K, VV> mapEntryValues(Function<Entry<K, V>, VV> valueMapper) {
-        return strategy().newEntryStream(stream.map(e -> new SimpleEntry<>(e.getKey(), valueMapper.apply(e))));
+        return strategy().newEntryStream(stream.map(e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e))));
     }
 
     /**
@@ -294,7 +294,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public EntryStream<V, K> invert() {
-        return strategy().newEntryStream(stream.map(e -> new SimpleEntry<>(e.getValue(), e.getKey())));
+        return strategy().newEntryStream(stream.map(e -> new SimpleImmutableEntry<>(e.getValue(), e.getKey())));
     }
 
     /**
@@ -794,7 +794,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return a singleton sequential stream
      */
     public static <K, V> EntryStream<K, V> of(K key, V value) {
-        return new EntryStream<>(Stream.of(new SimpleEntry<>(key, value)));
+        return new EntryStream<>(Stream.of(new SimpleImmutableEntry<>(key, value)));
     }
 
     /**
@@ -821,7 +821,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     public static <K, V> EntryStream<K, V> zip(List<K> keys, List<V> values) {
         return of(intStreamForLength(keys.size(), values.size()).mapToObj(
-                i -> new SimpleEntry<>(keys.get(i), values.get(i))));
+                i -> new SimpleImmutableEntry<>(keys.get(i), values.get(i))));
     }
 
     /**
