@@ -85,11 +85,15 @@ public class LongStreamExTest {
     @Test
     public void testPrepend() {
         assertArrayEquals(new long[] { -1, 0, 1, 2, 3 }, LongStreamEx.of(1, 2, 3).prepend(-1, 0).toArray());
+        assertArrayEquals(new long[] { 1, 2, 3 }, LongStreamEx.of(1, 2, 3).prepend().toArray());
+        assertArrayEquals(new long[] { 10, 11, 0, 1, 2, 3 }, LongStreamEx.range(0, 4).prepend(LongStreamEx.range(10, 12)).toArray());
     }
 
     @Test
     public void testAppend() {
         assertArrayEquals(new long[] { 1, 2, 3, 4, 5 }, LongStreamEx.of(1, 2, 3).append(4, 5).toArray());
+        assertArrayEquals(new long[] { 1, 2, 3 }, LongStreamEx.of(1, 2, 3).append().toArray());
+        assertArrayEquals(new long[] { 0, 1, 2, 3, 10, 11 }, LongStreamEx.range(0, 4).append(LongStreamEx.range(10, 12)).toArray());
     }
 
     @Test

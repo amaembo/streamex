@@ -385,6 +385,8 @@ public class LongStreamEx implements LongStream {
      * @return the new stream
      */
     public LongStreamEx append(long... values) {
+        if(values.length == 0)
+            return this;
         return strategy().newLongStreamEx(LongStream.concat(stream, LongStream.of(values)));
     }
 
@@ -401,6 +403,8 @@ public class LongStreamEx implements LongStream {
      * @return the new stream
      */
     public LongStreamEx prepend(long... values) {
+        if(values.length == 0)
+            return this;
         return strategy().newLongStreamEx(LongStream.concat(LongStream.of(values), stream));
     }
 

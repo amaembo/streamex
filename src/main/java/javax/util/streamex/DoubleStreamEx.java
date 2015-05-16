@@ -380,6 +380,8 @@ public class DoubleStreamEx implements DoubleStream {
      * @return the new stream
      */
     public DoubleStreamEx append(double... values) {
+        if(values.length == 0)
+            return this;
         return strategy().newDoubleStreamEx(DoubleStream.concat(stream, DoubleStream.of(values)));
     }
 
@@ -396,6 +398,8 @@ public class DoubleStreamEx implements DoubleStream {
      * @return the new stream
      */
     public DoubleStreamEx prepend(double... values) {
+        if(values.length == 0)
+            return this;
         return strategy().newDoubleStreamEx(DoubleStream.concat(DoubleStream.of(values), stream));
     }
 

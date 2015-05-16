@@ -395,6 +395,8 @@ public class IntStreamEx implements IntStream {
      * @return the new stream
      */
     public IntStreamEx append(int... values) {
+        if(values.length == 0)
+            return this;
         return strategy().newIntStreamEx(IntStream.concat(stream, IntStream.of(values)));
     }
 
@@ -411,6 +413,8 @@ public class IntStreamEx implements IntStream {
      * @return the new stream
      */
     public IntStreamEx prepend(int... values) {
+        if(values.length == 0)
+            return this;
         return strategy().newIntStreamEx(IntStream.concat(IntStream.of(values), stream));
     }
 

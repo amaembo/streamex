@@ -146,11 +146,15 @@ public class IntStreamExTest {
     @Test
     public void testPrepend() {
         assertArrayEquals(new int[] { -1, 0, 1, 2, 3 }, IntStreamEx.of(1, 2, 3).prepend(-1, 0).toArray());
+        assertArrayEquals(new int[] { 1, 2, 3 }, IntStreamEx.of(1, 2, 3).prepend().toArray());
+        assertArrayEquals(new int[] { 10, 11, 0, 1, 2, 3 }, IntStreamEx.range(0, 4).prepend(IntStreamEx.range(10, 12)).toArray());
     }
 
     @Test
     public void testAppend() {
         assertArrayEquals(new int[] { 1, 2, 3, 4, 5 }, IntStreamEx.of(1, 2, 3).append(4, 5).toArray());
+        assertArrayEquals(new int[] { 1, 2, 3 }, IntStreamEx.of(1, 2, 3).append().toArray());
+        assertArrayEquals(new int[] { 0, 1, 2, 3, 10, 11 }, IntStreamEx.range(0, 4).append(IntStreamEx.range(10, 12)).toArray());
     }
 
     @Test
