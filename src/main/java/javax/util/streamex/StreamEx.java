@@ -198,26 +198,82 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             return s == null ? null : s.entrySet().stream();
         }));
     }
-    
+
+    /**
+     * Performs a cross product of current stream with specified array of
+     * elements. As a result the {@link EntryStream} is created whose keys are
+     * elements of current stream and values are elements of the specified
+     * array.
+     * 
+     * <p>
+     * The resulting stream contains all the possible combinations of keys and
+     * values.
+     * 
+     * <p>
+     * This is an intermediate operation.
+     * 
+     * @param <V>
+     *            the type of array elements
+     * @param other
+     *            the array to perform a cross product with
+     * @return the new {@code EntryStream}
+     * @since 0.2.3
+     */
     @SuppressWarnings("unchecked")
     public <V> EntryStream<T, V> cross(V... other) {
-        if(other.length == 0)
-            return strategy().<T, V>newEntryStream(Stream.empty()).onClose(stream::close);
-        if(other.length == 1)
+        if (other.length == 0)
+            return strategy().<T, V> newEntryStream(Stream.empty()).onClose(stream::close);
+        if (other.length == 1)
             return mapToEntry(e -> other[0]);
         return strategy().newEntryStream(stream.flatMap(a -> Arrays.stream(other).map(b -> new SimpleEntry<>(a, b))));
     }
 
+    /**
+     * Performs a cross product of current stream with specified
+     * {@link Collection} of elements. As a result the {@link EntryStream} is
+     * created whose keys are elements of current stream and values are elements
+     * of the specified collection.
+     * 
+     * <p>
+     * The resulting stream contains all the possible combinations of keys and
+     * values.
+     * 
+     * <p>
+     * This is an intermediate operation.
+     * 
+     * @param <V>
+     *            the type of collection elements
+     * @param other
+     *            the collection to perform a cross product with
+     * @return the new {@code EntryStream}
+     * @since 0.2.3
+     */
     public <V> EntryStream<T, V> cross(Collection<V> other) {
-        if(other.isEmpty())
-            return strategy().<T, V>newEntryStream(Stream.empty()).onClose(stream::close);
+        if (other.isEmpty())
+            return strategy().<T, V> newEntryStream(Stream.empty()).onClose(stream::close);
         return strategy().newEntryStream(stream.flatMap(a -> other.stream().map(b -> new SimpleEntry<>(a, b))));
     }
-    
-    public <V> EntryStream<T, V> cross(Function<T, Stream<V>> other) {
-        return strategy().newEntryStream(stream.flatMap(a -> other.apply(a).map(b -> new SimpleEntry<>(a, b))));
+
+    /**
+     * Creates a new {@code EntryStream} whose keys are elements of current
+     * stream and corresponding values are supplied by given function.
+     * 
+     * <p>
+     * This is an intermediate operation.
+     * 
+     * @param <V>
+     *            the type of values.
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
+     *            which produces a stream of the values corresponding to the
+     *            single element of the current stream.
+     * @return the new {@code EntryStream}
+     * @since 0.2.3
+     */
+    public <V> EntryStream<T, V> cross(Function<T, Stream<V>> mapper) {
+        return strategy().newEntryStream(stream.flatMap(a -> mapper.apply(a).map(b -> new SimpleEntry<>(a, b))));
     }
-    
+
     /**
      * Returns a {@code Map} whose keys are the values resulting from applying
      * the classification function to the input elements, and whose
@@ -810,7 +866,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     @SuppressWarnings("unchecked")
     public StreamEx<T> append(T... values) {
-        if(values.length == 0)
+        if (values.length == 0)
             return this;
         return append(Stream.of(values));
     }
@@ -825,7 +881,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.2.1
      */
     public StreamEx<T> append(Collection<T> collection) {
-        if(collection.isEmpty())
+        if (collection.isEmpty())
             return this;
         return append(collection.stream());
     }
@@ -840,7 +896,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     @SuppressWarnings("unchecked")
     public StreamEx<T> prepend(T... values) {
-        if(values.length == 0)
+        if (values.length == 0)
             return this;
         return prepend(Stream.of(values));
     }
@@ -855,7 +911,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.2.1
      */
     public StreamEx<T> prepend(Collection<T> collection) {
-        if(collection.isEmpty())
+        if (collection.isEmpty())
             return this;
         return prepend(collection.stream());
     }
