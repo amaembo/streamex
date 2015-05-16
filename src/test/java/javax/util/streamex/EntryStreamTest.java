@@ -53,6 +53,8 @@ public class EntryStreamTest {
         assertEquals(expected, EntryStream.zip(Arrays.asList("aaa", "bbb", "c"), Arrays.asList(3, 3, 1)).toMap());
         assertEquals(expected, EntryStream.zip(new String[] { "aaa", "bbb", "c" }, new Integer[] { 3, 3, 1 }).toMap());
         assertEquals(Collections.singletonMap("foo", 1), EntryStream.of("foo", 1).toMap());
+        assertEquals("a->b:c->d", EntryStream.of("a", "b", "c", "d").join("->").joining(":"));
+        assertEquals(createMap(), EntryStream.of("a", 1, "bb", 22, "ccc", 33).toMap());
 
         assertEquals(
                 expected,
@@ -167,6 +169,8 @@ public class EntryStreamTest {
     public void testAppend() {
         assertEquals(Arrays.asList(22, 33, 5, 22, 33), EntryStream.of(createMap()).append("dddd", 5)
                 .append(createMap()).filterKeys(k -> k.length() > 1).values().toList());
+        assertEquals(EntryStream.of(createMap()).toList(), EntryStream.empty().append("a", 1, "bb", 22, "ccc", 33).toList());
+        assertEquals("bb:22,a:1,ccc:33", EntryStream.of("bb", 22).append("a", 1, "ccc", 33).join(":").joining(","));
     }
 
     @Test
@@ -174,6 +178,8 @@ public class EntryStreamTest {
         assertEquals(Arrays.asList(5, 22, 33, 22, 33),
                 EntryStream.of(createMap()).prepend(createMap()).prepend("dddd", 5).filterKeys(k -> k.length() > 1)
                         .values().toList());
+        assertEquals("a:1,ccc:33,bb:22", EntryStream.of("bb", 22).prepend("a", 1, "ccc", 33).join(":").joining(","));
+        assertEquals("a:1,ccc:33,dddd:40,bb:22", EntryStream.of("bb", 22).prepend("a", 1, "ccc", 33, "dddd", 40).join(":").joining(","));
     }
 
     @Test

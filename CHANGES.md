@@ -6,6 +6,8 @@
 * Added StreamEx.cross() methods family
 * Added EntryStream.peekKeys(), EntryStream.peekValues(), EntryStream.peekKeyValue() methods
 * Added construction of EntryStream from List/array (indices are used as keys)
+* Added construction of EntryStream from two and three key-value pairs
+* Added EntryStream.append/prepend for two and three key-value pairs
 * Updated documentation
 
 ### 0.2.2

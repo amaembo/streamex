@@ -241,6 +241,49 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     }
 
     /**
+     * Returns a new {@code EntryStream} which is a concatenation of this stream
+     * and two supplied key-value pairs.
+     * 
+     * @param k1
+     *            the key of the first {@code Entry} to append to this stream
+     * @param v1
+     *            the value of the first {@code Entry} to append to this stream
+     * @param k2
+     *            the key of the second {@code Entry} to append to this stream
+     * @param v2
+     *            the value of the second {@code Entry} to append to this stream
+     * @return the new stream
+     * @since 0.2.3
+     */
+    public EntryStream<K, V> append(K k1, V v1, K k2, V v2) {
+        return append(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2)));
+    }
+
+    /**
+     * Returns a new {@code EntryStream} which is a concatenation of this stream
+     * and three supplied key-value pairs.
+     * 
+     * @param k1
+     *            the key of the first {@code Entry} to append to this stream
+     * @param v1
+     *            the value of the first {@code Entry} to append to this stream
+     * @param k2
+     *            the key of the second {@code Entry} to append to this stream
+     * @param v2
+     *            the value of the second {@code Entry} to append to this stream
+     * @param k3
+     *            the key of the third {@code Entry} to append to this stream
+     * @param v3
+     *            the value of the third {@code Entry} to append to this stream
+     * @return the new stream
+     * @since 0.2.3
+     */
+    public EntryStream<K, V> append(K k1, V v1, K k2, V v2, K k3, V v3) {
+        return append(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
+                new SimpleImmutableEntry<>(k3, v3)));
+    }
+    
+    /**
      * Returns a new {@code EntryStream} which is a concatenation of the stream
      * created from the supplied map entries and this stream.
      * 
@@ -267,8 +310,52 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return prepend(Stream.of(new SimpleImmutableEntry<>(key, value)));
     }
 
+    /**
+     * Returns a new {@code EntryStream} which is a concatenation of two
+     * supplied key-value pairs and this stream.
+     * 
+     * @param k1
+     *            the key of the first {@code Entry} to prepend to this stream
+     * @param v1
+     *            the value of the first {@code Entry} to prepend to this stream
+     * @param k2
+     *            the key of the second {@code Entry} to prepend to this stream
+     * @param v2
+     *            the value of the second {@code Entry} to prepend to this stream
+     * @return the new stream
+     * @since 0.2.3
+     */
+    public EntryStream<K, V> prepend(K k1, V v1, K k2, V v2) {
+        return prepend(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2)));
+    }
+
+    /**
+     * Returns a new {@code EntryStream} which is a concatenation of three
+     * supplied key-value pairs and this stream.
+     * 
+     * @param k1
+     *            the key of the first {@code Entry} to prepend to this stream
+     * @param v1
+     *            the value of the first {@code Entry} to prepend to this stream
+     * @param k2
+     *            the key of the second {@code Entry} to prepend to this stream
+     * @param v2
+     *            the value of the second {@code Entry} to prepend to this stream
+     * @param k3
+     *            the key of the third {@code Entry} to prepend to this stream
+     * @param v3
+     *            the value of the third {@code Entry} to prepend to this stream
+     * @return the new stream
+     * @since 0.2.3
+     */
+    public EntryStream<K, V> prepend(K k1, V v1, K k2, V v2, K k3, V v3) {
+        return prepend(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
+                new SimpleImmutableEntry<>(k3, v3)));
+    }
+    
     public <KK> EntryStream<KK, V> mapKeys(Function<K, KK> keyMapper) {
-        return strategy().newEntryStream(stream.map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e.getKey()), e.getValue())));
+        return strategy().newEntryStream(
+                stream.map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e.getKey()), e.getValue())));
     }
 
     public <VV> EntryStream<K, VV> mapValues(Function<V, VV> valueMapper) {
@@ -795,6 +882,55 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     public static <K, V> EntryStream<K, V> of(K key, V value) {
         return new EntryStream<>(Stream.of(new SimpleImmutableEntry<>(key, value)));
+    }
+
+    /**
+     * Returns a sequential {@code EntryStream} containing two key-value pairs
+     *
+     * @param <K>
+     *            the type of key
+     * @param <V>
+     *            the type of value
+     * @param k1
+     *            the key of the first element
+     * @param v1
+     *            the value of the first element
+     * @param k2
+     *            the key of the second element
+     * @param v2
+     *            the value of the second element
+     * @return a sequential stream
+     * @since 0.2.3
+     */
+    public static <K, V> EntryStream<K, V> of(K k1, V v1, K k2, V v2) {
+        return new EntryStream<>(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2)));
+    }
+
+    /**
+     * Returns a sequential {@code EntryStream} containing three key-value pairs
+     *
+     * @param <K>
+     *            the type of key
+     * @param <V>
+     *            the type of value
+     * @param k1
+     *            the key of the first element
+     * @param v1
+     *            the value of the first element
+     * @param k2
+     *            the key of the second element
+     * @param v2
+     *            the value of the second element
+     * @param k3
+     *            the key of the third element
+     * @param v3
+     *            the value of the third element
+     * @return a sequential stream
+     * @since 0.2.3
+     */
+    public static <K, V> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3) {
+        return new EntryStream<>(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
+                new SimpleImmutableEntry<>(k3, v3)));
     }
 
     /**
