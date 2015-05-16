@@ -268,6 +268,25 @@ import java.util.stream.Stream;
         return supply(stream.sorted(comparator));
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream, additionally
+     * performing the provided action on each element as elements are consumed
+     * from the resulting stream.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * <p>
+     * For parallel stream pipelines, the action may be called at whatever time
+     * and in whatever thread the element is made available by the upstream
+     * operation. If the action modifies shared state, it is responsible for
+     * providing the required synchronization.
+     *
+     * @param action
+     *            a non-interfering action to perform on the elements as they
+     *            are consumed from the stream
+     * @return the new stream
+     */
     @Override
     public S peek(Consumer<? super T> action) {
         return supply(stream.peek(action));
@@ -608,6 +627,8 @@ import java.util.stream.Stream;
      * <p>
      * This is a terminal operation.
      *
+     * @param <R>
+     *            the result type
      * @param finisher
      *            a function to be applied to the intermediate list
      * @return result of applying the finisher transformation to the list of the
@@ -641,6 +662,8 @@ import java.util.stream.Stream;
      * <p>
      * This is a terminal operation.
      *
+     * @param <R>
+     *            the result type
      * @param finisher
      *            a function to be applied to the intermediate set
      * @return result of applying the finisher transformation to the set of the
@@ -836,12 +859,12 @@ import java.util.stream.Stream;
     public <U> List<U> scanRight(U identity, BiFunction<? super T, U, U> accumulator) {
         return toListAndThen(list -> {
             // Reusing the list for different object type as it will save memory
-                List<U> result = (List<U>) list;
-                result.add(identity);
-                for (int i = result.size() - 2; i >= 0; i--) {
-                    result.set(i, accumulator.apply((T) result.get(i), result.get(i + 1)));
-                }
-                return result;
-            });
+            List<U> result = (List<U>) list;
+            result.add(identity);
+            for (int i = result.size() - 2; i >= 0; i--) {
+                result.set(i, accumulator.apply((T) result.get(i), result.get(i + 1)));
+            }
+            return result;
+        });
     }
 }
