@@ -407,22 +407,82 @@ public class DoubleStreamEx implements DoubleStream {
         return strategy().newDoubleStreamEx(DoubleStream.concat(other, stream));
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream that
+     * strictly greater than the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
     public DoubleStreamEx greater(double value) {
         return filter(val -> val > value);
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream that
+     * greater than or equal to the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
     public DoubleStreamEx atLeast(double value) {
         return filter(val -> val >= value);
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream that
+     * strictly less than the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
     public DoubleStreamEx less(double value) {
         return filter(val -> val < value);
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream that less than
+     * or equal to the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
     public DoubleStreamEx atMost(double value) {
         return filter(val -> val <= value);
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream that don't
+     * match the given predicate.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param predicate
+     *            a non-interfering, stateless predicate to apply to each
+     *            element to determine if it should be excluded
+     * @return the new stream
+     */
     public DoubleStreamEx remove(DoublePredicate predicate) {
         return filter(predicate.negate());
     }

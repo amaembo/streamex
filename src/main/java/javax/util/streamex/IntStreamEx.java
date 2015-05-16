@@ -395,7 +395,7 @@ public class IntStreamEx implements IntStream {
      * @return the new stream
      */
     public IntStreamEx append(int... values) {
-        if(values.length == 0)
+        if (values.length == 0)
             return this;
         return strategy().newIntStreamEx(IntStream.concat(stream, IntStream.of(values)));
     }
@@ -413,7 +413,7 @@ public class IntStreamEx implements IntStream {
      * @return the new stream
      */
     public IntStreamEx prepend(int... values) {
-        if(values.length == 0)
+        if (values.length == 0)
             return this;
         return strategy().newIntStreamEx(IntStream.concat(IntStream.of(values), stream));
     }
@@ -422,6 +422,18 @@ public class IntStreamEx implements IntStream {
         return strategy().newIntStreamEx(IntStream.concat(other, stream));
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream that don't
+     * match the given predicate.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param predicate
+     *            a non-interfering, stateless predicate to apply to each
+     *            element to determine if it should be excluded
+     * @return the new stream
+     */
     public IntStreamEx remove(IntPredicate predicate) {
         return filter(predicate.negate());
     }
@@ -464,23 +476,71 @@ public class IntStreamEx implements IntStream {
     public IntStreamEx without(int value) {
         return filter(val -> val != value);
     }
-    
+
+    /**
+     * Returns a stream consisting of the elements of this stream that strictly
+     * greater than the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
     public IntStreamEx greater(int value) {
         return filter(val -> val > value);
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream that greater
+     * than or equal to the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
     public IntStreamEx atLeast(int value) {
         return filter(val -> val >= value);
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream that strictly
+     * less than the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
     public IntStreamEx less(int value) {
         return filter(val -> val < value);
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream that less than
+     * or equal to the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
     public IntStreamEx atMost(int value) {
         return filter(val -> val <= value);
     }
-    
+
     public IntStreamEx sorted(Comparator<Integer> comparator) {
         return strategy().newIntStreamEx(stream.boxed().sorted(comparator).mapToInt(Integer::intValue));
     }

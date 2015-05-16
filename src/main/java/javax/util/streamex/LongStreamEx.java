@@ -385,7 +385,7 @@ public class LongStreamEx implements LongStream {
      * @return the new stream
      */
     public LongStreamEx append(long... values) {
-        if(values.length == 0)
+        if (values.length == 0)
             return this;
         return strategy().newLongStreamEx(LongStream.concat(stream, LongStream.of(values)));
     }
@@ -403,7 +403,7 @@ public class LongStreamEx implements LongStream {
      * @return the new stream
      */
     public LongStreamEx prepend(long... values) {
-        if(values.length == 0)
+        if (values.length == 0)
             return this;
         return strategy().newLongStreamEx(LongStream.concat(LongStream.of(values), stream));
     }
@@ -412,6 +412,18 @@ public class LongStreamEx implements LongStream {
         return strategy().newLongStreamEx(LongStream.concat(other, stream));
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream that don't
+     * match the given predicate.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param predicate
+     *            a non-interfering, stateless predicate to apply to each
+     *            element to determine if it should be excluded
+     * @return the new stream
+     */
     public LongStreamEx remove(LongPredicate predicate) {
         return filter(predicate.negate());
     }
@@ -455,22 +467,70 @@ public class LongStreamEx implements LongStream {
         return filter(val -> val != value);
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream that strictly
+     * greater than the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
     public LongStreamEx greater(long value) {
         return filter(val -> val > value);
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream that greater
+     * than or equal to the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
     public LongStreamEx atLeast(long value) {
         return filter(val -> val >= value);
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream that strictly
+     * less than the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
     public LongStreamEx less(long value) {
         return filter(val -> val < value);
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream that less than
+     * or equal to the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
     public LongStreamEx atMost(long value) {
         return filter(val -> val <= value);
     }
-    
+
     public LongStreamEx sorted(Comparator<Long> comparator) {
         return strategy().newLongStreamEx(stream.boxed().sorted(comparator).mapToLong(Long::longValue));
     }
