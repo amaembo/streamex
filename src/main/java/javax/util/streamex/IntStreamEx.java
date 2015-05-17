@@ -28,6 +28,7 @@ import java.util.PrimitiveIterator.OfInt;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
 import java.util.function.DoublePredicate;
+import java.util.function.Function;
 import java.util.function.IntBinaryOperator;
 import java.util.function.IntConsumer;
 import java.util.function.IntFunction;
@@ -40,7 +41,10 @@ import java.util.function.LongPredicate;
 import java.util.function.ObjIntConsumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
@@ -177,7 +181,19 @@ public class IntStreamEx implements IntStream {
     public IntStreamEx flatMap(IntFunction<? extends IntStream> mapper) {
         return strategy().newIntStreamEx(stream.flatMap(mapper));
     }
+    
+    public LongStreamEx flatMapToLong(IntFunction<? extends LongStream> mapper) {
+        return strategy().newLongStreamEx(stream.mapToObj(mapper).flatMapToLong(Function.identity()));
+    }
 
+    public DoubleStreamEx flatMapToDouble(IntFunction<? extends DoubleStream> mapper) {
+        return strategy().newDoubleStreamEx(stream.mapToObj(mapper).flatMapToDouble(Function.identity()));
+    }
+    
+    public <R> StreamEx<R> flatMapToObj(IntFunction<? extends Stream<R>> mapper) {
+        return strategy().newStreamEx(stream.mapToObj(mapper).flatMap(Function.identity()));
+    }
+    
     @Override
     public IntStreamEx distinct() {
         return strategy().newIntStreamEx(stream.distinct());

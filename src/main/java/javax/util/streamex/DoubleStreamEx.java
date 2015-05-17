@@ -32,9 +32,13 @@ import java.util.function.DoubleSupplier;
 import java.util.function.DoubleToIntFunction;
 import java.util.function.DoubleToLongFunction;
 import java.util.function.DoubleUnaryOperator;
+import java.util.function.Function;
 import java.util.function.ObjDoubleConsumer;
 import java.util.function.Supplier;
 import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
@@ -172,6 +176,18 @@ public class DoubleStreamEx implements DoubleStream {
         return strategy().newDoubleStreamEx(stream.flatMap(mapper));
     }
 
+    public IntStreamEx flatMapToInt(DoubleFunction<? extends IntStream> mapper) {
+        return strategy().newIntStreamEx(stream.mapToObj(mapper).flatMapToInt(Function.identity()));
+    }
+
+    public LongStreamEx flatMapToLong(DoubleFunction<? extends LongStream> mapper) {
+        return strategy().newLongStreamEx(stream.mapToObj(mapper).flatMapToLong(Function.identity()));
+    }
+
+    public <R> StreamEx<R> flatMapToObj(DoubleFunction<? extends Stream<R>> mapper) {
+        return strategy().newStreamEx(stream.mapToObj(mapper).flatMap(Function.identity()));
+    }
+    
     @Override
     public DoubleStreamEx distinct() {
         return strategy().newDoubleStreamEx(stream.distinct());

@@ -1,5 +1,9 @@
 # StreamEx changes
 
+### 0.2.4
+
+* Added flatMapToInt/flatMapToLong/flatMapToDouble/flatMapToObj to primitive streams
+
 ### 0.2.3
 
 * Added toListAndThen(), toSetAndThen() methods to StreamEx and EntryStream

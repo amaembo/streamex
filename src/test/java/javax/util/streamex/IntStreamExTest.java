@@ -129,6 +129,19 @@ public class IntStreamExTest {
         assertEquals(Integer.MAX_VALUE, IntStreamEx.rangeClosed(1, Integer.MAX_VALUE).spliterator()
                 .getExactSizeIfKnown());
     }
+    
+    @Test
+    public void testFlatMap() {
+        long[][] vals = {{1,2,3},{2,3,4},{5,4,Long.MAX_VALUE,Long.MIN_VALUE}};
+        assertArrayEquals(new long[] { 1, 2, 3, 2, 3, 4, 5, 4, Long.MAX_VALUE, Long.MIN_VALUE },
+                IntStreamEx.ofIndices(vals).flatMapToLong(idx -> Arrays.stream(vals[idx])).toArray());
+        String expected = IntStream.range(0, 200).boxed()
+                .flatMap(i -> IntStream.range(0, i).<String>mapToObj(j -> i + ":" + j)).collect(Collectors.joining("/"));
+        String res = IntStreamEx.range(200).flatMapToObj(i -> IntStreamEx.range(i).mapToObj(j -> i + ":" + j)).joining("/");
+        String parallel = IntStreamEx.range(200).parallel().flatMapToObj(i -> IntStreamEx.range(i).mapToObj(j -> i + ":" + j)).joining("/");
+        assertEquals(expected, res);
+        assertEquals(expected, parallel);
+    }
 
     @Test
     public void testElements() {

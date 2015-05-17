@@ -25,6 +25,7 @@ import java.util.Random;
 import java.util.PrimitiveIterator.OfLong;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.function.LongBinaryOperator;
 import java.util.function.LongConsumer;
 import java.util.function.LongFunction;
@@ -35,7 +36,10 @@ import java.util.function.LongToIntFunction;
 import java.util.function.LongUnaryOperator;
 import java.util.function.ObjLongConsumer;
 import java.util.function.Supplier;
+import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
 import java.util.stream.LongStream;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
@@ -173,6 +177,18 @@ public class LongStreamEx implements LongStream {
         return strategy().newLongStreamEx(stream.flatMap(mapper));
     }
 
+    public IntStreamEx flatMapToInt(LongFunction<? extends IntStream> mapper) {
+        return strategy().newIntStreamEx(stream.mapToObj(mapper).flatMapToInt(Function.identity()));
+    }
+
+    public DoubleStreamEx flatMapToDouble(LongFunction<? extends DoubleStream> mapper) {
+        return strategy().newDoubleStreamEx(stream.mapToObj(mapper).flatMapToDouble(Function.identity()));
+    }
+    
+    public <R> StreamEx<R> flatMapToObj(LongFunction<? extends Stream<R>> mapper) {
+        return strategy().newStreamEx(stream.mapToObj(mapper).flatMap(Function.identity()));
+    }
+    
     @Override
     public LongStreamEx distinct() {
         return strategy().newLongStreamEx(stream.distinct());
