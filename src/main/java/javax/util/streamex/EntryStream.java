@@ -67,6 +67,15 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return strategy().newEntryStream(stream);
     }
 
+    static <K, V> Consumer<? super Entry<K, V>> toConsumer(BiConsumer<? super K, ? super V> action) {
+        return entry -> action.accept(entry.getKey(), entry.getValue());
+    }
+
+    static <K, V, R> Function<? super Entry<K, V>, ? extends R> toFunction(
+            BiFunction<? super K, ? super V, ? extends R> mapper) {
+        return entry -> mapper.apply(entry.getKey(), entry.getValue());
+    }
+
     static class IndexEntry<V> implements Entry<Integer, V> {
         int index;
         V value;
@@ -155,7 +164,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public <R> StreamEx<R> mapKeyValue(BiFunction<? super K, ? super V, ? extends R> mapper) {
-        return map(entry -> mapper.apply(entry.getKey(), entry.getValue()));
+        return map(toFunction(mapper));
     }
 
     /**
@@ -211,6 +220,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
             Stream<? extends VV> s = mapper.apply(e.getValue());
             return s == null ? null : s.map(v -> new SimpleImmutableEntry<>(e.getKey(), v));
         }));
+    }
+
+    public <R> StreamEx<R> flatMapKeyValue(BiFunction<? super K, ? super V, ? extends Stream<? extends R>> mapper) {
+        return flatMap(toFunction(mapper));
     }
 
     /**
@@ -282,7 +295,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return append(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
                 new SimpleImmutableEntry<>(k3, v3)));
     }
-    
+
     /**
      * Returns a new {@code EntryStream} which is a concatenation of the stream
      * created from the supplied map entries and this stream.
@@ -321,7 +334,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @param k2
      *            the key of the second {@code Entry} to prepend to this stream
      * @param v2
-     *            the value of the second {@code Entry} to prepend to this stream
+     *            the value of the second {@code Entry} to prepend to this
+     *            stream
      * @return the new stream
      * @since 0.2.3
      */
@@ -340,7 +354,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @param k2
      *            the key of the second {@code Entry} to prepend to this stream
      * @param v2
-     *            the value of the second {@code Entry} to prepend to this stream
+     *            the value of the second {@code Entry} to prepend to this
+     *            stream
      * @param k3
      *            the key of the third {@code Entry} to prepend to this stream
      * @param v3
@@ -352,22 +367,22 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return prepend(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
                 new SimpleImmutableEntry<>(k3, v3)));
     }
-    
-    public <KK> EntryStream<KK, V> mapKeys(Function<K, KK> keyMapper) {
+
+    public <KK> EntryStream<KK, V> mapKeys(Function<? super K, ? extends KK> keyMapper) {
         return strategy().newEntryStream(
                 stream.map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e.getKey()), e.getValue())));
     }
 
-    public <VV> EntryStream<K, VV> mapValues(Function<V, VV> valueMapper) {
+    public <VV> EntryStream<K, VV> mapValues(Function<? super V, ? extends VV> valueMapper) {
         return strategy().newEntryStream(
                 stream.map(e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e.getValue()))));
     }
 
-    public <KK> EntryStream<KK, V> mapEntryKeys(Function<Entry<K, V>, KK> keyMapper) {
+    public <KK> EntryStream<KK, V> mapEntryKeys(Function<? super Entry<K, V>, ? extends KK> keyMapper) {
         return strategy().newEntryStream(stream.map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e), e.getValue())));
     }
 
-    public <VV> EntryStream<K, VV> mapEntryValues(Function<Entry<K, V>, VV> valueMapper) {
+    public <VV> EntryStream<K, VV> mapEntryValues(Function<? super Entry<K, V>, ? extends VV> valueMapper) {
         return strategy().newEntryStream(stream.map(e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e))));
     }
 
@@ -396,7 +411,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      *            each element to determine if it should be included
      * @return the new stream
      */
-    public EntryStream<K, V> filterKeys(Predicate<K> keyPredicate) {
+    public EntryStream<K, V> filterKeys(Predicate<? super K> keyPredicate) {
         return filter(e -> keyPredicate.test(e.getKey()));
     }
 
@@ -412,7 +427,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      *            of each element to determine if it should be included
      * @return the new stream
      */
-    public EntryStream<K, V> filterValues(Predicate<V> valuePredicate) {
+    public EntryStream<K, V> filterValues(Predicate<? super V> valuePredicate) {
         return filter(e -> valuePredicate.test(e.getValue()));
     }
 
@@ -428,7 +443,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      *            each element to determine if it should be excluded
      * @return the new stream
      */
-    public EntryStream<K, V> removeKeys(Predicate<K> keyPredicate) {
+    public EntryStream<K, V> removeKeys(Predicate<? super K> keyPredicate) {
         return filterKeys(keyPredicate.negate());
     }
 
@@ -444,7 +459,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      *            of each element to determine if it should be excluded
      * @return the new stream
      */
-    public EntryStream<K, V> removeValues(Predicate<V> valuePredicate) {
+    public EntryStream<K, V> removeValues(Predicate<? super V> valuePredicate) {
         return filterValues(valuePredicate.negate());
     }
 
@@ -504,7 +519,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      * @since 0.2.3
      */
-    public EntryStream<K, V> peekKeys(Consumer<K> keyAction) {
+    public EntryStream<K, V> peekKeys(Consumer<? super K> keyAction) {
         return peek(e -> keyAction.accept(e.getKey()));
     }
 
@@ -528,7 +543,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      * @since 0.2.3
      */
-    public EntryStream<K, V> peekValues(Consumer<V> valueAction) {
+    public EntryStream<K, V> peekValues(Consumer<? super V> valueAction) {
         return peek(e -> valueAction.accept(e.getValue()));
     }
 
@@ -552,8 +567,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      * @since 0.2.3
      */
-    public EntryStream<K, V> peekKeyValue(BiConsumer<K, V> action) {
-        return peek(e -> action.accept(e.getKey(), e.getValue()));
+    public EntryStream<K, V> peekKeyValue(BiConsumer<? super K, ? super V> action) {
+        return peek(toConsumer(action));
     }
 
     /**
@@ -782,7 +797,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @see #forEach(java.util.function.Consumer)
      */
     public void forKeyValue(BiConsumer<? super K, ? super V> action) {
-        forEach(entry -> action.accept(entry.getKey(), entry.getValue()));
+        forEach(toConsumer(action));
     }
 
     /**
