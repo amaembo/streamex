@@ -453,7 +453,7 @@ import java.util.stream.Stream;
      *            element to determine if it should be excluded
      * @return the new stream
      */
-    public S remove(Predicate<T> predicate) {
+    public S remove(Predicate<? super T> predicate) {
         return filter(predicate.negate());
     }
 
@@ -495,7 +495,7 @@ import java.util.stream.Stream;
      * @see Stream#findAny()
      * @see #findFirst(Predicate)
      */
-    public Optional<T> findAny(Predicate<T> predicate) {
+    public Optional<T> findAny(Predicate<? super T> predicate) {
         return filter(predicate).findAny();
     }
 
@@ -516,7 +516,7 @@ import java.util.stream.Stream;
      *             if the element selected is null
      * @see Stream#findFirst()
      */
-    public Optional<T> findFirst(Predicate<T> predicate) {
+    public Optional<T> findFirst(Predicate<? super T> predicate) {
         return filter(predicate).findFirst();
     }
 
@@ -528,47 +528,47 @@ import java.util.stream.Stream;
         return sorted(Comparator.comparing(keyExtractor));
     }
 
-    public S sortedByInt(ToIntFunction<T> keyExtractor) {
+    public S sortedByInt(ToIntFunction<? super T> keyExtractor) {
         return sorted(Comparator.comparingInt(keyExtractor));
     }
 
-    public S sortedByLong(ToLongFunction<T> keyExtractor) {
+    public S sortedByLong(ToLongFunction<? super T> keyExtractor) {
         return sorted(Comparator.comparingLong(keyExtractor));
     }
 
-    public S sortedByDouble(ToDoubleFunction<T> keyExtractor) {
+    public S sortedByDouble(ToDoubleFunction<? super T> keyExtractor) {
         return sorted(Comparator.comparingDouble(keyExtractor));
     }
 
-    public <V extends Comparable<? super V>> Optional<T> minBy(Function<T, ? extends V> keyExtractor) {
+    public <V extends Comparable<? super V>> Optional<T> minBy(Function<? super T, ? extends V> keyExtractor) {
         return reduce(BinaryOperator.minBy(Comparator.comparing(keyExtractor)));
     }
 
-    public Optional<T> minByInt(ToIntFunction<T> keyExtractor) {
+    public Optional<T> minByInt(ToIntFunction<? super T> keyExtractor) {
         return reduce(BinaryOperator.minBy(Comparator.comparingInt(keyExtractor)));
     }
 
-    public Optional<T> minByLong(ToLongFunction<T> keyExtractor) {
+    public Optional<T> minByLong(ToLongFunction<? super T> keyExtractor) {
         return reduce(BinaryOperator.minBy(Comparator.comparingLong(keyExtractor)));
     }
 
-    public Optional<T> minByDouble(ToDoubleFunction<T> keyExtractor) {
+    public Optional<T> minByDouble(ToDoubleFunction<? super T> keyExtractor) {
         return reduce(BinaryOperator.minBy(Comparator.comparingDouble(keyExtractor)));
     }
 
-    public <V extends Comparable<? super V>> Optional<T> maxBy(Function<T, ? extends V> keyExtractor) {
+    public <V extends Comparable<? super V>> Optional<T> maxBy(Function<? super T, ? extends V> keyExtractor) {
         return reduce(BinaryOperator.maxBy(Comparator.comparing(keyExtractor)));
     }
 
-    public Optional<T> maxByInt(ToIntFunction<T> keyExtractor) {
+    public Optional<T> maxByInt(ToIntFunction<? super T> keyExtractor) {
         return reduce(BinaryOperator.maxBy(Comparator.comparingInt(keyExtractor)));
     }
 
-    public Optional<T> maxByLong(ToLongFunction<T> keyExtractor) {
+    public Optional<T> maxByLong(ToLongFunction<? super T> keyExtractor) {
         return reduce(BinaryOperator.maxBy(Comparator.comparingLong(keyExtractor)));
     }
 
-    public Optional<T> maxByDouble(ToDoubleFunction<T> keyExtractor) {
+    public Optional<T> maxByDouble(ToDoubleFunction<? super T> keyExtractor) {
         return reduce(BinaryOperator.maxBy(Comparator.comparingDouble(keyExtractor)));
     }
 
@@ -584,7 +584,7 @@ import java.util.stream.Stream;
      * @return this stream appended by the other stream
      * @see Stream#concat(Stream, Stream)
      */
-    public S append(Stream<T> other) {
+    public S append(Stream<? extends T> other) {
         return supply(Stream.concat(stream, unwrap(other)));
     }
 
@@ -600,7 +600,7 @@ import java.util.stream.Stream;
      * @return this stream prepended by the other stream
      * @see Stream#concat(Stream, Stream)
      */
-    public S prepend(Stream<T> other) {
+    public S prepend(Stream<? extends T> other) {
         return supply(Stream.concat(unwrap(other), stream));
     }
 
