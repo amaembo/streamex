@@ -41,6 +41,8 @@ import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import javax.util.streamex.Buffers.FloatBuffer;
+
 /**
  * A {@link DoubleStream} implementation with additional functionality
  * 
@@ -754,6 +756,23 @@ public class DoubleStreamEx implements DoubleStream {
                         new PairSpliterator.PSOfDouble(mapper, stream.spliterator(), 0, false, 0, false),
                         stream.isParallel()).onClose(stream::close));
     }
+    
+    public float[] toFloatArray() {
+        if(isParallel())
+            return collect(FloatBuffer::new, FloatBuffer::add, FloatBuffer::addAll).toArray();
+        java.util.Spliterator.OfDouble spliterator = stream.spliterator();
+        long size = spliterator.getExactSizeIfKnown();
+        FloatBuffer buf;
+        if(size > 0 && size <= Integer.MAX_VALUE) {
+            buf = new FloatBuffer((int)size);
+            spliterator.forEachRemaining((DoubleConsumer)buf::addUnsafe);
+        } else {
+            buf = new FloatBuffer();
+            spliterator.forEachRemaining((DoubleConsumer)buf::add);
+        }
+        return buf.toArray();
+    }
+    
 
     public static DoubleStreamEx empty() {
         return new DoubleStreamEx(DoubleStream.empty());

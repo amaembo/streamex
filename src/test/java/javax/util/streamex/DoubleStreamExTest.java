@@ -188,4 +188,15 @@ public class DoubleStreamExTest {
                 .getAsDouble(), 0.0);
         assertArrayEquals(new double[] {1.0, 1.0}, DoubleStreamEx.of(1.0, 2.0, 3.0).append().parallel().pairMap((a, b) -> b - a).toArray(), 0.0);
     }
+    
+    @Test
+    public void testToFloatArray() {
+        float[] expected = new float[10000];
+        for(int i=0; i<expected.length; i++)
+            expected[i] = i;
+        assertArrayEquals(expected, IntStreamEx.range(0, 10000).asDoubleStream().toFloatArray(), 0.0f);
+        assertArrayEquals(expected, IntStreamEx.range(0, 10000).asDoubleStream().parallel().toFloatArray(), 0.0f);
+        assertArrayEquals(expected, IntStreamEx.range(0, 10000).asDoubleStream().greater(-1).toFloatArray(), 0.0f);
+        assertArrayEquals(expected, IntStreamEx.range(0, 10000).asDoubleStream().parallel().greater(-1).toFloatArray(), 0.0f);
+    }
 }

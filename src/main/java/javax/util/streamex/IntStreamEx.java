@@ -47,6 +47,10 @@ import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import javax.util.streamex.Buffers.ByteBuffer;
+import javax.util.streamex.Buffers.CharBuffer;
+import javax.util.streamex.Buffers.ShortBuffer;
+
 /**
  * An {@link IntStream} implementation with additional functionality
  * 
@@ -61,6 +65,23 @@ public class IntStreamEx implements IntStream {
 
     StreamFactory strategy() {
         return StreamFactory.DEFAULT;
+    }
+
+    <A> A collectSized(Supplier<A> supplier, ObjIntConsumer<A> accumulator, BiConsumer<A, A> combiner,
+            IntFunction<A> sizedSupplier, ObjIntConsumer<A> sizedAccumulator) {
+        if (isParallel())
+            return collect(supplier, accumulator, combiner);
+        java.util.Spliterator.OfInt spliterator = stream.spliterator();
+        long size = spliterator.getExactSizeIfKnown();
+        A intermediate;
+        if (size > 0 && size <= Integer.MAX_VALUE) {
+            intermediate = sizedSupplier.apply((int) size);
+            spliterator.forEachRemaining((IntConsumer) i -> sizedAccumulator.accept(intermediate, i));
+        } else {
+            intermediate = supplier.get();
+            spliterator.forEachRemaining((IntConsumer) i -> accumulator.accept(intermediate, i));
+        }
+        return intermediate;
     }
 
     /**
@@ -181,7 +202,7 @@ public class IntStreamEx implements IntStream {
     public IntStreamEx flatMap(IntFunction<? extends IntStream> mapper) {
         return strategy().newIntStreamEx(stream.flatMap(mapper));
     }
-    
+
     public LongStreamEx flatMapToLong(IntFunction<? extends LongStream> mapper) {
         return strategy().newLongStreamEx(stream.mapToObj(mapper).flatMapToLong(Function.identity()));
     }
@@ -189,11 +210,11 @@ public class IntStreamEx implements IntStream {
     public DoubleStreamEx flatMapToDouble(IntFunction<? extends DoubleStream> mapper) {
         return strategy().newDoubleStreamEx(stream.mapToObj(mapper).flatMapToDouble(Function.identity()));
     }
-    
+
     public <R> StreamEx<R> flatMapToObj(IntFunction<? extends Stream<R>> mapper) {
         return strategy().newStreamEx(stream.mapToObj(mapper).flatMap(Function.identity()));
     }
-    
+
     @Override
     public IntStreamEx distinct() {
         return strategy().newIntStreamEx(stream.distinct());
@@ -878,6 +899,21 @@ public class IntStreamEx implements IntStream {
      */
     public BitSet toBitSet() {
         return collect(BitSet::new, BitSet::set, BitSet::or);
+    }
+
+    public byte[] toByteArray() {
+        return collectSized(ByteBuffer::new, ByteBuffer::add, ByteBuffer::addAll, ByteBuffer::new,
+                ByteBuffer::addUnsafe).toArray();
+    }
+
+    public char[] toCharArray() {
+        return collectSized(CharBuffer::new, CharBuffer::add, CharBuffer::addAll, CharBuffer::new,
+                CharBuffer::addUnsafe).toArray();
+    }
+
+    public short[] toShortArray() {
+        return collectSized(ShortBuffer::new, ShortBuffer::add, ShortBuffer::addAll, ShortBuffer::new,
+                ShortBuffer::addUnsafe).toArray();
     }
 
     /**

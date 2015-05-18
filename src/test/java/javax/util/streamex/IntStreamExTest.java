@@ -291,4 +291,37 @@ public class IntStreamExTest {
         int[] result = IntStreamEx.of(data).map(x -> x * x).pairMap((a, b) -> b - a).toArray();
         assertArrayEquals(expected, result);
     }
+    
+    @Test
+    public void testToByteArray() {
+        byte[] expected = new byte[10000];
+        for(int i=0; i<expected.length; i++)
+            expected[i] = (byte)i;
+        assertArrayEquals(expected, IntStreamEx.range(0, 10000).toByteArray());
+        assertArrayEquals(expected, IntStreamEx.range(0, 10000).parallel().toByteArray());
+        assertArrayEquals(expected, IntStreamEx.range(0, 10000).greater(-1).toByteArray());
+        assertArrayEquals(expected, IntStreamEx.range(0, 10000).parallel().greater(-1).toByteArray());
+    }
+    
+    @Test
+    public void testToCharArray() {
+        char[] expected = new char[10000];
+        for(int i=0; i<expected.length; i++)
+            expected[i] = (char)i;
+        assertArrayEquals(expected, IntStreamEx.range(0, 10000).toCharArray());
+        assertArrayEquals(expected, IntStreamEx.range(0, 10000).parallel().toCharArray());
+        assertArrayEquals(expected, IntStreamEx.range(0, 10000).greater(-1).toCharArray());
+        assertArrayEquals(expected, IntStreamEx.range(0, 10000).parallel().greater(-1).toCharArray());
+    }
+    
+    @Test
+    public void testToShortArray() {
+        short[] expected = new short[10000];
+        for(int i=0; i<expected.length; i++)
+            expected[i] = (short)i;
+        assertArrayEquals(expected, IntStreamEx.range(0, 10000).toShortArray());
+        assertArrayEquals(expected, IntStreamEx.range(0, 10000).parallel().toShortArray());
+        assertArrayEquals(expected, IntStreamEx.range(0, 10000).greater(-1).toShortArray());
+        assertArrayEquals(expected, IntStreamEx.range(0, 10000).parallel().greater(-1).toShortArray());
+    }
 }

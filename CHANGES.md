@@ -3,6 +3,8 @@
 ### 0.2.4
 
 * Added flatMapToInt/flatMapToLong/flatMapToDouble/flatMapToObj to primitive streams
+* Added IntStreamEx.toCharArray/toShortArray/toByteArray methods
+* Added DoubleStreamEx.toFloatArray method
 
 ### 0.2.3
 
