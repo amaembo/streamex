@@ -189,7 +189,7 @@ public class DoubleStreamEx implements DoubleStream {
     public <R> StreamEx<R> flatMapToObj(DoubleFunction<? extends Stream<R>> mapper) {
         return strategy().newStreamEx(stream.mapToObj(mapper).flatMap(Function.identity()));
     }
-    
+
     @Override
     public DoubleStreamEx distinct() {
         return strategy().newDoubleStreamEx(stream.distinct());
@@ -398,7 +398,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @return the new stream
      */
     public DoubleStreamEx append(double... values) {
-        if(values.length == 0)
+        if (values.length == 0)
             return this;
         return strategy().newDoubleStreamEx(DoubleStream.concat(stream, DoubleStream.of(values)));
     }
@@ -416,7 +416,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @return the new stream
      */
     public DoubleStreamEx prepend(double... values) {
-        if(values.length == 0)
+        if (values.length == 0)
             return this;
         return strategy().newDoubleStreamEx(DoubleStream.concat(DoubleStream.of(values), stream));
     }
@@ -426,8 +426,8 @@ public class DoubleStreamEx implements DoubleStream {
     }
 
     /**
-     * Returns a stream consisting of the elements of this stream that
-     * strictly greater than the specified value.
+     * Returns a stream consisting of the elements of this stream that strictly
+     * greater than the specified value.
      *
      * <p>
      * This is an intermediate operation.
@@ -442,8 +442,8 @@ public class DoubleStreamEx implements DoubleStream {
     }
 
     /**
-     * Returns a stream consisting of the elements of this stream that
-     * greater than or equal to the specified value.
+     * Returns a stream consisting of the elements of this stream that greater
+     * than or equal to the specified value.
      *
      * <p>
      * This is an intermediate operation.
@@ -458,8 +458,8 @@ public class DoubleStreamEx implements DoubleStream {
     }
 
     /**
-     * Returns a stream consisting of the elements of this stream that
-     * strictly less than the specified value.
+     * Returns a stream consisting of the elements of this stream that strictly
+     * less than the specified value.
      *
      * <p>
      * This is an intermediate operation.
@@ -756,23 +756,32 @@ public class DoubleStreamEx implements DoubleStream {
                         new PairSpliterator.PSOfDouble(mapper, stream.spliterator(), 0, false, 0, false),
                         stream.isParallel()).onClose(stream::close));
     }
-    
+
+    /**
+     * Returns a {@code float[]} array containing the elements of this stream
+     * which are converted to bytes using {@code (float)} cast operation.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @return an array containing the elements of this stream
+     * @since 0.2.4
+     */
     public float[] toFloatArray() {
-        if(isParallel())
+        if (isParallel())
             return collect(FloatBuffer::new, FloatBuffer::add, FloatBuffer::addAll).toArray();
         java.util.Spliterator.OfDouble spliterator = stream.spliterator();
         long size = spliterator.getExactSizeIfKnown();
         FloatBuffer buf;
-        if(size > 0 && size <= Integer.MAX_VALUE) {
-            buf = new FloatBuffer((int)size);
-            spliterator.forEachRemaining((DoubleConsumer)buf::addUnsafe);
+        if (size >= 0 && size <= Integer.MAX_VALUE) {
+            buf = new FloatBuffer((int) size);
+            spliterator.forEachRemaining((DoubleConsumer) buf::addUnsafe);
         } else {
             buf = new FloatBuffer();
-            spliterator.forEachRemaining((DoubleConsumer)buf::add);
+            spliterator.forEachRemaining((DoubleConsumer) buf::add);
         }
         return buf.toArray();
     }
-    
 
     public static DoubleStreamEx empty() {
         return new DoubleStreamEx(DoubleStream.empty());

@@ -74,7 +74,7 @@ public class IntStreamEx implements IntStream {
         java.util.Spliterator.OfInt spliterator = stream.spliterator();
         long size = spliterator.getExactSizeIfKnown();
         A intermediate;
-        if (size > 0 && size <= Integer.MAX_VALUE) {
+        if (size >= 0 && size <= Integer.MAX_VALUE) {
             intermediate = sizedSupplier.apply((int) size);
             spliterator.forEachRemaining((IntConsumer) i -> sizedAccumulator.accept(intermediate, i));
         } else {
@@ -901,16 +901,46 @@ public class IntStreamEx implements IntStream {
         return collect(BitSet::new, BitSet::set, BitSet::or);
     }
 
+    /**
+     * Returns a {@code byte[]} array containing the elements of this stream
+     * which are converted to bytes using {@code (byte)} cast operation.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @return an array containing the elements of this stream
+     * @since 0.2.4
+     */
     public byte[] toByteArray() {
         return collectSized(ByteBuffer::new, ByteBuffer::add, ByteBuffer::addAll, ByteBuffer::new,
                 ByteBuffer::addUnsafe).toArray();
     }
 
+    /**
+     * Returns a {@code char[]} array containing the elements of this stream
+     * which are converted to bytes using {@code (char)} cast operation.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @return an array containing the elements of this stream
+     * @since 0.2.4
+     */
     public char[] toCharArray() {
         return collectSized(CharBuffer::new, CharBuffer::add, CharBuffer::addAll, CharBuffer::new,
                 CharBuffer::addUnsafe).toArray();
     }
 
+    /**
+     * Returns a {@code short[]} array containing the elements of this stream
+     * which are converted to bytes using {@code (short)} cast operation.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @return an array containing the elements of this stream
+     * @since 0.2.4
+     */
     public short[] toShortArray() {
         return collectSized(ShortBuffer::new, ShortBuffer::add, ShortBuffer::addAll, ShortBuffer::new,
                 ShortBuffer::addUnsafe).toArray();
@@ -923,7 +953,8 @@ public class IntStreamEx implements IntStream {
      * This is a terminal operation.
      * 
      * <p>
-     * During string creation stream elements are casted to char.
+     * During string creation stream elements are converted to chars using
+     * {@code (char)} cast operation.
      * 
      * @return a new {@code String}
      * @since 0.2.1
