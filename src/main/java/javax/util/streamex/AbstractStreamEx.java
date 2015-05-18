@@ -541,35 +541,35 @@ import java.util.stream.Stream;
     }
 
     public <V extends Comparable<? super V>> Optional<T> minBy(Function<T, ? extends V> keyExtractor) {
-        return min(Comparator.comparing(keyExtractor));
+        return reduce(BinaryOperator.minBy(Comparator.comparing(keyExtractor)));
     }
 
     public Optional<T> minByInt(ToIntFunction<T> keyExtractor) {
-        return min(Comparator.comparingInt(keyExtractor));
+        return reduce(BinaryOperator.minBy(Comparator.comparingInt(keyExtractor)));
     }
 
     public Optional<T> minByLong(ToLongFunction<T> keyExtractor) {
-        return min(Comparator.comparingLong(keyExtractor));
+        return reduce(BinaryOperator.minBy(Comparator.comparingLong(keyExtractor)));
     }
 
     public Optional<T> minByDouble(ToDoubleFunction<T> keyExtractor) {
-        return min(Comparator.comparingDouble(keyExtractor));
+        return reduce(BinaryOperator.minBy(Comparator.comparingDouble(keyExtractor)));
     }
 
     public <V extends Comparable<? super V>> Optional<T> maxBy(Function<T, ? extends V> keyExtractor) {
-        return max(Comparator.comparing(keyExtractor));
+        return reduce(BinaryOperator.maxBy(Comparator.comparing(keyExtractor)));
     }
 
     public Optional<T> maxByInt(ToIntFunction<T> keyExtractor) {
-        return max(Comparator.comparingInt(keyExtractor));
+        return reduce(BinaryOperator.maxBy(Comparator.comparingInt(keyExtractor)));
     }
 
     public Optional<T> maxByLong(ToLongFunction<T> keyExtractor) {
-        return max(Comparator.comparingLong(keyExtractor));
+        return reduce(BinaryOperator.maxBy(Comparator.comparingLong(keyExtractor)));
     }
 
     public Optional<T> maxByDouble(ToDoubleFunction<T> keyExtractor) {
-        return max(Comparator.comparingDouble(keyExtractor));
+        return reduce(BinaryOperator.maxBy(Comparator.comparingDouble(keyExtractor)));
     }
 
     /**
