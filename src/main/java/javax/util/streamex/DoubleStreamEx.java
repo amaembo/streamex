@@ -35,6 +35,7 @@ import java.util.function.DoubleUnaryOperator;
 import java.util.function.Function;
 import java.util.function.ObjDoubleConsumer;
 import java.util.function.Supplier;
+import java.util.stream.Collector;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
@@ -261,6 +262,13 @@ public class DoubleStreamEx implements DoubleStream {
     @Override
     public <R> R collect(Supplier<R> supplier, ObjDoubleConsumer<R> accumulator, BiConsumer<R, R> combiner) {
         return stream.collect(supplier, accumulator, combiner);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <A, R> R collect(DoubleCollector<A, R> collector) {
+        if(collector.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH))
+            return (R)collect(collector.supplier(), collector.doubleAccumulator(), collector.merger());
+        return collector.finisher().apply(collect(collector.supplier(), collector.doubleAccumulator(), collector.merger()));
     }
 
     @Override

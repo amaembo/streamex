@@ -1,0 +1,88 @@
+package javax.util.streamex;
+
+import static org.junit.Assert.*;
+
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import org.junit.Test;
+
+public class DoubleCollectorTest {
+    @Test
+    public void testJoining() {
+        String expected = IntStream.range(0, 10000).asDoubleStream().mapToObj(String::valueOf)
+                .collect(Collectors.joining(", "));
+        assertEquals(expected, IntStreamEx.range(10000).asDoubleStream().collect(DoubleCollector.joining(", ")));
+        assertEquals(expected,
+                IntStreamEx.range(10000).asDoubleStream().parallel().collect(DoubleCollector.joining(", ")));
+    }
+
+    @Test
+    public void testCounting() {
+        assertEquals(5000L,
+                (long) IntStreamEx.range(10000).asDoubleStream().atLeast(5000).collect(DoubleCollector.counting()));
+        assertEquals(
+                5000L,
+                (long) IntStreamEx.range(10000).asDoubleStream().parallel().atLeast(5000)
+                        .collect(DoubleCollector.counting()));
+    }
+
+    @Test
+    public void testSumming() {
+        assertEquals(3725, IntStreamEx.range(100).asDoubleStream().atLeast(50).collect(DoubleCollector.summing()), 0.0);
+        assertEquals(3725,
+                IntStreamEx.range(100).asDoubleStream().parallel().atLeast(50).collect(DoubleCollector.summing()), 0.0);
+    }
+
+    @Test
+    public void testMin() {
+        assertEquals(50, IntStreamEx.range(100).asDoubleStream().atLeast(50).collect(DoubleCollector.min())
+                .getAsDouble(), 0.0);
+        assertFalse(IntStreamEx.range(100).asDoubleStream().atLeast(200).collect(DoubleCollector.min()).isPresent());
+    }
+
+    @Test
+    public void testMax() {
+        assertEquals(99, IntStreamEx.range(100).asDoubleStream().atLeast(50).collect(DoubleCollector.max())
+                .getAsDouble(), 0.0);
+        assertFalse(IntStreamEx.range(100).asDoubleStream().atLeast(200).collect(DoubleCollector.max()).isPresent());
+    }
+
+    @Test
+    public void testToArray() {
+        assertArrayEquals(new double[] { 0, 1, 2, 3, 4 },
+                IntStreamEx.of(0, 1, 2, 3, 4).asDoubleStream().collect(DoubleCollector.toArray()), 0.0);
+    }
+
+    @Test
+    public void testPartitioning() {
+        double[] expectedEven = IntStream.range(0, 1000).asDoubleStream().map(i -> i * 2).toArray();
+        double[] expectedOdd = IntStream.range(0, 1000).asDoubleStream().map(i -> i * 2 + 1).toArray();
+        Map<Boolean, double[]> oddEven = IntStreamEx.range(2000).asDoubleStream()
+                .collect(DoubleCollector.partitioningBy(i -> i % 2 == 0));
+        assertArrayEquals(expectedEven, oddEven.get(true), 0.0);
+        assertArrayEquals(expectedOdd, oddEven.get(false), 0.0);
+        oddEven = IntStreamEx.range(2000).asDoubleStream().parallel()
+                .collect(DoubleCollector.partitioningBy(i -> i % 2 == 0));
+        assertArrayEquals(expectedEven, oddEven.get(true), 0.0);
+        assertArrayEquals(expectedOdd, oddEven.get(false), 0.0);
+    }
+
+    @Test
+    public void testGroupingBy() {
+        Map<Double, double[]> collected = IntStreamEx.range(2000).asDoubleStream()
+                .collect(DoubleCollector.groupingBy(i -> i % 3));
+        for (double i = 0; i < 3; i++) {
+            double rem = i;
+            assertArrayEquals(IntStream.range(0, 2000).asDoubleStream().filter(a -> a % 3 == rem).toArray(),
+                    collected.get(i), 0.0);
+        }
+        collected = IntStreamEx.range(2000).asDoubleStream().parallel().collect(DoubleCollector.groupingBy(i -> i % 3));
+        for (double i = 0; i < 3; i++) {
+            double rem = i;
+            assertArrayEquals(IntStream.range(0, 2000).asDoubleStream().filter(a -> a % 3 == rem).toArray(),
+                    collected.get(i), 0.0);
+        }
+    }
+}
