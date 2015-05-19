@@ -2,6 +2,7 @@ package javax.util.streamex;
 
 import static org.junit.Assert.*;
 
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -42,5 +43,17 @@ public class IntCollectorTest {
     @Test
     public void testToArray() {
         assertArrayEquals(new int[] {0,1,2,3,4}, IntStreamEx.of(0,1,2,3,4).collect(IntCollector.toArray()));
+    }
+    
+    @Test
+    public void testPartitioning() {
+        int[] expectedEven = IntStream.range(0, 1000).map(i -> i*2).toArray();
+        int[] expectedOdd = IntStream.range(0, 1000).map(i -> i*2+1).toArray();
+        Map<Boolean, int[]> oddEven = IntStreamEx.range(2000).collect(IntCollector.partitioningBy(i -> i % 2 == 0));
+        assertArrayEquals(expectedEven, oddEven.get(true));
+        assertArrayEquals(expectedOdd, oddEven.get(false));
+        oddEven = IntStreamEx.range(2000).parallel().collect(IntCollector.partitioningBy(i -> i % 2 == 0));
+        assertArrayEquals(expectedEven, oddEven.get(true));
+        assertArrayEquals(expectedOdd, oddEven.get(false));
     }
 }

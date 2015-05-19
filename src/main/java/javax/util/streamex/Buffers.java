@@ -1,6 +1,11 @@
 package javax.util.streamex;
 
+import java.util.AbstractMap;
+import java.util.AbstractSet;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 /* package */ final class Buffers {
     static final int INITIAL_SIZE = 128;
@@ -263,6 +268,33 @@ import java.util.Arrays;
         
         double[] toArray() {
             return data.length == size ? data : Arrays.copyOfRange(data, 0, size);
+        }
+    }
+
+    static final class Partition<T> extends AbstractMap<Boolean, T> implements Map<Boolean, T> {
+        final T forTrue;
+        final T forFalse;
+
+        Partition(T forTrue, T forFalse) {
+            this.forTrue = forTrue;
+            this.forFalse = forFalse;
+        }
+
+        @Override
+        public Set<Map.Entry<Boolean, T>> entrySet() {
+            return new AbstractSet<Map.Entry<Boolean, T>>() {
+                @Override
+                public Iterator<Map.Entry<Boolean, T>> iterator() {
+                    Map.Entry<Boolean, T> falseEntry = new SimpleImmutableEntry<>(false, forFalse);
+                    Map.Entry<Boolean, T> trueEntry = new SimpleImmutableEntry<>(true, forTrue);
+                    return Arrays.asList(falseEntry, trueEntry).iterator();
+                }
+
+                @Override
+                public int size() {
+                    return 2;
+                }
+            };
         }
     }
 }

@@ -2,6 +2,7 @@ package javax.util.streamex;
 
 import java.util.EnumSet;
 import java.util.IntSummaryStatistics;
+import java.util.Map;
 import java.util.OptionalInt;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -9,6 +10,7 @@ import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.IntBinaryOperator;
 import java.util.function.IntFunction;
+import java.util.function.IntPredicate;
 import java.util.function.IntUnaryOperator;
 import java.util.function.ObjIntConsumer;
 import java.util.function.Supplier;
@@ -17,6 +19,7 @@ import java.util.stream.Collector;
 import javax.util.streamex.Buffers.ByteBuffer;
 import javax.util.streamex.Buffers.CharBuffer;
 import javax.util.streamex.Buffers.IntBuffer;
+import javax.util.streamex.Buffers.Partition;
 import javax.util.streamex.Buffers.ShortBuffer;
 
 public interface IntCollector<A, R> extends Collector<Integer, A, R> {
@@ -203,6 +206,35 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
     public static IntCollector<?, IntSummaryStatistics> summarizing() {
         return of(IntSummaryStatistics::new, IntSummaryStatistics::accept, IntSummaryStatistics::combine);
     }
+    
+    public static IntCollector<?, Map<Boolean, int[]>> partitioningBy(IntPredicate predicate) {
+        return partitioningBy(predicate, toArray());
+    }
+
+    public static <A, D> IntCollector<?, Map<Boolean, D>> partitioningBy(IntPredicate predicate, IntCollector<A, D> downstream) {
+        ObjIntConsumer<A> downstreamAccumulator = downstream.intAccumulator();
+        ObjIntConsumer<Partition<A>> accumulator = (result, t) ->
+                downstreamAccumulator.accept(predicate.test(t) ? result.forTrue : result.forFalse, t);
+        BiConsumer<A, A> op = downstream.merger();
+        BiConsumer<Partition<A>, Partition<A>> merger = (left, right) -> {
+                op.accept(left.forTrue, right.forTrue);
+                op.accept(left.forFalse, right.forFalse);
+        };
+        Supplier<Partition<A>> supplier = () ->
+                new Partition<>(downstream.supplier().get(),
+                                downstream.supplier().get());
+        if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
+            @SuppressWarnings({ "unchecked", "rawtypes" })
+            IntCollector<?, Map<Boolean, D>> result = (IntCollector)of(supplier, accumulator, merger);
+            return result;
+        }
+        else {
+            Function<Partition<A>, Map<Boolean, D>> finisher = par ->
+                    new Partition<>(downstream.finisher().apply(par.forTrue),
+                                    downstream.finisher().apply(par.forFalse));
+            return of(supplier, accumulator, merger, finisher);
+        }
+    }
 
     public static IntCollector<?, int[]> toArray() {
         return of(IntBuffer::new, IntBuffer::add, IntBuffer::addAll, IntBuffer::toArray);
@@ -219,4 +251,5 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
     public static IntCollector<?, short[]> toShortArray() {
         return of(ShortBuffer::new, ShortBuffer::add, ShortBuffer::addAll, ShortBuffer::toArray);
     }
+
 }
