@@ -2,7 +2,9 @@ package javax.util.streamex;
 
 import static org.junit.Assert.*;
 
+import java.util.IntSummaryStatistics;
 import java.util.Map;
+import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -26,6 +28,13 @@ public class IntCollectorTest {
     public void testSumming() {
         assertEquals(3725, (int)IntStreamEx.range(100).atLeast(50).collect(IntCollector.summing()));
         assertEquals(3725, (int)IntStreamEx.range(100).parallel().atLeast(50).collect(IntCollector.summing()));
+        
+        int[] input = IntStreamEx.of(new Random(1), 10000, 1, 1000).toArray();
+        Map<Boolean, Integer> expected = IntStream.of(input).boxed().collect(Collectors.partitioningBy(i -> i%2 == 0, Collectors.summingInt(Integer::intValue)));
+        Map<Boolean, Integer> sumEvenOdd = IntStreamEx.of(input).collect(IntCollector.partitioningBy(i -> i%2 == 0, IntCollector.summing()));
+        assertEquals(expected, sumEvenOdd);
+        sumEvenOdd = IntStreamEx.of(input).parallel().collect(IntCollector.partitioningBy(i -> i%2 == 0, IntCollector.summing()));
+        assertEquals(expected, sumEvenOdd);
     }
     
     @Test
@@ -37,7 +46,24 @@ public class IntCollectorTest {
     @Test
     public void testMax() {
         assertEquals(99, IntStreamEx.range(100).atLeast(50).collect(IntCollector.max()).getAsInt());
+        assertEquals(99, IntStreamEx.range(100).parallel().atLeast(50).collect(IntCollector.max()).getAsInt());
         assertFalse(IntStreamEx.range(100).atLeast(200).collect(IntCollector.max()).isPresent());
+    }
+    
+    @Test
+    public void testSummarizing() {
+        int[] data = IntStreamEx.of(new Random(1), 1000, 1, Integer.MAX_VALUE).toArray();
+        IntSummaryStatistics expected = IntStream.of(data).summaryStatistics();
+        IntSummaryStatistics statistics = IntStreamEx.of(data).collect(IntCollector.summarizing());
+        assertEquals(expected.getCount(), statistics.getCount());
+        assertEquals(expected.getSum(), statistics.getSum());
+        assertEquals(expected.getMax(), statistics.getMax());
+        assertEquals(expected.getMin(), statistics.getMin());
+        statistics = IntStreamEx.of(data).parallel().collect(IntCollector.summarizing());
+        assertEquals(expected.getCount(), statistics.getCount());
+        assertEquals(expected.getSum(), statistics.getSum());
+        assertEquals(expected.getMax(), statistics.getMax());
+        assertEquals(expected.getMin(), statistics.getMin());
     }
     
     @Test
@@ -71,5 +97,12 @@ public class IntCollectorTest {
             int rem = i;
             assertArrayEquals(IntStream.range(0, 2000).filter(a -> a % 3 == rem).toArray(), collected.get(i));
         }
+    }
+    
+    @Test
+    public void testAsCollector() {
+        assertEquals(499500, (int)IntStream.range(0, 1000).boxed().collect(IntCollector.summing()));
+        assertEquals(499500, (int)IntStream.range(0, 1000).boxed().parallel().collect(IntCollector.summing()));
+        assertEquals(1000, (long)IntStream.range(0, 1000).boxed().collect(IntCollector.counting()));
     }
 }

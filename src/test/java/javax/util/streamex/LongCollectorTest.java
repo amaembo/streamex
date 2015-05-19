@@ -2,7 +2,9 @@ package javax.util.streamex;
 
 import static org.junit.Assert.*;
 
+import java.util.LongSummaryStatistics;
 import java.util.Map;
+import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
@@ -37,7 +39,24 @@ public class LongCollectorTest {
     @Test
     public void testMax() {
         assertEquals(99, LongStreamEx.range(100).atLeast(50).collect(LongCollector.max()).getAsLong());
+        assertEquals(99, LongStreamEx.range(100).parallel().atLeast(50).collect(LongCollector.max()).getAsLong());
         assertFalse(LongStreamEx.range(100).atLeast(200).collect(LongCollector.max()).isPresent());
+    }
+    
+    @Test
+    public void testSummarizing() {
+        long[] data = LongStreamEx.of(new Random(1), 1000, 1, Long.MAX_VALUE).toArray();
+        LongSummaryStatistics expected = LongStream.of(data).summaryStatistics();
+        LongSummaryStatistics statistics = LongStreamEx.of(data).collect(LongCollector.summarizing());
+        assertEquals(expected.getCount(), statistics.getCount());
+        assertEquals(expected.getSum(), statistics.getSum());
+        assertEquals(expected.getMax(), statistics.getMax());
+        assertEquals(expected.getMin(), statistics.getMin());
+        statistics = LongStreamEx.of(data).parallel().collect(LongCollector.summarizing());
+        assertEquals(expected.getCount(), statistics.getCount());
+        assertEquals(expected.getSum(), statistics.getSum());
+        assertEquals(expected.getMax(), statistics.getMax());
+        assertEquals(expected.getMin(), statistics.getMin());
     }
     
     @Test
@@ -71,5 +90,12 @@ public class LongCollectorTest {
             long rem = i;
             assertArrayEquals(LongStream.range(0, 2000).filter(a -> a % 3 == rem).toArray(), collected.get(i));
         }
+    }
+    
+    @Test
+    public void testAsCollector() {
+        assertEquals(10000499500l, (long)LongStream.range(10000000, 10001000).boxed().collect(LongCollector.summing()));
+        assertEquals(10000499500l, (long)LongStream.range(10000000, 10001000).boxed().parallel().collect(LongCollector.summing()));
+        assertEquals(1000, (long)LongStream.range(0, 1000).boxed().collect(LongCollector.counting()));
     }
 }
