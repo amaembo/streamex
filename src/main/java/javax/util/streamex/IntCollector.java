@@ -78,9 +78,9 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
             }
         };
     }
-    
+
     static <A, R> IntCollector<?, R> of(Collector<Integer, A, R> collector) {
-        if(collector instanceof IntCollector) {
+        if (collector instanceof IntCollector) {
             return (IntCollector<A, R>) collector;
         }
         return mappingToObj(i -> i, collector);
@@ -174,8 +174,9 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
         return of(() -> new Object[] { supplier.get() }, (box, i) -> accumulator.accept((A) box[0], mapper.apply(i)), (
                 box1, box2) -> box1[0] = combiner.apply((A) box1[0], (A) box2[0]), box -> finisher.apply((A) box[0]));
     }
-    
-    public static <A, R, RR> IntCollector<A, RR> collectingAndThen(IntCollector<A, R> collector, Function<R, RR> finisher) {
+
+    public static <A, R, RR> IntCollector<A, RR> collectingAndThen(IntCollector<A, R> collector,
+            Function<R, RR> finisher) {
         return of(collector.supplier(), collector.intAccumulator(), collector.merger(),
                 collector.finisher().andThen(finisher));
     }
@@ -208,36 +209,34 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
     public static IntCollector<?, IntSummaryStatistics> summarizing() {
         return of(IntSummaryStatistics::new, IntSummaryStatistics::accept, IntSummaryStatistics::combine);
     }
-    
+
     public static IntCollector<?, Map<Boolean, int[]>> partitioningBy(IntPredicate predicate) {
         return partitioningBy(predicate, toArray());
     }
 
-    public static <A, D> IntCollector<?, Map<Boolean, D>> partitioningBy(IntPredicate predicate, IntCollector<A, D> downstream) {
+    public static <A, D> IntCollector<?, Map<Boolean, D>> partitioningBy(IntPredicate predicate,
+            IntCollector<A, D> downstream) {
         ObjIntConsumer<A> downstreamAccumulator = downstream.intAccumulator();
-        ObjIntConsumer<Partition<A>> accumulator = (result, t) ->
-                downstreamAccumulator.accept(predicate.test(t) ? result.forTrue : result.forFalse, t);
+        ObjIntConsumer<Partition<A>> accumulator = (result, t) -> downstreamAccumulator.accept(
+                predicate.test(t) ? result.forTrue : result.forFalse, t);
         BiConsumer<A, A> op = downstream.merger();
         BiConsumer<Partition<A>, Partition<A>> merger = (left, right) -> {
-                op.accept(left.forTrue, right.forTrue);
-                op.accept(left.forFalse, right.forFalse);
+            op.accept(left.forTrue, right.forTrue);
+            op.accept(left.forFalse, right.forFalse);
         };
-        Supplier<Partition<A>> supplier = () ->
-                new Partition<>(downstream.supplier().get(),
-                                downstream.supplier().get());
+        Supplier<Partition<A>> supplier = () -> new Partition<>(downstream.supplier().get(), downstream.supplier()
+                .get());
         if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
             @SuppressWarnings({ "unchecked", "rawtypes" })
-            IntCollector<?, Map<Boolean, D>> result = (IntCollector)of(supplier, accumulator, merger);
+            IntCollector<?, Map<Boolean, D>> result = (IntCollector) of(supplier, accumulator, merger);
             return result;
-        }
-        else {
-            Function<Partition<A>, Map<Boolean, D>> finisher = par ->
-                    new Partition<>(downstream.finisher().apply(par.forTrue),
-                                    downstream.finisher().apply(par.forFalse));
+        } else {
+            Function<Partition<A>, Map<Boolean, D>> finisher = par -> new Partition<>(downstream.finisher().apply(
+                    par.forTrue), downstream.finisher().apply(par.forFalse));
             return of(supplier, accumulator, merger, finisher);
         }
     }
-    
+
     public static <K> IntCollector<?, Map<K, int[]>> groupingBy(IntFunction<? extends K> classifier) {
         return groupingBy(classifier, HashMap::new, toArray());
     }
@@ -247,10 +246,8 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
         return groupingBy(classifier, HashMap::new, downstream);
     }
 
-    public static <K, D, A, M extends Map<K, D>>
-    IntCollector<?, M> groupingBy(IntFunction<? extends K> classifier,
-                                  Supplier<M> mapFactory,
-                                  IntCollector<A, D> downstream) {
+    public static <K, D, A, M extends Map<K, D>> IntCollector<?, M> groupingBy(IntFunction<? extends K> classifier,
+            Supplier<M> mapFactory, IntCollector<A, D> downstream) {
         Supplier<A> downstreamSupplier = downstream.supplier();
         ObjIntConsumer<A> downstreamAccumulator = downstream.intAccumulator();
         ObjIntConsumer<Map<K, A>> accumulator = (m, t) -> {
@@ -260,7 +257,7 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
         };
         BiConsumer<A, A> downstreamMerger = downstream.merger();
         BiConsumer<Map<K, A>, Map<K, A>> merger = (m1, m2) -> {
-            for (Map.Entry<K,A> e : m2.entrySet())
+            for (Map.Entry<K, A> e : m2.entrySet())
                 m1.merge(e.getKey(), e.getValue(), (a, b) -> {
                     downstreamMerger.accept(a, b);
                     return a;
@@ -274,8 +271,7 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
             @SuppressWarnings("unchecked")
             IntCollector<?, M> result = (IntCollector<?, M>) of(mangledFactory, accumulator, merger);
             return result;
-        }
-        else {
+        } else {
             @SuppressWarnings("unchecked")
             Function<A, A> downstreamFinisher = (Function<A, A>) downstream.finisher();
             Function<Map<K, A>, M> finisher = intermediate -> {
@@ -287,6 +283,7 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
             return of(mangledFactory, accumulator, merger, finisher);
         }
     }
+
     public static IntCollector<?, int[]> toArray() {
         return of(IntBuffer::new, IntBuffer::add, IntBuffer::addAll, IntBuffer::toArray);
     }
@@ -294,7 +291,7 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
     public static IntCollector<?, byte[]> toByteArray() {
         return of(ByteBuffer::new, ByteBuffer::add, ByteBuffer::addAll, ByteBuffer::toArray);
     }
-    
+
     public static IntCollector<?, char[]> toCharArray() {
         return of(CharBuffer::new, CharBuffer::add, CharBuffer::addAll, CharBuffer::toArray);
     }
