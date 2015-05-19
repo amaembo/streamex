@@ -21,15 +21,13 @@ import java.util.stream.Collector;
 import javax.util.streamex.Buffers.LongBuffer;
 import javax.util.streamex.Buffers.BooleanMap;
 
-public interface LongCollector<A, R> extends Collector<Long, A, R> {
+public interface LongCollector<A, R> extends AbstractPrimitiveCollector<Long, A, R> {
     /**
      * A function that folds a value into a mutable result container.
      *
      * @return a function which folds a value into a mutable result container
      */
     ObjLongConsumer<A> longAccumulator();
-
-    BiConsumer<A, A> merger();
 
     @Override
     default BiConsumer<A, Long> accumulator() {
@@ -116,24 +114,12 @@ public interface LongCollector<A, R> extends Collector<Long, A, R> {
 
     public static LongCollector<?, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return of(StringBuilder::new, (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i),
-                (sb1, sb2) -> {
-                    if (sb2.length() > 0) {
-                        if (sb1.length() > 0)
-                            sb1.append(delimiter);
-                        sb1.append(sb2);
-                    }
-                }, sb -> new StringBuilder().append(prefix).append(sb).append(suffix).toString());
+                Buffers.joinMerger(delimiter), sb -> new StringBuilder().append(prefix).append(sb).append(suffix).toString());
     }
 
     public static LongCollector<?, String> joining(CharSequence delimiter) {
         return of(StringBuilder::new, (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i),
-                (sb1, sb2) -> {
-                    if (sb2.length() > 0) {
-                        if (sb1.length() > 0)
-                            sb1.append(delimiter);
-                        sb1.append(sb2);
-                    }
-                }, StringBuilder::toString);
+                Buffers.joinMerger(delimiter), StringBuilder::toString);
     }
 
     public static LongCollector<?, Long> counting() {
@@ -216,21 +202,14 @@ public interface LongCollector<A, R> extends Collector<Long, A, R> {
         ObjLongConsumer<A> downstreamAccumulator = downstream.longAccumulator();
         ObjLongConsumer<BooleanMap<A>> accumulator = (result, t) -> downstreamAccumulator.accept(
                 predicate.test(t) ? result.trueValue : result.falseValue, t);
-        BiConsumer<A, A> op = downstream.merger();
-        BiConsumer<BooleanMap<A>, BooleanMap<A>> merger = (left, right) -> {
-            op.accept(left.trueValue, right.trueValue);
-            op.accept(left.falseValue, right.falseValue);
-        };
-        Supplier<BooleanMap<A>> supplier = () -> new BooleanMap<>(downstream.supplier().get(), downstream.supplier()
-                .get());
+        BiConsumer<BooleanMap<A>, BooleanMap<A>> merger = BooleanMap.merger(downstream.merger());
+        Supplier<BooleanMap<A>> supplier = BooleanMap.supplier(downstream.supplier());
         if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
             @SuppressWarnings({ "unchecked", "rawtypes" })
             LongCollector<?, Map<Boolean, D>> result = (LongCollector) of(supplier, accumulator, merger);
             return result;
         } else {
-            Function<BooleanMap<A>, Map<Boolean, D>> finisher = par -> new BooleanMap<>(downstream.finisher().apply(
-                    par.trueValue), downstream.finisher().apply(par.falseValue));
-            return of(supplier, accumulator, merger, finisher);
+            return of(supplier, accumulator, merger, BooleanMap.finisher(downstream.finisher()));
         }
     }
 

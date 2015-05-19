@@ -7,6 +7,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /* package */ final class Buffers {
     static final int INITIAL_SIZE = 128;
@@ -334,5 +337,31 @@ import java.util.Set;
         public int size() {
             return 2;
         }
+
+        static <A> Supplier<BooleanMap<A>> supplier(Supplier<A> downstreamSupplier) {
+            return () -> new BooleanMap<>(downstreamSupplier.get(), downstreamSupplier.get());
+        }
+
+        static <A> BiConsumer<BooleanMap<A>, BooleanMap<A>> merger(BiConsumer<A, A> downstreamMerger) {
+            return (left, right) -> {
+                downstreamMerger.accept(left.trueValue, right.trueValue);
+                downstreamMerger.accept(left.falseValue, right.falseValue);
+            };
+        }
+
+        static <A, D> Function<BooleanMap<A>, Map<Boolean, D>> finisher(Function<A, D> downstreamFinisher) {
+            return par -> new BooleanMap<>(downstreamFinisher.apply(par.trueValue),
+                    downstreamFinisher.apply(par.falseValue));
+        }
+    }
+
+    public static BiConsumer<StringBuilder, StringBuilder> joinMerger(CharSequence delimiter) {
+        return (sb1, sb2) -> {
+            if (sb2.length() > 0) {
+                if (sb1.length() > 0)
+                    sb1.append(delimiter);
+                sb1.append(sb2);
+            }
+        };
     }
 }
