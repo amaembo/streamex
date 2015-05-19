@@ -169,6 +169,11 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
         return of(() -> new Object[] { supplier.get() }, (box, i) -> accumulator.accept((A) box[0], mapper.apply(i)), (
                 box1, box2) -> box1[0] = combiner.apply((A) box1[0], (A) box2[0]), box -> finisher.apply((A) box[0]));
     }
+    
+    public static <A, R, RR> IntCollector<A, RR> collectingAndThen(IntCollector<A, R> collector, Function<R, RR> finisher) {
+        return of(collector.supplier(), collector.intAccumulator(), collector.merger(),
+                collector.finisher().andThen(finisher));
+    }
 
     public static IntCollector<?, OptionalInt> reducing(IntBinaryOperator op) {
         return of(() -> new int[2], (box, i) -> {
