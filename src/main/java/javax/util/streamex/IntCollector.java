@@ -38,15 +38,6 @@ public interface IntCollector<A, R> extends AbstractPrimitiveCollector<Integer, 
         return (a, i) -> intAccumulator.accept(a, i);
     }
 
-    @Override
-    default BinaryOperator<A> combiner() {
-        BiConsumer<A, A> merger = merger();
-        return (a, b) -> {
-            merger.accept(a, b);
-            return a;
-        };
-    }
-
     static <R> IntCollector<R, R> of(Supplier<R> supplier, ObjIntConsumer<R> intAccumulator, BiConsumer<R, R> merger) {
         return new IntCollector<R, R>() {
 
@@ -99,11 +90,6 @@ public interface IntCollector<A, R> extends AbstractPrimitiveCollector<Integer, 
             }
 
             @Override
-            public Set<Collector.Characteristics> characteristics() {
-                return EnumSet.noneOf(Collector.Characteristics.class);
-            }
-
-            @Override
             public ObjIntConsumer<A> intAccumulator() {
                 return intAccumulator;
             }
@@ -117,7 +103,7 @@ public interface IntCollector<A, R> extends AbstractPrimitiveCollector<Integer, 
 
     public static IntCollector<?, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return of(StringBuilder::new, (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i),
-                Buffers.joinMerger(delimiter), sb -> new StringBuilder().append(prefix).append(sb).append(suffix).toString());
+                Buffers.joinMerger(delimiter), Buffers.joinFinisher(prefix, suffix));
     }
 
     public static IntCollector<?, String> joining(CharSequence delimiter) {
@@ -126,11 +112,11 @@ public interface IntCollector<A, R> extends AbstractPrimitiveCollector<Integer, 
     }
 
     public static IntCollector<?, Long> counting() {
-        return of(() -> new long[1], (box, i) -> box[0]++, (box1, box2) -> box1[0] += box2[0], box -> box[0]);
+        return of(() -> new long[1], (box, i) -> box[0]++, (box1, box2) -> box1[0] += box2[0], Buffers.UNBOX_LONG);
     }
 
     public static IntCollector<?, Integer> summing() {
-        return of(() -> new int[1], (box, i) -> box[0] += i, (box1, box2) -> box1[0] += box2[0], box -> box[0]);
+        return of(() -> new int[1], (box, i) -> box[0] += i, (box1, box2) -> box1[0] += box2[0], Buffers.UNBOX_INT);
     }
 
     public static IntCollector<?, OptionalInt> min() {
@@ -189,7 +175,7 @@ public interface IntCollector<A, R> extends AbstractPrimitiveCollector<Integer, 
 
     public static IntCollector<?, Integer> reducing(int identity, IntBinaryOperator op) {
         return of(() -> new int[] { identity }, (box, i) -> box[0] = op.applyAsInt(box[0], i),
-                (box1, box2) -> box1[0] = op.applyAsInt(box1[0], box2[0]), box -> box[0]);
+                (box1, box2) -> box1[0] = op.applyAsInt(box1[0], box2[0]), Buffers.UNBOX_INT);
     }
 
     public static IntCollector<?, IntSummaryStatistics> summarizing() {
@@ -200,6 +186,7 @@ public interface IntCollector<A, R> extends AbstractPrimitiveCollector<Integer, 
         return partitioningBy(predicate, toArray());
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public static <A, D> IntCollector<?, Map<Boolean, D>> partitioningBy(IntPredicate predicate,
             IntCollector<A, D> downstream) {
         ObjIntConsumer<A> downstreamAccumulator = downstream.intAccumulator();
@@ -208,9 +195,7 @@ public interface IntCollector<A, R> extends AbstractPrimitiveCollector<Integer, 
         BiConsumer<BooleanMap<A>, BooleanMap<A>> merger = BooleanMap.merger(downstream.merger());
         Supplier<BooleanMap<A>> supplier = BooleanMap.supplier(downstream.supplier());
         if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
-            @SuppressWarnings({ "unchecked", "rawtypes" })
-            IntCollector<?, Map<Boolean, D>> result = (IntCollector) of(supplier, accumulator, merger);
-            return result;
+            return (IntCollector) of(supplier, accumulator, merger);
         } else {
             return of(supplier, accumulator, merger, BooleanMap.finisher(downstream.finisher()));
         }
@@ -225,41 +210,24 @@ public interface IntCollector<A, R> extends AbstractPrimitiveCollector<Integer, 
         return groupingBy(classifier, HashMap::new, downstream);
     }
 
+    @SuppressWarnings("unchecked")
     public static <K, D, A, M extends Map<K, D>> IntCollector<?, M> groupingBy(IntFunction<? extends K> classifier,
             Supplier<M> mapFactory, IntCollector<A, D> downstream) {
         Supplier<A> downstreamSupplier = downstream.supplier();
+        Function<K, A> supplier = k -> downstreamSupplier.get();
         ObjIntConsumer<A> downstreamAccumulator = downstream.intAccumulator();
         ObjIntConsumer<Map<K, A>> accumulator = (m, t) -> {
             K key = Objects.requireNonNull(classifier.apply(t));
-            A container = m.computeIfAbsent(key, k -> downstreamSupplier.get());
+            A container = m.computeIfAbsent(key, supplier);
             downstreamAccumulator.accept(container, t);
         };
-        BiConsumer<A, A> downstreamMerger = downstream.merger();
-        BiConsumer<Map<K, A>, Map<K, A>> merger = (m1, m2) -> {
-            for (Map.Entry<K, A> e : m2.entrySet())
-                m1.merge(e.getKey(), e.getValue(), (a, b) -> {
-                    downstreamMerger.accept(a, b);
-                    return a;
-                });
-        };
-
-        @SuppressWarnings("unchecked")
-        Supplier<Map<K, A>> mangledFactory = (Supplier<Map<K, A>>) mapFactory;
+        BiConsumer<Map<K, A>, Map<K, A>> merger = Buffers.mapMerger(downstream.merger());
 
         if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
-            @SuppressWarnings("unchecked")
-            IntCollector<?, M> result = (IntCollector<?, M>) of(mangledFactory, accumulator, merger);
-            return result;
+            return (IntCollector<?, M>) of((Supplier<Map<K, A>>) mapFactory, accumulator, merger);
         } else {
-            @SuppressWarnings("unchecked")
-            Function<A, A> downstreamFinisher = (Function<A, A>) downstream.finisher();
-            Function<Map<K, A>, M> finisher = intermediate -> {
-                intermediate.replaceAll((k, v) -> downstreamFinisher.apply(v));
-                @SuppressWarnings("unchecked")
-                M castResult = (M) intermediate;
-                return castResult;
-            };
-            return of(mangledFactory, accumulator, merger, finisher);
+            return of((Supplier<Map<K, A>>) mapFactory, accumulator, merger,
+                    Buffers.mapFinisher((Function<A, A>) downstream.finisher()));
         }
     }
 

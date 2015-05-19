@@ -36,7 +36,8 @@ public interface DoubleCollector<A, R> extends AbstractPrimitiveCollector<Double
         return (a, i) -> doubleAccumulator.accept(a, i);
     }
 
-    static <R> DoubleCollector<R, R> of(Supplier<R> supplier, ObjDoubleConsumer<R> doubleAccumulator, BiConsumer<R, R> merger) {
+    static <R> DoubleCollector<R, R> of(Supplier<R> supplier, ObjDoubleConsumer<R> doubleAccumulator,
+            BiConsumer<R, R> merger) {
         return new DoubleCollector<R, R>() {
 
             @Override
@@ -88,11 +89,6 @@ public interface DoubleCollector<A, R> extends AbstractPrimitiveCollector<Double
             }
 
             @Override
-            public Set<Collector.Characteristics> characteristics() {
-                return EnumSet.noneOf(Collector.Characteristics.class);
-            }
-
-            @Override
             public ObjDoubleConsumer<A> doubleAccumulator() {
                 return doubleAccumulator;
             }
@@ -106,7 +102,7 @@ public interface DoubleCollector<A, R> extends AbstractPrimitiveCollector<Double
 
     public static DoubleCollector<?, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return of(StringBuilder::new, (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i),
-                Buffers.joinMerger(delimiter), sb -> new StringBuilder().append(prefix).append(sb).append(suffix).toString());
+                Buffers.joinMerger(delimiter), Buffers.joinFinisher(prefix, suffix));
     }
 
     public static DoubleCollector<?, String> joining(CharSequence delimiter) {
@@ -115,7 +111,7 @@ public interface DoubleCollector<A, R> extends AbstractPrimitiveCollector<Double
     }
 
     public static DoubleCollector<?, Long> counting() {
-        return of(() -> new long[1], (box, i) -> box[0]++, (box1, box2) -> box1[0] += box2[0], box -> box[0]);
+        return of(() -> new long[1], (box, i) -> box[0]++, (box1, box2) -> box1[0] += box2[0], Buffers.UNBOX_LONG);
     }
 
     public static DoubleCollector<?, Double> summing() {
@@ -153,8 +149,8 @@ public interface DoubleCollector<A, R> extends AbstractPrimitiveCollector<Double
 
     public static <A, R, RR> DoubleCollector<A, RR> collectingAndThen(DoubleCollector<A, R> collector,
             Function<R, RR> finisher) {
-        return of(collector.supplier(), collector.doubleAccumulator(), collector.merger(),
-                collector.finisher().andThen(finisher));
+        return of(collector.supplier(), collector.doubleAccumulator(), collector.merger(), collector.finisher()
+                .andThen(finisher));
     }
 
     public static DoubleCollector<?, OptionalDouble> reducing(DoubleBinaryOperator op) {
@@ -179,7 +175,7 @@ public interface DoubleCollector<A, R> extends AbstractPrimitiveCollector<Double
 
     public static DoubleCollector<?, Double> reducing(double identity, DoubleBinaryOperator op) {
         return of(() -> new double[] { identity }, (box, i) -> box[0] = op.applyAsDouble(box[0], i),
-                (box1, box2) -> box1[0] = op.applyAsDouble(box1[0], box2[0]), box -> box[0]);
+                (box1, box2) -> box1[0] = op.applyAsDouble(box1[0], box2[0]), Buffers.UNBOX_DOUBLE);
     }
 
     public static DoubleCollector<?, DoubleSummaryStatistics> summarizing() {
@@ -190,6 +186,7 @@ public interface DoubleCollector<A, R> extends AbstractPrimitiveCollector<Double
         return partitioningBy(predicate, toArray());
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public static <A, D> DoubleCollector<?, Map<Boolean, D>> partitioningBy(DoublePredicate predicate,
             DoubleCollector<A, D> downstream) {
         ObjDoubleConsumer<A> downstreamAccumulator = downstream.doubleAccumulator();
@@ -198,9 +195,7 @@ public interface DoubleCollector<A, R> extends AbstractPrimitiveCollector<Double
         BiConsumer<BooleanMap<A>, BooleanMap<A>> merger = BooleanMap.merger(downstream.merger());
         Supplier<BooleanMap<A>> supplier = BooleanMap.supplier(downstream.supplier());
         if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
-            @SuppressWarnings({ "unchecked", "rawtypes" })
-            DoubleCollector<?, Map<Boolean, D>> result = (DoubleCollector) of(supplier, accumulator, merger);
-            return result;
+            return (DoubleCollector) of(supplier, accumulator, merger);
         } else {
             return of(supplier, accumulator, merger, BooleanMap.finisher(downstream.finisher()));
         }
@@ -215,41 +210,24 @@ public interface DoubleCollector<A, R> extends AbstractPrimitiveCollector<Double
         return groupingBy(classifier, HashMap::new, downstream);
     }
 
-    public static <K, D, A, M extends Map<K, D>> DoubleCollector<?, M> groupingBy(DoubleFunction<? extends K> classifier,
-            Supplier<M> mapFactory, DoubleCollector<A, D> downstream) {
+    @SuppressWarnings("unchecked")
+    public static <K, D, A, M extends Map<K, D>> DoubleCollector<?, M> groupingBy(
+            DoubleFunction<? extends K> classifier, Supplier<M> mapFactory, DoubleCollector<A, D> downstream) {
         Supplier<A> downstreamSupplier = downstream.supplier();
+        Function<K, A> supplier = k -> downstreamSupplier.get();
         ObjDoubleConsumer<A> downstreamAccumulator = downstream.doubleAccumulator();
         ObjDoubleConsumer<Map<K, A>> accumulator = (m, t) -> {
             K key = Objects.requireNonNull(classifier.apply(t));
-            A container = m.computeIfAbsent(key, k -> downstreamSupplier.get());
+            A container = m.computeIfAbsent(key, supplier);
             downstreamAccumulator.accept(container, t);
         };
-        BiConsumer<A, A> downstreamMerger = downstream.merger();
-        BiConsumer<Map<K, A>, Map<K, A>> merger = (m1, m2) -> {
-            for (Map.Entry<K, A> e : m2.entrySet())
-                m1.merge(e.getKey(), e.getValue(), (a, b) -> {
-                    downstreamMerger.accept(a, b);
-                    return a;
-                });
-        };
-
-        @SuppressWarnings("unchecked")
-        Supplier<Map<K, A>> mangledFactory = (Supplier<Map<K, A>>) mapFactory;
+        BiConsumer<Map<K, A>, Map<K, A>> merger = Buffers.mapMerger(downstream.merger());
 
         if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
-            @SuppressWarnings("unchecked")
-            DoubleCollector<?, M> result = (DoubleCollector<?, M>) of(mangledFactory, accumulator, merger);
-            return result;
+            return (DoubleCollector<?, M>) of((Supplier<Map<K, A>>) mapFactory, accumulator, merger);
         } else {
-            @SuppressWarnings("unchecked")
-            Function<A, A> downstreamFinisher = (Function<A, A>) downstream.finisher();
-            Function<Map<K, A>, M> finisher = intermediate -> {
-                intermediate.replaceAll((k, v) -> downstreamFinisher.apply(v));
-                @SuppressWarnings("unchecked")
-                M castResult = (M) intermediate;
-                return castResult;
-            };
-            return of(mangledFactory, accumulator, merger, finisher);
+            return of((Supplier<Map<K, A>>) mapFactory, accumulator, merger,
+                    Buffers.mapFinisher((Function<A, A>) downstream.finisher()));
         }
     }
 

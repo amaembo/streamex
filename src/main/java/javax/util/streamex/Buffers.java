@@ -354,14 +354,40 @@ import java.util.function.Supplier;
                     downstreamFinisher.apply(par.falseValue));
         }
     }
+    
+    static final Function<int[], Integer> UNBOX_INT = box -> box[0]; 
+    static final Function<long[], Long> UNBOX_LONG = box -> box[0]; 
+    static final Function<double[], Double> UNBOX_DOUBLE = box -> box[0];
 
-    public static BiConsumer<StringBuilder, StringBuilder> joinMerger(CharSequence delimiter) {
+    static BiConsumer<StringBuilder, StringBuilder> joinMerger(CharSequence delimiter) {
         return (sb1, sb2) -> {
             if (sb2.length() > 0) {
                 if (sb1.length() > 0)
                     sb1.append(delimiter);
                 sb1.append(sb2);
             }
+        };
+    }
+
+    static Function<StringBuilder, String> joinFinisher(CharSequence prefix, CharSequence suffix) {
+        return sb -> new StringBuilder().append(prefix).append(sb).append(suffix).toString();
+    } 
+
+    static <K, A> BiConsumer<Map<K, A>, Map<K, A>> mapMerger(BiConsumer<A, A> downstreamMerger) {
+        return (m1, m2) -> {
+            for (Map.Entry<K, A> e : m2.entrySet())
+                m1.merge(e.getKey(), e.getValue(), (a, b) -> {
+                    downstreamMerger.accept(a, b);
+                    return a;
+                });
+        };
+    }
+
+    @SuppressWarnings("unchecked")
+    static <K, A, D, M extends Map<K, D>> Function<Map<K, A>, M> mapFinisher(Function<A, A> downstreamFinisher) {
+        return map -> {
+            map.replaceAll((k, v) -> downstreamFinisher.apply(v));
+            return (M) map;
         };
     }
 }
