@@ -169,4 +169,100 @@ import java.util.Arrays;
             return data.length == size ? data : Arrays.copyOfRange(data, 0, size);
         }
     }
+
+    static final class IntBuffer {
+        int size = 0;
+        int[] data;
+        
+        IntBuffer() {
+            data = new int[INITIAL_SIZE];
+        }
+        
+        void add(int n) {
+            if(data.length == size) {
+                int[] newData = new int[data.length*2];
+                System.arraycopy(data, 0, newData, 0, size);
+                data = newData;
+            }
+            data[size++] = n;
+        }
+        
+        void addAll(IntBuffer buf) {
+            if(data.length < buf.size+size) {
+                int[] newData = new int[buf.size+size];
+                System.arraycopy(data, 0, newData, 0, size);
+                data = newData;
+            }
+            System.arraycopy(buf.data, 0, data, size, buf.size);
+            size += buf.size;
+        }
+        
+        int[] toArray() {
+            return data.length == size ? data : Arrays.copyOfRange(data, 0, size);
+        }
+    }
+    
+    static final class LongBuffer {
+        int size = 0;
+        long[] data;
+        
+        LongBuffer() {
+            data = new long[INITIAL_SIZE];
+        }
+        
+        void add(long n) {
+            if(data.length == size) {
+                long[] newData = new long[data.length*2];
+                System.arraycopy(data, 0, newData, 0, size);
+                data = newData;
+            }
+            data[size++] = n;
+        }
+        
+        void addAll(LongBuffer buf) {
+            if(data.length < buf.size+size) {
+                long[] newData = new long[buf.size+size];
+                System.arraycopy(data, 0, newData, 0, size);
+                data = newData;
+            }
+            System.arraycopy(buf.data, 0, data, size, buf.size);
+            size += buf.size;
+        }
+        
+        long[] toArray() {
+            return data.length == size ? data : Arrays.copyOfRange(data, 0, size);
+        }
+    }
+    
+    static final class DoubleBuffer {
+        int size = 0;
+        double[] data;
+        
+        DoubleBuffer() {
+            data = new double[INITIAL_SIZE];
+        }
+        
+        void add(double n) {
+            if(data.length == size) {
+                double[] newData = new double[data.length*2];
+                System.arraycopy(data, 0, newData, 0, size);
+                data = newData;
+            }
+            data[size++] = n;
+        }
+        
+        void addAll(DoubleBuffer buf) {
+            if(data.length < buf.size+size) {
+                double[] newData = new double[buf.size+size];
+                System.arraycopy(data, 0, newData, 0, size);
+                data = newData;
+            }
+            System.arraycopy(buf.data, 0, data, size, buf.size);
+            size += buf.size;
+        }
+        
+        double[] toArray() {
+            return data.length == size ? data : Arrays.copyOfRange(data, 0, size);
+        }
+    }
 }

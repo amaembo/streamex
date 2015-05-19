@@ -41,6 +41,7 @@ import java.util.function.LongPredicate;
 import java.util.function.ObjIntConsumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collector;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
@@ -285,6 +286,13 @@ public class IntStreamEx implements IntStream {
     @Override
     public <R> R collect(Supplier<R> supplier, ObjIntConsumer<R> accumulator, BiConsumer<R, R> combiner) {
         return stream.collect(supplier, accumulator, combiner);
+    }
+    
+    @SuppressWarnings("unchecked")
+    public <A, R> R collect(IntCollector<A, R> collector) {
+        if(collector.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH))
+            return (R)collect(collector.supplier(), collector.intAccumulator(), collector.merger());
+        return collector.finisher().apply(collect(collector.supplier(), collector.intAccumulator(), collector.merger()));
     }
 
     @Override
