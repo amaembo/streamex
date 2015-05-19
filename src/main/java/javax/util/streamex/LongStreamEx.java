@@ -36,6 +36,7 @@ import java.util.function.LongToIntFunction;
 import java.util.function.LongUnaryOperator;
 import java.util.function.ObjLongConsumer;
 import java.util.function.Supplier;
+import java.util.stream.Collector;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
@@ -259,6 +260,13 @@ public class LongStreamEx implements LongStream {
     @Override
     public <R> R collect(Supplier<R> supplier, ObjLongConsumer<R> accumulator, BiConsumer<R, R> combiner) {
         return stream.collect(supplier, accumulator, combiner);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <A, R> R collect(LongCollector<A, R> collector) {
+        if(collector.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH))
+            return (R)collect(collector.supplier(), collector.longAccumulator(), collector.merger());
+        return collector.finisher().apply(collect(collector.supplier(), collector.longAccumulator(), collector.merger()));
     }
 
     @Override
