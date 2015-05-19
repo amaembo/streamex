@@ -215,7 +215,7 @@ public interface LongCollector<A, R> extends Collector<Long, A, R> {
     }
 
     public static <K> LongCollector<?, Map<K, long[]>> groupingBy(LongFunction<? extends K> classifier) {
-        return groupingBy(classifier, HashMap::new, toArray());
+        return groupingBy(classifier, toArray());
     }
 
     public static <K, D, A> LongCollector<?, Map<K, D>> groupingBy(LongFunction<? extends K> classifier,

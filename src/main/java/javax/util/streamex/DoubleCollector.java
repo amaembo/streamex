@@ -218,7 +218,7 @@ public interface DoubleCollector<A, R> extends Collector<Double, A, R> {
     }
 
     public static <K> DoubleCollector<?, Map<K, double[]>> groupingBy(DoubleFunction<? extends K> classifier) {
-        return groupingBy(classifier, HashMap::new, toArray());
+        return groupingBy(classifier, toArray());
     }
 
     public static <K, D, A> DoubleCollector<?, Map<K, D>> groupingBy(DoubleFunction<? extends K> classifier,

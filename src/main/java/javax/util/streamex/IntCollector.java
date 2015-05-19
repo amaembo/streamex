@@ -218,7 +218,7 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
     }
 
     public static <K> IntCollector<?, Map<K, int[]>> groupingBy(IntFunction<? extends K> classifier) {
-        return groupingBy(classifier, HashMap::new, toArray());
+        return groupingBy(classifier, toArray());
     }
 
     public static <K, D, A> IntCollector<?, Map<K, D>> groupingBy(IntFunction<? extends K> classifier,
