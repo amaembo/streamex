@@ -56,4 +56,20 @@ public class IntCollectorTest {
         assertArrayEquals(expectedEven, oddEven.get(true));
         assertArrayEquals(expectedOdd, oddEven.get(false));
     }
+    
+    @Test
+    public void testGroupingBy() {
+        Map<Integer, int[]> collected = IntStreamEx.range(2000).collect(
+                IntCollector.groupingBy(i -> i % 3));
+        for(int i=0; i<3; i++) {
+            int rem = i;
+            assertArrayEquals(IntStream.range(0, 2000).filter(a -> a % 3 == rem).toArray(), collected.get(i));
+        }
+        collected = IntStreamEx.range(2000).parallel().collect(
+                IntCollector.groupingBy(i -> i % 3));
+        for(int i=0; i<3; i++) {
+            int rem = i;
+            assertArrayEquals(IntStream.range(0, 2000).filter(a -> a % 3 == rem).toArray(), collected.get(i));
+        }
+    }
 }

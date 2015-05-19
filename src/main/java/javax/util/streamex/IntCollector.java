@@ -1,8 +1,10 @@
 package javax.util.streamex;
 
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.IntSummaryStatistics;
 import java.util.Map;
+import java.util.Objects;
 import java.util.OptionalInt;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -235,7 +237,56 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
             return of(supplier, accumulator, merger, finisher);
         }
     }
+    
+    public static <K> IntCollector<?, Map<K, int[]>> groupingBy(IntFunction<? extends K> classifier) {
+        return groupingBy(classifier, HashMap::new, toArray());
+    }
 
+    public static <K, D, A> IntCollector<?, Map<K, D>> groupingBy(IntFunction<? extends K> classifier,
+            IntCollector<A, D> downstream) {
+        return groupingBy(classifier, HashMap::new, downstream);
+    }
+
+    public static <K, D, A, M extends Map<K, D>>
+    IntCollector<?, M> groupingBy(IntFunction<? extends K> classifier,
+                                  Supplier<M> mapFactory,
+                                  IntCollector<A, D> downstream) {
+        Supplier<A> downstreamSupplier = downstream.supplier();
+        ObjIntConsumer<A> downstreamAccumulator = downstream.intAccumulator();
+        ObjIntConsumer<Map<K, A>> accumulator = (m, t) -> {
+            K key = Objects.requireNonNull(classifier.apply(t));
+            A container = m.computeIfAbsent(key, k -> downstreamSupplier.get());
+            downstreamAccumulator.accept(container, t);
+        };
+        BiConsumer<A, A> downstreamMerger = downstream.merger();
+        BiConsumer<Map<K, A>, Map<K, A>> merger = (m1, m2) -> {
+            for (Map.Entry<K,A> e : m2.entrySet())
+                m1.merge(e.getKey(), e.getValue(), (a, b) -> {
+                    downstreamMerger.accept(a, b);
+                    return a;
+                });
+        };
+
+        @SuppressWarnings("unchecked")
+        Supplier<Map<K, A>> mangledFactory = (Supplier<Map<K, A>>) mapFactory;
+
+        if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
+            @SuppressWarnings("unchecked")
+            IntCollector<?, M> result = (IntCollector<?, M>) of(mangledFactory, accumulator, merger);
+            return result;
+        }
+        else {
+            @SuppressWarnings("unchecked")
+            Function<A, A> downstreamFinisher = (Function<A, A>) downstream.finisher();
+            Function<Map<K, A>, M> finisher = intermediate -> {
+                intermediate.replaceAll((k, v) -> downstreamFinisher.apply(v));
+                @SuppressWarnings("unchecked")
+                M castResult = (M) intermediate;
+                return castResult;
+            };
+            return of(mangledFactory, accumulator, merger, finisher);
+        }
+    }
     public static IntCollector<?, int[]> toArray() {
         return of(IntBuffer::new, IntBuffer::add, IntBuffer::addAll, IntBuffer::toArray);
     }
@@ -251,5 +302,4 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
     public static IntCollector<?, short[]> toShortArray() {
         return of(ShortBuffer::new, ShortBuffer::add, ShortBuffer::addAll, ShortBuffer::toArray);
     }
-
 }
