@@ -5,6 +5,7 @@ import java.util.AbstractSet;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 /* package */ final class Buffers {
@@ -271,13 +272,26 @@ import java.util.Set;
         }
     }
 
-    static final class Partition<T> extends AbstractMap<Boolean, T> implements Map<Boolean, T> {
-        final T forTrue;
-        final T forFalse;
+    static final class BooleanMap<T> extends AbstractMap<Boolean, T> implements Map<Boolean, T> {
+        final T trueValue, falseValue;
 
-        Partition(T forTrue, T forFalse) {
-            this.forTrue = forTrue;
-            this.forFalse = forFalse;
+        BooleanMap(T trueValue, T falseValue) {
+            this.trueValue = trueValue;
+            this.falseValue = falseValue;
+        }
+
+        @Override
+        public boolean containsKey(Object key) {
+            return Boolean.TRUE.equals(key) || Boolean.FALSE.equals(key);
+        }
+
+        @Override
+        public T get(Object key) {
+            if(Boolean.TRUE.equals(key))
+                return trueValue;
+            if(Boolean.FALSE.equals(key))
+                return falseValue;
+            return null;
         }
 
         @Override
@@ -285,9 +299,28 @@ import java.util.Set;
             return new AbstractSet<Map.Entry<Boolean, T>>() {
                 @Override
                 public Iterator<Map.Entry<Boolean, T>> iterator() {
-                    Map.Entry<Boolean, T> falseEntry = new SimpleImmutableEntry<>(false, forFalse);
-                    Map.Entry<Boolean, T> trueEntry = new SimpleImmutableEntry<>(true, forTrue);
-                    return Arrays.asList(falseEntry, trueEntry).iterator();
+                    return new Iterator<Map.Entry<Boolean,T>>() {
+                        int pos = 0;
+
+                        @Override
+                        public boolean hasNext() {
+                            return pos < 2;
+                        }
+
+                        @Override
+                        public java.util.Map.Entry<Boolean, T> next() {
+                            switch(pos++)
+                            {
+                            case 0:
+                                return new SimpleEntry<>(true, trueValue);
+                            case 1:
+                                return new SimpleEntry<>(false, falseValue);
+                            default:
+                                pos = 2;
+                                throw new NoSuchElementException();
+                            }
+                        }
+                    };
                 }
 
                 @Override
@@ -295,6 +328,11 @@ import java.util.Set;
                     return 2;
                 }
             };
+        }
+
+        @Override
+        public int size() {
+            return 2;
         }
     }
 }

@@ -19,7 +19,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collector;
 
 import javax.util.streamex.Buffers.LongBuffer;
-import javax.util.streamex.Buffers.Partition;
+import javax.util.streamex.Buffers.BooleanMap;
 
 public interface LongCollector<A, R> extends Collector<Long, A, R> {
     /**
@@ -214,22 +214,22 @@ public interface LongCollector<A, R> extends Collector<Long, A, R> {
     public static <A, D> LongCollector<?, Map<Boolean, D>> partitioningBy(LongPredicate predicate,
             LongCollector<A, D> downstream) {
         ObjLongConsumer<A> downstreamAccumulator = downstream.longAccumulator();
-        ObjLongConsumer<Partition<A>> accumulator = (result, t) -> downstreamAccumulator.accept(
-                predicate.test(t) ? result.forTrue : result.forFalse, t);
+        ObjLongConsumer<BooleanMap<A>> accumulator = (result, t) -> downstreamAccumulator.accept(
+                predicate.test(t) ? result.trueValue : result.falseValue, t);
         BiConsumer<A, A> op = downstream.merger();
-        BiConsumer<Partition<A>, Partition<A>> merger = (left, right) -> {
-            op.accept(left.forTrue, right.forTrue);
-            op.accept(left.forFalse, right.forFalse);
+        BiConsumer<BooleanMap<A>, BooleanMap<A>> merger = (left, right) -> {
+            op.accept(left.trueValue, right.trueValue);
+            op.accept(left.falseValue, right.falseValue);
         };
-        Supplier<Partition<A>> supplier = () -> new Partition<>(downstream.supplier().get(), downstream.supplier()
+        Supplier<BooleanMap<A>> supplier = () -> new BooleanMap<>(downstream.supplier().get(), downstream.supplier()
                 .get());
         if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
             @SuppressWarnings({ "unchecked", "rawtypes" })
             LongCollector<?, Map<Boolean, D>> result = (LongCollector) of(supplier, accumulator, merger);
             return result;
         } else {
-            Function<Partition<A>, Map<Boolean, D>> finisher = par -> new Partition<>(downstream.finisher().apply(
-                    par.forTrue), downstream.finisher().apply(par.forFalse));
+            Function<BooleanMap<A>, Map<Boolean, D>> finisher = par -> new BooleanMap<>(downstream.finisher().apply(
+                    par.trueValue), downstream.finisher().apply(par.falseValue));
             return of(supplier, accumulator, merger, finisher);
         }
     }
