@@ -684,7 +684,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see #toMap(Function)
      */
     public <K, V> Map<K, V> toMap(Function<T, K> keyMapper, Function<T, V> valMapper) {
-        return toMap(keyMapper, valMapper, throwingMerger());
+        return toMap(keyMapper, valMapper, StreamExInternals.throwingMerger());
     }
 
     /**
@@ -805,7 +805,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.1.0
      */
     public <K, V> SortedMap<K, V> toSortedMap(Function<T, K> keyMapper, Function<T, V> valMapper) {
-        return toSortedMap(keyMapper, valMapper, throwingMerger());
+        return toSortedMap(keyMapper, valMapper, StreamExInternals.throwingMerger());
     }
 
     /**
@@ -1119,7 +1119,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return the wrapped stream
      */
     public static <T> StreamEx<T> of(Stream<T> stream) {
-        return new StreamEx<>(unwrap(stream));
+        return new StreamEx<>(StreamExInternals.unwrap(stream));
     }
 
     /**
@@ -1430,7 +1430,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.2.1
      */
     public static <U, V, T> StreamEx<T> zip(List<U> first, List<V> second, BiFunction<U, V, T> mapper) {
-        return intStreamForLength(first.size(), second.size()).mapToObj(i -> mapper.apply(first.get(i), second.get(i)));
+        return StreamExInternals.intStreamForLength(first.size(), second.size()).mapToObj(i -> mapper.apply(first.get(i), second.get(i)));
     }
 
     /**
@@ -1477,7 +1477,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public static <T> StreamEx<T> ofTree(T root, Function<T, Stream<T>> mapper) {
         Stream<T> rootStream = mapper.apply(root);
-        return rootStream == null ? of(root) : of(flatTraverse(rootStream, mapper)).prepend(Stream.of(root));
+        return rootStream == null ? of(root) : of(StreamExInternals.flatTraverse(rootStream, mapper)).prepend(Stream.of(root));
     }
 
     /**

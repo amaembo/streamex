@@ -1028,7 +1028,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.2.1
      */
     public static LongStreamEx zip(long[] first, long[] second, LongBinaryOperator mapper) {
-        return AbstractStreamEx.intStreamForLength(first.length, second.length).mapToLong(
+        return StreamExInternals.intStreamForLength(first.length, second.length).mapToLong(
                 i -> mapper.applyAsLong(first[i], second[i]));
     }
 }

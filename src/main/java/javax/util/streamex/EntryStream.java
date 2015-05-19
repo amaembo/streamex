@@ -620,7 +620,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @see Collectors#toConcurrentMap(Function, Function)
      */
     public Map<K, V> toMap() {
-        return toMap(throwingMerger());
+        return toMap(StreamExInternals.throwingMerger());
     }
 
     /**
@@ -663,7 +663,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     }
 
     public <M extends Map<K, V>> M toCustomMap(Supplier<M> mapSupplier) {
-        return toCustomMap(throwingMerger(), mapSupplier);
+        return toCustomMap(StreamExInternals.throwingMerger(), mapSupplier);
     }
 
     @SuppressWarnings("unchecked")
@@ -700,7 +700,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.1.0
      */
     public SortedMap<K, V> toSortedMap() {
-        return toSortedMap(throwingMerger());
+        return toSortedMap(StreamExInternals.throwingMerger());
     }
 
     /**
@@ -827,7 +827,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the wrapped stream
      */
     public static <K, V> EntryStream<K, V> of(Stream<Entry<K, V>> stream) {
-        return new EntryStream<>(unwrap(stream));
+        return new EntryStream<>(StreamExInternals.unwrap(stream));
     }
 
     /**
@@ -971,7 +971,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.1
      */
     public static <K, V> EntryStream<K, V> zip(List<K> keys, List<V> values) {
-        return of(intStreamForLength(keys.size(), values.size()).mapToObj(
+        return of(StreamExInternals.intStreamForLength(keys.size(), values.size()).mapToObj(
                 i -> new SimpleImmutableEntry<>(keys.get(i), values.get(i))));
     }
 

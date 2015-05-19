@@ -55,43 +55,6 @@ import java.util.stream.Stream;
 
     abstract S supply(Stream<T> stream);
 
-    static <V> BinaryOperator<V> throwingMerger() {
-        return (u, v) -> {
-            throw new IllegalStateException(String.format("Duplicate key %s", u));
-        };
-    }
-
-    static IntStreamEx intStreamForLength(int a, int b) {
-        if (a != b)
-            throw new IllegalArgumentException("Length differs: " + a + " != " + b);
-        return IntStreamEx.range(0, a);
-    }
-
-    static void rangeCheck(int arrayLength, int startInclusive, int endExclusive) {
-        if (startInclusive > endExclusive) {
-            throw new ArrayIndexOutOfBoundsException("startInclusive(" + startInclusive + ") > endExclusive("
-                    + endExclusive + ")");
-        }
-        if (startInclusive < 0) {
-            throw new ArrayIndexOutOfBoundsException(startInclusive);
-        }
-        if (endExclusive > arrayLength) {
-            throw new ArrayIndexOutOfBoundsException(endExclusive);
-        }
-    }
-
-    static <T> Stream<T> flatTraverse(Stream<T> src, Function<T, Stream<T>> streamProvider) {
-        return src.flatMap(t -> {
-            Stream<T> result = streamProvider.apply(t);
-            return result == null ? Stream.of(t) : Stream.concat(Stream.of(t), flatTraverse(result, streamProvider));
-        });
-    }
-
-    @SuppressWarnings("unchecked")
-    static <T> Stream<T> unwrap(Stream<T> stream) {
-        return stream instanceof AbstractStreamEx ? ((AbstractStreamEx<T, ?>) stream).stream : stream;
-    }
-
     @Override
     public Iterator<T> iterator() {
         return stream.iterator();
@@ -585,7 +548,7 @@ import java.util.stream.Stream;
      * @see Stream#concat(Stream, Stream)
      */
     public S append(Stream<? extends T> other) {
-        return supply(Stream.concat(stream, unwrap(other)));
+        return supply(Stream.concat(stream, StreamExInternals.unwrap(other)));
     }
 
     /**
@@ -601,7 +564,7 @@ import java.util.stream.Stream;
      * @see Stream#concat(Stream, Stream)
      */
     public S prepend(Stream<? extends T> other) {
-        return supply(Stream.concat(unwrap(other), stream));
+        return supply(Stream.concat(StreamExInternals.unwrap(other), stream));
     }
 
     /**

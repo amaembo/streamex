@@ -1,3 +1,18 @@
+/*
+ * Copyright 2015 Tagir Valeev
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package javax.util.streamex;
 
 import java.util.AbstractMap;
@@ -8,10 +23,13 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
-/* package */ final class Buffers {
+
+/* package */ final class StreamExInternals {
     static final int INITIAL_SIZE = 128;
     static final Function<int[], Integer> UNBOX_INT = box -> box[0]; 
     static final Function<long[], Long> UNBOX_LONG = box -> box[0]; 
@@ -388,5 +406,42 @@ import java.util.function.Supplier;
             map.replaceAll((k, v) -> downstreamFinisher.apply(v));
             return (M) map;
         };
+    }
+
+    static <V> BinaryOperator<V> throwingMerger() {
+        return (u, v) -> {
+            throw new IllegalStateException(String.format("Duplicate key %s", u));
+        };
+    }
+
+    static IntStreamEx intStreamForLength(int a, int b) {
+        if (a != b)
+            throw new IllegalArgumentException("Length differs: " + a + " != " + b);
+        return IntStreamEx.range(0, a);
+    }
+
+    static void rangeCheck(int arrayLength, int startInclusive, int endExclusive) {
+        if (startInclusive > endExclusive) {
+            throw new ArrayIndexOutOfBoundsException("startInclusive(" + startInclusive + ") > endExclusive("
+                    + endExclusive + ")");
+        }
+        if (startInclusive < 0) {
+            throw new ArrayIndexOutOfBoundsException(startInclusive);
+        }
+        if (endExclusive > arrayLength) {
+            throw new ArrayIndexOutOfBoundsException(endExclusive);
+        }
+    }
+
+    static <T> Stream<T> flatTraverse(Stream<T> src, Function<T, Stream<T>> streamProvider) {
+        return src.flatMap(t -> {
+            Stream<T> result = streamProvider.apply(t);
+            return result == null ? Stream.of(t) : Stream.concat(Stream.of(t), flatTraverse(result, streamProvider));
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    static <T> Stream<T> unwrap(Stream<T> stream) {
+        return stream instanceof AbstractStreamEx ? ((AbstractStreamEx<T, ?>) stream).stream : stream;
     }
 }
