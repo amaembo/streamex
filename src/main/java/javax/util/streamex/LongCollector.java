@@ -114,34 +114,34 @@ public interface LongCollector<A, R> extends Collector<Long, A, R> {
         };
     }
 
-    public static LongCollector<?, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
+    static LongCollector<?, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return of(StringBuilder::new, (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i),
                 Buffers.joinMerger(delimiter), Buffers.joinFinisher(prefix, suffix));
     }
 
-    public static LongCollector<?, String> joining(CharSequence delimiter) {
+    static LongCollector<?, String> joining(CharSequence delimiter) {
         return of(StringBuilder::new, (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i),
                 Buffers.joinMerger(delimiter), StringBuilder::toString);
     }
 
-    public static LongCollector<?, Long> counting() {
+    static LongCollector<?, Long> counting() {
         return of(() -> new long[1], (box, i) -> box[0]++, (box1, box2) -> box1[0] += box2[0], Buffers.UNBOX_LONG);
     }
 
-    public static LongCollector<?, Long> summing() {
+    static LongCollector<?, Long> summing() {
         return of(() -> new long[1], (box, i) -> box[0] += i, (box1, box2) -> box1[0] += box2[0], Buffers.UNBOX_LONG);
     }
 
-    public static LongCollector<?, OptionalLong> min() {
+    static LongCollector<?, OptionalLong> min() {
         return reducing((a, b) -> a > b ? b : a);
     }
 
-    public static LongCollector<?, OptionalLong> max() {
+    static LongCollector<?, OptionalLong> max() {
         return reducing((a, b) -> a > b ? a : b);
     }
 
     @SuppressWarnings("unchecked")
-    public static <A, R> LongCollector<?, R> mapping(LongUnaryOperator mapper, LongCollector<A, R> downstream) {
+    static <A, R> LongCollector<?, R> mapping(LongUnaryOperator mapper, LongCollector<A, R> downstream) {
         ObjLongConsumer<A> downstreamAccumulator = downstream.longAccumulator();
         if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH))
             return (LongCollector<?, R>) of(downstream.supplier(),
@@ -151,7 +151,7 @@ public interface LongCollector<A, R> extends Collector<Long, A, R> {
     }
 
     @SuppressWarnings("unchecked")
-    public static <U, A, R> LongCollector<?, R> mappingToObj(LongFunction<U> mapper, Collector<U, A, R> downstream) {
+    static <U, A, R> LongCollector<?, R> mappingToObj(LongFunction<U> mapper, Collector<U, A, R> downstream) {
         Supplier<A> supplier = downstream.supplier();
         BiConsumer<A, U> accumulator = downstream.accumulator();
         BinaryOperator<A> combiner = downstream.combiner();
@@ -160,13 +160,13 @@ public interface LongCollector<A, R> extends Collector<Long, A, R> {
                 box1, box2) -> box1[0] = combiner.apply((A) box1[0], (A) box2[0]), box -> finisher.apply((A) box[0]));
     }
 
-    public static <A, R, RR> LongCollector<A, RR> collectingAndThen(LongCollector<A, R> collector,
+    static <A, R, RR> LongCollector<A, RR> collectingAndThen(LongCollector<A, R> collector,
             Function<R, RR> finisher) {
         return of(collector.supplier(), collector.longAccumulator(), collector.merger(),
                 collector.finisher().andThen(finisher));
     }
 
-    public static LongCollector<?, OptionalLong> reducing(LongBinaryOperator op) {
+    static LongCollector<?, OptionalLong> reducing(LongBinaryOperator op) {
         return of(() -> new long[2], (box, i) -> {
             if (box[1] == 0) {
                 box[0] = i;
@@ -186,21 +186,21 @@ public interface LongCollector<A, R> extends Collector<Long, A, R> {
         }, box -> box[1] == 1 ? OptionalLong.of(box[0]) : OptionalLong.empty());
     }
 
-    public static LongCollector<?, Long> reducing(long identity, LongBinaryOperator op) {
+    static LongCollector<?, Long> reducing(long identity, LongBinaryOperator op) {
         return of(() -> new long[] { identity }, (box, i) -> box[0] = op.applyAsLong(box[0], i),
                 (box1, box2) -> box1[0] = op.applyAsLong(box1[0], box2[0]), Buffers.UNBOX_LONG);
     }
 
-    public static LongCollector<?, LongSummaryStatistics> summarizing() {
+    static LongCollector<?, LongSummaryStatistics> summarizing() {
         return of(LongSummaryStatistics::new, LongSummaryStatistics::accept, LongSummaryStatistics::combine);
     }
 
-    public static LongCollector<?, Map<Boolean, long[]>> partitioningBy(LongPredicate predicate) {
+    static LongCollector<?, Map<Boolean, long[]>> partitioningBy(LongPredicate predicate) {
         return partitioningBy(predicate, toArray());
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public static <A, D> LongCollector<?, Map<Boolean, D>> partitioningBy(LongPredicate predicate,
+    static <A, D> LongCollector<?, Map<Boolean, D>> partitioningBy(LongPredicate predicate,
             LongCollector<A, D> downstream) {
         ObjLongConsumer<A> downstreamAccumulator = downstream.longAccumulator();
         ObjLongConsumer<BooleanMap<A>> accumulator = (result, t) -> downstreamAccumulator.accept(
@@ -214,17 +214,17 @@ public interface LongCollector<A, R> extends Collector<Long, A, R> {
         }
     }
 
-    public static <K> LongCollector<?, Map<K, long[]>> groupingBy(LongFunction<? extends K> classifier) {
+    static <K> LongCollector<?, Map<K, long[]>> groupingBy(LongFunction<? extends K> classifier) {
         return groupingBy(classifier, toArray());
     }
 
-    public static <K, D, A> LongCollector<?, Map<K, D>> groupingBy(LongFunction<? extends K> classifier,
+    static <K, D, A> LongCollector<?, Map<K, D>> groupingBy(LongFunction<? extends K> classifier,
             LongCollector<A, D> downstream) {
         return groupingBy(classifier, HashMap::new, downstream);
     }
 
     @SuppressWarnings("unchecked")
-    public static <K, D, A, M extends Map<K, D>> LongCollector<?, M> groupingBy(LongFunction<? extends K> classifier,
+    static <K, D, A, M extends Map<K, D>> LongCollector<?, M> groupingBy(LongFunction<? extends K> classifier,
             Supplier<M> mapFactory, LongCollector<A, D> downstream) {
         Supplier<A> downstreamSupplier = downstream.supplier();
         Function<K, A> supplier = k -> downstreamSupplier.get();
@@ -244,7 +244,7 @@ public interface LongCollector<A, R> extends Collector<Long, A, R> {
         }
     }
 
-    public static LongCollector<?, long[]> toArray() {
+    static LongCollector<?, long[]> toArray() {
         return of(LongBuffer::new, LongBuffer::add, LongBuffer::addAll, LongBuffer::toArray);
     }
 }

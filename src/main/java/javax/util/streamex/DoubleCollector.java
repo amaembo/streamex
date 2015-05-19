@@ -116,35 +116,35 @@ public interface DoubleCollector<A, R> extends Collector<Double, A, R> {
         };
     }
 
-    public static DoubleCollector<?, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
+    static DoubleCollector<?, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return of(StringBuilder::new, (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i),
                 Buffers.joinMerger(delimiter), Buffers.joinFinisher(prefix, suffix));
     }
 
-    public static DoubleCollector<?, String> joining(CharSequence delimiter) {
+    static DoubleCollector<?, String> joining(CharSequence delimiter) {
         return of(StringBuilder::new, (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i),
                 Buffers.joinMerger(delimiter), StringBuilder::toString);
     }
 
-    public static DoubleCollector<?, Long> counting() {
+    static DoubleCollector<?, Long> counting() {
         return of(() -> new long[1], (box, i) -> box[0]++, (box1, box2) -> box1[0] += box2[0], Buffers.UNBOX_LONG);
     }
 
-    public static DoubleCollector<?, Double> summing() {
+    static DoubleCollector<?, Double> summing() {
         // Using DoubleSummaryStatistics as Kahan algorithm is implemented there
         return collectingAndThen(summarizing(), DoubleSummaryStatistics::getSum);
     }
 
-    public static DoubleCollector<?, OptionalDouble> min() {
+    static DoubleCollector<?, OptionalDouble> min() {
         return reducing((a, b) -> Double.compare(a, b) > 0 ? b : a);
     }
 
-    public static DoubleCollector<?, OptionalDouble> max() {
+    static DoubleCollector<?, OptionalDouble> max() {
         return reducing((a, b) -> Double.compare(a, b) > 0 ? a : b);
     }
 
     @SuppressWarnings("unchecked")
-    public static <A, R> DoubleCollector<?, R> mapping(DoubleUnaryOperator mapper, DoubleCollector<A, R> downstream) {
+    static <A, R> DoubleCollector<?, R> mapping(DoubleUnaryOperator mapper, DoubleCollector<A, R> downstream) {
         ObjDoubleConsumer<A> downstreamAccumulator = downstream.doubleAccumulator();
         if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH))
             return (DoubleCollector<?, R>) of(downstream.supplier(),
@@ -154,7 +154,7 @@ public interface DoubleCollector<A, R> extends Collector<Double, A, R> {
     }
 
     @SuppressWarnings("unchecked")
-    public static <U, A, R> DoubleCollector<?, R> mappingToObj(DoubleFunction<U> mapper, Collector<U, A, R> downstream) {
+    static <U, A, R> DoubleCollector<?, R> mappingToObj(DoubleFunction<U> mapper, Collector<U, A, R> downstream) {
         Supplier<A> supplier = downstream.supplier();
         BiConsumer<A, U> accumulator = downstream.accumulator();
         BinaryOperator<A> combiner = downstream.combiner();
@@ -163,13 +163,13 @@ public interface DoubleCollector<A, R> extends Collector<Double, A, R> {
                 box1, box2) -> box1[0] = combiner.apply((A) box1[0], (A) box2[0]), box -> finisher.apply((A) box[0]));
     }
 
-    public static <A, R, RR> DoubleCollector<A, RR> collectingAndThen(DoubleCollector<A, R> collector,
+    static <A, R, RR> DoubleCollector<A, RR> collectingAndThen(DoubleCollector<A, R> collector,
             Function<R, RR> finisher) {
         return of(collector.supplier(), collector.doubleAccumulator(), collector.merger(), collector.finisher()
                 .andThen(finisher));
     }
 
-    public static DoubleCollector<?, OptionalDouble> reducing(DoubleBinaryOperator op) {
+    static DoubleCollector<?, OptionalDouble> reducing(DoubleBinaryOperator op) {
         return of(() -> new double[2], (box, i) -> {
             if (box[1] == 0) {
                 box[0] = i;
@@ -189,21 +189,21 @@ public interface DoubleCollector<A, R> extends Collector<Double, A, R> {
         }, box -> box[1] == 1 ? OptionalDouble.of(box[0]) : OptionalDouble.empty());
     }
 
-    public static DoubleCollector<?, Double> reducing(double identity, DoubleBinaryOperator op) {
+    static DoubleCollector<?, Double> reducing(double identity, DoubleBinaryOperator op) {
         return of(() -> new double[] { identity }, (box, i) -> box[0] = op.applyAsDouble(box[0], i),
                 (box1, box2) -> box1[0] = op.applyAsDouble(box1[0], box2[0]), Buffers.UNBOX_DOUBLE);
     }
 
-    public static DoubleCollector<?, DoubleSummaryStatistics> summarizing() {
+    static DoubleCollector<?, DoubleSummaryStatistics> summarizing() {
         return of(DoubleSummaryStatistics::new, DoubleSummaryStatistics::accept, DoubleSummaryStatistics::combine);
     }
 
-    public static DoubleCollector<?, Map<Boolean, double[]>> partitioningBy(DoublePredicate predicate) {
+    static DoubleCollector<?, Map<Boolean, double[]>> partitioningBy(DoublePredicate predicate) {
         return partitioningBy(predicate, toArray());
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public static <A, D> DoubleCollector<?, Map<Boolean, D>> partitioningBy(DoublePredicate predicate,
+    static <A, D> DoubleCollector<?, Map<Boolean, D>> partitioningBy(DoublePredicate predicate,
             DoubleCollector<A, D> downstream) {
         ObjDoubleConsumer<A> downstreamAccumulator = downstream.doubleAccumulator();
         ObjDoubleConsumer<BooleanMap<A>> accumulator = (result, t) -> downstreamAccumulator.accept(
@@ -217,17 +217,17 @@ public interface DoubleCollector<A, R> extends Collector<Double, A, R> {
         }
     }
 
-    public static <K> DoubleCollector<?, Map<K, double[]>> groupingBy(DoubleFunction<? extends K> classifier) {
+    static <K> DoubleCollector<?, Map<K, double[]>> groupingBy(DoubleFunction<? extends K> classifier) {
         return groupingBy(classifier, toArray());
     }
 
-    public static <K, D, A> DoubleCollector<?, Map<K, D>> groupingBy(DoubleFunction<? extends K> classifier,
+    static <K, D, A> DoubleCollector<?, Map<K, D>> groupingBy(DoubleFunction<? extends K> classifier,
             DoubleCollector<A, D> downstream) {
         return groupingBy(classifier, HashMap::new, downstream);
     }
 
     @SuppressWarnings("unchecked")
-    public static <K, D, A, M extends Map<K, D>> DoubleCollector<?, M> groupingBy(
+    static <K, D, A, M extends Map<K, D>> DoubleCollector<?, M> groupingBy(
             DoubleFunction<? extends K> classifier, Supplier<M> mapFactory, DoubleCollector<A, D> downstream) {
         Supplier<A> downstreamSupplier = downstream.supplier();
         Function<K, A> supplier = k -> downstreamSupplier.get();
@@ -247,11 +247,11 @@ public interface DoubleCollector<A, R> extends Collector<Double, A, R> {
         }
     }
 
-    public static DoubleCollector<?, double[]> toArray() {
+    static DoubleCollector<?, double[]> toArray() {
         return of(DoubleBuffer::new, DoubleBuffer::add, DoubleBuffer::addAll, DoubleBuffer::toArray);
     }
 
-    public static DoubleCollector<?, float[]> toFloatArray() {
+    static DoubleCollector<?, float[]> toFloatArray() {
         return of(FloatBuffer::new, FloatBuffer::add, FloatBuffer::addAll, FloatBuffer::toArray);
     }
 }

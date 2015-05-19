@@ -117,34 +117,34 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
         };
     }
 
-    public static IntCollector<?, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
+    static IntCollector<?, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return of(StringBuilder::new, (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i),
                 Buffers.joinMerger(delimiter), Buffers.joinFinisher(prefix, suffix));
     }
 
-    public static IntCollector<?, String> joining(CharSequence delimiter) {
+    static IntCollector<?, String> joining(CharSequence delimiter) {
         return of(StringBuilder::new, (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i),
                 Buffers.joinMerger(delimiter), StringBuilder::toString);
     }
 
-    public static IntCollector<?, Long> counting() {
+    static IntCollector<?, Long> counting() {
         return of(() -> new long[1], (box, i) -> box[0]++, (box1, box2) -> box1[0] += box2[0], Buffers.UNBOX_LONG);
     }
 
-    public static IntCollector<?, Integer> summing() {
+    static IntCollector<?, Integer> summing() {
         return of(() -> new int[1], (box, i) -> box[0] += i, (box1, box2) -> box1[0] += box2[0], Buffers.UNBOX_INT);
     }
 
-    public static IntCollector<?, OptionalInt> min() {
+    static IntCollector<?, OptionalInt> min() {
         return reducing((a, b) -> a > b ? b : a);
     }
 
-    public static IntCollector<?, OptionalInt> max() {
+    static IntCollector<?, OptionalInt> max() {
         return reducing((a, b) -> a > b ? a : b);
     }
 
     @SuppressWarnings("unchecked")
-    public static <A, R> IntCollector<?, R> mapping(IntUnaryOperator mapper, IntCollector<A, R> downstream) {
+    static <A, R> IntCollector<?, R> mapping(IntUnaryOperator mapper, IntCollector<A, R> downstream) {
         ObjIntConsumer<A> downstreamAccumulator = downstream.intAccumulator();
         if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH))
             return (IntCollector<?, R>) of(downstream.supplier(),
@@ -154,7 +154,7 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
     }
 
     @SuppressWarnings("unchecked")
-    public static <U, A, R> IntCollector<?, R> mappingToObj(IntFunction<U> mapper, Collector<U, A, R> downstream) {
+    static <U, A, R> IntCollector<?, R> mappingToObj(IntFunction<U> mapper, Collector<U, A, R> downstream) {
         Supplier<A> supplier = downstream.supplier();
         BiConsumer<A, U> accumulator = downstream.accumulator();
         BinaryOperator<A> combiner = downstream.combiner();
@@ -163,13 +163,13 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
                 box1, box2) -> box1[0] = combiner.apply((A) box1[0], (A) box2[0]), box -> finisher.apply((A) box[0]));
     }
 
-    public static <A, R, RR> IntCollector<A, RR> collectingAndThen(IntCollector<A, R> collector,
+    static <A, R, RR> IntCollector<A, RR> collectingAndThen(IntCollector<A, R> collector,
             Function<R, RR> finisher) {
         return of(collector.supplier(), collector.intAccumulator(), collector.merger(),
                 collector.finisher().andThen(finisher));
     }
 
-    public static IntCollector<?, OptionalInt> reducing(IntBinaryOperator op) {
+    static IntCollector<?, OptionalInt> reducing(IntBinaryOperator op) {
         return of(() -> new int[2], (box, i) -> {
             if (box[1] == 0) {
                 box[0] = i;
@@ -189,21 +189,21 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
         }, box -> box[1] == 1 ? OptionalInt.of(box[0]) : OptionalInt.empty());
     }
 
-    public static IntCollector<?, Integer> reducing(int identity, IntBinaryOperator op) {
+    static IntCollector<?, Integer> reducing(int identity, IntBinaryOperator op) {
         return of(() -> new int[] { identity }, (box, i) -> box[0] = op.applyAsInt(box[0], i),
                 (box1, box2) -> box1[0] = op.applyAsInt(box1[0], box2[0]), Buffers.UNBOX_INT);
     }
 
-    public static IntCollector<?, IntSummaryStatistics> summarizing() {
+    static IntCollector<?, IntSummaryStatistics> summarizing() {
         return of(IntSummaryStatistics::new, IntSummaryStatistics::accept, IntSummaryStatistics::combine);
     }
 
-    public static IntCollector<?, Map<Boolean, int[]>> partitioningBy(IntPredicate predicate) {
+    static IntCollector<?, Map<Boolean, int[]>> partitioningBy(IntPredicate predicate) {
         return partitioningBy(predicate, toArray());
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public static <A, D> IntCollector<?, Map<Boolean, D>> partitioningBy(IntPredicate predicate,
+    static <A, D> IntCollector<?, Map<Boolean, D>> partitioningBy(IntPredicate predicate,
             IntCollector<A, D> downstream) {
         ObjIntConsumer<A> downstreamAccumulator = downstream.intAccumulator();
         ObjIntConsumer<BooleanMap<A>> accumulator = (result, t) -> downstreamAccumulator.accept(
@@ -217,17 +217,17 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
         }
     }
 
-    public static <K> IntCollector<?, Map<K, int[]>> groupingBy(IntFunction<? extends K> classifier) {
+    static <K> IntCollector<?, Map<K, int[]>> groupingBy(IntFunction<? extends K> classifier) {
         return groupingBy(classifier, toArray());
     }
 
-    public static <K, D, A> IntCollector<?, Map<K, D>> groupingBy(IntFunction<? extends K> classifier,
+    static <K, D, A> IntCollector<?, Map<K, D>> groupingBy(IntFunction<? extends K> classifier,
             IntCollector<A, D> downstream) {
         return groupingBy(classifier, HashMap::new, downstream);
     }
 
     @SuppressWarnings("unchecked")
-    public static <K, D, A, M extends Map<K, D>> IntCollector<?, M> groupingBy(IntFunction<? extends K> classifier,
+    static <K, D, A, M extends Map<K, D>> IntCollector<?, M> groupingBy(IntFunction<? extends K> classifier,
             Supplier<M> mapFactory, IntCollector<A, D> downstream) {
         Supplier<A> downstreamSupplier = downstream.supplier();
         Function<K, A> supplier = k -> downstreamSupplier.get();
@@ -247,19 +247,19 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
         }
     }
 
-    public static IntCollector<?, int[]> toArray() {
+    static IntCollector<?, int[]> toArray() {
         return of(IntBuffer::new, IntBuffer::add, IntBuffer::addAll, IntBuffer::toArray);
     }
 
-    public static IntCollector<?, byte[]> toByteArray() {
+    static IntCollector<?, byte[]> toByteArray() {
         return of(ByteBuffer::new, ByteBuffer::add, ByteBuffer::addAll, ByteBuffer::toArray);
     }
 
-    public static IntCollector<?, char[]> toCharArray() {
+    static IntCollector<?, char[]> toCharArray() {
         return of(CharBuffer::new, CharBuffer::add, CharBuffer::addAll, CharBuffer::toArray);
     }
 
-    public static IntCollector<?, short[]> toShortArray() {
+    static IntCollector<?, short[]> toShortArray() {
         return of(ShortBuffer::new, ShortBuffer::add, ShortBuffer::addAll, ShortBuffer::toArray);
     }
 }

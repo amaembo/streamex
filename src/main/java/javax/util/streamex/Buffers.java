@@ -13,6 +13,9 @@ import java.util.function.Supplier;
 
 /* package */ final class Buffers {
     static final int INITIAL_SIZE = 128;
+    static final Function<int[], Integer> UNBOX_INT = box -> box[0]; 
+    static final Function<long[], Long> UNBOX_LONG = box -> box[0]; 
+    static final Function<double[], Double> UNBOX_DOUBLE = box -> box[0];
     
     static final class ByteBuffer {
         int size = 0;
@@ -355,10 +358,6 @@ import java.util.function.Supplier;
         }
     }
     
-    static final Function<int[], Integer> UNBOX_INT = box -> box[0]; 
-    static final Function<long[], Long> UNBOX_LONG = box -> box[0]; 
-    static final Function<double[], Double> UNBOX_DOUBLE = box -> box[0];
-
     static BiConsumer<StringBuilder, StringBuilder> joinMerger(CharSequence delimiter) {
         return (sb1, sb2) -> {
             if (sb2.length() > 0) {
@@ -374,9 +373,9 @@ import java.util.function.Supplier;
     } 
 
     static <K, A> BiConsumer<Map<K, A>, Map<K, A>> mapMerger(BiConsumer<A, A> downstreamMerger) {
-        return (m1, m2) -> {
-            for (Map.Entry<K, A> e : m2.entrySet())
-                m1.merge(e.getKey(), e.getValue(), (a, b) -> {
+        return (map1, map2) -> {
+            for (Map.Entry<K, A> e : map2.entrySet())
+                map1.merge(e.getKey(), e.getValue(), (a, b) -> {
                     downstreamMerger.accept(a, b);
                     return a;
                 });
