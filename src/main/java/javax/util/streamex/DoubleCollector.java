@@ -22,13 +22,24 @@ import javax.util.streamex.Buffers.DoubleBuffer;
 import javax.util.streamex.Buffers.FloatBuffer;
 import javax.util.streamex.Buffers.BooleanMap;
 
-public interface DoubleCollector<A, R> extends AbstractPrimitiveCollector<Double, A, R> {
+public interface DoubleCollector<A, R> extends Collector<Double, A, R> {
     /**
      * A function that folds a value into a mutable result container.
      *
      * @return a function which folds a value into a mutable result container
      */
     ObjDoubleConsumer<A> doubleAccumulator();
+
+    BiConsumer<A, A> merger();
+
+    @Override
+    default BinaryOperator<A> combiner() {
+        BiConsumer<A, A> merger = merger();
+        return (a, b) -> {
+            merger.accept(a, b);
+            return a;
+        };
+    }
 
     @Override
     default BiConsumer<A, Double> accumulator() {
@@ -86,6 +97,11 @@ public interface DoubleCollector<A, R> extends AbstractPrimitiveCollector<Double
             @Override
             public Function<A, R> finisher() {
                 return finisher;
+            }
+
+            @Override
+            public Set<Collector.Characteristics> characteristics() {
+                return EnumSet.noneOf(Collector.Characteristics.class);
             }
 
             @Override

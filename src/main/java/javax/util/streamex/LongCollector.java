@@ -21,13 +21,24 @@ import java.util.stream.Collector;
 import javax.util.streamex.Buffers.LongBuffer;
 import javax.util.streamex.Buffers.BooleanMap;
 
-public interface LongCollector<A, R> extends AbstractPrimitiveCollector<Long, A, R> {
+public interface LongCollector<A, R> extends Collector<Long, A, R> {
     /**
      * A function that folds a value into a mutable result container.
      *
      * @return a function which folds a value into a mutable result container
      */
     ObjLongConsumer<A> longAccumulator();
+
+    BiConsumer<A, A> merger();
+
+    @Override
+    default BinaryOperator<A> combiner() {
+        BiConsumer<A, A> merger = merger();
+        return (a, b) -> {
+            merger.accept(a, b);
+            return a;
+        };
+    }
 
     @Override
     default BiConsumer<A, Long> accumulator() {
@@ -89,6 +100,11 @@ public interface LongCollector<A, R> extends AbstractPrimitiveCollector<Long, A,
             @Override
             public ObjLongConsumer<A> longAccumulator() {
                 return longAccumulator;
+            }
+
+            @Override
+            public Set<Collector.Characteristics> characteristics() {
+                return EnumSet.noneOf(Collector.Characteristics.class);
             }
 
             @Override

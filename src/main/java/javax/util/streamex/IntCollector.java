@@ -24,13 +24,24 @@ import javax.util.streamex.Buffers.IntBuffer;
 import javax.util.streamex.Buffers.BooleanMap;
 import javax.util.streamex.Buffers.ShortBuffer;
 
-public interface IntCollector<A, R> extends AbstractPrimitiveCollector<Integer, A, R> {
+public interface IntCollector<A, R> extends Collector<Integer, A, R> {
     /**
      * A function that folds a value into a mutable result container.
      *
      * @return a function which folds a value into a mutable result container
      */
     ObjIntConsumer<A> intAccumulator();
+
+    BiConsumer<A, A> merger();
+
+    @Override
+    default BinaryOperator<A> combiner() {
+        BiConsumer<A, A> merger = merger();
+        return (a, b) -> {
+            merger.accept(a, b);
+            return a;
+        };
+    }
 
     @Override
     default BiConsumer<A, Integer> accumulator() {
@@ -92,6 +103,11 @@ public interface IntCollector<A, R> extends AbstractPrimitiveCollector<Integer, 
             @Override
             public ObjIntConsumer<A> intAccumulator() {
                 return intAccumulator;
+            }
+
+            @Override
+            public Set<Collector.Characteristics> characteristics() {
+                return EnumSet.noneOf(Collector.Characteristics.class);
             }
 
             @Override
