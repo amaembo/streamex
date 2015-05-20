@@ -17,6 +17,7 @@ package javax.util.streamex;
 
 import static org.junit.Assert.*;
 
+import java.util.HashMap;
 import java.util.LongSummaryStatistics;
 import java.util.Map;
 import java.util.Random;
@@ -99,8 +100,11 @@ public class LongCollectorTest {
                 .collect(
                         LongCollector.partitioningBy(i -> i % 2 == 0,
                                 LongCollector.mapping(i -> i / 3, LongCollector.joining(","))));
-        assertEquals("0,0,1,2,2", parts.get(true));
-        assertEquals("0,1,1,2,3", parts.get(false));
+        Map<Boolean, String> expected = new HashMap<>();
+        expected.put(true, "0,0,1,2,2");
+        expected.put(false, "0,1,1,2,3");
+        assertEquals(expected, parts);
+        assertEquals(parts, expected);
     }
 
     @Test

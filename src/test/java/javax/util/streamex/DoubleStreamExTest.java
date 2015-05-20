@@ -22,7 +22,6 @@ import java.util.OptionalDouble;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.DoubleStream;
-
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -100,6 +99,19 @@ public class DoubleStreamExTest {
         list = new ArrayList<>();
         DoubleStreamEx.of(1.0, 0.5, 0.25, 0.125).parallel().forEachOrdered(list::add);
         assertEquals(Arrays.asList(1.0, 0.5, 0.25, 0.125), list);
+        
+        assertFalse(DoubleStreamEx.of(1.0, 2.0, 2.5).anyMatch(x -> x < 0.0));
+        assertTrue(DoubleStreamEx.of(1.0, 2.0, 2.5).anyMatch(x -> x >= 2.5));
+        assertEquals(5.0, DoubleStreamEx.of(1.0, 2.0, 2.5).reduce(1, (a, b) -> a*b), 0.0);
+    }
+
+    @Test
+    public void testFlatMap() {
+        assertArrayEquals(new int[] {1,5,2,3,3,2,0,9}, DoubleStreamEx.of(1.5, 2.3, 3.2, 0.9).flatMapToInt(x -> 
+            IntStreamEx.of((int)Math.floor(x), (int)(Math.round(10*(x-Math.floor(x)))))).toArray());
+        assertEquals("1:.:5:2:2:.:3:3:.:2:0:.:9",
+                DoubleStreamEx.of(1.5, 22.3, 3.2, 0.9).flatMapToObj(x -> StreamEx.split(String.valueOf(x), ""))
+                        .joining(":"));
     }
 
     @Test

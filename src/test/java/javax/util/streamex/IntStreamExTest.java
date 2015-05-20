@@ -141,6 +141,9 @@ public class IntStreamExTest {
         String parallel = IntStreamEx.range(200).parallel().flatMapToObj(i -> IntStreamEx.range(i).mapToObj(j -> i + ":" + j)).joining("/");
         assertEquals(expected, res);
         assertEquals(expected, parallel);
+        
+        double[] fractions = IntStreamEx.range(1, 5).flatMapToDouble(i -> IntStreamEx.range(1, i).mapToDouble(j -> ((double)j)/i)).toArray();
+        assertArrayEquals(new double[] {1/2.0, 1/3.0, 2/3.0, 1/4.0, 2/4.0, 3/4.0}, fractions, 0.000001);
     }
 
     @Test
