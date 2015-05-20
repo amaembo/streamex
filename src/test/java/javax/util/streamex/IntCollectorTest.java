@@ -138,4 +138,10 @@ public class IntCollectorTest {
         assertEquals(499500, (int)IntStream.range(0, 1000).boxed().parallel().collect(IntCollector.summing()));
         assertEquals(1000, (long)IntStream.range(0, 1000).boxed().collect(IntCollector.counting()));
     }
+    
+    @Test
+    public void testAdaptor() {
+        assertEquals(499500, (int)IntStreamEx.range(0, 1000).collect(IntCollector.of(IntCollector.summing())));
+        assertEquals(499500, (int)IntStreamEx.range(0, 1000).collect(IntCollector.of(Collectors.summingInt(Integer::intValue))));
+    }
 }

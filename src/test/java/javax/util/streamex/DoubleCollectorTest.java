@@ -64,6 +64,8 @@ public class DoubleCollectorTest {
     public void testMax() {
         assertEquals(99, IntStreamEx.range(100).asDoubleStream().atLeast(50).collect(DoubleCollector.max())
                 .getAsDouble(), 0.0);
+        assertEquals(99, IntStreamEx.range(100).asDoubleStream().parallel().atLeast(50).collect(DoubleCollector.max())
+                .getAsDouble(), 0.0);
         assertFalse(IntStreamEx.range(100).asDoubleStream().atLeast(200).collect(DoubleCollector.max()).isPresent());
     }
 
@@ -113,5 +115,17 @@ public class DoubleCollectorTest {
         assertEquals(499.5,
                 IntStream.range(0, 1000).parallel().asDoubleStream().boxed().collect(DoubleCollector.summarizing())
                         .getAverage(), 0.000001);
+    }
+    
+    @Test
+    public void testAdaptor() {
+        assertEquals(499.5,
+                IntStreamEx.range(1000).asDoubleStream().collect(DoubleCollector.of(DoubleCollector.summarizing()))
+                        .getAverage(), 0.000001);
+        assertEquals(
+                499.5,
+                IntStreamEx.range(1000).parallel().asDoubleStream()
+                        .collect(DoubleCollector.of(Collectors.summarizingDouble(Double::doubleValue))).getAverage(),
+                0.000001);
     }
 }
