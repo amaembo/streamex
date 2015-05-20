@@ -43,6 +43,8 @@ import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static javax.util.streamex.StreamExInternals.*;
+
 /**
  * A {@link LongStream} implementation with additional functionality
  * 
@@ -1028,7 +1030,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.2.1
      */
     public static LongStreamEx zip(long[] first, long[] second, LongBinaryOperator mapper) {
-        return StreamExInternals.intStreamForLength(first.length, second.length).mapToLong(
+        return intStreamForLength(first.length, second.length).mapToLong(
                 i -> mapper.applyAsLong(first[i], second[i]));
     }
 }

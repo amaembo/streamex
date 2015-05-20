@@ -42,6 +42,8 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
+import static javax.util.streamex.StreamExInternals.*;
+
 /* package */abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> implements Stream<T>, Iterable<T> {
     final Stream<T> stream;
 
@@ -548,7 +550,7 @@ import java.util.stream.Stream;
      * @see Stream#concat(Stream, Stream)
      */
     public S append(Stream<? extends T> other) {
-        return supply(Stream.concat(stream, StreamExInternals.unwrap(other)));
+        return supply(Stream.concat(stream, unwrap(other)));
     }
 
     /**
@@ -564,7 +566,7 @@ import java.util.stream.Stream;
      * @see Stream#concat(Stream, Stream)
      */
     public S prepend(Stream<? extends T> other) {
-        return supply(Stream.concat(StreamExInternals.unwrap(other), stream));
+        return supply(Stream.concat(unwrap(other), stream));
     }
 
     /**

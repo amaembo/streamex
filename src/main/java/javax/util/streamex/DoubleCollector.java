@@ -33,9 +33,7 @@ import java.util.function.ObjDoubleConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 
-import javax.util.streamex.StreamExInternals.DoubleBuffer;
-import javax.util.streamex.StreamExInternals.FloatBuffer;
-import javax.util.streamex.StreamExInternals.BooleanMap;
+import static javax.util.streamex.StreamExInternals.*;
 
 public interface DoubleCollector<A, R> extends Collector<Double, A, R> {
     /**
@@ -133,16 +131,16 @@ public interface DoubleCollector<A, R> extends Collector<Double, A, R> {
 
     static DoubleCollector<?, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return of(StringBuilder::new, (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i),
-                StreamExInternals.joinMerger(delimiter), StreamExInternals.joinFinisher(prefix, suffix));
+                joinMerger(delimiter), joinFinisher(prefix, suffix));
     }
 
     static DoubleCollector<?, String> joining(CharSequence delimiter) {
         return of(StringBuilder::new, (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i),
-                StreamExInternals.joinMerger(delimiter), StringBuilder::toString);
+                joinMerger(delimiter), StringBuilder::toString);
     }
 
     static DoubleCollector<?, Long> counting() {
-        return of(() -> new long[1], (box, i) -> box[0]++, (box1, box2) -> box1[0] += box2[0], StreamExInternals.UNBOX_LONG);
+        return of(() -> new long[1], (box, i) -> box[0]++, (box1, box2) -> box1[0] += box2[0], UNBOX_LONG);
     }
 
     static DoubleCollector<?, Double> summing() {
@@ -206,7 +204,7 @@ public interface DoubleCollector<A, R> extends Collector<Double, A, R> {
 
     static DoubleCollector<?, Double> reducing(double identity, DoubleBinaryOperator op) {
         return of(() -> new double[] { identity }, (box, i) -> box[0] = op.applyAsDouble(box[0], i),
-                (box1, box2) -> box1[0] = op.applyAsDouble(box1[0], box2[0]), StreamExInternals.UNBOX_DOUBLE);
+                (box1, box2) -> box1[0] = op.applyAsDouble(box1[0], box2[0]), UNBOX_DOUBLE);
     }
 
     static DoubleCollector<?, DoubleSummaryStatistics> summarizing() {
@@ -252,13 +250,13 @@ public interface DoubleCollector<A, R> extends Collector<Double, A, R> {
             A container = m.computeIfAbsent(key, supplier);
             downstreamAccumulator.accept(container, t);
         };
-        BiConsumer<Map<K, A>, Map<K, A>> merger = StreamExInternals.mapMerger(downstream.merger());
+        BiConsumer<Map<K, A>, Map<K, A>> merger = mapMerger(downstream.merger());
 
         if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
             return (DoubleCollector<?, M>) of((Supplier<Map<K, A>>) mapFactory, accumulator, merger);
         } else {
             return of((Supplier<Map<K, A>>) mapFactory, accumulator, merger,
-                    StreamExInternals.mapFinisher((Function<A, A>) downstream.finisher()));
+                    mapFinisher((Function<A, A>) downstream.finisher()));
         }
     }
 

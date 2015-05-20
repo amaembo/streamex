@@ -33,8 +33,7 @@ import java.util.function.ObjLongConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 
-import javax.util.streamex.StreamExInternals.LongBuffer;
-import javax.util.streamex.StreamExInternals.BooleanMap;
+import static javax.util.streamex.StreamExInternals.*;
 
 public interface LongCollector<A, R> extends Collector<Long, A, R> {
     /**
@@ -131,20 +130,20 @@ public interface LongCollector<A, R> extends Collector<Long, A, R> {
 
     static LongCollector<?, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return of(StringBuilder::new, (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i),
-                StreamExInternals.joinMerger(delimiter), StreamExInternals.joinFinisher(prefix, suffix));
+                joinMerger(delimiter), joinFinisher(prefix, suffix));
     }
 
     static LongCollector<?, String> joining(CharSequence delimiter) {
         return of(StringBuilder::new, (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i),
-                StreamExInternals.joinMerger(delimiter), StringBuilder::toString);
+                joinMerger(delimiter), StringBuilder::toString);
     }
 
     static LongCollector<?, Long> counting() {
-        return of(() -> new long[1], (box, i) -> box[0]++, (box1, box2) -> box1[0] += box2[0], StreamExInternals.UNBOX_LONG);
+        return of(() -> new long[1], (box, i) -> box[0]++, (box1, box2) -> box1[0] += box2[0], UNBOX_LONG);
     }
 
     static LongCollector<?, Long> summing() {
-        return of(() -> new long[1], (box, i) -> box[0] += i, (box1, box2) -> box1[0] += box2[0], StreamExInternals.UNBOX_LONG);
+        return of(() -> new long[1], (box, i) -> box[0] += i, (box1, box2) -> box1[0] += box2[0], UNBOX_LONG);
     }
 
     static LongCollector<?, OptionalLong> min() {
@@ -203,7 +202,7 @@ public interface LongCollector<A, R> extends Collector<Long, A, R> {
 
     static LongCollector<?, Long> reducing(long identity, LongBinaryOperator op) {
         return of(() -> new long[] { identity }, (box, i) -> box[0] = op.applyAsLong(box[0], i),
-                (box1, box2) -> box1[0] = op.applyAsLong(box1[0], box2[0]), StreamExInternals.UNBOX_LONG);
+                (box1, box2) -> box1[0] = op.applyAsLong(box1[0], box2[0]), UNBOX_LONG);
     }
 
     static LongCollector<?, LongSummaryStatistics> summarizing() {
@@ -249,13 +248,13 @@ public interface LongCollector<A, R> extends Collector<Long, A, R> {
             A container = m.computeIfAbsent(key, supplier);
             downstreamAccumulator.accept(container, t);
         };
-        BiConsumer<Map<K, A>, Map<K, A>> merger = StreamExInternals.mapMerger(downstream.merger());
+        BiConsumer<Map<K, A>, Map<K, A>> merger = mapMerger(downstream.merger());
 
         if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
             return (LongCollector<?, M>) of((Supplier<Map<K, A>>) mapFactory, accumulator, merger);
         } else {
             return of((Supplier<Map<K, A>>) mapFactory, accumulator, merger,
-                    StreamExInternals.mapFinisher((Function<A, A>) downstream.finisher()));
+                    mapFinisher((Function<A, A>) downstream.finisher()));
         }
     }
 

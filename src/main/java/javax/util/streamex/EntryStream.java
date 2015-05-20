@@ -40,6 +40,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static javax.util.streamex.StreamExInternals.*;
+
 /**
  * A {@link Stream} of {@link Map.Entry} objects which provides additional
  * specific functionality.
@@ -620,7 +622,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @see Collectors#toConcurrentMap(Function, Function)
      */
     public Map<K, V> toMap() {
-        return toMap(StreamExInternals.throwingMerger());
+        return toMap(throwingMerger());
     }
 
     /**
@@ -663,7 +665,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     }
 
     public <M extends Map<K, V>> M toCustomMap(Supplier<M> mapSupplier) {
-        return toCustomMap(StreamExInternals.throwingMerger(), mapSupplier);
+        return toCustomMap(throwingMerger(), mapSupplier);
     }
 
     @SuppressWarnings("unchecked")
@@ -700,7 +702,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.1.0
      */
     public SortedMap<K, V> toSortedMap() {
-        return toSortedMap(StreamExInternals.throwingMerger());
+        return toSortedMap(throwingMerger());
     }
 
     /**
@@ -827,7 +829,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the wrapped stream
      */
     public static <K, V> EntryStream<K, V> of(Stream<Entry<K, V>> stream) {
-        return new EntryStream<>(StreamExInternals.unwrap(stream));
+        return new EntryStream<>(unwrap(stream));
     }
 
     /**
@@ -971,7 +973,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.1
      */
     public static <K, V> EntryStream<K, V> zip(List<K> keys, List<V> values) {
-        return of(StreamExInternals.intStreamForLength(keys.size(), values.size()).mapToObj(
+        return of(intStreamForLength(keys.size(), values.size()).mapToObj(
                 i -> new SimpleImmutableEntry<>(keys.get(i), values.get(i))));
     }
 

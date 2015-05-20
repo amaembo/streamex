@@ -48,9 +48,7 @@ import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import javax.util.streamex.StreamExInternals.ByteBuffer;
-import javax.util.streamex.StreamExInternals.CharBuffer;
-import javax.util.streamex.StreamExInternals.ShortBuffer;
+import static javax.util.streamex.StreamExInternals.*;
 
 /**
  * An {@link IntStream} implementation with additional functionality
@@ -1087,7 +1085,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.2.0
      */
     public static IntStreamEx of(byte[] array, int startInclusive, int endExclusive) {
-        StreamExInternals.rangeCheck(array.length, startInclusive, endExclusive);
+        rangeCheck(array.length, startInclusive, endExclusive);
         return range(startInclusive, endExclusive).map(i -> array[i]);
     }
 
@@ -1122,7 +1120,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.2.0
      */
     public static IntStreamEx of(char[] array, int startInclusive, int endExclusive) {
-        StreamExInternals.rangeCheck(array.length, startInclusive, endExclusive);
+        rangeCheck(array.length, startInclusive, endExclusive);
         return range(startInclusive, endExclusive).map(i -> array[i]);
     }
 
@@ -1157,7 +1155,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.2.0
      */
     public static IntStreamEx of(short[] array, int startInclusive, int endExclusive) {
-        StreamExInternals.rangeCheck(array.length, startInclusive, endExclusive);
+        rangeCheck(array.length, startInclusive, endExclusive);
         return range(startInclusive, endExclusive).map(i -> array[i]);
     }
 
@@ -1584,7 +1582,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.2.1
      */
     public static IntStreamEx zip(int[] first, int[] second, IntBinaryOperator mapper) {
-        return StreamExInternals.intStreamForLength(first.length, second.length).map(
+        return intStreamForLength(first.length, second.length).map(
                 i -> mapper.applyAsInt(first[i], second[i]));
     }
 }

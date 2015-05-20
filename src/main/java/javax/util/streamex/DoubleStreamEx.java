@@ -42,7 +42,7 @@ import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import javax.util.streamex.StreamExInternals.FloatBuffer;
+import static javax.util.streamex.StreamExInternals.*;
 
 /**
  * A {@link DoubleStream} implementation with additional functionality
@@ -871,7 +871,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.2.0
      */
     public static DoubleStreamEx of(float[] array, int startInclusive, int endExclusive) {
-        StreamExInternals.rangeCheck(array.length, startInclusive, endExclusive);
+        rangeCheck(array.length, startInclusive, endExclusive);
         return IntStreamEx.range(startInclusive, endExclusive).mapToDouble(i -> array[i]);
     }
 
@@ -1008,7 +1008,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.2.1
      */
     public static DoubleStreamEx zip(double[] first, double[] second, DoubleBinaryOperator mapper) {
-        return StreamExInternals.intStreamForLength(first.length, second.length).mapToDouble(
+        return intStreamForLength(first.length, second.length).mapToDouble(
                 i -> mapper.applyAsDouble(first[i], second[i]));
     }
 }
