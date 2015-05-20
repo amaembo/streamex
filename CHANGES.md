@@ -2,7 +2,9 @@
 
 ### 0.3.0
 
+* Added primitive collectors: IntCollector, LongCollector, DoubleCollector
 * Added flatMapToInt/flatMapToLong/flatMapToDouble/flatMapToObj to primitive streams
+* Added EntryStream.flatMapKeyValue method
 * Added IntStreamEx.toCharArray/toShortArray/toByteArray methods
 * Added DoubleStreamEx.toFloatArray method
 
