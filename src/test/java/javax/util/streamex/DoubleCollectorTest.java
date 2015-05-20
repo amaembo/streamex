@@ -31,6 +31,9 @@ public class DoubleCollectorTest {
         assertEquals(expected, IntStreamEx.range(10000).asDoubleStream().collect(DoubleCollector.joining(", ")));
         assertEquals(expected,
                 IntStreamEx.range(10000).asDoubleStream().parallel().collect(DoubleCollector.joining(", ")));
+        String expected2 = IntStreamEx.range(0, 1000).asDoubleStream().boxed().toList().toString();
+        assertEquals(expected2, IntStreamEx.range(1000).asDoubleStream().collect(DoubleCollector.joining(", ", "[", "]")));
+        assertEquals(expected2, IntStreamEx.range(1000).asDoubleStream().parallel().collect(DoubleCollector.joining(", ", "[", "]")));
     }
 
     @Test
@@ -68,6 +71,8 @@ public class DoubleCollectorTest {
     public void testToArray() {
         assertArrayEquals(new double[] { 0, 1, 2, 3, 4 },
                 IntStreamEx.of(0, 1, 2, 3, 4).asDoubleStream().collect(DoubleCollector.toArray()), 0.0);
+        assertArrayEquals(IntStreamEx.range(1000).asDoubleStream().toFloatArray(), IntStreamEx.range(1000).parallel()
+                .asDoubleStream().collect(DoubleCollector.toFloatArray()), 0.0f);
     }
 
     @Test
@@ -99,5 +104,14 @@ public class DoubleCollectorTest {
             assertArrayEquals(IntStream.range(0, 2000).asDoubleStream().filter(a -> a % 3 == rem).toArray(),
                     collected.get(i), 0.0);
         }
+    }
+    
+    @Test
+    public void testAsCollector() {
+        assertEquals(499.5, IntStream.range(0, 1000).asDoubleStream().boxed().collect(DoubleCollector.summarizing())
+                .getAverage(), 0.000001);
+        assertEquals(499.5,
+                IntStream.range(0, 1000).parallel().asDoubleStream().boxed().collect(DoubleCollector.summarizing())
+                        .getAverage(), 0.000001);
     }
 }

@@ -17,6 +17,7 @@ package javax.util.streamex;
 
 import static org.junit.Assert.*;
 
+import java.util.BitSet;
 import java.util.IntSummaryStatistics;
 import java.util.Map;
 import java.util.Random;
@@ -31,6 +32,9 @@ public class IntCollectorTest {
         String expected = IntStream.range(0, 10000).mapToObj(String::valueOf).collect(Collectors.joining(", "));
         assertEquals(expected, IntStreamEx.range(10000).collect(IntCollector.joining(", ")));
         assertEquals(expected, IntStreamEx.range(10000).parallel().collect(IntCollector.joining(", ")));
+        String expected2 = IntStreamEx.range(0, 1000).boxed().toList().toString();
+        assertEquals(expected2, IntStreamEx.range(1000).collect(IntCollector.joining(", ", "[", "]")));
+        assertEquals(expected2, IntStreamEx.range(1000).parallel().collect(IntCollector.joining(", ", "[", "]")));
     }
     
     @Test
@@ -84,6 +88,9 @@ public class IntCollectorTest {
     @Test
     public void testToArray() {
         assertArrayEquals(new int[] {0,1,2,3,4}, IntStreamEx.of(0,1,2,3,4).collect(IntCollector.toArray()));
+        assertArrayEquals(IntStreamEx.range(1000).toByteArray(), IntStreamEx.range(1000).collect(IntCollector.toByteArray()));
+        assertArrayEquals(IntStreamEx.range(1000).toCharArray(), IntStreamEx.range(1000).collect(IntCollector.toCharArray()));
+        assertArrayEquals(IntStreamEx.range(1000).toShortArray(), IntStreamEx.range(1000).collect(IntCollector.toShortArray()));
     }
     
     @Test
@@ -96,6 +103,12 @@ public class IntCollectorTest {
         oddEven = IntStreamEx.range(2000).parallel().collect(IntCollector.partitioningBy(i -> i % 2 == 0));
         assertArrayEquals(expectedEven, oddEven.get(true));
         assertArrayEquals(expectedOdd, oddEven.get(false));
+        
+        oddEven = IntStreamEx.range(2000).collect(
+                IntCollector.partitioningBy(i -> i % 2 == 0, IntCollector.mapping(i -> i / 2, IntCollector.toArray())));
+        int[] ints = IntStreamEx.range(1000).toArray();
+        assertArrayEquals(ints, oddEven.get(true));
+        assertArrayEquals(ints, oddEven.get(false));
     }
     
     @Test
@@ -112,6 +125,11 @@ public class IntCollectorTest {
             int rem = i;
             assertArrayEquals(IntStream.range(0, 2000).filter(a -> a % 3 == rem).toArray(), collected.get(i));
         }
+        
+        Map<Integer, BitSet> mapBitSet = IntStreamEx.range(10).collect(IntCollector.groupingBy(i -> i % 3, IntCollector.toBitSet()));
+        assertEquals("{0, 3, 6, 9}", mapBitSet.get(0).toString());
+        assertEquals("{1, 4, 7}", mapBitSet.get(1).toString());
+        assertEquals("{2, 5, 8}", mapBitSet.get(2).toString());
     }
     
     @Test

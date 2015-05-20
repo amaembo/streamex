@@ -31,6 +31,9 @@ public class LongCollectorTest {
         String expected = LongStream.range(0, 10000).mapToObj(String::valueOf).collect(Collectors.joining(", "));
         assertEquals(expected, LongStreamEx.range(10000).collect(LongCollector.joining(", ")));
         assertEquals(expected, LongStreamEx.range(10000).parallel().collect(LongCollector.joining(", ")));
+        String expected2 = LongStreamEx.range(0, 1000).boxed().toList().toString();
+        assertEquals(expected2, LongStreamEx.range(1000).collect(LongCollector.joining(", ", "[", "]")));
+        assertEquals(expected2, LongStreamEx.range(1000).parallel().collect(LongCollector.joining(", ", "[", "]")));
     }
     
     @Test
