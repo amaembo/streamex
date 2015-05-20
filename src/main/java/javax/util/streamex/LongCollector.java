@@ -147,11 +147,37 @@ public interface LongCollector<A, R> extends Collector<Long, A, R> {
         };
     }
 
+    /**
+     * Returns a {@code LongCollector} that converts the input numbers to
+     * strings and concatenates them, separated by the specified delimiter, with
+     * the specified prefix and suffix, in encounter order.
+     *
+     * @param delimiter
+     *            the delimiter to be used between each element
+     * @param prefix
+     *            the sequence of characters to be used at the beginning of the
+     *            joined result
+     * @param suffix
+     *            the sequence of characters to be used at the end of the joined
+     *            result
+     * @return A {@code LongCollector} which concatenates the input numbers,
+     *         separated by the specified delimiter, in encounter order
+     */
     static LongCollector<?, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return of(StringBuilder::new, (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i),
                 joinMerger(delimiter), joinFinisher(prefix, suffix));
     }
 
+    /**
+     * Returns a {@code LongCollector} that converts the input numbers to
+     * strings and concatenates them, separated by the specified delimiter, in
+     * encounter order.
+     *
+     * @param delimiter
+     *            the delimiter to be used between each element
+     * @return A {@code LongCollector} which concatenates the input numbers,
+     *         separated by the specified delimiter, in encounter order
+     */
     static LongCollector<?, String> joining(CharSequence delimiter) {
         return of(StringBuilder::new, (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i),
                 joinMerger(delimiter), StringBuilder::toString);
@@ -250,6 +276,13 @@ public interface LongCollector<A, R> extends Collector<Long, A, R> {
                 (box1, box2) -> box1[0] = op.applyAsLong(box1[0], box2[0]), UNBOX_LONG);
     }
 
+    /**
+     * Returns a {@code LongCollector} which returns summary statistics for the
+     * input elements.
+     *
+     * @return a {@code LongCollector} implementing the summary-statistics
+     *         reduction
+     */
     static LongCollector<?, LongSummaryStatistics> summarizing() {
         return of(LongSummaryStatistics::new, LongSummaryStatistics::accept, LongSummaryStatistics::combine);
     }

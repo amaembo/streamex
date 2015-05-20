@@ -148,11 +148,37 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
         };
     }
 
+    /**
+     * Returns an {@code IntCollector} that converts the input numbers to
+     * strings and concatenates them, separated by the specified delimiter, with
+     * the specified prefix and suffix, in encounter order.
+     *
+     * @param delimiter
+     *            the delimiter to be used between each element
+     * @param prefix
+     *            the sequence of characters to be used at the beginning of the
+     *            joined result
+     * @param suffix
+     *            the sequence of characters to be used at the end of the joined
+     *            result
+     * @return An {@code IntCollector} which concatenates the input numbers,
+     *         separated by the specified delimiter, in encounter order
+     */
     static IntCollector<?, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return of(StringBuilder::new, (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i),
                 joinMerger(delimiter), joinFinisher(prefix, suffix));
     }
 
+    /**
+     * Returns an {@code IntCollector} that converts the input numbers to
+     * strings and concatenates them, separated by the specified delimiter, in
+     * encounter order.
+     *
+     * @param delimiter
+     *            the delimiter to be used between each element
+     * @return An {@code IntCollector} which concatenates the input numbers,
+     *         separated by the specified delimiter, in encounter order
+     */
     static IntCollector<?, String> joining(CharSequence delimiter) {
         return of(StringBuilder::new, (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i),
                 joinMerger(delimiter), StringBuilder::toString);
@@ -251,6 +277,13 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
                 (box1, box2) -> box1[0] = op.applyAsInt(box1[0], box2[0]), UNBOX_INT);
     }
 
+    /**
+     * Returns an {@code IntCollector} which returns summary statistics for the
+     * input elements.
+     *
+     * @return an {@code IntCollector} implementing the summary-statistics
+     *         reduction
+     */
     static IntCollector<?, IntSummaryStatistics> summarizing() {
         return of(IntSummaryStatistics::new, IntSummaryStatistics::accept, IntSummaryStatistics::combine);
     }

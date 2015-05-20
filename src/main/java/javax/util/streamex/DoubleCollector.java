@@ -148,11 +148,37 @@ public interface DoubleCollector<A, R> extends Collector<Double, A, R> {
         };
     }
 
+    /**
+     * Returns a {@code DoubleCollector} that converts the input numbers to
+     * strings and concatenates them, separated by the specified delimiter, with
+     * the specified prefix and suffix, in encounter order.
+     *
+     * @param delimiter
+     *            the delimiter to be used between each element
+     * @param prefix
+     *            the sequence of characters to be used at the beginning of the
+     *            joined result
+     * @param suffix
+     *            the sequence of characters to be used at the end of the joined
+     *            result
+     * @return A {@code DoubleCollector} which concatenates the input numbers,
+     *         separated by the specified delimiter, in encounter order
+     */
     static DoubleCollector<?, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return of(StringBuilder::new, (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i),
                 joinMerger(delimiter), joinFinisher(prefix, suffix));
     }
 
+    /**
+     * Returns a {@code DoubleCollector} that converts the input numbers to
+     * strings and concatenates them, separated by the specified delimiter, in
+     * encounter order.
+     *
+     * @param delimiter
+     *            the delimiter to be used between each element
+     * @return A {@code DoubleCollector} which concatenates the input numbers,
+     *         separated by the specified delimiter, in encounter order
+     */
     static DoubleCollector<?, String> joining(CharSequence delimiter) {
         return of(StringBuilder::new, (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i),
                 joinMerger(delimiter), StringBuilder::toString);
@@ -252,6 +278,13 @@ public interface DoubleCollector<A, R> extends Collector<Double, A, R> {
                 (box1, box2) -> box1[0] = op.applyAsDouble(box1[0], box2[0]), UNBOX_DOUBLE);
     }
 
+    /**
+     * Returns a {@code DoubleCollector} which returns summary statistics for
+     * the input elements.
+     *
+     * @return a {@code DoubleCollector} implementing the summary-statistics
+     *         reduction
+     */
     static DoubleCollector<?, DoubleSummaryStatistics> summarizing() {
         return of(DoubleSummaryStatistics::new, DoubleSummaryStatistics::accept, DoubleSummaryStatistics::combine);
     }
