@@ -35,6 +35,19 @@ import java.util.stream.Collector;
 
 import static javax.util.streamex.StreamExInternals.*;
 
+/**
+ * A {@link Collector} specialized to work with primitive {@code long}.
+ * 
+ * @author Tagir Valeev
+ *
+ * @param <A>
+ *            the mutable accumulation type of the reduction operation (often
+ *            hidden as an implementation detail)
+ * @param <R>
+ *            the result type of the reduction operation
+ * @see LongStreamEx#collect(LongCollector)
+ * @since 0.3.0
+ */
 public interface LongCollector<A, R> extends Collector<Long, A, R> {
     /**
      * A function that folds a value into a mutable result container.
@@ -43,6 +56,12 @@ public interface LongCollector<A, R> extends Collector<Long, A, R> {
      */
     ObjLongConsumer<A> longAccumulator();
 
+    /**
+     * A function which merges the second container into the first container.
+     * 
+     * @return a function which merges the second container into the first
+     *         container.
+     */
     BiConsumer<A, A> merger();
 
     @Override
@@ -138,18 +157,45 @@ public interface LongCollector<A, R> extends Collector<Long, A, R> {
                 joinMerger(delimiter), StringBuilder::toString);
     }
 
+    /**
+     * Returns a {@code LongCollector} that counts the number of input elements.
+     * If no elements are present, the result is 0.
+     *
+     * @return a {@code LongCollector} that counts the input elements
+     */
     static LongCollector<?, Long> counting() {
         return of(() -> new long[1], (box, i) -> box[0]++, (box1, box2) -> box1[0] += box2[0], UNBOX_LONG);
     }
 
+    /**
+     * Returns a {@code LongCollector} that produces the sum of the input
+     * elements. If no elements are present, the result is 0.
+     *
+     * @return a {@code LongCollector} that produces the sum of the input
+     *         elements
+     */
     static LongCollector<?, Long> summing() {
         return of(() -> new long[1], (box, i) -> box[0] += i, (box1, box2) -> box1[0] += box2[0], UNBOX_LONG);
     }
 
+    /**
+     * Returns a {@code LongCollector} that produces the minimal element,
+     * described as an {@link OptionalLong}. If no elements are present, the
+     * result is an empty {@code OptionalLong}.
+     *
+     * @return a {@code LongCollector} that produces the minimal element.
+     */
     static LongCollector<?, OptionalLong> min() {
         return reducing((a, b) -> a > b ? b : a);
     }
 
+    /**
+     * Returns a {@code LongCollector} that produces the maximal element,
+     * described as an {@link OptionalLong}. If no elements are present, the
+     * result is an empty {@code OptionalLong}.
+     *
+     * @return a {@code LongCollector} that produces the maximal element.
+     */
     static LongCollector<?, OptionalLong> max() {
         return reducing((a, b) -> a > b ? a : b);
     }
@@ -257,6 +303,13 @@ public interface LongCollector<A, R> extends Collector<Long, A, R> {
         }
     }
 
+    /**
+     * Returns a {@code LongCollector} that produces the array of the input
+     * elements. If no elements are present, the result is an empty array.
+     *
+     * @return a {@code LongCollector} that produces the array of the input
+     *         elements
+     */
     static LongCollector<?, long[]> toArray() {
         return of(LongBuffer::new, LongBuffer::add, LongBuffer::addAll, LongBuffer::toArray);
     }

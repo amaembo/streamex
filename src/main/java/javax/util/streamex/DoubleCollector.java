@@ -35,6 +35,19 @@ import java.util.stream.Collector;
 
 import static javax.util.streamex.StreamExInternals.*;
 
+/**
+ * A {@link Collector} specialized to work with primitive {@code double}.
+ * 
+ * @author Tagir Valeev
+ *
+ * @param <A>
+ *            the mutable accumulation type of the reduction operation (often
+ *            hidden as an implementation detail)
+ * @param <R>
+ *            the result type of the reduction operation
+ * @see DoubleStreamEx#collect(DoubleCollector)
+ * @since 0.3.0
+ */
 public interface DoubleCollector<A, R> extends Collector<Double, A, R> {
     /**
      * A function that folds a value into a mutable result container.
@@ -43,6 +56,12 @@ public interface DoubleCollector<A, R> extends Collector<Double, A, R> {
      */
     ObjDoubleConsumer<A> doubleAccumulator();
 
+    /**
+     * A function which merges the second container into the first container.
+     * 
+     * @return a function which merges the second container into the first
+     *         container.
+     */
     BiConsumer<A, A> merger();
 
     @Override
@@ -139,19 +158,46 @@ public interface DoubleCollector<A, R> extends Collector<Double, A, R> {
                 joinMerger(delimiter), StringBuilder::toString);
     }
 
+    /**
+     * Returns a {@code DoubleCollector} that counts the number of input
+     * elements. If no elements are present, the result is 0.
+     *
+     * @return a {@code DoubleCollector} that counts the input elements
+     */
     static DoubleCollector<?, Long> counting() {
         return of(() -> new long[1], (box, i) -> box[0]++, (box1, box2) -> box1[0] += box2[0], UNBOX_LONG);
     }
 
+    /**
+     * Returns a {@code DoubleCollector} that produces the sum of the input
+     * elements. If no elements are present, the result is 0.0.
+     *
+     * @return a {@code DoubleCollector} that produces the sum of the input
+     *         elements
+     */
     static DoubleCollector<?, Double> summing() {
         // Using DoubleSummaryStatistics as Kahan algorithm is implemented there
         return collectingAndThen(summarizing(), DoubleSummaryStatistics::getSum);
     }
 
+    /**
+     * Returns a {@code DoubleCollector} that produces the minimal element,
+     * described as an {@link OptionalDouble}. If no elements are present, the
+     * result is an empty {@code OptionalDouble}.
+     *
+     * @return a {@code DoubleCollector} that produces the minimal element.
+     */
     static DoubleCollector<?, OptionalDouble> min() {
         return reducing((a, b) -> Double.compare(a, b) > 0 ? b : a);
     }
 
+    /**
+     * Returns a {@code DoubleCollector} that produces the maximal element,
+     * described as an {@link OptionalDouble}. If no elements are present, the
+     * result is an empty {@code OptionalDouble}.
+     *
+     * @return a {@code DoubleCollector} that produces the maximal element.
+     */
     static DoubleCollector<?, OptionalDouble> max() {
         return reducing((a, b) -> Double.compare(a, b) > 0 ? a : b);
     }
@@ -259,10 +305,25 @@ public interface DoubleCollector<A, R> extends Collector<Double, A, R> {
         }
     }
 
+    /**
+     * Returns a {@code DoubleCollector} that produces the array of the input
+     * elements. If no elements are present, the result is an empty array.
+     *
+     * @return a {@code DoubleCollector} that produces the array of the input
+     *         elements
+     */
     static DoubleCollector<?, double[]> toArray() {
         return of(DoubleBuffer::new, DoubleBuffer::add, DoubleBuffer::addAll, DoubleBuffer::toArray);
     }
 
+    /**
+     * Returns a {@code DoubleCollector} that produces the {@code float[]} array
+     * of the input elements converting them via {@code (float)} casting. If no
+     * elements are present, the result is an empty array.
+     *
+     * @return a {@code DoubleCollector} that produces the {@code float[]} array
+     *         of the input elements
+     */
     static DoubleCollector<?, float[]> toFloatArray() {
         return of(FloatBuffer::new, FloatBuffer::add, FloatBuffer::addAll, FloatBuffer::toArray);
     }

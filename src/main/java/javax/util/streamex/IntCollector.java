@@ -15,6 +15,7 @@
  */
 package javax.util.streamex;
 
+import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.IntSummaryStatistics;
@@ -35,6 +36,19 @@ import java.util.stream.Collector;
 
 import static javax.util.streamex.StreamExInternals.*;
 
+/**
+ * A {@link Collector} specialized to work with primitive {@code int}.
+ * 
+ * @author Tagir Valeev
+ *
+ * @param <A>
+ *            the mutable accumulation type of the reduction operation (often
+ *            hidden as an implementation detail)
+ * @param <R>
+ *            the result type of the reduction operation
+ * @see IntStreamEx#collect(IntCollector)
+ * @since 0.3.0
+ */
 public interface IntCollector<A, R> extends Collector<Integer, A, R> {
     /**
      * A function that folds a value into a mutable result container.
@@ -43,6 +57,12 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
      */
     ObjIntConsumer<A> intAccumulator();
 
+    /**
+     * A function which merges the second container into the first container.
+     * 
+     * @return a function which merges the second container into the first
+     *         container.
+     */
     BiConsumer<A, A> merger();
 
     @Override
@@ -138,18 +158,45 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
                 joinMerger(delimiter), StringBuilder::toString);
     }
 
+    /**
+     * Returns an {@code IntCollector} that counts the number of input elements.
+     * If no elements are present, the result is 0.
+     *
+     * @return an {@code IntCollector} that counts the input elements
+     */
     static IntCollector<?, Long> counting() {
         return of(() -> new long[1], (box, i) -> box[0]++, (box1, box2) -> box1[0] += box2[0], UNBOX_LONG);
     }
 
+    /**
+     * Returns an {@code IntCollector} that produces the sum of the input
+     * elements. If no elements are present, the result is 0.
+     *
+     * @return an {@code IntCollector} that produces the sum of the input
+     *         elements
+     */
     static IntCollector<?, Integer> summing() {
         return of(() -> new int[1], (box, i) -> box[0] += i, (box1, box2) -> box1[0] += box2[0], UNBOX_INT);
     }
 
+    /**
+     * Returns an {@code IntCollector} that produces the minimal element,
+     * described as an {@link OptionalInt}. If no elements are present, the
+     * result is an empty {@code OptionalInt}.
+     *
+     * @return an {@code IntCollector} that produces the minimal element.
+     */
     static IntCollector<?, OptionalInt> min() {
         return reducing((a, b) -> a > b ? b : a);
     }
 
+    /**
+     * Returns an {@code IntCollector} that produces the maximal element,
+     * described as an {@link OptionalInt}. If no elements are present, the
+     * result is an empty {@code OptionalInt}.
+     *
+     * @return an {@code IntCollector} that produces the maximal element.
+     */
     static IntCollector<?, OptionalInt> max() {
         return reducing((a, b) -> a > b ? a : b);
     }
@@ -256,18 +303,60 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
         }
     }
 
+    /**
+     * Returns an {@code IntCollector} that produces the {@link BitSet} of the
+     * input elements.
+     *
+     * @return an {@code IntCollector} that produces the {@link BitSet} of the
+     *         input elements
+     */
+    static IntCollector<?, BitSet> toBitSet() {
+        return of(BitSet::new, BitSet::set, BitSet::or);
+    }
+
+    /**
+     * Returns an {@code IntCollector} that produces the array of the input
+     * elements. If no elements are present, the result is an empty array.
+     *
+     * @return an {@code IntCollector} that produces the array of the input
+     *         elements
+     */
     static IntCollector<?, int[]> toArray() {
         return of(IntBuffer::new, IntBuffer::add, IntBuffer::addAll, IntBuffer::toArray);
     }
 
+    /**
+     * Returns an {@code IntCollector} that produces the {@code byte[]} array of
+     * the input elements converting them via {@code (byte)} casting. If no
+     * elements are present, the result is an empty array.
+     *
+     * @return an {@code IntCollector} that produces the {@code byte[]} array of
+     *         the input elements
+     */
     static IntCollector<?, byte[]> toByteArray() {
         return of(ByteBuffer::new, ByteBuffer::add, ByteBuffer::addAll, ByteBuffer::toArray);
     }
 
+    /**
+     * Returns an {@code IntCollector} that produces the {@code char[]} array of
+     * the input elements converting them via {@code (char)} casting. If no
+     * elements are present, the result is an empty array.
+     *
+     * @return an {@code IntCollector} that produces the {@code char[]} array of
+     *         the input elements
+     */
     static IntCollector<?, char[]> toCharArray() {
         return of(CharBuffer::new, CharBuffer::add, CharBuffer::addAll, CharBuffer::toArray);
     }
 
+    /**
+     * Returns an {@code IntCollector} that produces the {@code short[]} array
+     * of the input elements converting them via {@code (short)} casting. If no
+     * elements are present, the result is an empty array.
+     *
+     * @return an {@code IntCollector} that produces the {@code short[]} array
+     *         of the input elements
+     */
     static IntCollector<?, short[]> toShortArray() {
         return of(ShortBuffer::new, ShortBuffer::add, ShortBuffer::addAll, ShortBuffer::toArray);
     }
