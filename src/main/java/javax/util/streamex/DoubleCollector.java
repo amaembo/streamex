@@ -176,8 +176,7 @@ public interface DoubleCollector<A, R> extends Collector<Double, A, R> {
                 box1, box2) -> box1[0] = combiner.apply((A) box1[0], (A) box2[0]), box -> finisher.apply((A) box[0]));
     }
 
-    static <A, R, RR> DoubleCollector<A, RR> collectingAndThen(DoubleCollector<A, R> collector,
-            Function<R, RR> finisher) {
+    static <A, R, RR> DoubleCollector<A, RR> collectingAndThen(DoubleCollector<A, R> collector, Function<R, RR> finisher) {
         return of(collector.supplier(), collector.doubleAccumulator(), collector.merger(), collector.finisher()
                 .andThen(finisher));
     }
@@ -240,8 +239,8 @@ public interface DoubleCollector<A, R> extends Collector<Double, A, R> {
     }
 
     @SuppressWarnings("unchecked")
-    static <K, D, A, M extends Map<K, D>> DoubleCollector<?, M> groupingBy(
-            DoubleFunction<? extends K> classifier, Supplier<M> mapFactory, DoubleCollector<A, D> downstream) {
+    static <K, D, A, M extends Map<K, D>> DoubleCollector<?, M> groupingBy(DoubleFunction<? extends K> classifier,
+            Supplier<M> mapFactory, DoubleCollector<A, D> downstream) {
         Supplier<A> downstreamSupplier = downstream.supplier();
         Function<K, A> supplier = k -> downstreamSupplier.get();
         ObjDoubleConsumer<A> downstreamAccumulator = downstream.doubleAccumulator();

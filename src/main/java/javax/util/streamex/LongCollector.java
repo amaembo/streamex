@@ -174,8 +174,7 @@ public interface LongCollector<A, R> extends Collector<Long, A, R> {
                 box1, box2) -> box1[0] = combiner.apply((A) box1[0], (A) box2[0]), box -> finisher.apply((A) box[0]));
     }
 
-    static <A, R, RR> LongCollector<A, RR> collectingAndThen(LongCollector<A, R> collector,
-            Function<R, RR> finisher) {
+    static <A, R, RR> LongCollector<A, RR> collectingAndThen(LongCollector<A, R> collector, Function<R, RR> finisher) {
         return of(collector.supplier(), collector.longAccumulator(), collector.merger(),
                 collector.finisher().andThen(finisher));
     }

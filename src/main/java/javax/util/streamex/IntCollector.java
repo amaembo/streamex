@@ -174,8 +174,7 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
                 box1, box2) -> box1[0] = combiner.apply((A) box1[0], (A) box2[0]), box -> finisher.apply((A) box[0]));
     }
 
-    static <A, R, RR> IntCollector<A, RR> collectingAndThen(IntCollector<A, R> collector,
-            Function<R, RR> finisher) {
+    static <A, R, RR> IntCollector<A, RR> collectingAndThen(IntCollector<A, R> collector, Function<R, RR> finisher) {
         return of(collector.supplier(), collector.intAccumulator(), collector.merger(),
                 collector.finisher().andThen(finisher));
     }
@@ -214,8 +213,7 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    static <A, D> IntCollector<?, Map<Boolean, D>> partitioningBy(IntPredicate predicate,
-            IntCollector<A, D> downstream) {
+    static <A, D> IntCollector<?, Map<Boolean, D>> partitioningBy(IntPredicate predicate, IntCollector<A, D> downstream) {
         ObjIntConsumer<A> downstreamAccumulator = downstream.intAccumulator();
         ObjIntConsumer<BooleanMap<A>> accumulator = (result, t) -> downstreamAccumulator.accept(
                 predicate.test(t) ? result.trueValue : result.falseValue, t);

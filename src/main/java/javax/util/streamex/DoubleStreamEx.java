@@ -266,9 +266,10 @@ public class DoubleStreamEx implements DoubleStream {
 
     @SuppressWarnings("unchecked")
     public <A, R> R collect(DoubleCollector<A, R> collector) {
-        if(collector.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH))
-            return (R)collect(collector.supplier(), collector.doubleAccumulator(), collector.merger());
-        return collector.finisher().apply(collect(collector.supplier(), collector.doubleAccumulator(), collector.merger()));
+        if (collector.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH))
+            return (R) collect(collector.supplier(), collector.doubleAccumulator(), collector.merger());
+        return collector.finisher().apply(
+                collect(collector.supplier(), collector.doubleAccumulator(), collector.merger()));
     }
 
     @Override

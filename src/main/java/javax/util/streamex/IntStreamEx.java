@@ -285,12 +285,13 @@ public class IntStreamEx implements IntStream {
     public <R> R collect(Supplier<R> supplier, ObjIntConsumer<R> accumulator, BiConsumer<R, R> combiner) {
         return stream.collect(supplier, accumulator, combiner);
     }
-    
+
     @SuppressWarnings("unchecked")
     public <A, R> R collect(IntCollector<A, R> collector) {
-        if(collector.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH))
-            return (R)collect(collector.supplier(), collector.intAccumulator(), collector.merger());
-        return collector.finisher().apply(collect(collector.supplier(), collector.intAccumulator(), collector.merger()));
+        if (collector.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH))
+            return (R) collect(collector.supplier(), collector.intAccumulator(), collector.merger());
+        return collector.finisher()
+                .apply(collect(collector.supplier(), collector.intAccumulator(), collector.merger()));
     }
 
     @Override
@@ -1582,7 +1583,6 @@ public class IntStreamEx implements IntStream {
      * @since 0.2.1
      */
     public static IntStreamEx zip(int[] first, int[] second, IntBinaryOperator mapper) {
-        return intStreamForLength(first.length, second.length).map(
-                i -> mapper.applyAsInt(first[i], second[i]));
+        return intStreamForLength(first.length, second.length).map(i -> mapper.applyAsInt(first[i], second[i]));
     }
 }

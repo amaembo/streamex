@@ -191,7 +191,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return the new stream
      */
     public <K, V> EntryStream<K, V> mapToEntry(Function<T, K> keyMapper, Function<T, V> valueMapper) {
-        return strategy().newEntryStream(stream.map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e), valueMapper.apply(e))));
+        return strategy().newEntryStream(
+                stream.map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e), valueMapper.apply(e))));
     }
 
     public <K, V> EntryStream<K, V> flatMapToEntry(Function<? super T, Map<K, V>> mapper) {
@@ -227,7 +228,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             return strategy().<T, V> newEntryStream(Stream.empty()).onClose(stream::close);
         if (other.length == 1)
             return mapToEntry(e -> other[0]);
-        return strategy().newEntryStream(stream.flatMap(a -> Arrays.stream(other).map(b -> new SimpleImmutableEntry<>(a, b))));
+        return strategy().newEntryStream(
+                stream.flatMap(a -> Arrays.stream(other).map(b -> new SimpleImmutableEntry<>(a, b))));
     }
 
     /**
@@ -253,7 +255,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public <V> EntryStream<T, V> cross(Collection<V> other) {
         if (other.isEmpty())
             return strategy().<T, V> newEntryStream(Stream.empty()).onClose(stream::close);
-        return strategy().newEntryStream(stream.flatMap(a -> other.stream().map(b -> new SimpleImmutableEntry<>(a, b))));
+        return strategy()
+                .newEntryStream(stream.flatMap(a -> other.stream().map(b -> new SimpleImmutableEntry<>(a, b))));
     }
 
     /**
@@ -273,7 +276,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.2.3
      */
     public <V> EntryStream<T, V> cross(Function<T, Stream<V>> mapper) {
-        return strategy().newEntryStream(stream.flatMap(a -> mapper.apply(a).map(b -> new SimpleImmutableEntry<>(a, b))));
+        return strategy().newEntryStream(
+                stream.flatMap(a -> mapper.apply(a).map(b -> new SimpleImmutableEntry<>(a, b))));
     }
 
     /**

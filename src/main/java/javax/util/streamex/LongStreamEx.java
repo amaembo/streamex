@@ -187,11 +187,11 @@ public class LongStreamEx implements LongStream {
     public DoubleStreamEx flatMapToDouble(LongFunction<? extends DoubleStream> mapper) {
         return strategy().newDoubleStreamEx(stream.mapToObj(mapper).flatMapToDouble(Function.identity()));
     }
-    
+
     public <R> StreamEx<R> flatMapToObj(LongFunction<? extends Stream<R>> mapper) {
         return strategy().newStreamEx(stream.mapToObj(mapper).flatMap(Function.identity()));
     }
-    
+
     @Override
     public LongStreamEx distinct() {
         return strategy().newLongStreamEx(stream.distinct());
@@ -266,9 +266,10 @@ public class LongStreamEx implements LongStream {
 
     @SuppressWarnings("unchecked")
     public <A, R> R collect(LongCollector<A, R> collector) {
-        if(collector.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH))
-            return (R)collect(collector.supplier(), collector.longAccumulator(), collector.merger());
-        return collector.finisher().apply(collect(collector.supplier(), collector.longAccumulator(), collector.merger()));
+        if (collector.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH))
+            return (R) collect(collector.supplier(), collector.longAccumulator(), collector.merger());
+        return collector.finisher().apply(
+                collect(collector.supplier(), collector.longAccumulator(), collector.merger()));
     }
 
     @Override
@@ -1030,7 +1031,6 @@ public class LongStreamEx implements LongStream {
      * @since 0.2.1
      */
     public static LongStreamEx zip(long[] first, long[] second, LongBinaryOperator mapper) {
-        return intStreamForLength(first.length, second.length).mapToLong(
-                i -> mapper.applyAsLong(first[i], second[i]));
+        return intStreamForLength(first.length, second.length).mapToLong(i -> mapper.applyAsLong(first[i], second[i]));
     }
 }
