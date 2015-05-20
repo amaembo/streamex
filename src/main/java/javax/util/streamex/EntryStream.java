@@ -224,6 +224,24 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         }));
     }
 
+    /**
+     * Returns a stream consisting of the results of replacing each element of
+     * this stream with the contents of a mapped stream produced by applying the
+     * provided mapping function to each key-value pair. Each mapped stream is
+     * closed after its contents have been placed into this stream. (If a mapped
+     * stream is {@code null} an empty stream is used, instead.)
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param <R>
+     *            The element type of the new stream
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each
+     *            key-value pair which produces a stream of new values
+     * @return the new stream
+     * @since 0.3.0
+     */
     public <R> StreamEx<R> flatMapKeyValue(BiFunction<? super K, ? super V, ? extends Stream<? extends R>> mapper) {
         return flatMap(toFunction(mapper));
     }
