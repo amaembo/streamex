@@ -128,4 +128,9 @@ public class DoubleCollectorTest {
                         .collect(DoubleCollector.of(Collectors.summarizingDouble(Double::doubleValue))).getAverage(),
                 0.000001);
     }
+    
+    @Test
+    public void testReducing() {
+        assertEquals(7.0, DoubleStreamEx.of(1.0, 2.0, 3.5).collect(DoubleCollector.reducing(1.0, (a, b) -> a * b)), 0.0);
+    }
 }
