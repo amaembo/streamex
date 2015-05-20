@@ -251,6 +251,15 @@ public interface LongCollector<A, R> extends Collector<Long, A, R> {
                 collector.finisher().andThen(finisher));
     }
 
+    /**
+     * Returns a {@code LongCollector} which performs a reduction of its input
+     * numbers under a specified {@link LongBinaryOperator}. The result is
+     * described as an {@link OptionalLong}.
+     *
+     * @param op
+     *            a {@code LongBinaryOperator} used to reduce the input numbers
+     * @return a {@code LongCollector} which implements the reduction operation.
+     */
     static LongCollector<?, OptionalLong> reducing(LongBinaryOperator op) {
         return of(() -> new long[2], (box, i) -> {
             if (box[1] == 0) {
@@ -271,6 +280,18 @@ public interface LongCollector<A, R> extends Collector<Long, A, R> {
         }, box -> box[1] == 1 ? OptionalLong.of(box[0]) : OptionalLong.empty());
     }
 
+    /**
+     * Returns a {@code LongCollector} which performs a reduction of its input
+     * numbers under a specified {@code IntBinaryOperator} using the provided
+     * identity.
+     *
+     * @param identity
+     *            the identity value for the reduction (also, the value that is
+     *            returned when there are no input elements)
+     * @param op
+     *            a {@code LongBinaryOperator} used to reduce the input numbers
+     * @return a {@code LongCollector} which implements the reduction operation
+     */
     static LongCollector<?, Long> reducing(long identity, LongBinaryOperator op) {
         return of(() -> new long[] { identity }, (box, i) -> box[0] = op.applyAsLong(box[0], i),
                 (box1, box2) -> box1[0] = op.applyAsLong(box1[0], box2[0]), UNBOX_LONG);

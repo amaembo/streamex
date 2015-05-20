@@ -33,7 +33,6 @@ import java.util.function.IntUnaryOperator;
 import java.util.function.ObjIntConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
-
 import static javax.util.streamex.StreamExInternals.*;
 
 /**
@@ -252,6 +251,15 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
                 collector.finisher().andThen(finisher));
     }
 
+    /**
+     * Returns an {@code IntCollector} which performs a reduction of its input
+     * numbers under a specified {@link IntBinaryOperator}. The result is
+     * described as an {@link OptionalInt}.
+     *
+     * @param op
+     *            an {@code IntBinaryOperator} used to reduce the input numbers
+     * @return an {@code IntCollector} which implements the reduction operation.
+     */
     static IntCollector<?, OptionalInt> reducing(IntBinaryOperator op) {
         return of(() -> new int[2], (box, i) -> {
             if (box[1] == 0) {
@@ -272,6 +280,18 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
         }, box -> box[1] == 1 ? OptionalInt.of(box[0]) : OptionalInt.empty());
     }
 
+    /**
+     * Returns an {@code IntCollector} which performs a reduction of its input
+     * numbers under a specified {@code IntBinaryOperator} using the provided
+     * identity.
+     *
+     * @param identity
+     *            the identity value for the reduction (also, the value that is
+     *            returned when there are no input elements)
+     * @param op
+     *            an {@code IntBinaryOperator} used to reduce the input numbers
+     * @return an {@code IntCollector} which implements the reduction operation
+     */
     static IntCollector<?, Integer> reducing(int identity, IntBinaryOperator op) {
         return of(() -> new int[] { identity }, (box, i) -> box[0] = op.applyAsInt(box[0], i),
                 (box1, box2) -> box1[0] = op.applyAsInt(box1[0], box2[0]), UNBOX_INT);

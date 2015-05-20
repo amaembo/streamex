@@ -29,6 +29,7 @@ import java.util.function.DoublePredicate;
 import java.util.function.Function;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
+import java.util.function.LongBinaryOperator;
 import java.util.function.ObjDoubleConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
@@ -253,6 +254,17 @@ public interface DoubleCollector<A, R> extends Collector<Double, A, R> {
                 .andThen(finisher));
     }
 
+    /**
+     * Returns a {@code DoubleCollector} which performs a reduction of its input
+     * numbers under a specified {@link LongBinaryOperator}. The result is
+     * described as an {@link OptionalDouble}.
+     *
+     * @param op
+     *            a {@code DoubleBinaryOperator} used to reduce the input
+     *            numbers
+     * @return a {@code DoubleCollector} which implements the reduction
+     *         operation.
+     */
     static DoubleCollector<?, OptionalDouble> reducing(DoubleBinaryOperator op) {
         return of(() -> new double[2], (box, i) -> {
             if (box[1] == 0) {
@@ -273,6 +285,20 @@ public interface DoubleCollector<A, R> extends Collector<Double, A, R> {
         }, box -> box[1] == 1 ? OptionalDouble.of(box[0]) : OptionalDouble.empty());
     }
 
+    /**
+     * Returns a {@code DoubleCollector} which performs a reduction of its input
+     * numbers under a specified {@code IntBinaryOperator} using the provided
+     * identity.
+     *
+     * @param identity
+     *            the identity value for the reduction (also, the value that is
+     *            returned when there are no input elements)
+     * @param op
+     *            a {@code DoubleBinaryOperator} used to reduce the input
+     *            numbers
+     * @return a {@code DoubleCollector} which implements the reduction
+     *         operation
+     */
     static DoubleCollector<?, Double> reducing(double identity, DoubleBinaryOperator op) {
         return of(() -> new double[] { identity }, (box, i) -> box[0] = op.applyAsDouble(box[0], i),
                 (box1, box2) -> box1[0] = op.applyAsDouble(box1[0], box2[0]), UNBOX_DOUBLE);
