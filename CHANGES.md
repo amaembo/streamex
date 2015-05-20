@@ -1,6 +1,6 @@
 # StreamEx changes
 
-### 0.2.4
+### 0.3.0
 
 * Added flatMapToInt/flatMapToLong/flatMapToDouble/flatMapToObj to primitive streams
 * Added IntStreamEx.toCharArray/toShortArray/toByteArray methods

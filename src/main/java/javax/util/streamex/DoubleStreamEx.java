@@ -774,7 +774,7 @@ public class DoubleStreamEx implements DoubleStream {
      * This is a terminal operation.
      *
      * @return an array containing the elements of this stream
-     * @since 0.2.4
+     * @since 0.3.0
      */
     public float[] toFloatArray() {
         if (isParallel())

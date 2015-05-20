@@ -916,7 +916,7 @@ public class IntStreamEx implements IntStream {
      * This is a terminal operation.
      *
      * @return an array containing the elements of this stream
-     * @since 0.2.4
+     * @since 0.3.0
      */
     public byte[] toByteArray() {
         return collectSized(ByteBuffer::new, ByteBuffer::add, ByteBuffer::addAll, ByteBuffer::new,
@@ -931,7 +931,7 @@ public class IntStreamEx implements IntStream {
      * This is a terminal operation.
      *
      * @return an array containing the elements of this stream
-     * @since 0.2.4
+     * @since 0.3.0
      */
     public char[] toCharArray() {
         return collectSized(CharBuffer::new, CharBuffer::add, CharBuffer::addAll, CharBuffer::new,
@@ -946,7 +946,7 @@ public class IntStreamEx implements IntStream {
      * This is a terminal operation.
      *
      * @return an array containing the elements of this stream
-     * @since 0.2.4
+     * @since 0.3.0
      */
     public short[] toShortArray() {
         return collectSized(ShortBuffer::new, ShortBuffer::add, ShortBuffer::addAll, ShortBuffer::new,
