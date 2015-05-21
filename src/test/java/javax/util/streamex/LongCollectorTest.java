@@ -93,7 +93,10 @@ public class LongCollectorTest {
         oddEven = LongStreamEx.range(2000).parallel().collect(LongCollector.partitioningBy(i -> i % 2 == 0));
         assertArrayEquals(expectedEven, oddEven.get(true));
         assertArrayEquals(expectedOdd, oddEven.get(false));
-        
+    }
+    
+    @Test
+    public void testParts() {
         Map<Boolean, String> parts = LongStreamEx
                 .range(10)
                 .parallel()

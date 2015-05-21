@@ -116,7 +116,10 @@ public class IntCollectorTest {
         int[] ints = IntStreamEx.range(1000).toArray();
         assertArrayEquals(ints, oddEven.get(true));
         assertArrayEquals(ints, oddEven.get(false));
-
+    }
+    
+    @Test
+    public void testSumBySign() {
         int[] input = new Random(1).ints(2000, -1000, 1000).toArray();
         Map<Boolean, Integer> sums = IntStreamEx.of(input).collect(
                 IntCollector.partitioningBy(i -> i > 0, IntCollector.summing()));
@@ -143,7 +146,10 @@ public class IntCollectorTest {
         assertEquals("{0, 3, 6, 9}", mapBitSet.get(0).toString());
         assertEquals("{1, 4, 7}", mapBitSet.get(1).toString());
         assertEquals("{2, 5, 8}", mapBitSet.get(2).toString());
-
+    }
+    
+    @Test
+    public void testByDigit() {
         int[] input = new Random(1).ints(2000, -1000, 1000).toArray();
         Map<Integer, List<Integer>> groups = IntStreamEx.of(input).collect(
                 IntCollector.groupingBy(i -> i % 10, IntCollector.of(Collectors.toList())));
