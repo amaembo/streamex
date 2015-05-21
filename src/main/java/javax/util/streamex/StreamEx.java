@@ -168,7 +168,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *            a non-interfering, stateless function to apply to each element
      * @return the new stream
      */
-    public <V> EntryStream<T, V> mapToEntry(Function<T, V> valueMapper) {
+    public <V> EntryStream<T, V> mapToEntry(Function<? super T, ? extends V> valueMapper) {
         return strategy().newEntryStream(stream.map(e -> new SimpleImmutableEntry<>(e, valueMapper.apply(e))));
     }
 
@@ -190,12 +190,13 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *            a non-interfering, stateless function to apply to each element
      * @return the new stream
      */
-    public <K, V> EntryStream<K, V> mapToEntry(Function<T, K> keyMapper, Function<T, V> valueMapper) {
+    public <K, V> EntryStream<K, V> mapToEntry(Function<? super T, ? extends K> keyMapper,
+            Function<? super T, ? extends V> valueMapper) {
         return strategy().newEntryStream(
                 stream.map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e), valueMapper.apply(e))));
     }
 
-    public <K, V> EntryStream<K, V> flatMapToEntry(Function<? super T, Map<K, V>> mapper) {
+    public <K, V> EntryStream<K, V> flatMapToEntry(Function<? super T, ? extends Map<K, V>> mapper) {
         return strategy().newEntryStream(stream.flatMap(e -> {
             Map<K, V> s = mapper.apply(e);
             return s == null ? null : s.entrySet().stream();
@@ -252,7 +253,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return the new {@code EntryStream}
      * @since 0.2.3
      */
-    public <V> EntryStream<T, V> cross(Collection<V> other) {
+    public <V> EntryStream<T, V> cross(Collection<? extends V> other) {
         if (other.isEmpty())
             return strategy().<T, V> newEntryStream(Stream.empty()).onClose(stream::close);
         return strategy()
@@ -275,7 +276,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return the new {@code EntryStream}
      * @since 0.2.3
      */
-    public <V> EntryStream<T, V> cross(Function<T, Stream<V>> mapper) {
+    public <V> EntryStream<T, V> cross(Function<? super T, ? extends Stream<? extends V>> mapper) {
         return strategy().newEntryStream(
                 stream.flatMap(a -> mapper.apply(a).map(b -> new SimpleImmutableEntry<>(a, b))));
     }
@@ -652,7 +653,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Collectors#toConcurrentMap(Function, Function)
      * @see #toMap(Function, Function)
      */
-    public <V> Map<T, V> toMap(Function<T, V> valMapper) {
+    public <V> Map<T, V> toMap(Function<? super T, ? extends V> valMapper) {
         return toMap(Function.identity(), valMapper);
     }
 
@@ -689,7 +690,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Collectors#toConcurrentMap(Function, Function)
      * @see #toMap(Function)
      */
-    public <K, V> Map<K, V> toMap(Function<T, K> keyMapper, Function<T, V> valMapper) {
+    public <K, V> Map<K, V> toMap(Function<? super T, ? extends K> keyMapper, Function<? super T, ? extends V> valMapper) {
         return toMap(keyMapper, valMapper, throwingMerger());
     }
 
@@ -734,7 +735,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see #toMap(Function, Function)
      * @since 0.1.0
      */
-    public <K, V> Map<K, V> toMap(Function<T, K> keyMapper, Function<T, V> valMapper, BinaryOperator<V> mergeFunction) {
+    public <K, V> Map<K, V> toMap(Function<? super T, ? extends K> keyMapper,
+            Function<? super T, ? extends V> valMapper, BinaryOperator<V> mergeFunction) {
         if (stream.isParallel())
             return collect(Collectors.toConcurrentMap(keyMapper, valMapper, mergeFunction, ConcurrentHashMap::new));
         return collect(Collectors.toMap(keyMapper, valMapper, mergeFunction, HashMap::new));
@@ -772,7 +774,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see #toSortedMap(Function, Function)
      * @since 0.1.0
      */
-    public <V> SortedMap<T, V> toSortedMap(Function<T, V> valMapper) {
+    public <V> SortedMap<T, V> toSortedMap(Function<? super T, ? extends V> valMapper) {
         return toSortedMap(Function.identity(), valMapper);
     }
 
@@ -810,7 +812,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see #toSortedMap(Function)
      * @since 0.1.0
      */
-    public <K, V> SortedMap<K, V> toSortedMap(Function<T, K> keyMapper, Function<T, V> valMapper) {
+    public <K, V> SortedMap<K, V> toSortedMap(Function<? super T, ? extends K> keyMapper,
+            Function<? super T, ? extends V> valMapper) {
         return toSortedMap(keyMapper, valMapper, throwingMerger());
     }
 
@@ -855,8 +858,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see #toSortedMap(Function, Function)
      * @since 0.1.0
      */
-    public <K, V> SortedMap<K, V> toSortedMap(Function<T, K> keyMapper, Function<T, V> valMapper,
-            BinaryOperator<V> mergeFunction) {
+    public <K, V> SortedMap<K, V> toSortedMap(Function<? super T, ? extends K> keyMapper,
+            Function<? super T, ? extends V> valMapper, BinaryOperator<V> mergeFunction) {
         if (stream.isParallel())
             return collect(Collectors.toConcurrentMap(keyMapper, valMapper, mergeFunction, ConcurrentSkipListMap::new));
         return collect(Collectors.toMap(keyMapper, valMapper, mergeFunction, TreeMap::new));
@@ -1001,10 +1004,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return the new stream
      * @since 0.2.1
      */
-    public <R> StreamEx<R> pairMap(BiFunction<T, T, R> mapper) {
+    public <R> StreamEx<R> pairMap(BiFunction<? super T, ? super T, ? extends R> mapper) {
         return strategy().newStreamEx(
                 StreamSupport.stream(
-                        new PairSpliterator.PSOfRef<>(mapper, stream.spliterator(), null, false, null, false),
+                        new PairSpliterator.PSOfRef<T, R>(mapper, stream.spliterator(), null, false, null, false),
                         stream.isParallel()).onClose(stream::close));
     }
 
@@ -1435,7 +1438,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *             if length of the lists differs.
      * @since 0.2.1
      */
-    public static <U, V, T> StreamEx<T> zip(List<U> first, List<V> second, BiFunction<U, V, T> mapper) {
+    public static <U, V, T> StreamEx<T> zip(List<U> first, List<V> second,
+            BiFunction<? super U, ? super V, ? extends T> mapper) {
         return intStreamForLength(first.size(), second.size()).mapToObj(i -> mapper.apply(first.get(i), second.get(i)));
     }
 
@@ -1462,7 +1466,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *             if length of the arrays differs.
      * @since 0.2.1
      */
-    public static <U, V, T> StreamEx<T> zip(U[] first, V[] second, BiFunction<U, V, T> mapper) {
+    public static <U, V, T> StreamEx<T> zip(U[] first, V[] second, BiFunction<? super U, ? super V, ? extends T> mapper) {
         return zip(Arrays.asList(first), Arrays.asList(second), mapper);
     }
 

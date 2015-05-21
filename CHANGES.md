@@ -7,6 +7,8 @@
 * Added EntryStream.flatMapKeyValue method
 * Added IntStreamEx.toCharArray/toShortArray/toByteArray methods
 * Added DoubleStreamEx.toFloatArray method
+* Generic arguments for many methods are relaxed allowing more flexible usage
+* Updated documentation
 
 ### 0.2.3
 
