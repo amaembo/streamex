@@ -86,14 +86,16 @@ public class LongStreamExTest {
     public void testPrepend() {
         assertArrayEquals(new long[] { -1, 0, 1, 2, 3 }, LongStreamEx.of(1, 2, 3).prepend(-1, 0).toArray());
         assertArrayEquals(new long[] { 1, 2, 3 }, LongStreamEx.of(1, 2, 3).prepend().toArray());
-        assertArrayEquals(new long[] { 10, 11, 0, 1, 2, 3 }, LongStreamEx.range(0, 4).prepend(LongStreamEx.range(10, 12)).toArray());
+        assertArrayEquals(new long[] { 10, 11, 0, 1, 2, 3 },
+                LongStreamEx.range(0, 4).prepend(LongStreamEx.range(10, 12)).toArray());
     }
 
     @Test
     public void testAppend() {
         assertArrayEquals(new long[] { 1, 2, 3, 4, 5 }, LongStreamEx.of(1, 2, 3).append(4, 5).toArray());
         assertArrayEquals(new long[] { 1, 2, 3 }, LongStreamEx.of(1, 2, 3).append().toArray());
-        assertArrayEquals(new long[] { 0, 1, 2, 3, 10, 11 }, LongStreamEx.range(0, 4).append(LongStreamEx.range(10, 12)).toArray());
+        assertArrayEquals(new long[] { 0, 1, 2, 3, 10, 11 }, LongStreamEx.range(0, 4)
+                .append(LongStreamEx.range(10, 12)).toArray());
     }
 
     @Test
@@ -110,18 +112,16 @@ public class LongStreamExTest {
 
     @Test
     public void testRanges() {
-        assertArrayEquals(new long[] { 5, 4, Long.MAX_VALUE }, LongStreamEx.of(1, 5, 3, 4, -1, Long.MAX_VALUE)
-                .greater(3).toArray());
-        assertArrayEquals(new long[] { }, LongStreamEx.of(1, 5, 3, 4, -1, Long.MAX_VALUE)
-                .greater(Long.MAX_VALUE).toArray());
+        assertArrayEquals(new long[] { 5, 4, Long.MAX_VALUE },
+                LongStreamEx.of(1, 5, 3, 4, -1, Long.MAX_VALUE).greater(3).toArray());
+        assertArrayEquals(new long[] {}, LongStreamEx.of(1, 5, 3, 4, -1, Long.MAX_VALUE).greater(Long.MAX_VALUE)
+                .toArray());
         assertArrayEquals(new long[] { 5, 3, 4, Long.MAX_VALUE }, LongStreamEx.of(1, 5, 3, 4, -1, Long.MAX_VALUE)
                 .atLeast(3).toArray());
-        assertArrayEquals(new long[] { Long.MAX_VALUE }, LongStreamEx.of(1, 5, 3, 4, -1, Long.MAX_VALUE)
-                .atLeast(Long.MAX_VALUE).toArray());
-        assertArrayEquals(new long[] { 1, -1 }, LongStreamEx.of(1, 5, 3, 4, -1, Long.MAX_VALUE)
-                .less(3).toArray());
-        assertArrayEquals(new long[] { 1, 3, -1 }, LongStreamEx.of(1, 5, 3, 4, -1, Long.MAX_VALUE)
-                .atMost(3).toArray());
+        assertArrayEquals(new long[] { Long.MAX_VALUE },
+                LongStreamEx.of(1, 5, 3, 4, -1, Long.MAX_VALUE).atLeast(Long.MAX_VALUE).toArray());
+        assertArrayEquals(new long[] { 1, -1 }, LongStreamEx.of(1, 5, 3, 4, -1, Long.MAX_VALUE).less(3).toArray());
+        assertArrayEquals(new long[] { 1, 3, -1 }, LongStreamEx.of(1, 5, 3, 4, -1, Long.MAX_VALUE).atMost(3).toArray());
     }
 
     @Test
@@ -168,5 +168,10 @@ public class LongStreamExTest {
         assertArrayEquals(new long[] { 6, 7, 8, 9, 10 }, LongStreamEx.of(1, 5, 2, 6, 3, 7).pairMap(Long::sum).toArray());
         assertArrayEquals(LongStreamEx.range(999).map(x -> x * 2 + 1).toArray(), LongStreamEx.range(1000).parallel()
                 .map(x -> x * x).pairMap((a, b) -> b - a).toArray());
+
+        assertArrayEquals(LongStreamEx.range(1, 100).toArray(), LongStreamEx.range(100).map(i -> i * (i + 1) / 2)
+                .append(LongStream.empty()).parallel().pairMap((a, b) -> b - a).toArray());
+        assertArrayEquals(LongStreamEx.range(1, 100).toArray(), LongStreamEx.range(100).map(i -> i * (i + 1) / 2)
+                .prepend(LongStream.empty()).parallel().pairMap((a, b) -> b - a).toArray());
     }
 }

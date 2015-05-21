@@ -22,6 +22,8 @@ import java.util.OptionalDouble;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.DoubleStream;
+import java.util.stream.LongStream;
+
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -199,6 +201,13 @@ public class DoubleStreamExTest {
         assertEquals(984.0, IntStreamEx.of(data).asDoubleStream().parallel().pairMap((a, b) -> Math.abs(a - b)).max()
                 .getAsDouble(), 0.0);
         assertArrayEquals(new double[] {1.0, 1.0}, DoubleStreamEx.of(1.0, 2.0, 3.0).append().parallel().pairMap((a, b) -> b - a).toArray(), 0.0);
+
+        assertArrayEquals(LongStreamEx.range(1, 100).asDoubleStream().toArray(),
+                LongStreamEx.range(100).map(i -> i * (i + 1) / 2).append(LongStream.empty()).asDoubleStream()
+                        .parallel().pairMap((a, b) -> b - a).toArray(), 0.0);
+        assertArrayEquals(LongStreamEx.range(1, 100).asDoubleStream().toArray(),
+                LongStreamEx.range(100).map(i -> i * (i + 1) / 2).prepend(LongStream.empty()).asDoubleStream()
+                        .parallel().pairMap((a, b) -> b - a).toArray(), 0.0);
     }
     
     @Test
