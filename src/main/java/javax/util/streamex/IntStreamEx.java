@@ -281,11 +281,63 @@ public class IntStreamEx implements IntStream {
         return stream.reduce(op);
     }
 
+    /**
+     * Performs a mutable reduction operation on the elements of this stream. A
+     * mutable reduction is one in which the reduced value is a mutable result
+     * container, such as an {@code ArrayList}, and elements are incorporated by
+     * updating the state of the result rather than by replacing the result.
+     *
+     * <p>
+     * Like {@link #reduce(int, IntBinaryOperator)}, {@code collect} operations
+     * can be parallelized without requiring additional synchronization.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param <R>
+     *            type of the result
+     * @param supplier
+     *            a function that creates a new result container. For a parallel
+     *            execution, this function may be called multiple times and must
+     *            return a fresh value each time.
+     * @param accumulator
+     *            an associative, non-interfering, stateless function for
+     *            incorporating an additional element into a result
+     * @param combiner
+     *            an associative, non-interfering, stateless function for
+     *            combining two values, which must be compatible with the
+     *            accumulator function
+     * @return the result of the reduction
+     * @see #collect(IntCollector)
+     */
     @Override
     public <R> R collect(Supplier<R> supplier, ObjIntConsumer<R> accumulator, BiConsumer<R, R> combiner) {
         return stream.collect(supplier, accumulator, combiner);
     }
 
+    /**
+     * Performs a mutable reduction operation on the elements of this stream
+     * using an {@link IntCollector} which encapsulates the supplier,
+     * accumulator and merger functions making easier to reuse collection
+     * strategies.
+     *
+     * <p>
+     * Like {@link #reduce(int, IntBinaryOperator)}, {@code collect} operations
+     * can be parallelized without requiring additional synchronization.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param <A>
+     *            the intermediate accumulation type of the {@code IntCollector}
+     * @param <R>
+     *            type of the result
+     * @param collector
+     *            the {@code IntCollector} describing the reduction
+     * @return the result of the reduction
+     * @see #collect(Supplier, ObjIntConsumer, BiConsumer)
+     * @since 0.3.0
+     */
     @SuppressWarnings("unchecked")
     public <A, R> R collect(IntCollector<A, R> collector) {
         if (collector.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH))
