@@ -246,9 +246,27 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
                 box1, box2) -> box1[0] = combiner.apply((A) box1[0], (A) box2[0]), box -> finisher.apply((A) box[0]));
     }
 
-    static <A, R, RR> IntCollector<A, RR> collectingAndThen(IntCollector<A, R> collector, Function<R, RR> finisher) {
-        return of(collector.supplier(), collector.intAccumulator(), collector.merger(),
-                collector.finisher().andThen(finisher));
+    /**
+     * Adapts an {@code IntCollector} to perform an additional finishing
+     * transformation.
+     *
+     * @param <A>
+     *            intermediate accumulation type of the downstream collector
+     * @param <R>
+     *            result type of the downstream collector
+     * @param <RR>
+     *            result type of the resulting collector
+     * @param downstream
+     *            a collector
+     * @param finisher
+     *            a function to be applied to the final result of the downstream
+     *            collector
+     * @return a collector which performs the action of the downstream
+     *         collector, followed by an additional finishing step
+     */
+    static <A, R, RR> IntCollector<A, RR> collectingAndThen(IntCollector<A, R> downstream, Function<R, RR> finisher) {
+        return of(downstream.supplier(), downstream.intAccumulator(), downstream.merger(), downstream.finisher()
+                .andThen(finisher));
     }
 
     /**
