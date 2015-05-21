@@ -886,7 +886,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return the new stream
      * @since 0.2.1
      */
-    public StreamEx<T> append(Collection<T> collection) {
+    public StreamEx<T> append(Collection<? extends T> collection) {
         if (collection.isEmpty())
             return this;
         return append(collection.stream());
@@ -916,7 +916,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return the new stream
      * @since 0.2.1
      */
-    public StreamEx<T> prepend(Collection<T> collection) {
+    public StreamEx<T> prepend(Collection<? extends T> collection) {
         if (collection.isEmpty())
             return this;
         return prepend(collection.stream());

@@ -337,6 +337,9 @@ public class StreamExTest {
                 StreamEx.of("a", "b", "c").append(Arrays.asList("d", "e").stream()).toList());
         assertEquals(Arrays.asList("a", "b", "c", "d", "e"), StreamEx.of("a", "b", "c").append(Arrays.asList("d", "e"))
                 .toList());
+        
+        List<Integer> list = Arrays.asList(1, 2, 3, 4);
+        assertEquals(Arrays.asList(1.0, 2, 3L, 1, 2, 3, 4), StreamEx.of(1.0, 2, 3L).append(list).toList());
     }
 
     @Test
@@ -496,11 +499,11 @@ public class StreamExTest {
         StreamEx<String> stream = StreamEx.of("a", "b").onClose(() -> flag.set(true)).pairMap(String::concat);
         stream.close();
         assertTrue(flag.get());
-        assertEquals(Collections.singletonMap(1, 9999L), IntStreamEx.range(10000).boxed().pairMap((a, b) -> b - a)
+        assertEquals(Collections.singletonMap(1, 1999L), IntStreamEx.range(2000).boxed().pairMap((a, b) -> b - a)
                 .groupingBy(Function.identity(), Collectors.counting()));
         assertEquals(
-                Collections.singletonMap(1, 9999L),
-                IntStreamEx.range(10000).parallel().boxed().pairMap((a, b) -> b - a)
+                Collections.singletonMap(1, 1999L),
+                IntStreamEx.range(2000).parallel().boxed().pairMap((a, b) -> b - a)
                         .groupingBy(Function.identity(), Collectors.counting()));
         Integer[] data = new Random(1).ints(1000, 1, 1000).boxed().toArray(Integer[]::new);
         Double[] expected = new Double[data.length - 1];
