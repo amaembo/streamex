@@ -4,10 +4,11 @@
 
 * Added primitive collectors: IntCollector, LongCollector, DoubleCollector
 * Added flatMapToInt/flatMapToLong/flatMapToDouble/flatMapToObj to primitive streams
-* Added EntryStream.flatMapKeyValue method
+* Added EntryStream.flatMapKeyValue/filterKeyValue/mapToKey/mapToValue methods
 * Added IntStreamEx.toCharArray/toShortArray/toByteArray methods
 * Added DoubleStreamEx.toFloatArray method
 * Generic arguments for many methods are relaxed allowing more flexible usage
+* Methods EntryStream.mapEntryKeys/mapEntryValues are declared as deprecated and may be removed in future releases!
 * Updated documentation
 
 ### 0.2.3

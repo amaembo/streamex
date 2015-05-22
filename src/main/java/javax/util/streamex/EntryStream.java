@@ -30,6 +30,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -149,24 +150,6 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     public EntryStream<K, V> parallel(ForkJoinPool fjp) {
         return StreamFactory.forCustomPool(fjp).newEntryStream(stream.parallel());
-    }
-
-    /**
-     * Returns a {@link StreamEx} consisting of the results of applying the
-     * given function to the keys and values of this stream.
-     *
-     * <p>
-     * This is an intermediate operation.
-     *
-     * @param <R>
-     *            The element type of the new stream
-     * @param mapper
-     *            a non-interfering, stateless function to apply to key and
-     *            value of each {@link Entry} in this stream
-     * @return the new stream
-     */
-    public <R> StreamEx<R> mapKeyValue(BiFunction<? super K, ? super V, ? extends R> mapper) {
-        return map(toFunction(mapper));
     }
 
     /**
@@ -398,14 +381,48 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
                 stream.map(e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e.getValue()))));
     }
 
+    /**
+     * Returns a {@link StreamEx} consisting of the results of applying the
+     * given function to the keys and values of this stream.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param <R>
+     *            The element type of the new stream
+     * @param mapper
+     *            a non-interfering, stateless function to apply to key and
+     *            value of each {@link Entry} in this stream
+     * @return the new stream
+     */
+    public <R> StreamEx<R> mapKeyValue(BiFunction<? super K, ? super V, ? extends R> mapper) {
+        return map(toFunction(mapper));
+    }
+
+    /**
+     * @deprecated use {@link #mapToKey(BiFunction)}
+     */
+    @Deprecated
     public <KK> EntryStream<KK, V> mapEntryKeys(Function<? super Entry<K, V>, ? extends KK> keyMapper) {
         return strategy().newEntryStream(stream.map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e), e.getValue())));
     }
 
+    /**
+     * @deprecated use {@link #mapToValue(BiFunction)}
+     */
+    @Deprecated
     public <VV> EntryStream<K, VV> mapEntryValues(Function<? super Entry<K, V>, ? extends VV> valueMapper) {
         return strategy().newEntryStream(stream.map(e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e))));
     }
 
+    public <KK> EntryStream<KK, V> mapToKey(BiFunction<? super K, ? super V, ? extends KK> keyMapper) {
+        return strategy().newEntryStream(stream.map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e.getKey(), e.getValue()), e.getValue())));
+    }
+    
+    public <VV> EntryStream<K, VV> mapToValue(BiFunction<? super K, ? super V, ? extends VV> valueMapper) {
+        return strategy().newEntryStream(stream.map(e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e.getKey(), e.getValue()))));
+    }
+    
     /**
      * Returns a stream consisting of the {@link Entry} objects which keys are
      * the values of this stream elements and vice versa
@@ -449,6 +466,24 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     public EntryStream<K, V> filterValues(Predicate<? super V> valuePredicate) {
         return filter(e -> valuePredicate.test(e.getValue()));
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream which elements
+     * match the given predicate.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param predicate
+     *            a non-interfering, stateless predicate to apply to the
+     *            key-value pairs of each element to determine if it should be
+     *            included
+     * @return the new stream
+     * @since 0.3.0
+     */
+    public EntryStream<K, V> filterKeyValue(BiPredicate<? super K, ? super V> predicate) {
+        return filter(e -> predicate.test(e.getKey(), e.getValue()));
     }
 
     /**

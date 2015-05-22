@@ -33,6 +33,7 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import org.junit.Test;
 
@@ -92,6 +93,8 @@ public class EntryStreamTest {
                 .toMap());
         assertEquals(Collections.singletonMap("bb", 22), EntryStream.of(createMap()).filterValues(v -> v % 2 == 0)
                 .toMap());
+        assertEquals(Collections.singletonMap("ccc", 33),
+                EntryStream.of(createMap()).filterKeyValue((str, num) -> !str.equals("a") && num != 22).toMap());
     }
     
     @Test
@@ -155,13 +158,28 @@ public class EntryStreamTest {
     }
 
     @Test
-    public void testMapEntryValues() {
+    public void testMapToValue() {
         Map<String, Integer> expected = new HashMap<>();
         expected.put("a", 2);
         expected.put("bb", 24);
         expected.put("ccc", 36);
         Map<String, Integer> result = EntryStream.of(createMap())
                 .mapEntryValues(e -> e.getKey().length() + e.getValue()).toMap();
+        assertEquals(expected, result);
+        result = EntryStream.of(createMap()).mapToValue((str, num) -> str.length() + num).toMap();
+        assertEquals(expected, result);
+    }
+
+    @Test
+    public void testMapToKey() {
+        Map<String, Integer> expected = new HashMap<>();
+        expected.put("a:1", 1);
+        expected.put("bb:22", 22);
+        expected.put("ccc:33", 33);
+        Map<String, Integer> result = EntryStream.of(createMap()).mapEntryKeys(e -> e.getKey() + ":" + e.getValue())
+                .toMap();
+        assertEquals(expected, result);
+        result = EntryStream.of(createMap()).mapToKey((str, num) -> str + ":" + num).toMap();
         assertEquals(expected, result);
     }
 
@@ -222,6 +240,8 @@ public class EntryStreamTest {
                 EntryStream.of(createMap()).flatMap(entry -> entry.getKey().chars().boxed()).toList());
         assertEquals(Arrays.asList("a", "b", "b", "c", "c", "c"),
                 EntryStream.of(createMap()).flatCollection(entry -> Arrays.asList(entry.getKey().split(""))).toList());
+        assertEquals(Arrays.asList("a", 1, "bb", 22, "ccc", 33),
+                EntryStream.of(createMap()).flatMapKeyValue((str, num) -> Stream.of(str, num)).toList());
     }
 
     @Test
