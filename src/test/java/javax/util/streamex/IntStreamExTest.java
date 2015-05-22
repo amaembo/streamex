@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.OptionalInt;
 import java.util.Random;
+import java.util.Spliterator;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -128,6 +129,9 @@ public class IntStreamExTest {
         assertEquals(6, IntStreamEx.of(1, 2, 3).reduce(Integer::sum).getAsInt());
         assertEquals(Integer.MAX_VALUE, IntStreamEx.rangeClosed(1, Integer.MAX_VALUE).spliterator()
                 .getExactSizeIfKnown());
+
+        assertTrue(IntStreamEx.of(1, 2, 3).spliterator().hasCharacteristics(Spliterator.ORDERED));
+        assertFalse(IntStreamEx.of(1, 2, 3).unordered().spliterator().hasCharacteristics(Spliterator.ORDERED));
     }
     
     @Test

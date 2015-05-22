@@ -18,6 +18,7 @@ package javax.util.streamex;
 import java.util.Arrays;
 import java.util.OptionalLong;
 import java.util.Random;
+import java.util.Spliterator;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.LongStream;
 
@@ -80,6 +81,9 @@ public class LongStreamExTest {
         assertArrayEquals(new long[] { 1, 3 }, LongStreamEx.range(0, 5).filter(x -> x % 2 == 1).toArray());
         assertEquals(6, LongStreamEx.of(1, 2, 3).reduce(Long::sum).getAsLong());
         assertEquals(Long.MAX_VALUE, LongStreamEx.rangeClosed(1, Long.MAX_VALUE).spliterator().getExactSizeIfKnown());
+
+        assertTrue(LongStreamEx.of(1, 2, 3).spliterator().hasCharacteristics(Spliterator.ORDERED));
+        assertFalse(LongStreamEx.of(1, 2, 3).unordered().spliterator().hasCharacteristics(Spliterator.ORDERED));
     }
 
     @Test
