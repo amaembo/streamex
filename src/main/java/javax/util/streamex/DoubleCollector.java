@@ -16,14 +16,11 @@
 package javax.util.streamex;
 
 import java.util.DoubleSummaryStatistics;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.OptionalDouble;
-import java.util.Set;
 import java.util.function.BiConsumer;
-import java.util.function.BinaryOperator;
 import java.util.function.DoubleFunction;
 import java.util.function.DoublePredicate;
 import java.util.function.Function;
@@ -49,7 +46,7 @@ import static javax.util.streamex.StreamExInternals.*;
  * @see DoubleStreamEx#collect(DoubleCollector)
  * @since 0.3.0
  */
-public interface DoubleCollector<A, R> extends Collector<Double, A, R> {
+public interface DoubleCollector<A, R> extends PrimitiveCollector<Double, A, R> {
     /**
      * A function that folds a value into a mutable result container.
      *
@@ -58,22 +55,13 @@ public interface DoubleCollector<A, R> extends Collector<Double, A, R> {
     ObjDoubleConsumer<A> doubleAccumulator();
 
     /**
-     * A function which merges the second container into the first container.
+     * A function that folds a value into a mutable result container.
      * 
-     * @return a function which merges the second container into the first
-     *         container.
+     * The default implementation calls {@link #doubleAccumulator()} on unboxed
+     * value.
+     *
+     * @return a function which folds a value into a mutable result container
      */
-    BiConsumer<A, A> merger();
-
-    @Override
-    default BinaryOperator<A> combiner() {
-        BiConsumer<A, A> merger = merger();
-        return (a, b) -> {
-            merger.accept(a, b);
-            return a;
-        };
-    }
-
     @Override
     default BiConsumer<A, Double> accumulator() {
         ObjDoubleConsumer<A> doubleAccumulator = doubleAccumulator();
@@ -82,71 +70,19 @@ public interface DoubleCollector<A, R> extends Collector<Double, A, R> {
 
     static <R> DoubleCollector<R, R> of(Supplier<R> supplier, ObjDoubleConsumer<R> doubleAccumulator,
             BiConsumer<R, R> merger) {
-        return new DoubleCollector<R, R>() {
-
-            @Override
-            public Supplier<R> supplier() {
-                return supplier;
-            }
-
-            @Override
-            public Function<R, R> finisher() {
-                return Function.identity();
-            }
-
-            @Override
-            public Set<Collector.Characteristics> characteristics() {
-                return EnumSet.of(Collector.Characteristics.IDENTITY_FINISH);
-            }
-
-            @Override
-            public ObjDoubleConsumer<R> doubleAccumulator() {
-                return doubleAccumulator;
-            }
-
-            @Override
-            public BiConsumer<R, R> merger() {
-                return merger;
-            }
-        };
+        return new DoubleCollectorImpl<>(supplier, doubleAccumulator, merger, Function.identity(), ID_CHARACTERISTICS);
     }
 
     static <A, R> DoubleCollector<?, R> of(Collector<Double, A, R> collector) {
         if (collector instanceof DoubleCollector) {
             return (DoubleCollector<A, R>) collector;
         }
-        return mappingToObj(i -> i, collector);
+        return mappingToObj(Double::valueOf, collector);
     }
 
     static <A, R> DoubleCollector<A, R> of(Supplier<A> supplier, ObjDoubleConsumer<A> doubleAccumulator,
             BiConsumer<A, A> merger, Function<A, R> finisher) {
-        return new DoubleCollector<A, R>() {
-
-            @Override
-            public Supplier<A> supplier() {
-                return supplier;
-            }
-
-            @Override
-            public Function<A, R> finisher() {
-                return finisher;
-            }
-
-            @Override
-            public Set<Collector.Characteristics> characteristics() {
-                return EnumSet.noneOf(Collector.Characteristics.class);
-            }
-
-            @Override
-            public ObjDoubleConsumer<A> doubleAccumulator() {
-                return doubleAccumulator;
-            }
-
-            @Override
-            public BiConsumer<A, A> merger() {
-                return merger;
-            }
-        };
+        return new DoubleCollectorImpl<>(supplier, doubleAccumulator, merger, finisher, NO_CHARACTERISTICS);
     }
 
     /**
@@ -192,7 +128,7 @@ public interface DoubleCollector<A, R> extends Collector<Double, A, R> {
      * @return a {@code DoubleCollector} that counts the input elements
      */
     static DoubleCollector<?, Long> counting() {
-        return of(() -> new long[1], (box, i) -> box[0]++, (box1, box2) -> box1[0] += box2[0], UNBOX_LONG);
+        return of(() -> new long[1], (box, i) -> box[0]++, SUM_LONG, UNBOX_LONG);
     }
 
     /**
@@ -215,7 +151,7 @@ public interface DoubleCollector<A, R> extends Collector<Double, A, R> {
      * @return a {@code DoubleCollector} that produces the minimal element.
      */
     static DoubleCollector<?, OptionalDouble> min() {
-        return reducing((a, b) -> Double.compare(a, b) > 0 ? b : a);
+        return reducing(Double::min);
     }
 
     /**
@@ -226,27 +162,20 @@ public interface DoubleCollector<A, R> extends Collector<Double, A, R> {
      * @return a {@code DoubleCollector} that produces the maximal element.
      */
     static DoubleCollector<?, OptionalDouble> max() {
-        return reducing((a, b) -> Double.compare(a, b) > 0 ? a : b);
+        return reducing(Double::max);
     }
 
-    @SuppressWarnings("unchecked")
     static <A, R> DoubleCollector<?, R> mapping(DoubleUnaryOperator mapper, DoubleCollector<A, R> downstream) {
         ObjDoubleConsumer<A> downstreamAccumulator = downstream.doubleAccumulator();
-        if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH))
-            return (DoubleCollector<?, R>) of(downstream.supplier(),
-                    (r, t) -> downstreamAccumulator.accept(r, mapper.applyAsDouble(t)), downstream.merger());
-        return of(downstream.supplier(), (r, t) -> downstreamAccumulator.accept(r, mapper.applyAsDouble(t)),
-                downstream.merger(), downstream.finisher());
+        return new DoubleCollectorImpl<>(downstream.supplier(), (r, t) -> downstreamAccumulator.accept(r,
+                mapper.applyAsDouble(t)), downstream.merger(), downstream.finisher(), downstream.characteristics());
     }
 
     @SuppressWarnings("unchecked")
     static <U, A, R> DoubleCollector<?, R> mappingToObj(DoubleFunction<U> mapper, Collector<U, A, R> downstream) {
-        Supplier<A> supplier = downstream.supplier();
         BiConsumer<A, U> accumulator = downstream.accumulator();
-        BinaryOperator<A> combiner = downstream.combiner();
-        Function<A, R> finisher = downstream.finisher();
-        return of(() -> new Object[] { supplier.get() }, (box, i) -> accumulator.accept((A) box[0], mapper.apply(i)), (
-                box1, box2) -> box1[0] = combiner.apply((A) box1[0], (A) box2[0]), box -> finisher.apply((A) box[0]));
+        return of(boxSupplier(downstream.supplier()), (box, i) -> accumulator.accept((A) box[0], mapper.apply(i)),
+                boxCombiner(downstream.combiner()), boxFinisher(downstream.finisher()));
     }
 
     /**

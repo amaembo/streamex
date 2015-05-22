@@ -18,6 +18,7 @@ package javax.util.streamex;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -25,14 +26,21 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
+import java.util.function.ObjDoubleConsumer;
+import java.util.function.ObjIntConsumer;
+import java.util.function.ObjLongConsumer;
 import java.util.function.Supplier;
+import java.util.stream.Collector.Characteristics;
 import java.util.stream.Stream;
 
 /* package */final class StreamExInternals {
     static final int INITIAL_SIZE = 128;
     static final Function<int[], Integer> UNBOX_INT = box -> box[0];
     static final Function<long[], Long> UNBOX_LONG = box -> box[0];
+    static final BiConsumer<long[], long[]> SUM_LONG = (box1, box2) -> box1[0] += box2[0];
     static final Function<double[], Double> UNBOX_DOUBLE = box -> box[0];
+    static final Set<Characteristics> NO_CHARACTERISTICS = EnumSet.noneOf(Characteristics.class);
+    static final Set<Characteristics> ID_CHARACTERISTICS = EnumSet.of(Characteristics.IDENTITY_FINISH);
 
     static final class ByteBuffer {
         int size = 0;
@@ -367,6 +375,146 @@ import java.util.stream.Stream;
             return par -> new BooleanMap<>(downstreamFinisher.apply(par.trueValue),
                     downstreamFinisher.apply(par.falseValue));
         }
+    }
+
+    static final class IntCollectorImpl<A, R> implements IntCollector<A, R> {
+        private final Supplier<A> supplier;
+        private final ObjIntConsumer<A> intAccumulator;
+        private final BiConsumer<A, A> merger;
+        private final Function<A, R> finisher;
+        private final Set<Characteristics> characteristics;
+
+        public IntCollectorImpl(Supplier<A> supplier, ObjIntConsumer<A> intAccumulator, BiConsumer<A, A> merger,
+                Function<A, R> finisher, Set<Characteristics> characteristics) {
+            this.supplier = supplier;
+            this.intAccumulator = intAccumulator;
+            this.merger = merger;
+            this.finisher = finisher;
+            this.characteristics = characteristics;
+        }
+
+        @Override
+        public Set<Characteristics> characteristics() {
+            return characteristics;
+        }
+
+        @Override
+        public Supplier<A> supplier() {
+            return supplier;
+        }
+
+        @Override
+        public Function<A, R> finisher() {
+            return finisher;
+        }
+
+        @Override
+        public ObjIntConsumer<A> intAccumulator() {
+            return intAccumulator;
+        }
+
+        @Override
+        public BiConsumer<A, A> merger() {
+            return merger;
+        }
+    }
+
+    static final class LongCollectorImpl<A, R> implements LongCollector<A, R> {
+        private final Supplier<A> supplier;
+        private final ObjLongConsumer<A> longAccumulator;
+        private final BiConsumer<A, A> merger;
+        private final Function<A, R> finisher;
+        private final Set<Characteristics> characteristics;
+
+        public LongCollectorImpl(Supplier<A> supplier, ObjLongConsumer<A> longAccumulator, BiConsumer<A, A> merger,
+                Function<A, R> finisher, Set<Characteristics> characteristics) {
+            this.supplier = supplier;
+            this.longAccumulator = longAccumulator;
+            this.merger = merger;
+            this.finisher = finisher;
+            this.characteristics = characteristics;
+        }
+
+        @Override
+        public Set<Characteristics> characteristics() {
+            return characteristics;
+        }
+
+        @Override
+        public Supplier<A> supplier() {
+            return supplier;
+        }
+
+        @Override
+        public Function<A, R> finisher() {
+            return finisher;
+        }
+
+        @Override
+        public ObjLongConsumer<A> longAccumulator() {
+            return longAccumulator;
+        }
+
+        @Override
+        public BiConsumer<A, A> merger() {
+            return merger;
+        }
+    }
+
+    static final class DoubleCollectorImpl<A, R> implements DoubleCollector<A, R> {
+        private final Supplier<A> supplier;
+        private final ObjDoubleConsumer<A> doubleAccumulator;
+        private final BiConsumer<A, A> merger;
+        private final Function<A, R> finisher;
+        private final Set<Characteristics> characteristics;
+
+        public DoubleCollectorImpl(Supplier<A> supplier, ObjDoubleConsumer<A> doubleAccumulator,
+                BiConsumer<A, A> merger, Function<A, R> finisher, Set<Characteristics> characteristics) {
+            this.supplier = supplier;
+            this.doubleAccumulator = doubleAccumulator;
+            this.merger = merger;
+            this.finisher = finisher;
+            this.characteristics = characteristics;
+        }
+
+        @Override
+        public Set<Characteristics> characteristics() {
+            return characteristics;
+        }
+
+        @Override
+        public Supplier<A> supplier() {
+            return supplier;
+        }
+
+        @Override
+        public Function<A, R> finisher() {
+            return finisher;
+        }
+
+        @Override
+        public ObjDoubleConsumer<A> doubleAccumulator() {
+            return doubleAccumulator;
+        }
+
+        @Override
+        public BiConsumer<A, A> merger() {
+            return merger;
+        }
+    }
+
+    static <A> Supplier<Object[]> boxSupplier(Supplier<A> supplier) {
+        return () -> new Object[] { supplier.get() };
+    }
+
+    @SuppressWarnings("unchecked")
+    static <A> BiConsumer<Object[], Object[]> boxCombiner(BinaryOperator<A> combiner) {
+        return (box1, box2) -> box1[0] = combiner.apply((A) box1[0], (A) box2[0]);
+    }
+
+    @SuppressWarnings("unchecked")
+    static <A, R> Function<Object[], R> boxFinisher(Function<A, R> finisher) {
+        return box -> finisher.apply((A) box[0]);
     }
 
     static BiConsumer<StringBuilder, StringBuilder> joinMerger(CharSequence delimiter) {

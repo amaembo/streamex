@@ -16,15 +16,12 @@
 package javax.util.streamex;
 
 import java.util.BitSet;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.IntSummaryStatistics;
 import java.util.Map;
 import java.util.Objects;
 import java.util.OptionalInt;
-import java.util.Set;
 import java.util.function.BiConsumer;
-import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.IntBinaryOperator;
 import java.util.function.IntFunction;
@@ -33,6 +30,7 @@ import java.util.function.IntUnaryOperator;
 import java.util.function.ObjIntConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
+
 import static javax.util.streamex.StreamExInternals.*;
 
 /**
@@ -48,7 +46,7 @@ import static javax.util.streamex.StreamExInternals.*;
  * @see IntStreamEx#collect(IntCollector)
  * @since 0.3.0
  */
-public interface IntCollector<A, R> extends Collector<Integer, A, R> {
+public interface IntCollector<A, R> extends PrimitiveCollector<Integer, A, R> {
     /**
      * A function that folds a value into a mutable result container.
      *
@@ -57,22 +55,13 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
     ObjIntConsumer<A> intAccumulator();
 
     /**
-     * A function which merges the second container into the first container.
+     * A function that folds a value into a mutable result container.
      * 
-     * @return a function which merges the second container into the first
-     *         container.
+     * The default implementation calls {@link #intAccumulator()} on unboxed
+     * value.
+     *
+     * @return a function which folds a value into a mutable result container
      */
-    BiConsumer<A, A> merger();
-
-    @Override
-    default BinaryOperator<A> combiner() {
-        BiConsumer<A, A> merger = merger();
-        return (a, b) -> {
-            merger.accept(a, b);
-            return a;
-        };
-    }
-
     @Override
     default BiConsumer<A, Integer> accumulator() {
         ObjIntConsumer<A> intAccumulator = intAccumulator();
@@ -80,71 +69,19 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
     }
 
     static <R> IntCollector<R, R> of(Supplier<R> supplier, ObjIntConsumer<R> intAccumulator, BiConsumer<R, R> merger) {
-        return new IntCollector<R, R>() {
-
-            @Override
-            public Supplier<R> supplier() {
-                return supplier;
-            }
-
-            @Override
-            public Function<R, R> finisher() {
-                return Function.identity();
-            }
-
-            @Override
-            public Set<Collector.Characteristics> characteristics() {
-                return EnumSet.of(Collector.Characteristics.IDENTITY_FINISH);
-            }
-
-            @Override
-            public ObjIntConsumer<R> intAccumulator() {
-                return intAccumulator;
-            }
-
-            @Override
-            public BiConsumer<R, R> merger() {
-                return merger;
-            }
-        };
+        return new IntCollectorImpl<>(supplier, intAccumulator, merger, Function.identity(), ID_CHARACTERISTICS);
     }
 
     static <A, R> IntCollector<?, R> of(Collector<Integer, A, R> collector) {
         if (collector instanceof IntCollector) {
             return (IntCollector<A, R>) collector;
         }
-        return mappingToObj(i -> i, collector);
+        return mappingToObj(Integer::valueOf, collector);
     }
 
     static <A, R> IntCollector<A, R> of(Supplier<A> supplier, ObjIntConsumer<A> intAccumulator,
             BiConsumer<A, A> merger, Function<A, R> finisher) {
-        return new IntCollector<A, R>() {
-
-            @Override
-            public Supplier<A> supplier() {
-                return supplier;
-            }
-
-            @Override
-            public Function<A, R> finisher() {
-                return finisher;
-            }
-
-            @Override
-            public ObjIntConsumer<A> intAccumulator() {
-                return intAccumulator;
-            }
-
-            @Override
-            public Set<Collector.Characteristics> characteristics() {
-                return EnumSet.noneOf(Collector.Characteristics.class);
-            }
-
-            @Override
-            public BiConsumer<A, A> merger() {
-                return merger;
-            }
-        };
+        return new IntCollectorImpl<>(supplier, intAccumulator, merger, finisher, NO_CHARACTERISTICS);
     }
 
     /**
@@ -190,7 +127,7 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
      * @return an {@code IntCollector} that counts the input elements
      */
     static IntCollector<?, Long> counting() {
-        return of(() -> new long[1], (box, i) -> box[0]++, (box1, box2) -> box1[0] += box2[0], UNBOX_LONG);
+        return of(() -> new long[1], (box, i) -> box[0]++, SUM_LONG, UNBOX_LONG);
     }
 
     /**
@@ -212,7 +149,7 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
      * @return an {@code IntCollector} that produces the minimal element.
      */
     static IntCollector<?, OptionalInt> min() {
-        return reducing((a, b) -> a > b ? b : a);
+        return reducing(Integer::min);
     }
 
     /**
@@ -223,27 +160,20 @@ public interface IntCollector<A, R> extends Collector<Integer, A, R> {
      * @return an {@code IntCollector} that produces the maximal element.
      */
     static IntCollector<?, OptionalInt> max() {
-        return reducing((a, b) -> a > b ? a : b);
+        return reducing(Integer::max);
     }
 
-    @SuppressWarnings("unchecked")
     static <A, R> IntCollector<?, R> mapping(IntUnaryOperator mapper, IntCollector<A, R> downstream) {
         ObjIntConsumer<A> downstreamAccumulator = downstream.intAccumulator();
-        if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH))
-            return (IntCollector<?, R>) of(downstream.supplier(),
-                    (r, t) -> downstreamAccumulator.accept(r, mapper.applyAsInt(t)), downstream.merger());
-        return of(downstream.supplier(), (r, t) -> downstreamAccumulator.accept(r, mapper.applyAsInt(t)),
-                downstream.merger(), downstream.finisher());
+        return new IntCollectorImpl<>(downstream.supplier(), (r, t) -> downstreamAccumulator.accept(r,
+                mapper.applyAsInt(t)), downstream.merger(), downstream.finisher(), downstream.characteristics());
     }
 
     @SuppressWarnings("unchecked")
     static <U, A, R> IntCollector<?, R> mappingToObj(IntFunction<U> mapper, Collector<U, A, R> downstream) {
-        Supplier<A> supplier = downstream.supplier();
         BiConsumer<A, U> accumulator = downstream.accumulator();
-        BinaryOperator<A> combiner = downstream.combiner();
-        Function<A, R> finisher = downstream.finisher();
-        return of(() -> new Object[] { supplier.get() }, (box, i) -> accumulator.accept((A) box[0], mapper.apply(i)), (
-                box1, box2) -> box1[0] = combiner.apply((A) box1[0], (A) box2[0]), box -> finisher.apply((A) box[0]));
+        return of(boxSupplier(downstream.supplier()), (box, i) -> accumulator.accept((A) box[0], mapper.apply(i)),
+                boxCombiner(downstream.combiner()), boxFinisher(downstream.finisher()));
     }
 
     /**

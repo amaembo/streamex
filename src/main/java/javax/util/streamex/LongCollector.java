@@ -15,15 +15,12 @@
  */
 package javax.util.streamex;
 
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LongSummaryStatistics;
 import java.util.Map;
 import java.util.Objects;
 import java.util.OptionalLong;
-import java.util.Set;
 import java.util.function.BiConsumer;
-import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.LongBinaryOperator;
 import java.util.function.LongFunction;
@@ -48,7 +45,7 @@ import static javax.util.streamex.StreamExInternals.*;
  * @see LongStreamEx#collect(LongCollector)
  * @since 0.3.0
  */
-public interface LongCollector<A, R> extends Collector<Long, A, R> {
+public interface LongCollector<A, R> extends PrimitiveCollector<Long, A, R> {
     /**
      * A function that folds a value into a mutable result container.
      *
@@ -57,22 +54,13 @@ public interface LongCollector<A, R> extends Collector<Long, A, R> {
     ObjLongConsumer<A> longAccumulator();
 
     /**
-     * A function which merges the second container into the first container.
+     * A function that folds a value into a mutable result container.
      * 
-     * @return a function which merges the second container into the first
-     *         container.
+     * The default implementation calls {@link #longAccumulator()} on unboxed
+     * value.
+     *
+     * @return a function which folds a value into a mutable result container
      */
-    BiConsumer<A, A> merger();
-
-    @Override
-    default BinaryOperator<A> combiner() {
-        BiConsumer<A, A> merger = merger();
-        return (a, b) -> {
-            merger.accept(a, b);
-            return a;
-        };
-    }
-
     @Override
     default BiConsumer<A, Long> accumulator() {
         ObjLongConsumer<A> longAccumulator = longAccumulator();
@@ -80,71 +68,19 @@ public interface LongCollector<A, R> extends Collector<Long, A, R> {
     }
 
     static <R> LongCollector<R, R> of(Supplier<R> supplier, ObjLongConsumer<R> longAccumulator, BiConsumer<R, R> merger) {
-        return new LongCollector<R, R>() {
-
-            @Override
-            public Supplier<R> supplier() {
-                return supplier;
-            }
-
-            @Override
-            public Function<R, R> finisher() {
-                return Function.identity();
-            }
-
-            @Override
-            public Set<Collector.Characteristics> characteristics() {
-                return EnumSet.of(Collector.Characteristics.IDENTITY_FINISH);
-            }
-
-            @Override
-            public ObjLongConsumer<R> longAccumulator() {
-                return longAccumulator;
-            }
-
-            @Override
-            public BiConsumer<R, R> merger() {
-                return merger;
-            }
-        };
+        return new LongCollectorImpl<>(supplier, longAccumulator, merger, Function.identity(), ID_CHARACTERISTICS);
     }
 
     static <A, R> LongCollector<?, R> of(Collector<Long, A, R> collector) {
         if (collector instanceof LongCollector) {
             return (LongCollector<A, R>) collector;
         }
-        return mappingToObj(i -> i, collector);
+        return mappingToObj(Long::valueOf, collector);
     }
 
     static <A, R> LongCollector<A, R> of(Supplier<A> supplier, ObjLongConsumer<A> longAccumulator,
             BiConsumer<A, A> merger, Function<A, R> finisher) {
-        return new LongCollector<A, R>() {
-
-            @Override
-            public Supplier<A> supplier() {
-                return supplier;
-            }
-
-            @Override
-            public Function<A, R> finisher() {
-                return finisher;
-            }
-
-            @Override
-            public ObjLongConsumer<A> longAccumulator() {
-                return longAccumulator;
-            }
-
-            @Override
-            public Set<Collector.Characteristics> characteristics() {
-                return EnumSet.noneOf(Collector.Characteristics.class);
-            }
-
-            @Override
-            public BiConsumer<A, A> merger() {
-                return merger;
-            }
-        };
+        return new LongCollectorImpl<>(supplier, longAccumulator, merger, finisher, NO_CHARACTERISTICS);
     }
 
     /**
@@ -190,7 +126,7 @@ public interface LongCollector<A, R> extends Collector<Long, A, R> {
      * @return a {@code LongCollector} that counts the input elements
      */
     static LongCollector<?, Long> counting() {
-        return of(() -> new long[1], (box, i) -> box[0]++, (box1, box2) -> box1[0] += box2[0], UNBOX_LONG);
+        return of(() -> new long[1], (box, i) -> box[0]++, SUM_LONG, UNBOX_LONG);
     }
 
     /**
@@ -201,7 +137,7 @@ public interface LongCollector<A, R> extends Collector<Long, A, R> {
      *         elements
      */
     static LongCollector<?, Long> summing() {
-        return of(() -> new long[1], (box, i) -> box[0] += i, (box1, box2) -> box1[0] += box2[0], UNBOX_LONG);
+        return of(() -> new long[1], (box, i) -> box[0] += i, SUM_LONG, UNBOX_LONG);
     }
 
     /**
@@ -212,7 +148,7 @@ public interface LongCollector<A, R> extends Collector<Long, A, R> {
      * @return a {@code LongCollector} that produces the minimal element.
      */
     static LongCollector<?, OptionalLong> min() {
-        return reducing((a, b) -> a > b ? b : a);
+        return reducing(Long::min);
     }
 
     /**
@@ -223,27 +159,20 @@ public interface LongCollector<A, R> extends Collector<Long, A, R> {
      * @return a {@code LongCollector} that produces the maximal element.
      */
     static LongCollector<?, OptionalLong> max() {
-        return reducing((a, b) -> a > b ? a : b);
+        return reducing(Long::max);
     }
 
-    @SuppressWarnings("unchecked")
     static <A, R> LongCollector<?, R> mapping(LongUnaryOperator mapper, LongCollector<A, R> downstream) {
         ObjLongConsumer<A> downstreamAccumulator = downstream.longAccumulator();
-        if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH))
-            return (LongCollector<?, R>) of(downstream.supplier(),
-                    (r, t) -> downstreamAccumulator.accept(r, mapper.applyAsLong(t)), downstream.merger());
-        return of(downstream.supplier(), (r, t) -> downstreamAccumulator.accept(r, mapper.applyAsLong(t)),
-                downstream.merger(), downstream.finisher());
+        return new LongCollectorImpl<>(downstream.supplier(), (r, t) -> downstreamAccumulator.accept(r,
+                mapper.applyAsLong(t)), downstream.merger(), downstream.finisher(), downstream.characteristics());
     }
 
     @SuppressWarnings("unchecked")
     static <U, A, R> LongCollector<?, R> mappingToObj(LongFunction<U> mapper, Collector<U, A, R> downstream) {
-        Supplier<A> supplier = downstream.supplier();
         BiConsumer<A, U> accumulator = downstream.accumulator();
-        BinaryOperator<A> combiner = downstream.combiner();
-        Function<A, R> finisher = downstream.finisher();
-        return of(() -> new Object[] { supplier.get() }, (box, i) -> accumulator.accept((A) box[0], mapper.apply(i)), (
-                box1, box2) -> box1[0] = combiner.apply((A) box1[0], (A) box2[0]), box -> finisher.apply((A) box[0]));
+        return of(boxSupplier(downstream.supplier()), (box, i) -> accumulator.accept((A) box[0], mapper.apply(i)),
+                boxCombiner(downstream.combiner()), boxFinisher(downstream.finisher()));
     }
 
     /**
