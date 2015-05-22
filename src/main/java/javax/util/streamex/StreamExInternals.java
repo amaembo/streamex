@@ -112,11 +112,6 @@ import java.util.stream.Stream;
         char[] toArray() {
             return data.length == size ? data : Arrays.copyOfRange(data, 0, size);
         }
-
-        @Override
-        public String toString() {
-            return new String(data, 0, size);
-        }
     }
 
     static final class ShortBuffer {
