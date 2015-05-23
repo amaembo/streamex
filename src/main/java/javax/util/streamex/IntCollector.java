@@ -46,7 +46,7 @@ import static javax.util.streamex.StreamExInternals.*;
  * @see IntStreamEx#collect(IntCollector)
  * @since 0.3.0
  */
-public interface IntCollector<A, R> extends PrimitiveCollector<Integer, A, R> {
+public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
     /**
      * A function that folds a value into a mutable result container.
      *
@@ -163,15 +163,55 @@ public interface IntCollector<A, R> extends PrimitiveCollector<Integer, A, R> {
         return reducing(Integer::max);
     }
 
+    /**
+     * Adapts an {@code IntCollector} to another one by applying a mapping
+     * function to each input element before accumulation.
+     *
+     * @param <A>
+     *            intermediate accumulation type of the downstream collector
+     * @param <R>
+     *            result type of collector
+     * @param mapper
+     *            a function to be applied to the input elements
+     * @param downstream
+     *            a collector which will accept mapped values
+     * @return a collector which applies the mapping function to the input
+     *         elements and provides the mapped results to the downstream
+     *         collector
+     */
     static <A, R> IntCollector<?, R> mapping(IntUnaryOperator mapper, IntCollector<A, R> downstream) {
         ObjIntConsumer<A> downstreamAccumulator = downstream.intAccumulator();
         return new IntCollectorImpl<>(downstream.supplier(), (r, t) -> downstreamAccumulator.accept(r,
                 mapper.applyAsInt(t)), downstream.merger(), downstream.finisher(), downstream.characteristics());
     }
 
+    /**
+     * Adapts a {@link Collector} accepting elements of type {@code U} to an
+     * {@code IntCollector} by applying a mapping function to each input element
+     * before accumulation.
+     *
+     * @param <U>
+     *            type of elements accepted by downstream collector
+     * @param <A>
+     *            intermediate accumulation type of the downstream collector
+     * @param <R>
+     *            result type of collector
+     * @param mapper
+     *            a function to be applied to the input elements
+     * @param downstream
+     *            a collector which will accept mapped values
+     * @return a collector which applies the mapping function to the input
+     *         elements and provides the mapped results to the downstream
+     *         collector
+     */
     @SuppressWarnings("unchecked")
     static <U, A, R> IntCollector<?, R> mappingToObj(IntFunction<U> mapper, Collector<U, A, R> downstream) {
         BiConsumer<A, U> accumulator = downstream.accumulator();
+        if (downstream instanceof MergingCollector) {
+            return new IntCollectorImpl<>(downstream.supplier(), (acc, i) -> accumulator.accept(acc, mapper.apply(i)),
+                    ((MergingCollector<U, A, R>) downstream).merger(), downstream.finisher(),
+                    downstream.characteristics());
+        }
         return of(boxSupplier(downstream.supplier()), (box, i) -> accumulator.accept((A) box[0], mapper.apply(i)),
                 boxCombiner(downstream.combiner()), boxFinisher(downstream.finisher()));
     }

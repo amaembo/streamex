@@ -133,4 +133,12 @@ public class DoubleCollectorTest {
     public void testReducing() {
         assertEquals(7.0, DoubleStreamEx.of(1.0, 2.0, 3.5).collect(DoubleCollector.reducing(1.0, (a, b) -> a * b)), 0.0);
     }
+
+    @Test
+    public void testMapping() {
+        assertArrayEquals(
+                LongStreamEx.of(1, 1, 2, 3).toArray(),
+                DoubleStreamEx.of(0.8, 1.3, 1.7, 2.9).collect(
+                        DoubleCollector.mappingToObj(Math::round, LongCollector.toArray())));
+    }
 }

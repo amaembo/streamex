@@ -94,15 +94,12 @@ public class LongCollectorTest {
         assertArrayEquals(expectedEven, oddEven.get(true));
         assertArrayEquals(expectedOdd, oddEven.get(false));
     }
-    
+
     @Test
     public void testParts() {
-        Map<Boolean, String> parts = LongStreamEx
-                .range(10)
-                .parallel()
-                .collect(
-                        LongCollector.partitioningBy(i -> i % 2 == 0,
-                                LongCollector.mapping(i -> i / 3, LongCollector.joining(","))));
+        LongCollector<?, Map<Boolean, String>> collector = LongCollector.partitioningBy(i -> i % 2 == 0,
+                LongCollector.mapping(i -> i / 3, LongCollector.joining(",")));
+        Map<Boolean, String> parts = LongStreamEx.range(10).parallel().collect(collector);
         Map<Boolean, String> expected = new HashMap<>();
         expected.put(true, "0,0,1,2,2");
         expected.put(false, "0,1,1,2,3");
