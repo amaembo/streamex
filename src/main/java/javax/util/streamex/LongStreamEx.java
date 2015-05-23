@@ -175,19 +175,84 @@ public class LongStreamEx implements LongStream {
         return strategy().newDoubleStreamEx(stream.mapToDouble(mapper));
     }
 
+    /**
+     * Returns a {@link LongStreamEx} consisting of the results of replacing
+     * each element of this stream with the contents of a mapped stream produced
+     * by applying the provided mapping function to each element. Each mapped
+     * stream is closed after its contents have been placed into this stream.
+     * (If a mapped stream is {@code null} an empty stream is used, instead.)
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
+     *            which produces a {@code LongStream} of new values
+     * @return the new stream
+     */
     @Override
     public LongStreamEx flatMap(LongFunction<? extends LongStream> mapper) {
         return strategy().newLongStreamEx(stream.flatMap(mapper));
     }
 
+    /**
+     * Returns an {@link IntStreamEx} consisting of the results of replacing
+     * each element of this stream with the contents of a mapped stream produced
+     * by applying the provided mapping function to each element. Each mapped
+     * stream is closed after its contents have been placed into this stream.
+     * (If a mapped stream is {@code null} an empty stream is used, instead.)
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
+     *            which produces an {@code IntStream} of new values
+     * @return the new stream
+     * @since 0.3.0
+     */
     public IntStreamEx flatMapToInt(LongFunction<? extends IntStream> mapper) {
         return strategy().newIntStreamEx(stream.mapToObj(mapper).flatMapToInt(Function.identity()));
     }
 
+    /**
+     * Returns a {@link DoubleStreamEx} consisting of the results of replacing
+     * each element of this stream with the contents of a mapped stream produced
+     * by applying the provided mapping function to each element. Each mapped
+     * stream is closed after its contents have been placed into this stream.
+     * (If a mapped stream is {@code null} an empty stream is used, instead.)
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
+     *            which produces an {@code DoubleStream} of new values
+     * @return the new stream
+     * @since 0.3.0
+     */
     public DoubleStreamEx flatMapToDouble(LongFunction<? extends DoubleStream> mapper) {
         return strategy().newDoubleStreamEx(stream.mapToObj(mapper).flatMapToDouble(Function.identity()));
     }
 
+    /**
+     * Returns a {@link StreamEx} consisting of the results of replacing each
+     * element of this stream with the contents of a mapped stream produced by
+     * applying the provided mapping function to each element. Each mapped
+     * stream is closed after its contents have been placed into this stream.
+     * (If a mapped stream is {@code null} an empty stream is used, instead.)
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param <R>
+     *            The element type of the new stream
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
+     *            which produces a {@code Stream} of new values
+     * @return the new stream
+     * @since 0.3.0
+     */
     public <R> StreamEx<R> flatMapToObj(LongFunction<? extends Stream<R>> mapper) {
         return strategy().newStreamEx(stream.mapToObj(mapper).flatMap(Function.identity()));
     }
