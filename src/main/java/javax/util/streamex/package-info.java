@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * This library provides enhancements for Java 8 Stream API. Public API contains five classes:
+ * This library provides enhancements for Java 8 Stream API. Public API contains five classes and three interfaces:
  * 
  * <p>
  * {@link javax.util.streamex.StreamEx}: implements {@link java.util.stream.Stream} and provides additional functionality for object streams.
@@ -27,6 +27,9 @@
  * 
  * <p>
  * Each of these classes contain a bunch of static methods to create the corresponding stream using different sources: collections, arrays, {@link java.io.Reader}, {@link java.util.Random} and so on.
+ * 
+ * <p>
+ * {@link javax.util.streamex.IntCollector}, {@link javax.util.streamex.LongCollector}, {@link javax.util.streamex.DoubleCollector}: specialized collectors to work efficiently with primitive streams.
  * 
  * @author Tagir Valeev
  */
