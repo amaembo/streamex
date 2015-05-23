@@ -296,10 +296,44 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
         return of(IntSummaryStatistics::new, IntSummaryStatistics::accept, IntSummaryStatistics::combine);
     }
 
+    /**
+     * Returns an {@code IntCollector} which partitions the input elements
+     * according to an {@code IntPredicate}, and organizes them into a
+     * {@code Map<Boolean, int[]>}.
+     *
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code Map} returned.
+     *
+     * @param predicate
+     *            a predicate used for classifying input elements
+     * @return an {@code IntCollector} implementing the partitioning operation
+     */
     static IntCollector<?, Map<Boolean, int[]>> partitioningBy(IntPredicate predicate) {
         return partitioningBy(predicate, toArray());
     }
 
+    /**
+     * Returns an {@code IntCollector} which partitions the input numbers
+     * according to an {@code IntPredicate}, reduces the values in each
+     * partition according to another {@code IntCollector}, and organizes them
+     * into a {@code Map<Boolean, D>} whose values are the result of the
+     * downstream reduction.
+     *
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code Map} returned.
+     *
+     * @param <A>
+     *            the intermediate accumulation type of the downstream collector
+     * @param <D>
+     *            the result type of the downstream reduction
+     * @param predicate
+     *            a predicate used for classifying input elements
+     * @param downstream
+     *            an {@code IntCollector} implementing the downstream reduction
+     * @return an {@code IntCollector} implementing the cascaded partitioning
+     *         operation
+     */
     @SuppressWarnings({ "unchecked", "rawtypes" })
     static <A, D> IntCollector<?, Map<Boolean, D>> partitioningBy(IntPredicate predicate, IntCollector<A, D> downstream) {
         ObjIntConsumer<A> downstreamAccumulator = downstream.intAccumulator();

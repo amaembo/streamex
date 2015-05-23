@@ -304,10 +304,45 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
         return of(DoubleSummaryStatistics::new, DoubleSummaryStatistics::accept, DoubleSummaryStatistics::combine);
     }
 
+    /**
+     * Returns a {@code DoubleCollector} which partitions the input elements
+     * according to a {@code DoublePredicate}, and organizes them into a
+     * {@code Map<Boolean, double[]>}.
+     *
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code Map} returned.
+     *
+     * @param predicate
+     *            a predicate used for classifying input elements
+     * @return a {@code DoubleCollector} implementing the partitioning operation
+     */
     static DoubleCollector<?, Map<Boolean, double[]>> partitioningBy(DoublePredicate predicate) {
         return partitioningBy(predicate, toArray());
     }
 
+    /**
+     * Returns a {@code DoubleCollector} which partitions the input numbers
+     * according to a {@code DoublePredicate}, reduces the values in each
+     * partition according to another {@code IntCollector}, and organizes them
+     * into a {@code Map<Boolean, D>} whose values are the result of the
+     * downstream reduction.
+     *
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code Map} returned.
+     *
+     * @param <A>
+     *            the intermediate accumulation type of the downstream collector
+     * @param <D>
+     *            the result type of the downstream reduction
+     * @param predicate
+     *            a predicate used for classifying input elements
+     * @param downstream
+     *            a {@code DoubleCollector} implementing the downstream
+     *            reduction
+     * @return a {@code DoubleCollector} implementing the cascaded partitioning
+     *         operation
+     */
     @SuppressWarnings({ "unchecked", "rawtypes" })
     static <A, D> DoubleCollector<?, Map<Boolean, D>> partitioningBy(DoublePredicate predicate,
             DoubleCollector<A, D> downstream) {

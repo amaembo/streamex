@@ -295,10 +295,44 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
         return of(LongSummaryStatistics::new, LongSummaryStatistics::accept, LongSummaryStatistics::combine);
     }
 
+    /**
+     * Returns a {@code LongCollector} which partitions the input elements
+     * according to a {@code LongPredicate}, and organizes them into a
+     * {@code Map<Boolean, long[]>}.
+     *
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code Map} returned.
+     *
+     * @param predicate
+     *            a predicate used for classifying input elements
+     * @return a {@code LongCollector} implementing the partitioning operation
+     */
     static LongCollector<?, Map<Boolean, long[]>> partitioningBy(LongPredicate predicate) {
         return partitioningBy(predicate, toArray());
     }
 
+    /**
+     * Returns a {@code LongCollector} which partitions the input numbers
+     * according to a {@code LongPredicate}, reduces the values in each
+     * partition according to another {@code IntCollector}, and organizes them
+     * into a {@code Map<Boolean, D>} whose values are the result of the
+     * downstream reduction.
+     *
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code Map} returned.
+     *
+     * @param <A>
+     *            the intermediate accumulation type of the downstream collector
+     * @param <D>
+     *            the result type of the downstream reduction
+     * @param predicate
+     *            a predicate used for classifying input elements
+     * @param downstream
+     *            a {@code LongCollector} implementing the downstream reduction
+     * @return a {@code LongCollector} implementing the cascaded partitioning
+     *         operation
+     */
     @SuppressWarnings({ "unchecked", "rawtypes" })
     static <A, D> LongCollector<?, Map<Boolean, D>> partitioningBy(LongPredicate predicate,
             LongCollector<A, D> downstream) {
