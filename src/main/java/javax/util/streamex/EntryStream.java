@@ -426,6 +426,18 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     }
 
     /**
+     * Returns an {@code EntryStream} consisting of the entries whose keys are
+     * modified by applying the given function and values are left unchanged.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param <KK>
+     *            The type of the keys of the new stream
+     * @param keyMapper
+     *            a non-interfering, stateless function to apply to each entry
+     *            which returns the updated key
+     * @return the new stream
      * @deprecated use {@link #mapToKey(BiFunction)}
      */
     @Deprecated
@@ -434,6 +446,18 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     }
 
     /**
+     * Returns an {@code EntryStream} consisting of the entries whose keys are
+     * left unchanged and values are modified by applying the given function.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param <VV>
+     *            The type of the values of the new stream
+     * @param valueMapper
+     *            a non-interfering, stateless function to apply to each entry
+     *            which returns the updated value
+     * @return the new stream
      * @deprecated use {@link #mapToValue(BiFunction)}
      */
     @Deprecated

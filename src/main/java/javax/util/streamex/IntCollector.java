@@ -68,10 +68,40 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
         return (a, i) -> intAccumulator.accept(a, i);
     }
 
+    /**
+     * Returns a new {@code IntCollector} described by the given
+     * {@code supplier}, {@code accumulator}, and {@code merger} functions. The
+     * resulting {@code IntCollector} has the
+     * {@code Collector.Characteristics.IDENTITY_FINISH} characteristic.
+     *
+     * @param supplier
+     *            The supplier function for the new collector
+     * @param intAccumulator
+     *            The intAccumulator function for the new collector
+     * @param merger
+     *            The merger function for the new collector
+     * @param <R>
+     *            The type of intermediate accumulation result, and final
+     *            result, for the new collector
+     * @return the new {@code IntCollector}
+     */
     static <R> IntCollector<R, R> of(Supplier<R> supplier, ObjIntConsumer<R> intAccumulator, BiConsumer<R, R> merger) {
         return new IntCollectorImpl<>(supplier, intAccumulator, merger, Function.identity(), ID_CHARACTERISTICS);
     }
 
+    /**
+     * Adapts a {@code Collector} which accepts elements of type {@code Integer}
+     * to an {@code IntCollector}.
+     * 
+     * @param <A>
+     *            The intermediate accumulation type of the collector
+     * @param <R>
+     *            The final result type of the collector
+     * @param collector
+     *            a {@code Collector} to adapt
+     * @return an {@code IntCollector} which behaves in the same way as input
+     *         collector.
+     */
     static <A, R> IntCollector<?, R> of(Collector<Integer, A, R> collector) {
         if (collector instanceof IntCollector) {
             return (IntCollector<A, R>) collector;
@@ -79,6 +109,25 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
         return mappingToObj(Integer::valueOf, collector);
     }
 
+    /**
+     * Returns a new {@code IntCollector} described by the given
+     * {@code supplier}, {@code accumulator}, {@code merger}, and
+     * {@code finisher} functions.
+     *
+     * @param supplier
+     *            The supplier function for the new collector
+     * @param intAccumulator
+     *            The intAccumulator function for the new collector
+     * @param merger
+     *            The merger function for the new collector
+     * @param finisher
+     *            The finisher function for the new collector
+     * @param <A>
+     *            The intermediate accumulation type of the new collector
+     * @param <R>
+     *            The final result type of the new collector
+     * @return the new {@code IntCollector}
+     */
     static <A, R> IntCollector<A, R> of(Supplier<A> supplier, ObjIntConsumer<A> intAccumulator,
             BiConsumer<A, A> merger, Function<A, R> finisher) {
         return new IntCollectorImpl<>(supplier, intAccumulator, merger, finisher, NO_CHARACTERISTICS);
@@ -348,15 +397,97 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
         }
     }
 
+    /**
+     * Returns an {@code IntCollector} implementing a "group by" operation on
+     * input numbers, grouping them according to a classification function, and
+     * returning the results in a {@code Map}.
+     *
+     * <p>
+     * The classification function maps elements to some key type {@code K}. The
+     * collector produces a {@code Map<K, int[]>} whose keys are the values
+     * resulting from applying the classification function to the input numbers,
+     * and whose corresponding values are arrays containing the input numbers
+     * which map to the associated key under the classification function.
+     *
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code Map} objects returned.
+     *
+     * @param <K>
+     *            the type of the keys
+     * @param classifier
+     *            the classifier function mapping input elements to keys
+     * @return an {@code IntCollector} implementing the group-by operation
+     */
     static <K> IntCollector<?, Map<K, int[]>> groupingBy(IntFunction<? extends K> classifier) {
         return groupingBy(classifier, toArray());
     }
 
+    /**
+     * Returns an {@code IntCollector} implementing a cascaded "group by"
+     * operation on input numbers, grouping them according to a classification
+     * function, and then performing a reduction operation on the values
+     * associated with a given key using the specified downstream
+     * {@code IntCollector}.
+     *
+     * <p>
+     * The classification function maps elements to some key type {@code K}. The
+     * downstream collector produces a result of type {@code D}. The resulting
+     * collector produces a {@code Map<K, D>}.
+     *
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code Map} returned.
+     *
+     * @param <K>
+     *            the type of the keys
+     * @param <A>
+     *            the intermediate accumulation type of the downstream collector
+     * @param <D>
+     *            the result type of the downstream reduction
+     * @param classifier
+     *            a classifier function mapping input elements to keys
+     * @param downstream
+     *            an {@code IntCollector} implementing the downstream reduction
+     * @return an {@code IntCollector} implementing the cascaded group-by
+     *         operation
+     */
     static <K, D, A> IntCollector<?, Map<K, D>> groupingBy(IntFunction<? extends K> classifier,
             IntCollector<A, D> downstream) {
         return groupingBy(classifier, HashMap::new, downstream);
     }
 
+    /**
+     * Returns an {@code IntCollector} implementing a cascaded "group by"
+     * operation on input numbers, grouping them according to a classification
+     * function, and then performing a reduction operation on the values
+     * associated with a given key using the specified downstream
+     * {@code IntCollector}. The {@code Map} produced by the Collector is
+     * created with the supplied factory function.
+     *
+     * <p>
+     * The classification function maps elements to some key type {@code K}. The
+     * downstream collector produces a result of type {@code D}. The resulting
+     * collector produces a {@code Map<K, D>}.
+     *
+     * @param <K>
+     *            the type of the keys
+     * @param <A>
+     *            the intermediate accumulation type of the downstream collector
+     * @param <D>
+     *            the result type of the downstream reduction
+     * @param <M>
+     *            the type of the resulting {@code Map}
+     * @param classifier
+     *            a classifier function mapping input elements to keys
+     * @param downstream
+     *            an {@code IntCollector} implementing the downstream reduction
+     * @param mapFactory
+     *            a function which, when called, produces a new empty
+     *            {@code Map} of the desired type
+     * @return an {@code IntCollector} implementing the cascaded group-by
+     *         operation
+     */
     @SuppressWarnings("unchecked")
     static <K, D, A, M extends Map<K, D>> IntCollector<?, M> groupingBy(IntFunction<? extends K> classifier,
             Supplier<M> mapFactory, IntCollector<A, D> downstream) {
