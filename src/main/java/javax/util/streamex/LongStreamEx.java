@@ -15,6 +15,7 @@
  */
 package javax.util.streamex;
 
+import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -173,6 +174,11 @@ public class LongStreamEx implements LongStream {
     @Override
     public DoubleStreamEx mapToDouble(LongToDoubleFunction mapper) {
         return strategy().newDoubleStreamEx(stream.mapToDouble(mapper));
+    }
+
+    public <K, V> EntryStream<K, V> mapToEntry(LongFunction<? extends K> keyMapper, LongFunction<? extends V> valueMapper) {
+        return strategy().newEntryStream(
+                stream.mapToObj(t -> new AbstractMap.SimpleImmutableEntry<>(keyMapper.apply(t), valueMapper.apply(t))));
     }
 
     /**

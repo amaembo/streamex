@@ -15,6 +15,7 @@
  */
 package javax.util.streamex;
 
+import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
@@ -195,6 +196,11 @@ public class IntStreamEx implements IntStream {
     @Override
     public DoubleStreamEx mapToDouble(IntToDoubleFunction mapper) {
         return strategy().newDoubleStreamEx(stream.mapToDouble(mapper));
+    }
+    
+    public <K, V> EntryStream<K, V> mapToEntry(IntFunction<? extends K> keyMapper, IntFunction<? extends V> valueMapper) {
+        return strategy().newEntryStream(
+                stream.mapToObj(t -> new AbstractMap.SimpleImmutableEntry<>(keyMapper.apply(t), valueMapper.apply(t))));
     }
 
     /**
