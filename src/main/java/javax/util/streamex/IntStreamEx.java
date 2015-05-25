@@ -1099,7 +1099,15 @@ public class IntStreamEx implements IntStream {
     public String codePointsToString() {
         return collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append).toString();
     }
+    
+    public String joining(CharSequence delimiter) {
+        return collect(IntCollector.joining(delimiter));
+    }
 
+    public String joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
+        return collect(IntCollector.joining(delimiter, prefix, suffix));
+    }
+    
     /**
      * Returns a stream consisting of the results of applying the given function
      * to the every adjacent pair of elements of this stream.

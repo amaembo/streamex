@@ -912,6 +912,14 @@ public class DoubleStreamEx implements DoubleStream {
         return buf.toArray();
     }
 
+    public String joining(CharSequence delimiter) {
+        return collect(DoubleCollector.joining(delimiter));
+    }
+
+    public String joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
+        return collect(DoubleCollector.joining(delimiter, prefix, suffix));
+    }
+    
     public static DoubleStreamEx empty() {
         return new DoubleStreamEx(DoubleStream.empty());
     }

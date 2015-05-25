@@ -920,6 +920,14 @@ public class LongStreamEx implements LongStream {
                         stream.isParallel()).onClose(stream::close));
     }
 
+    public String joining(CharSequence delimiter) {
+        return collect(LongCollector.joining(delimiter));
+    }
+
+    public String joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
+        return collect(LongCollector.joining(delimiter, prefix, suffix));
+    }
+    
     public static LongStreamEx empty() {
         return new LongStreamEx(LongStream.empty());
     }
