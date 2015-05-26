@@ -667,4 +667,93 @@ public class StreamExTest {
         assertEquals("", StreamEx.of(inputs).cross(Collections.emptyList()).join("->").joining(", "));
         assertEquals("i-i, j-j, k-k", StreamEx.of(inputs).cross(Stream::of).join("-").joining(", "));
     }
+    
+    static class Interval {
+        final int from, to;
+        
+        public Interval(int from) {
+            this(from, from);
+        }
+        
+        public Interval(int from, int to) {
+            this.from = from;
+            this.to = to;
+        }
+        
+        public Interval merge(Interval other) {
+            return new Interval(this.from, other.to);
+        }
+        
+        public boolean adjacent(Interval other) {
+            return other.from == this.to + 1;
+        }
+        
+        @Override
+        public String toString() {
+            return from == to ? "{"+from+"}" : "["+from+".."+to+"]";
+        }
+    }
+
+    @Test
+    public void testMergeNeighbors() {
+        Random r = new Random(1);
+        for(int i=0; i<100; i++) {
+            List<String> input = IntStreamEx.range(r.nextInt(i+1)).mapToObj(n -> r.nextBoolean() ? "" : String.valueOf(n)).toList();
+            List<String> resultSpliterator = StreamEx.of(input)
+                    .mergeNeighbors((str1, str2) -> str1.isEmpty() && str2.isEmpty(), (str1, str2) -> str1).toList();
+            List<String> resultSpliteratorParallel = StreamEx.of(input).parallel()
+                    .mergeNeighbors((str1, str2) -> str1.isEmpty() && str2.isEmpty(), (str1, str2) -> str1).toList();
+            List<String> expected = new ArrayList<>();
+            boolean lastSpace = false;
+            for(String str : input) {
+                if(str.isEmpty()) {
+                    if(!lastSpace) {
+                        expected.add(str);
+                    }
+                    lastSpace = true;
+                } else {
+                    expected.add(str);
+                    lastSpace = false;
+                }
+            }
+            assertEquals("#"+i, expected, resultSpliterator);
+            assertEquals("#"+i, expected, resultSpliteratorParallel);
+        }
+    }
+    
+    @Test
+    public void testMergeIntervals() {
+        Random r = new Random(1);
+        for(int i=0; i<100; i++) {
+            int size = r.nextInt(i*5+1);
+            int[] input = IntStreamEx.of(r, size, 0, size*3/2+2).toArray();
+            String result = IntStreamEx.of(input).sorted().boxed().distinct().map(Interval::new).mergeNeighbors(Interval::adjacent, Interval::merge).joining(" & ");
+            String resultParallel = IntStreamEx.of(input).parallel().sorted().boxed().distinct().map(Interval::new)
+                    .mergeNeighbors(Interval::adjacent, Interval::merge).joining(" & ");
+            String resultParallel2 = IntStreamEx.of(input).sorted().boxed().distinct().map(Interval::new)
+                    .mergeNeighbors(Interval::adjacent, Interval::merge).parallel().joining(" & ");
+            int[] sorted = Arrays.copyOf(input, input.length);
+            Arrays.sort(sorted);
+            List<String> expected = new ArrayList<>();
+            Interval last = null;
+            for(int num : sorted) {
+                if(last != null) {
+                    if(last.to == num)
+                        continue;
+                    if(last.to == num-1) {
+                        last = new Interval(last.from, num);
+                        continue;
+                    }
+                    expected.add(last.toString());
+                }
+                last = new Interval(num);
+            }
+            if(last != null)
+                expected.add(last.toString());
+            String expectedStr = String.join(" & ", expected);
+            assertEquals(expectedStr, result);
+            assertEquals(expectedStr, resultParallel);
+            assertEquals(expectedStr, resultParallel2);
+        }
+    }
 }

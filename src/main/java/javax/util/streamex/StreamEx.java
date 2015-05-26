@@ -37,6 +37,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -1035,6 +1036,13 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             action.accept(a, b);
             return null;
         }).reduce(null, (a, b) -> null);
+    }
+    
+    public StreamEx<T> mergeNeighbors(BiPredicate<T, T> mergeable, BinaryOperator<T> merger) {
+        return strategy().newStreamEx(
+                StreamSupport.stream(
+                        new MergeSpliterator<>(mergeable, merger, stream.spliterator(), null, false, null, false),
+                        stream.isParallel()).onClose(stream::close));
     }
 
     /**
