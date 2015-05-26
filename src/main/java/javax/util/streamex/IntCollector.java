@@ -31,6 +31,8 @@ import java.util.function.ObjIntConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 
+import javax.util.streamex.StreamExInternals.Box;
+
 import static javax.util.streamex.StreamExInternals.*;
 
 /**
@@ -253,7 +255,6 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      *         elements and provides the mapped results to the downstream
      *         collector
      */
-    @SuppressWarnings("unchecked")
     static <U, A, R> IntCollector<?, R> mappingToObj(IntFunction<U> mapper, Collector<U, A, R> downstream) {
         BiConsumer<A, U> accumulator = downstream.accumulator();
         if (downstream instanceof MergingCollector) {
@@ -261,8 +262,8 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
                     ((MergingCollector<U, A, R>) downstream).merger(), downstream.finisher(),
                     downstream.characteristics());
         }
-        return of(boxSupplier(downstream.supplier()), (box, i) -> accumulator.accept((A) box[0], mapper.apply(i)),
-                boxCombiner(downstream.combiner()), boxFinisher(downstream.finisher()));
+        return of(Box.supplier(downstream.supplier()), (box, i) -> accumulator.accept(box.obj, mapper.apply(i)),
+                Box.combiner(downstream.combiner()), Box.finisher(downstream.finisher()));
     }
 
     /**
