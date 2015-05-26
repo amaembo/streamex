@@ -612,6 +612,10 @@ public class StreamExTest {
         public String toString() {
             return title;
         }
+        
+        public StreamEx<TreeNode> flatStream() {
+            return StreamEx.ofTree(this, CompositeNode.class, CompositeNode::elements);
+        }
     }
 
     static class CompositeNode extends TreeNode {
@@ -631,16 +635,6 @@ public class StreamExTest {
         }
     }
 
-    static class RootNode extends CompositeNode {
-        public RootNode(String title) {
-            super(title);
-        }
-
-        public StreamEx<TreeNode> flatStream() {
-            return StreamEx.ofTree(this, CompositeNode.class, CompositeNode::elements);
-        }
-    }
-
     @Test
     public void testOfTree() {
         String inputSimple = "bbb";
@@ -654,7 +648,7 @@ public class StreamExTest {
         assertEquals("aa,bbbb,cc,ddd,e,fff,ggg", ofTree.select(String.class).joining(","));
         assertEquals(14, StreamEx.ofTree(input, List.class, List::stream).select(List.class).mapToInt(List::size).sum());
 
-        RootNode r = new RootNode("root");
+        CompositeNode r = new CompositeNode("root");
         r.add(new CompositeNode("childA").add(new TreeNode("grandA1")).add(new TreeNode("grandA2")));
         r.add(new CompositeNode("childB").add(new TreeNode("grandB1")));
         r.add(new TreeNode("childC"));
