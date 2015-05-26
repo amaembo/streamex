@@ -14,8 +14,8 @@ public class MergeSpliterator<T> implements Spliterator<T> {
     private final BinaryOperator<T> merger;
     private final BiPredicate<T, T> mergeable;
 
-    public MergeSpliterator(BiPredicate<T, T> mergeable, BinaryOperator<T> merger, Spliterator<T> source, T prev, boolean hasPrev, T last,
-            boolean hasLast) {
+    public MergeSpliterator(BiPredicate<T, T> mergeable, BinaryOperator<T> merger, Spliterator<T> source, T prev,
+            boolean hasPrev, T last, boolean hasLast) {
         this.source = source;
         this.hasLast = hasLast;
         this.hasPrev = hasPrev;
@@ -40,8 +40,8 @@ public class MergeSpliterator<T> implements Spliterator<T> {
             hasPrev = true;
         }
         T prev = cur;
-        while(source.tryAdvance(this::setCur)) {
-            if(mergeable.test(prev, cur)) {
+        while (source.tryAdvance(this::setCur)) {
+            if (mergeable.test(prev, cur)) {
                 prev = merger.apply(prev, cur);
             } else {
                 action.accept(prev);
@@ -55,7 +55,7 @@ public class MergeSpliterator<T> implements Spliterator<T> {
         }
         cur = last;
         hasLast = false;
-        if(mergeable.test(prev, cur)) {
+        if (mergeable.test(prev, cur)) {
             prev = merger.apply(prev, cur);
             source = null;
         }
@@ -64,33 +64,62 @@ public class MergeSpliterator<T> implements Spliterator<T> {
     }
 
     @Override
+    public void forEachRemaining(Consumer<? super T> action) {
+        if (source == null)
+            return;
+        if (!hasPrev) {
+            if (!source.tryAdvance(this::setCur)) {
+                return;
+            }
+            hasPrev = true;
+        }
+        source.forEachRemaining(next -> {
+            if (mergeable.test(cur, next)) {
+                cur = merger.apply(cur, next);
+            } else {
+                action.accept(cur);
+                cur = next;
+            }
+        });
+        if (!hasLast) {
+            action.accept(cur);
+        } else if (mergeable.test(cur, last)) {
+            action.accept(merger.apply(cur, last));
+        } else {
+            action.accept(cur);
+            action.accept(last);
+        }
+        source = null;
+    }
+
+    @Override
     public Spliterator<T> trySplit() {
         Spliterator<T> prefix = source.trySplit();
-        if(prefix == null)
+        if (prefix == null)
             return null;
         T prev = cur;
-        if(!source.tryAdvance(this::setCur)) {
+        if (!source.tryAdvance(this::setCur)) {
             source = prefix;
             return null;
         }
         T last = cur;
         boolean oldHasPrev = hasPrev;
-        while(source.tryAdvance(this::setCur)) {
-            if(mergeable.test(last, cur)) {
+        while (source.tryAdvance(this::setCur)) {
+            if (mergeable.test(last, cur)) {
                 last = merger.apply(last, cur);
             } else {
                 hasPrev = true;
                 return new MergeSpliterator<>(mergeable, merger, prefix, prev, oldHasPrev, last, true);
             }
         }
-        if(!hasLast) {
+        if (!hasLast) {
             source = prefix;
             cur = prev;
             this.last = last;
             hasLast = true;
             return null;
         }
-        if(mergeable.test(last, this.last)) {
+        if (mergeable.test(last, this.last)) {
             source = prefix;
             cur = prev;
             this.last = merger.apply(last, this.last);
