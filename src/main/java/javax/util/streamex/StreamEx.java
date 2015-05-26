@@ -1064,7 +1064,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public StreamEx<T> collapse(BiPredicate<T, T> collapsable, BinaryOperator<T> merger) {
         return strategy().newStreamEx(
                 StreamSupport.stream(
-                        new MergeSpliterator<>(collapsable, merger, stream.spliterator(), null, false, null, false),
+                        new CollapseSpliterator<>(collapsable, merger, stream.spliterator(), null, false, null, false),
                         stream.isParallel()).onClose(stream::close));
     }
 

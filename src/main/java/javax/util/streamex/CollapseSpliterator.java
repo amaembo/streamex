@@ -1,3 +1,18 @@
+/*
+ * Copyright 2015 Tagir Valeev
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package javax.util.streamex;
 
 import java.util.Spliterator;
@@ -5,7 +20,7 @@ import java.util.function.BiPredicate;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 
-public class MergeSpliterator<T> implements Spliterator<T> {
+/* package */ final class CollapseSpliterator<T> implements Spliterator<T> {
     private Spliterator<T> source;
     private boolean hasLast;
     private boolean hasPrev;
@@ -14,7 +29,7 @@ public class MergeSpliterator<T> implements Spliterator<T> {
     private final BinaryOperator<T> merger;
     private final BiPredicate<T, T> mergeable;
 
-    public MergeSpliterator(BiPredicate<T, T> mergeable, BinaryOperator<T> merger, Spliterator<T> source, T prev,
+    CollapseSpliterator(BiPredicate<T, T> mergeable, BinaryOperator<T> merger, Spliterator<T> source, T prev,
             boolean hasPrev, T last, boolean hasLast) {
         this.source = source;
         this.hasLast = hasLast;
@@ -109,7 +124,7 @@ public class MergeSpliterator<T> implements Spliterator<T> {
                 last = merger.apply(last, cur);
             } else {
                 hasPrev = true;
-                return new MergeSpliterator<>(mergeable, merger, prefix, prev, oldHasPrev, last, true);
+                return new CollapseSpliterator<>(mergeable, merger, prefix, prev, oldHasPrev, last, true);
             }
         }
         if (!hasLast) {
@@ -128,7 +143,7 @@ public class MergeSpliterator<T> implements Spliterator<T> {
         hasPrev = true;
         cur = this.last;
         hasLast = false;
-        return new MergeSpliterator<>(mergeable, merger, prefix, prev, oldHasPrev, last, true);
+        return new CollapseSpliterator<>(mergeable, merger, prefix, prev, oldHasPrev, last, true);
     }
 
     @Override
