@@ -502,19 +502,28 @@ import java.util.stream.Stream;
             return merger;
         }
     }
+    
+    static final class Box<A> {
+        A obj;
+        
+        Box(A obj) {
+            this.obj = obj;
+        }
+        
+        Box() {
+        }
 
-    static <A> Supplier<Object[]> boxSupplier(Supplier<A> supplier) {
-        return () -> new Object[] { supplier.get() };
-    }
+        static <A> Supplier<Box<A>> supplier(Supplier<A> supplier) {
+            return () -> new Box<>(supplier.get());
+        }
 
-    @SuppressWarnings("unchecked")
-    static <A> BiConsumer<Object[], Object[]> boxCombiner(BinaryOperator<A> combiner) {
-        return (box1, box2) -> box1[0] = combiner.apply((A) box1[0], (A) box2[0]);
-    }
+        static <A> BiConsumer<Box<A>, Box<A>> combiner(BinaryOperator<A> combiner) {
+            return (box1, box2) -> box1.obj = combiner.apply(box1.obj, box2.obj);
+        }
 
-    @SuppressWarnings("unchecked")
-    static <A, R> Function<Object[], R> boxFinisher(Function<A, R> finisher) {
-        return box -> finisher.apply((A) box[0]);
+        static <A, R> Function<Box<A>, R> finisher(Function<A, R> finisher) {
+            return box -> finisher.apply(box.obj);
+        }
     }
 
     static BiConsumer<StringBuilder, StringBuilder> joinMerger(CharSequence delimiter) {
