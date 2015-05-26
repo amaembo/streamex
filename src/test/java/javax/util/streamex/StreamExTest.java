@@ -670,32 +670,6 @@ public class StreamExTest {
         assertEquals("i-i, j-j, k-k", StreamEx.of(inputs).cross(Stream::of).join("-").joining(", "));
     }
 
-    static class Interval {
-        final int from, to;
-
-        public Interval(int from) {
-            this(from, from);
-        }
-
-        public Interval(int from, int to) {
-            this.from = from;
-            this.to = to;
-        }
-
-        public Interval merge(Interval other) {
-            return new Interval(this.from, other.to);
-        }
-
-        public boolean adjacent(Interval other) {
-            return other.from == this.to + 1;
-        }
-
-        @Override
-        public String toString() {
-            return from == to ? "{" + from + "}" : "[" + from + ".." + to + "]";
-        }
-    }
-
     @Test
     public void testCollapseEmptyLines() {
         Random r = new Random(1);
@@ -721,6 +695,32 @@ public class StreamExTest {
             }
             assertEquals("#" + i, expected, resultSpliterator);
             assertEquals("#" + i, expected, resultSpliteratorParallel);
+        }
+    }
+
+    static class Interval {
+        final int from, to;
+    
+        public Interval(int from) {
+            this(from, from);
+        }
+    
+        public Interval(int from, int to) {
+            this.from = from;
+            this.to = to;
+        }
+    
+        public Interval merge(Interval other) {
+            return new Interval(this.from, other.to);
+        }
+    
+        public boolean adjacent(Interval other) {
+            return other.from == this.to + 1;
+        }
+    
+        @Override
+        public String toString() {
+            return from == to ? "{" + from + "}" : "[" + from + ".." + to + "]";
         }
     }
 
