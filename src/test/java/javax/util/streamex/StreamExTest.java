@@ -486,12 +486,6 @@ public class StreamExTest {
         }
     }
 
-    private double interpolate(Point[] points, double x) {
-        return StreamEx.of(points).parallel()
-                .pairMap((p1, p2) -> p1.x <= x && p2.x >= x ? (x - p1.x) / (p2.x - p1.x) * (p2.y - p1.y) + p1.y : null)
-                .nonNull().findAny().orElse(Double.NaN);
-    }
-
     @Test
     public void testPairMap() {
         assertEquals(0, StreamEx.<String> empty().pairMap(String::concat).count());
@@ -517,6 +511,37 @@ public class StreamExTest {
         assertArrayEquals(expected, result);
         result = StreamEx.of(data).pairMap((a, b) -> (b - a) * 3.14).toArray(Double[]::new);
         assertArrayEquals(expected, result);
+        
+        // Find all numbers where the integer preceded a larger value.
+        Collection<Integer> numbers = Arrays.asList(10, 1, 15, 30, 2, 6);
+        List<Integer> res = StreamEx.of(numbers).pairMap((a, b) -> a < b ? a : null).nonNull().toList();
+        assertEquals(Arrays.asList(1, 15, 2), res);
+    }
+
+    private double interpolate(Point[] points, double x) {
+        return StreamEx.of(points).parallel()
+                .pairMap((p1, p2) -> p1.x <= x && p2.x >= x ? (x - p1.x) / (p2.x - p1.x) * (p2.y - p1.y) + p1.y : null)
+                .nonNull().findAny().orElse(Double.NaN);
+    }
+
+    @Test
+    public void testPairMapInterpolation() {
+        Point[] points = IntStreamEx.range(1000).mapToObj(i -> new Point(i, i % 2 == 0 ? 1 : 0)).toArray(Point[]::new);
+        assertEquals(1, interpolate(points, 10), 0.0);
+        assertEquals(0, interpolate(points, 999), 0.0);
+        assertTrue(Double.isNaN(interpolate(points, -10)));
+        assertEquals(0.4, interpolate(points, 100.6), 0.000001);
+    }
+
+    @Test
+    public void testScanLeftPairMap() {
+        int[] random = IntStreamEx.of(new Random(1), 1000).toArray();
+        List<Integer> scanLeft = IntStreamEx.of(random).boxed().parallel().scanLeft(0, Integer::sum);
+        assertArrayEquals(random, IntStreamEx.of(scanLeft).parallel().pairMap((a, b) -> (b - a)).toArray());
+    }
+
+    @Test
+    public void testPairMapCapitalization() {
         assertEquals(
                 "Test Capitalization Stream",
                 IntStreamEx
@@ -532,19 +557,15 @@ public class StreamExTest {
         assertTrue(isSorted(IntStreamEx.of(new Random(1)).boxed().distinct().limit(1000).toCollection(TreeSet::new)));
         assertEquals("bba", firstMisplaced(Arrays.asList("a", "bb", "bb", "bba", "bb", "c")).get());
         assertFalse(firstMisplaced(Arrays.asList("a", "bb", "bb", "bb", "c")).isPresent());
-        int[] random = IntStreamEx.of(new Random(1), 1000).toArray();
-        List<Integer> scanLeft = IntStreamEx.of(random).boxed().parallel().scanLeft(0, Integer::sum);
-        assertArrayEquals(random, IntStreamEx.of(scanLeft).parallel().pairMap((a, b) -> (b - a)).toArray());
-        Point[] points = IntStreamEx.range(1000).mapToObj(i -> new Point(i, i % 2 == 0 ? 1 : 0)).toArray(Point[]::new);
-        assertEquals(1, interpolate(points, 10), 0.0);
-        assertEquals(0, interpolate(points, 999), 0.0);
-        assertTrue(Double.isNaN(interpolate(points, -10)));
-        assertEquals(0.4, interpolate(points, 100.6), 0.000001);
-
-        // Find all numbers where the integer preceded a larger value.
-        Collection<Integer> numbers = Arrays.asList(10, 1, 15, 30, 2, 6);
-        List<Integer> res = StreamEx.of(numbers).pairMap((a, b) -> a < b ? a : null).nonNull().toList();
-        assertEquals(Arrays.asList(1, 15, 2), res);
+    }
+    
+    @Test
+    public void testPairMapAddHeaders() {
+        List<String> result = StreamEx.of("aaa", "abc", "bar", "foo", "baz", "argh").sorted().prepend("")
+            .pairMap((a, b) -> a.isEmpty() || a.charAt(0) != b.charAt(0) ? Stream.of("=== "+b.substring(0,1).toUpperCase()+" ===", b)
+                    : Stream.of(b)).flatMap(Function.identity()).toList();
+        List<String> expected = Arrays.asList("=== A ===", "aaa", "abc", "argh", "=== B ===", "bar", "baz", "=== F ===", "foo");
+        assertEquals(expected, result);
     }
 
     static class Node {
