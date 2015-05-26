@@ -22,7 +22,6 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -1083,30 +1082,14 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return the new stream
      * @since 0.3.1
      */
-    @SuppressWarnings("unchecked")
     public StreamEx<List<T>> groupRuns(BiPredicate<T, T> sameGroup) {
-        return collapse((a, b) -> {
-            T e1 = a instanceof Box ? ((Box<List<T>>) a).obj.get(((Box<List<T>>) a).obj.size() - 1) : (T) a;
-            T e2 = b instanceof Box ? ((Box<List<T>>) b).obj.get(0) : (T) b;
-            return sameGroup.test(e1, e2);
-        }, (a, b) -> {
-            Box<List<T>> res;
-            if (a instanceof Box)
-                res = (Box<List<T>>) a;
-            else {
-                res = new Box<>(new ArrayList<>());
-                res.obj.add(a);
-            }
-            if (b instanceof Box)
-                res.obj.addAll(((Box<List<T>>) b).obj);
-            else
-                res.obj.add(b);
-            return (T) res;
-        }).map(t -> {
-            if (t instanceof Box) {
-                return ((Box<List<T>>) t).obj;
-            }
-            return Collections.singletonList(t);
+        return map(t -> {
+            List<T> res = new ArrayList<>();
+            res.add(t);
+            return res;
+        }).collapse((a, b) -> sameGroup.test(a.get(a.size()-1), b.get(0)), (a, b) -> {
+            a.addAll(b);
+            return a;
         });
     }
 

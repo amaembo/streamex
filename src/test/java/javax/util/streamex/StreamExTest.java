@@ -788,4 +788,29 @@ public class StreamExTest {
         assertEquals(expected, result);
         assertEquals(expected, resultParallel);
     }
+    
+    @Test
+    public void testGroupRunsRandom() {
+        Random r = new Random(1);
+        List<Integer> input = IntStreamEx.of(r, 1000, 1, 100).sorted().boxed().toList();
+        List<List<Integer>> res1 = StreamEx.of(input).groupRuns(Integer::equals).toList();
+        List<List<Integer>> res1p = StreamEx.of(input).parallel().groupRuns(Integer::equals).toList();
+        List<List<Integer>> expected = new ArrayList<>();
+        List<Integer> last = null;
+        for (Integer num : input) {
+            if (last != null) {
+                if (last.get(last.size()-1).equals(num)) {
+                    last.add(num);
+                    continue;
+                }
+                expected.add(last);
+            }
+            last = new ArrayList<>();
+            last.add(num);
+        }
+        if (last != null)
+            expected.add(last);
+        assertEquals(expected, res1);
+        assertEquals(expected, res1p);
+    }
 }
