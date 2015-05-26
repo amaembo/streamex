@@ -22,10 +22,8 @@ import java.util.function.Consumer;
 
 /* package */ final class CollapseSpliterator<T> implements Spliterator<T> {
     private Spliterator<T> source;
-    private boolean hasLast;
-    private boolean hasPrev;
-    private T cur;
-    private T last;
+    private boolean hasPrev, hasLast;
+    private T cur, last;
     private final BinaryOperator<T> merger;
     private final BiPredicate<T, T> mergeable;
 
@@ -64,15 +62,14 @@ import java.util.function.Consumer;
             }
         }
         if (!hasLast) {
-            action.accept(prev);
             source = null;
-            return true;
-        }
-        cur = last;
-        hasLast = false;
-        if (mergeable.test(prev, cur)) {
-            prev = merger.apply(prev, cur);
-            source = null;
+        } else {
+            cur = last;
+            hasLast = false;
+            if (mergeable.test(prev, cur)) {
+                prev = merger.apply(prev, cur);
+                source = null;
+            }
         }
         action.accept(prev);
         return true;

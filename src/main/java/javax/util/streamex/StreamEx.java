@@ -1046,26 +1046,49 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * <p>
      * This is an intermediate operation.
      * 
-     * @param collapsable
+     * @param collapsible
      *            a non-interfering, stateless predicate to apply to the pair of
      *            elements which returns true for elements which are
-     *            collapsable. If {@code collapsable(a, b)} is true, then the
+     *            collapsible. If {@code collapsible(a, b)} is true, then the
      *            following invariants must be held:
-     *            {@code collapsable(merger(a, b), c) = collapsable(b, c)} and
-     *            {@code collapsable(c, merger(a, b)) = collapsable(c, a)}.
+     *            {@code collapsible(merger(a, b), c) = collapsible(b, c)} and
+     *            {@code collapsible(c, merger(a, b)) = collapsible(c, a)}.
      * @param merger
      *            a non-interfering, stateless, associative function to merge
-     *            two adjacent elements for which collapsable predicate returned
+     *            two adjacent elements for which collapsible predicate returned
      *            true. Note that it can be applied to the results if previous
      *            merges.
      * @return the new stream
      * @since 0.3.1
      */
-    public StreamEx<T> collapse(BiPredicate<T, T> collapsable, BinaryOperator<T> merger) {
+    public StreamEx<T> collapse(BiPredicate<T, T> collapsible, BinaryOperator<T> merger) {
         return strategy().newStreamEx(
                 StreamSupport.stream(
-                        new CollapseSpliterator<>(collapsable, merger, stream.spliterator(), null, false, null, false),
+                        new CollapseSpliterator<>(collapsible, merger, stream.spliterator(), null, false, null, false),
                         stream.isParallel()).onClose(stream::close));
+    }
+
+    /**
+     * Returns a stream consisting of elements of this stream where every series
+     * of elements matched the predicate is replaced with first element from the
+     * series.
+     * 
+     * <p>
+     * This is an intermediate operation.
+     * 
+     * <p>
+     * {@code stream.sorted().collapse(Objects::equals)} is equivalent to
+     * {@code stream.sorted().distinct()}.
+     * 
+     * @param collapsible
+     *            a non-interfering, stateless, transitive predicate to apply to
+     *            the pair of elements which returns true for elements which are
+     *            collapsible.
+     * @return the new stream
+     * @since 0.3.1
+     */
+    public StreamEx<T> collapse(BiPredicate<T, T> collapsible) {
+        return collapse(collapsible, (a, b) -> a);
     }
 
     /**
@@ -1091,29 +1114,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             a.addAll(b);
             return a;
         });
-    }
-
-    /**
-     * Returns a stream consisting of elements of this stream where every series
-     * of elements matched the predicate is replaced with first element from the
-     * series.
-     * 
-     * <p>
-     * This is an intermediate operation.
-     * 
-     * <p>
-     * {@code stream.sorted().collapse(Objects::equals)} is equivalent to
-     * {@code stream.sorted().distinct()}.
-     * 
-     * @param collapsable
-     *            a non-interfering, stateless, transitive predicate to apply to
-     *            the pair of elements which returns true for elements which are
-     *            collapsable.
-     * @return the new stream
-     * @since 0.3.1
-     */
-    public StreamEx<T> collapse(BiPredicate<T, T> collapsable) {
-        return collapse(collapsable, (a, b) -> a);
     }
 
     /**
