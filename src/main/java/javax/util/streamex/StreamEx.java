@@ -19,8 +19,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.UncheckedIOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -1037,12 +1039,98 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             return null;
         }).reduce(null, (a, b) -> null);
     }
-    
-    public StreamEx<T> mergeNeighbors(BiPredicate<T, T> mergeable, BinaryOperator<T> merger) {
+
+    /**
+     * Merge series of adjacent elements which satisfy the given predicate using
+     * the merger function and return a new stream.
+     * 
+     * <p>
+     * This is an intermediate operation.
+     * 
+     * @param collapsable
+     *            a non-interfering, stateless predicate to apply to the pair of
+     *            elements which returns true for elements which are
+     *            collapsable. If {@code collapsable(a, b)} is true, then the
+     *            following invariants must be held:
+     *            {@code collapsable(merger(a, b), c) = collapsable(b, c)} and
+     *            {@code collapsable(c, merger(a, b)) = collapsable(c, a)}.
+     * @param merger
+     *            a non-interfering, stateless, associative function to merge
+     *            two adjacent elements for which collapsable predicate returned
+     *            true. Note that it can be applied to the results if previous
+     *            merges.
+     * @return the new stream
+     * @since 0.3.1
+     */
+    public StreamEx<T> collapse(BiPredicate<T, T> collapsable, BinaryOperator<T> merger) {
         return strategy().newStreamEx(
                 StreamSupport.stream(
-                        new MergeSpliterator<>(mergeable, merger, stream.spliterator(), null, false, null, false),
+                        new MergeSpliterator<>(collapsable, merger, stream.spliterator(), null, false, null, false),
                         stream.isParallel()).onClose(stream::close));
+    }
+
+    /**
+     * Returns a stream consisting of lists of elements of this stream where
+     * adjacent elements are grouped according to supplied predicate.
+     * 
+     * <p>
+     * This is an intermediate operation.
+     * 
+     * @param sameGroup
+     *            a non-interfering, stateless, transitive predicate to apply to
+     *            the pair of elements which returns true for elements which
+     *            belong to the same group.
+     * @return the new stream
+     * @since 0.3.1
+     */
+    @SuppressWarnings("unchecked")
+    public StreamEx<List<T>> groupRuns(BiPredicate<T, T> sameGroup) {
+        return collapse((a, b) -> {
+            T e1 = a instanceof Box ? ((Box<List<T>>) a).obj.get(((Box<List<T>>) a).obj.size() - 1) : (T) a;
+            T e2 = b instanceof Box ? ((Box<List<T>>) b).obj.get(0) : (T) b;
+            return sameGroup.test(e1, e2);
+        }, (a, b) -> {
+            Box<List<T>> res;
+            if (a instanceof Box)
+                res = (Box<List<T>>) a;
+            else {
+                res = new Box<>(new ArrayList<>());
+                res.obj.add(a);
+            }
+            if (b instanceof Box)
+                res.obj.addAll(((Box<List<T>>) b).obj);
+            else
+                res.obj.add(b);
+            return (T) res;
+        }).map(t -> {
+            if (t instanceof Box) {
+                return ((Box<List<T>>) t).obj;
+            }
+            return Collections.singletonList(t);
+        });
+    }
+
+    /**
+     * Returns a stream consisting of elements of this stream where every series
+     * of elements matched the predicate is replaced with first element from the
+     * series.
+     * 
+     * <p>
+     * This is an intermediate operation.
+     * 
+     * <p>
+     * {@code stream.sorted().collapse(Objects::equals)} is equivalent to
+     * {@code stream.sorted().distinct()}.
+     * 
+     * @param collapsable
+     *            a non-interfering, stateless, transitive predicate to apply to
+     *            the pair of elements which returns true for elements which are
+     *            collapsable.
+     * @return the new stream
+     * @since 0.3.1
+     */
+    public StreamEx<T> collapse(BiPredicate<T, T> collapsable) {
+        return collapse(collapsable, (a, b) -> a);
     }
 
     /**
