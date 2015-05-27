@@ -19,6 +19,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.UncheckedIOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -37,6 +38,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -1035,6 +1037,83 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             action.accept(a, b);
             return null;
         }).reduce(null, (a, b) -> null);
+    }
+
+    /**
+     * Merge series of adjacent elements which satisfy the given predicate using
+     * the merger function and return a new stream.
+     * 
+     * <p>
+     * This is an intermediate operation.
+     * 
+     * @param collapsible
+     *            a non-interfering, stateless predicate to apply to the pair of
+     *            elements which returns true for elements which are
+     *            collapsible. If {@code collapsible(a, b)} is true, then the
+     *            following invariants must be held:
+     *            {@code collapsible(merger(a, b), c) = collapsible(b, c)} and
+     *            {@code collapsible(c, merger(a, b)) = collapsible(c, a)}.
+     * @param merger
+     *            a non-interfering, stateless, associative function to merge
+     *            two adjacent elements for which collapsible predicate returned
+     *            true. Note that it can be applied to the results if previous
+     *            merges.
+     * @return the new stream
+     * @since 0.3.1
+     */
+    public StreamEx<T> collapse(BiPredicate<T, T> collapsible, BinaryOperator<T> merger) {
+        return strategy().newStreamEx(
+                StreamSupport.stream(
+                        new CollapseSpliterator<>(collapsible, merger, stream.spliterator(), null, false, null, false),
+                        stream.isParallel()).onClose(stream::close));
+    }
+
+    /**
+     * Returns a stream consisting of elements of this stream where every series
+     * of elements matched the predicate is replaced with first element from the
+     * series.
+     * 
+     * <p>
+     * This is an intermediate operation.
+     * 
+     * <p>
+     * {@code stream.sorted().collapse(Objects::equals)} is equivalent to
+     * {@code stream.sorted().distinct()}.
+     * 
+     * @param collapsible
+     *            a non-interfering, stateless, transitive predicate to apply to
+     *            the pair of elements which returns true for elements which are
+     *            collapsible.
+     * @return the new stream
+     * @since 0.3.1
+     */
+    public StreamEx<T> collapse(BiPredicate<T, T> collapsible) {
+        return collapse(collapsible, (a, b) -> a);
+    }
+
+    /**
+     * Returns a stream consisting of lists of elements of this stream where
+     * adjacent elements are grouped according to supplied predicate.
+     * 
+     * <p>
+     * This is an intermediate operation.
+     * 
+     * @param sameGroup
+     *            a non-interfering, stateless, transitive predicate to apply to
+     *            the pair of elements which returns true for elements which
+     *            belong to the same group.
+     * @return the new stream
+     * @since 0.3.1
+     */
+    public StreamEx<List<T>> groupRuns(BiPredicate<T, T> sameGroup) {
+        return map(t -> {
+            List<T> res = new ArrayList<>();
+            res.add(t);
+            return res;
+        }).collapse((a, b) -> sameGroup.test(a.get(a.size()-1), b.get(0)), (a, b) -> {
+            a.addAll(b);
+            return a;
+        });
     }
 
     /**

@@ -135,7 +135,7 @@ public class StreamExTest {
         assertArrayEquals(new String[] { "a", "b", "c" }, StreamEx.of("a", "b", "c").toArray(String[]::new));
         assertArrayEquals(new Object[] { "a", "b", "c" }, StreamEx.of("a", "b", "c").toArray());
         assertEquals(3, StreamEx.of("a", "b", "c").spliterator().getExactSizeIfKnown());
-        
+
         assertTrue(StreamEx.of("a", "b", "c").spliterator().hasCharacteristics(Spliterator.ORDERED));
         assertFalse(StreamEx.of("a", "b", "c").unordered().spliterator().hasCharacteristics(Spliterator.ORDERED));
     }
@@ -178,13 +178,13 @@ public class StreamExTest {
         assertFalse(seqMap3 instanceof ConcurrentMap);
         assertTrue(parallelMap3 instanceof ConcurrentMap);
     }
-    
+
     @Test
     public void testAndThen() {
         HashSet<String> set = StreamEx.of("a", "bb", "ccc").toListAndThen(HashSet<String>::new);
         assertEquals(3, set.size());
         assertTrue(set.contains("bb"));
-        
+
         ArrayList<String> list = StreamEx.of("a", "bb", "ccc").toSetAndThen(ArrayList<String>::new);
         assertEquals(3, list.size());
         assertTrue(list.contains("bb"));
@@ -341,7 +341,7 @@ public class StreamExTest {
                 StreamEx.of("a", "b", "c").append(Arrays.asList("d", "e").stream()).toList());
         assertEquals(Arrays.asList("a", "b", "c", "d", "e"), StreamEx.of("a", "b", "c").append(Arrays.asList("d", "e"))
                 .toList());
-        
+
         List<Integer> list = Arrays.asList(1, 2, 3, 4);
         assertEquals(Arrays.asList(1.0, 2, 3L, 1, 2, 3, 4), StreamEx.of(1.0, 2, 3L).append(list).toList());
     }
@@ -633,7 +633,7 @@ public class StreamExTest {
         public String toString() {
             return title;
         }
-        
+
         public StreamEx<TreeNode> flatStream() {
             return StreamEx.ofTree(this, CompositeNode.class, CompositeNode::elements);
         }
@@ -676,16 +676,162 @@ public class StreamExTest {
         assertEquals("root,childA,grandA1,grandA2,childB,grandB1,childC", r.flatStream().joining(","));
         assertEquals("root,childA,grandA1,grandA2,childB,grandB1,childC", r.flatStream().parallel().joining(","));
     }
-    
+
     @Test
     public void testCross() {
-        assertEquals("a-1, a-2, a-3, b-1, b-2, b-3, c-1, c-2, c-3", StreamEx.of("a", "b", "c").cross(1, 2, 3).join("-").joining(", "));
+        assertEquals("a-1, a-2, a-3, b-1, b-2, b-3, c-1, c-2, c-3", StreamEx.of("a", "b", "c").cross(1, 2, 3).join("-")
+                .joining(", "));
         assertEquals("a-1, b-1, c-1", StreamEx.of("a", "b", "c").cross(1).join("-").joining(", "));
         assertEquals("", StreamEx.of("a", "b", "c").cross().join("-").joining(", "));
         List<String> inputs = Arrays.asList("i", "j", "k");
         List<String> outputs = Arrays.asList("x", "y", "z");
-        assertEquals("i->x, i->y, i->z, j->x, j->y, j->z, k->x, k->y, k->z", StreamEx.of(inputs).cross(outputs).mapKeyValue((input, output) -> input + "->" + output).joining(", "));
+        assertEquals("i->x, i->y, i->z, j->x, j->y, j->z, k->x, k->y, k->z", StreamEx.of(inputs).cross(outputs)
+                .mapKeyValue((input, output) -> input + "->" + output).joining(", "));
         assertEquals("", StreamEx.of(inputs).cross(Collections.emptyList()).join("->").joining(", "));
         assertEquals("i-i, j-j, k-k", StreamEx.of(inputs).cross(Stream::of).join("-").joining(", "));
+    }
+
+    @Test
+    public void testCollapseEmptyLines() {
+        Random r = new Random(1);
+        for (int i = 0; i < 100; i++) {
+            List<String> input = IntStreamEx.range(r.nextInt(i + 1))
+                    .mapToObj(n -> r.nextBoolean() ? "" : String.valueOf(n)).toList();
+            List<String> resultSpliterator = StreamEx.of(input)
+                    .collapse((str1, str2) -> str1.isEmpty() && str2.isEmpty()).toList();
+            List<String> resultSpliteratorParallel = StreamEx.of(input).parallel()
+                    .collapse((str1, str2) -> str1.isEmpty() && str2.isEmpty()).toList();
+            List<String> expected = new ArrayList<>();
+            boolean lastSpace = false;
+            for (String str : input) {
+                if (str.isEmpty()) {
+                    if (!lastSpace) {
+                        expected.add(str);
+                    }
+                    lastSpace = true;
+                } else {
+                    expected.add(str);
+                    lastSpace = false;
+                }
+            }
+            assertEquals("#" + i, expected, resultSpliterator);
+            assertEquals("#" + i, expected, resultSpliteratorParallel);
+        }
+    }
+
+    static class Interval {
+        final int from, to;
+    
+        public Interval(int from) {
+            this(from, from);
+        }
+    
+        public Interval(int from, int to) {
+            this.from = from;
+            this.to = to;
+        }
+    
+        public Interval merge(Interval other) {
+            return new Interval(this.from, other.to);
+        }
+    
+        public boolean adjacent(Interval other) {
+            return other.from == this.to + 1;
+        }
+    
+        @Override
+        public String toString() {
+            return from == to ? "{" + from + "}" : "[" + from + ".." + to + "]";
+        }
+    }
+
+    @Test
+    public void testCollapseIntervals() {
+        Random r = new Random(1);
+        for (int i = 0; i < 100; i++) {
+            int size = r.nextInt(i * 5 + 1);
+            int[] input = IntStreamEx.of(r, size, 0, size * 3 / 2 + 2).toArray();
+            String result = IntStreamEx.of(input).sorted().boxed().distinct().map(Interval::new)
+                    .collapse(Interval::adjacent, Interval::merge).joining(" & ");
+            String resultParallel = IntStreamEx.of(input).parallel().sorted().boxed().distinct().map(Interval::new)
+                    .collapse(Interval::adjacent, Interval::merge).joining(" & ");
+            String resultParallel2 = IntStreamEx.of(input).sorted().boxed().distinct().map(Interval::new)
+                    .collapse(Interval::adjacent, Interval::merge).parallel().joining(" & ");
+            int[] sorted = Arrays.copyOf(input, input.length);
+            Arrays.sort(sorted);
+            List<String> expected = new ArrayList<>();
+            Interval last = null;
+            for (int num : sorted) {
+                if (last != null) {
+                    if (last.to == num)
+                        continue;
+                    if (last.to == num - 1) {
+                        last = new Interval(last.from, num);
+                        continue;
+                    }
+                    expected.add(last.toString());
+                }
+                last = new Interval(num);
+            }
+            if (last != null)
+                expected.add(last.toString());
+            String expectedStr = String.join(" & ", expected);
+            assertEquals(expectedStr, result);
+            assertEquals(expectedStr, resultParallel);
+            assertEquals(expectedStr, resultParallel2);
+        }
+    }
+
+    @Test
+    public void testCollapseDistinct() {
+        Random r = new Random(1);
+        for (int i = 0; i < 100; i++) {
+            int size = r.nextInt(i * 5 + 1);
+            List<Integer> input = IntStreamEx.of(r, size, 0, size * 3 / 2 + 2).boxed().sorted().toList();
+            List<Integer> distinct = StreamEx.of(input).collapse(Integer::equals).toList();
+            List<Integer> distinctParallel = StreamEx.of(input).parallel().collapse(Integer::equals).toList();
+            List<Integer> expected = input.stream().distinct().collect(Collectors.toList());
+            assertEquals(expected, distinct);
+            assertEquals(expected, distinctParallel);
+        }
+    }
+    
+    @Test
+    public void testGroupRuns() {
+        List<String> input = Arrays.asList("aaa", "bb", "baz", "bar", "foo", "fee", "abc");
+        List<List<String>> result = StreamEx.of(input).groupRuns((a, b) -> a.charAt(0) == b.charAt(0)).toList();
+        List<List<String>> resultParallel = StreamEx.of(input).parallel().groupRuns((a, b) -> a.charAt(0) == b.charAt(0)).toList();
+        List<List<String>> expected = Arrays.asList(
+                Arrays.asList("aaa"),
+                Arrays.asList("bb", "baz", "bar"),
+                Arrays.asList("foo", "fee"),
+                Arrays.asList("abc"));
+        assertEquals(expected, result);
+        assertEquals(expected, resultParallel);
+    }
+    
+    @Test
+    public void testGroupRunsRandom() {
+        Random r = new Random(1);
+        List<Integer> input = IntStreamEx.of(r, 1000, 1, 100).sorted().boxed().toList();
+        List<List<Integer>> res1 = StreamEx.of(input).groupRuns(Integer::equals).toList();
+        List<List<Integer>> res1p = StreamEx.of(input).parallel().groupRuns(Integer::equals).toList();
+        List<List<Integer>> expected = new ArrayList<>();
+        List<Integer> last = null;
+        for (Integer num : input) {
+            if (last != null) {
+                if (last.get(last.size()-1).equals(num)) {
+                    last.add(num);
+                    continue;
+                }
+                expected.add(last);
+            }
+            last = new ArrayList<>();
+            last.add(num);
+        }
+        if (last != null)
+            expected.add(last);
+        assertEquals(expected, res1);
+        assertEquals(expected, res1p);
     }
 }
