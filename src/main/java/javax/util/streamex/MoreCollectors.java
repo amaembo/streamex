@@ -77,81 +77,6 @@ public final class MoreCollectors {
         BinaryOperator<A> downstreamCombiner = downstream.combiner();
         class Container {
             A acc;
-            T t;
-            // 0 = no elements collected; 
-            // 1 = one element collected, stored in t; 
-            // 2 = two or more elements collected, accumulated in acc; t contains any collected element
-            int state; 
-        }
-        Supplier<Container> supplier = Container::new;
-        BiConsumer<Container, T> accumulator = (acc, t) -> {
-            if (acc.state == 0) {
-                acc.t = t;
-                acc.state = 1;
-            } else {
-                int cmp = comparator.compare(t, acc.t);
-                if (cmp > 0) {
-                    acc.acc = null;
-                    acc.t = t;
-                    acc.state = 1;
-                } else if (cmp == 0) {
-                    if (acc.state == 1) {
-                        acc.acc = downstreamSupplier.get();
-                        acc.state = 2;
-                        downstreamAccumulator.accept(acc.acc, acc.t);
-                    }
-                    downstreamAccumulator.accept(acc.acc, t);
-                }
-            }
-        };
-        BinaryOperator<Container> combiner = (acc1, acc2) -> {
-            if (acc2.state == 0) {
-                return acc1;
-            }
-            if (acc1.state == 0) {
-                return acc2;
-            }
-            int cmp = comparator.compare(acc1.t, acc2.t);
-            if (cmp > 0) {
-                return acc1;
-            }
-            if (cmp < 0) {
-                return acc2;
-            }
-            if (acc2.state == 1) {
-                if (acc1.state == 1) {
-                    acc1.acc = downstreamSupplier.get();
-                    acc1.state = 2;
-                    downstreamAccumulator.accept(acc1.acc, acc1.t);
-                }
-                downstreamAccumulator.accept(acc1.acc, acc2.t);
-                return acc1;
-            }
-            if (acc1.state == 1) {
-                downstreamAccumulator.accept(acc2.acc, acc1.t);
-                return acc2;
-            }
-            acc1.acc = downstreamCombiner.apply(acc1.acc, acc2.acc);
-            return acc1;
-        };
-        Function<Container, D> finisher = acc -> {
-            if (acc.state == 0)
-                return downstream.finisher().apply(downstream.supplier().get());
-            if (acc.state == 1) {
-                acc.acc = downstreamSupplier.get();
-                downstreamAccumulator.accept(acc.acc, acc.t);
-            }
-            return downstream.finisher().apply(acc.acc);
-        };
-        return Collector.of(supplier, accumulator, combiner, finisher);
-    }
-
-    public static <T, A, D> Collector<T, ?, D> maxAll2(Comparator<? super T> comparator, Collector<? super T, A, D> downstream) {
-        Supplier<A> downstreamSupplier = downstream.supplier();
-        BiConsumer<A, ? super T> downstreamAccumulator = downstream.accumulator();
-        BinaryOperator<A> downstreamCombiner = downstream.combiner();
-        class Container {
-            A acc;
             T obj;
             boolean hasAny;
             
@@ -167,8 +92,10 @@ public final class MoreCollectors {
                 acc.hasAny = true;
             } else {
                 int cmp = comparator.compare(t, acc.obj);
-                if (cmp > 0)
+                if (cmp > 0) {
                     acc.acc = downstreamSupplier.get();
+                    acc.obj = t;
+                }
                 if (cmp >= 0)
                     downstreamAccumulator.accept(acc.acc, t);
             }
