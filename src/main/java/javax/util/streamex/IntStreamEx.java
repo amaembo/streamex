@@ -1119,7 +1119,7 @@ public class IntStreamEx implements IntStream {
      * to the every adjacent pair of elements of this stream.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is a semi-intermediate operation.
      * 
      * <p>
      * The output stream will contain one element less than this stream. If this
