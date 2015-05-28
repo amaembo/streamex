@@ -1,5 +1,12 @@
 # StreamEx changes
 
+### 0.3.1
+
+* Added mapToEntry method for primitive streams
+* Added joining methods family for primitive streams
+* Added StreamEx.collapse/groupRuns methods
+* Updated documentation
+
 ### 0.3.0
 
 * Added primitive collectors: IntCollector, LongCollector, DoubleCollector
