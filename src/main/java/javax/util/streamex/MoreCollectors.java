@@ -14,6 +14,8 @@ import java.util.stream.Collector;
 import java.util.stream.Collector.Characteristics;
 import java.util.stream.Collectors;
 
+import static javax.util.streamex.StreamExInternals.*;
+
 public final class MoreCollectors {
     private MoreCollectors() {
         throw new UnsupportedOperationException();
@@ -29,15 +31,6 @@ public final class MoreCollectors {
 
     public static <T, A1, A2, R1, R2, R> Collector<T, ?, R> pairing(Collector<T, A1, R1> c1, Collector<T, A2, R2> c2,
             BiFunction<R1, R2, R> finisher) {
-        class Container {
-            A1 a1;
-            A2 a2;
-
-            Container(A1 a1, A2 a2) {
-                this.a1 = a1;
-                this.a2 = a2;
-            }
-        }
         EnumSet<Characteristics> c = EnumSet.noneOf(Characteristics.class);
         c.addAll(c1.characteristics());
         c.retainAll(c2.characteristics());
@@ -50,19 +43,19 @@ public final class MoreCollectors {
         BinaryOperator<A1> c1Combiner = c1.combiner();
         BinaryOperator<A2> c2combiner = c2.combiner();
 
-        Supplier<Container> supplier = () -> new Container(c1Supplier.get(), c2Supplier.get());
-        BiConsumer<Container, T> accumulator = (acc, v) -> {
-            c1Accumulator.accept(acc.a1, v);
-            c2Accumulator.accept(acc.a2, v);
+        Supplier<PairBox<A1, A2>> supplier = () -> new PairBox<>(c1Supplier.get(), c2Supplier.get());
+        BiConsumer<PairBox<A1, A2>, T> accumulator = (acc, v) -> {
+            c1Accumulator.accept(acc.a, v);
+            c2Accumulator.accept(acc.b, v);
         };
-        BinaryOperator<Container> combiner = (acc1, acc2) -> {
-            acc1.a1 = c1Combiner.apply(acc1.a1, acc2.a1);
-            acc1.a2 = c2combiner.apply(acc1.a2, acc2.a2);
+        BinaryOperator<PairBox<A1, A2>> combiner = (acc1, acc2) -> {
+            acc1.a = c1Combiner.apply(acc1.a, acc2.a);
+            acc1.b = c2combiner.apply(acc1.b, acc2.b);
             return acc1;
         };
         return Collector.of(supplier, accumulator, combiner, acc -> {
-            R1 r1 = c1.finisher().apply(acc.a1);
-            R2 r2 = c2.finisher().apply(acc.a2);
+            R1 r1 = c1.finisher().apply(acc.a);
+            R2 r2 = c2.finisher().apply(acc.b);
             return finisher.apply(r1, r2);
         }, c.toArray(new Characteristics[c.size()]));
     }
@@ -71,56 +64,48 @@ public final class MoreCollectors {
         return maxAll(comparator, Collectors.toList());
     }
 
-    public static <T, A, D> Collector<T, ?, D> maxAll(Comparator<? super T> comparator, Collector<? super T, A, D> downstream) {
+    public static <T, A, D> Collector<T, ?, D> maxAll(Comparator<? super T> comparator,
+            Collector<? super T, A, D> downstream) {
         Supplier<A> downstreamSupplier = downstream.supplier();
         BiConsumer<A, ? super T> downstreamAccumulator = downstream.accumulator();
         BinaryOperator<A> downstreamCombiner = downstream.combiner();
-        class Container {
-            A acc;
-            T obj;
-            boolean hasAny;
-            
-            Container(A acc) {
-                this.acc = acc;
-            }
-        }
-        Supplier<Container> supplier = () -> new Container(downstreamSupplier.get());
-        BiConsumer<Container, T> accumulator = (acc, t) -> {
-            if(!acc.hasAny) {
-                downstreamAccumulator.accept(acc.acc, t);
-                acc.obj = t;
-                acc.hasAny = true;
+        @SuppressWarnings("unchecked")
+        Supplier<PairBox<A, T>> supplier = () -> new PairBox<>(downstreamSupplier.get(), (T) NONE);
+        BiConsumer<PairBox<A, T>, T> accumulator = (acc, t) -> {
+            if (acc.b == NONE) {
+                downstreamAccumulator.accept(acc.a, t);
+                acc.b = t;
             } else {
-                int cmp = comparator.compare(t, acc.obj);
+                int cmp = comparator.compare(t, acc.b);
                 if (cmp > 0) {
-                    acc.acc = downstreamSupplier.get();
-                    acc.obj = t;
+                    acc.a = downstreamSupplier.get();
+                    acc.b = t;
                 }
                 if (cmp >= 0)
-                    downstreamAccumulator.accept(acc.acc, t);
+                    downstreamAccumulator.accept(acc.a, t);
             }
         };
-        BinaryOperator<Container> combiner = (acc1, acc2) -> {
-            if (!acc2.hasAny) {
+        BinaryOperator<PairBox<A, T>> combiner = (acc1, acc2) -> {
+            if (acc2.b == NONE) {
                 return acc1;
             }
-            if (!acc1.hasAny) {
+            if (acc1.b == NONE) {
                 return acc2;
             }
-            int cmp = comparator.compare(acc1.obj, acc2.obj);
+            int cmp = comparator.compare(acc1.b, acc2.b);
             if (cmp > 0) {
                 return acc1;
             }
             if (cmp < 0) {
                 return acc2;
             }
-            acc1.acc = downstreamCombiner.apply(acc1.acc, acc2.acc);
+            acc1.a = downstreamCombiner.apply(acc1.a, acc2.a);
             return acc1;
         };
-        Function<Container, D> finisher = acc -> downstream.finisher().apply(acc.acc);
+        Function<PairBox<A, T>, D> finisher = acc -> downstream.finisher().apply(acc.a);
         return Collector.of(supplier, accumulator, combiner, finisher);
     }
-    
+
     public static <T, A, D> Collector<T, ?, D> minAll(Comparator<? super T> comparator, Collector<T, A, D> downstream) {
         return maxAll(comparator.reversed(), downstream);
     }
