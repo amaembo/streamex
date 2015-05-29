@@ -44,6 +44,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.junit.Test;
@@ -455,7 +456,52 @@ public class StreamExTest {
                 StreamEx.of("a", "bb", "ccc").parallel()
                         .foldLeft(Collections.emptyMap(), (acc, v) -> Collections.singletonMap(v, acc)).toString());
     }
+    
+    @Test
+    public void testDistinctAtLeast() {
+        assertEquals(0, StreamEx.of("a", "b", "c").distinct(2).count());
+        assertEquals(StreamEx.of("a", "b", "c").distinct().toList(), StreamEx.of("a", "b", "c").distinct(1).toList());
+        assertEquals(Arrays.asList("b"), StreamEx.of("a", "b", "c", "b", null).distinct(2).toList());
+        assertEquals(Arrays.asList("b", null), StreamEx.of("a", "b", null, "c", "b", null).distinct(2).toList());
+        assertEquals(Arrays.asList(null, "b"), StreamEx.of("a", "b", null, "c", null, "b", null, "b").distinct(2).toList());
+        assertEquals(3334, IntStreamEx.range(0, 10000).map(x -> x/3).boxed().distinct().count());
+        assertEquals(3333, IntStreamEx.range(0, 10000).map(x -> x/3).boxed().distinct(2).count());
+        assertEquals(3333, IntStreamEx.range(0, 10000).map(x -> x/3).boxed().distinct(3).count());
 
+        assertEquals(0, IntStreamEx.range(0, 10000).map(x -> x/3).boxed().distinct(4).count());
+
+        assertEquals(0, StreamEx.of("a", "b", "c").parallel().distinct(2).count());
+        assertEquals(StreamEx.of("a", "b", "c").parallel().distinct().toList(), StreamEx.of("a", "b", "c").parallel().distinct(1).toList());
+        assertEquals(Arrays.asList("b"), StreamEx.of("a", "b", "c", "b").parallel().distinct(2).toList());
+        assertEquals(new HashSet<>(Arrays.asList("b", null)), StreamEx.of("a", "b", null, "c", "b", null).parallel().distinct(2).toSet());
+        assertEquals(new HashSet<>(Arrays.asList(null, "b")), StreamEx.of("a", "b", null, "c", null, "b", null, "b").parallel().distinct(2).toSet());
+        assertEquals(3334, IntStreamEx.range(0, 10000).map(x -> x/3).boxed().parallel().distinct().count());
+        assertEquals(3333, IntStreamEx.range(0, 10000).map(x -> x/3).boxed().parallel().distinct(2).count());
+        assertEquals(3333, IntStreamEx.range(0, 10000).map(x -> x/3).boxed().parallel().distinct(3).toList().size());
+        assertEquals(0, IntStreamEx.range(0, 10000).map(x -> x/3).boxed().parallel().distinct(4).count());
+
+        List<Integer> distinct3List = IntStreamEx.range(0, 10000).parallel().map(x -> x/3).boxed().distinct(3).toList();
+        assertEquals(3333, distinct3List.size());
+        Map<Integer, Long> map = IntStream.range(0, 10000).parallel().map(x -> x/3).boxed().collect(Collectors.groupingBy(Function.identity(), LinkedHashMap::new, Collectors.counting()));
+        List<Integer> expectedList = map.entrySet().stream().parallel().filter(e -> e.getValue() >= 3).map(Entry::getKey).collect(Collectors.toList());
+        assertEquals(3333, expectedList.size());
+        assertEquals(distinct3List, expectedList);
+        
+        for(int i=1; i<1000; i+=100) {
+            List<Integer> input = IntStreamEx.of(new Random(1), i, 1, 100).boxed().toList();
+            for(int n : IntStreamEx.range(2, 10).boxed()) {
+                Set<Integer> expected = input.stream().collect(
+                        Collectors.collectingAndThen(Collectors.groupingBy(Function.identity(), Collectors.counting()), m -> {
+                            m.values().removeIf(l -> l < n);
+                            return m.keySet();
+                        }));
+                assertEquals(expected, StreamEx.of(input).distinct(n).toSet());
+                assertEquals(expected, StreamEx.of(input).parallel().distinct(n).toSet());
+                assertEquals(0, StreamEx.of(expected).distinct(2).toSet().size());
+            }
+        }
+    }
+    
     @Test
     public void testFoldRight() {
         assertEquals(";c;b;a", StreamEx.of("a", "b", "c").parallel().foldRight("", (u, v) -> v + ";" + u));

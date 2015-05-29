@@ -31,6 +31,8 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.SortedMap;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -987,6 +989,19 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return sorted((Comparator<? super T>) Comparator.reverseOrder());
     }
 
+    public StreamEx<T> distinct(long atLeast) {
+        if (atLeast <= 1)
+            return distinct();
+        Spliterator<T> spliterator = stream.spliterator();
+        Spliterator<T> result;
+        if(spliterator.hasCharacteristics(Spliterator.DISTINCT))
+            // already distinct: cannot have any repeating elements
+            result = Spliterators.emptySpliterator();
+        else
+            result = new DistinctSpliterator<>(spliterator, atLeast);
+        return strategy().newStreamEx(StreamSupport.stream(result, stream.isParallel()).onClose(stream::close));
+    }
+    
     /**
      * Returns a stream consisting of the results of applying the given function
      * to the every adjacent pair of elements of this stream.
