@@ -999,7 +999,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             if (t == null) {
                 return nullCount.incrementAndGet() == atLeast;
             }
-            return map.merge(t, 1L, (u, v) -> (u + v)) == atLeast;
+            return map.merge(t, 1L, Long::sum) == atLeast;
         });
     }
     

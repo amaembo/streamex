@@ -34,14 +34,14 @@ final class DistinctSpliterator<T> implements Spliterator<T> {
     public boolean tryAdvance(Consumer<? super T> action) {
         if (nullCounter == null) {
             while (source.tryAdvance(this::setCur)) {
-                if (counts.merge(cur, 1L, (u, v) -> u + v) == atLeast) {
+                if (counts.merge(cur, 1L, Long::sum) == atLeast) {
                     action.accept(cur);
                     return true;
                 }
             }
         } else {
             while (source.tryAdvance(this::setCur)) {
-                long count = cur == null ? nullCounter.incrementAndGet() : counts.merge(cur, 1L, (u, v) -> u + v);
+                long count = cur == null ? nullCounter.incrementAndGet() : counts.merge(cur, 1L, Long::sum);
                 if (count == atLeast) {
                     action.accept(cur);
                     return true;
@@ -55,13 +55,13 @@ final class DistinctSpliterator<T> implements Spliterator<T> {
     public void forEachRemaining(Consumer<? super T> action) {
         if (nullCounter == null) {
             source.forEachRemaining(e -> {
-                if (counts.merge(e, 1L, (u, v) -> u + v) == atLeast) {
+                if (counts.merge(e, 1L, Long::sum) == atLeast) {
                     action.accept(e);
                 }
             });
         } else {
             source.forEachRemaining(e -> {
-                long count = e == null ? nullCounter.incrementAndGet() : counts.merge(e, 1L, (u, v) -> u + v);
+                long count = e == null ? nullCounter.incrementAndGet() : counts.merge(e, 1L, Long::sum);
                 if (count == atLeast) {
                     action.accept(e);
                 }
