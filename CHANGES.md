@@ -5,6 +5,7 @@
 * Added mapToEntry method for primitive streams
 * Added joining methods family for primitive streams
 * Added StreamEx.collapse/groupRuns methods
+* Added StreamEx.distinct(atLeast) method
 * Updated documentation
 
 ### 0.3.0
