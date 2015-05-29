@@ -992,7 +992,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * to the every adjacent pair of elements of this stream.
      *
      * <p>
-     * This is a semi-intermediate operation.
+     * This is a quasi-intermediate operation.
      * 
      * <p>
      * The output stream will contain one element less than this stream. If this
@@ -1044,7 +1044,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * the merger function and return a new stream.
      * 
      * <p>
-     * This is a semi-intermediate operation.
+     * This is a quasi-intermediate operation.
      * 
      * @param collapsible
      *            a non-interfering, stateless predicate to apply to the pair of
@@ -1074,7 +1074,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * series.
      * 
      * <p>
-     * This is a semi-intermediate operation.
+     * This is a quasi-intermediate operation.
      * 
      * <p>
      * {@code stream.sorted().collapse(Objects::equals)} is equivalent to
@@ -1096,7 +1096,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * adjacent elements are grouped according to supplied predicate.
      * 
      * <p>
-     * This is a semi-intermediate operation.
+     * This is a quasi-intermediate operation.
      * 
      * @param sameGroup
      *            a non-interfering, stateless, transitive predicate to apply to
