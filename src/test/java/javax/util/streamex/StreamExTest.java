@@ -489,6 +489,37 @@ public class StreamExTest {
     }
 
     @Test
+    public void testDistinctAtLeast2() {
+        assertEquals(0, StreamEx.of("a", "b", "c").distinct2(2).count());
+        assertEquals(StreamEx.of("a", "b", "c").distinct().toList(), StreamEx.of("a", "b", "c").distinct2(1).toList());
+        assertEquals(Arrays.asList("b"), StreamEx.of("a", "b", "c", "b", null).distinct2(2).toList());
+        assertEquals(Arrays.asList("b", null), StreamEx.of("a", "b", null, "c", "b", null).distinct2(2).toList());
+        assertEquals(Arrays.asList(null, "b"), StreamEx.of("a", "b", null, "c", null, "b", null, "b").distinct2(2).toList());
+        assertEquals(3334, IntStreamEx.range(0, 10000).map(x -> x/3).boxed().distinct().count());
+        assertEquals(3333, IntStreamEx.range(0, 10000).map(x -> x/3).boxed().distinct2(2).count());
+        assertEquals(3333, IntStreamEx.range(0, 10000).map(x -> x/3).boxed().distinct2(3).count());
+        
+        assertEquals(0, IntStreamEx.range(0, 10000).map(x -> x/3).boxed().distinct2(4).count());
+        
+        assertEquals(0, StreamEx.of("a", "b", "c").parallel().distinct2(2).count());
+        assertEquals(StreamEx.of("a", "b", "c").parallel().distinct().toList(), StreamEx.of("a", "b", "c").parallel().distinct2(1).toList());
+        assertEquals(Arrays.asList("b"), StreamEx.of("a", "b", "c", "b").parallel().distinct2(2).toList());
+        assertEquals(new HashSet<>(Arrays.asList("b", null)), StreamEx.of("a", "b", null, "c", "b", null).parallel().distinct2(2).toSet());
+        assertEquals(new HashSet<>(Arrays.asList(null, "b")), StreamEx.of("a", "b", null, "c", null, "b", null, "b").parallel().distinct2(2).toSet());
+        assertEquals(3334, IntStreamEx.range(0, 10000).map(x -> x/3).boxed().parallel().distinct().count());
+        assertEquals(3333, IntStreamEx.range(0, 10000).map(x -> x/3).boxed().parallel().distinct2(2).count());
+        assertEquals(3333, IntStreamEx.range(0, 10000).map(x -> x/3).boxed().parallel().distinct2(3).toList().size());
+        assertEquals(0, IntStreamEx.range(0, 10000).map(x -> x/3).boxed().parallel().distinct2(4).count());
+        
+        List<Integer> distinct3List = IntStreamEx.range(0, 10000).parallel().map(x -> x/3).boxed().distinct2(3).toList();
+        assertEquals(3333, distinct3List.size());
+        Map<Integer, Long> map = IntStream.range(0, 10000).parallel().map(x -> x/3).boxed().collect(Collectors.groupingBy(Function.identity(), LinkedHashMap::new, Collectors.counting()));
+        List<Integer> expectedList = map.entrySet().stream().parallel().filter(e -> e.getValue() >= 3).map(Entry::getKey).collect(Collectors.toList());
+        assertEquals(3333, expectedList.size());
+        assertEquals(distinct3List, expectedList);
+    }
+    
+    @Test
     public void testFoldRight() {
         assertEquals(";c;b;a", StreamEx.of("a", "b", "c").parallel().foldRight("", (u, v) -> v + ";" + u));
         assertEquals(

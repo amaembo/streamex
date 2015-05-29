@@ -31,6 +31,8 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.SortedMap;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -999,6 +1001,19 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             }
             return map.merge(t, 1L, (u, v) -> (u + v)) == atLeast;
         });
+    }
+    
+    public StreamEx<T> distinct2(long atLeast) {
+        if (atLeast <= 1)
+            return distinct();
+        Spliterator<T> spliterator = stream.spliterator();
+        Spliterator<T> result;
+        if(spliterator.hasCharacteristics(Spliterator.DISTINCT))
+            // already distinct: cannot have any repeating elements
+            result = Spliterators.emptySpliterator();
+        else
+            result = new DistinctSpliterator<>(spliterator, atLeast);
+        return strategy().newStreamEx(StreamSupport.stream(result, stream.isParallel()).onClose(stream::close));
     }
     
     /**
