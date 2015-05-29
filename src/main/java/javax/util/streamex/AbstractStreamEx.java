@@ -42,6 +42,8 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
+import static javax.util.streamex.StreamExInternals.*;
+
 /* package */abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> implements Stream<T>, Iterable<T> {
     final Stream<T> stream;
 
@@ -54,25 +56,6 @@ import java.util.stream.Stream;
     }
 
     abstract S supply(Stream<T> stream);
-
-    static <V> BinaryOperator<V> throwingMerger() {
-        return (u, v) -> {
-            throw new IllegalStateException(String.format("Duplicate key %s", u));
-        };
-    }
-
-    static void rangeCheck(int arrayLength, int startInclusive, int endExclusive) {
-        if (startInclusive > endExclusive) {
-            throw new ArrayIndexOutOfBoundsException("startInclusive(" + startInclusive + ") > endExclusive("
-                    + endExclusive + ")");
-        }
-        if (startInclusive < 0) {
-            throw new ArrayIndexOutOfBoundsException(startInclusive);
-        }
-        if (endExclusive > arrayLength) {
-            throw new ArrayIndexOutOfBoundsException(endExclusive);
-        }
-    }
 
     @Override
     public Iterator<T> iterator() {
@@ -96,11 +79,27 @@ import java.util.stream.Stream;
         return stream.isParallel();
     }
 
+    /**
+     * Returns an equivalent stream that is unordered. May return itself, either
+     * because the stream was already unordered, or because the underlying
+     * stream state was modified to be unordered.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @return an unordered stream
+     */
     @Override
     public S unordered() {
         return supply(stream.unordered());
     }
 
+    /**
+     * Closes this stream, causing all close handlers for this stream pipeline
+     * to be called.
+     *
+     * @see AutoCloseable#close()
+     */
     @Override
     public S onClose(Runnable closeHandler) {
         return supply(stream.onClose(closeHandler));
@@ -234,6 +233,25 @@ import java.util.stream.Stream;
         return supply(stream.sorted(comparator));
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream, additionally
+     * performing the provided action on each element as elements are consumed
+     * from the resulting stream.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * <p>
+     * For parallel stream pipelines, the action may be called at whatever time
+     * and in whatever thread the element is made available by the upstream
+     * operation. If the action modifies shared state, it is responsible for
+     * providing the required synchronization.
+     *
+     * @param action
+     *            a non-interfering action to perform on the elements as they
+     *            are consumed from the stream
+     * @return the new stream
+     */
     @Override
     public S peek(Consumer<? super T> action) {
         return supply(stream.peek(action));
@@ -249,6 +267,24 @@ import java.util.stream.Stream;
         return supply(stream.skip(n));
     }
 
+    /**
+     * Performs an action for each element of this stream.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * <p>
+     * The behavior of this operation is explicitly nondeterministic. For
+     * parallel stream pipelines, this operation does <em>not</em> guarantee to
+     * respect the encounter order of the stream, as doing so would sacrifice
+     * the benefit of parallelism. For any given element, the action may be
+     * performed at whatever time and in whatever thread the library chooses. If
+     * the action accesses shared state, it is responsible for providing the
+     * required synchronization.
+     *
+     * @param action
+     *            a non-interfering action to perform on the elements
+     */
     @Override
     public void forEach(Consumer<? super T> action) {
         stream.forEach(action);
@@ -304,6 +340,14 @@ import java.util.stream.Stream;
         return reduce(BinaryOperator.maxBy(comparator));
     }
 
+    /**
+     * Returns the count of elements in this stream.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @return the count of elements in this stream
+     */
     @Override
     public long count() {
         return stream.count();
@@ -344,9 +388,9 @@ import java.util.stream.Stream;
      * This is an intermediate operation.
      *
      * <p>
-     * The {@code flatCollection()} operation has the effect of applying a one-to-many
-     * transformation to the elements of the stream, and then flattening the
-     * resulting elements into a new stream.
+     * The {@code flatCollection()} operation has the effect of applying a
+     * one-to-many transformation to the elements of the stream, and then
+     * flattening the resulting elements into a new stream.
      *
      * @param <R>
      *            The element type of the new stream
@@ -374,7 +418,7 @@ import java.util.stream.Stream;
      *            element to determine if it should be excluded
      * @return the new stream
      */
-    public S remove(Predicate<T> predicate) {
+    public S remove(Predicate<? super T> predicate) {
         return filter(predicate.negate());
     }
 
@@ -416,7 +460,7 @@ import java.util.stream.Stream;
      * @see Stream#findAny()
      * @see #findFirst(Predicate)
      */
-    public Optional<T> findAny(Predicate<T> predicate) {
+    public Optional<T> findAny(Predicate<? super T> predicate) {
         return filter(predicate).findAny();
     }
 
@@ -437,7 +481,7 @@ import java.util.stream.Stream;
      *             if the element selected is null
      * @see Stream#findFirst()
      */
-    public Optional<T> findFirst(Predicate<T> predicate) {
+    public Optional<T> findFirst(Predicate<? super T> predicate) {
         return filter(predicate).findFirst();
     }
 
@@ -449,48 +493,48 @@ import java.util.stream.Stream;
         return sorted(Comparator.comparing(keyExtractor));
     }
 
-    public S sortedByInt(ToIntFunction<T> keyExtractor) {
+    public S sortedByInt(ToIntFunction<? super T> keyExtractor) {
         return sorted(Comparator.comparingInt(keyExtractor));
     }
 
-    public S sortedByLong(ToLongFunction<T> keyExtractor) {
+    public S sortedByLong(ToLongFunction<? super T> keyExtractor) {
         return sorted(Comparator.comparingLong(keyExtractor));
     }
 
-    public S sortedByDouble(ToDoubleFunction<T> keyExtractor) {
+    public S sortedByDouble(ToDoubleFunction<? super T> keyExtractor) {
         return sorted(Comparator.comparingDouble(keyExtractor));
     }
 
-    public <V extends Comparable<? super V>> Optional<T> minBy(Function<T, ? extends V> keyExtractor) {
-        return min(Comparator.comparing(keyExtractor));
+    public <V extends Comparable<? super V>> Optional<T> minBy(Function<? super T, ? extends V> keyExtractor) {
+        return reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? b : a);
     }
 
-    public Optional<T> minByInt(ToIntFunction<T> keyExtractor) {
-        return min(Comparator.comparingInt(keyExtractor));
+    public Optional<T> minByInt(ToIntFunction<? super T> keyExtractor) {
+        return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? b : a);
     }
 
-    public Optional<T> minByLong(ToLongFunction<T> keyExtractor) {
-        return min(Comparator.comparingLong(keyExtractor));
+    public Optional<T> minByLong(ToLongFunction<? super T> keyExtractor) {
+        return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? b : a);
     }
 
-    public Optional<T> minByDouble(ToDoubleFunction<T> keyExtractor) {
-        return min(Comparator.comparingDouble(keyExtractor));
+    public Optional<T> minByDouble(ToDoubleFunction<? super T> keyExtractor) {
+        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? b : a);
     }
 
-    public <V extends Comparable<? super V>> Optional<T> maxBy(Function<T, ? extends V> keyExtractor) {
-        return max(Comparator.comparing(keyExtractor));
+    public <V extends Comparable<? super V>> Optional<T> maxBy(Function<? super T, ? extends V> keyExtractor) {
+        return reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? a : b);
     }
 
-    public Optional<T> maxByInt(ToIntFunction<T> keyExtractor) {
-        return max(Comparator.comparingInt(keyExtractor));
+    public Optional<T> maxByInt(ToIntFunction<? super T> keyExtractor) {
+        return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? a : b);
     }
 
-    public Optional<T> maxByLong(ToLongFunction<T> keyExtractor) {
-        return max(Comparator.comparingLong(keyExtractor));
+    public Optional<T> maxByLong(ToLongFunction<? super T> keyExtractor) {
+        return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? a : b);
     }
 
-    public Optional<T> maxByDouble(ToDoubleFunction<T> keyExtractor) {
-        return max(Comparator.comparingDouble(keyExtractor));
+    public Optional<T> maxByDouble(ToDoubleFunction<? super T> keyExtractor) {
+        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? a : b);
     }
 
     /**
@@ -505,8 +549,8 @@ import java.util.stream.Stream;
      * @return this stream appended by the other stream
      * @see Stream#concat(Stream, Stream)
      */
-    public S append(Stream<T> other) {
-        return supply(Stream.concat(stream, other));
+    public S append(Stream<? extends T> other) {
+        return supply(Stream.concat(stream, unwrap(other)));
     }
 
     /**
@@ -521,8 +565,8 @@ import java.util.stream.Stream;
      * @return this stream prepended by the other stream
      * @see Stream#concat(Stream, Stream)
      */
-    public S prepend(Stream<T> other) {
-        return supply(Stream.concat(other, stream));
+    public S prepend(Stream<? extends T> other) {
+        return supply(Stream.concat(unwrap(other), stream));
     }
 
     /**
@@ -542,6 +586,25 @@ import java.util.stream.Stream;
     }
 
     /**
+     * Collecting the stream producing a {@link List} containing all the stream
+     * elements and performing an additional finishing transformation.
+     * 
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param <R>
+     *            the result type
+     * @param finisher
+     *            a function to be applied to the intermediate list
+     * @return result of applying the finisher transformation to the list of the
+     *         stream elements.
+     * @since 0.2.3
+     */
+    public <R> R toListAndThen(Function<List<T>, R> finisher) {
+        return collect(Collectors.collectingAndThen(Collectors.toList(), finisher));
+    }
+
+    /**
      * Returns a {@link Set} containing the elements of this stream. There are
      * no guarantees on the type, mutability, serializability, or thread-safety
      * of the {@code Set} returned; if more control over the returned
@@ -555,6 +618,25 @@ import java.util.stream.Stream;
      */
     public Set<T> toSet() {
         return collect(Collectors.toSet());
+    }
+
+    /**
+     * Collecting the stream producing a {@link Set} containing all the stream
+     * elements and performing an additional finishing transformation.
+     * 
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param <R>
+     *            the result type
+     * @param finisher
+     *            a function to be applied to the intermediate set
+     * @return result of applying the finisher transformation to the set of the
+     *         stream elements.
+     * @since 0.2.3
+     */
+    public <R> R toSetAndThen(Function<Set<T>, R> finisher) {
+        return collect(Collectors.collectingAndThen(Collectors.toSet(), finisher));
     }
 
     /**
@@ -610,6 +692,7 @@ import java.util.stream.Stream;
      *            a non-interfering, stateless function for incorporating an
      *            additional element into a result
      * @return the result of the folding
+     * @see #foldRight(Object, BiFunction)
      * @see #reduce(Object, BinaryOperator)
      * @see #reduce(Object, BiFunction, BinaryOperator)
      * @since 0.2.0
@@ -619,6 +702,47 @@ import java.util.stream.Stream;
         Object[] result = new Object[] { identity };
         forEachOrdered(t -> result[0] = accumulator.apply((U) result[0], t));
         return (U) result[0];
+    }
+
+    /**
+     * Folds the elements of this stream using the provided identity object and
+     * accumulation function, going right to left.
+     * 
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * As this method must process elements strictly right to left, it cannot
+     * start processing till all the previous stream stages complete. Also it
+     * requires intermediate memory to store the whole content of the stream as
+     * the stream natural order is left to right. If your accumulator function
+     * is associative and you can provide a combiner function, consider using
+     * {@link #reduce(Object, BiFunction, BinaryOperator)} method.
+     * 
+     * <p>
+     * For parallel stream it's not guaranteed that accumulator will always be
+     * executed in the same thread.
+     *
+     * @param <U>
+     *            The type of the result
+     * @param identity
+     *            the identity value
+     * @param accumulator
+     *            a non-interfering, stateless function for incorporating an
+     *            additional element into a result
+     * @return the result of the folding
+     * @see #foldLeft(Object, BiFunction)
+     * @see #reduce(Object, BinaryOperator)
+     * @see #reduce(Object, BiFunction, BinaryOperator)
+     * @since 0.2.2
+     */
+    public <U> U foldRight(U identity, BiFunction<? super T, U, U> accumulator) {
+        return toListAndThen(list -> {
+            U result = identity;
+            for (int i = list.size() - 1; i >= 0; i--)
+                result = accumulator.apply(list.get(i), result);
+            return result;
+        });
     }
 
     /**
@@ -652,6 +776,7 @@ import java.util.stream.Stream;
      *         stream element. The resulting list is one element longer than
      *         this stream.
      * @see #foldLeft(Object, BiFunction)
+     * @see #scanRight(Object, BiFunction)
      * @since 0.2.1
      */
     public <U> List<U> scanLeft(U identity, BiFunction<U, ? super T, U> accumulator) {
@@ -659,5 +784,52 @@ import java.util.stream.Stream;
         result.add(identity);
         forEachOrdered(t -> result.add(accumulator.apply(result.get(result.size() - 1), t)));
         return result;
+    }
+
+    /**
+     * Produces a collection containing cumulative results of applying the
+     * accumulation function going right to left.
+     * 
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * The result {@link List} is guaranteed to be mutable.
+     * 
+     * <p>
+     * For parallel stream it's not guaranteed that accumulator will always be
+     * executed in the same thread.
+     * 
+     * <p>
+     * This method cannot take all the advantages of parallel streams as it must
+     * process elements strictly right to left.
+     *
+     * @param <U>
+     *            The type of the result
+     * @param identity
+     *            the identity value
+     * @param accumulator
+     *            a non-interfering, stateless function for incorporating an
+     *            additional element into a result
+     * @return the {@code List} where the last element is the identity and every
+     *         predecessor element is the result of applying accumulator
+     *         function to the corresponding stream element and the next list
+     *         element. The resulting list is one element longer than this
+     *         stream.
+     * @see #scanLeft(Object, BiFunction)
+     * @see #foldRight(Object, BiFunction)
+     * @since 0.2.2
+     */
+    @SuppressWarnings("unchecked")
+    public <U> List<U> scanRight(U identity, BiFunction<? super T, U, U> accumulator) {
+        return toListAndThen(list -> {
+            // Reusing the list for different object type as it will save memory
+            List<U> result = (List<U>) list;
+            result.add(identity);
+            for (int i = result.size() - 2; i >= 0; i--) {
+                result.set(i, accumulator.apply((T) result.get(i), result.get(i + 1)));
+            }
+            return result;
+        });
     }
 }

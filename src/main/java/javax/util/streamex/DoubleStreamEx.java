@@ -15,6 +15,7 @@
  */
 package javax.util.streamex;
 
+import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -32,10 +33,17 @@ import java.util.function.DoubleSupplier;
 import java.util.function.DoubleToIntFunction;
 import java.util.function.DoubleToLongFunction;
 import java.util.function.DoubleUnaryOperator;
+import java.util.function.Function;
 import java.util.function.ObjDoubleConsumer;
 import java.util.function.Supplier;
+import java.util.stream.Collector;
 import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
+import static javax.util.streamex.StreamExInternals.*;
 
 /**
  * A {@link DoubleStream} implementation with additional functionality
@@ -65,6 +73,16 @@ public class DoubleStreamEx implements DoubleStream {
         return stream.isParallel();
     }
 
+    /**
+     * Returns an equivalent stream that is unordered. May return itself, either
+     * because the stream was already unordered, or because the underlying
+     * stream state was modified to be unordered.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @return an unordered stream
+     */
     @Override
     public DoubleStreamEx unordered() {
         return strategy().newDoubleStreamEx(stream.unordered());
@@ -75,6 +93,12 @@ public class DoubleStreamEx implements DoubleStream {
         return strategy().newDoubleStreamEx(stream.onClose(closeHandler));
     }
 
+    /**
+     * Closes this stream, causing all close handlers for this stream pipeline
+     * to be called.
+     *
+     * @see AutoCloseable#close()
+     */
     @Override
     public void close() {
         stream.close();
@@ -151,9 +175,91 @@ public class DoubleStreamEx implements DoubleStream {
         return strategy().newLongStreamEx(stream.mapToLong(mapper));
     }
 
+    public <K, V> EntryStream<K, V> mapToEntry(DoubleFunction<? extends K> keyMapper, DoubleFunction<? extends V> valueMapper) {
+        return strategy().newEntryStream(
+                stream.mapToObj(t -> new AbstractMap.SimpleImmutableEntry<>(keyMapper.apply(t), valueMapper.apply(t))));
+    }
+
+    /**
+     * Returns a {@link DoubleStreamEx} consisting of the results of replacing
+     * each element of this stream with the contents of a mapped stream produced
+     * by applying the provided mapping function to each element. Each mapped
+     * stream is closed after its contents have been placed into this stream.
+     * (If a mapped stream is {@code null} an empty stream is used, instead.)
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
+     *            which produces a {@code DoubleStream} of new values
+     * @return the new stream
+     */
     @Override
     public DoubleStreamEx flatMap(DoubleFunction<? extends DoubleStream> mapper) {
         return strategy().newDoubleStreamEx(stream.flatMap(mapper));
+    }
+
+    /**
+     * Returns an {@link IntStreamEx} consisting of the results of replacing
+     * each element of this stream with the contents of a mapped stream produced
+     * by applying the provided mapping function to each element. Each mapped
+     * stream is closed after its contents have been placed into this stream.
+     * (If a mapped stream is {@code null} an empty stream is used, instead.)
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
+     *            which produces an {@code IntStream} of new values
+     * @return the new stream
+     * @since 0.3.0
+     */
+    public IntStreamEx flatMapToInt(DoubleFunction<? extends IntStream> mapper) {
+        return strategy().newIntStreamEx(stream.mapToObj(mapper).flatMapToInt(Function.identity()));
+    }
+
+    /**
+     * Returns a {@link LongStreamEx} consisting of the results of replacing
+     * each element of this stream with the contents of a mapped stream produced
+     * by applying the provided mapping function to each element. Each mapped
+     * stream is closed after its contents have been placed into this stream.
+     * (If a mapped stream is {@code null} an empty stream is used, instead.)
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
+     *            which produces a {@code LongStream} of new values
+     * @return the new stream
+     * @since 0.3.0
+     */
+    public LongStreamEx flatMapToLong(DoubleFunction<? extends LongStream> mapper) {
+        return strategy().newLongStreamEx(stream.mapToObj(mapper).flatMapToLong(Function.identity()));
+    }
+
+    /**
+     * Returns a {@link StreamEx} consisting of the results of replacing each
+     * element of this stream with the contents of a mapped stream produced by
+     * applying the provided mapping function to each element. Each mapped
+     * stream is closed after its contents have been placed into this stream.
+     * (If a mapped stream is {@code null} an empty stream is used, instead.)
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param <R>
+     *            The element type of the new stream
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
+     *            which produces a {@code Stream} of new values
+     * @return the new stream
+     * @since 0.3.0
+     */
+    public <R> StreamEx<R> flatMapToObj(DoubleFunction<? extends Stream<R>> mapper) {
+        return strategy().newStreamEx(stream.mapToObj(mapper).flatMap(Function.identity()));
     }
 
     @Override
@@ -224,9 +330,72 @@ public class DoubleStreamEx implements DoubleStream {
         return stream.reduce(op);
     }
 
+    /**
+     * Performs a mutable reduction operation on the elements of this stream. A
+     * mutable reduction is one in which the reduced value is a mutable result
+     * container, such as an {@code ArrayList}, and elements are incorporated by
+     * updating the state of the result rather than by replacing the result.
+     *
+     * <p>
+     * Like {@link #reduce(double, DoubleBinaryOperator)}, {@code collect}
+     * operations can be parallelized without requiring additional
+     * synchronization.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param <R>
+     *            type of the result
+     * @param supplier
+     *            a function that creates a new result container. For a parallel
+     *            execution, this function may be called multiple times and must
+     *            return a fresh value each time.
+     * @param accumulator
+     *            an associative, non-interfering, stateless function for
+     *            incorporating an additional element into a result
+     * @param combiner
+     *            an associative, non-interfering, stateless function for
+     *            combining two values, which must be compatible with the
+     *            accumulator function
+     * @return the result of the reduction
+     * @see #collect(DoubleCollector)
+     */
     @Override
     public <R> R collect(Supplier<R> supplier, ObjDoubleConsumer<R> accumulator, BiConsumer<R, R> combiner) {
         return stream.collect(supplier, accumulator, combiner);
+    }
+
+    /**
+     * Performs a mutable reduction operation on the elements of this stream
+     * using an {@link DoubleCollector} which encapsulates the supplier,
+     * accumulator and merger functions making easier to reuse collection
+     * strategies.
+     *
+     * <p>
+     * Like {@link #reduce(double, DoubleBinaryOperator)}, {@code collect}
+     * operations can be parallelized without requiring additional
+     * synchronization.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param <A>
+     *            the intermediate accumulation type of the
+     *            {@code DoubleCollector}
+     * @param <R>
+     *            type of the result
+     * @param collector
+     *            the {@code DoubleCollector} describing the reduction
+     * @return the result of the reduction
+     * @see #collect(Supplier, ObjDoubleConsumer, BiConsumer)
+     * @since 0.3.0
+     */
+    @SuppressWarnings("unchecked")
+    public <A, R> R collect(DoubleCollector<A, R> collector) {
+        if (collector.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH))
+            return (R) collect(collector.supplier(), collector.doubleAccumulator(), collector.merger());
+        return collector.finisher().apply(
+                collect(collector.supplier(), collector.doubleAccumulator(), collector.merger()));
     }
 
     @Override
@@ -244,6 +413,14 @@ public class DoubleStreamEx implements DoubleStream {
         return reduce(Math::max);
     }
 
+    /**
+     * Returns the count of elements in this stream.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @return the count of elements in this stream
+     */
     @Override
     public long count() {
         return stream.count();
@@ -356,6 +533,8 @@ public class DoubleStreamEx implements DoubleStream {
      * @return the new stream
      */
     public DoubleStreamEx append(double... values) {
+        if (values.length == 0)
+            return this;
         return strategy().newDoubleStreamEx(DoubleStream.concat(stream, DoubleStream.of(values)));
     }
 
@@ -372,6 +551,8 @@ public class DoubleStreamEx implements DoubleStream {
      * @return the new stream
      */
     public DoubleStreamEx prepend(double... values) {
+        if (values.length == 0)
+            return this;
         return strategy().newDoubleStreamEx(DoubleStream.concat(DoubleStream.of(values), stream));
     }
 
@@ -379,6 +560,82 @@ public class DoubleStreamEx implements DoubleStream {
         return strategy().newDoubleStreamEx(DoubleStream.concat(other, stream));
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream that strictly
+     * greater than the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
+    public DoubleStreamEx greater(double value) {
+        return filter(val -> val > value);
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream that greater
+     * than or equal to the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
+    public DoubleStreamEx atLeast(double value) {
+        return filter(val -> val >= value);
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream that strictly
+     * less than the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
+    public DoubleStreamEx less(double value) {
+        return filter(val -> val < value);
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream that less than
+     * or equal to the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
+    public DoubleStreamEx atMost(double value) {
+        return filter(val -> val <= value);
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream that don't
+     * match the given predicate.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param predicate
+     *            a non-interfering, stateless predicate to apply to each
+     *            element to determine if it should be excluded
+     * @return the new stream
+     */
     public DoubleStreamEx remove(DoublePredicate predicate) {
         return filter(predicate.negate());
     }
@@ -611,12 +868,64 @@ public class DoubleStreamEx implements DoubleStream {
                 : b);
     }
 
+    /**
+     * Returns a stream consisting of the results of applying the given function
+     * to the every adjacent pair of elements of this stream.
+     *
+     * <p>
+     * This is a semi-intermediate operation.
+     * 
+     * <p>
+     * The output stream will contain one element less than this stream. If this
+     * stream contains zero or one element the output stream will be empty.
+     *
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each
+     *            adjacent pair of this stream elements.
+     * @return the new stream
+     * @since 0.2.1
+     */
     public DoubleStreamEx pairMap(DoubleBinaryOperator mapper) {
         return strategy().newDoubleStreamEx(
-                StreamSupport.doubleStream(new PairSpliterator.PSOfDouble(mapper, stream.spliterator(), 0, false, 0, false),
-                        stream.isParallel()));
+                StreamSupport.doubleStream(
+                        new PairSpliterator.PSOfDouble(mapper, stream.spliterator(), 0, false, 0, false),
+                        stream.isParallel()).onClose(stream::close));
     }
 
+    /**
+     * Returns a {@code float[]} array containing the elements of this stream
+     * which are converted to bytes using {@code (float)} cast operation.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @return an array containing the elements of this stream
+     * @since 0.3.0
+     */
+    public float[] toFloatArray() {
+        if (isParallel())
+            return collect(FloatBuffer::new, FloatBuffer::add, FloatBuffer::addAll).toArray();
+        java.util.Spliterator.OfDouble spliterator = stream.spliterator();
+        long size = spliterator.getExactSizeIfKnown();
+        FloatBuffer buf;
+        if (size >= 0 && size <= Integer.MAX_VALUE) {
+            buf = new FloatBuffer((int) size);
+            spliterator.forEachRemaining((DoubleConsumer) buf::addUnsafe);
+        } else {
+            buf = new FloatBuffer();
+            spliterator.forEachRemaining((DoubleConsumer) buf::add);
+        }
+        return buf.toArray();
+    }
+
+    public String joining(CharSequence delimiter) {
+        return collect(DoubleCollector.joining(delimiter));
+    }
+
+    public String joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
+        return collect(DoubleCollector.joining(delimiter, prefix, suffix));
+    }
+    
     public static DoubleStreamEx empty() {
         return new DoubleStreamEx(DoubleStream.empty());
     }
@@ -680,8 +989,8 @@ public class DoubleStreamEx implements DoubleStream {
     }
 
     /**
-     * Returns a sequential {@link DoubleStreamEx} with the specified range of the
-     * specified array as its source. Array values will be casted to double.
+     * Returns a sequential {@link DoubleStreamEx} with the specified range of
+     * the specified array as its source. Array values will be casted to double.
      *
      * @param array
      *            the array, assumed to be unmodified during use
@@ -697,7 +1006,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.2.0
      */
     public static DoubleStreamEx of(float[] array, int startInclusive, int endExclusive) {
-        AbstractStreamEx.rangeCheck(array.length, startInclusive, endExclusive);
+        rangeCheck(array.length, startInclusive, endExclusive);
         return IntStreamEx.range(startInclusive, endExclusive).mapToDouble(i -> array[i]);
     }
 
@@ -814,5 +1123,27 @@ public class DoubleStreamEx implements DoubleStream {
      */
     public static DoubleStreamEx constant(double value, long length) {
         return new DoubleStreamEx(DoubleStream.generate(() -> value).limit(length));
+    }
+
+    /**
+     * Returns a sequential {@code DoubleStreamEx} containing the results of
+     * applying the given function to the corresponding pairs of values in given
+     * two arrays.
+     * 
+     * @param first
+     *            the first array
+     * @param second
+     *            the second array
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each pair of
+     *            the corresponding array elements.
+     * @return a new {@code DoubleStreamEx}
+     * @throws IllegalArgumentException
+     *             if length of the arrays differs.
+     * @since 0.2.1
+     */
+    public static DoubleStreamEx zip(double[] first, double[] second, DoubleBinaryOperator mapper) {
+        return intStreamForLength(first.length, second.length).mapToDouble(
+                i -> mapper.applyAsDouble(first[i], second[i]));
     }
 }

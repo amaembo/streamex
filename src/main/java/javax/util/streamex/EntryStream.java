@@ -15,7 +15,7 @@
  */
 package javax.util.streamex;
 
-import java.util.AbstractMap.SimpleEntry;
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -30,7 +30,9 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.BinaryOperator;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -38,6 +40,8 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
+import static javax.util.streamex.StreamExInternals.*;
 
 /**
  * A {@link Stream} of {@link Map.Entry} objects which provides additional
@@ -64,6 +68,40 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     @Override
     EntryStream<K, V> supply(Stream<Map.Entry<K, V>> stream) {
         return strategy().newEntryStream(stream);
+    }
+
+    static <K, V> Consumer<? super Entry<K, V>> toConsumer(BiConsumer<? super K, ? super V> action) {
+        return entry -> action.accept(entry.getKey(), entry.getValue());
+    }
+
+    static <K, V, R> Function<? super Entry<K, V>, ? extends R> toFunction(
+            BiFunction<? super K, ? super V, ? extends R> mapper) {
+        return entry -> mapper.apply(entry.getKey(), entry.getValue());
+    }
+
+    static class IndexEntry<V> implements Entry<Integer, V> {
+        int index;
+        V value;
+
+        IndexEntry(int index, V value) {
+            this.index = index;
+            this.value = value;
+        }
+
+        @Override
+        public Integer getKey() {
+            return index;
+        }
+
+        @Override
+        public V getValue() {
+            return value;
+        }
+
+        @Override
+        public V setValue(V value) {
+            throw new UnsupportedOperationException();
+        }
     }
 
     @Override
@@ -115,8 +153,66 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     }
 
     /**
-     * Returns a stream consisting of the results of applying the given function
-     * to the keys and values of this stream.
+     * Returns a {@link StreamEx} of strings which are created joining the keys
+     * and values of the current stream using the specified delimiter.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param delimiter
+     *            the delimiter to be used between key and value
+     * @return the new stream
+     * @since 0.2.2
+     */
+    public StreamEx<String> join(CharSequence delimiter) {
+        return map(entry -> new StringBuilder().append(entry.getKey()).append(delimiter).append(entry.getValue())
+                .toString());
+    }
+
+    /**
+     * Returns a {@link StreamEx} of strings which are created joining the keys
+     * and values of the current stream using the specified delimiter, with the
+     * specified prefix and suffix.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param delimiter
+     *            the delimiter to be used between key and value
+     * @param prefix
+     *            the sequence of characters to be used at the beginning of each
+     *            resulting string
+     * @param suffix
+     *            the sequence of characters to be used at the end of each
+     *            resulting string
+     * @return the new stream
+     * @since 0.2.2
+     */
+    public StreamEx<String> join(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
+        return map(entry -> new StringBuilder(prefix).append(entry.getKey()).append(delimiter).append(entry.getValue())
+                .append(suffix).toString());
+    }
+
+    public <KK> EntryStream<KK, V> flatMapKeys(Function<? super K, ? extends Stream<? extends KK>> mapper) {
+        return strategy().newEntryStream(stream.flatMap(e -> {
+            Stream<? extends KK> s = mapper.apply(e.getKey());
+            return s == null ? null : s.map(k -> new SimpleImmutableEntry<KK, V>(k, e.getValue()));
+        }));
+    }
+
+    public <VV> EntryStream<K, VV> flatMapValues(Function<? super V, ? extends Stream<? extends VV>> mapper) {
+        return strategy().newEntryStream(stream.flatMap(e -> {
+            Stream<? extends VV> s = mapper.apply(e.getValue());
+            return s == null ? null : s.map(v -> new SimpleImmutableEntry<>(e.getKey(), v));
+        }));
+    }
+
+    /**
+     * Returns a stream consisting of the results of replacing each element of
+     * this stream with the contents of a mapped stream produced by applying the
+     * provided mapping function to each key-value pair. Each mapped stream is
+     * closed after its contents have been placed into this stream. (If a mapped
+     * stream is {@code null} an empty stream is used, instead.)
      *
      * <p>
      * This is an intermediate operation.
@@ -124,22 +220,13 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @param <R>
      *            The element type of the new stream
      * @param mapper
-     *            a non-interfering, stateless function to apply to key and
-     *            value of each {@link Entry} in this stream
+     *            a non-interfering, stateless function to apply to each
+     *            key-value pair which produces a stream of new values
      * @return the new stream
+     * @since 0.3.0
      */
-    public <R> StreamEx<R> mapKeyValue(BiFunction<? super K, ? super V, ? extends R> mapper) {
-        return map(entry -> mapper.apply(entry.getKey(), entry.getValue()));
-    }
-
-    public <KK> EntryStream<KK, V> flatMapKeys(Function<? super K, ? extends Stream<? extends KK>> mapper) {
-        return strategy().newEntryStream(
-                stream.flatMap(e -> mapper.apply(e.getKey()).map(k -> new SimpleEntry<KK, V>(k, e.getValue()))));
-    }
-
-    public <VV> EntryStream<K, VV> flatMapValues(Function<? super V, ? extends Stream<? extends VV>> mapper) {
-        return strategy().newEntryStream(
-                stream.flatMap(e -> mapper.apply(e.getValue()).map(v -> new SimpleEntry<>(e.getKey(), v))));
+    public <R> StreamEx<R> flatMapKeyValue(BiFunction<? super K, ? super V, ? extends Stream<? extends R>> mapper) {
+        return flatMap(toFunction(mapper));
     }
 
     /**
@@ -155,8 +242,61 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return append(map.entrySet().stream());
     }
 
+    /**
+     * Returns a new {@code EntryStream} which is a concatenation of this stream
+     * and the supplied key-value pair.
+     * 
+     * @param key
+     *            the key of the new {@code Entry} to append to this stream
+     * @param value
+     *            the value of the new {@code Entry} to append to this stream
+     * @return the new stream
+     */
     public EntryStream<K, V> append(K key, V value) {
-        return append(Stream.of(new SimpleEntry<>(key, value)));
+        return append(Stream.of(new SimpleImmutableEntry<>(key, value)));
+    }
+
+    /**
+     * Returns a new {@code EntryStream} which is a concatenation of this stream
+     * and two supplied key-value pairs.
+     * 
+     * @param k1
+     *            the key of the first {@code Entry} to append to this stream
+     * @param v1
+     *            the value of the first {@code Entry} to append to this stream
+     * @param k2
+     *            the key of the second {@code Entry} to append to this stream
+     * @param v2
+     *            the value of the second {@code Entry} to append to this stream
+     * @return the new stream
+     * @since 0.2.3
+     */
+    public EntryStream<K, V> append(K k1, V v1, K k2, V v2) {
+        return append(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2)));
+    }
+
+    /**
+     * Returns a new {@code EntryStream} which is a concatenation of this stream
+     * and three supplied key-value pairs.
+     * 
+     * @param k1
+     *            the key of the first {@code Entry} to append to this stream
+     * @param v1
+     *            the value of the first {@code Entry} to append to this stream
+     * @param k2
+     *            the key of the second {@code Entry} to append to this stream
+     * @param v2
+     *            the value of the second {@code Entry} to append to this stream
+     * @param k3
+     *            the key of the third {@code Entry} to append to this stream
+     * @param v3
+     *            the value of the third {@code Entry} to append to this stream
+     * @return the new stream
+     * @since 0.2.3
+     */
+    public EntryStream<K, V> append(K k1, V v1, K k2, V v2, K k3, V v3) {
+        return append(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
+                new SimpleImmutableEntry<>(k3, v3)));
     }
 
     /**
@@ -172,25 +312,197 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return append(map.entrySet().stream());
     }
 
+    /**
+     * Returns a new {@code EntryStream} which is a concatenation of the
+     * supplied key-value pair and this stream.
+     * 
+     * @param key
+     *            the key of the new {@code Entry} to prepend to this stream
+     * @param value
+     *            the value of the new {@code Entry} to prepend to this stream
+     * @return the new stream
+     */
     public EntryStream<K, V> prepend(K key, V value) {
-        return prepend(Stream.of(new SimpleEntry<>(key, value)));
+        return prepend(Stream.of(new SimpleImmutableEntry<>(key, value)));
     }
 
-    public <KK> EntryStream<KK, V> mapKeys(Function<K, KK> keyMapper) {
-        return strategy().newEntryStream(stream.map(e -> new SimpleEntry<>(keyMapper.apply(e.getKey()), e.getValue())));
+    /**
+     * Returns a new {@code EntryStream} which is a concatenation of two
+     * supplied key-value pairs and this stream.
+     * 
+     * @param k1
+     *            the key of the first {@code Entry} to prepend to this stream
+     * @param v1
+     *            the value of the first {@code Entry} to prepend to this stream
+     * @param k2
+     *            the key of the second {@code Entry} to prepend to this stream
+     * @param v2
+     *            the value of the second {@code Entry} to prepend to this
+     *            stream
+     * @return the new stream
+     * @since 0.2.3
+     */
+    public EntryStream<K, V> prepend(K k1, V v1, K k2, V v2) {
+        return prepend(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2)));
     }
 
-    public <VV> EntryStream<K, VV> mapValues(Function<V, VV> valueMapper) {
+    /**
+     * Returns a new {@code EntryStream} which is a concatenation of three
+     * supplied key-value pairs and this stream.
+     * 
+     * @param k1
+     *            the key of the first {@code Entry} to prepend to this stream
+     * @param v1
+     *            the value of the first {@code Entry} to prepend to this stream
+     * @param k2
+     *            the key of the second {@code Entry} to prepend to this stream
+     * @param v2
+     *            the value of the second {@code Entry} to prepend to this
+     *            stream
+     * @param k3
+     *            the key of the third {@code Entry} to prepend to this stream
+     * @param v3
+     *            the value of the third {@code Entry} to prepend to this stream
+     * @return the new stream
+     * @since 0.2.3
+     */
+    public EntryStream<K, V> prepend(K k1, V v1, K k2, V v2, K k3, V v3) {
+        return prepend(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
+                new SimpleImmutableEntry<>(k3, v3)));
+    }
+
+    /**
+     * Returns an {@code EntryStream} consisting of the entries whose keys are
+     * modified by applying the given function and values are left unchanged.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param <KK>
+     *            The type of the keys of the new stream
+     * @param keyMapper
+     *            a non-interfering, stateless function to apply to each key
+     * @return the new stream
+     */
+    public <KK> EntryStream<KK, V> mapKeys(Function<? super K, ? extends KK> keyMapper) {
         return strategy().newEntryStream(
-                stream.map(e -> new SimpleEntry<>(e.getKey(), valueMapper.apply(e.getValue()))));
+                stream.map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e.getKey()), e.getValue())));
     }
 
-    public <KK> EntryStream<KK, V> mapEntryKeys(Function<Entry<K, V>, KK> keyMapper) {
-        return strategy().newEntryStream(stream.map(e -> new SimpleEntry<>(keyMapper.apply(e), e.getValue())));
+    /**
+     * Returns an {@code EntryStream} consisting of the entries whose keys are
+     * left unchanged and values are modified by applying the given function.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param <VV>
+     *            The type of the values of the new stream
+     * @param valueMapper
+     *            a non-interfering, stateless function to apply to each value
+     * @return the new stream
+     */
+    public <VV> EntryStream<K, VV> mapValues(Function<? super V, ? extends VV> valueMapper) {
+        return strategy().newEntryStream(
+                stream.map(e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e.getValue()))));
     }
 
-    public <VV> EntryStream<K, VV> mapEntryValues(Function<Entry<K, V>, VV> valueMapper) {
-        return strategy().newEntryStream(stream.map(e -> new SimpleEntry<>(e.getKey(), valueMapper.apply(e))));
+    /**
+     * Returns a {@link StreamEx} consisting of the results of applying the
+     * given function to the keys and values of this stream.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param <R>
+     *            The element type of the new stream
+     * @param mapper
+     *            a non-interfering, stateless function to apply to key and
+     *            value of each {@link Entry} in this stream
+     * @return the new stream
+     */
+    public <R> StreamEx<R> mapKeyValue(BiFunction<? super K, ? super V, ? extends R> mapper) {
+        return map(toFunction(mapper));
+    }
+
+    /**
+     * Returns an {@code EntryStream} consisting of the entries whose keys are
+     * modified by applying the given function and values are left unchanged.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param <KK>
+     *            The type of the keys of the new stream
+     * @param keyMapper
+     *            a non-interfering, stateless function to apply to each entry
+     *            which returns the updated key
+     * @return the new stream
+     * @deprecated use {@link #mapToKey(BiFunction)}
+     */
+    @Deprecated
+    public <KK> EntryStream<KK, V> mapEntryKeys(Function<? super Entry<K, V>, ? extends KK> keyMapper) {
+        return strategy().newEntryStream(stream.map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e), e.getValue())));
+    }
+
+    /**
+     * Returns an {@code EntryStream} consisting of the entries whose keys are
+     * left unchanged and values are modified by applying the given function.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param <VV>
+     *            The type of the values of the new stream
+     * @param valueMapper
+     *            a non-interfering, stateless function to apply to each entry
+     *            which returns the updated value
+     * @return the new stream
+     * @deprecated use {@link #mapToValue(BiFunction)}
+     */
+    @Deprecated
+    public <VV> EntryStream<K, VV> mapEntryValues(Function<? super Entry<K, V>, ? extends VV> valueMapper) {
+        return strategy().newEntryStream(stream.map(e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e))));
+    }
+
+    /**
+     * Returns an {@code EntryStream} consisting of the entries whose keys are
+     * modified by applying the given function and values are left unchanged.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param <KK>
+     *            The type of the keys of the new stream
+     * @param keyMapper
+     *            a non-interfering, stateless function to apply to each
+     *            key-value pair which returns the updated key
+     * @return the new stream
+     * @since 0.3.0
+     */
+    public <KK> EntryStream<KK, V> mapToKey(BiFunction<? super K, ? super V, ? extends KK> keyMapper) {
+        return strategy().newEntryStream(
+                stream.map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e.getKey(), e.getValue()), e.getValue())));
+    }
+
+    /**
+     * Returns an {@code EntryStream} consisting of the entries whose keys are
+     * left unchanged and values are modified by applying the given function.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param <VV>
+     *            The type of the values of the new stream
+     * @param valueMapper
+     *            a non-interfering, stateless function to apply to each
+     *            key-value pair which returns the updated value
+     * @return the new stream
+     * @since 0.3.0
+     */
+    public <VV> EntryStream<K, VV> mapToValue(BiFunction<? super K, ? super V, ? extends VV> valueMapper) {
+        return strategy().newEntryStream(
+                stream.map(e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e.getKey(), e.getValue()))));
     }
 
     /**
@@ -203,7 +515,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public EntryStream<V, K> invert() {
-        return strategy().newEntryStream(stream.map(e -> new SimpleEntry<>(e.getValue(), e.getKey())));
+        return strategy().newEntryStream(stream.map(e -> new SimpleImmutableEntry<>(e.getValue(), e.getKey())));
     }
 
     /**
@@ -218,7 +530,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      *            each element to determine if it should be included
      * @return the new stream
      */
-    public EntryStream<K, V> filterKeys(Predicate<K> keyPredicate) {
+    public EntryStream<K, V> filterKeys(Predicate<? super K> keyPredicate) {
         return filter(e -> keyPredicate.test(e.getKey()));
     }
 
@@ -234,8 +546,26 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      *            of each element to determine if it should be included
      * @return the new stream
      */
-    public EntryStream<K, V> filterValues(Predicate<V> valuePredicate) {
+    public EntryStream<K, V> filterValues(Predicate<? super V> valuePredicate) {
         return filter(e -> valuePredicate.test(e.getValue()));
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream which elements
+     * match the given predicate.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param predicate
+     *            a non-interfering, stateless predicate to apply to the
+     *            key-value pairs of each element to determine if it should be
+     *            included
+     * @return the new stream
+     * @since 0.3.0
+     */
+    public EntryStream<K, V> filterKeyValue(BiPredicate<? super K, ? super V> predicate) {
+        return filter(e -> predicate.test(e.getKey(), e.getValue()));
     }
 
     /**
@@ -250,7 +580,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      *            each element to determine if it should be excluded
      * @return the new stream
      */
-    public EntryStream<K, V> removeKeys(Predicate<K> keyPredicate) {
+    public EntryStream<K, V> removeKeys(Predicate<? super K> keyPredicate) {
         return filterKeys(keyPredicate.negate());
     }
 
@@ -266,7 +596,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      *            of each element to determine if it should be excluded
      * @return the new stream
      */
-    public EntryStream<K, V> removeValues(Predicate<V> valuePredicate) {
+    public EntryStream<K, V> removeValues(Predicate<? super V> valuePredicate) {
         return filterValues(valuePredicate.negate());
     }
 
@@ -304,6 +634,78 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     @SuppressWarnings({ "unchecked" })
     public <VV extends V> EntryStream<K, VV> selectValues(Class<VV> clazz) {
         return (EntryStream<K, VV>) filter(e -> clazz.isInstance(e.getValue()));
+    }
+
+    /**
+     * Returns a stream consisting of the entries of this stream, additionally
+     * performing the provided action on each entry key as entries are consumed
+     * from the resulting stream.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * <p>
+     * For parallel stream pipelines, the action may be called at whatever time
+     * and in whatever thread the element is made available by the upstream
+     * operation. If the action modifies shared state, it is responsible for
+     * providing the required synchronization.
+     *
+     * @param keyAction
+     *            a non-interfering action to perform on the keys of the entries
+     *            as they are consumed from the stream
+     * @return the new stream
+     * @since 0.2.3
+     */
+    public EntryStream<K, V> peekKeys(Consumer<? super K> keyAction) {
+        return peek(e -> keyAction.accept(e.getKey()));
+    }
+
+    /**
+     * Returns a stream consisting of the entries of this stream, additionally
+     * performing the provided action on each entry value as entries are
+     * consumed from the resulting stream.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * <p>
+     * For parallel stream pipelines, the action may be called at whatever time
+     * and in whatever thread the element is made available by the upstream
+     * operation. If the action modifies shared state, it is responsible for
+     * providing the required synchronization.
+     *
+     * @param valueAction
+     *            a non-interfering action to perform on the values of the
+     *            entries as they are consumed from the stream
+     * @return the new stream
+     * @since 0.2.3
+     */
+    public EntryStream<K, V> peekValues(Consumer<? super V> valueAction) {
+        return peek(e -> valueAction.accept(e.getValue()));
+    }
+
+    /**
+     * Returns a stream consisting of the entries of this stream, additionally
+     * performing the provided action on each entry key-value pair as entries
+     * are consumed from the resulting stream.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * <p>
+     * For parallel stream pipelines, the action may be called at whatever time
+     * and in whatever thread the element is made available by the upstream
+     * operation. If the action modifies shared state, it is responsible for
+     * providing the required synchronization.
+     *
+     * @param action
+     *            a non-interfering action to perform on the keys and values of
+     *            the entries as they are consumed from the stream
+     * @return the new stream
+     * @since 0.2.3
+     */
+    public EntryStream<K, V> peekKeyValue(BiConsumer<? super K, ? super V> action) {
+        return peek(toConsumer(action));
     }
 
     /**
@@ -532,7 +934,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @see #forEach(java.util.function.Consumer)
      */
     public void forKeyValue(BiConsumer<? super K, ? super V> action) {
-        forEach(entry -> action.accept(entry.getKey(), entry.getValue()));
+        forEach(toConsumer(action));
     }
 
     /**
@@ -561,13 +963,59 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      *            original stream
      * @return the wrapped stream
      */
-    @SuppressWarnings("unchecked")
     public static <K, V> EntryStream<K, V> of(Stream<Entry<K, V>> stream) {
-        return stream instanceof EntryStream ? (EntryStream<K, V>) stream : new EntryStream<>(stream);
+        return new EntryStream<>(unwrap(stream));
     }
 
+    /**
+     * Returns an {@code EntryStream} object which contains the entries of
+     * supplied {@code Map}.
+     * 
+     * @param <K>
+     *            the type of map keys
+     * @param <V>
+     *            the type of map values
+     * @param map
+     *            the map to create the stream from
+     * @return a new {@code EntryStream}
+     */
     public static <K, V> EntryStream<K, V> of(Map<K, V> map) {
         return new EntryStream<>(map.entrySet().stream());
+    }
+
+    /**
+     * Returns an {@code EntryStream} object whose keys are indices of given
+     * list and the values are the corresponding list elements.
+     * 
+     * <p>
+     * The list elements are accessed using {@link List#get(int)}, so the list
+     * should provide fast random access. The list is assumed to be unmodifiable
+     * during the stream operations.
+     * 
+     * @param <V>
+     *            list element type
+     * @param list
+     *            list to create the stream from
+     * @return a new {@code EntryStream}
+     * @since 0.2.3
+     */
+    public static <V> EntryStream<Integer, V> of(List<V> list) {
+        return EntryStream.of(IntStream.range(0, list.size()).mapToObj(i -> new IndexEntry<>(i, list.get(i))));
+    }
+
+    /**
+     * Returns an {@code EntryStream} object whose keys are indices of given
+     * array and the values are the corresponding array elements.
+     * 
+     * @param <V>
+     *            array element type
+     * @param array
+     *            array to create the stream from
+     * @return a new {@code EntryStream}
+     * @since 0.2.3
+     */
+    public static <V> EntryStream<Integer, V> of(V[] array) {
+        return EntryStream.of(IntStream.range(0, array.length).mapToObj(i -> new IndexEntry<>(i, array[i])));
     }
 
     /**
@@ -585,7 +1033,56 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return a singleton sequential stream
      */
     public static <K, V> EntryStream<K, V> of(K key, V value) {
-        return new EntryStream<>(Stream.of(new SimpleEntry<>(key, value)));
+        return new EntryStream<>(Stream.of(new SimpleImmutableEntry<>(key, value)));
+    }
+
+    /**
+     * Returns a sequential {@code EntryStream} containing two key-value pairs
+     *
+     * @param <K>
+     *            the type of key
+     * @param <V>
+     *            the type of value
+     * @param k1
+     *            the key of the first element
+     * @param v1
+     *            the value of the first element
+     * @param k2
+     *            the key of the second element
+     * @param v2
+     *            the value of the second element
+     * @return a sequential stream
+     * @since 0.2.3
+     */
+    public static <K, V> EntryStream<K, V> of(K k1, V v1, K k2, V v2) {
+        return new EntryStream<>(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2)));
+    }
+
+    /**
+     * Returns a sequential {@code EntryStream} containing three key-value pairs
+     *
+     * @param <K>
+     *            the type of key
+     * @param <V>
+     *            the type of value
+     * @param k1
+     *            the key of the first element
+     * @param v1
+     *            the value of the first element
+     * @param k2
+     *            the key of the second element
+     * @param v2
+     *            the value of the second element
+     * @param k3
+     *            the key of the third element
+     * @param v3
+     *            the value of the third element
+     * @return a sequential stream
+     * @since 0.2.3
+     */
+    public static <K, V> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3) {
+        return new EntryStream<>(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
+                new SimpleImmutableEntry<>(k3, v3)));
     }
 
     /**
@@ -597,6 +1094,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * lists should provide fast random access. The lists are assumed to be
      * unmodifiable during the stream operations.
      * 
+     * @param <K>
+     *            the type of stream element keys
+     * @param <V>
+     *            the type of stream element values
      * @param keys
      *            the list of keys, assumed to be unmodified during use
      * @param values
@@ -607,16 +1108,18 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.1
      */
     public static <K, V> EntryStream<K, V> zip(List<K> keys, List<V> values) {
-        if (keys.size() != values.size())
-            throw new IllegalArgumentException(keys.size() + " != " + values.size());
-        return new EntryStream<>(IntStream.range(0, keys.size()).mapToObj(
-                i -> new SimpleEntry<>(keys.get(i), values.get(i))));
+        return of(intStreamForLength(keys.size(), values.size()).mapToObj(
+                i -> new SimpleImmutableEntry<>(keys.get(i), values.get(i))));
     }
-    
+
     /**
      * Returns a sequential {@code EntryStream} containing {@code Entry} objects
      * composed from corresponding key and value in given two arrays.
      * 
+     * @param <K>
+     *            the type of stream element keys
+     * @param <V>
+     *            the type of stream element values
      * @param keys
      *            the array of keys
      * @param values

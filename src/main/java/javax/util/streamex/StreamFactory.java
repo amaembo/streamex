@@ -75,7 +75,7 @@ import java.util.stream.Stream;
         }
     }
 
-    static class CustomPoolStreamFactory extends StreamFactory {
+    static final class CustomPoolStreamFactory extends StreamFactory {
         private final ForkJoinPool fjp;
 
         public CustomPoolStreamFactory(ForkJoinPool fjp) {
@@ -113,7 +113,7 @@ import java.util.stream.Stream;
         }
     }
 
-    static class CustomEntryStream<K, V> extends EntryStream<K, V> {
+    static final class CustomEntryStream<K, V> extends EntryStream<K, V> {
         private final CustomPoolStreamFactory strategy;
 
         CustomEntryStream(Stream<Entry<K, V>> stream, CustomPoolStreamFactory strategy) {
@@ -199,7 +199,7 @@ import java.util.stream.Stream;
         }
     }
 
-    static class CustomStreamEx<T> extends StreamEx<T> {
+    static final class CustomStreamEx<T> extends StreamEx<T> {
         private final CustomPoolStreamFactory strategy;
 
         CustomStreamEx(Stream<T> stream, CustomPoolStreamFactory strategy) {
@@ -284,7 +284,7 @@ import java.util.stream.Stream;
         }
     }
 
-    static class CustomIntStreamEx extends IntStreamEx {
+    static final class CustomIntStreamEx extends IntStreamEx {
         private final CustomPoolStreamFactory strategy;
 
         CustomIntStreamEx(IntStream stream, CustomPoolStreamFactory strategy) {
@@ -364,7 +364,7 @@ import java.util.stream.Stream;
         }
     }
 
-    static class CustomLongStreamEx extends LongStreamEx {
+    static final class CustomLongStreamEx extends LongStreamEx {
         private final CustomPoolStreamFactory strategy;
 
         CustomLongStreamEx(LongStream stream, CustomPoolStreamFactory strategy) {
@@ -444,7 +444,7 @@ import java.util.stream.Stream;
         }
     }
 
-    static class CustomDoubleStreamEx extends DoubleStreamEx {
+    static final class CustomDoubleStreamEx extends DoubleStreamEx {
         private final CustomPoolStreamFactory strategy;
 
         CustomDoubleStreamEx(DoubleStream stream, CustomPoolStreamFactory strategy) {

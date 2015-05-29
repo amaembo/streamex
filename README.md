@@ -1,6 +1,11 @@
 # StreamEx
 Enhancing Java 8 Streams.
 
+This library defines four classes: StreamEx, IntStreamEx, LongStreamEx, DoubleStreamEx
+which are fully compatible with Java 8 stream classes and provide many additional useful methods.
+Also EntryStream class is provided which represents the stream of map entries and provides
+additional functionality for this case.
+
 ### Examples
 
 Collector shortcut methods (toList, toSet, groupingBy, joining, etc.)
@@ -69,6 +74,11 @@ public Map<String, List<User>> getGroupMembers(Collection<String> groupNames) {
 
 And more!
 
+### JavaDoc
+
+API documentation is available [here](http://amaembo.github.io/streamex/javadoc/). Currently it's incomplete, so
+pull requests with documentation updates are appreciated. 
+
 ### License
 
 This project is licensed under [Apache License, version 2.0](https://www.apache.org/licenses/LICENSE-2.0)
@@ -83,7 +93,7 @@ To use from maven add this snippet to the pom.xml `dependencies` section:
 <dependency>
   <groupId>io.github.amaembo</groupId>
   <artifactId>streamex</artifactId>
-  <version>0.2.0</version>
+  <version>0.3.0</version>
 </dependency>
 ```
 

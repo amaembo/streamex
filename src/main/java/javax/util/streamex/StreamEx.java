@@ -19,13 +19,14 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.UncheckedIOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.AbstractMap.SimpleEntry;
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
@@ -36,7 +37,9 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -51,6 +54,8 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
+import static javax.util.streamex.StreamExInternals.*;
 
 /**
  * A {@link Stream} implementation with additional functionality.
@@ -166,8 +171,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *            a non-interfering, stateless function to apply to each element
      * @return the new stream
      */
-    public <V> EntryStream<T, V> mapToEntry(Function<T, V> valueMapper) {
-        return strategy().newEntryStream(stream.map(e -> new SimpleEntry<>(e, valueMapper.apply(e))));
+    public <V> EntryStream<T, V> mapToEntry(Function<? super T, ? extends V> valueMapper) {
+        return strategy().newEntryStream(stream.map(e -> new SimpleImmutableEntry<>(e, valueMapper.apply(e))));
     }
 
     /**
@@ -188,12 +193,95 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *            a non-interfering, stateless function to apply to each element
      * @return the new stream
      */
-    public <K, V> EntryStream<K, V> mapToEntry(Function<T, K> keyMapper, Function<T, V> valueMapper) {
-        return strategy().newEntryStream(stream.map(e -> new SimpleEntry<>(keyMapper.apply(e), valueMapper.apply(e))));
+    public <K, V> EntryStream<K, V> mapToEntry(Function<? super T, ? extends K> keyMapper,
+            Function<? super T, ? extends V> valueMapper) {
+        return strategy().newEntryStream(
+                stream.map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e), valueMapper.apply(e))));
     }
 
-    public <K, V> EntryStream<K, V> flatMapToEntry(Function<? super T, Map<K, V>> mapper) {
-        return strategy().newEntryStream(stream.flatMap(e -> mapper.apply(e).entrySet().stream()));
+    public <K, V> EntryStream<K, V> flatMapToEntry(Function<? super T, ? extends Map<K, V>> mapper) {
+        return strategy().newEntryStream(stream.flatMap(e -> {
+            Map<K, V> s = mapper.apply(e);
+            return s == null ? null : s.entrySet().stream();
+        }));
+    }
+
+    /**
+     * Performs a cross product of current stream with specified array of
+     * elements. As a result the {@link EntryStream} is created whose keys are
+     * elements of current stream and values are elements of the specified
+     * array.
+     * 
+     * <p>
+     * The resulting stream contains all the possible combinations of keys and
+     * values.
+     * 
+     * <p>
+     * This is an intermediate operation.
+     * 
+     * @param <V>
+     *            the type of array elements
+     * @param other
+     *            the array to perform a cross product with
+     * @return the new {@code EntryStream}
+     * @since 0.2.3
+     */
+    @SuppressWarnings("unchecked")
+    public <V> EntryStream<T, V> cross(V... other) {
+        if (other.length == 0)
+            return strategy().<T, V> newEntryStream(Stream.empty()).onClose(stream::close);
+        if (other.length == 1)
+            return mapToEntry(e -> other[0]);
+        return strategy().newEntryStream(
+                stream.flatMap(a -> Arrays.stream(other).map(b -> new SimpleImmutableEntry<>(a, b))));
+    }
+
+    /**
+     * Performs a cross product of current stream with specified
+     * {@link Collection} of elements. As a result the {@link EntryStream} is
+     * created whose keys are elements of current stream and values are elements
+     * of the specified collection.
+     * 
+     * <p>
+     * The resulting stream contains all the possible combinations of keys and
+     * values.
+     * 
+     * <p>
+     * This is an intermediate operation.
+     * 
+     * @param <V>
+     *            the type of collection elements
+     * @param other
+     *            the collection to perform a cross product with
+     * @return the new {@code EntryStream}
+     * @since 0.2.3
+     */
+    public <V> EntryStream<T, V> cross(Collection<? extends V> other) {
+        if (other.isEmpty())
+            return strategy().<T, V> newEntryStream(Stream.empty()).onClose(stream::close);
+        return strategy()
+                .newEntryStream(stream.flatMap(a -> other.stream().map(b -> new SimpleImmutableEntry<>(a, b))));
+    }
+
+    /**
+     * Creates a new {@code EntryStream} whose keys are elements of current
+     * stream and corresponding values are supplied by given function.
+     * 
+     * <p>
+     * This is an intermediate operation.
+     * 
+     * @param <V>
+     *            the type of values.
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
+     *            which produces a stream of the values corresponding to the
+     *            single element of the current stream.
+     * @return the new {@code EntryStream}
+     * @since 0.2.3
+     */
+    public <V> EntryStream<T, V> cross(Function<? super T, ? extends Stream<? extends V>> mapper) {
+        return strategy().newEntryStream(
+                stream.flatMap(a -> mapper.apply(a).map(b -> new SimpleImmutableEntry<>(a, b))));
     }
 
     /**
@@ -224,11 +312,40 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Collectors#groupingByConcurrent(Function)
      */
     public <K> Map<K, List<T>> groupingBy(Function<? super T, ? extends K> classifier) {
-        if (stream.isParallel())
-            return collect(Collectors.groupingByConcurrent(classifier));
-        return collect(Collectors.groupingBy(classifier));
+        return groupingBy(classifier, Collectors.toList());
     }
 
+    /**
+     * Returns a {@code Map} whose keys are the values resulting from applying
+     * the classification function to the input elements, and whose
+     * corresponding values are the result of reduction of the input elements
+     * which map to the associated key under the classification function.
+     *
+     * <p>
+     * There are no guarantees on the type, mutability or serializability of the
+     * {@code Map} objects returned.
+     * 
+     * <p>
+     * For parallel stream concurrent collector is used and ConcurrentMap is
+     * returned.
+     *
+     * <p>
+     * This is a terminal operation.
+     * 
+     * @param <K>
+     *            the type of the keys
+     * @param <D>
+     *            the result type of the downstream reduction
+     * @param classifier
+     *            the classifier function mapping input elements to keys
+     * @param downstream
+     *            a {@code Collector} implementing the downstream reduction
+     * @return a {@code Map} containing the results of the group-by operation
+     *
+     * @see #groupingBy(Function)
+     * @see Collectors#groupingBy(Function, Collector)
+     * @see Collectors#groupingByConcurrent(Function, Collector)
+     */
     public <K, D> Map<K, D> groupingBy(Function<? super T, ? extends K> classifier,
             Collector<? super T, ?, D> downstream) {
         if (stream.isParallel())
@@ -236,6 +353,41 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return collect(Collectors.groupingBy(classifier, downstream));
     }
 
+    /**
+     * Returns a {@code Map} whose keys are the values resulting from applying
+     * the classification function to the input elements, and whose
+     * corresponding values are the result of reduction of the input elements
+     * which map to the associated key under the classification function.
+     *
+     * <p>
+     * The {@code Map} will be created using the provided factory function.
+     * 
+     * <p>
+     * If the stream is parallel and map factory produces a
+     * {@link ConcurrentMap} then concurrent collector is used.
+     *
+     * <p>
+     * This is a terminal operation.
+     * 
+     * @param <K>
+     *            the type of the keys
+     * @param <D>
+     *            the result type of the downstream reduction
+     * @param <M>
+     *            the type of the resulting {@code Map}
+     * @param classifier
+     *            the classifier function mapping input elements to keys
+     * @param mapFactory
+     *            a function which, when called, produces a new empty
+     *            {@code Map} of the desired type
+     * @param downstream
+     *            a {@code Collector} implementing the downstream reduction
+     * @return a {@code Map} containing the results of the group-by operation
+     *
+     * @see #groupingBy(Function)
+     * @see Collectors#groupingBy(Function, Supplier, Collector)
+     * @see Collectors#groupingByConcurrent(Function, Supplier, Collector)
+     */
     @SuppressWarnings("unchecked")
     public <K, D, M extends Map<K, D>> M groupingBy(Function<? super T, ? extends K> classifier,
             Supplier<M> mapFactory, Collector<? super T, ?, D> downstream) {
@@ -243,6 +395,179 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             return (M) collect(Collectors.groupingByConcurrent(classifier, (Supplier<ConcurrentMap<K, D>>) mapFactory,
                     downstream));
         return collect(Collectors.groupingBy(classifier, mapFactory, downstream));
+    }
+
+    /**
+     * Returns a {@code Map} whose keys are the values resulting from applying
+     * the classification function to the input elements, and whose
+     * corresponding values are the collections of the input elements which map
+     * to the associated key under the classification function.
+     *
+     * <p>
+     * There are no guarantees on the type, mutability or serializability of the
+     * {@code Map} objects returned.
+     * 
+     * <p>
+     * For parallel stream concurrent collector is used and ConcurrentMap is
+     * returned.
+     *
+     * <p>
+     * This is a terminal operation.
+     * 
+     * @param <K>
+     *            the type of the keys
+     * @param <C>
+     *            the type of the collection used in resulting {@code Map}
+     *            values
+     * @param classifier
+     *            the classifier function mapping input elements to keys
+     * @param collectionFactory
+     *            a function which returns a new empty {@code Collection} which
+     *            will be used to store the stream elements.
+     * @return a {@code Map} containing the results of the group-by operation
+     *
+     * @see #groupingBy(Function, Collector)
+     * @see Collectors#groupingBy(Function, Collector)
+     * @see Collectors#groupingByConcurrent(Function, Collector)
+     * @since 0.2.2
+     */
+    public <K, C extends Collection<T>> Map<K, C> groupingTo(Function<? super T, ? extends K> classifier,
+            Supplier<C> collectionFactory) {
+        return groupingBy(classifier, Collectors.toCollection(collectionFactory));
+    }
+
+    /**
+     * Returns a {@code Map} whose keys are the values resulting from applying
+     * the classification function to the input elements, and whose
+     * corresponding values are the collections of the input elements which map
+     * to the associated key under the classification function.
+     *
+     * <p>
+     * The {@code Map} will be created using the provided factory function.
+     * 
+     * <p>
+     * If the stream is parallel and map factory produces a
+     * {@link ConcurrentMap} then concurrent collector is used.
+     *
+     * <p>
+     * This is a terminal operation.
+     * 
+     * @param <K>
+     *            the type of the keys
+     * @param <C>
+     *            the type of the collection used in resulting {@code Map}
+     *            values
+     * @param <M>
+     *            the type of the resulting {@code Map}
+     * @param classifier
+     *            the classifier function mapping input elements to keys
+     * @param mapFactory
+     *            a function which, when called, produces a new empty
+     *            {@code Map} of the desired type
+     * @param collectionFactory
+     *            a function which returns a new empty {@code Collection} which
+     *            will be used to store the stream elements.
+     * @return a {@code Map} containing the results of the group-by operation
+     *
+     * @see #groupingTo(Function, Supplier)
+     * @see Collectors#groupingBy(Function, Supplier, Collector)
+     * @see Collectors#groupingByConcurrent(Function, Supplier, Collector)
+     * @since 0.2.2
+     */
+    public <K, C extends Collection<T>, M extends Map<K, C>> M groupingTo(Function<? super T, ? extends K> classifier,
+            Supplier<M> mapFactory, Supplier<C> collectionFactory) {
+        return groupingBy(classifier, mapFactory, Collectors.toCollection(collectionFactory));
+    }
+
+    /**
+     * Returns a {@code Map<Boolean, List<T>>} which contains two partitions of
+     * the input elements according to a {@code Predicate}.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code Map} returned.
+     *
+     * @param predicate
+     *            a predicate used for classifying input elements
+     * @return a {@code Map<Boolean, List<T>>} which {@link Boolean#TRUE} key is
+     *         mapped to the list of the stream elements for which predicate is
+     *         true and {@link Boolean#FALSE} key is mapped to the list of all
+     *         other stream elements.
+     *
+     * @see #partitioningBy(Predicate, Collector)
+     * @see Collectors#partitioningBy(Predicate)
+     * @since 0.2.2
+     */
+    public Map<Boolean, List<T>> partitioningBy(Predicate<? super T> predicate) {
+        return collect(Collectors.partitioningBy(predicate));
+    }
+
+    /**
+     * Returns a {@code Map<Boolean, D>} which contains two partitions of the
+     * input elements according to a {@code Predicate}, which are reduced
+     * according to the supplied {@code Collector}.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code Map} returned.
+     *
+     * @param <D>
+     *            the result type of the downstream reduction
+     * @param predicate
+     *            a predicate used for classifying input elements
+     * @param downstream
+     *            a {@code Collector} implementing the downstream reduction
+     * @return a {@code Map<Boolean, List<T>>} which {@link Boolean#TRUE} key is
+     *         mapped to the result of downstream {@code Collector} collecting
+     *         the the stream elements for which predicate is true and
+     *         {@link Boolean#FALSE} key is mapped to the result of downstream
+     *         {@code Collector} collecting the other stream elements.
+     *
+     * @see #partitioningBy(Predicate)
+     * @see Collectors#partitioningBy(Predicate, Collector)
+     * @since 0.2.2
+     */
+    public <D> Map<Boolean, D> partitioningBy(Predicate<? super T> predicate, Collector<? super T, ?, D> downstream) {
+        return collect(Collectors.partitioningBy(predicate, downstream));
+    }
+
+    /**
+     * Returns a {@code Map<Boolean, C>} which contains two partitions of the
+     * input elements according to a {@code Predicate}.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code Map} returned.
+     *
+     * @param <C>
+     *            the type of {@code Collection} used as returned {@code Map}
+     *            values.
+     * @param predicate
+     *            a predicate used for classifying input elements
+     * @param collectionFactory
+     *            a function which returns a new empty {@code Collection} which
+     *            will be used to store the stream elements.
+     * @return a {@code Map<Boolean, C>} which {@link Boolean#TRUE} key is
+     *         mapped to the collection of the stream elements for which
+     *         predicate is true and {@link Boolean#FALSE} key is mapped to the
+     *         collection of all other stream elements.
+     *
+     * @see #partitioningBy(Predicate, Collector)
+     * @see Collectors#partitioningBy(Predicate)
+     * @since 0.2.2
+     */
+    public <C extends Collection<T>> Map<Boolean, C> partitioningTo(Predicate<? super T> predicate,
+            Supplier<C> collectionFactory) {
+        return collect(Collectors.partitioningBy(predicate, Collectors.toCollection(collectionFactory)));
     }
 
     /**
@@ -331,7 +656,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Collectors#toConcurrentMap(Function, Function)
      * @see #toMap(Function, Function)
      */
-    public <V> Map<T, V> toMap(Function<T, V> valMapper) {
+    public <V> Map<T, V> toMap(Function<? super T, ? extends V> valMapper) {
         return toMap(Function.identity(), valMapper);
     }
 
@@ -368,7 +693,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Collectors#toConcurrentMap(Function, Function)
      * @see #toMap(Function)
      */
-    public <K, V> Map<K, V> toMap(Function<T, K> keyMapper, Function<T, V> valMapper) {
+    public <K, V> Map<K, V> toMap(Function<? super T, ? extends K> keyMapper, Function<? super T, ? extends V> valMapper) {
         return toMap(keyMapper, valMapper, throwingMerger());
     }
 
@@ -413,7 +738,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see #toMap(Function, Function)
      * @since 0.1.0
      */
-    public <K, V> Map<K, V> toMap(Function<T, K> keyMapper, Function<T, V> valMapper, BinaryOperator<V> mergeFunction) {
+    public <K, V> Map<K, V> toMap(Function<? super T, ? extends K> keyMapper,
+            Function<? super T, ? extends V> valMapper, BinaryOperator<V> mergeFunction) {
         if (stream.isParallel())
             return collect(Collectors.toConcurrentMap(keyMapper, valMapper, mergeFunction, ConcurrentHashMap::new));
         return collect(Collectors.toMap(keyMapper, valMapper, mergeFunction, HashMap::new));
@@ -451,7 +777,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see #toSortedMap(Function, Function)
      * @since 0.1.0
      */
-    public <V> SortedMap<T, V> toSortedMap(Function<T, V> valMapper) {
+    public <V> SortedMap<T, V> toSortedMap(Function<? super T, ? extends V> valMapper) {
         return toSortedMap(Function.identity(), valMapper);
     }
 
@@ -489,7 +815,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see #toSortedMap(Function)
      * @since 0.1.0
      */
-    public <K, V> SortedMap<K, V> toSortedMap(Function<T, K> keyMapper, Function<T, V> valMapper) {
+    public <K, V> SortedMap<K, V> toSortedMap(Function<? super T, ? extends K> keyMapper,
+            Function<? super T, ? extends V> valMapper) {
         return toSortedMap(keyMapper, valMapper, throwingMerger());
     }
 
@@ -534,8 +861,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see #toSortedMap(Function, Function)
      * @since 0.1.0
      */
-    public <K, V> SortedMap<K, V> toSortedMap(Function<T, K> keyMapper, Function<T, V> valMapper,
-            BinaryOperator<V> mergeFunction) {
+    public <K, V> SortedMap<K, V> toSortedMap(Function<? super T, ? extends K> keyMapper,
+            Function<? super T, ? extends V> valMapper, BinaryOperator<V> mergeFunction) {
         if (stream.isParallel())
             return collect(Collectors.toConcurrentMap(keyMapper, valMapper, mergeFunction, ConcurrentSkipListMap::new));
         return collect(Collectors.toMap(keyMapper, valMapper, mergeFunction, TreeMap::new));
@@ -551,6 +878,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     @SuppressWarnings("unchecked")
     public StreamEx<T> append(T... values) {
+        if (values.length == 0)
+            return this;
         return append(Stream.of(values));
     }
 
@@ -563,7 +892,9 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return the new stream
      * @since 0.2.1
      */
-    public StreamEx<T> append(Collection<T> collection) {
+    public StreamEx<T> append(Collection<? extends T> collection) {
+        if (collection.isEmpty())
+            return this;
         return append(collection.stream());
     }
 
@@ -577,6 +908,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     @SuppressWarnings("unchecked")
     public StreamEx<T> prepend(T... values) {
+        if (values.length == 0)
+            return this;
         return prepend(Stream.of(values));
     }
 
@@ -589,14 +922,49 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return the new stream
      * @since 0.2.1
      */
-    public StreamEx<T> prepend(Collection<T> collection) {
+    public StreamEx<T> prepend(Collection<? extends T> collection) {
+        if (collection.isEmpty())
+            return this;
         return prepend(collection.stream());
     }
 
-    public boolean has(T element) {
-        if (element == null)
-            return anyMatch(Objects::isNull);
-        return anyMatch(element::equals);
+    /**
+     * Returns true if this stream contains the specified value.
+     *
+     * <p>
+     * This is a short-circuiting terminal operation.
+     * 
+     * @param value
+     *            the value to look for in the stream. If the value is null then
+     *            the method will return true if this stream contains at least
+     *            one null. Otherwise {@code value.equals()} will be called to
+     *            compare stream elements with the value.
+     * @return true if this stream contains the specified value
+     * @see Stream#anyMatch(Predicate)
+     */
+    public boolean has(T value) {
+        return anyMatch(Predicate.isEqual(value));
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream that don't
+     * equal to the given value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            the value to remove from the stream. If the value is null then
+     *            all nulls will be removed (like {@link #nonNull()} works).
+     *            Otherwise {@code value.equals()} will be used to test stream
+     *            values and matching elements will be removed.
+     * @return the new stream
+     * @since 0.2.2
+     */
+    public StreamEx<T> without(T value) {
+        if (value == null)
+            return filter(Objects::nonNull);
+        return remove(value::equals);
     }
 
     /**
@@ -633,10 +1001,133 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         });
     }
     
-    public <R> StreamEx<R> pairMap(BiFunction<T, T, R> mapper) {
+    /**
+     * Returns a stream consisting of the results of applying the given function
+     * to the every adjacent pair of elements of this stream.
+     *
+     * <p>
+     * This is a semi-intermediate operation.
+     * 
+     * <p>
+     * The output stream will contain one element less than this stream. If this
+     * stream contains zero or one element the output stream will be empty.
+     *
+     * @param <R>
+     *            The element type of the new stream
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each
+     *            adjacent pair of this stream elements.
+     * @return the new stream
+     * @since 0.2.1
+     */
+    public <R> StreamEx<R> pairMap(BiFunction<? super T, ? super T, ? extends R> mapper) {
         return strategy().newStreamEx(
-                StreamSupport.stream(new PairSpliterator.PSOfRef<>(mapper, stream.spliterator(), null, false, null, false),
-                        stream.isParallel()));
+                StreamSupport.stream(
+                        new PairSpliterator.PSOfRef<T, R>(mapper, stream.spliterator(), null, false, null, false),
+                        stream.isParallel()).onClose(stream::close));
+    }
+
+    /**
+     * Performs an action for each adjacent pair of elements of this stream.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * <p>
+     * The behavior of this operation is explicitly nondeterministic. For
+     * parallel stream pipelines, this operation does <em>not</em> guarantee to
+     * respect the encounter order of the stream, as doing so would sacrifice
+     * the benefit of parallelism. For any given element, the action may be
+     * performed at whatever time and in whatever thread the library chooses. If
+     * the action accesses shared state, it is responsible for providing the
+     * required synchronization.
+     *
+     * @param action
+     *            a non-interfering action to perform on the elements
+     * @since 0.2.2
+     */
+    public void forPairs(BiConsumer<T, T> action) {
+        pairMap((a, b) -> {
+            action.accept(a, b);
+            return null;
+        }).reduce(null, (a, b) -> null);
+    }
+
+    /**
+     * Merge series of adjacent elements which satisfy the given predicate using
+     * the merger function and return a new stream.
+     * 
+     * <p>
+     * This is a semi-intermediate operation.
+     * 
+     * @param collapsible
+     *            a non-interfering, stateless predicate to apply to the pair of
+     *            elements which returns true for elements which are
+     *            collapsible. If {@code collapsible(a, b)} is true, then the
+     *            following invariants must be held:
+     *            {@code collapsible(merger(a, b), c) = collapsible(b, c)} and
+     *            {@code collapsible(c, merger(a, b)) = collapsible(c, a)}.
+     * @param merger
+     *            a non-interfering, stateless, associative function to merge
+     *            two adjacent elements for which collapsible predicate returned
+     *            true. Note that it can be applied to the results if previous
+     *            merges.
+     * @return the new stream
+     * @since 0.3.1
+     */
+    public StreamEx<T> collapse(BiPredicate<T, T> collapsible, BinaryOperator<T> merger) {
+        return strategy().newStreamEx(
+                StreamSupport.stream(
+                        new CollapseSpliterator<>(collapsible, merger, stream.spliterator(), null, false, null, false),
+                        stream.isParallel()).onClose(stream::close));
+    }
+
+    /**
+     * Returns a stream consisting of elements of this stream where every series
+     * of elements matched the predicate is replaced with first element from the
+     * series.
+     * 
+     * <p>
+     * This is a semi-intermediate operation.
+     * 
+     * <p>
+     * {@code stream.sorted().collapse(Objects::equals)} is equivalent to
+     * {@code stream.sorted().distinct()}.
+     * 
+     * @param collapsible
+     *            a non-interfering, stateless, transitive predicate to apply to
+     *            the pair of elements which returns true for elements which are
+     *            collapsible.
+     * @return the new stream
+     * @since 0.3.1
+     */
+    public StreamEx<T> collapse(BiPredicate<T, T> collapsible) {
+        return collapse(collapsible, (a, b) -> a);
+    }
+
+    /**
+     * Returns a stream consisting of lists of elements of this stream where
+     * adjacent elements are grouped according to supplied predicate.
+     * 
+     * <p>
+     * This is a semi-intermediate operation.
+     * 
+     * @param sameGroup
+     *            a non-interfering, stateless, transitive predicate to apply to
+     *            the pair of elements which returns true for elements which
+     *            belong to the same group.
+     * @return the new stream
+     * @since 0.3.1
+     */
+    public StreamEx<List<T>> groupRuns(BiPredicate<T, T> sameGroup) {
+        return map(t -> {
+            List<T> res = new ArrayList<>();
+            res.add(t);
+            return res;
+        }).collapse((a, b) -> sameGroup.test(a.get(a.size()-1), b.get(0)), (a, b) -> {
+            a.addAll(b);
+            return a;
+        });
     }
 
     /**
@@ -730,7 +1221,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return the wrapped stream
      */
     public static <T> StreamEx<T> of(Stream<T> stream) {
-        return stream instanceof StreamEx ? (StreamEx<T>) stream : new StreamEx<>(stream);
+        return new StreamEx<>(unwrap(stream));
     }
 
     /**
@@ -822,6 +1313,24 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return new StreamEx<>(map.keySet().stream());
     }
 
+    /**
+     * Returns a sequential {@code StreamEx} of given {@link Map} keys which
+     * corresponding values match the supplied filter.
+     *
+     * @param <T>
+     *            the type of map keys and created stream elements
+     * @param <V>
+     *            the type of map values
+     * @param map
+     *            input map
+     * @param valueFilter
+     *            a predicate used to test values
+     * @return a sequential {@code StreamEx} over the keys of given {@code Map}
+     *         which corresponding values match the supplied filter.
+     * @throws NullPointerException
+     *             if map is null
+     * @see Map#keySet()
+     */
     public static <T, V> StreamEx<T> ofKeys(Map<T, V> map, Predicate<V> valueFilter) {
         return new StreamEx<>(map.entrySet().stream().filter(entry -> valueFilter.test(entry.getValue()))
                 .map(Entry::getKey));
@@ -845,6 +1354,24 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return new StreamEx<>(map.values().stream());
     }
 
+    /**
+     * Returns a sequential {@code StreamEx} of given {@link Map} values which
+     * corresponding keys match the supplied filter.
+     *
+     * @param <K>
+     *            the type of map keys
+     * @param <T>
+     *            the type of map values and created stream elements
+     * @param map
+     *            input map
+     * @param keyFilter
+     *            a predicate used to test keys
+     * @return a sequential {@code StreamEx} over the values of given
+     *         {@code Map} which corresponding keys match the supplied filter.
+     * @throws NullPointerException
+     *             if map is null
+     * @see Map#values()
+     */
     public static <K, T> StreamEx<T> ofValues(Map<K, T> map, Predicate<K> keyFilter) {
         return new StreamEx<>(map.entrySet().stream().filter(entry -> keyFilter.test(entry.getKey()))
                 .map(Entry::getValue));
@@ -856,6 +1383,21 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
 
     public static StreamEx<JarEntry> ofEntries(JarFile file) {
         return new StreamEx<>(file.stream());
+    }
+
+    /**
+     * Returns a new {@code StreamEx} of {@code int[]} arrays containing all the
+     * possible permutations of numbers from 0 to length-1 in lexicographic
+     * order.
+     * 
+     * @param length
+     *            length of permutations array. Lengths bigger than 20 are not
+     *            supported currently.
+     * @return new sequential {@code StreamEx} of possible permutations.
+     * @since 0.2.2
+     */
+    public static StreamEx<int[]> ofPermutations(int length) {
+        return new StreamEx<>(StreamSupport.stream(new PermutationSpliterator(length), false).map(perm -> perm.clone()));
     }
 
     /**
@@ -959,5 +1501,109 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public static <T> StreamEx<T> constant(T value, long length) {
         return new StreamEx<>(Stream.generate(() -> value).limit(length));
+    }
+
+    /**
+     * Returns a sequential {@code StreamEx} containing the results of applying
+     * the given function to the corresponding pairs of values in given two
+     * lists.
+     * 
+     * <p>
+     * The list values are accessed using {@link List#get(int)}, so the lists
+     * should provide fast random access. The lists are assumed to be
+     * unmodifiable during the stream operations.
+     * 
+     * @param <U>
+     *            the type of the first list elements
+     * @param <V>
+     *            the type of the second list elements
+     * @param <T>
+     *            the type of the resulting stream elements
+     * @param first
+     *            the first list, assumed to be unmodified during use
+     * @param second
+     *            the second list, assumed to be unmodified during use
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each pair of
+     *            the corresponding list elements.
+     * @return a new {@code StreamEx}
+     * @throws IllegalArgumentException
+     *             if length of the lists differs.
+     * @since 0.2.1
+     */
+    public static <U, V, T> StreamEx<T> zip(List<U> first, List<V> second,
+            BiFunction<? super U, ? super V, ? extends T> mapper) {
+        return intStreamForLength(first.size(), second.size()).mapToObj(i -> mapper.apply(first.get(i), second.get(i)));
+    }
+
+    /**
+     * Returns a sequential {@code StreamEx} containing the results of applying
+     * the given function to the corresponding pairs of values in given two
+     * arrays.
+     * 
+     * @param <U>
+     *            the type of the first array elements
+     * @param <V>
+     *            the type of the second array elements
+     * @param <T>
+     *            the type of the resulting stream elements
+     * @param first
+     *            the first array
+     * @param second
+     *            the second array
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each pair of
+     *            the corresponding array elements.
+     * @return a new {@code StreamEx}
+     * @throws IllegalArgumentException
+     *             if length of the arrays differs.
+     * @since 0.2.1
+     */
+    public static <U, V, T> StreamEx<T> zip(U[] first, V[] second, BiFunction<? super U, ? super V, ? extends T> mapper) {
+        return zip(Arrays.asList(first), Arrays.asList(second), mapper);
+    }
+
+    /**
+     * Return a new {@link StreamEx} containing all the nodes of tree-like data
+     * structure in depth-first order.
+     * 
+     * @param <T>
+     *            the type of tree nodes
+     * @param root
+     *            root node of the tree
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each tree
+     *            node which returns null for leaf nodes or stream of direct
+     *            children for non-leaf nodes.
+     * @return the new sequential ordered stream
+     * @since 0.2.2
+     */
+    public static <T> StreamEx<T> ofTree(T root, Function<T, Stream<T>> mapper) {
+        Stream<T> rootStream = mapper.apply(root);
+        return rootStream == null ? of(root) : of(flatTraverse(rootStream, mapper)).prepend(Stream.of(root));
+    }
+
+    /**
+     * Return a new {@link StreamEx} containing all the nodes of tree-like data
+     * structure in depth-first order.
+     * 
+     * @param <T>
+     *            the base type of tree nodes
+     * @param <TT>
+     *            the sub-type of composite tree nodes which may have children
+     * @param root
+     *            root node of the tree
+     * @param collectionClass
+     *            a class representing the composite tree node
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each
+     *            composite tree node which returns stream of direct children.
+     *            May return null if the given node has no children.
+     * @return the new sequential ordered stream
+     * @since 0.2.2
+     */
+    @SuppressWarnings("unchecked")
+    public static <T, TT extends T> StreamEx<T> ofTree(T root, Class<TT> collectionClass, Function<TT, Stream<T>> mapper) {
+        return ofTree(root, t -> collectionClass.isInstance(t) ? mapper.apply((TT) t) : null);
     }
 }

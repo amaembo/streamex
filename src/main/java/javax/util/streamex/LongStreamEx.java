@@ -15,6 +15,7 @@
  */
 package javax.util.streamex;
 
+import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -25,6 +26,7 @@ import java.util.Random;
 import java.util.PrimitiveIterator.OfLong;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.function.LongBinaryOperator;
 import java.util.function.LongConsumer;
 import java.util.function.LongFunction;
@@ -35,8 +37,14 @@ import java.util.function.LongToIntFunction;
 import java.util.function.LongUnaryOperator;
 import java.util.function.ObjLongConsumer;
 import java.util.function.Supplier;
+import java.util.stream.Collector;
+import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
 import java.util.stream.LongStream;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
+import static javax.util.streamex.StreamExInternals.*;
 
 /**
  * A {@link LongStream} implementation with additional functionality
@@ -66,6 +74,16 @@ public class LongStreamEx implements LongStream {
         return stream.isParallel();
     }
 
+    /**
+     * Returns an equivalent stream that is unordered. May return itself, either
+     * because the stream was already unordered, or because the underlying
+     * stream state was modified to be unordered.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @return an unordered stream
+     */
     @Override
     public LongStreamEx unordered() {
         return strategy().newLongStreamEx(stream.unordered());
@@ -76,6 +94,12 @@ public class LongStreamEx implements LongStream {
         return strategy().newLongStreamEx(stream.onClose(closeHandler));
     }
 
+    /**
+     * Closes this stream, causing all close handlers for this stream pipeline
+     * to be called.
+     *
+     * @see AutoCloseable#close()
+     */
     @Override
     public void close() {
         stream.close();
@@ -152,9 +176,91 @@ public class LongStreamEx implements LongStream {
         return strategy().newDoubleStreamEx(stream.mapToDouble(mapper));
     }
 
+    public <K, V> EntryStream<K, V> mapToEntry(LongFunction<? extends K> keyMapper, LongFunction<? extends V> valueMapper) {
+        return strategy().newEntryStream(
+                stream.mapToObj(t -> new AbstractMap.SimpleImmutableEntry<>(keyMapper.apply(t), valueMapper.apply(t))));
+    }
+
+    /**
+     * Returns a {@link LongStreamEx} consisting of the results of replacing
+     * each element of this stream with the contents of a mapped stream produced
+     * by applying the provided mapping function to each element. Each mapped
+     * stream is closed after its contents have been placed into this stream.
+     * (If a mapped stream is {@code null} an empty stream is used, instead.)
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
+     *            which produces a {@code LongStream} of new values
+     * @return the new stream
+     */
     @Override
     public LongStreamEx flatMap(LongFunction<? extends LongStream> mapper) {
         return strategy().newLongStreamEx(stream.flatMap(mapper));
+    }
+
+    /**
+     * Returns an {@link IntStreamEx} consisting of the results of replacing
+     * each element of this stream with the contents of a mapped stream produced
+     * by applying the provided mapping function to each element. Each mapped
+     * stream is closed after its contents have been placed into this stream.
+     * (If a mapped stream is {@code null} an empty stream is used, instead.)
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
+     *            which produces an {@code IntStream} of new values
+     * @return the new stream
+     * @since 0.3.0
+     */
+    public IntStreamEx flatMapToInt(LongFunction<? extends IntStream> mapper) {
+        return strategy().newIntStreamEx(stream.mapToObj(mapper).flatMapToInt(Function.identity()));
+    }
+
+    /**
+     * Returns a {@link DoubleStreamEx} consisting of the results of replacing
+     * each element of this stream with the contents of a mapped stream produced
+     * by applying the provided mapping function to each element. Each mapped
+     * stream is closed after its contents have been placed into this stream.
+     * (If a mapped stream is {@code null} an empty stream is used, instead.)
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
+     *            which produces an {@code DoubleStream} of new values
+     * @return the new stream
+     * @since 0.3.0
+     */
+    public DoubleStreamEx flatMapToDouble(LongFunction<? extends DoubleStream> mapper) {
+        return strategy().newDoubleStreamEx(stream.mapToObj(mapper).flatMapToDouble(Function.identity()));
+    }
+
+    /**
+     * Returns a {@link StreamEx} consisting of the results of replacing each
+     * element of this stream with the contents of a mapped stream produced by
+     * applying the provided mapping function to each element. Each mapped
+     * stream is closed after its contents have been placed into this stream.
+     * (If a mapped stream is {@code null} an empty stream is used, instead.)
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param <R>
+     *            The element type of the new stream
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
+     *            which produces a {@code Stream} of new values
+     * @return the new stream
+     * @since 0.3.0
+     */
+    public <R> StreamEx<R> flatMapToObj(LongFunction<? extends Stream<R>> mapper) {
+        return strategy().newStreamEx(stream.mapToObj(mapper).flatMap(Function.identity()));
     }
 
     @Override
@@ -224,9 +330,71 @@ public class LongStreamEx implements LongStream {
         return stream.reduce(op);
     }
 
+    /**
+     * Performs a mutable reduction operation on the elements of this stream. A
+     * mutable reduction is one in which the reduced value is a mutable result
+     * container, such as an {@code ArrayList}, and elements are incorporated by
+     * updating the state of the result rather than by replacing the result.
+     *
+     * <p>
+     * Like {@link #reduce(long, LongBinaryOperator)}, {@code collect} operations
+     * can be parallelized without requiring additional synchronization.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param <R>
+     *            type of the result
+     * @param supplier
+     *            a function that creates a new result container. For a parallel
+     *            execution, this function may be called multiple times and must
+     *            return a fresh value each time.
+     * @param accumulator
+     *            an associative, non-interfering, stateless function for
+     *            incorporating an additional element into a result
+     * @param combiner
+     *            an associative, non-interfering, stateless function for
+     *            combining two values, which must be compatible with the
+     *            accumulator function
+     * @return the result of the reduction
+     * @see #collect(LongCollector)
+     */
     @Override
     public <R> R collect(Supplier<R> supplier, ObjLongConsumer<R> accumulator, BiConsumer<R, R> combiner) {
         return stream.collect(supplier, accumulator, combiner);
+    }
+
+    /**
+     * Performs a mutable reduction operation on the elements of this stream
+     * using an {@link LongCollector} which encapsulates the supplier,
+     * accumulator and merger functions making easier to reuse collection
+     * strategies.
+     *
+     * <p>
+     * Like {@link #reduce(long, LongBinaryOperator)}, {@code collect}
+     * operations can be parallelized without requiring additional
+     * synchronization.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param <A>
+     *            the intermediate accumulation type of the
+     *            {@code LongCollector}
+     * @param <R>
+     *            type of the result
+     * @param collector
+     *            the {@code LongCollector} describing the reduction
+     * @return the result of the reduction
+     * @see #collect(Supplier, ObjLongConsumer, BiConsumer)
+     * @since 0.3.0
+     */
+    @SuppressWarnings("unchecked")
+    public <A, R> R collect(LongCollector<A, R> collector) {
+        if (collector.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH))
+            return (R) collect(collector.supplier(), collector.longAccumulator(), collector.merger());
+        return collector.finisher().apply(
+                collect(collector.supplier(), collector.longAccumulator(), collector.merger()));
     }
 
     @Override
@@ -244,6 +412,14 @@ public class LongStreamEx implements LongStream {
         return reduce(Long::max);
     }
 
+    /**
+     * Returns the count of elements in this stream.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @return the count of elements in this stream
+     */
     @Override
     public long count() {
         return stream.count();
@@ -361,6 +537,8 @@ public class LongStreamEx implements LongStream {
      * @return the new stream
      */
     public LongStreamEx append(long... values) {
+        if (values.length == 0)
+            return this;
         return strategy().newLongStreamEx(LongStream.concat(stream, LongStream.of(values)));
     }
 
@@ -377,6 +555,8 @@ public class LongStreamEx implements LongStream {
      * @return the new stream
      */
     public LongStreamEx prepend(long... values) {
+        if (values.length == 0)
+            return this;
         return strategy().newLongStreamEx(LongStream.concat(LongStream.of(values), stream));
     }
 
@@ -384,6 +564,18 @@ public class LongStreamEx implements LongStream {
         return strategy().newLongStreamEx(LongStream.concat(other, stream));
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream that don't
+     * match the given predicate.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param predicate
+     *            a non-interfering, stateless predicate to apply to each
+     *            element to determine if it should be excluded
+     * @return the new stream
+     */
     public LongStreamEx remove(LongPredicate predicate) {
         return filter(predicate.negate());
     }
@@ -409,6 +601,86 @@ public class LongStreamEx implements LongStream {
      */
     public boolean has(long value) {
         return anyMatch(x -> x == value);
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream that don't
+     * equal to the given value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            the value to remove from the stream.
+     * @return the new stream
+     * @since 0.2.2
+     */
+    public LongStreamEx without(long value) {
+        return filter(val -> val != value);
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream that strictly
+     * greater than the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
+    public LongStreamEx greater(long value) {
+        return filter(val -> val > value);
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream that greater
+     * than or equal to the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
+    public LongStreamEx atLeast(long value) {
+        return filter(val -> val >= value);
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream that strictly
+     * less than the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
+    public LongStreamEx less(long value) {
+        return filter(val -> val < value);
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream that less than
+     * or equal to the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
+    public LongStreamEx atMost(long value) {
+        return filter(val -> val <= value);
     }
 
     public LongStreamEx sorted(Comparator<Long> comparator) {
@@ -630,12 +902,38 @@ public class LongStreamEx implements LongStream {
                 : b);
     }
 
+    /**
+     * Returns a stream consisting of the results of applying the given function
+     * to the every adjacent pair of elements of this stream.
+     *
+     * <p>
+     * This is a semi-intermediate operation.
+     * 
+     * <p>
+     * The output stream will contain one element less than this stream. If this
+     * stream contains zero or one element the output stream will be empty.
+     *
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each
+     *            adjacent pair of this stream elements.
+     * @return the new stream
+     * @since 0.2.1
+     */
     public LongStreamEx pairMap(LongBinaryOperator mapper) {
         return strategy().newLongStreamEx(
-                StreamSupport.longStream(new PairSpliterator.PSOfLong(mapper, stream.spliterator(), 0, false, 0, false),
-                        stream.isParallel()));
+                StreamSupport.longStream(
+                        new PairSpliterator.PSOfLong(mapper, stream.spliterator(), 0, false, 0, false),
+                        stream.isParallel()).onClose(stream::close));
     }
 
+    public String joining(CharSequence delimiter) {
+        return collect(LongCollector.joining(delimiter));
+    }
+
+    public String joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
+        return collect(LongCollector.joining(delimiter, prefix, suffix));
+    }
+    
     public static LongStreamEx empty() {
         return new LongStreamEx(LongStream.empty());
     }
@@ -846,5 +1144,26 @@ public class LongStreamEx implements LongStream {
      */
     public static LongStreamEx constant(long value, long length) {
         return new LongStreamEx(LongStream.generate(() -> value).limit(length));
+    }
+
+    /**
+     * Returns a sequential {@code LongStreamEx} containing the results of
+     * applying the given function to the corresponding pairs of values in given
+     * two arrays.
+     * 
+     * @param first
+     *            the first array
+     * @param second
+     *            the second array
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each pair of
+     *            the corresponding array elements.
+     * @return a new {@code LongStreamEx}
+     * @throws IllegalArgumentException
+     *             if length of the arrays differs.
+     * @since 0.2.1
+     */
+    public static LongStreamEx zip(long[] first, long[] second, LongBinaryOperator mapper) {
+        return intStreamForLength(first.length, second.length).mapToLong(i -> mapper.applyAsLong(first[i], second[i]));
     }
 }

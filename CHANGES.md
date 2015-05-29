@@ -1,11 +1,57 @@
 # StreamEx changes
 
-### 0.2.1-SNAPSHOT
+### 0.3.1
+
+* Added mapToEntry method for primitive streams
+* Added joining methods family for primitive streams
+* Added StreamEx.collapse/groupRuns methods
+* Updated documentation
+
+### 0.3.0
+
+* Added primitive collectors: IntCollector, LongCollector, DoubleCollector
+* Added flatMapToInt/flatMapToLong/flatMapToDouble/flatMapToObj to primitive streams
+* Added EntryStream.flatMapKeyValue/filterKeyValue/mapToKey/mapToValue methods
+* Added IntStreamEx.toCharArray/toShortArray/toByteArray methods
+* Added DoubleStreamEx.toFloatArray method
+* Generic arguments for many methods are relaxed allowing more flexible usage
+* Methods EntryStream.mapEntryKeys/mapEntryValues are declared as deprecated and may be removed in future releases!
+* Updated documentation
+
+### 0.2.3
+
+* Added toListAndThen(), toSetAndThen() methods to StreamEx and EntryStream
+* Added StreamEx.cross() methods family
+* Added EntryStream.peekKeys(), EntryStream.peekValues(), EntryStream.peekKeyValue() methods
+* Added construction of EntryStream from List/array (indices are used as keys)
+* Added construction of EntryStream from two and three key-value pairs
+* Added EntryStream.append/prepend for two and three key-value pairs
+* Added greater/less/atLest/atMost filter methods for primitive streams
+* Updated documentation
+
+### 0.2.2
+
+* Fixed: StreamEx.flatMapToEntry, EntryStream.flatMapKeys and EntryStream.flatMapValues now correctly handles null value returned by mapper
+* Added StreamEx.scanRight() and EntryStream.scanRight() methods
+* Added StreamEx.foldRight() and EntryStream.foldRight() methods
+* Added StreamEx.forPairs() method
+* Added StreamEx.partitioningBy() methods
+* Added StreamEx.partitioningTo() method
+* Added StreamEx.groupingTo() methods
+* Added StreamEx.ofPermutations(int) constructor
+* Added StreamEx.ofTree constructors
+* Added StreamEx.without(), IntStreamEx.without(), LongStreamEx.without() methods
+* Added EntryStream.join() methods
+* Updated documentation
+
+### 0.2.1
 
 * Fixed: flatCollection method now correctly handles null value returned by mapper
 * Added IntStreamEx.charsToString, IntStreamEx.codePointsToString methods
 * Added StreamEx.scanLeft() and EntryStream.scanLeft() methods
 * Added construction of EntryStream by zipping keys and values from two arrays/lists
+* Added construction of StreamEx/IntStreamEx/LongStreamEx/DoubleStreamEx by zip-mapping two arrays/lists
+* Added pairMap method for handling adjacent pairs
 * The append/prepend methods of StreamEx/EntryStream can accept a Collection now 
 * Updated documentation
 
