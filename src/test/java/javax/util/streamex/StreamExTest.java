@@ -843,6 +843,14 @@ public class StreamExTest {
     }
     
     @Test
+    public void testCollapsePairMap() {
+        int[] input = {0, 0, 1, 1, 1, 1, 4, 6, 6, 3, 3, 10};
+        List<Integer> expected = IntStreamEx.of(input).pairMap((a, b) -> b-a).without(0).boxed().toList();
+        assertEquals(expected, IntStreamEx.of(input).boxed().collapse(Integer::equals).pairMap((a, b) -> b-a).toList());
+        assertEquals(expected, IntStreamEx.of(input).parallel().boxed().collapse(Integer::equals).pairMap((a, b) -> b-a).toList());
+    }
+    
+    @Test
     public void testGroupRuns() {
         List<String> input = Arrays.asList("aaa", "bb", "baz", "bar", "foo", "fee", "abc");
         List<List<String>> result = StreamEx.of(input).groupRuns((a, b) -> a.charAt(0) == b.charAt(0)).toList();
