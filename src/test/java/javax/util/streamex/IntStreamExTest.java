@@ -331,4 +331,12 @@ public class IntStreamExTest {
         assertArrayEquals(expected, IntStreamEx.range(0, 10000).greater(-1).toShortArray());
         assertArrayEquals(expected, IntStreamEx.range(0, 10000).parallel().greater(-1).toShortArray());
     }
+    
+    @Test
+    public void testJoining() {
+        assertEquals("0,1,2,3,4,5,6,7,8,9", IntStreamEx.range(10).joining(","));
+        assertEquals("0,1,2,3,4,5,6,7,8,9", IntStreamEx.range(10).parallel().joining(","));
+        assertEquals("[0,1,2,3,4,5,6,7,8,9]", IntStreamEx.range(10).joining(",", "[", "]"));
+        assertEquals("[0,1,2,3,4,5,6,7,8,9]", IntStreamEx.range(10).parallel().joining(",", "[", "]"));
+    }
 }

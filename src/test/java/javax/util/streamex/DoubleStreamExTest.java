@@ -224,4 +224,12 @@ public class DoubleStreamExTest {
         assertArrayEquals(expected, IntStreamEx.range(0, 10000).asDoubleStream().greater(-1).toFloatArray(), 0.0f);
         assertArrayEquals(expected, IntStreamEx.range(0, 10000).asDoubleStream().parallel().greater(-1).toFloatArray(), 0.0f);
     }
+    
+    @Test
+    public void testJoining() {
+        assertEquals("0.4,5.0,3.6,4.8", DoubleStreamEx.of(0.4, 5.0, 3.6, 4.8).joining(","));
+        assertEquals("0.4,5.0,3.6,4.8", DoubleStreamEx.of(0.4, 5.0, 3.6, 4.8).parallel().joining(","));
+        assertEquals("[0.4,5.0,3.6,4.8]", DoubleStreamEx.of(0.4, 5.0, 3.6, 4.8).joining(",", "[", "]"));
+        assertEquals("[0.4,5.0,3.6,4.8]", DoubleStreamEx.of(0.4, 5.0, 3.6, 4.8).parallel().joining(",", "[", "]"));
+    }
 }
