@@ -89,6 +89,15 @@ public class StreamExTest {
     private Reader getReader() {
         return new BufferedReader(new StringReader("a\nb"));
     }
+    
+    @Test
+    public void testReader() {
+        String input = IntStreamEx.range(5000).joining("\n");
+        assertEquals(IntStreamEx.range(1, 5000).mapToObj(String::valueOf).toList(),
+                StreamEx.ofLines(new StringReader(input)).skip(1).parallel().toList());
+        assertEquals(IntStreamEx.range(1, 5000).mapToObj(String::valueOf).toList(),
+                StreamEx.ofLines(new StringReader(input)).pairMap((a, b) -> b).parallel().toList());
+    }
 
     @Test(expected = IllegalArgumentException.class)
     public void testZipThrows() {
