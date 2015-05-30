@@ -1106,14 +1106,6 @@ public class IntStreamEx implements IntStream {
         return collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append).toString();
     }
     
-    public String joining(CharSequence delimiter) {
-        return collect(IntCollector.joining(delimiter));
-    }
-
-    public String joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
-        return collect(IntCollector.joining(delimiter, prefix, suffix));
-    }
-    
     /**
      * Returns a stream consisting of the results of applying the given function
      * to the every adjacent pair of elements of this stream.
@@ -1137,6 +1129,54 @@ public class IntStreamEx implements IntStream {
                         stream.isParallel()).onClose(stream::close));
     }
 
+    /**
+     * Returns a {@link String} which contains the results of calling
+     * {@link String#valueOf(int)} on each element of this stream, separated by
+     * the specified delimiter, in encounter order.
+     *
+     * <p>
+     * This is a terminal operation.
+     * 
+     * @param delimiter
+     *            the delimiter to be used between each element
+     * @return a {@code String}. For empty input stream empty String is
+     *         returned.
+     * @since 0.3.1
+     */
+    public String joining(CharSequence delimiter) {
+        return collect(IntCollector.joining(delimiter));
+    }
+
+    /**
+     * Returns a {@link String} which contains the results of calling
+     * {@link String#valueOf(int)} on each element of this stream, separated
+     * by the specified delimiter, with the specified prefix and suffix in
+     * encounter order.
+     *
+     * <p>
+     * This is a terminal operation.
+     * 
+     * @param delimiter
+     *            the delimiter to be used between each element
+     * @param prefix
+     *            the sequence of characters to be used at the beginning of the
+     *            joined result
+     * @param suffix
+     *            the sequence of characters to be used at the end of the joined
+     *            result
+     * @return a {@code String}. For empty input stream empty String is
+     *         returned.
+     * @since 0.3.1
+     */
+    public String joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
+        return collect(IntCollector.joining(delimiter, prefix, suffix));
+    }
+    
+    /**
+     * Returns an empty sequential {@code IntStreamEx}.
+     *
+     * @return an empty sequential stream
+     */
     public static IntStreamEx empty() {
         return new IntStreamEx(IntStream.empty());
     }

@@ -175,7 +175,8 @@ public class DoubleStreamEx implements DoubleStream {
         return strategy().newLongStreamEx(stream.mapToLong(mapper));
     }
 
-    public <K, V> EntryStream<K, V> mapToEntry(DoubleFunction<? extends K> keyMapper, DoubleFunction<? extends V> valueMapper) {
+    public <K, V> EntryStream<K, V> mapToEntry(DoubleFunction<? extends K> keyMapper,
+            DoubleFunction<? extends V> valueMapper) {
         return strategy().newEntryStream(
                 stream.mapToObj(t -> new AbstractMap.SimpleImmutableEntry<>(keyMapper.apply(t), valueMapper.apply(t))));
     }
@@ -918,14 +919,54 @@ public class DoubleStreamEx implements DoubleStream {
         return buf.toArray();
     }
 
+    /**
+     * Returns a {@link String} which contains the results of calling
+     * {@link String#valueOf(double)} on each element of this stream, separated
+     * by the specified delimiter, in encounter order.
+     *
+     * <p>
+     * This is a terminal operation.
+     * 
+     * @param delimiter
+     *            the delimiter to be used between each element
+     * @return a {@code String}. For empty input stream empty String is
+     *         returned.
+     * @since 0.3.1
+     */
     public String joining(CharSequence delimiter) {
         return collect(DoubleCollector.joining(delimiter));
     }
 
+    /**
+     * Returns a {@link String} which contains the results of calling
+     * {@link String#valueOf(double)} on each element of this stream, separated
+     * by the specified delimiter, with the specified prefix and suffix in
+     * encounter order.
+     *
+     * <p>
+     * This is a terminal operation.
+     * 
+     * @param delimiter
+     *            the delimiter to be used between each element
+     * @param prefix
+     *            the sequence of characters to be used at the beginning of the
+     *            joined result
+     * @param suffix
+     *            the sequence of characters to be used at the end of the joined
+     *            result
+     * @return a {@code String}. For empty input stream empty String is
+     *         returned.
+     * @since 0.3.1
+     */
     public String joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return collect(DoubleCollector.joining(delimiter, prefix, suffix));
     }
-    
+
+    /**
+     * Returns an empty sequential {@code DoubleStreamEx}.
+     *
+     * @return an empty sequential stream
+     */
     public static DoubleStreamEx empty() {
         return new DoubleStreamEx(DoubleStream.empty());
     }
