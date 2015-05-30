@@ -17,6 +17,8 @@ package javax.util.streamex;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.OptionalInt;
 import java.util.Random;
 import java.util.Spliterator;
@@ -338,5 +340,12 @@ public class IntStreamExTest {
         assertEquals("0,1,2,3,4,5,6,7,8,9", IntStreamEx.range(10).parallel().joining(","));
         assertEquals("[0,1,2,3,4,5,6,7,8,9]", IntStreamEx.range(10).joining(",", "[", "]"));
         assertEquals("[0,1,2,3,4,5,6,7,8,9]", IntStreamEx.range(10).parallel().joining(",", "[", "]"));
+    }
+    
+    @Test
+    public void testMapToEntry() {
+        Map<Integer, List<Integer>> result = IntStreamEx.range(10).mapToEntry(x -> x % 2, x -> x).grouping();
+        assertEquals(Arrays.asList(0, 2, 4, 6, 8), result.get(0));
+        assertEquals(Arrays.asList(1, 3, 5, 7, 9), result.get(1));
     }
 }

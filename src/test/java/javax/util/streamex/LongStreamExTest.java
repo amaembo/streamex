@@ -16,6 +16,8 @@
 package javax.util.streamex;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.OptionalLong;
 import java.util.Random;
 import java.util.Spliterator;
@@ -185,5 +187,12 @@ public class LongStreamExTest {
         assertEquals("0,1,2,3,4,5,6,7,8,9", LongStreamEx.range(10).parallel().joining(","));
         assertEquals("[0,1,2,3,4,5,6,7,8,9]", LongStreamEx.range(10).joining(",", "[", "]"));
         assertEquals("[0,1,2,3,4,5,6,7,8,9]", LongStreamEx.range(10).parallel().joining(",", "[", "]"));
+    }
+    
+    @Test
+    public void testMapToEntry() {
+        Map<Long, List<Long>> result = LongStreamEx.range(10).mapToEntry(x -> x % 2, x -> x).grouping();
+        assertEquals(Arrays.asList(0l, 2l, 4l, 6l, 8l), result.get(0l));
+        assertEquals(Arrays.asList(1l, 3l, 5l, 7l, 9l), result.get(1l));
     }
 }
