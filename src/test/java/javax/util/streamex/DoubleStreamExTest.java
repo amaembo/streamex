@@ -18,6 +18,7 @@ package javax.util.streamex;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.OptionalDouble;
 import java.util.Random;
 import java.util.Spliterator;
@@ -223,5 +224,21 @@ public class DoubleStreamExTest {
         assertArrayEquals(expected, IntStreamEx.range(0, 10000).asDoubleStream().parallel().toFloatArray(), 0.0f);
         assertArrayEquals(expected, IntStreamEx.range(0, 10000).asDoubleStream().greater(-1).toFloatArray(), 0.0f);
         assertArrayEquals(expected, IntStreamEx.range(0, 10000).asDoubleStream().parallel().greater(-1).toFloatArray(), 0.0f);
+    }
+    
+    @Test
+    public void testJoining() {
+        assertEquals("0.4,5.0,3.6,4.8", DoubleStreamEx.of(0.4, 5.0, 3.6, 4.8).joining(","));
+        assertEquals("0.4,5.0,3.6,4.8", DoubleStreamEx.of(0.4, 5.0, 3.6, 4.8).parallel().joining(","));
+        assertEquals("[0.4,5.0,3.6,4.8]", DoubleStreamEx.of(0.4, 5.0, 3.6, 4.8).joining(",", "[", "]"));
+        assertEquals("[0.4,5.0,3.6,4.8]", DoubleStreamEx.of(0.4, 5.0, 3.6, 4.8).parallel().joining(",", "[", "]"));
+    }
+    
+    @Test
+    public void testMapToEntry() {
+        Map<Integer, List<Double>> map = DoubleStreamEx.of(0.3, 0.5, 1.3, 0.7, 1.9, 2.1).mapToEntry(x -> (int)x, x -> x).grouping();
+        assertEquals(Arrays.asList(0.3, 0.5, 0.7), map.get(0));
+        assertEquals(Arrays.asList(1.3, 1.9), map.get(1));
+        assertEquals(Arrays.asList(2.1), map.get(2));
     }
 }

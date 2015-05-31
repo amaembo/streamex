@@ -22,6 +22,7 @@ import java.util.Comparator;
 import java.util.DoubleSummaryStatistics;
 import java.util.OptionalDouble;
 import java.util.Random;
+import java.util.Map.Entry;
 import java.util.PrimitiveIterator.OfDouble;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
@@ -175,7 +176,27 @@ public class DoubleStreamEx implements DoubleStream {
         return strategy().newLongStreamEx(stream.mapToLong(mapper));
     }
 
-    public <K, V> EntryStream<K, V> mapToEntry(DoubleFunction<? extends K> keyMapper, DoubleFunction<? extends V> valueMapper) {
+    /**
+     * Returns an {@link EntryStream} consisting of the {@link Entry} objects
+     * which keys and values are results of applying the given functions to the
+     * elements of this stream.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param <K>
+     *            The {@code Entry} key type
+     * @param <V>
+     *            The {@code Entry} value type
+     * @param keyMapper
+     *            a non-interfering, stateless function to apply to each element
+     * @param valueMapper
+     *            a non-interfering, stateless function to apply to each element
+     * @return the new stream
+     * @since 0.3.1
+     */
+    public <K, V> EntryStream<K, V> mapToEntry(DoubleFunction<? extends K> keyMapper,
+            DoubleFunction<? extends V> valueMapper) {
         return strategy().newEntryStream(
                 stream.mapToObj(t -> new AbstractMap.SimpleImmutableEntry<>(keyMapper.apply(t), valueMapper.apply(t))));
     }
@@ -873,7 +894,7 @@ public class DoubleStreamEx implements DoubleStream {
      * to the every adjacent pair of elements of this stream.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is a quasi-intermediate operation.
      * 
      * <p>
      * The output stream will contain one element less than this stream. If this
@@ -918,14 +939,54 @@ public class DoubleStreamEx implements DoubleStream {
         return buf.toArray();
     }
 
+    /**
+     * Returns a {@link String} which contains the results of calling
+     * {@link String#valueOf(double)} on each element of this stream, separated
+     * by the specified delimiter, in encounter order.
+     *
+     * <p>
+     * This is a terminal operation.
+     * 
+     * @param delimiter
+     *            the delimiter to be used between each element
+     * @return a {@code String}. For empty input stream empty String is
+     *         returned.
+     * @since 0.3.1
+     */
     public String joining(CharSequence delimiter) {
         return collect(DoubleCollector.joining(delimiter));
     }
 
+    /**
+     * Returns a {@link String} which contains the results of calling
+     * {@link String#valueOf(double)} on each element of this stream, separated
+     * by the specified delimiter, with the specified prefix and suffix in
+     * encounter order.
+     *
+     * <p>
+     * This is a terminal operation.
+     * 
+     * @param delimiter
+     *            the delimiter to be used between each element
+     * @param prefix
+     *            the sequence of characters to be used at the beginning of the
+     *            joined result
+     * @param suffix
+     *            the sequence of characters to be used at the end of the joined
+     *            result
+     * @return a {@code String}. For empty input stream empty String is
+     *         returned.
+     * @since 0.3.1
+     */
     public String joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return collect(DoubleCollector.joining(delimiter, prefix, suffix));
     }
-    
+
+    /**
+     * Returns an empty sequential {@code DoubleStreamEx}.
+     *
+     * @return an empty sequential stream
+     */
     public static DoubleStreamEx empty() {
         return new DoubleStreamEx(DoubleStream.empty());
     }

@@ -203,6 +203,20 @@ import static javax.util.streamex.StreamExInternals.*;
         return strategy().newDoubleStreamEx(stream.flatMapToDouble(mapper));
     }
 
+    /**
+     * Returns a stream consisting of the distinct elements (according to
+     * {@link Object#equals(Object)}) of this stream.
+     *
+     * <p>
+     * For ordered streams, the selection of distinct elements is stable (for
+     * duplicated elements, the element appearing first in the encounter order
+     * is preserved.) For unordered streams, no stability guarantees are made.
+     *
+     * <p>
+     * This is a stateful intermediate operation.
+     *
+     * @return the new stream
+     */
     @Override
     public S distinct() {
         return supply(stream.distinct());
@@ -518,7 +532,8 @@ import static javax.util.streamex.StreamExInternals.*;
     }
 
     public Optional<T> minByDouble(ToDoubleFunction<? super T> keyExtractor) {
-        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? b : a);
+        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? b
+                : a);
     }
 
     public <V extends Comparable<? super V>> Optional<T> maxBy(Function<? super T, ? extends V> keyExtractor) {
@@ -534,7 +549,8 @@ import static javax.util.streamex.StreamExInternals.*;
     }
 
     public Optional<T> maxByDouble(ToDoubleFunction<? super T> keyExtractor) {
-        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? a : b);
+        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? a
+                : b);
     }
 
     /**

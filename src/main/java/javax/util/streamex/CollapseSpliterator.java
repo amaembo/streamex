@@ -145,12 +145,12 @@ import java.util.function.Consumer;
 
     @Override
     public long estimateSize() {
-        return source.estimateSize();
+        return source == null ? 0 : source.estimateSize();
     }
 
     @Override
     public int characteristics() {
-        return source.characteristics() & (CONCURRENT | IMMUTABLE | ORDERED);
+        return source == null ? (SIZED | DISTINCT) : source.characteristics() & (CONCURRENT | IMMUTABLE | ORDERED);
     }
 
 }

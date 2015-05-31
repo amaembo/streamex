@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.Random;
+import java.util.Map.Entry;
 import java.util.PrimitiveIterator.OfInt;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
@@ -198,6 +199,25 @@ public class IntStreamEx implements IntStream {
         return strategy().newDoubleStreamEx(stream.mapToDouble(mapper));
     }
     
+    /**
+     * Returns an {@link EntryStream} consisting of the {@link Entry} objects
+     * which keys and values are results of applying the given functions to the
+     * elements of this stream.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param <K>
+     *            The {@code Entry} key type
+     * @param <V>
+     *            The {@code Entry} value type
+     * @param keyMapper
+     *            a non-interfering, stateless function to apply to each element
+     * @param valueMapper
+     *            a non-interfering, stateless function to apply to each element
+     * @return the new stream
+     * @since 0.3.1
+     */
     public <K, V> EntryStream<K, V> mapToEntry(IntFunction<? extends K> keyMapper, IntFunction<? extends V> valueMapper) {
         return strategy().newEntryStream(
                 stream.mapToObj(t -> new AbstractMap.SimpleImmutableEntry<>(keyMapper.apply(t), valueMapper.apply(t))));
@@ -1106,20 +1126,12 @@ public class IntStreamEx implements IntStream {
         return collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append).toString();
     }
     
-    public String joining(CharSequence delimiter) {
-        return collect(IntCollector.joining(delimiter));
-    }
-
-    public String joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
-        return collect(IntCollector.joining(delimiter, prefix, suffix));
-    }
-    
     /**
      * Returns a stream consisting of the results of applying the given function
      * to the every adjacent pair of elements of this stream.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is a quasi-intermediate operation.
      * 
      * <p>
      * The output stream will contain one element less than this stream. If this
@@ -1137,6 +1149,54 @@ public class IntStreamEx implements IntStream {
                         stream.isParallel()).onClose(stream::close));
     }
 
+    /**
+     * Returns a {@link String} which contains the results of calling
+     * {@link String#valueOf(int)} on each element of this stream, separated by
+     * the specified delimiter, in encounter order.
+     *
+     * <p>
+     * This is a terminal operation.
+     * 
+     * @param delimiter
+     *            the delimiter to be used between each element
+     * @return a {@code String}. For empty input stream empty String is
+     *         returned.
+     * @since 0.3.1
+     */
+    public String joining(CharSequence delimiter) {
+        return collect(IntCollector.joining(delimiter));
+    }
+
+    /**
+     * Returns a {@link String} which contains the results of calling
+     * {@link String#valueOf(int)} on each element of this stream, separated
+     * by the specified delimiter, with the specified prefix and suffix in
+     * encounter order.
+     *
+     * <p>
+     * This is a terminal operation.
+     * 
+     * @param delimiter
+     *            the delimiter to be used between each element
+     * @param prefix
+     *            the sequence of characters to be used at the beginning of the
+     *            joined result
+     * @param suffix
+     *            the sequence of characters to be used at the end of the joined
+     *            result
+     * @return a {@code String}. For empty input stream empty String is
+     *         returned.
+     * @since 0.3.1
+     */
+    public String joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
+        return collect(IntCollector.joining(delimiter, prefix, suffix));
+    }
+    
+    /**
+     * Returns an empty sequential {@code IntStreamEx}.
+     *
+     * @return an empty sequential stream
+     */
     public static IntStreamEx empty() {
         return new IntStreamEx(IntStream.empty());
     }

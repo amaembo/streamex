@@ -31,6 +31,8 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.SortedMap;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -988,11 +990,45 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
+     * Returns a {@code StreamEx} consisting of the distinct elements (according
+     * to {@link Object#equals(Object)}) which appear at least specified number
+     * of times in this stream.
+     *
+     * <p>
+     * This operation is not guaranteed to be stable: any of equal elements can
+     * be selected for the output. However if this stream is ordered then order
+     * is preserved.
+     *
+     * <p>
+     * This is a stateful quasi-intermediate operation.
+     *
+     * @param atLeast
+     *            minimal number of occurrences required to select the element.
+     *            If atLeast is 1 or less, then this method is equivalent to
+     *            {@link #distinct()}.
+     * @return the new stream
+     * @see #distinct()
+     * @since 0.3.1
+     */
+    public StreamEx<T> distinct(long atLeast) {
+        if (atLeast <= 1)
+            return distinct();
+        Spliterator<T> spliterator = stream.spliterator();
+        Spliterator<T> result;
+        if (spliterator.hasCharacteristics(Spliterator.DISTINCT))
+            // already distinct: cannot have any repeating elements
+            result = Spliterators.emptySpliterator();
+        else
+            result = new DistinctSpliterator<>(spliterator, atLeast);
+        return strategy().newStreamEx(StreamSupport.stream(result, stream.isParallel()).onClose(stream::close));
+    }
+
+    /**
      * Returns a stream consisting of the results of applying the given function
      * to the every adjacent pair of elements of this stream.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is a quasi-intermediate operation.
      * 
      * <p>
      * The output stream will contain one element less than this stream. If this
@@ -1044,7 +1080,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * the merger function and return a new stream.
      * 
      * <p>
-     * This is an intermediate operation.
+     * This is a quasi-intermediate operation.
      * 
      * @param collapsible
      *            a non-interfering, stateless predicate to apply to the pair of
@@ -1074,7 +1110,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * series.
      * 
      * <p>
-     * This is an intermediate operation.
+     * This is a quasi-intermediate operation.
      * 
      * <p>
      * {@code stream.sorted().collapse(Objects::equals)} is equivalent to
@@ -1096,7 +1132,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * adjacent elements are grouped according to supplied predicate.
      * 
      * <p>
-     * This is an intermediate operation.
+     * This is a quasi-intermediate operation.
      * 
      * @param sameGroup
      *            a non-interfering, stateless, transitive predicate to apply to
@@ -1110,7 +1146,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             List<T> res = new ArrayList<>();
             res.add(t);
             return res;
-        }).collapse((a, b) -> sameGroup.test(a.get(a.size()-1), b.get(0)), (a, b) -> {
+        }).collapse((a, b) -> sameGroup.test(a.get(a.size() - 1), b.get(0)), (a, b) -> {
             a.addAll(b);
             return a;
         });
