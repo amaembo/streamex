@@ -22,6 +22,7 @@ import java.util.Comparator;
 import java.util.DoubleSummaryStatistics;
 import java.util.OptionalDouble;
 import java.util.Random;
+import java.util.Map.Entry;
 import java.util.PrimitiveIterator.OfDouble;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
@@ -175,6 +176,25 @@ public class DoubleStreamEx implements DoubleStream {
         return strategy().newLongStreamEx(stream.mapToLong(mapper));
     }
 
+    /**
+     * Returns an {@link EntryStream} consisting of the {@link Entry} objects
+     * which keys and values are results of applying the given functions to the
+     * elements of this stream.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param <K>
+     *            The {@code Entry} key type
+     * @param <V>
+     *            The {@code Entry} value type
+     * @param keyMapper
+     *            a non-interfering, stateless function to apply to each element
+     * @param valueMapper
+     *            a non-interfering, stateless function to apply to each element
+     * @return the new stream
+     * @since 0.3.1
+     */
     public <K, V> EntryStream<K, V> mapToEntry(DoubleFunction<? extends K> keyMapper,
             DoubleFunction<? extends V> valueMapper) {
         return strategy().newEntryStream(

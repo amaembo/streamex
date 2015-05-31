@@ -23,6 +23,7 @@ import java.util.LongSummaryStatistics;
 import java.util.OptionalDouble;
 import java.util.OptionalLong;
 import java.util.Random;
+import java.util.Map.Entry;
 import java.util.PrimitiveIterator.OfLong;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
@@ -176,6 +177,25 @@ public class LongStreamEx implements LongStream {
         return strategy().newDoubleStreamEx(stream.mapToDouble(mapper));
     }
 
+    /**
+     * Returns an {@link EntryStream} consisting of the {@link Entry} objects
+     * which keys and values are results of applying the given functions to the
+     * elements of this stream.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param <K>
+     *            The {@code Entry} key type
+     * @param <V>
+     *            The {@code Entry} value type
+     * @param keyMapper
+     *            a non-interfering, stateless function to apply to each element
+     * @param valueMapper
+     *            a non-interfering, stateless function to apply to each element
+     * @return the new stream
+     * @since 0.3.1
+     */
     public <K, V> EntryStream<K, V> mapToEntry(LongFunction<? extends K> keyMapper,
             LongFunction<? extends V> valueMapper) {
         return strategy().newEntryStream(
