@@ -6,6 +6,7 @@
 * Added joining methods family for primitive streams
 * Added StreamEx.collapse/groupRuns methods
 * Added StreamEx.distinct(atLeast) method
+* Released jar works now as an OSGi bundle
 * Updated documentation
 
 ### 0.3.0
