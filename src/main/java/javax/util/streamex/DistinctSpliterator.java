@@ -23,12 +23,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
-final class DistinctSpliterator<T> implements Spliterator<T> {
-    final Spliterator<T> source;
-    AtomicLong nullCounter;
-    Map<T, Long> counts;
-    final long atLeast;
-    T cur;
+/* package */ final class DistinctSpliterator<T> implements Spliterator<T> {
+    private final Spliterator<T> source;
+    private AtomicLong nullCounter;
+    private Map<T, Long> counts;
+    private final long atLeast;
+    private T cur;
 
     DistinctSpliterator(Spliterator<T> source, long atLeast, AtomicLong nullCounter, Map<T, Long> counts) {
         this.source = source;
