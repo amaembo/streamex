@@ -41,6 +41,7 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static javax.util.streamex.StreamExInternals.*;
 
@@ -847,5 +848,9 @@ import static javax.util.streamex.StreamExInternals.*;
             }
             return result;
         });
+    }
+    
+    public S recreate() {
+        return supply(StreamSupport.stream(stream.spliterator(), stream.isParallel()).onClose(stream::close));
     }
 }
