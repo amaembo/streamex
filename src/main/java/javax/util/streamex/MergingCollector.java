@@ -10,7 +10,7 @@ import java.util.stream.Collector;
  * partial result the {@code MergingCollector} must provide a merger which
  * merges the second partial result into the first one.
  * 
- * @author lan
+ * @author Tagir Valeev
  *
  * @param <T>
  *            the type of input elements to the reduction operation

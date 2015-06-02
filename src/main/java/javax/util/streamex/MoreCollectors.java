@@ -1,3 +1,18 @@
+/*
+ * Copyright 2015 Tagir Valeev
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package javax.util.streamex;
 
 import java.util.Comparator;
@@ -16,21 +31,86 @@ import java.util.stream.Collectors;
 
 import static javax.util.streamex.StreamExInternals.*;
 
+/**
+ * Implementations of several collectors in addition to ones available in JDK.
+ * 
+ * @author Tagir Valeev
+ * @see Collectors
+ * @since 0.3.2
+ */
 public final class MoreCollectors {
     private MoreCollectors() {
         throw new UnsupportedOperationException();
     }
 
-    public static <T> Collector<T, ?, T[]> toArray(IntFunction<T[]> supplier) {
-        return Collectors.collectingAndThen(Collectors.toList(), list -> list.toArray(supplier.apply(list.size())));
+    /**
+     * Returns a {@code Collector} that accumulates the input elements into a
+     * new array.
+     * 
+     * The operation performed by the returned collector is equivalent to
+     * {@code stream.toArray(generator)}. This collector is mostly useful as a
+     * downstream collector.
+     *
+     * @param <T>
+     *            the type of the input elements
+     * @param generator
+     *            a function which produces a new array of the desired type and
+     *            the provided length
+     * @return a {@code Collector} which collects all the input elements into an
+     *         array, in encounter order
+     */
+    public static <T> Collector<T, ?, T[]> toArray(IntFunction<T[]> generator) {
+        return Collectors.collectingAndThen(Collectors.toList(), list -> list.toArray(generator.apply(list.size())));
     }
 
-    public static <T, U> Collector<T, ?, Integer> distinctCount(Function<T, U> mapper) {
+    /**
+     * Returns a {@code Collector} which counts a number of distinct values the
+     * mapper function returns for the stream elements.
+     * 
+     * The operation performed by the returned collector is equivalent to
+     * {@code stream.map(mapper).distinct().count()}. This collector is mostly
+     * useful as a downstream collector.
+     * 
+     * @param <T>
+     *            the type of the input elements
+     * @param <U>
+     *            the type of objects the mapper function produces
+     * @param mapper
+     *            a function which classifies input elements.
+     * @return a collector which counts a number of distinct classes the mapper
+     *         function returns for the stream elements.
+     */
+    public static <T, U> Collector<T, ?, Integer> distinctCount(Function<? super T, U> mapper) {
         return Collectors.collectingAndThen(Collectors.mapping(mapper, Collectors.toSet()), Set::size);
     }
 
-    public static <T, A1, A2, R1, R2, R> Collector<T, ?, R> pairing(Collector<T, A1, R1> c1, Collector<T, A2, R2> c2,
-            BiFunction<R1, R2, R> finisher) {
+    /**
+     * Returns a {@code Collector} which aggregates the results of two supplied
+     * collectors using the supplied finisher function.
+     * 
+     * @param <T>
+     *            the type of the input elements
+     * @param <A1>
+     *            the intermediate accumulation type of the first collector
+     * @param <A2>
+     *            the intermediate accumulation type of the second collector
+     * @param <R1>
+     *            the result type of the first collector
+     * @param <R2>
+     *            the result type of the second collector
+     * @param <R>
+     *            the final result type
+     * @param c1
+     *            the first collector
+     * @param c2
+     *            the second collector
+     * @param finisher
+     *            the function which merges two results into the single one.
+     * @return a {@code Collector} which aggregates the results of two supplied
+     *         collectors.
+     */
+    public static <T, A1, A2, R1, R2, R> Collector<T, ?, R> pairing(Collector<? super T, A1, R1> c1,
+            Collector<? super T, A2, R2> c2, BiFunction<? super R1, ? super R2, ? extends R> finisher) {
         EnumSet<Characteristics> c = EnumSet.noneOf(Characteristics.class);
         c.addAll(c1.characteristics());
         c.retainAll(c2.characteristics());
@@ -38,8 +118,8 @@ public final class MoreCollectors {
 
         Supplier<A1> c1Supplier = c1.supplier();
         Supplier<A2> c2Supplier = c2.supplier();
-        BiConsumer<A1, T> c1Accumulator = c1.accumulator();
-        BiConsumer<A2, T> c2Accumulator = c2.accumulator();
+        BiConsumer<A1, ? super T> c1Accumulator = c1.accumulator();
+        BiConsumer<A2, ? super T> c2Accumulator = c2.accumulator();
         BinaryOperator<A1> c1Combiner = c1.combiner();
         BinaryOperator<A2> c2combiner = c2.combiner();
 
