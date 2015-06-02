@@ -298,7 +298,7 @@ import java.util.stream.Stream;
         }
     }
 
-    static final class BooleanMap<T> extends AbstractMap<Boolean, T> implements Map<Boolean, T> {
+    static final class BooleanMap<T> extends AbstractMap<Boolean, T> {
         final T trueValue, falseValue;
 
         BooleanMap(T trueValue, T falseValue) {
