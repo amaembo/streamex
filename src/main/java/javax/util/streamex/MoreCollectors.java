@@ -17,6 +17,7 @@ package javax.util.streamex;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.EnumSet;
@@ -48,8 +49,22 @@ public final class MoreCollectors {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Returns a {@code Collector} which just ignores the input and calls the
+     * provided supplier once to return the output.
+     * 
+     * @param <T>
+     *            the type of input elements
+     * @param <U>
+     *            the type of output
+     * @param supplier
+     *            the supplier of the output
+     * @return a {@code Collector} which just ignores the input and calls the
+     *         provided supplier once to return the output.
+     */
     private static <T, U> Collector<T, ?, U> empty(Supplier<U> supplier) {
-        return Collector.of(() -> null, (acc, t) -> {}, selectFirst(), acc -> supplier.get(), Collector.Characteristics.UNORDERED,
+        return Collector.of(() -> null, (acc, t) -> {
+        }, selectFirst(), acc -> supplier.get(), Collector.Characteristics.UNORDERED,
                 Collector.Characteristics.CONCURRENT);
     }
 
@@ -268,7 +283,7 @@ public final class MoreCollectors {
      *         stream elements or less if the stream was shorter.
      */
     public static <T> Collector<T, ?, List<T>> head(int n) {
-        if(n <= 0)
+        if (n <= 0)
             return empty(ArrayList<T>::new);
         return Collector.<T, List<T>> of(ArrayList::new, (acc, t) -> {
             if (acc.size() < n)
@@ -291,7 +306,7 @@ public final class MoreCollectors {
      *         stream elements or less if the stream was shorter.
      */
     public static <T> Collector<T, ?, List<T>> tail(int n) {
-        if(n <= 0)
+        if (n <= 0)
             return empty(ArrayList<T>::new);
         return Collector.<T, Deque<T>, List<T>> of(ArrayDeque::new, (acc, t) -> {
             if (acc.size() == n)
@@ -304,7 +319,7 @@ public final class MoreCollectors {
             return acc2;
         }, ArrayList<T>::new);
     }
-    
+
     public static <T> Collector<T, ?, List<T>> maxN(Comparator<? super T> comparator, int limit) {
         BiConsumer<PriorityQueue<T>, T> accumulator = (queue, t) -> {
             queue.add(t);
@@ -316,6 +331,25 @@ public final class MoreCollectors {
                 accumulator.accept(q1, t);
             }
             return q1;
-        }, queue -> new ArrayList<>(queue));
+        }, queue -> {
+            List<T> result = new ArrayList<>(queue.size());
+            while (!queue.isEmpty()) {
+                result.add(queue.poll());
+            }
+            Collections.reverse(result);
+            return result;
+        });
+    }
+
+    public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> maxN(int limit) {
+        return maxN(Comparator.<T> naturalOrder(), limit);
+    }
+
+    public static <T> Collector<T, ?, List<T>> minN(Comparator<? super T> comparator, int limit) {
+        return maxN(comparator.reversed(), limit);
+    }
+
+    public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> minN(int limit) {
+        return maxN(Comparator.<T> reverseOrder(), limit);
     }
 }
