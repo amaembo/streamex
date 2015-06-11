@@ -15,9 +15,14 @@
  */
 package javax.util.streamex;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -140,10 +145,6 @@ public final class MoreCollectors {
         }, c.toArray(new Characteristics[c.size()]));
     }
 
-    public static <T> Collector<T, ?, List<T>> maxAll(Comparator<? super T> comparator) {
-        return maxAll(comparator, Collectors.toList());
-    }
-
     public static <T, A, D> Collector<T, ?, D> maxAll(Comparator<? super T> comparator,
             Collector<? super T, A, D> downstream) {
         Supplier<A> downstreamSupplier = downstream.supplier();
@@ -186,11 +187,135 @@ public final class MoreCollectors {
         return Collector.of(supplier, accumulator, combiner, finisher);
     }
 
+    public static <T> Collector<T, ?, List<T>> maxAll(Comparator<? super T> comparator) {
+        return maxAll(comparator, Collectors.toList());
+    }
+
+    public static <T extends Comparable<? super T>, A, D> Collector<T, ?, D> maxAll(Collector<T, A, D> downstream) {
+        return maxAll(Comparator.<T> naturalOrder(), downstream);
+    }
+
+    public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> maxAll() {
+        return maxAll(Comparator.<T> naturalOrder(), Collectors.toList());
+    }
+
     public static <T, A, D> Collector<T, ?, D> minAll(Comparator<? super T> comparator, Collector<T, A, D> downstream) {
         return maxAll(comparator.reversed(), downstream);
     }
 
     public static <T> Collector<T, ?, List<T>> minAll(Comparator<? super T> comparator) {
         return maxAll(comparator.reversed(), Collectors.toList());
+    }
+
+    public static <T extends Comparable<? super T>, A, D> Collector<T, ?, D> minAll(Collector<T, A, D> downstream) {
+        return maxAll(Comparator.<T> reverseOrder(), downstream);
+    }
+
+    public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> minAll() {
+        return maxAll(Comparator.<T> reverseOrder(), Collectors.toList());
+    }
+
+    /**
+     * Returns a {@code Collector} which collects only the first stream element
+     * if any.
+     * 
+     * The operation performed by the returned collector is equivalent to
+     * {@code stream.findFirst()}. This collector is mostly useful as a
+     * downstream collector.
+     * 
+     * @param <T>
+     *            the type of the input elements
+     * @return a collector which returns an {@link Optional} which describes the
+     *         first element of the stream. For empty stream an empty
+     *         {@code Optional} is returned.
+     */
+    public static <T> Collector<T, ?, Optional<T>> first() {
+        return Collectors.reducing(selectFirst());
+    }
+
+    /**
+     * Returns a {@code Collector} which collects only the last stream element
+     * if any.
+     * 
+     * @param <T>
+     *            the type of the input elements
+     * @return a collector which returns an {@link Optional} which describes the
+     *         last element of the stream. For empty stream an empty
+     *         {@code Optional} is returned.
+     */
+    public static <T> Collector<T, ?, Optional<T>> last() {
+        return Collectors.reducing(selectLast());
+    }
+
+    /**
+     * Returns a {@code Collector} which collects at most specified number of
+     * the first stream elements into the {@link List}.
+     * 
+     * The operation performed by the returned collector is equivalent to
+     * {@code stream.limit(n).collect(Collectors.toList())}. This collector is
+     * mostly useful as a downstream collector.
+     * 
+     * @param <T>
+     *            the type of the input elements
+     * @param n
+     *            maximum number of stream elements to preserve
+     * @return a collector which returns a {@code List} containing the first n
+     *         stream elements or less if the stream was shorter.
+     */
+    public static <T> Collector<T, ?, List<T>> head(int n) {
+        if(n <= 0)
+            return empty(ArrayList<T>::new);
+        return Collector.<T, List<T>> of(ArrayList::new, (acc, t) -> {
+            if (acc.size() < n)
+                acc.add(t);
+        }, (acc1, acc2) -> {
+            acc1.addAll(acc2.subList(0, Math.min(acc2.size(), n - acc1.size())));
+            return acc1;
+        });
+    }
+
+    /**
+     * Returns a {@code Collector} which collects at most specified number of
+     * the last stream elements into the {@link List}.
+     * 
+     * @param <T>
+     *            the type of the input elements
+     * @param n
+     *            maximum number of stream elements to preserve
+     * @return a collector which returns a {@code List} containing the last n
+     *         stream elements or less if the stream was shorter.
+     */
+    public static <T> Collector<T, ?, List<T>> tail(int n) {
+        if(n <= 0)
+            return empty(ArrayList<T>::new);
+        return Collector.<T, Deque<T>, List<T>> of(ArrayDeque::new, (acc, t) -> {
+            if (acc.size() == n)
+                acc.pollFirst();
+            acc.addLast(t);
+        }, (acc1, acc2) -> {
+            while (acc2.size() < n && !acc1.isEmpty()) {
+                acc2.addFirst(acc1.pollLast());
+            }
+            return acc2;
+        }, ArrayList<T>::new);
+    }
+    
+    private static <T, U> Collector<T, ?, U> empty(Supplier<U> supplier) {
+        return Collector.of(() -> null, (acc, t) -> {}, selectFirst(), acc -> supplier.get(), Collector.Characteristics.UNORDERED,
+                Collector.Characteristics.CONCURRENT);
+    }
+
+    public static <T> Collector<T, ?, List<T>> maxN(Comparator<? super T> comparator, int limit) {
+        BiConsumer<PriorityQueue<T>, T> accumulator = (queue, t) -> {
+            queue.add(t);
+            if (queue.size() > limit)
+                queue.poll();
+        };
+        return Collector.of(() -> new PriorityQueue<>(comparator), accumulator, (q1, q2) -> {
+            for (T t : q2) {
+                accumulator.accept(q1, t);
+            }
+            return q1;
+        }, queue -> new ArrayList<>(queue));
     }
 }
