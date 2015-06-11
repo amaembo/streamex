@@ -17,17 +17,22 @@ package javax.util.streamex;
 
 import static org.junit.Assert.*;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+
 import org.junit.Test;
 
 public class MoreCollectorsTest {
@@ -53,6 +58,42 @@ public class MoreCollectorsTest {
 
     private static <T> List<StreamSupplier<T>> suppliers(Supplier<StreamEx<T>> base) {
         return Arrays.asList(new StreamSupplier<>(base, false), new StreamSupplier<>(base, true));
+    }
+    
+    @Test(expected = UnsupportedOperationException.class)
+    public void testInstantiate() throws Throwable {
+        Constructor<MoreCollectors> constructor = MoreCollectors.class.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        try {
+            constructor.newInstance();
+        } catch (InvocationTargetException e) {
+            throw e.getCause();
+        }
+    }
+    
+    @Test
+    public void testToArray() {
+        List<String> input = Arrays.asList("a", "bb", "c", "", "cc", "eee", "bb", "ddd");
+        for (StreamSupplier<String> supplier : suppliers(() -> StreamEx.of(input))) {
+            Map<Integer, String[]> result = supplier.get().groupingBy(String::length, HashMap::new, MoreCollectors.toArray(String[]::new));
+            assertArrayEquals(supplier.toString(), new String[] {""}, result.get(0));
+            assertArrayEquals(supplier.toString(), new String[] {"a", "c"}, result.get(1));
+            assertArrayEquals(supplier.toString(), new String[] {"bb", "cc", "bb"}, result.get(2));
+            assertArrayEquals(supplier.toString(), new String[] {"eee", "ddd"}, result.get(3));
+        }
+    }
+    
+    @Test
+    public void testDistinctCount() {
+        List<String> input = Arrays.asList("a", "bb", "c", "cc", "eee", "bb", "bc", "ddd");
+        for (StreamSupplier<String> supplier : suppliers(() -> StreamEx.of(input))) {
+            Map<String, Integer> result = supplier.get().groupingBy(s -> s.substring(0, 1), HashMap::new, MoreCollectors.distinctCount(String::length));
+            assertEquals(1, (int)result.get("a"));
+            assertEquals(1, (int)result.get("b"));
+            assertEquals(2, (int)result.get("c"));
+            assertEquals(1, (int)result.get("d"));
+            assertEquals(1, (int)result.get("e"));
+        }        
     }
 
     @Test

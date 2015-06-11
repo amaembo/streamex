@@ -48,6 +48,11 @@ public final class MoreCollectors {
         throw new UnsupportedOperationException();
     }
 
+    private static <T, U> Collector<T, ?, U> empty(Supplier<U> supplier) {
+        return Collector.of(() -> null, (acc, t) -> {}, selectFirst(), acc -> supplier.get(), Collector.Characteristics.UNORDERED,
+                Collector.Characteristics.CONCURRENT);
+    }
+
     /**
      * Returns a {@code Collector} that accumulates the input elements into a
      * new array.
@@ -300,11 +305,6 @@ public final class MoreCollectors {
         }, ArrayList<T>::new);
     }
     
-    private static <T, U> Collector<T, ?, U> empty(Supplier<U> supplier) {
-        return Collector.of(() -> null, (acc, t) -> {}, selectFirst(), acc -> supplier.get(), Collector.Characteristics.UNORDERED,
-                Collector.Characteristics.CONCURRENT);
-    }
-
     public static <T> Collector<T, ?, List<T>> maxN(Comparator<? super T> comparator, int limit) {
         BiConsumer<PriorityQueue<T>, T> accumulator = (queue, t) -> {
             queue.add(t);
