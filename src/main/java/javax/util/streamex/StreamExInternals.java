@@ -574,7 +574,15 @@ import java.util.stream.Stream;
             throw new IllegalStateException(String.format("Duplicate key %s", u));
         };
     }
+    
+    static <T> BinaryOperator<T> selectFirst() {
+        return (u, v) -> u;
+    }
 
+    static <T> BinaryOperator<T> selectLast() {
+        return (u, v) -> v;
+    }
+    
     static IntStreamEx intStreamForLength(int a, int b) {
         if (a != b)
             throw new IllegalArgumentException("Length differs: " + a + " != " + b);
