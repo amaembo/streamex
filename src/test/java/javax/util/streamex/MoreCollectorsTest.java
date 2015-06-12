@@ -180,9 +180,9 @@ public class MoreCollectorsTest {
     public void testMaxN() {
         List<Integer> ints = Arrays.asList(1, 5, 2, 5, 3, 0, 9, 10, 8, -2, 4);
         for (StreamSupplier<Integer> supplier : suppliers(() -> StreamEx.of(ints))) {
-            assertEquals(supplier.toString(), Arrays.asList(10, 9, 8), supplier.get().collect(MoreCollectors.maxN(3)));
-            assertEquals(supplier.toString(), Arrays.asList(-2, 0, 1), supplier.get().collect(MoreCollectors.minN(3)));
-            assertEquals(supplier.toString(), supplier.get().sorted().limit(5).toList(), supplier.get().collect(MoreCollectors.minN(5)));
+            assertEquals(supplier.toString(), Arrays.asList(10, 9, 8), supplier.get().collect(MoreCollectors.greatest(3)));
+            assertEquals(supplier.toString(), Arrays.asList(-2, 0, 1), supplier.get().collect(MoreCollectors.least(3)));
+            assertEquals(supplier.toString(), supplier.get().sorted().limit(5).toList(), supplier.get().collect(MoreCollectors.least(5)));
         }
     }
 }

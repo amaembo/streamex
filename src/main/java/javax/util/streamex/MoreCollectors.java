@@ -67,6 +67,10 @@ public final class MoreCollectors {
         }, selectFirst(), acc -> supplier.get(), Collector.Characteristics.UNORDERED,
                 Collector.Characteristics.CONCURRENT);
     }
+    
+    private static <T> Collector<T, ?, List<T>> empty() {
+        return empty(ArrayList<T>::new);
+    }
 
     /**
      * Returns a {@code Collector} that accumulates the input elements into a
@@ -165,6 +169,27 @@ public final class MoreCollectors {
         }, c.toArray(new Characteristics[c.size()]));
     }
 
+    /**
+     * Returns a {@code Collector} which finds all the elements which are equal
+     * to each other and bigger than any other element according to the
+     * specified {@link Comparator}. The found elements are reduced using the
+     * specified downstream {@code Collector}.
+     *
+     * @param <T>
+     *            the type of the input elements
+     * @param <A>
+     *            the intermediate accumulation type of the downstream collector
+     * @param <D>
+     *            the result type of the downstream reduction
+     * @param comparator
+     *            a {@code Comparator} to compare the elements
+     * @param downstream
+     *            a {@code Collector} implementing the downstream reduction
+     * @return a {@code Collector} which finds all the maximal elements.
+     * @see #maxAll(Comparator)
+     * @see #maxAll(Collector)
+     * @see #maxAll()
+     */
     public static <T, A, D> Collector<T, ?, D> maxAll(Comparator<? super T> comparator,
             Collector<? super T, A, D> downstream) {
         Supplier<A> downstreamSupplier = downstream.supplier();
@@ -207,30 +232,145 @@ public final class MoreCollectors {
         return Collector.of(supplier, accumulator, combiner, finisher);
     }
 
+    /**
+     * Returns a {@code Collector} which finds all the elements which are equal
+     * to each other and bigger than any other element according to the
+     * specified {@link Comparator}. The found elements are collected to
+     * {@link List}.
+     *
+     * @param <T>
+     *            the type of the input elements
+     * @param comparator
+     *            a {@code Comparator} to compare the elements
+     * @return a {@code Collector} which finds all the maximal elements and
+     *         collects them to the {@code List}.
+     * @see #maxAll(Comparator, Collector)
+     * @see #maxAll()
+     */
     public static <T> Collector<T, ?, List<T>> maxAll(Comparator<? super T> comparator) {
         return maxAll(comparator, Collectors.toList());
     }
 
+    /**
+     * Returns a {@code Collector} which finds all the elements which are equal
+     * to each other and bigger than any other element according to the natural
+     * order. The found elements are reduced using the specified downstream
+     * {@code Collector}.
+     *
+     * @param <T>
+     *            the type of the input elements
+     * @param <A>
+     *            the intermediate accumulation type of the downstream collector
+     * @param <D>
+     *            the result type of the downstream reduction
+     * @param comparator
+     *            a {@code Comparator} to compare the elements
+     * @param downstream
+     *            a {@code Collector} implementing the downstream reduction
+     * @return a {@code Collector} which finds all the maximal elements.
+     * @see #maxAll(Comparator, Collector)
+     * @see #maxAll(Comparator)
+     * @see #maxAll()
+     */
     public static <T extends Comparable<? super T>, A, D> Collector<T, ?, D> maxAll(Collector<T, A, D> downstream) {
         return maxAll(Comparator.<T> naturalOrder(), downstream);
     }
 
+    /**
+     * Returns a {@code Collector} which finds all the elements which are equal
+     * to each other and bigger than any other element according to the natural
+     * order. The found elements are collected to {@link List}.
+     *
+     * @param <T>
+     *            the type of the input elements
+     * @return a {@code Collector} which finds all the maximal elements and
+     *         collects them to the {@code List}.
+     * @see #maxAll(Comparator)
+     * @see #maxAll(Collector)
+     */
     public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> maxAll() {
         return maxAll(Comparator.<T> naturalOrder(), Collectors.toList());
     }
 
+    /**
+     * Returns a {@code Collector} which finds all the elements which are equal
+     * to each other and smaller than any other element according to the
+     * specified {@link Comparator}. The found elements are reduced using the
+     * specified downstream {@code Collector}.
+     *
+     * @param <T>
+     *            the type of the input elements
+     * @param <A>
+     *            the intermediate accumulation type of the downstream collector
+     * @param <D>
+     *            the result type of the downstream reduction
+     * @param comparator
+     *            a {@code Comparator} to compare the elements
+     * @param downstream
+     *            a {@code Collector} implementing the downstream reduction
+     * @return a {@code Collector} which finds all the minimal elements.
+     * @see #minAll(Comparator)
+     * @see #minAll(Collector)
+     * @see #minAll()
+     */
     public static <T, A, D> Collector<T, ?, D> minAll(Comparator<? super T> comparator, Collector<T, A, D> downstream) {
         return maxAll(comparator.reversed(), downstream);
     }
 
+    /**
+     * Returns a {@code Collector} which finds all the elements which are equal
+     * to each other and smaller than any other element according to the
+     * specified {@link Comparator}. The found elements are collected to
+     * {@link List}.
+     *
+     * @param <T>
+     *            the type of the input elements
+     * @param comparator
+     *            a {@code Comparator} to compare the elements
+     * @return a {@code Collector} which finds all the minimal elements and
+     *         collects them to the {@code List}.
+     * @see #minAll(Comparator, Collector)
+     * @see #minAll()
+     */
     public static <T> Collector<T, ?, List<T>> minAll(Comparator<? super T> comparator) {
         return maxAll(comparator.reversed(), Collectors.toList());
     }
 
+    /**
+     * Returns a {@code Collector} which finds all the elements which are equal
+     * to each other and smaller than any other element according to the natural
+     * order. The found elements are reduced using the specified downstream
+     * {@code Collector}.
+     *
+     * @param <T>
+     *            the type of the input elements
+     * @param <A>
+     *            the intermediate accumulation type of the downstream collector
+     * @param <D>
+     *            the result type of the downstream reduction
+     * @param downstream
+     *            a {@code Collector} implementing the downstream reduction
+     * @return a {@code Collector} which finds all the minimal elements.
+     * @see #minAll(Comparator, Collector)
+     * @see #minAll(Comparator)
+     * @see #minAll()
+     */
     public static <T extends Comparable<? super T>, A, D> Collector<T, ?, D> minAll(Collector<T, A, D> downstream) {
         return maxAll(Comparator.<T> reverseOrder(), downstream);
     }
 
+    /**
+     * Returns a {@code Collector} which finds all the elements which are equal
+     * to each other and smaller than any other element according to the natural
+     * order. The found elements are collected to {@link List}.
+     *
+     * @param <T>
+     *            the type of the input elements
+     * @return a {@code Collector} which finds all the minimal elements and
+     *         collects them to the {@code List}.
+     * @see #minAll(Comparator)
+     * @see #minAll(Collector)
+     */
     public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> minAll() {
         return maxAll(Comparator.<T> reverseOrder(), Collectors.toList());
     }
@@ -284,7 +424,7 @@ public final class MoreCollectors {
      */
     public static <T> Collector<T, ?, List<T>> head(int n) {
         if (n <= 0)
-            return empty(ArrayList<T>::new);
+            return empty();
         return Collector.<T, List<T>> of(ArrayList::new, (acc, t) -> {
             if (acc.size() < n)
                 acc.add(t);
@@ -307,7 +447,7 @@ public final class MoreCollectors {
      */
     public static <T> Collector<T, ?, List<T>> tail(int n) {
         if (n <= 0)
-            return empty(ArrayList<T>::new);
+            return empty();
         return Collector.<T, Deque<T>, List<T>> of(ArrayDeque::new, (acc, t) -> {
             if (acc.size() == n)
                 acc.pollFirst();
@@ -320,7 +460,9 @@ public final class MoreCollectors {
         }, ArrayList<T>::new);
     }
 
-    public static <T> Collector<T, ?, List<T>> maxN(Comparator<? super T> comparator, int limit) {
+    public static <T> Collector<T, ?, List<T>> greatest(Comparator<? super T> comparator, int limit) {
+        if (limit <= 0)
+            return empty();
         BiConsumer<PriorityQueue<T>, T> accumulator = (queue, t) -> {
             queue.add(t);
             if (queue.size() > limit)
@@ -341,15 +483,15 @@ public final class MoreCollectors {
         });
     }
 
-    public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> maxN(int limit) {
-        return maxN(Comparator.<T> naturalOrder(), limit);
+    public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> greatest(int limit) {
+        return greatest(Comparator.<T> naturalOrder(), limit);
     }
 
-    public static <T> Collector<T, ?, List<T>> minN(Comparator<? super T> comparator, int limit) {
-        return maxN(comparator.reversed(), limit);
+    public static <T> Collector<T, ?, List<T>> least(Comparator<? super T> comparator, int limit) {
+        return greatest(comparator.reversed(), limit);
     }
 
-    public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> minN(int limit) {
-        return maxN(Comparator.<T> reverseOrder(), limit);
+    public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> least(int limit) {
+        return greatest(Comparator.<T> reverseOrder(), limit);
     }
 }
