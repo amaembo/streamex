@@ -182,6 +182,7 @@ public class MoreCollectorsTest {
         for (StreamSupplier<Integer> supplier : suppliers(() -> StreamEx.of(ints))) {
             assertEquals(supplier.toString(), Arrays.asList(10, 9, 8), supplier.get().collect(MoreCollectors.maxN(3)));
             assertEquals(supplier.toString(), Arrays.asList(-2, 0, 1), supplier.get().collect(MoreCollectors.minN(3)));
+            assertEquals(supplier.toString(), supplier.get().sorted().limit(5).toList(), supplier.get().collect(MoreCollectors.minN(5)));
         }
     }
 }
