@@ -915,7 +915,7 @@ public class DoubleStreamEx implements DoubleStream {
 
     /**
      * Returns a {@code float[]} array containing the elements of this stream
-     * which are converted to bytes using {@code (float)} cast operation.
+     * which are converted to floats using {@code (float)} cast operation.
      *
      * <p>
      * This is a terminal operation.

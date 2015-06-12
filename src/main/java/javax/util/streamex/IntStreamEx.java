@@ -1068,7 +1068,7 @@ public class IntStreamEx implements IntStream {
 
     /**
      * Returns a {@code char[]} array containing the elements of this stream
-     * which are converted to bytes using {@code (char)} cast operation.
+     * which are converted to chars using {@code (char)} cast operation.
      *
      * <p>
      * This is a terminal operation.
@@ -1083,7 +1083,7 @@ public class IntStreamEx implements IntStream {
 
     /**
      * Returns a {@code short[]} array containing the elements of this stream
-     * which are converted to bytes using {@code (short)} cast operation.
+     * which are converted to shorts using {@code (short)} cast operation.
      *
      * <p>
      * This is a terminal operation.
