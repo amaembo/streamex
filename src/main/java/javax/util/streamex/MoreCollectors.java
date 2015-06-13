@@ -67,7 +67,7 @@ public final class MoreCollectors {
         }, selectFirst(), acc -> supplier.get(), Collector.Characteristics.UNORDERED,
                 Collector.Characteristics.CONCURRENT);
     }
-    
+
     private static <T> Collector<T, ?, List<T>> empty() {
         return empty(ArrayList<T>::new);
     }
@@ -380,8 +380,8 @@ public final class MoreCollectors {
      * if any.
      * 
      * The operation performed by the returned collector is equivalent to
-     * {@code stream.findFirst()}. This collector is mostly useful as a
-     * downstream collector.
+     * {@code stream.findFirst()}, but the whole input stream is consumed. This
+     * collector is mostly useful as a downstream collector.
      * 
      * @param <T>
      *            the type of the input elements
@@ -412,8 +412,9 @@ public final class MoreCollectors {
      * the first stream elements into the {@link List}.
      * 
      * The operation performed by the returned collector is equivalent to
-     * {@code stream.limit(n).collect(Collectors.toList())}. This collector is
-     * mostly useful as a downstream collector.
+     * {@code stream.limit(n).collect(Collectors.toList())}, but the whole input
+     * stream is consumed. This collector is mostly useful as a downstream
+     * collector.
      * 
      * @param <T>
      *            the type of the input elements
@@ -460,12 +461,32 @@ public final class MoreCollectors {
         }, ArrayList<T>::new);
     }
 
-    public static <T> Collector<T, ?, List<T>> greatest(Comparator<? super T> comparator, int limit) {
-        if (limit <= 0)
+    /**
+     * Returns a {@code Collector} which collects at most specified number of
+     * the greatest stream elements according to the specified
+     * {@link Comparator} into the {@link List}. The resulting {@code List} is
+     * sorted in comparator reverse order (greatest element is the first).
+     * 
+     * The operation performed by the returned collector is equivalent to
+     * {@code stream.sorted(comparator.reversed()).limit(n).collect(Collectors.toList())}
+     * , but can be performed much faster if the input is not sorted and
+     * {@code n} is much less than the stream size.
+     * 
+     * @param <T>
+     *            the type of the input elements
+     * @param comparator
+     *            the comparator to compare the elements by
+     * @param n
+     *            maximum number of stream elements to preserve
+     * @return a collector which returns a {@code List} containing the greatest
+     *         n stream elements or less if the stream was shorter.
+     */
+    public static <T> Collector<T, ?, List<T>> greatest(Comparator<? super T> comparator, int n) {
+        if (n <= 0)
             return empty();
         BiConsumer<PriorityQueue<T>, T> accumulator = (queue, t) -> {
             queue.add(t);
-            if (queue.size() > limit)
+            if (queue.size() > n)
                 queue.poll();
         };
         return Collector.of(() -> new PriorityQueue<>(comparator), accumulator, (q1, q2) -> {
@@ -483,14 +504,70 @@ public final class MoreCollectors {
         });
     }
 
+    /**
+     * Returns a {@code Collector} which collects at most specified number of
+     * the greatest stream elements according to the natural order into the
+     * {@link List}. The resulting {@code List} is sorted in reverse order
+     * (greatest element is the first).
+     * 
+     * The operation performed by the returned collector is equivalent to
+     * {@code stream.sorted(Comparator.reverseOrder()).limit(n).collect(Collectors.toList())}
+     * , but can be performed much faster if the input is not sorted and
+     * {@code n} is much less than the stream size.
+     * 
+     * @param <T>
+     *            the type of the input elements
+     * @param n
+     *            maximum number of stream elements to preserve
+     * @return a collector which returns a {@code List} containing the greatest
+     *         n stream elements or less if the stream was shorter.
+     */
     public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> greatest(int limit) {
         return greatest(Comparator.<T> naturalOrder(), limit);
     }
 
+    /**
+     * Returns a {@code Collector} which collects at most specified number of
+     * the least stream elements according to the specified {@link Comparator}
+     * into the {@link List}. The resulting {@code List} is sorted in comparator
+     * order (least element is the first).
+     * 
+     * The operation performed by the returned collector is equivalent to
+     * {@code stream.sorted(comparator).limit(n).collect(Collectors.toList())},
+     * but can be performed much faster if the input is not sorted and {@code n}
+     * is much less than the stream size.
+     * 
+     * @param <T>
+     *            the type of the input elements
+     * @param comparator
+     *            the comparator to compare the elements by
+     * @param n
+     *            maximum number of stream elements to preserve
+     * @return a collector which returns a {@code List} containing the least n
+     *         stream elements or less if the stream was shorter.
+     */
     public static <T> Collector<T, ?, List<T>> least(Comparator<? super T> comparator, int limit) {
         return greatest(comparator.reversed(), limit);
     }
 
+    /**
+     * Returns a {@code Collector} which collects at most specified number of
+     * the least stream elements according to the natural order into the
+     * {@link List}. The resulting {@code List} is sorted in natural order
+     * (least element is the first).
+     * 
+     * The operation performed by the returned collector is equivalent to
+     * {@code stream.sorted().limit(n).collect(Collectors.toList())}, but can be
+     * performed much faster if the input is not sorted and {@code n} is much
+     * less than the stream size.
+     * 
+     * @param <T>
+     *            the type of the input elements
+     * @param n
+     *            maximum number of stream elements to preserve
+     * @return a collector which returns a {@code List} containing the least
+     *         n stream elements or less if the stream was shorter.
+     */
     public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> least(int limit) {
         return greatest(Comparator.<T> reverseOrder(), limit);
     }

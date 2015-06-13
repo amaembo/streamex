@@ -59,7 +59,7 @@ public class MoreCollectorsTest {
     private static <T> List<StreamSupplier<T>> suppliers(Supplier<StreamEx<T>> base) {
         return Arrays.asList(new StreamSupplier<>(base, false), new StreamSupplier<>(base, true));
     }
-    
+
     @Test(expected = UnsupportedOperationException.class)
     public void testInstantiate() throws Throwable {
         Constructor<MoreCollectors> constructor = MoreCollectors.class.getDeclaredConstructor();
@@ -70,30 +70,32 @@ public class MoreCollectorsTest {
             throw e.getCause();
         }
     }
-    
+
     @Test
     public void testToArray() {
         List<String> input = Arrays.asList("a", "bb", "c", "", "cc", "eee", "bb", "ddd");
         for (StreamSupplier<String> supplier : suppliers(() -> StreamEx.of(input))) {
-            Map<Integer, String[]> result = supplier.get().groupingBy(String::length, HashMap::new, MoreCollectors.toArray(String[]::new));
-            assertArrayEquals(supplier.toString(), new String[] {""}, result.get(0));
-            assertArrayEquals(supplier.toString(), new String[] {"a", "c"}, result.get(1));
-            assertArrayEquals(supplier.toString(), new String[] {"bb", "cc", "bb"}, result.get(2));
-            assertArrayEquals(supplier.toString(), new String[] {"eee", "ddd"}, result.get(3));
+            Map<Integer, String[]> result = supplier.get().groupingBy(String::length, HashMap::new,
+                    MoreCollectors.toArray(String[]::new));
+            assertArrayEquals(supplier.toString(), new String[] { "" }, result.get(0));
+            assertArrayEquals(supplier.toString(), new String[] { "a", "c" }, result.get(1));
+            assertArrayEquals(supplier.toString(), new String[] { "bb", "cc", "bb" }, result.get(2));
+            assertArrayEquals(supplier.toString(), new String[] { "eee", "ddd" }, result.get(3));
         }
     }
-    
+
     @Test
     public void testDistinctCount() {
         List<String> input = Arrays.asList("a", "bb", "c", "cc", "eee", "bb", "bc", "ddd");
         for (StreamSupplier<String> supplier : suppliers(() -> StreamEx.of(input))) {
-            Map<String, Integer> result = supplier.get().groupingBy(s -> s.substring(0, 1), HashMap::new, MoreCollectors.distinctCount(String::length));
-            assertEquals(1, (int)result.get("a"));
-            assertEquals(1, (int)result.get("b"));
-            assertEquals(2, (int)result.get("c"));
-            assertEquals(1, (int)result.get("d"));
-            assertEquals(1, (int)result.get("e"));
-        }        
+            Map<String, Integer> result = supplier.get().groupingBy(s -> s.substring(0, 1), HashMap::new,
+                    MoreCollectors.distinctCount(String::length));
+            assertEquals(1, (int) result.get("a"));
+            assertEquals(1, (int) result.get("b"));
+            assertEquals(2, (int) result.get("c"));
+            assertEquals(1, (int) result.get("d"));
+            assertEquals(1, (int) result.get("e"));
+        }
     }
 
     @Test
@@ -175,14 +177,33 @@ public class MoreCollectorsTest {
                     supplier.get().collect(MoreCollectors.head(Integer.MAX_VALUE)));
         }
     }
-    
+
     @Test
-    public void testMaxN() {
-        List<Integer> ints = Arrays.asList(1, 5, 2, 5, 3, 0, 9, 10, 8, -2, 4);
+    public void testGreatest() {
+        List<Integer> ints = IntStreamEx.of(new Random(1), 1000, 1, 1000).boxed().toList();
+        Comparator<Integer> byString = Comparator.comparing(String::valueOf);
         for (StreamSupplier<Integer> supplier : suppliers(() -> StreamEx.of(ints))) {
-            assertEquals(supplier.toString(), Arrays.asList(10, 9, 8), supplier.get().collect(MoreCollectors.greatest(3)));
-            assertEquals(supplier.toString(), Arrays.asList(-2, 0, 1), supplier.get().collect(MoreCollectors.least(3)));
-            assertEquals(supplier.toString(), supplier.get().sorted().limit(5).toList(), supplier.get().collect(MoreCollectors.least(5)));
+            assertEquals(supplier.toString(), Collections.emptyList(),
+                    supplier.get().collect(MoreCollectors.least(0)));
+            assertEquals(supplier.toString(), supplier.get().sorted().limit(5).toList(),
+                    supplier.get().collect(MoreCollectors.least(5)));
+            assertEquals(supplier.toString(), supplier.get().sorted().limit(20).toList(),
+                    supplier.get().collect(MoreCollectors.least(20)));
+            assertEquals(supplier.toString(), supplier.get().sorted(byString).limit(20).toList(),
+                    supplier.get().collect(MoreCollectors.least(byString, 20)));
+            assertEquals(supplier.toString(), supplier.get().sorted().toList(),
+                    supplier.get().collect(MoreCollectors.least(Integer.MAX_VALUE)));
+
+            assertEquals(supplier.toString(), Collections.emptyList(),
+                    supplier.get().collect(MoreCollectors.greatest(0)));
+            assertEquals(supplier.toString(), supplier.get().reverseSorted().limit(5).toList(),
+                    supplier.get().collect(MoreCollectors.greatest(5)));
+            assertEquals(supplier.toString(), supplier.get().reverseSorted().limit(20).toList(),
+                    supplier.get().collect(MoreCollectors.greatest(20)));
+            assertEquals(supplier.toString(), supplier.get().reverseSorted(byString).limit(20).toList(),
+                    supplier.get().collect(MoreCollectors.greatest(byString, 20)));
+            assertEquals(supplier.toString(), supplier.get().reverseSorted().toList(),
+                    supplier.get().collect(MoreCollectors.greatest(Integer.MAX_VALUE)));
         }
     }
 }
