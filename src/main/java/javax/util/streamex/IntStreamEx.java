@@ -1776,4 +1776,9 @@ public class IntStreamEx implements IntStream {
     public static IntStreamEx zip(int[] first, int[] second, IntBinaryOperator mapper) {
         return intStreamForLength(first.length, second.length).map(i -> mapper.applyAsInt(first[i], second[i]));
     }
+
+    public IntStreamEx recreate() {
+        return strategy().newIntStreamEx(
+                StreamSupport.intStream(stream.spliterator(), stream.isParallel()).onClose(stream::close));
+    }
 }

@@ -89,14 +89,20 @@ public class StreamExTest {
     private Reader getReader() {
         return new BufferedReader(new StringReader("a\nb"));
     }
-    
+
     @Test
     public void testReader() {
         String input = IntStreamEx.range(5000).joining("\n");
-        assertEquals(IntStreamEx.range(1, 5000).mapToObj(String::valueOf).toList(),
-                StreamEx.ofLines(new StringReader(input)).skip(1).parallel().toList());
-        assertEquals(IntStreamEx.range(1, 5000).mapToObj(String::valueOf).toList(),
-                StreamEx.ofLines(new StringReader(input)).pairMap((a, b) -> b).parallel().toList());
+        List<String> expectedList = IntStreamEx.range(1, 5000).mapToObj(String::valueOf).toList();
+        Set<String> expectedSet = IntStreamEx.range(1, 5000).mapToObj(String::valueOf).toSet();
+        assertEquals(expectedList, StreamEx.ofLines(new StringReader(input)).skip(1).parallel().toList());
+        assertEquals(expectedList, StreamEx.ofLines(new StringReader(input)).pairMap((a, b) -> b).parallel().toList());
+
+        assertEquals(expectedSet, StreamEx.ofLines(new StringReader(input)).pairMap((a, b) -> b).parallel().toSet());
+        assertEquals(expectedSet,
+                StreamEx.ofLines(new StringReader(input)).skip(1).parallel().toCollection(HashSet::new));
+
+        assertEquals(expectedSet, StreamEx.ofLines(new StringReader(input)).parallel().skip(1).recreate().toSet());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -465,52 +471,60 @@ public class StreamExTest {
                 StreamEx.of("a", "bb", "ccc").parallel()
                         .foldLeft(Collections.emptyMap(), (acc, v) -> Collections.singletonMap(v, acc)).toString());
     }
-    
+
     @Test
     public void testDistinctAtLeast() {
         assertEquals(0, StreamEx.of("a", "b", "c").distinct(2).count());
         assertEquals(StreamEx.of("a", "b", "c").distinct().toList(), StreamEx.of("a", "b", "c").distinct(1).toList());
         assertEquals(Arrays.asList("b"), StreamEx.of("a", "b", "c", "b", null).distinct(2).toList());
         assertEquals(Arrays.asList("b", null), StreamEx.of("a", "b", null, "c", "b", null).distinct(2).toList());
-        assertEquals(Arrays.asList(null, "b"), StreamEx.of("a", "b", null, "c", null, "b", null, "b").distinct(2).toList());
-        assertEquals(3334, IntStreamEx.range(0, 10000).map(x -> x/3).boxed().distinct().count());
-        assertEquals(3333, IntStreamEx.range(0, 10000).map(x -> x/3).boxed().distinct(2).count());
-        assertEquals(3333, IntStreamEx.range(0, 10000).map(x -> x/3).boxed().distinct(3).count());
+        assertEquals(Arrays.asList(null, "b"), StreamEx.of("a", "b", null, "c", null, "b", null, "b").distinct(2)
+                .toList());
+        assertEquals(3334, IntStreamEx.range(0, 10000).map(x -> x / 3).boxed().distinct().count());
+        assertEquals(3333, IntStreamEx.range(0, 10000).map(x -> x / 3).boxed().distinct(2).count());
+        assertEquals(3333, IntStreamEx.range(0, 10000).map(x -> x / 3).boxed().distinct(3).count());
 
-        assertEquals(0, IntStreamEx.range(0, 10000).map(x -> x/3).boxed().distinct(4).count());
+        assertEquals(0, IntStreamEx.range(0, 10000).map(x -> x / 3).boxed().distinct(4).count());
 
         assertEquals(0, StreamEx.of("a", "b", "c").parallel().distinct(2).count());
-        assertEquals(StreamEx.of("a", "b", "c").parallel().distinct().toList(), StreamEx.of("a", "b", "c").parallel().distinct(1).toList());
+        assertEquals(StreamEx.of("a", "b", "c").parallel().distinct().toList(), StreamEx.of("a", "b", "c").parallel()
+                .distinct(1).toList());
         assertEquals(Arrays.asList("b"), StreamEx.of("a", "b", "c", "b").parallel().distinct(2).toList());
-        assertEquals(new HashSet<>(Arrays.asList("b", null)), StreamEx.of("a", "b", null, "c", "b", null).parallel().distinct(2).toSet());
-        assertEquals(new HashSet<>(Arrays.asList(null, "b")), StreamEx.of("a", "b", null, "c", null, "b", null, "b").parallel().distinct(2).toSet());
-        assertEquals(3334, IntStreamEx.range(0, 10000).map(x -> x/3).boxed().parallel().distinct().count());
-        assertEquals(3333, IntStreamEx.range(0, 10000).map(x -> x/3).boxed().parallel().distinct(2).count());
-        assertEquals(3333, IntStreamEx.range(0, 10000).map(x -> x/3).boxed().parallel().distinct(3).toList().size());
-        assertEquals(0, IntStreamEx.range(0, 10000).map(x -> x/3).boxed().parallel().distinct(4).count());
+        assertEquals(new HashSet<>(Arrays.asList("b", null)), StreamEx.of("a", "b", null, "c", "b", null).parallel()
+                .distinct(2).toSet());
+        assertEquals(new HashSet<>(Arrays.asList(null, "b")), StreamEx.of("a", "b", null, "c", null, "b", null, "b")
+                .parallel().distinct(2).toSet());
+        assertEquals(3334, IntStreamEx.range(0, 10000).map(x -> x / 3).boxed().parallel().distinct().count());
+        assertEquals(3333, IntStreamEx.range(0, 10000).map(x -> x / 3).boxed().parallel().distinct(2).count());
+        assertEquals(3333, IntStreamEx.range(0, 10000).map(x -> x / 3).boxed().parallel().distinct(3).toList().size());
+        assertEquals(0, IntStreamEx.range(0, 10000).map(x -> x / 3).boxed().parallel().distinct(4).count());
 
-        List<Integer> distinct3List = IntStreamEx.range(0, 10000).parallel().map(x -> x/3).boxed().distinct(3).toList();
+        List<Integer> distinct3List = IntStreamEx.range(0, 10000).parallel().map(x -> x / 3).boxed().distinct(3)
+                .toList();
         assertEquals(3333, distinct3List.size());
-        Map<Integer, Long> map = IntStream.range(0, 10000).parallel().map(x -> x/3).boxed().collect(Collectors.groupingBy(Function.identity(), LinkedHashMap::new, Collectors.counting()));
-        List<Integer> expectedList = map.entrySet().stream().parallel().filter(e -> e.getValue() >= 3).map(Entry::getKey).collect(Collectors.toList());
+        Map<Integer, Long> map = IntStream.range(0, 10000).parallel().map(x -> x / 3).boxed()
+                .collect(Collectors.groupingBy(Function.identity(), LinkedHashMap::new, Collectors.counting()));
+        List<Integer> expectedList = map.entrySet().stream().parallel().filter(e -> e.getValue() >= 3)
+                .map(Entry::getKey).collect(Collectors.toList());
         assertEquals(3333, expectedList.size());
         assertEquals(distinct3List, expectedList);
-        
-        for(int i=1; i<1000; i+=100) {
+
+        for (int i = 1; i < 1000; i += 100) {
             List<Integer> input = IntStreamEx.of(new Random(1), i, 1, 100).boxed().toList();
-            for(int n : IntStreamEx.range(2, 10).boxed()) {
+            for (int n : IntStreamEx.range(2, 10).boxed()) {
                 Set<Integer> expected = input.stream().collect(
-                        Collectors.collectingAndThen(Collectors.groupingBy(Function.identity(), Collectors.counting()), m -> {
-                            m.values().removeIf(l -> l < n);
-                            return m.keySet();
-                        }));
+                        Collectors.collectingAndThen(Collectors.groupingBy(Function.identity(), Collectors.counting()),
+                                m -> {
+                                    m.values().removeIf(l -> l < n);
+                                    return m.keySet();
+                                }));
                 assertEquals(expected, StreamEx.of(input).distinct(n).toSet());
                 assertEquals(expected, StreamEx.of(input).parallel().distinct(n).toSet());
                 assertEquals(0, StreamEx.of(expected).distinct(2).toSet().size());
             }
         }
     }
-    
+
     @Test
     public void testDistinctAtLeastPairMap() {
         int last = -1;
@@ -590,7 +604,7 @@ public class StreamExTest {
         assertArrayEquals(expected, result);
         result = StreamEx.of(data).pairMap((a, b) -> (b - a) * 3.14).toArray(Double[]::new);
         assertArrayEquals(expected, result);
-        
+
         // Find all numbers where the integer preceded a larger value.
         Collection<Integer> numbers = Arrays.asList(10, 1, 15, 30, 2, 6);
         List<Integer> res = StreamEx.of(numbers).pairMap((a, b) -> a < b ? a : null).nonNull().toList();
@@ -637,13 +651,19 @@ public class StreamExTest {
         assertEquals("bba", firstMisplaced(Arrays.asList("a", "bb", "bb", "bba", "bb", "c")).get());
         assertFalse(firstMisplaced(Arrays.asList("a", "bb", "bb", "bb", "c")).isPresent());
     }
-    
+
     @Test
     public void testPairMapAddHeaders() {
-        List<String> result = StreamEx.of("aaa", "abc", "bar", "foo", "baz", "argh").sorted().prepend("")
-            .pairMap((a, b) -> a.isEmpty() || a.charAt(0) != b.charAt(0) ? Stream.of("=== "+b.substring(0,1).toUpperCase()+" ===", b)
-                    : Stream.of(b)).flatMap(Function.identity()).toList();
-        List<String> expected = Arrays.asList("=== A ===", "aaa", "abc", "argh", "=== B ===", "bar", "baz", "=== F ===", "foo");
+        List<String> result = StreamEx
+                .of("aaa", "abc", "bar", "foo", "baz", "argh")
+                .sorted()
+                .prepend("")
+                .pairMap(
+                        (a, b) -> a.isEmpty() || a.charAt(0) != b.charAt(0) ? Stream.of("=== "
+                                + b.substring(0, 1).toUpperCase() + " ===", b) : Stream.of(b))
+                .flatMap(Function.identity()).toList();
+        List<String> expected = Arrays.asList("=== A ===", "aaa", "abc", "argh", "=== B ===", "bar", "baz",
+                "=== F ===", "foo");
         assertEquals(expected, result);
     }
 
@@ -800,24 +820,24 @@ public class StreamExTest {
 
     static class Interval {
         final int from, to;
-    
+
         public Interval(int from) {
             this(from, from);
         }
-    
+
         public Interval(int from, int to) {
             this.from = from;
             this.to = to;
         }
-    
+
         public Interval merge(Interval other) {
             return new Interval(this.from, other.to);
         }
-    
+
         public boolean adjacent(Interval other) {
             return other.from == this.to + 1;
         }
-    
+
         @Override
         public String toString() {
             return from == to ? "{" + from + "}" : "[" + from + ".." + to + "]";
@@ -874,29 +894,29 @@ public class StreamExTest {
             assertEquals(expected, distinctParallel);
         }
     }
-    
+
     @Test
     public void testCollapsePairMap() {
-        int[] input = {0, 0, 1, 1, 1, 1, 4, 6, 6, 3, 3, 10};
-        List<Integer> expected = IntStreamEx.of(input).pairMap((a, b) -> b-a).without(0).boxed().toList();
-        assertEquals(expected, IntStreamEx.of(input).boxed().collapse(Integer::equals).pairMap((a, b) -> b-a).toList());
-        assertEquals(expected, IntStreamEx.of(input).parallel().boxed().collapse(Integer::equals).pairMap((a, b) -> b-a).toList());
+        int[] input = { 0, 0, 1, 1, 1, 1, 4, 6, 6, 3, 3, 10 };
+        List<Integer> expected = IntStreamEx.of(input).pairMap((a, b) -> b - a).without(0).boxed().toList();
+        assertEquals(expected, IntStreamEx.of(input).boxed().collapse(Integer::equals).pairMap((a, b) -> b - a)
+                .toList());
+        assertEquals(expected,
+                IntStreamEx.of(input).parallel().boxed().collapse(Integer::equals).pairMap((a, b) -> b - a).toList());
     }
-    
+
     @Test
     public void testGroupRuns() {
         List<String> input = Arrays.asList("aaa", "bb", "baz", "bar", "foo", "fee", "abc");
         List<List<String>> result = StreamEx.of(input).groupRuns((a, b) -> a.charAt(0) == b.charAt(0)).toList();
-        List<List<String>> resultParallel = StreamEx.of(input).parallel().groupRuns((a, b) -> a.charAt(0) == b.charAt(0)).toList();
-        List<List<String>> expected = Arrays.asList(
-                Arrays.asList("aaa"),
-                Arrays.asList("bb", "baz", "bar"),
-                Arrays.asList("foo", "fee"),
-                Arrays.asList("abc"));
+        List<List<String>> resultParallel = StreamEx.of(input).parallel()
+                .groupRuns((a, b) -> a.charAt(0) == b.charAt(0)).toList();
+        List<List<String>> expected = Arrays.asList(Arrays.asList("aaa"), Arrays.asList("bb", "baz", "bar"),
+                Arrays.asList("foo", "fee"), Arrays.asList("abc"));
         assertEquals(expected, result);
         assertEquals(expected, resultParallel);
     }
-    
+
     @Test
     public void testGroupRunsRandom() {
         Random r = new Random(1);
@@ -907,7 +927,7 @@ public class StreamExTest {
         List<Integer> last = null;
         for (Integer num : input) {
             if (last != null) {
-                if (last.get(last.size()-1).equals(num)) {
+                if (last.get(last.size() - 1).equals(num)) {
                     last.add(num);
                     continue;
                 }

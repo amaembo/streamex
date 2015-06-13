@@ -41,6 +41,7 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static javax.util.streamex.StreamExInternals.*;
 
@@ -846,5 +847,24 @@ import static javax.util.streamex.StreamExInternals.*;
             }
             return result;
         });
+    }
+
+    /**
+     * Quasi-intermediate no-operation.
+     * 
+     * This step just creates a new stream based on existing one. If the new
+     * stream changes the parallel or unordered status it will not be propagated
+     * to the original stream. This may be useful if it's desired to perform
+     * some of operations in ordered more. For example, when
+     * {@code stream.skip(1).parallel().forEach(consumer);} is executed,
+     * arbitrary element will be skipped, but if
+     * {@code stream.skip(1).recreate().parallel().forEach(consumer);} is
+     * executed, the first element will be skipped and the rest will be
+     * processed in unordered mode.
+     * 
+     * @return the new stream
+     */
+    public S recreate() {
+        return supply(StreamSupport.stream(stream.spliterator(), stream.isParallel()).onClose(stream::close));
     }
 }
