@@ -43,6 +43,7 @@
  * steps will remain sequential. Similarly if you create a parallel stream, perform some intermediate operations, use quasi-intermediate operation,
  * then call {@code sequential()}, the steps before quasi-intermediate operation may still be executed in parallel.
  * 
+ * <p>
  * Also the difference appears if you have an ordered stream source, but an unordered terminal operation (or collect using the unordered collector).
  * If you have only intermediate operations in-between, then all of them will be performed as unordered. However if you have a quasi-intermediate
  * operation, then unordered mode is not propagated through it, so the operations prior to the quasi-intermediate operation 

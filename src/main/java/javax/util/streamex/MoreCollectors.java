@@ -263,8 +263,6 @@ public final class MoreCollectors {
      *            the intermediate accumulation type of the downstream collector
      * @param <D>
      *            the result type of the downstream reduction
-     * @param comparator
-     *            a {@code Comparator} to compare the elements
      * @param downstream
      *            a {@code Collector} implementing the downstream reduction
      * @return a {@code Collector} which finds all the maximal elements.
@@ -522,8 +520,8 @@ public final class MoreCollectors {
      * @return a collector which returns a {@code List} containing the greatest
      *         n stream elements or less if the stream was shorter.
      */
-    public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> greatest(int limit) {
-        return greatest(Comparator.<T> naturalOrder(), limit);
+    public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> greatest(int n) {
+        return greatest(Comparator.<T> naturalOrder(), n);
     }
 
     /**
@@ -546,8 +544,8 @@ public final class MoreCollectors {
      * @return a collector which returns a {@code List} containing the least n
      *         stream elements or less if the stream was shorter.
      */
-    public static <T> Collector<T, ?, List<T>> least(Comparator<? super T> comparator, int limit) {
-        return greatest(comparator.reversed(), limit);
+    public static <T> Collector<T, ?, List<T>> least(Comparator<? super T> comparator, int n) {
+        return greatest(comparator.reversed(), n);
     }
 
     /**
@@ -568,7 +566,7 @@ public final class MoreCollectors {
      * @return a collector which returns a {@code List} containing the least
      *         n stream elements or less if the stream was shorter.
      */
-    public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> least(int limit) {
-        return greatest(Comparator.<T> reverseOrder(), limit);
+    public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> least(int n) {
+        return greatest(Comparator.<T> reverseOrder(), n);
     }
 }
