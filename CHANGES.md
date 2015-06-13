@@ -1,11 +1,16 @@
 # StreamEx changes
 
+### 0.3.2
+
+* Added MoreCollectors class: several useful collectors absent in JDK
+
 ### 0.3.1
 
 * Added mapToEntry method for primitive streams
 * Added joining methods family for primitive streams
 * Added StreamEx.collapse/groupRuns methods
 * Added StreamEx.distinct(atLeast) method
+* Released jar works now as an OSGi bundle
 * Updated documentation
 
 ### 0.3.0

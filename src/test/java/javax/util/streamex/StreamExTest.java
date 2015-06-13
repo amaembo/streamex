@@ -526,6 +526,30 @@ public class StreamExTest {
     }
 
     @Test
+    public void testDistinctAtLeastPairMap() {
+        int last = -1;
+        int cur = -1;
+        int count = 0;
+        List<Integer> expected = new ArrayList<>();
+        for(int i : IntStreamEx.of(new Random(1), 1000, 0, 100).sorted().boxed()) {
+            if(i == cur) {
+                count++;
+                if(count == 15) {
+                    if(last >= 0) {
+                        expected.add(cur - last);
+                    }
+                    last = cur;
+                }
+            } else {
+                count = 1;
+                cur = i;
+            }
+        }
+        assertEquals(expected, IntStreamEx.of(new Random(1), 1000, 0, 100).sorted().boxed().distinct(15).pairMap((a, b) -> b - a).toList());
+        assertEquals(expected, IntStreamEx.of(new Random(1), 1000, 0, 100).parallel().sorted().boxed().distinct(15).pairMap((a, b) -> b - a).toList());
+    }
+    
+    @Test
     public void testFoldRight() {
         assertEquals(";c;b;a", StreamEx.of("a", "b", "c").parallel().foldRight("", (u, v) -> v + ";" + u));
         assertEquals(

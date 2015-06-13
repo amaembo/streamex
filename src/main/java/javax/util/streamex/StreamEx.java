@@ -153,7 +153,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *            a class which instances should be selected
      * @return the new stream
      */
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings("unchecked")
     public <TT extends T> StreamEx<TT> select(Class<TT> clazz) {
         return (StreamEx<TT>) filter(clazz::isInstance);
     }
@@ -1072,7 +1072,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         pairMap((a, b) -> {
             action.accept(a, b);
             return null;
-        }).reduce(null, (a, b) -> null);
+        }).reduce(null, selectFirst());
     }
 
     /**
@@ -1124,7 +1124,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.3.1
      */
     public StreamEx<T> collapse(BiPredicate<T, T> collapsible) {
-        return collapse(collapsible, (a, b) -> a);
+        return collapse(collapsible, selectFirst());
     }
 
     /**

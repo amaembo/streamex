@@ -39,6 +39,7 @@ import java.util.stream.Stream;
     static final Function<long[], Long> UNBOX_LONG = box -> box[0];
     static final BiConsumer<long[], long[]> SUM_LONG = (box1, box2) -> box1[0] += box2[0];
     static final Function<double[], Double> UNBOX_DOUBLE = box -> box[0];
+    static final Object NONE = new Object();
     static final Set<Characteristics> NO_CHARACTERISTICS = EnumSet.noneOf(Characteristics.class);
     static final Set<Characteristics> ID_CHARACTERISTICS = EnumSet.of(Characteristics.IDENTITY_FINISH);
 
@@ -298,7 +299,7 @@ import java.util.stream.Stream;
         }
     }
 
-    static final class BooleanMap<T> extends AbstractMap<Boolean, T> implements Map<Boolean, T> {
+    static final class BooleanMap<T> extends AbstractMap<Boolean, T> {
         final T trueValue, falseValue;
 
         BooleanMap(T trueValue, T falseValue) {
@@ -525,6 +526,16 @@ import java.util.stream.Stream;
             return box -> finisher.apply(box.obj);
         }
     }
+    
+    static final class PairBox<A, B> {
+        A a;
+        B b;
+        
+        PairBox(A a, B b) {
+            this.a = a;
+            this.b = b;
+        }
+    }
 
     static BiConsumer<StringBuilder, StringBuilder> joinMerger(CharSequence delimiter) {
         return (sb1, sb2) -> {
@@ -563,7 +574,15 @@ import java.util.stream.Stream;
             throw new IllegalStateException(String.format("Duplicate key %s", u));
         };
     }
+    
+    static <T> BinaryOperator<T> selectFirst() {
+        return (u, v) -> u;
+    }
 
+    static <T> BinaryOperator<T> selectLast() {
+        return (u, v) -> v;
+    }
+    
     static IntStreamEx intStreamForLength(int a, int b) {
         if (a != b)
             throw new IllegalArgumentException("Length differs: " + a + " != " + b);

@@ -714,11 +714,10 @@ import static javax.util.streamex.StreamExInternals.*;
      * @see #reduce(Object, BiFunction, BinaryOperator)
      * @since 0.2.0
      */
-    @SuppressWarnings("unchecked")
     public <U> U foldLeft(U identity, BiFunction<U, ? super T, U> accumulator) {
-        Object[] result = new Object[] { identity };
-        forEachOrdered(t -> result[0] = accumulator.apply((U) result[0], t));
-        return (U) result[0];
+        Box<U> result = new Box<>(identity);
+        forEachOrdered(t -> result.obj = accumulator.apply(result.obj, t));
+        return result.obj;
     }
 
     /**
