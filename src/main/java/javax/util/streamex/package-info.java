@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * This library provides enhancements for Java 8 Stream API. Public API contains five classes and three interfaces:
+ * This library provides enhancements for Java 8 Stream API. Public API contains the following classes and interfaces:
  * 
  * <p>
  * {@link javax.util.streamex.StreamEx}: implements {@link java.util.stream.Stream} and provides additional functionality for object streams.
@@ -32,13 +32,21 @@
  * {@link javax.util.streamex.IntCollector}, {@link javax.util.streamex.LongCollector}, {@link javax.util.streamex.DoubleCollector}: specialized collectors to work efficiently with primitive streams.
  * 
  * <p>
+ * {@link javax.util.streamex.MoreCollectors}: utility class which provides a number of useful collectors which are absent in JDK {@link java.util.stream.Collectors} class.
+ * 
+ * <p>
  * Most of new stream operations are either intermediate or terminal like it's defined in Java 8 Stream API. However due to the API limitations
  * a few operations are called "quasi-intermediate". In the most of the cases they behave as intermediate operations: for sequential stream there 
  * should be no visible difference between intermediate and quasi-intermediate operation. The only known difference
- * is handling a parallel stream status. For intermediate operation there's no difference on calling {@code parallel()} 
+ * is handling a parallel and unordered stream status. For intermediate operation there's no difference on calling {@code parallel()} 
  * before or after any intermediate operation. For quasi-intermediate operations if you call {@code parallel()} after the operation, then previous
  * steps will remain sequential. Similarly if you create a parallel stream, perform some intermediate operations, use quasi-intermediate operation,
- * then call {@code sequential()}, the steps before quasi-intermediate operation may still be executed in parallel. 
+ * then call {@code sequential()}, the steps before quasi-intermediate operation may still be executed in parallel.
+ * 
+ * Also the difference appears if you have an ordered stream source, but an unordered terminal operation (or collect using the unordered collector).
+ * If you have only intermediate operations in-between, then all of them will be performed as unordered. However if you have a quasi-intermediate
+ * operation, then unordered mode is not propagated through it, so the operations prior to the quasi-intermediate operation 
+ * (including the quasi-intermediate operation itself) will remain ordered. 
  * 
  * @author Tagir Valeev
  */
