@@ -1207,4 +1207,9 @@ public class DoubleStreamEx implements DoubleStream {
         return intStreamForLength(first.length, second.length).mapToDouble(
                 i -> mapper.applyAsDouble(first[i], second[i]));
     }
+
+    public DoubleStreamEx recreate() {
+        return strategy().newDoubleStreamEx(
+                StreamSupport.doubleStream(stream.spliterator(), stream.isParallel()).onClose(stream::close));
+    }
 }

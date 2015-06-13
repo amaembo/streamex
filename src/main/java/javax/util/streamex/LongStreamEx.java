@@ -1228,4 +1228,9 @@ public class LongStreamEx implements LongStream {
     public static LongStreamEx zip(long[] first, long[] second, LongBinaryOperator mapper) {
         return intStreamForLength(first.length, second.length).mapToLong(i -> mapper.applyAsLong(first[i], second[i]));
     }
+
+    public LongStreamEx recreate() {
+        return strategy().newLongStreamEx(
+                StreamSupport.longStream(stream.spliterator(), stream.isParallel()).onClose(stream::close));
+    }
 }
