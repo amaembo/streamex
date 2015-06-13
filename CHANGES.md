@@ -3,7 +3,7 @@
 ### 0.3.2
 
 * Added `MoreCollectors` class: several useful collectors absent in JDK
-* Added `recreate()` method to every Stream implementation
+* Added `skipOrdered(n)` method to every Stream implementation
 
 ### 0.3.1
 

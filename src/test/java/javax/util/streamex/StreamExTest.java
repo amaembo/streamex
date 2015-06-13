@@ -102,7 +102,8 @@ public class StreamExTest {
         assertEquals(expectedSet,
                 StreamEx.ofLines(new StringReader(input)).skip(1).parallel().toCollection(HashSet::new));
 
-        assertEquals(expectedSet, StreamEx.ofLines(new StringReader(input)).parallel().skip(1).recreate().toSet());
+        assertEquals(expectedSet, StreamEx.ofLines(new StringReader(input)).parallel().skipOrdered(1).toSet());
+        assertEquals(expectedSet, StreamEx.ofLines(new StringReader(input)).skipOrdered(1).parallel().toSet());
     }
 
     @Test(expected = IllegalArgumentException.class)

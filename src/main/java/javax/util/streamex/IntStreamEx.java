@@ -1777,8 +1777,9 @@ public class IntStreamEx implements IntStream {
         return intStreamForLength(first.length, second.length).map(i -> mapper.applyAsInt(first[i], second[i]));
     }
 
-    public IntStreamEx recreate() {
-        return strategy().newIntStreamEx(
-                StreamSupport.intStream(stream.spliterator(), stream.isParallel()).onClose(stream::close));
+    public IntStreamEx skipOrdered(long n) {
+        IntStream result = stream.isParallel() ? StreamSupport.intStream(StreamSupport.intStream(stream.spliterator(), false)
+                .skip(n).spliterator(), true) : StreamSupport.intStream(stream.skip(n).spliterator(), false);
+        return strategy().newIntStreamEx(result.onClose(stream::close));
     }
 }

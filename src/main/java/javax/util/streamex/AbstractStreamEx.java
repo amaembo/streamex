@@ -849,22 +849,9 @@ import static javax.util.streamex.StreamExInternals.*;
         });
     }
 
-    /**
-     * Quasi-intermediate no-operation.
-     * 
-     * This step just creates a new stream based on existing one. If the new
-     * stream changes the parallel or unordered status it will not be propagated
-     * to the original stream. This may be useful if it's desired to perform
-     * some of operations in ordered more. For example, when
-     * {@code stream.skip(1).parallel().forEach(consumer);} is executed,
-     * arbitrary element will be skipped, but if
-     * {@code stream.skip(1).recreate().parallel().forEach(consumer);} is
-     * executed, the first element will be skipped and the rest will be
-     * processed in unordered mode.
-     * 
-     * @return the new stream
-     */
-    public S recreate() {
-        return supply(StreamSupport.stream(stream.spliterator(), stream.isParallel()).onClose(stream::close));
+    public S skipOrdered(long n) {
+        Stream<T> result = stream.isParallel() ? StreamSupport.stream(StreamSupport.stream(stream.spliterator(), false)
+                .skip(n).spliterator(), true) : StreamSupport.stream(stream.skip(n).spliterator(), false);
+        return supply(result.onClose(stream::close));
     }
 }

@@ -1229,8 +1229,9 @@ public class LongStreamEx implements LongStream {
         return intStreamForLength(first.length, second.length).mapToLong(i -> mapper.applyAsLong(first[i], second[i]));
     }
 
-    public LongStreamEx recreate() {
-        return strategy().newLongStreamEx(
-                StreamSupport.longStream(stream.spliterator(), stream.isParallel()).onClose(stream::close));
+    public LongStreamEx skipOrdered(long n) {
+        LongStream result = stream.isParallel() ? StreamSupport.longStream(StreamSupport.longStream(stream.spliterator(), false)
+                .skip(n).spliterator(), true) : StreamSupport.longStream(stream.skip(n).spliterator(), false);
+        return strategy().newLongStreamEx(result.onClose(stream::close));
     }
 }

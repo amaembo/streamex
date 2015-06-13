@@ -17,15 +17,20 @@ package javax.util.streamex;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.OptionalInt;
+import java.util.PrimitiveIterator;
 import java.util.Random;
+import java.util.Set;
 import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.StreamSupport;
 
 import org.junit.Test;
 
@@ -347,5 +352,36 @@ public class IntStreamExTest {
         Map<Integer, List<Integer>> result = IntStreamEx.range(10).mapToEntry(x -> x % 2, x -> x).grouping();
         assertEquals(Arrays.asList(0, 2, 4, 6, 8), result.get(0));
         assertEquals(Arrays.asList(1, 3, 5, 7, 9), result.get(1));
+    }
+    
+    static final class HundredIterator implements PrimitiveIterator.OfInt {
+        int i = 0;
+    
+        @Override
+        public boolean hasNext() {
+            return i < 100;
+        }
+    
+        @Override
+        public int nextInt() {
+            return i++;
+        }
+    }
+
+    @Test
+    public void testRecreate() {
+        Set<Integer> expected = IntStreamEx.range(1, 100).boxed().toSet();
+        assertEquals(expected,
+                IntStreamEx.of(StreamSupport.intStream(Spliterators.spliteratorUnknownSize(new HundredIterator(), Spliterator.ORDERED), false))
+                        .skip(1).boxed().toSet());
+        assertEquals(expected,
+                IntStreamEx.of(StreamSupport.intStream(Spliterators.spliteratorUnknownSize(new HundredIterator(), Spliterator.ORDERED), true))
+                .skip(1).boxed().toCollection(HashSet<Integer>::new));
+        assertEquals(expected,
+                IntStreamEx.of(StreamSupport.intStream(Spliterators.spliteratorUnknownSize(new HundredIterator(), Spliterator.ORDERED), true))
+                .skipOrdered(1).boxed().toSet());
+        assertEquals(expected,
+                IntStreamEx.of(StreamSupport.intStream(Spliterators.spliterator(new HundredIterator(), 100, Spliterator.ORDERED | Spliterator.CONCURRENT), true))
+                .skipOrdered(1).boxed().toSet());
     }
 }

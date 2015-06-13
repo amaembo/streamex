@@ -1208,8 +1208,10 @@ public class DoubleStreamEx implements DoubleStream {
                 i -> mapper.applyAsDouble(first[i], second[i]));
     }
 
-    public DoubleStreamEx recreate() {
-        return strategy().newDoubleStreamEx(
-                StreamSupport.doubleStream(stream.spliterator(), stream.isParallel()).onClose(stream::close));
+    public DoubleStreamEx skipOrdered(long n) {
+        DoubleStream result = stream.isParallel() ? StreamSupport.doubleStream(
+                StreamSupport.doubleStream(stream.spliterator(), false).skip(n).spliterator(), true) : StreamSupport
+                .doubleStream(stream.skip(n).spliterator(), false);
+        return strategy().newDoubleStreamEx(result.onClose(stream::close));
     }
 }
