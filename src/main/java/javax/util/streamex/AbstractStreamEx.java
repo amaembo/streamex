@@ -277,6 +277,21 @@ import static javax.util.streamex.StreamExInternals.*;
         return supply(stream.limit(maxSize));
     }
 
+    /**
+     * Returns a stream consisting of the remaining elements of this stream
+     * after discarding the first {@code n} elements of the stream. If this
+     * stream contains fewer than {@code n} elements then an empty stream will
+     * be returned.
+     *
+     * <p>
+     * This is a stateful intermediate operation.
+     *
+     * @param n
+     *            the number of leading elements to skip
+     * @return the new stream
+     * @throws IllegalArgumentException
+     *             if {@code n} is negative
+     */
     @Override
     public S skip(long n) {
         return supply(stream.skip(n));
@@ -849,6 +864,36 @@ import static javax.util.streamex.StreamExInternals.*;
         });
     }
 
+    /**
+     * Returns a stream consisting of the remaining elements of this stream
+     * after discarding the first {@code n} elements of the stream. If this
+     * stream contains fewer than {@code n} elements then an empty stream will
+     * be returned.
+     *
+     * <p>
+     * This is a stateful quasi-intermediate operation. Unlike
+     * {@link #skip(long)} it skips the first elements even if the stream is
+     * unordered. The main purpose of this method is to workaround the problem
+     * of skipping the first elements from non-sized source with further
+     * parallel processing and unordered terminal operation (such as
+     * {@link #forEach(Consumer)}). For example,
+     * {@code StreamEx.ofLines(br).skip(1).parallel().toSet()} will skip
+     * arbitrary line, but
+     * {@code StreamEx.ofLines(br).skipOrdered(1).parallel().toSet()} will skip
+     * the first one. Also it behaves much better with infinite streams
+     * processed in parallel.
+     * 
+     * <p>
+     * For sequential streams this method behaves exactly like {@link #skip(long)}.
+     *
+     * @param n
+     *            the number of leading elements to skip
+     * @return the new stream
+     * @throws IllegalArgumentException
+     *             if {@code n} is negative
+     * @see #skip(long)
+     * @since 0.3.2
+     */
     public S skipOrdered(long n) {
         Stream<T> result = stream.isParallel() ? StreamSupport.stream(StreamSupport.stream(stream.spliterator(), false)
                 .skip(n).spliterator(), true) : StreamSupport.stream(stream.skip(n).spliterator(), false);

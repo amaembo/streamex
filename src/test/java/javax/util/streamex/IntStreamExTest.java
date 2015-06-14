@@ -383,5 +383,12 @@ public class IntStreamExTest {
         assertEquals(expected,
                 IntStreamEx.of(StreamSupport.intStream(Spliterators.spliterator(new HundredIterator(), 100, Spliterator.ORDERED | Spliterator.CONCURRENT), true))
                 .skipOrdered(1).boxed().toSet());
+        assertEquals(expected,
+                IntStreamEx.of(StreamSupport.intStream(Spliterators.spliteratorUnknownSize(new HundredIterator(), Spliterator.ORDERED), true))
+                .unordered().skipOrdered(1).boxed().toCollection(HashSet<Integer>::new));
+        
+        assertEquals(expected, IntStreamEx.iterate(0, i -> i+1).skip(1).greater(0).limit(99).boxed().toSet());
+        assertEquals(500, (int)IntStreamEx.iterate(0, i -> i+1).skipOrdered(1).greater(0).boxed().parallel().findAny(i -> i == 500).get());
+        assertEquals(expected, IntStreamEx.iterate(0, i -> i+1).skipOrdered(1).greater(0).limit(99).boxed().parallel().toSet());
     }
 }

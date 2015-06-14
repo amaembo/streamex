@@ -4,6 +4,7 @@
 
 * Added `MoreCollectors` class: several useful collectors absent in JDK
 * Added `skipOrdered(n)` method to every Stream implementation
+* Updated documentation
 
 ### 0.3.1
 

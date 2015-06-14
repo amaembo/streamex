@@ -198,7 +198,7 @@ public class IntStreamEx implements IntStream {
     public DoubleStreamEx mapToDouble(IntToDoubleFunction mapper) {
         return strategy().newDoubleStreamEx(stream.mapToDouble(mapper));
     }
-    
+
     /**
      * Returns an {@link EntryStream} consisting of the {@link Entry} objects
      * which keys and values are results of applying the given functions to the
@@ -1125,7 +1125,7 @@ public class IntStreamEx implements IntStream {
     public String codePointsToString() {
         return collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append).toString();
     }
-    
+
     /**
      * Returns a stream consisting of the results of applying the given function
      * to the every adjacent pair of elements of this stream.
@@ -1169,8 +1169,8 @@ public class IntStreamEx implements IntStream {
 
     /**
      * Returns a {@link String} which contains the results of calling
-     * {@link String#valueOf(int)} on each element of this stream, separated
-     * by the specified delimiter, with the specified prefix and suffix in
+     * {@link String#valueOf(int)} on each element of this stream, separated by
+     * the specified delimiter, with the specified prefix and suffix in
      * encounter order.
      *
      * <p>
@@ -1191,7 +1191,7 @@ public class IntStreamEx implements IntStream {
     public String joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return collect(IntCollector.joining(delimiter, prefix, suffix));
     }
-    
+
     /**
      * Returns an empty sequential {@code IntStreamEx}.
      *
@@ -1777,9 +1777,40 @@ public class IntStreamEx implements IntStream {
         return intStreamForLength(first.length, second.length).map(i -> mapper.applyAsInt(first[i], second[i]));
     }
 
+    /**
+     * Returns a stream consisting of the remaining elements of this stream
+     * after discarding the first {@code n} elements of the stream. If this
+     * stream contains fewer than {@code n} elements then an empty stream will
+     * be returned.
+     *
+     * <p>
+     * This is a stateful quasi-intermediate operation. Unlike
+     * {@link #skip(long)} it skips the first elements even if the stream is
+     * unordered. The main purpose of this method is to workaround the problem
+     * of skipping the first elements from non-sized source with further
+     * parallel processing and unordered terminal operation (such as
+     * {@link #forEach(IntConsumer)}). Also it behaves much better with infinite
+     * streams processed in parallel. For example,
+     * {@code IntStreamEx.iterate(0, i->i+1).skip(1).limit(100).parallel().toArray()}
+     * will likely to fail with {@code OutOfMemoryError}, but will work nicely
+     * if {@code skip} is replaced with {@code skipOrdered}.
+     *
+     * <p>
+     * For sequential streams this method behaves exactly like
+     * {@link #skip(long)}.
+     *
+     * @param n
+     *            the number of leading elements to skip
+     * @return the new stream
+     * @throws IllegalArgumentException
+     *             if {@code n} is negative
+     * @see #skip(long)
+     * @since 0.3.2
+     */
     public IntStreamEx skipOrdered(long n) {
-        IntStream result = stream.isParallel() ? StreamSupport.intStream(StreamSupport.intStream(stream.spliterator(), false)
-                .skip(n).spliterator(), true) : StreamSupport.intStream(stream.skip(n).spliterator(), false);
+        IntStream result = stream.isParallel() ? StreamSupport.intStream(
+                StreamSupport.intStream(stream.spliterator(), false).skip(n).spliterator(), true) : StreamSupport
+                .intStream(stream.skip(n).spliterator(), false);
         return strategy().newIntStreamEx(result.onClose(stream::close));
     }
 }
