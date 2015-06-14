@@ -65,8 +65,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      */
     @Override
     default BiConsumer<A, Long> accumulator() {
-        ObjLongConsumer<A> longAccumulator = longAccumulator();
-        return (a, i) -> longAccumulator.accept(a, i);
+        return longAccumulator()::accept;
     }
 
     /**
@@ -151,8 +150,8 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      *         separated by the specified delimiter, in encounter order
      */
     static LongCollector<?, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
-        return of(StringBuilder::new, (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i),
-            joinMerger(delimiter), joinFinisher(prefix, suffix));
+        return of(StringBuilder::new, StreamExInternals.joinAccumulatorLong(delimiter), joinMerger(delimiter),
+            joinFinisher(prefix, suffix));
     }
 
     /**
@@ -166,8 +165,8 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      *         separated by the specified delimiter, in encounter order
      */
     static LongCollector<?, String> joining(CharSequence delimiter) {
-        return of(StringBuilder::new, (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i),
-            joinMerger(delimiter), StringBuilder::toString);
+        return of(StringBuilder::new, StreamExInternals.joinAccumulatorLong(delimiter), joinMerger(delimiter),
+            StringBuilder::toString);
     }
 
     /**

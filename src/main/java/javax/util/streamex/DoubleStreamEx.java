@@ -685,7 +685,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.0.8
      */
     public DoubleStreamEx reverseSorted() {
-        return sorted((a, b) -> b.compareTo(a));
+        return sorted(Comparator.reverseOrder());
     }
 
     public <V extends Comparable<? super V>> DoubleStreamEx sortedBy(DoubleFunction<V> keyExtractor) {
@@ -1046,7 +1046,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.2.0
      */
     public static DoubleStreamEx of(float... elements) {
-        return IntStreamEx.range(elements.length).mapToDouble(i -> elements[i]);
+        return of(elements, 0, elements.length);
     }
 
     /**

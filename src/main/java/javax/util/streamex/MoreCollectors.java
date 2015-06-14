@@ -402,7 +402,7 @@ public final class MoreCollectors {
      *         {@code Optional} is returned.
      */
     public static <T> Collector<T, ?, Optional<T>> last() {
-        return Collectors.reducing(selectLast());
+        return Collectors.reducing((u, v) -> v);
     }
 
     /**

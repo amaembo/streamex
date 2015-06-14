@@ -63,8 +63,7 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
      */
     @Override
     default BiConsumer<A, Double> accumulator() {
-        ObjDoubleConsumer<A> doubleAccumulator = doubleAccumulator();
-        return (a, i) -> doubleAccumulator.accept(a, i);
+        return doubleAccumulator()::accept;
     }
 
     /**
@@ -150,8 +149,8 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
      *         separated by the specified delimiter, in encounter order
      */
     static DoubleCollector<?, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
-        return of(StringBuilder::new, (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i),
-            joinMerger(delimiter), joinFinisher(prefix, suffix));
+        return of(StringBuilder::new, StreamExInternals.joinAccumulatorDouble(delimiter), joinMerger(delimiter),
+            joinFinisher(prefix, suffix));
     }
 
     /**
@@ -165,8 +164,8 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
      *         separated by the specified delimiter, in encounter order
      */
     static DoubleCollector<?, String> joining(CharSequence delimiter) {
-        return of(StringBuilder::new, (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i),
-            joinMerger(delimiter), StringBuilder::toString);
+        return of(StringBuilder::new, StreamExInternals.joinAccumulatorDouble(delimiter), joinMerger(delimiter),
+            StringBuilder::toString);
     }
 
     /**

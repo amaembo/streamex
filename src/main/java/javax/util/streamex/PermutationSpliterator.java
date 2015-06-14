@@ -35,7 +35,7 @@ final class PermutationSpliterator implements Spliterator<int[]> {
         if (remainingSize == 0)
             return false;
         int[] value = this.value;
-        action.accept(value);
+        action.accept(value.clone());
         if (--remainingSize > 0) {
             int r = value.length - 1, k = r - 1;
             while (value[k] > value[k + 1])

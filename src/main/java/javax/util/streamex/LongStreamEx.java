@@ -720,7 +720,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.0.8
      */
     public LongStreamEx reverseSorted() {
-        return sorted((a, b) -> b.compareTo(a));
+        return sorted(Comparator.reverseOrder());
     }
 
     public <V extends Comparable<? super V>> LongStreamEx sortedBy(LongFunction<V> keyExtractor) {

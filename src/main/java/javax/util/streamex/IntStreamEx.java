@@ -743,7 +743,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.0.8
      */
     public IntStreamEx reverseSorted() {
-        return sorted((a, b) -> b.compareTo(a));
+        return sorted(Comparator.reverseOrder());
     }
 
     public <V extends Comparable<? super V>> IntStreamEx sortedBy(IntFunction<V> keyExtractor) {
@@ -1256,7 +1256,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.2.0
      */
     public static IntStreamEx of(byte... elements) {
-        return range(elements.length).map(i -> elements[i]);
+        return of(elements, 0, elements.length);
     }
 
     /**
@@ -1291,7 +1291,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.2.0
      */
     public static IntStreamEx of(char... elements) {
-        return range(elements.length).map(i -> elements[i]);
+        return of(elements, 0, elements.length);
     }
 
     /**
@@ -1326,7 +1326,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.2.0
      */
     public static IntStreamEx of(short... elements) {
-        return range(elements.length).map(i -> elements[i]);
+        return of(elements, 0, elements.length);
     }
 
     /**

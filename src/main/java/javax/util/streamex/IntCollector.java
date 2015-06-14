@@ -66,8 +66,7 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      */
     @Override
     default BiConsumer<A, Integer> accumulator() {
-        ObjIntConsumer<A> intAccumulator = intAccumulator();
-        return (a, i) -> intAccumulator.accept(a, i);
+        return intAccumulator()::accept;
     }
 
     /**
@@ -152,8 +151,8 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      *         separated by the specified delimiter, in encounter order
      */
     static IntCollector<?, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
-        return of(StringBuilder::new, (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i),
-            joinMerger(delimiter), joinFinisher(prefix, suffix));
+        return of(StringBuilder::new, StreamExInternals.joinAccumulatorInt(delimiter), joinMerger(delimiter),
+            joinFinisher(prefix, suffix));
     }
 
     /**
@@ -167,8 +166,7 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      *         separated by the specified delimiter, in encounter order
      */
     static IntCollector<?, String> joining(CharSequence delimiter) {
-        return of(StringBuilder::new, (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i),
-            joinMerger(delimiter), StringBuilder::toString);
+        return of(StringBuilder::new, StreamExInternals.joinAccumulatorInt(delimiter), joinMerger(delimiter), StringBuilder::toString);
     }
 
     /**

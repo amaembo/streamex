@@ -1354,8 +1354,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Map#keySet()
      */
     public static <T, V> StreamEx<T> ofKeys(Map<T, V> map, Predicate<V> valueFilter) {
-        return new StreamEx<>(map.entrySet().stream().filter(entry -> valueFilter.test(entry.getValue()))
-                .map(Entry::getKey));
+        return EntryStream.of(map).filterValues(valueFilter).keys();
     }
 
     /**
@@ -1395,8 +1394,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Map#values()
      */
     public static <K, T> StreamEx<T> ofValues(Map<K, T> map, Predicate<K> keyFilter) {
-        return new StreamEx<>(map.entrySet().stream().filter(entry -> keyFilter.test(entry.getKey()))
-                .map(Entry::getValue));
+        return EntryStream.of(map).filterKeys(keyFilter).values();
     }
 
     public static StreamEx<? extends ZipEntry> ofEntries(ZipFile file) {
@@ -1419,7 +1417,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.2.2
      */
     public static StreamEx<int[]> ofPermutations(int length) {
-        return new StreamEx<>(StreamSupport.stream(new PermutationSpliterator(length), false).map(perm -> perm.clone()));
+        return new StreamEx<>(StreamSupport.stream(new PermutationSpliterator(length), false));
     }
 
     /**

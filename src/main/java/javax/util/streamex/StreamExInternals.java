@@ -511,9 +511,6 @@ import java.util.stream.Stream;
             this.obj = obj;
         }
 
-        Box() {
-        }
-
         static <A> Supplier<Box<A>> supplier(Supplier<A> supplier) {
             return () -> new Box<>(supplier.get());
         }
@@ -535,6 +532,18 @@ import java.util.stream.Stream;
             this.a = a;
             this.b = b;
         }
+    }
+
+    static ObjIntConsumer<StringBuilder> joinAccumulatorInt(CharSequence delimiter) {
+        return (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i);
+    }
+
+    static ObjLongConsumer<StringBuilder> joinAccumulatorLong(CharSequence delimiter) {
+        return (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i);
+    }
+
+    static ObjDoubleConsumer<StringBuilder> joinAccumulatorDouble(CharSequence delimiter) {
+        return (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i);
     }
 
     static BiConsumer<StringBuilder, StringBuilder> joinMerger(CharSequence delimiter) {
@@ -577,10 +586,6 @@ import java.util.stream.Stream;
 
     static <T> BinaryOperator<T> selectFirst() {
         return (u, v) -> u;
-    }
-
-    static <T> BinaryOperator<T> selectLast() {
-        return (u, v) -> v;
     }
 
     static IntStreamEx intStreamForLength(int a, int b) {
