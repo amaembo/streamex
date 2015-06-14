@@ -198,7 +198,7 @@ public class DoubleStreamEx implements DoubleStream {
     public <K, V> EntryStream<K, V> mapToEntry(DoubleFunction<? extends K> keyMapper,
             DoubleFunction<? extends V> valueMapper) {
         return strategy().newEntryStream(
-                stream.mapToObj(t -> new AbstractMap.SimpleImmutableEntry<>(keyMapper.apply(t), valueMapper.apply(t))));
+            stream.mapToObj(t -> new AbstractMap.SimpleImmutableEntry<>(keyMapper.apply(t), valueMapper.apply(t))));
     }
 
     /**
@@ -416,7 +416,7 @@ public class DoubleStreamEx implements DoubleStream {
         if (collector.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH))
             return (R) collect(collector.supplier(), collector.doubleAccumulator(), collector.merger());
         return collector.finisher().apply(
-                collect(collector.supplier(), collector.doubleAccumulator(), collector.merger()));
+            collect(collector.supplier(), collector.doubleAccumulator(), collector.merger()));
     }
 
     @Override
@@ -908,9 +908,9 @@ public class DoubleStreamEx implements DoubleStream {
      */
     public DoubleStreamEx pairMap(DoubleBinaryOperator mapper) {
         return strategy().newDoubleStreamEx(
-                StreamSupport.doubleStream(
-                        new PairSpliterator.PSOfDouble(mapper, stream.spliterator(), 0, false, 0, false),
-                        stream.isParallel()).onClose(stream::close));
+            StreamSupport.doubleStream(
+                new PairSpliterator.PSOfDouble(mapper, stream.spliterator(), 0, false, 0, false), stream.isParallel())
+                    .onClose(stream::close));
     }
 
     /**
@@ -1205,7 +1205,7 @@ public class DoubleStreamEx implements DoubleStream {
      */
     public static DoubleStreamEx zip(double[] first, double[] second, DoubleBinaryOperator mapper) {
         return intStreamForLength(first.length, second.length).mapToDouble(
-                i -> mapper.applyAsDouble(first[i], second[i]));
+            i -> mapper.applyAsDouble(first[i], second[i]));
     }
 
     /**
@@ -1220,8 +1220,8 @@ public class DoubleStreamEx implements DoubleStream {
      * unordered. The main purpose of this method is to workaround the problem
      * of skipping the first elements from non-sized source with further
      * parallel processing and unordered terminal operation (such as
-     * {@link #forEach(DoubleConsumer)}). Also it behaves much better with infinite
-     * streams processed in parallel. For example,
+     * {@link #forEach(DoubleConsumer)}). Also it behaves much better with
+     * infinite streams processed in parallel. For example,
      * {@code DoubleStreamEx.iterate(0.0, i->i+1).skip(1).limit(100).parallel().toArray()}
      * will likely to fail with {@code OutOfMemoryError}, but will work nicely
      * if {@code skip} is replaced with {@code skipOrdered}.
@@ -1240,7 +1240,7 @@ public class DoubleStreamEx implements DoubleStream {
      */
     public DoubleStreamEx skipOrdered(long n) {
         DoubleStream result = stream.isParallel() ? StreamSupport.doubleStream(
-                StreamSupport.doubleStream(stream.spliterator(), false).skip(n).spliterator(), true) : StreamSupport
+            StreamSupport.doubleStream(stream.spliterator(), false).skip(n).spliterator(), true) : StreamSupport
                 .doubleStream(stream.skip(n).spliterator(), false);
         return strategy().newDoubleStreamEx(result.onClose(stream::close));
     }

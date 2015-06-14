@@ -20,7 +20,7 @@ import java.util.function.BiPredicate;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 
-/* package */ final class CollapseSpliterator<T> implements Spliterator<T> {
+/* package */final class CollapseSpliterator<T> implements Spliterator<T> {
     private Spliterator<T> source;
     private boolean hasPrev, hasLast;
     private T cur, last;

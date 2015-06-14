@@ -199,7 +199,7 @@ public class LongStreamEx implements LongStream {
     public <K, V> EntryStream<K, V> mapToEntry(LongFunction<? extends K> keyMapper,
             LongFunction<? extends V> valueMapper) {
         return strategy().newEntryStream(
-                stream.mapToObj(t -> new AbstractMap.SimpleImmutableEntry<>(keyMapper.apply(t), valueMapper.apply(t))));
+            stream.mapToObj(t -> new AbstractMap.SimpleImmutableEntry<>(keyMapper.apply(t), valueMapper.apply(t))));
     }
 
     /**
@@ -416,7 +416,7 @@ public class LongStreamEx implements LongStream {
         if (collector.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH))
             return (R) collect(collector.supplier(), collector.longAccumulator(), collector.merger());
         return collector.finisher().apply(
-                collect(collector.supplier(), collector.longAccumulator(), collector.merger()));
+            collect(collector.supplier(), collector.longAccumulator(), collector.merger()));
     }
 
     @Override
@@ -943,9 +943,8 @@ public class LongStreamEx implements LongStream {
      */
     public LongStreamEx pairMap(LongBinaryOperator mapper) {
         return strategy().newLongStreamEx(
-                StreamSupport.longStream(
-                        new PairSpliterator.PSOfLong(mapper, stream.spliterator(), 0, false, 0, false),
-                        stream.isParallel()).onClose(stream::close));
+            StreamSupport.longStream(new PairSpliterator.PSOfLong(mapper, stream.spliterator(), 0, false, 0, false),
+                stream.isParallel()).onClose(stream::close));
     }
 
     /**
@@ -1261,7 +1260,7 @@ public class LongStreamEx implements LongStream {
      */
     public LongStreamEx skipOrdered(long n) {
         LongStream result = stream.isParallel() ? StreamSupport.longStream(
-                StreamSupport.longStream(stream.spliterator(), false).skip(n).spliterator(), true) : StreamSupport
+            StreamSupport.longStream(stream.spliterator(), false).skip(n).spliterator(), true) : StreamSupport
                 .longStream(stream.skip(n).spliterator(), false);
         return strategy().newLongStreamEx(result.onClose(stream::close));
     }

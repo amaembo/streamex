@@ -503,14 +503,14 @@ import java.util.stream.Stream;
             return merger;
         }
     }
-    
+
     static final class Box<A> {
         A obj;
-        
+
         Box(A obj) {
             this.obj = obj;
         }
-        
+
         Box() {
         }
 
@@ -526,11 +526,11 @@ import java.util.stream.Stream;
             return box -> finisher.apply(box.obj);
         }
     }
-    
+
     static final class PairBox<A, B> {
         A a;
         B b;
-        
+
         PairBox(A a, B b) {
             this.a = a;
             this.b = b;
@@ -574,7 +574,7 @@ import java.util.stream.Stream;
             throw new IllegalStateException(String.format("Duplicate key %s", u));
         };
     }
-    
+
     static <T> BinaryOperator<T> selectFirst() {
         return (u, v) -> u;
     }
@@ -582,7 +582,7 @@ import java.util.stream.Stream;
     static <T> BinaryOperator<T> selectLast() {
         return (u, v) -> v;
     }
-    
+
     static IntStreamEx intStreamForLength(int a, int b) {
         if (a != b)
             throw new IllegalArgumentException("Length differs: " + a + " != " + b);
@@ -592,7 +592,7 @@ import java.util.stream.Stream;
     static void rangeCheck(int arrayLength, int startInclusive, int endExclusive) {
         if (startInclusive > endExclusive) {
             throw new ArrayIndexOutOfBoundsException("startInclusive(" + startInclusive + ") > endExclusive("
-                    + endExclusive + ")");
+                + endExclusive + ")");
         }
         if (startInclusive < 0) {
             throw new ArrayIndexOutOfBoundsException(startInclusive);

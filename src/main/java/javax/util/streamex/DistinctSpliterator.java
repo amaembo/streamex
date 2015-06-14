@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
-/* package */ final class DistinctSpliterator<T> implements Spliterator<T> {
+/* package */final class DistinctSpliterator<T> implements Spliterator<T> {
     private final Spliterator<T> source;
     private AtomicLong nullCounter;
     private Map<T, Long> counts;
@@ -90,7 +90,7 @@ import java.util.function.Consumer;
         if (split == null)
             return null;
         if (counts.getClass() == HashMap.class) {
-            if(!source.hasCharacteristics(NONNULL)) {
+            if (!source.hasCharacteristics(NONNULL)) {
                 Long current = counts.remove(null);
                 nullCounter = new AtomicLong(current == null ? 0 : current);
             }

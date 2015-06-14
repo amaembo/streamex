@@ -153,7 +153,7 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      */
     static IntCollector<?, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return of(StringBuilder::new, (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i),
-                joinMerger(delimiter), joinFinisher(prefix, suffix));
+            joinMerger(delimiter), joinFinisher(prefix, suffix));
     }
 
     /**
@@ -168,7 +168,7 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      */
     static IntCollector<?, String> joining(CharSequence delimiter) {
         return of(StringBuilder::new, (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i),
-                joinMerger(delimiter), StringBuilder::toString);
+            joinMerger(delimiter), StringBuilder::toString);
     }
 
     /**
@@ -233,7 +233,7 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
     static <A, R> IntCollector<?, R> mapping(IntUnaryOperator mapper, IntCollector<A, R> downstream) {
         ObjIntConsumer<A> downstreamAccumulator = downstream.intAccumulator();
         return new IntCollectorImpl<>(downstream.supplier(), (r, t) -> downstreamAccumulator.accept(r,
-                mapper.applyAsInt(t)), downstream.merger(), downstream.finisher(), downstream.characteristics());
+            mapper.applyAsInt(t)), downstream.merger(), downstream.finisher(), downstream.characteristics());
     }
 
     /**
@@ -263,7 +263,7 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
                     downstream.characteristics());
         }
         return of(Box.supplier(downstream.supplier()), (box, i) -> accumulator.accept(box.obj, mapper.apply(i)),
-                Box.combiner(downstream.combiner()), Box.finisher(downstream.finisher()));
+            Box.combiner(downstream.combiner()), Box.finisher(downstream.finisher()));
     }
 
     /**
@@ -332,7 +332,7 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      */
     static IntCollector<?, Integer> reducing(int identity, IntBinaryOperator op) {
         return of(() -> new int[] { identity }, (box, i) -> box[0] = op.applyAsInt(box[0], i),
-                (box1, box2) -> box1[0] = op.applyAsInt(box1[0], box2[0]), UNBOX_INT);
+            (box1, box2) -> box1[0] = op.applyAsInt(box1[0], box2[0]), UNBOX_INT);
     }
 
     /**
@@ -388,7 +388,7 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
     static <A, D> IntCollector<?, Map<Boolean, D>> partitioningBy(IntPredicate predicate, IntCollector<A, D> downstream) {
         ObjIntConsumer<A> downstreamAccumulator = downstream.intAccumulator();
         ObjIntConsumer<BooleanMap<A>> accumulator = (result, t) -> downstreamAccumulator.accept(
-                predicate.test(t) ? result.trueValue : result.falseValue, t);
+            predicate.test(t) ? result.trueValue : result.falseValue, t);
         BiConsumer<BooleanMap<A>, BooleanMap<A>> merger = BooleanMap.merger(downstream.merger());
         Supplier<BooleanMap<A>> supplier = BooleanMap.supplier(downstream.supplier());
         if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
@@ -506,7 +506,7 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
             return (IntCollector<?, M>) of((Supplier<Map<K, A>>) mapFactory, accumulator, merger);
         } else {
             return of((Supplier<Map<K, A>>) mapFactory, accumulator, merger,
-                    mapFinisher((Function<A, A>) downstream.finisher()));
+                mapFinisher((Function<A, A>) downstream.finisher()));
         }
     }
 

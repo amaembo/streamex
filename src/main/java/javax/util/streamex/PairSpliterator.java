@@ -57,8 +57,8 @@ abstract class PairSpliterator<T, S extends Spliterator<T>, R> implements Splite
         private final T last;
         private final BiFunction<? super T, ? super T, ? extends R> mapper;
 
-        public PSOfRef(BiFunction<? super T, ? super T, ? extends R> mapper, Spliterator<T> source, T prev, boolean hasPrev, T last,
-                boolean hasLast) {
+        public PSOfRef(BiFunction<? super T, ? super T, ? extends R> mapper, Spliterator<T> source, T prev,
+                boolean hasPrev, T last, boolean hasLast) {
             super(source, hasPrev, hasLast);
             this.cur = prev;
             this.last = last;

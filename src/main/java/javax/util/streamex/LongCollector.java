@@ -152,7 +152,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      */
     static LongCollector<?, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return of(StringBuilder::new, (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i),
-                joinMerger(delimiter), joinFinisher(prefix, suffix));
+            joinMerger(delimiter), joinFinisher(prefix, suffix));
     }
 
     /**
@@ -167,7 +167,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      */
     static LongCollector<?, String> joining(CharSequence delimiter) {
         return of(StringBuilder::new, (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i),
-                joinMerger(delimiter), StringBuilder::toString);
+            joinMerger(delimiter), StringBuilder::toString);
     }
 
     /**
@@ -232,7 +232,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
     static <A, R> LongCollector<?, R> mapping(LongUnaryOperator mapper, LongCollector<A, R> downstream) {
         ObjLongConsumer<A> downstreamAccumulator = downstream.longAccumulator();
         return new LongCollectorImpl<>(downstream.supplier(), (r, t) -> downstreamAccumulator.accept(r,
-                mapper.applyAsLong(t)), downstream.merger(), downstream.finisher(), downstream.characteristics());
+            mapper.applyAsLong(t)), downstream.merger(), downstream.finisher(), downstream.characteristics());
     }
 
     /**
@@ -262,7 +262,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
                     downstream.characteristics());
         }
         return of(Box.supplier(downstream.supplier()), (box, i) -> accumulator.accept(box.obj, mapper.apply(i)),
-                Box.combiner(downstream.combiner()), Box.finisher(downstream.finisher()));
+            Box.combiner(downstream.combiner()), Box.finisher(downstream.finisher()));
     }
 
     /**
@@ -331,7 +331,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      */
     static LongCollector<?, Long> reducing(long identity, LongBinaryOperator op) {
         return of(() -> new long[] { identity }, (box, i) -> box[0] = op.applyAsLong(box[0], i),
-                (box1, box2) -> box1[0] = op.applyAsLong(box1[0], box2[0]), UNBOX_LONG);
+            (box1, box2) -> box1[0] = op.applyAsLong(box1[0], box2[0]), UNBOX_LONG);
     }
 
     /**
@@ -388,7 +388,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
             LongCollector<A, D> downstream) {
         ObjLongConsumer<A> downstreamAccumulator = downstream.longAccumulator();
         ObjLongConsumer<BooleanMap<A>> accumulator = (result, t) -> downstreamAccumulator.accept(
-                predicate.test(t) ? result.trueValue : result.falseValue, t);
+            predicate.test(t) ? result.trueValue : result.falseValue, t);
         BiConsumer<BooleanMap<A>, BooleanMap<A>> merger = BooleanMap.merger(downstream.merger());
         Supplier<BooleanMap<A>> supplier = BooleanMap.supplier(downstream.supplier());
         if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
@@ -506,7 +506,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
             return (LongCollector<?, M>) of((Supplier<Map<K, A>>) mapFactory, accumulator, merger);
         } else {
             return of((Supplier<Map<K, A>>) mapFactory, accumulator, merger,
-                    mapFinisher((Function<A, A>) downstream.finisher()));
+                mapFinisher((Function<A, A>) downstream.finisher()));
         }
     }
 

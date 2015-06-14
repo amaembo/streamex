@@ -53,7 +53,7 @@ public class IntCollectorTest {
         Map<Boolean, Integer> expected = IntStream.of(input).boxed()
                 .collect(Collectors.partitioningBy(i -> i % 2 == 0, Collectors.summingInt(Integer::intValue)));
         Map<Boolean, Integer> sumEvenOdd = IntStreamEx.of(input).collect(
-                IntCollector.partitioningBy(i -> i % 2 == 0, IntCollector.summing()));
+            IntCollector.partitioningBy(i -> i % 2 == 0, IntCollector.summing()));
         assertEquals(expected, sumEvenOdd);
         sumEvenOdd = IntStreamEx.of(input).parallel()
                 .collect(IntCollector.partitioningBy(i -> i % 2 == 0, IntCollector.summing()));
@@ -93,11 +93,11 @@ public class IntCollectorTest {
     public void testToArray() {
         assertArrayEquals(new int[] { 0, 1, 2, 3, 4 }, IntStreamEx.of(0, 1, 2, 3, 4).collect(IntCollector.toArray()));
         assertArrayEquals(IntStreamEx.range(1000).toByteArray(),
-                IntStreamEx.range(1000).collect(IntCollector.toByteArray()));
+            IntStreamEx.range(1000).collect(IntCollector.toByteArray()));
         assertArrayEquals(IntStreamEx.range(1000).toCharArray(),
-                IntStreamEx.range(1000).collect(IntCollector.toCharArray()));
+            IntStreamEx.range(1000).collect(IntCollector.toCharArray()));
         assertArrayEquals(IntStreamEx.range(1000).toShortArray(),
-                IntStreamEx.range(1000).collect(IntCollector.toShortArray()));
+            IntStreamEx.range(1000).collect(IntCollector.toShortArray()));
     }
 
     @Test
@@ -112,7 +112,7 @@ public class IntCollectorTest {
         assertArrayEquals(expectedOdd, oddEven.get(false));
 
         IntCollector<?, Map<Boolean, int[]>> partitionMapToArray = IntCollector.partitioningBy(i -> i % 2 == 0,
-                IntCollector.mapping(i -> i / 2, IntCollector.toArray()));
+            IntCollector.mapping(i -> i / 2, IntCollector.toArray()));
         oddEven = IntStreamEx.range(2000).collect(partitionMapToArray);
         int[] ints = IntStreamEx.range(1000).toArray();
         assertArrayEquals(ints, oddEven.get(true));
@@ -123,7 +123,7 @@ public class IntCollectorTest {
     public void testSumBySign() {
         int[] input = new Random(1).ints(2000, -1000, 1000).toArray();
         Map<Boolean, Integer> sums = IntStreamEx.of(input).collect(
-                IntCollector.partitioningBy(i -> i > 0, IntCollector.summing()));
+            IntCollector.partitioningBy(i -> i > 0, IntCollector.summing()));
         Map<Boolean, Integer> sumsBoxed = IntStream.of(input).boxed()
                 .collect(Collectors.partitioningBy(i -> i > 0, Collectors.summingInt(Integer::intValue)));
         assertEquals(sumsBoxed, sums);
@@ -143,7 +143,7 @@ public class IntCollectorTest {
         }
 
         Map<Integer, BitSet> mapBitSet = IntStreamEx.range(10).collect(
-                IntCollector.groupingBy(i -> i % 3, IntCollector.toBitSet()));
+            IntCollector.groupingBy(i -> i % 3, IntCollector.toBitSet()));
         assertEquals("{0, 3, 6, 9}", mapBitSet.get(0).toString());
         assertEquals("{1, 4, 7}", mapBitSet.get(1).toString());
         assertEquals("{2, 5, 8}", mapBitSet.get(2).toString());
@@ -153,7 +153,7 @@ public class IntCollectorTest {
     public void testByDigit() {
         int[] input = new Random(1).ints(2000, -1000, 1000).toArray();
         IntCollector<?, Map<Integer, List<Integer>>> collector = IntCollector.groupingBy(i -> i % 10,
-                IntCollector.of(Collectors.toList()));
+            IntCollector.of(Collectors.toList()));
         Map<Integer, List<Integer>> groups = IntStreamEx.of(input).collect(collector);
         Map<Integer, List<Integer>> groupsBoxed = IntStream.of(input).boxed()
                 .collect(Collectors.groupingBy(i -> i % 10));
@@ -171,13 +171,12 @@ public class IntCollectorTest {
     public void testAdaptor() {
         assertEquals(499500, (int) IntStreamEx.range(0, 1000).collect(IntCollector.of(IntCollector.summing())));
         assertEquals(499500,
-                (int) IntStreamEx.range(0, 1000).collect(IntCollector.of(Collectors.summingInt(Integer::intValue))));
+            (int) IntStreamEx.range(0, 1000).collect(IntCollector.of(Collectors.summingInt(Integer::intValue))));
     }
 
     @Test
     public void testMapping() {
         assertArrayEquals(IntStreamEx.range(1000).asDoubleStream().toArray(),
-                IntStreamEx.range(1000).collect(IntCollector.mappingToObj(i -> (double) i, DoubleCollector.toArray())),
-                0.0);
+            IntStreamEx.range(1000).collect(IntCollector.mappingToObj(i -> (double) i, DoubleCollector.toArray())), 0.0);
     }
 }

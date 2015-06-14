@@ -65,7 +65,7 @@ public final class MoreCollectors {
     private static <T, U> Collector<T, ?, U> empty(Supplier<U> supplier) {
         return Collector.of(() -> null, (acc, t) -> {
         }, selectFirst(), acc -> supplier.get(), Collector.Characteristics.UNORDERED,
-                Collector.Characteristics.CONCURRENT);
+            Collector.Characteristics.CONCURRENT);
     }
 
     private static <T> Collector<T, ?, List<T>> empty() {
@@ -563,8 +563,8 @@ public final class MoreCollectors {
      *            the type of the input elements
      * @param n
      *            maximum number of stream elements to preserve
-     * @return a collector which returns a {@code List} containing the least
-     *         n stream elements or less if the stream was shorter.
+     * @return a collector which returns a {@code List} containing the least n
+     *         stream elements or less if the stream was shorter.
      */
     public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> least(int n) {
         return greatest(Comparator.<T> reverseOrder(), n);

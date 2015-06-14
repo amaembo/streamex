@@ -220,7 +220,7 @@ public class IntStreamEx implements IntStream {
      */
     public <K, V> EntryStream<K, V> mapToEntry(IntFunction<? extends K> keyMapper, IntFunction<? extends V> valueMapper) {
         return strategy().newEntryStream(
-                stream.mapToObj(t -> new AbstractMap.SimpleImmutableEntry<>(keyMapper.apply(t), valueMapper.apply(t))));
+            stream.mapToObj(t -> new AbstractMap.SimpleImmutableEntry<>(keyMapper.apply(t), valueMapper.apply(t))));
     }
 
     /**
@@ -1063,7 +1063,7 @@ public class IntStreamEx implements IntStream {
      */
     public byte[] toByteArray() {
         return collectSized(ByteBuffer::new, ByteBuffer::add, ByteBuffer::addAll, ByteBuffer::new,
-                ByteBuffer::addUnsafe).toArray();
+            ByteBuffer::addUnsafe).toArray();
     }
 
     /**
@@ -1078,7 +1078,7 @@ public class IntStreamEx implements IntStream {
      */
     public char[] toCharArray() {
         return collectSized(CharBuffer::new, CharBuffer::add, CharBuffer::addAll, CharBuffer::new,
-                CharBuffer::addUnsafe).toArray();
+            CharBuffer::addUnsafe).toArray();
     }
 
     /**
@@ -1093,7 +1093,7 @@ public class IntStreamEx implements IntStream {
      */
     public short[] toShortArray() {
         return collectSized(ShortBuffer::new, ShortBuffer::add, ShortBuffer::addAll, ShortBuffer::new,
-                ShortBuffer::addUnsafe).toArray();
+            ShortBuffer::addUnsafe).toArray();
     }
 
     /**
@@ -1145,8 +1145,8 @@ public class IntStreamEx implements IntStream {
      */
     public IntStreamEx pairMap(IntBinaryOperator mapper) {
         return strategy().newIntStreamEx(
-                StreamSupport.intStream(new PairSpliterator.PSOfInt(mapper, stream.spliterator(), 0, false, 0, false),
-                        stream.isParallel()).onClose(stream::close));
+            StreamSupport.intStream(new PairSpliterator.PSOfInt(mapper, stream.spliterator(), 0, false, 0, false),
+                stream.isParallel()).onClose(stream::close));
     }
 
     /**
@@ -1809,7 +1809,7 @@ public class IntStreamEx implements IntStream {
      */
     public IntStreamEx skipOrdered(long n) {
         IntStream result = stream.isParallel() ? StreamSupport.intStream(
-                StreamSupport.intStream(stream.spliterator(), false).skip(n).spliterator(), true) : StreamSupport
+            StreamSupport.intStream(stream.spliterator(), false).skip(n).spliterator(), true) : StreamSupport
                 .intStream(stream.skip(n).spliterator(), false);
         return strategy().newIntStreamEx(result.onClose(stream::close));
     }

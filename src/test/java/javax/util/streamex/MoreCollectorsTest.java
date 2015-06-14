@@ -76,7 +76,7 @@ public class MoreCollectorsTest {
         List<String> input = Arrays.asList("a", "bb", "c", "", "cc", "eee", "bb", "ddd");
         for (StreamSupplier<String> supplier : suppliers(() -> StreamEx.of(input))) {
             Map<Integer, String[]> result = supplier.get().groupingBy(String::length, HashMap::new,
-                    MoreCollectors.toArray(String[]::new));
+                MoreCollectors.toArray(String[]::new));
             assertArrayEquals(supplier.toString(), new String[] { "" }, result.get(0));
             assertArrayEquals(supplier.toString(), new String[] { "a", "c" }, result.get(1));
             assertArrayEquals(supplier.toString(), new String[] { "bb", "cc", "bb" }, result.get(2));
@@ -89,7 +89,7 @@ public class MoreCollectorsTest {
         List<String> input = Arrays.asList("a", "bb", "c", "cc", "eee", "bb", "bc", "ddd");
         for (StreamSupplier<String> supplier : suppliers(() -> StreamEx.of(input))) {
             Map<String, Integer> result = supplier.get().groupingBy(s -> s.substring(0, 1), HashMap::new,
-                    MoreCollectors.distinctCount(String::length));
+                MoreCollectors.distinctCount(String::length));
             assertEquals(1, (int) result.get("a"));
             assertEquals(1, (int) result.get("b"));
             assertEquals(2, (int) result.get("c"));
@@ -103,26 +103,25 @@ public class MoreCollectorsTest {
         List<String> input = Arrays.asList("a", "bb", "c", "", "cc", "eee", "bb", "ddd");
         for (StreamSupplier<String> supplier : suppliers(() -> StreamEx.of(input))) {
             assertEquals(supplier.toString(), Arrays.asList("eee", "ddd"),
-                    supplier.get().collect(MoreCollectors.maxAll(Comparator.comparingInt(String::length))));
+                supplier.get().collect(MoreCollectors.maxAll(Comparator.comparingInt(String::length))));
             assertEquals(
-                    supplier.toString(),
-                    1L,
-                    (long) supplier.get().collect(
-                            MoreCollectors.minAll(Comparator.comparingInt(String::length), Collectors.counting())));
+                supplier.toString(),
+                1L,
+                (long) supplier.get().collect(
+                    MoreCollectors.minAll(Comparator.comparingInt(String::length), Collectors.counting())));
             assertEquals(
-                    supplier.toString(),
-                    "eee,ddd",
-                    supplier.get().collect(
-                            MoreCollectors.maxAll(Comparator.comparingInt(String::length), Collectors.joining(","))));
+                supplier.toString(),
+                "eee,ddd",
+                supplier.get().collect(
+                    MoreCollectors.maxAll(Comparator.comparingInt(String::length), Collectors.joining(","))));
             assertEquals(supplier.toString(), Arrays.asList(""),
-                    supplier.get().collect(MoreCollectors.minAll(Comparator.comparingInt(String::length))));
+                supplier.get().collect(MoreCollectors.minAll(Comparator.comparingInt(String::length))));
         }
         assertEquals(Collections.emptyList(),
-                StreamEx.<String> empty().collect(MoreCollectors.maxAll(Comparator.comparingInt(String::length))));
-        assertEquals(
-                Collections.emptyList(),
-                StreamEx.<String> empty().parallel()
-                        .collect(MoreCollectors.maxAll(Comparator.comparingInt(String::length))));
+            StreamEx.<String> empty().collect(MoreCollectors.maxAll(Comparator.comparingInt(String::length))));
+        assertEquals(Collections.emptyList(),
+            StreamEx.<String> empty().parallel()
+                    .collect(MoreCollectors.maxAll(Comparator.comparingInt(String::length))));
 
         List<Integer> ints = IntStreamEx.of(new Random(1), 10000, 1, 1000).boxed().toList();
         List<Integer> expectedMax = null;
@@ -142,18 +141,18 @@ public class MoreCollectorsTest {
             }
         }
         Collector<Integer, ?, SimpleEntry<Integer, Long>> downstream = MoreCollectors.pairing(MoreCollectors.first(),
-                Collectors.counting(), (opt, cnt) -> new AbstractMap.SimpleEntry<>(opt.get(), cnt));
+            Collectors.counting(), (opt, cnt) -> new AbstractMap.SimpleEntry<>(opt.get(), cnt));
 
         for (StreamSupplier<Integer> supplier : suppliers(() -> StreamEx.of(ints))) {
             assertEquals(supplier.toString(), expectedMax,
-                    supplier.get().collect(MoreCollectors.maxAll(Integer::compare)));
+                supplier.get().collect(MoreCollectors.maxAll(Integer::compare)));
 
             SimpleEntry<Integer, Long> entry = supplier.get().collect(MoreCollectors.maxAll(downstream));
             assertEquals(supplier.toString(), expectedMax.size(), (long) entry.getValue());
             assertEquals(supplier.toString(), expectedMax.get(0), entry.getKey());
 
             assertEquals(supplier.toString(), expectedMin,
-                    supplier.get().collect(MoreCollectors.minAll(Integer::compare)));
+                supplier.get().collect(MoreCollectors.minAll(Integer::compare)));
 
             entry = supplier.get().collect(MoreCollectors.minAll(downstream));
             assertEquals(supplier.toString(), expectedMin.size(), (long) entry.getValue());
@@ -180,21 +179,21 @@ public class MoreCollectorsTest {
             assertEquals(supplier.toString(), Arrays.asList(999), supplier.get().collect(MoreCollectors.tail(1)));
             assertEquals(supplier.toString(), Arrays.asList(998, 999), supplier.get().collect(MoreCollectors.tail(2)));
             assertEquals(supplier.toString(), supplier.get().skip(1).toList(),
-                    supplier.get().collect(MoreCollectors.tail(999)));
+                supplier.get().collect(MoreCollectors.tail(999)));
             assertEquals(supplier.toString(), supplier.get().toList(), supplier.get()
                     .collect(MoreCollectors.tail(1000)));
             assertEquals(supplier.toString(), supplier.get().toList(),
-                    supplier.get().collect(MoreCollectors.tail(Integer.MAX_VALUE)));
+                supplier.get().collect(MoreCollectors.tail(Integer.MAX_VALUE)));
 
             assertEquals(supplier.toString(), Arrays.asList(), supplier.get().collect(MoreCollectors.head(0)));
             assertEquals(supplier.toString(), Arrays.asList(0), supplier.get().collect(MoreCollectors.head(1)));
             assertEquals(supplier.toString(), Arrays.asList(0, 1), supplier.get().collect(MoreCollectors.head(2)));
             assertEquals(supplier.toString(), supplier.get().limit(999).toList(),
-                    supplier.get().collect(MoreCollectors.head(999)));
+                supplier.get().collect(MoreCollectors.head(999)));
             assertEquals(supplier.toString(), supplier.get().toList(), supplier.get()
                     .collect(MoreCollectors.head(1000)));
             assertEquals(supplier.toString(), supplier.get().toList(),
-                    supplier.get().collect(MoreCollectors.head(Integer.MAX_VALUE)));
+                supplier.get().collect(MoreCollectors.head(Integer.MAX_VALUE)));
         }
     }
 
@@ -205,24 +204,24 @@ public class MoreCollectorsTest {
         for (StreamSupplier<Integer> supplier : suppliers(() -> StreamEx.of(ints))) {
             assertEquals(supplier.toString(), Collections.emptyList(), supplier.get().collect(MoreCollectors.least(0)));
             assertEquals(supplier.toString(), supplier.get().sorted().limit(5).toList(),
-                    supplier.get().collect(MoreCollectors.least(5)));
+                supplier.get().collect(MoreCollectors.least(5)));
             assertEquals(supplier.toString(), supplier.get().sorted().limit(20).toList(),
-                    supplier.get().collect(MoreCollectors.least(20)));
+                supplier.get().collect(MoreCollectors.least(20)));
             assertEquals(supplier.toString(), supplier.get().sorted(byString).limit(20).toList(), supplier.get()
                     .collect(MoreCollectors.least(byString, 20)));
             assertEquals(supplier.toString(), supplier.get().sorted().toList(),
-                    supplier.get().collect(MoreCollectors.least(Integer.MAX_VALUE)));
+                supplier.get().collect(MoreCollectors.least(Integer.MAX_VALUE)));
 
             assertEquals(supplier.toString(), Collections.emptyList(),
-                    supplier.get().collect(MoreCollectors.greatest(0)));
+                supplier.get().collect(MoreCollectors.greatest(0)));
             assertEquals(supplier.toString(), supplier.get().reverseSorted().limit(5).toList(),
-                    supplier.get().collect(MoreCollectors.greatest(5)));
+                supplier.get().collect(MoreCollectors.greatest(5)));
             assertEquals(supplier.toString(), supplier.get().reverseSorted().limit(20).toList(), supplier.get()
                     .collect(MoreCollectors.greatest(20)));
             assertEquals(supplier.toString(), supplier.get().reverseSorted(byString).limit(20).toList(), supplier.get()
                     .collect(MoreCollectors.greatest(byString, 20)));
             assertEquals(supplier.toString(), supplier.get().reverseSorted().toList(),
-                    supplier.get().collect(MoreCollectors.greatest(Integer.MAX_VALUE)));
+                supplier.get().collect(MoreCollectors.greatest(Integer.MAX_VALUE)));
         }
     }
 }

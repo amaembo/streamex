@@ -884,7 +884,8 @@ import static javax.util.streamex.StreamExInternals.*;
      * processed in parallel.
      * 
      * <p>
-     * For sequential streams this method behaves exactly like {@link #skip(long)}.
+     * For sequential streams this method behaves exactly like
+     * {@link #skip(long)}.
      *
      * @param n
      *            the number of leading elements to skip
