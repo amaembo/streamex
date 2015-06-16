@@ -1135,9 +1135,9 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * This is a quasi-intermediate operation.
      * 
      * @param sameGroup
-     *            a non-interfering, stateless, transitive predicate to apply to
-     *            the pair of elements which returns true for elements which
-     *            belong to the same group.
+     *            a non-interfering, stateless predicate to apply to the pair of
+     *            adjacent elements which returns true for elements which belong
+     *            to the same group.
      * @return the new stream
      * @since 0.3.1
      */
@@ -1150,6 +1150,42 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             a.addAll(b);
             return a;
         });
+    }
+
+    /**
+     * Returns a stream consisting of results of applying the given function to
+     * the intervals created from the source elements.
+     * 
+     * <p>
+     * This is a quasi-intermediate operation. This operation is the same as
+     * {@code groupRuns(sameInterval).map(list -> mapper.apply(list.get(0), list.get(list.size()-1)))}
+     * , but has less overhead as only first and last elements of each interval
+     * are tracked.
+     * 
+     * @param <U>
+     *            the type of the resulting elements
+     * @param sameInterval
+     *            a non-interfering, stateless predicate to apply to the pair of
+     *            adjacent elements which returns true for elements which belong
+     *            to the same interval.
+     * @param mapper
+     *            a non-interfering, stateless function to apply to the interval
+     *            borders and produce the resulting element. If value was not
+     *            merged to the interval, then mapper will receive the same
+     *            value twice, otherwise it will receive the leftmost and the
+     *            rightmost values which were merged to the interval.
+     *            Intermediate interval elements are not available to the
+     *            mapper. If they are important, consider using
+     *            {@link #groupRuns(BiPredicate)} and map afterwards.
+     * @return the new stream
+     * @see #collapse(BiPredicate, BinaryOperator)
+     * @see #groupRuns(BiPredicate)
+     * @since 0.3.3
+     */
+    public <U> StreamEx<U> intervalMap(BiPredicate<T, T> sameInterval, BiFunction<T, T, U> mapper) {
+        return map(PairBox::single).collapse((left, right) -> sameInterval.test(PairBox.select(left), right.a),
+            (left, right) -> new PairBox<>(left.a, PairBox.select(right))).map(
+            pair -> mapper.apply(pair.a, PairBox.select(pair)));
     }
 
     /**
