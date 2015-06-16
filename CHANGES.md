@@ -1,5 +1,9 @@
 # StreamEx changes
 
+### 0.3.3
+
+* Added `StreamEx.intervalMap` method
+
 ### 0.3.2
 
 * Added `MoreCollectors` class: several useful collectors absent in JDK
