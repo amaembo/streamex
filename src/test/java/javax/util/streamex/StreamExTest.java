@@ -854,6 +854,10 @@ public class StreamExTest {
             int[] input = IntStreamEx.of(r, size, 0, size * 3 / 2 + 2).toArray();
             String result = IntStreamEx.of(input).sorted().boxed().distinct().map(Interval::new)
                     .collapse(Interval::adjacent, Interval::merge).joining(" & ");
+            String resultIntervalMap = IntStreamEx.of(input).sorted().boxed().distinct()
+                    .intervalMap((a, b) -> b - a == 1, Interval::new).joining(" & ");
+            String resultIntervalMapParallel = IntStreamEx.of(input).sorted().boxed().distinct()
+                    .intervalMap((a, b) -> b - a == 1, Interval::new).parallel().joining(" & ");
             String resultParallel = IntStreamEx.of(input).parallel().sorted().boxed().distinct().map(Interval::new)
                     .collapse(Interval::adjacent, Interval::merge).joining(" & ");
             String resultParallel2 = IntStreamEx.of(input).sorted().boxed().distinct().map(Interval::new)
@@ -880,6 +884,8 @@ public class StreamExTest {
             assertEquals(expectedStr, result);
             assertEquals(expectedStr, resultParallel);
             assertEquals(expectedStr, resultParallel2);
+            assertEquals(expectedStr, resultIntervalMap);
+            assertEquals(expectedStr, resultIntervalMapParallel);
         }
     }
 
@@ -942,5 +948,18 @@ public class StreamExTest {
             expected.add(last);
         assertEquals(expected, res1);
         assertEquals(expected, res1p);
+    }
+
+    @Test
+    public void testIntervalMapString() {
+        int[] input = { 1, 5, 2, 10, 8, 11, 7, 15, 6, 5 };
+        String res = IntStreamEx
+                .of(input)
+                .boxed()
+                .distinct()
+                .sorted()
+                .intervalMap((i, j) -> j == i + 1,
+                    (i, j) -> j == i ? i.toString() : j == i + 1 ? i + "," + j : i + ".." + j).joining(",");
+        assertEquals("1,2,5..8,10,11,15", res);
     }
 }
