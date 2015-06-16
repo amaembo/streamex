@@ -1,10 +1,11 @@
 # StreamEx
 Enhancing Java 8 Streams.
 
-This library defines four classes: StreamEx, IntStreamEx, LongStreamEx, DoubleStreamEx
+This library defines four classes: `StreamEx`, `IntStreamEx`, `LongStreamEx`, `DoubleStreamEx`
 which are fully compatible with Java 8 stream classes and provide many additional useful methods.
-Also EntryStream class is provided which represents the stream of map entries and provides
-additional functionality for this case.
+Also `EntryStream` class is provided which represents the stream of map entries and provides
+additional functionality for this case. Finally there are some new useful collectors defined in `MoreCollectors`
+class as well as primitive collectors concept. 
 
 ### Examples
 
@@ -70,6 +71,11 @@ public Map<String, List<User>> getGroupMembers(Collection<String> groupNames) {
     return StreamEx.of(groupNames).mapToEntry(nameToGroup::get)
         .nonNullValues().mapValues(Group::getMembers).toMap();
 }
+```
+
+Pairwise differences:
+```java
+DoubleStreamEx.of(input).pairMap((a, b) -> b-a).toArray();
 ```
 
 And more!
