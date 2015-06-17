@@ -410,6 +410,7 @@ public class StreamExTest {
     public void testMaxBy() {
         List<String> data = Arrays.asList("a", "bbb", "cc");
         assertEquals("bbb", StreamEx.of(data).maxByInt(String::length).get());
+        assertEquals("bbb", StreamEx.of(data).maxByInt2(String::length).get());
         assertEquals("bbb", StreamEx.of(data).maxByLong(String::length).get());
         assertEquals("bbb", StreamEx.of(data).maxByDouble(String::length).get());
         assertEquals("bbb", StreamEx.of(data).maxBy(s -> s.length()).get());

@@ -22,6 +22,7 @@ import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
 import java.util.Map.Entry;
 import java.util.function.BiConsumer;
@@ -505,11 +506,11 @@ import java.util.stream.Stream;
         }
     }
 
-    static final class Box<A> {
-        A obj;
+    static class Box<A> {
+        A a;
 
         Box(A obj) {
-            this.obj = obj;
+            this.a = obj;
         }
 
         static <A> Supplier<Box<A>> supplier(Supplier<A> supplier) {
@@ -517,20 +518,23 @@ import java.util.stream.Stream;
         }
 
         static <A> BiConsumer<Box<A>, Box<A>> combiner(BinaryOperator<A> combiner) {
-            return (box1, box2) -> box1.obj = combiner.apply(box1.obj, box2.obj);
+            return (box1, box2) -> box1.a = combiner.apply(box1.a, box2.a);
         }
 
         static <A, R> Function<Box<A>, R> finisher(Function<A, R> finisher) {
-            return box -> finisher.apply(box.obj);
+            return box -> finisher.apply(box.a);
+        }
+        
+        static <A> Optional<A> asOptional(Box<A> box) {
+            return box == null ? Optional.empty() : Optional.of(box.a);  
         }
     }
 
-    static final class PairBox<A, B> {
-        A a;
+    static final class PairBox<A, B> extends Box<A> {
         B b;
 
         PairBox(A a, B b) {
-            this.a = a;
+            super(a);
             this.b = b;
         }
         
@@ -544,12 +548,11 @@ import java.util.stream.Stream;
         }
     }
     
-    static final class ObjIntBox<A> implements Entry<Integer, A> {
-        A a;
+    static final class ObjIntBox<A> extends Box<A> implements Entry<Integer, A> {
         int b;
         
         ObjIntBox(A a, int b) {
-            this.a = a;
+            super(a);
             this.b = b;
         }
 
@@ -568,7 +571,25 @@ import java.util.stream.Stream;
             throw new UnsupportedOperationException();
         }
     }
+    
+    static final class ObjLongBox<A> extends Box<A> {
+        long b;
+        
+        ObjLongBox(A a, long b) {
+            super(a);
+            this.b = b;
+        }
+    }
 
+    static final class ObjDoubleBox<A> extends Box<A> {
+        double b;
+        
+        ObjDoubleBox(A a, double b) {
+            super(a);
+            this.b = b;
+        }
+    }
+    
     static ObjIntConsumer<StringBuilder> joinAccumulatorInt(CharSequence delimiter) {
         return (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i);
     }

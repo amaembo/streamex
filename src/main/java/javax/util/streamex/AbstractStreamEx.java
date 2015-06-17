@@ -543,6 +543,19 @@ import static javax.util.streamex.StreamExInternals.*;
         return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? b : a);
     }
 
+    public Optional<T> minByInt2(ToIntFunction<? super T> keyExtractor) {
+        return Box.asOptional(reduce(null, (ObjIntBox<T> acc, T t) -> {
+            if(acc == null)
+                return new ObjIntBox<>(t, keyExtractor.applyAsInt(t));
+            int val = keyExtractor.applyAsInt(t);
+            if(val < acc.b) {
+                acc.b = val;
+                acc.a = t;
+            }
+            return acc;
+        }, (acc1, acc2) -> (acc1 == null || acc2 != null && acc1.b > acc2.b) ? acc2 : acc1));
+    }
+    
     public Optional<T> minByLong(ToLongFunction<? super T> keyExtractor) {
         return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? b : a);
     }
@@ -560,6 +573,19 @@ import static javax.util.streamex.StreamExInternals.*;
         return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? a : b);
     }
 
+    public Optional<T> maxByInt2(ToIntFunction<? super T> keyExtractor) {
+        return Box.asOptional(reduce(null, (ObjIntBox<T> acc, T t) -> {
+            if(acc == null)
+                return new ObjIntBox<>(t, keyExtractor.applyAsInt(t));
+            int val = keyExtractor.applyAsInt(t);
+            if(val > acc.b) {
+                acc.b = val;
+                acc.a = t;
+            }
+            return acc;
+        }, (acc1, acc2) -> (acc1 == null || acc2 != null && acc1.b < acc2.b) ? acc2 : acc1));
+    }
+    
     public Optional<T> maxByLong(ToLongFunction<? super T> keyExtractor) {
         return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? a : b);
     }
@@ -731,8 +757,8 @@ import static javax.util.streamex.StreamExInternals.*;
      */
     public <U> U foldLeft(U identity, BiFunction<U, ? super T, U> accumulator) {
         Box<U> result = new Box<>(identity);
-        forEachOrdered(t -> result.obj = accumulator.apply(result.obj, t));
-        return result.obj;
+        forEachOrdered(t -> result.a = accumulator.apply(result.a, t));
+        return result.a;
     }
 
     /**
