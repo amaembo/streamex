@@ -61,8 +61,9 @@ import static javax.util.streamex.StreamExInternals.*;
  *            the type of {@code Entry} values
  */
 public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream<K, V>> {
-    EntryStream(Stream<Entry<K, V>> stream) {
-        super(stream);
+    @SuppressWarnings("unchecked")
+    EntryStream(Stream<? extends Entry<K, V>> stream) {
+        super((Stream<Entry<K, V>>)stream);
     }
 
     @Override
@@ -963,7 +964,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      *            original stream
      * @return the wrapped stream
      */
-    public static <K, V> EntryStream<K, V> of(Stream<Entry<K, V>> stream) {
+    public static <K, V> EntryStream<K, V> of(Stream<? extends Entry<K, V>> stream) {
         return new EntryStream<>(unwrap(stream));
     }
 
