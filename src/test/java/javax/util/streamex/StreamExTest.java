@@ -42,6 +42,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.function.IntPredicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -961,5 +962,50 @@ public class StreamExTest {
                 .intervalMap((i, j) -> j == i + 1,
                     (i, j) -> j == i ? i.toString() : j == i + 1 ? i + "," + j : i + ".." + j).joining(",");
         assertEquals("1,2,5..8,10,11,15", res);
+    }
+    
+    @Test
+    public void testRunLenghts() {
+        int[] input = { 1, 2, 2, 4, 2, 1, 1, 1 };
+        String res = IntStreamEx.of(input).boxed().runLengths().join(": ").joining(", ");
+        String resParallel = IntStreamEx.of(input).parallel().boxed().runLengths().join(": ").joining(", ");
+        assertEquals("1: 1, 2: 2, 4: 1, 2: 1, 1: 3", res);
+        assertEquals("1: 1, 2: 2, 4: 1, 2: 1, 1: 3", resParallel);
+    }
+    
+    @Test
+    public void testRunLengthsSorted() {
+        int[] input = IntStreamEx.of(new Random(1), 1000, 1, 20).toArray();
+        Map<Integer, Long> expected = IntStreamEx.of(input).collect(IntCollector.groupingBy(Integer::valueOf, IntCollector.counting()));
+        Map<Integer, Long> res = IntStreamEx.of(input).sorted().boxed().runLengths().toMap();
+        Map<Integer, Long> resParallel = IntStreamEx.of(input).parallel().sorted().boxed().runLengths().toMap();
+        assertEquals(expected, res);
+        assertEquals(expected, resParallel);
+    }
+    
+    private long segmentLength(IntStreamEx source, IntPredicate predicate) {
+        return source.mapToObj(predicate::test).runLengths().removeKeys(Boolean.FALSE::equals)
+                .mapToLong(Entry::getValue).max().orElse(0);
+    }
+    
+    @Test
+    public void testSegmentLength() {
+        int[] input = IntStreamEx.of(new Random(1), 1000, -10, 100).toArray();
+        // get maximal count of consecutive positive numbers
+        long res = segmentLength(IntStreamEx.of(input), x -> x > 0);
+        long resParallel = segmentLength(IntStreamEx.of(input).parallel(), x -> x > 0);
+        long expected = 0;
+        long cur = 0;
+        for(int i=0; i<input.length-1; i++) {
+            if(input[i] > 0 && input[i+1] > 0)
+                cur++;
+            else {
+                if(cur > expected)
+                    expected = cur;
+                cur = 1;
+            }
+        }
+        assertEquals(expected, res);
+        assertEquals(expected, resParallel);
     }
 }

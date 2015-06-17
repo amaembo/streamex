@@ -19,6 +19,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.UncheckedIOException;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -1113,8 +1114,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * This is a quasi-intermediate operation.
      * 
      * <p>
-     * {@code stream.sorted().collapse(Objects::equals)} is equivalent to
-     * {@code stream.sorted().distinct()}.
+     * For sorted stream {@code collapse(Objects::equals)} is equivalent to
+     * {@code distinct()}.
      * 
      * @param collapsible
      *            a non-interfering, stateless, transitive predicate to apply to
@@ -1125,6 +1126,29 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public StreamEx<T> collapse(BiPredicate<T, T> collapsible) {
         return collapse(collapsible, selectFirst());
+    }
+
+    /**
+     * Collapses adjacent equal elements and returns an {@link EntryStream}
+     * where keys are input elements and values specify how many elements were
+     * collapsed.
+     * 
+     * <p>
+     * This is a quasi-intermediate operation.
+     * 
+     * <p>
+     * For sorted input {@code runLengths().toMap()} is the same as
+     * {@code groupingBy(Function.identity(), Collectors.counting())}, but may
+     * perform faster. For unsorted input the resulting stream may contain
+     * repeating keys.
+     * 
+     * @return the new stream
+     * @since 0.3.3
+     */
+    public EntryStream<T, Long> runLengths() {
+        return EntryStream.of(map(t -> new AbstractMap.SimpleEntry<>(t, 1L)).collapse(
+            (e1, e2) -> Objects.equals(e1.getKey(), e2.getKey()),
+            (e1, e2) -> new AbstractMap.SimpleEntry<>(e1.getKey(), e1.getValue() + e2.getValue())));
     }
 
     /**
