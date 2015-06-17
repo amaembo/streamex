@@ -1686,4 +1686,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public static <T, TT extends T> StreamEx<T> ofTree(T root, Class<TT> collectionClass, Function<TT, Stream<T>> mapper) {
         return ofTree(root, t -> collectionClass.isInstance(t) ? mapper.apply((TT) t) : null);
     }
+
+    public static <T> StreamEx<List<T>> ofSubLists(List<T> source, int length) {
+        int size = source.size();
+        return IntStreamEx.range(0, (size + length - 1) / length).mapToObj(
+            n -> source.subList(n * length, Math.min(size, (n + 1) * length)));
+    }
 }
