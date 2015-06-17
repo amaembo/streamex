@@ -114,6 +114,21 @@ public final class MoreCollectors {
     }
 
     /**
+     * Returns a {@code Collector} accepting elements of type {@code T} that
+     * counts the number of input elements and returns result as {@code Integer}
+     * . If no elements are present, the result is 0.
+     *
+     * @param <T>
+     *            the type of the input elements
+     * @return a {@code Collector} that counts the input elements
+     * @since 0.3.3
+     * @see Collectors#counting()
+     */
+    public static <T> Collector<T, ?, Integer> countingInt() {
+        return Collectors.reducing(0, t -> 1, Integer::sum);
+    }
+
+    /**
      * Returns a {@code Collector} which aggregates the results of two supplied
      * collectors using the supplied finisher function.
      * 
