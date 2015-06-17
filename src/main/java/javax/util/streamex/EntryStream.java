@@ -80,31 +80,6 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return entry -> mapper.apply(entry.getKey(), entry.getValue());
     }
 
-    static class IndexEntry<V> implements Entry<Integer, V> {
-        int index;
-        V value;
-
-        IndexEntry(int index, V value) {
-            this.index = index;
-            this.value = value;
-        }
-
-        @Override
-        public Integer getKey() {
-            return index;
-        }
-
-        @Override
-        public V getValue() {
-            return value;
-        }
-
-        @Override
-        public V setValue(V value) {
-            throw new UnsupportedOperationException();
-        }
-    }
-
     @Override
     public EntryStream<K, V> sequential() {
         return StreamFactory.DEFAULT.newEntryStream(stream.sequential());
@@ -1001,7 +976,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.3
      */
     public static <V> EntryStream<Integer, V> of(List<V> list) {
-        return EntryStream.of(IntStream.range(0, list.size()).mapToObj(i -> new IndexEntry<>(i, list.get(i))));
+        return EntryStream.of(IntStream.range(0, list.size()).mapToObj(i -> new ObjIntBox<>(list.get(i), i)));
     }
 
     /**
@@ -1016,7 +991,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.3
      */
     public static <V> EntryStream<Integer, V> of(V[] array) {
-        return EntryStream.of(IntStream.range(0, array.length).mapToObj(i -> new IndexEntry<>(i, array[i])));
+        return EntryStream.of(IntStream.range(0, array.length).mapToObj(i -> new ObjIntBox<>(array[i], i)));
     }
 
     /**

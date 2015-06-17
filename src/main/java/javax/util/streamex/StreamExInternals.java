@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
@@ -540,6 +541,31 @@ import java.util.stream.Stream;
         @SuppressWarnings("unchecked")
         static <T> PairBox<T, T> single(T a) {
             return new PairBox<>(a, (T) NONE);
+        }
+    }
+    
+    static final class ObjIntBox<A> implements Entry<Integer, A> {
+        A a;
+        int b;
+        
+        ObjIntBox(A a, int b) {
+            this.a = a;
+            this.b = b;
+        }
+
+        @Override
+        public Integer getKey() {
+            return b;
+        }
+
+        @Override
+        public A getValue() {
+            return a;
+        }
+
+        @Override
+        public A setValue(A value) {
+            throw new UnsupportedOperationException();
         }
     }
 
