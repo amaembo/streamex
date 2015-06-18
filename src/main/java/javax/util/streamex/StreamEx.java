@@ -1151,6 +1151,14 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             (e1, e2) -> new AbstractMap.SimpleEntry<>(e1.getKey(), e1.getValue() + e2.getValue())));
     }
 
+    public EntryStream<T, Long> runLengths2() {
+        return EntryStream.of(map(t -> new ObjLongBox<>(t, 1L)).collapse(
+            (e1, e2) -> Objects.equals(e1.getKey(), e2.getKey()), (e1, e2) -> {
+                e1.b += e2.b;
+                return e1;
+            }));
+    }
+    
     /**
      * Returns a stream consisting of lists of elements of this stream where
      * adjacent elements are grouped according to supplied predicate.

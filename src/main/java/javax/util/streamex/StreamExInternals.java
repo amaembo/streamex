@@ -573,12 +573,27 @@ import java.util.stream.Stream;
         }
     }
     
-    static final class ObjLongBox<A> extends Box<A> {
+    static final class ObjLongBox<A> extends Box<A> implements Entry<A, Long> {
         long b;
         
         ObjLongBox(A a, long b) {
             super(a);
             this.b = b;
+        }
+
+        @Override
+        public A getKey() {
+            return a;
+        }
+
+        @Override
+        public Long getValue() {
+            return b;
+        }
+
+        @Override
+        public Long setValue(Long value) {
+            throw new UnsupportedOperationException();
         }
     }
 
