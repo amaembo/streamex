@@ -407,23 +407,9 @@ public class StreamExTest {
     }
     
     @Test
-    public void testMinBy2() {
-        Random r = new Random(1);
-        List<java.awt.Point> input = StreamEx.generate(() -> new java.awt.Point(r.nextInt(1000), r.nextInt(1000))).limit(1000).toList();
-        java.awt.Point p = new java.awt.Point(r.nextInt(1000), r.nextInt(1000));
-        assertEquals(StreamEx.of(input).minByDouble(p::distance), StreamEx.of(input).minByDouble2(p::distance));
-        assertEquals(StreamEx.of(input).minByDouble(p::distance), StreamEx.of(input).parallel().minByDouble2(p::distance));
-        input.addAll(Arrays.asList(new java.awt.Point(1,0),new java.awt.Point(0,1),new java.awt.Point(-1,0),new java.awt.Point(0,-1)));
-        p = new java.awt.Point(0,0);
-        assertEquals(new java.awt.Point(1,0), StreamEx.of(input).minByDouble2(p::distance).get());
-        assertEquals(new java.awt.Point(1,0), StreamEx.of(input).parallel().minByDouble2(p::distance).get());
-    }
-
-    @Test
     public void testMaxBy() {
         List<String> data = Arrays.asList("a", "bbb", "cc");
         assertEquals("bbb", StreamEx.of(data).maxByInt(String::length).get());
-        assertEquals("bbb", StreamEx.of(data).maxByInt2(String::length).get());
         assertEquals("bbb", StreamEx.of(data).maxByLong(String::length).get());
         assertEquals("bbb", StreamEx.of(data).maxByDouble(String::length).get());
         assertEquals("bbb", StreamEx.of(data).maxBy(s -> s.length()).get());

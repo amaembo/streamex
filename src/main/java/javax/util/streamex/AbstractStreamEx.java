@@ -536,14 +536,19 @@ import static javax.util.streamex.StreamExInternals.*;
     }
 
     public <V extends Comparable<? super V>> Optional<T> minBy(Function<? super T, ? extends V> keyExtractor) {
-        return reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? b : a);
+        return Box.asOptional(reduce(null, (PairBox<T, V> acc, T t) -> {
+            if(acc == null)
+                return new PairBox<>(t, keyExtractor.apply(t));
+            V val = keyExtractor.apply(t);
+            if(val.compareTo(acc.b) < 0) {
+                acc.b = val;
+                acc.a = t;
+            }
+            return acc;
+        }, (PairBox<T, V> acc1, PairBox<T, V> acc2) -> (acc1 == null || acc2 != null && acc1.b.compareTo(acc2.b) > 0) ? acc2 : acc1));
     }
 
     public Optional<T> minByInt(ToIntFunction<? super T> keyExtractor) {
-        return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? b : a);
-    }
-
-    public Optional<T> minByInt2(ToIntFunction<? super T> keyExtractor) {
         return Box.asOptional(reduce(null, (ObjIntBox<T> acc, T t) -> {
             if(acc == null)
                 return new ObjIntBox<>(t, keyExtractor.applyAsInt(t));
@@ -553,19 +558,23 @@ import static javax.util.streamex.StreamExInternals.*;
                 acc.a = t;
             }
             return acc;
-        }, (acc1, acc2) -> (acc1 == null || acc2 != null && acc1.b > acc2.b) ? acc2 : acc1));
+        }, (ObjIntBox<T> acc1, ObjIntBox<T> acc2) -> (acc1 == null || acc2 != null && acc1.b > acc2.b) ? acc2 : acc1));
     }
     
     public Optional<T> minByLong(ToLongFunction<? super T> keyExtractor) {
-        return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? b : a);
+        return Box.asOptional(reduce(null, (ObjLongBox<T> acc, T t) -> {
+            if(acc == null)
+                return new ObjLongBox<>(t, keyExtractor.applyAsLong(t));
+            long val = keyExtractor.applyAsLong(t);
+            if(val < acc.b) {
+                acc.b = val;
+                acc.a = t;
+            }
+            return acc;
+        }, (ObjLongBox<T> acc1, ObjLongBox<T> acc2) -> (acc1 == null || acc2 != null && acc1.b > acc2.b) ? acc2 : acc1));
     }
 
     public Optional<T> minByDouble(ToDoubleFunction<? super T> keyExtractor) {
-        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? b
-                : a);
-    }
-
-    public Optional<T> minByDouble2(ToDoubleFunction<? super T> keyExtractor) {
         return Box.asOptional(reduce(null, (ObjDoubleBox<T> acc, T t) -> {
             if(acc == null)
                 return new ObjDoubleBox<>(t, keyExtractor.applyAsDouble(t));
@@ -575,18 +584,23 @@ import static javax.util.streamex.StreamExInternals.*;
                 acc.a = t;
             }
             return acc;
-        }, (acc1, acc2) -> (acc1 == null || acc2 != null && Double.compare(acc1.b, acc2.b) > 0) ? acc2 : acc1));
+        }, (ObjDoubleBox<T> acc1, ObjDoubleBox<T> acc2) -> (acc1 == null || acc2 != null && Double.compare(acc1.b, acc2.b) > 0) ? acc2 : acc1));
     }
     
     public <V extends Comparable<? super V>> Optional<T> maxBy(Function<? super T, ? extends V> keyExtractor) {
-        return reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? a : b);
+        return Box.asOptional(reduce(null, (PairBox<T, V> acc, T t) -> {
+            if(acc == null)
+                return new PairBox<>(t, keyExtractor.apply(t));
+            V val = keyExtractor.apply(t);
+            if(val.compareTo(acc.b) > 0) {
+                acc.b = val;
+                acc.a = t;
+            }
+            return acc;
+        }, (PairBox<T, V> acc1, PairBox<T, V> acc2) -> (acc1 == null || acc2 != null && acc1.b.compareTo(acc2.b) < 0) ? acc2 : acc1));
     }
 
     public Optional<T> maxByInt(ToIntFunction<? super T> keyExtractor) {
-        return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? a : b);
-    }
-
-    public Optional<T> maxByInt2(ToIntFunction<? super T> keyExtractor) {
         return Box.asOptional(reduce(null, (ObjIntBox<T> acc, T t) -> {
             if(acc == null)
                 return new ObjIntBox<>(t, keyExtractor.applyAsInt(t));
@@ -596,16 +610,33 @@ import static javax.util.streamex.StreamExInternals.*;
                 acc.a = t;
             }
             return acc;
-        }, (acc1, acc2) -> (acc1 == null || acc2 != null && acc1.b < acc2.b) ? acc2 : acc1));
+        }, (ObjIntBox<T> acc1, ObjIntBox<T> acc2) -> (acc1 == null || acc2 != null && acc1.b < acc2.b) ? acc2 : acc1));
     }
     
     public Optional<T> maxByLong(ToLongFunction<? super T> keyExtractor) {
-        return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? a : b);
+        return Box.asOptional(reduce(null, (ObjLongBox<T> acc, T t) -> {
+            if(acc == null)
+                return new ObjLongBox<>(t, keyExtractor.applyAsLong(t));
+            long val = keyExtractor.applyAsLong(t);
+            if(val > acc.b) {
+                acc.b = val;
+                acc.a = t;
+            }
+            return acc;
+        }, (ObjLongBox<T> acc1, ObjLongBox<T> acc2) -> (acc1 == null || acc2 != null && acc1.b < acc2.b) ? acc2 : acc1));
     }
 
     public Optional<T> maxByDouble(ToDoubleFunction<? super T> keyExtractor) {
-        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? a
-                : b);
+        return Box.asOptional(reduce(null, (ObjDoubleBox<T> acc, T t) -> {
+            if(acc == null)
+                return new ObjDoubleBox<>(t, keyExtractor.applyAsDouble(t));
+            double val = keyExtractor.applyAsDouble(t);
+            if(Double.compare(val,acc.b) > 0) {
+                acc.b = val;
+                acc.a = t;
+            }
+            return acc;
+        }, (ObjDoubleBox<T> acc1, ObjDoubleBox<T> acc2) -> (acc1 == null || acc2 != null && Double.compare(acc1.b, acc2.b) < 0) ? acc2 : acc1));
     }
 
     /**
