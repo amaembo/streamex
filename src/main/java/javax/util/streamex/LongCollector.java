@@ -176,7 +176,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * @return a {@code LongCollector} that counts the input elements
      */
     static LongCollector<?, Long> counting() {
-        return of(() -> new long[1], (box, i) -> box[0]++, SUM_LONG, UNBOX_LONG);
+        return of(LONG_BOX, (box, i) -> box[0]++, SUM_LONG, UNBOX_LONG);
     }
 
     /**
@@ -187,7 +187,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      *         elements
      */
     static LongCollector<?, Long> summing() {
-        return of(() -> new long[1], (box, i) -> box[0] += i, SUM_LONG, UNBOX_LONG);
+        return of(LONG_BOX, (box, i) -> box[0] += i, SUM_LONG, UNBOX_LONG);
     }
 
     /**

@@ -175,7 +175,7 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
      * @return a {@code DoubleCollector} that counts the input elements
      */
     static DoubleCollector<?, Long> counting() {
-        return of(() -> new long[1], (box, i) -> box[0]++, SUM_LONG, UNBOX_LONG);
+        return of(LONG_BOX, (box, i) -> box[0]++, SUM_LONG, UNBOX_LONG);
     }
 
     /**
