@@ -360,11 +360,41 @@ import static javax.util.streamex.StreamExInternals.*;
         return stream.collect(collector);
     }
 
+    /**
+     * Returns the minimum element of this stream according to the provided
+     * {@code Comparator}. This is a special case of a reduction.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param comparator
+     *            a non-interfering, stateless {@code Comparator} to compare
+     *            elements of this stream
+     * @return an {@code Optional} describing the minimum element of this
+     *         stream, or an empty {@code Optional} if the stream is empty
+     * @throws NullPointerException
+     *             if the minimum element is null
+     */
     @Override
     public Optional<T> min(Comparator<? super T> comparator) {
         return reduce(BinaryOperator.minBy(comparator));
     }
 
+    /**
+     * Returns the maximum element of this stream according to the provided
+     * {@code Comparator}. This is a special case of a reduction.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param comparator
+     *            a non-interfering, stateless {@code Comparator} to compare
+     *            elements of this stream
+     * @return an {@code Optional} describing the maximum element of this
+     *         stream, or an empty {@code Optional} if the stream is empty
+     * @throws NullPointerException
+     *             if the maximum element is null
+     */
     @Override
     public Optional<T> max(Comparator<? super T> comparator) {
         return reduce(BinaryOperator.maxBy(comparator));
@@ -535,38 +565,296 @@ import static javax.util.streamex.StreamExInternals.*;
         return sorted(Comparator.comparingDouble(keyExtractor));
     }
 
+    /**
+     * Returns the minimum element of this stream according to the natural order
+     * of the keys extracted by provided function. This is a special case of a
+     * reduction.
+     *
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * This method is equivalent to
+     * {@code min(Comparator.comparing(keyExtractor))}, but may work faster as
+     * keyExtractor function is applied only once per each input element.
+     *
+     * @param <V>
+     *            the type of the comparable keys
+     * @param keyExtractor
+     *            a non-interfering, stateless function to extract the
+     *            comparable keys from this stream elements
+     * @return an {@code Optional} describing the minimum element of this
+     *         stream, or an empty {@code Optional} if the stream is empty
+     * @throws NullPointerException
+     *             if the minimum element is null
+     */
     public <V extends Comparable<? super V>> Optional<T> minBy(Function<? super T, ? extends V> keyExtractor) {
-        return reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? b : a);
+        return Box
+                .asOptional(reduce(
+                    null,
+                    (PairBox<T, V> acc, T t) -> {
+                        V val = keyExtractor.apply(t);
+                        if (acc == null)
+                            return new PairBox<>(t, val);
+                        if (val.compareTo(acc.b) < 0) {
+                            acc.b = val;
+                            acc.a = t;
+                        }
+                        return acc;
+                    },
+                    (PairBox<T, V> acc1, PairBox<T, V> acc2) -> (acc1 == null || acc2 != null
+                        && acc1.b.compareTo(acc2.b) > 0) ? acc2 : acc1));
     }
 
+    /**
+     * Returns the minimum element of this stream according to the int values
+     * extracted by provided function. This is a special case of a reduction.
+     *
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * This method is equivalent to
+     * {@code min(Comparator.comparingInt(keyExtractor))}, but may work faster
+     * as keyExtractor function is applied only once per each input element.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function to extract the int keys
+     *            from this stream elements
+     * @return an {@code Optional} describing the minimum element of this
+     *         stream, or an empty {@code Optional} if the stream is empty
+     * @throws NullPointerException
+     *             if the minimum element is null
+     */
     public Optional<T> minByInt(ToIntFunction<? super T> keyExtractor) {
-        return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? b : a);
+        return Box.asOptional(reduce(null, (ObjIntBox<T> acc, T t) -> {
+            int val = keyExtractor.applyAsInt(t);
+            if (acc == null)
+                return new ObjIntBox<>(t, val);
+            if (val < acc.b) {
+                acc.b = val;
+                acc.a = t;
+            }
+            return acc;
+        }, (ObjIntBox<T> acc1, ObjIntBox<T> acc2) -> (acc1 == null || acc2 != null && acc1.b > acc2.b) ? acc2 : acc1));
     }
 
+    /**
+     * Returns the minimum element of this stream according to the long values
+     * extracted by provided function. This is a special case of a reduction.
+     *
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * This method is equivalent to
+     * {@code min(Comparator.comparingLong(keyExtractor))}, but may work faster
+     * as keyExtractor function is applied only once per each input element.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function to extract the long keys
+     *            from this stream elements
+     * @return an {@code Optional} describing the minimum element of this
+     *         stream, or an empty {@code Optional} if the stream is empty
+     * @throws NullPointerException
+     *             if the minimum element is null
+     */
     public Optional<T> minByLong(ToLongFunction<? super T> keyExtractor) {
-        return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? b : a);
+        return Box
+                .asOptional(reduce(null, (ObjLongBox<T> acc, T t) -> {
+                    long val = keyExtractor.applyAsLong(t);
+                    if (acc == null)
+                        return new ObjLongBox<>(t, val);
+                    if (val < acc.b) {
+                        acc.b = val;
+                        acc.a = t;
+                    }
+                    return acc;
+                }, (ObjLongBox<T> acc1, ObjLongBox<T> acc2) -> (acc1 == null || acc2 != null && acc1.b > acc2.b) ? acc2
+                        : acc1));
     }
 
+    /**
+     * Returns the minimum element of this stream according to the double values
+     * extracted by provided function. This is a special case of a reduction.
+     *
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * This method is equivalent to
+     * {@code min(Comparator.comparingDouble(keyExtractor))}, but may work faster
+     * as keyExtractor function is applied only once per each input element.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function to extract the double keys
+     *            from this stream elements
+     * @return an {@code Optional} describing the minimum element of this
+     *         stream, or an empty {@code Optional} if the stream is empty
+     * @throws NullPointerException
+     *             if the minimum element is null
+     */
     public Optional<T> minByDouble(ToDoubleFunction<? super T> keyExtractor) {
-        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? b
-                : a);
+        return Box.asOptional(reduce(
+            null,
+            (ObjDoubleBox<T> acc, T t) -> {
+                double val = keyExtractor.applyAsDouble(t);
+                if (acc == null)
+                    return new ObjDoubleBox<>(t, val);
+                if (Double.compare(val, acc.b) < 0) {
+                    acc.b = val;
+                    acc.a = t;
+                }
+                return acc;
+            },
+            (ObjDoubleBox<T> acc1, ObjDoubleBox<T> acc2) -> (acc1 == null || acc2 != null
+                && Double.compare(acc1.b, acc2.b) > 0) ? acc2 : acc1));
     }
 
+    /**
+     * Returns the maximum element of this stream according to the natural order
+     * of the keys extracted by provided function. This is a special case of a
+     * reduction.
+     *
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * This method is equivalent to
+     * {@code min(Comparator.comparing(keyExtractor))}, but may work faster as
+     * keyExtractor function is applied only once per each input element.
+     *
+     * @param <V>
+     *            the type of the comparable keys
+     * @param keyExtractor
+     *            a non-interfering, stateless function to extract the
+     *            comparable keys from this stream elements
+     * @return an {@code Optional} describing the maximum element of this
+     *         stream, or an empty {@code Optional} if the stream is empty
+     * @throws NullPointerException
+     *             if the maximum element is null
+     */
     public <V extends Comparable<? super V>> Optional<T> maxBy(Function<? super T, ? extends V> keyExtractor) {
-        return reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? a : b);
+        return Box
+                .asOptional(reduce(
+                    null,
+                    (PairBox<T, V> acc, T t) -> {
+                        V val = keyExtractor.apply(t);
+                        if (acc == null)
+                            return new PairBox<>(t, val);
+                        if (val.compareTo(acc.b) > 0) {
+                            acc.b = val;
+                            acc.a = t;
+                        }
+                        return acc;
+                    },
+                    (PairBox<T, V> acc1, PairBox<T, V> acc2) -> (acc1 == null || acc2 != null
+                        && acc1.b.compareTo(acc2.b) < 0) ? acc2 : acc1));
     }
 
+    /**
+     * Returns the maximum element of this stream according to the int values
+     * extracted by provided function. This is a special case of a reduction.
+     *
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * This method is equivalent to
+     * {@code min(Comparator.comparingInt(keyExtractor))}, but may work faster
+     * as keyExtractor function is applied only once per each input element.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function to extract the int keys
+     *            from this stream elements
+     * @return an {@code Optional} describing the maximum element of this
+     *         stream, or an empty {@code Optional} if the stream is empty
+     * @throws NullPointerException
+     *             if the maximum element is null
+     */
     public Optional<T> maxByInt(ToIntFunction<? super T> keyExtractor) {
-        return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? a : b);
+        return Box.asOptional(reduce(null, (ObjIntBox<T> acc, T t) -> {
+            int val = keyExtractor.applyAsInt(t);
+            if (acc == null)
+                return new ObjIntBox<>(t, val);
+            if (val > acc.b) {
+                acc.b = val;
+                acc.a = t;
+            }
+            return acc;
+        }, (ObjIntBox<T> acc1, ObjIntBox<T> acc2) -> (acc1 == null || acc2 != null && acc1.b < acc2.b) ? acc2 : acc1));
     }
 
+    /**
+     * Returns the maximum element of this stream according to the long values
+     * extracted by provided function. This is a special case of a reduction.
+     *
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * This method is equivalent to
+     * {@code min(Comparator.comparingLong(keyExtractor))}, but may work faster
+     * as keyExtractor function is applied only once per each input element.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function to extract the long keys
+     *            from this stream elements
+     * @return an {@code Optional} describing the maximum element of this
+     *         stream, or an empty {@code Optional} if the stream is empty
+     * @throws NullPointerException
+     *             if the maximum element is null
+     */
     public Optional<T> maxByLong(ToLongFunction<? super T> keyExtractor) {
-        return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? a : b);
+        return Box
+                .asOptional(reduce(null, (ObjLongBox<T> acc, T t) -> {
+                    long val = keyExtractor.applyAsLong(t);
+                    if (acc == null)
+                        return new ObjLongBox<>(t, val);
+                    if (val > acc.b) {
+                        acc.b = val;
+                        acc.a = t;
+                    }
+                    return acc;
+                }, (ObjLongBox<T> acc1, ObjLongBox<T> acc2) -> (acc1 == null || acc2 != null && acc1.b < acc2.b) ? acc2
+                        : acc1));
     }
 
+    /**
+     * Returns the maximum element of this stream according to the double values
+     * extracted by provided function. This is a special case of a reduction.
+     *
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * This method is equivalent to
+     * {@code min(Comparator.comparingDouble(keyExtractor))}, but may work faster
+     * as keyExtractor function is applied only once per each input element.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function to extract the double keys
+     *            from this stream elements
+     * @return an {@code Optional} describing the maximum element of this
+     *         stream, or an empty {@code Optional} if the stream is empty
+     * @throws NullPointerException
+     *             if the maximum element is null
+     */
     public Optional<T> maxByDouble(ToDoubleFunction<? super T> keyExtractor) {
-        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? a
-                : b);
+        return Box.asOptional(reduce(
+            null,
+            (ObjDoubleBox<T> acc, T t) -> {
+                double val = keyExtractor.applyAsDouble(t);
+                if (acc == null)
+                    return new ObjDoubleBox<>(t, val);
+                if (Double.compare(val, acc.b) > 0) {
+                    acc.b = val;
+                    acc.a = t;
+                }
+                return acc;
+            },
+            (ObjDoubleBox<T> acc1, ObjDoubleBox<T> acc2) -> (acc1 == null || acc2 != null
+                && Double.compare(acc1.b, acc2.b) < 0) ? acc2 : acc1));
     }
 
     /**
@@ -731,8 +1019,8 @@ import static javax.util.streamex.StreamExInternals.*;
      */
     public <U> U foldLeft(U identity, BiFunction<U, ? super T, U> accumulator) {
         Box<U> result = new Box<>(identity);
-        forEachOrdered(t -> result.obj = accumulator.apply(result.obj, t));
-        return result.obj;
+        forEachOrdered(t -> result.a = accumulator.apply(result.a, t));
+        return result.a;
     }
 
     /**

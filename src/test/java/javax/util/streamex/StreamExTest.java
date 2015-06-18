@@ -405,7 +405,7 @@ public class StreamExTest {
         assertEquals("a", StreamEx.of(data).minByDouble(String::length).get());
         assertEquals("a", StreamEx.of(data).minBy(s -> s.length()).get());
     }
-
+    
     @Test
     public void testMaxBy() {
         List<String> data = Arrays.asList("a", "bbb", "cc");

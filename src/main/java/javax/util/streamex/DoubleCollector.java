@@ -261,7 +261,7 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
                     ((MergingCollector<U, A, R>) downstream).merger(), downstream.finisher(),
                     downstream.characteristics());
         }
-        return of(Box.supplier(downstream.supplier()), (box, i) -> accumulator.accept(box.obj, mapper.apply(i)),
+        return of(Box.supplier(downstream.supplier()), (box, i) -> accumulator.accept(box.a, mapper.apply(i)),
             Box.combiner(downstream.combiner()), Box.finisher(downstream.finisher()));
     }
 
