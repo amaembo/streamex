@@ -6,6 +6,8 @@
 * Added `StreamEx.runLengths` method
 * Added `StreamEx.ofSubLists` method
 * Added `MoreCollectors.countingInt` collector
+* `StreamEx/EntryStream.maxBy*/minBy*` methods optimized: now keyExtractor function is called at most once per element
+* Updated documentation
 
 ### 0.3.2
 
