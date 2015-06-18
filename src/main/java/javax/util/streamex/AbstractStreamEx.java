@@ -565,6 +565,19 @@ import static javax.util.streamex.StreamExInternals.*;
                 : a);
     }
 
+    public Optional<T> minByDouble2(ToDoubleFunction<? super T> keyExtractor) {
+        return Box.asOptional(reduce(null, (ObjDoubleBox<T> acc, T t) -> {
+            if(acc == null)
+                return new ObjDoubleBox<>(t, keyExtractor.applyAsDouble(t));
+            double val = keyExtractor.applyAsDouble(t);
+            if(Double.compare(val,acc.b) < 0) {
+                acc.b = val;
+                acc.a = t;
+            }
+            return acc;
+        }, (acc1, acc2) -> (acc1 == null || acc2 != null && Double.compare(acc1.b, acc2.b) > 0) ? acc2 : acc1));
+    }
+    
     public <V extends Comparable<? super V>> Optional<T> maxBy(Function<? super T, ? extends V> keyExtractor) {
         return reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? a : b);
     }

@@ -405,6 +405,19 @@ public class StreamExTest {
         assertEquals("a", StreamEx.of(data).minByDouble(String::length).get());
         assertEquals("a", StreamEx.of(data).minBy(s -> s.length()).get());
     }
+    
+    @Test
+    public void testMinBy2() {
+        Random r = new Random(1);
+        List<java.awt.Point> input = StreamEx.generate(() -> new java.awt.Point(r.nextInt(1000), r.nextInt(1000))).limit(1000).toList();
+        java.awt.Point p = new java.awt.Point(r.nextInt(1000), r.nextInt(1000));
+        assertEquals(StreamEx.of(input).minByDouble(p::distance), StreamEx.of(input).minByDouble2(p::distance));
+        assertEquals(StreamEx.of(input).minByDouble(p::distance), StreamEx.of(input).parallel().minByDouble2(p::distance));
+        input.addAll(Arrays.asList(new java.awt.Point(1,0),new java.awt.Point(0,1),new java.awt.Point(-1,0),new java.awt.Point(0,-1)));
+        p = new java.awt.Point(0,0);
+        assertEquals(new java.awt.Point(1,0), StreamEx.of(input).minByDouble2(p::distance).get());
+        assertEquals(new java.awt.Point(1,0), StreamEx.of(input).parallel().minByDouble2(p::distance).get());
+    }
 
     @Test
     public void testMaxBy() {
