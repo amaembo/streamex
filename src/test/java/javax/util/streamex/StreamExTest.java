@@ -962,16 +962,12 @@ public class StreamExTest {
     @Test
     public void testIntervalMapString() {
         int[] input = { 1, 5, 2, 10, 8, 11, 7, 15, 6, 5 };
-        String res = format(IntStreamEx.of(input).boxed());
-        String resParallel = format(IntStreamEx.of(input).boxed().parallel());
-        assertEquals("1,2,5..8,10,11,15", res);
-        assertEquals("1,2,5..8,10,11,15", resParallel);
+        assertEquals("1,2,5..8,10,11,15", format(IntStreamEx.of(input).boxed()));
+        assertEquals("1,2,5..8,10,11,15", format(IntStreamEx.of(input).boxed().parallel()));
         
         input = IntStreamEx.range(3,100).prepend(1).toArray();
-        res = format(IntStreamEx.of(input).boxed());
-        resParallel = format(IntStreamEx.of(input).boxed().parallel());
-        assertEquals("1,3..99", res);
-        assertEquals("1,3..99", resParallel);
+        assertEquals("1,3..99", format(IntStreamEx.of(input).boxed()));
+        assertEquals("1,3..99", format(IntStreamEx.of(input).boxed().parallel()));
     }
     
     @Test
@@ -997,12 +993,14 @@ public class StreamExTest {
             }
         }
         expected.put(input[input.length-1], len);
-        Map<Integer, Long> res = IntStreamEx.of(input).sorted().boxed().runLengths().toMap();
-        Map<Integer, Long> resParallel = IntStreamEx.of(input).parallel().sorted().boxed().runLengths().toMap();
-        assertEquals(expected, res);
-        assertEquals(expected, resParallel);
+        assertEquals(expected, IntStreamEx.of(input).sorted().boxed().runLengths().toMap());
+        assertEquals(expected, IntStreamEx.of(input).parallel().sorted().boxed().runLengths().toMap());
     }
     
+    /*
+     * Returns longest input stream segment for which the predicate holds
+     * (like the corresponding Scala method)
+     */
     private long segmentLength(IntStreamEx source, IntPredicate predicate) {
         return source.mapToObj(predicate::test).runLengths().removeKeys(Boolean.FALSE::equals)
                 .mapToLong(Entry::getValue).max().orElse(0);
