@@ -16,26 +16,37 @@
 package javax.util.streamex;
 
 import java.util.Spliterator;
+import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import static javax.util.streamex.StreamExInternals.*;
 
-/* package */final class CollapseSpliterator<T> implements Spliterator<T> {
+/* package */final class CollapseSpliterator<T, R> implements Spliterator<R> {
     private Spliterator<T> source;
-    private boolean hasPrev, hasLast;
     private T cur, last;
-    private final BinaryOperator<T> merger;
+    private R lastAcc;
+    private final Function<T, R> mapper;
+    private final BiFunction<R, T, R> accumulator;
+    private final BinaryOperator<R> combiner;
     private final BiPredicate<T, T> mergeable;
 
-    CollapseSpliterator(BiPredicate<T, T> mergeable, BinaryOperator<T> merger, Spliterator<T> source, T prev,
-            boolean hasPrev, T last, boolean hasLast) {
+    CollapseSpliterator(BiPredicate<T, T> mergeable, Function<T, R> mapper, BiFunction<R, T, R> accumulator,
+            BinaryOperator<R> combiner, Spliterator<T> source) {
+        this(mergeable, mapper, accumulator, combiner, source, none(), none(), none());
+    }
+
+    CollapseSpliterator(BiPredicate<T, T> mergeable, Function<T, R> mapper, BiFunction<R, T, R> accumulator,
+            BinaryOperator<R> combiner, Spliterator<T> source, T prev, T last, R lastAcc) {
         this.source = source;
-        this.hasLast = hasLast;
-        this.hasPrev = hasPrev;
         this.cur = prev;
         this.last = last;
+        this.lastAcc = lastAcc;
         this.mergeable = mergeable;
-        this.merger = merger;
+        this.mapper = mapper;
+        this.accumulator = accumulator;
+        this.combiner = combiner;
     }
 
     void setCur(T t) {
@@ -43,69 +54,75 @@ import java.util.function.Consumer;
     }
 
     @Override
-    public boolean tryAdvance(Consumer<? super T> action) {
+    public boolean tryAdvance(Consumer<? super R> action) {
         if (source == null)
             return false;
-        if (!hasPrev) {
+        if (cur == NONE) {
             if (!source.tryAdvance(this::setCur)) {
                 return false;
             }
-            hasPrev = true;
         }
+        R acc = mapper.apply(cur);
         T prev = cur;
         while (source.tryAdvance(this::setCur)) {
             if (mergeable.test(prev, cur)) {
-                prev = merger.apply(prev, cur);
+                acc = accumulator.apply(acc, cur);
+                prev = cur;
             } else {
-                action.accept(prev);
+                action.accept(acc);
                 return true;
             }
         }
-        if (!hasLast) {
+        if (last == NONE) {
             source = null;
         } else {
             cur = last;
-            hasLast = false;
+            last = none();
             if (mergeable.test(prev, cur)) {
-                prev = merger.apply(prev, cur);
+                acc = combiner.apply(acc, lastAcc);
+                lastAcc = none();
                 source = null;
+            } else {
+                action.accept(acc);
+                return true;
             }
         }
-        action.accept(prev);
+        action.accept(lastAcc == NONE ? acc : lastAcc);
         return true;
     }
 
     @Override
-    public void forEachRemaining(Consumer<? super T> action) {
+    public void forEachRemaining(Consumer<? super R> action) {
         if (source == null)
             return;
-        if (!hasPrev) {
+        if (cur == NONE) {
             if (!source.tryAdvance(this::setCur)) {
                 return;
             }
-            hasPrev = true;
         }
+        Box<R> accBox = new Box<>(mapper.apply(cur));
         source.forEachRemaining(next -> {
             if (mergeable.test(cur, next)) {
-                cur = merger.apply(cur, next);
+                accBox.a = accumulator.apply(accBox.a, next);
             } else {
-                action.accept(cur);
-                cur = next;
+                action.accept(accBox.a);
+                accBox.a = mapper.apply(next);
             }
+            cur = next;
         });
-        if (!hasLast) {
-            action.accept(cur);
+        if (last == NONE) {
+            action.accept(accBox.a);
         } else if (mergeable.test(cur, last)) {
-            action.accept(merger.apply(cur, last));
+            action.accept(combiner.apply(accBox.a, lastAcc));
         } else {
-            action.accept(cur);
-            action.accept(last);
+            action.accept(accBox.a);
+            action.accept(lastAcc);
         }
         source = null;
     }
 
     @Override
-    public Spliterator<T> trySplit() {
+    public Spliterator<R> trySplit() {
         Spliterator<T> prefix = source.trySplit();
         if (prefix == null)
             return null;
@@ -115,32 +132,37 @@ import java.util.function.Consumer;
             return null;
         }
         T last = cur;
-        boolean oldHasPrev = hasPrev;
+        T lastNext = last;
+        R lastAcc = mapper.apply(cur);
         while (source.tryAdvance(this::setCur)) {
-            if (mergeable.test(last, cur)) {
-                last = merger.apply(last, cur);
+            if (mergeable.test(lastNext, cur)) {
+                lastAcc = accumulator.apply(lastAcc, cur);
+                lastNext = cur;
             } else {
-                hasPrev = true;
-                return new CollapseSpliterator<>(mergeable, merger, prefix, prev, oldHasPrev, last, true);
+                return new CollapseSpliterator<>(mergeable, mapper, accumulator, combiner, prefix, prev, last,
+                        lastAcc);
             }
         }
-        if (!hasLast) {
+        if (this.last == NONE) {
             source = prefix;
             cur = prev;
             this.last = last;
-            hasLast = true;
+            this.lastAcc = lastAcc;
             return null;
         }
-        if (mergeable.test(last, this.last)) {
+        if (mergeable.test(lastNext, this.last)) {
             source = prefix;
             cur = prev;
-            this.last = merger.apply(last, this.last);
+            this.last = last;
+            this.lastAcc = combiner.apply(lastAcc, this.lastAcc);
             return null;
         }
-        hasPrev = true;
         cur = this.last;
-        hasLast = false;
-        return new CollapseSpliterator<>(mergeable, merger, prefix, prev, oldHasPrev, last, true);
+        Spliterator<R> result = new CollapseSpliterator<>(mergeable, mapper, accumulator, combiner, prefix, prev,
+                last, lastAcc);
+        this.last = none();
+        this.lastAcc = none();
+        return result;
     }
 
     @Override
@@ -152,5 +174,4 @@ import java.util.function.Consumer;
     public int characteristics() {
         return source == null ? (SIZED | DISTINCT) : source.characteristics() & (CONCURRENT | IMMUTABLE | ORDERED);
     }
-
 }

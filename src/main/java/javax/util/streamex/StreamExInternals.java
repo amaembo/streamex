@@ -539,13 +539,8 @@ import java.util.stream.Stream;
             this.b = b;
         }
         
-        static <T> T select(PairBox<T, T> pair) {
-            return pair.b == NONE ? pair.a : pair.b;
-        }
-        
-        @SuppressWarnings("unchecked")
         static <T> PairBox<T, T> single(T a) {
-            return new PairBox<>(a, (T) NONE);
+            return new PairBox<>(a, a);
         }
     }
     

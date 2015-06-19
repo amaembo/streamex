@@ -1103,14 +1103,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             BiFunction<R, T, R> accumulator, BinaryOperator<R> combiner) {
         return strategy().newStreamEx(
             StreamSupport.stream(
-                new CollapseSpliterator2<>(collapsible, mapper, accumulator, combiner, stream.spliterator()),
-                stream.isParallel()).onClose(stream::close));
-    }
-
-    public StreamEx<T> collapseOld(BiPredicate<T, T> collapsible, BinaryOperator<T> merger) {
-        return strategy().newStreamEx(
-            StreamSupport.stream(
-                new CollapseSpliterator<>(collapsible, merger, stream.spliterator(), null, false, null, false),
+                new CollapseSpliterator<>(collapsible, mapper, accumulator, combiner, stream.spliterator()),
                 stream.isParallel()).onClose(stream::close));
     }
 
@@ -1233,19 +1226,13 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.3.3
      */
     public <U> StreamEx<U> intervalMap(BiPredicate<T, T> sameInterval, BiFunction<T, T, U> mapper) {
-        return collapseInternal(sameInterval, t -> new PairBox<>(t, t), (box, t) -> {
+        return collapseInternal(sameInterval, PairBox::single, (box, t) -> {
             box.b = t;
             return box;
         }, (left, right) -> {
             left.b = right.b;
             return left;
         }).map(pair -> mapper.apply(pair.a, pair.b));
-    }
-
-    public <U> StreamEx<U> intervalMapOld(BiPredicate<T, T> sameInterval, BiFunction<T, T, U> mapper) {
-        return map(PairBox::single).collapseOld((left, right) -> sameInterval.test(PairBox.select(left), right.a),
-            (left, right) -> new PairBox<>(left.a, PairBox.select(right))).map(
-            pair -> mapper.apply(pair.a, PairBox.select(pair)));
     }
 
     /**

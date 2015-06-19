@@ -959,17 +959,45 @@ public class StreamExTest {
                     (i, j) -> j == i ? i.toString() : j == i + 1 ? i + "," + j : i + ".." + j).joining(",");
     }
 
+    private String formatNaive(int[] input) {
+        StringBuilder msg = new StringBuilder();
+        int[] data = IntStreamEx.of(input).sorted().distinct().toArray();
+        int endNum;
+        for( int i = 0; i < data.length; i++ )
+        {
+            endNum = -1;
+            for( int j = i + 1; j < data.length && ( data[j] - data[j - 1] == 1 ); j++ )
+                endNum = j;
+    
+            if( msg.length() > 0 )
+                msg.append(',');
+            msg.append( data[i] );
+            if( endNum != -1 && ( endNum - i ) > 1 )
+            {
+                msg.append("..").append( data[endNum] );
+                i = endNum;
+            }
+        }
+        return msg.toString();
+    }
+
     @Test
     public void testIntervalMapString() {
         int[] input = { 1, 5, 2, 10, 8, 11, 7, 15, 6, 5 };
-        assertEquals("1,2,5..8,10,11,15", format(IntStreamEx.of(input).boxed()));
-        assertEquals("1,2,5..8,10,11,15", format(IntStreamEx.of(input).boxed().parallel()));
+        String expected = formatNaive(input);
+        assertEquals(expected, format(IntStreamEx.of(input).boxed()));
+        assertEquals(expected, format(IntStreamEx.of(input).boxed().parallel()));
         
         input = IntStreamEx.range(3,100).prepend(1).toArray();
         assertEquals("1,3..99", format(IntStreamEx.of(input).boxed()));
         assertEquals("1,3..99", format(IntStreamEx.of(input).boxed().parallel()));
+        
+        input = IntStreamEx.of(new Random(1), 1000, 0, 2000).toArray();
+        expected = formatNaive(input);
+        assertEquals(expected, format(IntStreamEx.of(input).boxed()));
+        assertEquals(expected, format(IntStreamEx.of(input).boxed().parallel()));
     }
-    
+
     @Test
     public void testRunLenghts() {
         int[] input = { 1, 2, 2, 4, 2, 1, 1, 1 };
