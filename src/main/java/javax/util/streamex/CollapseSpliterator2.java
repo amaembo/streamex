@@ -133,11 +133,12 @@ import static javax.util.streamex.StreamExInternals.*;
             return null;
         }
         T last = cur;
+        T lastNext = last;
         R lastAcc = mapper.apply(cur);
         while (source.tryAdvance(this::setCur)) {
-            if (mergeable.test(last, cur)) {
+            if (mergeable.test(lastNext, cur)) {
                 lastAcc = accumulator.apply(lastAcc, cur);
-                last = cur;
+                lastNext = cur;
             } else {
                 return new CollapseSpliterator2<>(mergeable, mapper, accumulator, combiner, prefix, prev, last,
                         lastAcc);
@@ -150,7 +151,7 @@ import static javax.util.streamex.StreamExInternals.*;
             this.lastAcc = lastAcc;
             return null;
         }
-        if (mergeable.test(last, this.last)) {
+        if (mergeable.test(lastNext, this.last)) {
             source = prefix;
             cur = prev;
             this.last = last;

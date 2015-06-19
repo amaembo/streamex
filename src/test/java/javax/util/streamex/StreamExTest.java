@@ -950,18 +950,28 @@ public class StreamExTest {
         assertEquals(expected, res1);
         assertEquals(expected, res1p);
     }
-
-    @Test
-    public void testIntervalMapString() {
-        int[] input = { 1, 5, 2, 10, 8, 11, 7, 15, 6, 5 };
-        String res = IntStreamEx
-                .of(input)
-                .boxed()
+    
+    private String format(StreamEx<Integer> ints) {
+        return ints
                 .distinct()
                 .sorted()
                 .intervalMap((i, j) -> j == i + 1,
                     (i, j) -> j == i ? i.toString() : j == i + 1 ? i + "," + j : i + ".." + j).joining(",");
+    }
+
+    @Test
+    public void testIntervalMapString() {
+        int[] input = { 1, 5, 2, 10, 8, 11, 7, 15, 6, 5 };
+        String res = format(IntStreamEx.of(input).boxed());
+        String resParallel = format(IntStreamEx.of(input).boxed().parallel());
         assertEquals("1,2,5..8,10,11,15", res);
+        assertEquals("1,2,5..8,10,11,15", resParallel);
+        
+        input = IntStreamEx.range(3,100).prepend(1).toArray();
+        res = format(IntStreamEx.of(input).boxed());
+        resParallel = format(IntStreamEx.of(input).boxed().parallel());
+        assertEquals("1,3..99", res);
+        assertEquals("1,3..99", resParallel);
     }
     
     @Test

@@ -22,6 +22,7 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -1084,11 +1085,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * 
      * @param collapsible
      *            a non-interfering, stateless predicate to apply to the pair of
-     *            elements which returns true for elements which are
-     *            collapsible. If {@code collapsible(a, b)} is true, then the
-     *            following invariants must be held:
-     *            {@code collapsible(merger(a, b), c) = collapsible(b, c)} and
-     *            {@code collapsible(c, merger(a, b)) = collapsible(c, a)}.
+     *            adjacent elements of the input stream which returns true for
+     *            elements which are collapsible.
      * @param merger
      *            a non-interfering, stateless, associative function to merge
      *            two adjacent elements for which collapsible predicate returned
@@ -1101,9 +1099,11 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return collapseInternal(collapsible, Function.identity(), merger, merger);
     }
 
-    private <R> StreamEx<R> collapseInternal(BiPredicate<T, T> collapsible, Function<T, R> mapper, BiFunction<R, T, R> accumulator, BinaryOperator<R> combiner) {
+    private <R> StreamEx<R> collapseInternal(BiPredicate<T, T> collapsible, Function<T, R> mapper,
+            BiFunction<R, T, R> accumulator, BinaryOperator<R> combiner) {
         return strategy().newStreamEx(
-            StreamSupport.stream(new CollapseSpliterator2<>(collapsible, mapper, accumulator, combiner, stream.spliterator()),
+            StreamSupport.stream(
+                new CollapseSpliterator2<>(collapsible, mapper, accumulator, combiner, stream.spliterator()),
                 stream.isParallel()).onClose(stream::close));
     }
 
@@ -1164,20 +1164,16 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         }));
     }
 
-    public EntryStream<T, Long> runLengthsOld() {
-        return EntryStream.of(map(t -> new ObjLongBox<>(t, 1L)).collapseOld(
-            (e1, e2) -> Objects.equals(e1.getKey(), e2.getKey()), (e1, e2) -> {
-                e1.b += e2.b;
-                return e1;
-            }));
-    }
-    
     /**
      * Returns a stream consisting of lists of elements of this stream where
      * adjacent elements are grouped according to supplied predicate.
      * 
      * <p>
      * This is a quasi-intermediate operation.
+     * 
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code List} objects of the resulting stream.
      * 
      * @param sameGroup
      *            a non-interfering, stateless predicate to apply to the pair of
@@ -1187,30 +1183,25 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.3.1
      */
     public StreamEx<List<T>> groupRuns(BiPredicate<T, T> sameGroup) {
-        return collapseInternal(sameGroup, t -> {
-            List<T> list = new ArrayList<>();
-            list.add(t);
-            return list;
-        }, (acc, t) -> {
+        return collapseInternal(sameGroup, Collections::singletonList, (acc, t) -> {
+            if (!(acc instanceof ArrayList)) {
+                T old = acc.get(0);
+                acc = new ArrayList<>();
+                acc.add(old);
+            }
             acc.add(t);
             return acc;
-        }, (a, b) -> {
-            a.addAll(b);
-            return a;
+        }, (acc1, acc2) -> {
+            if (!(acc1 instanceof ArrayList)) {
+                T old = acc1.get(0);
+                acc1 = new ArrayList<>();
+                acc1.add(old);
+            }
+            acc1.addAll(acc2);
+            return acc1;
         });
     }
 
-    public StreamEx<List<T>> groupRunsOld(BiPredicate<T, T> sameGroup) {
-        return map(t -> {
-            List<T> res = new ArrayList<>();
-            res.add(t);
-            return res;
-        }).collapseOld((a, b) -> sameGroup.test(a.get(a.size() - 1), b.get(0)), (a, b) -> {
-            a.addAll(b);
-            return a;
-        });
-    }
-    
     /**
      * Returns a stream consisting of results of applying the given function to
      * the intervals created from the source elements.
@@ -1256,7 +1247,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             (left, right) -> new PairBox<>(left.a, PairBox.select(right))).map(
             pair -> mapper.apply(pair.a, PairBox.select(pair)));
     }
-    
+
     /**
      * Returns an empty sequential {@code StreamEx}.
      *
