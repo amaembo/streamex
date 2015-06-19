@@ -690,4 +690,9 @@ import java.util.stream.Stream;
     static <T> Stream<T> unwrap(Stream<T> stream) {
         return stream instanceof AbstractStreamEx ? ((AbstractStreamEx<T, ?>) stream).stream : stream;
     }
+    
+    @SuppressWarnings("unchecked")
+    static <T> T none() {
+        return (T)NONE;
+    }
 }

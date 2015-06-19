@@ -1098,6 +1098,16 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.3.1
      */
     public StreamEx<T> collapse(BiPredicate<T, T> collapsible, BinaryOperator<T> merger) {
+        return collapseInternal(collapsible, Function.identity(), merger, merger);
+    }
+
+    private <R> StreamEx<R> collapseInternal(BiPredicate<T, T> collapsible, Function<T, R> mapper, BiFunction<R, T, R> accumulator, BinaryOperator<R> combiner) {
+        return strategy().newStreamEx(
+            StreamSupport.stream(new CollapseSpliterator2<>(collapsible, mapper, accumulator, combiner, stream.spliterator()),
+                stream.isParallel()).onClose(stream::close));
+    }
+
+    public StreamEx<T> collapseOld(BiPredicate<T, T> collapsible, BinaryOperator<T> merger) {
         return strategy().newStreamEx(
             StreamSupport.stream(
                 new CollapseSpliterator<>(collapsible, merger, stream.spliterator(), null, false, null, false),
@@ -1145,7 +1155,17 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.3.3
      */
     public EntryStream<T, Long> runLengths() {
-        return EntryStream.of(map(t -> new ObjLongBox<>(t, 1L)).collapse(
+        return EntryStream.of(collapseInternal(Objects::equals, t -> new ObjLongBox<>(t, 1L), (acc, t) -> {
+            acc.b++;
+            return acc;
+        }, (e1, e2) -> {
+            e1.b += e2.b;
+            return e1;
+        }));
+    }
+
+    public EntryStream<T, Long> runLengthsOld() {
+        return EntryStream.of(map(t -> new ObjLongBox<>(t, 1L)).collapseOld(
             (e1, e2) -> Objects.equals(e1.getKey(), e2.getKey()), (e1, e2) -> {
                 e1.b += e2.b;
                 return e1;
@@ -1167,16 +1187,30 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.3.1
      */
     public StreamEx<List<T>> groupRuns(BiPredicate<T, T> sameGroup) {
-        return map(t -> {
-            List<T> res = new ArrayList<>();
-            res.add(t);
-            return res;
-        }).collapse((a, b) -> sameGroup.test(a.get(a.size() - 1), b.get(0)), (a, b) -> {
+        return collapseInternal(sameGroup, t -> {
+            List<T> list = new ArrayList<>();
+            list.add(t);
+            return list;
+        }, (acc, t) -> {
+            acc.add(t);
+            return acc;
+        }, (a, b) -> {
             a.addAll(b);
             return a;
         });
     }
 
+    public StreamEx<List<T>> groupRunsOld(BiPredicate<T, T> sameGroup) {
+        return map(t -> {
+            List<T> res = new ArrayList<>();
+            res.add(t);
+            return res;
+        }).collapseOld((a, b) -> sameGroup.test(a.get(a.size() - 1), b.get(0)), (a, b) -> {
+            a.addAll(b);
+            return a;
+        });
+    }
+    
     /**
      * Returns a stream consisting of results of applying the given function to
      * the intervals created from the source elements.
@@ -1208,11 +1242,21 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.3.3
      */
     public <U> StreamEx<U> intervalMap(BiPredicate<T, T> sameInterval, BiFunction<T, T, U> mapper) {
-        return map(PairBox::single).collapse((left, right) -> sameInterval.test(PairBox.select(left), right.a),
+        return collapseInternal(sameInterval, t -> new PairBox<>(t, t), (box, t) -> {
+            box.b = t;
+            return box;
+        }, (left, right) -> {
+            left.b = right.b;
+            return left;
+        }).map(pair -> mapper.apply(pair.a, pair.b));
+    }
+
+    public <U> StreamEx<U> intervalMapOld(BiPredicate<T, T> sameInterval, BiFunction<T, T, U> mapper) {
+        return map(PairBox::single).collapseOld((left, right) -> sameInterval.test(PairBox.select(left), right.a),
             (left, right) -> new PairBox<>(left.a, PairBox.select(right))).map(
             pair -> mapper.apply(pair.a, PairBox.select(pair)));
     }
-
+    
     /**
      * Returns an empty sequential {@code StreamEx}.
      *
