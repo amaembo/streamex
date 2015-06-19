@@ -19,7 +19,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.UncheckedIOException;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -1146,12 +1145,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.3.3
      */
     public EntryStream<T, Long> runLengths() {
-        return EntryStream.of(map(t -> new AbstractMap.SimpleEntry<>(t, 1L)).collapse(
-            (e1, e2) -> Objects.equals(e1.getKey(), e2.getKey()),
-            (e1, e2) -> new AbstractMap.SimpleEntry<>(e1.getKey(), e1.getValue() + e2.getValue())));
-    }
-
-    public EntryStream<T, Long> runLengths2() {
         return EntryStream.of(map(t -> new ObjLongBox<>(t, 1L)).collapse(
             (e1, e2) -> Objects.equals(e1.getKey(), e2.getKey()), (e1, e2) -> {
                 e1.b += e2.b;

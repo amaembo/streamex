@@ -975,8 +975,18 @@ public class StreamExTest {
     
     @Test
     public void testRunLengthsSorted() {
-        int[] input = IntStreamEx.of(new Random(1), 1000, 1, 20).toArray();
-        Map<Integer, Long> expected = IntStreamEx.of(input).collect(IntCollector.groupingBy(Integer::valueOf, IntCollector.counting()));
+        int[] input = IntStreamEx.of(new Random(1), 1000, 1, 20).sorted().toArray();
+        Map<Integer, Long> expected = new HashMap<>();
+        long len = 1;
+        for(int i=0; i<input.length-1; i++) {
+            if(input[i] == input[i+1]) {
+                len++;
+            } else {
+                expected.put(input[i], len);
+                len=1;
+            }
+        }
+        expected.put(input[input.length-1], len);
         Map<Integer, Long> res = IntStreamEx.of(input).sorted().boxed().runLengths().toMap();
         Map<Integer, Long> resParallel = IntStreamEx.of(input).parallel().sorted().boxed().runLengths().toMap();
         assertEquals(expected, res);
