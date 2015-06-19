@@ -210,8 +210,7 @@ public final class MoreCollectors {
         Supplier<A> downstreamSupplier = downstream.supplier();
         BiConsumer<A, ? super T> downstreamAccumulator = downstream.accumulator();
         BinaryOperator<A> downstreamCombiner = downstream.combiner();
-        @SuppressWarnings("unchecked")
-        Supplier<PairBox<A, T>> supplier = () -> new PairBox<>(downstreamSupplier.get(), (T) NONE);
+        Supplier<PairBox<A, T>> supplier = () -> new PairBox<>(downstreamSupplier.get(), none());
         BiConsumer<PairBox<A, T>, T> accumulator = (acc, t) -> {
             if (acc.b == NONE) {
                 downstreamAccumulator.accept(acc.a, t);
