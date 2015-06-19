@@ -1120,9 +1120,9 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * {@code distinct()}.
      * 
      * @param collapsible
-     *            a non-interfering, stateless, transitive predicate to apply to
-     *            the pair of elements which returns true for elements which are
-     *            collapsible.
+     *            a non-interfering, stateless predicate to apply to the pair of
+     *            adjacent input elements which returns true for elements which
+     *            are collapsible.
      * @return the new stream
      * @since 0.3.1
      */
