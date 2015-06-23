@@ -1054,4 +1054,21 @@ public class StreamExTest {
         assertEquals(expected, res);
         assertEquals(expected, resParallel);
     }
+    
+    @Test
+    public void testSubLists() {
+        List<Integer> input = IntStreamEx.range(12).boxed().toList();
+        assertEquals("[0, 1, 2, 3, 4]-[5, 6, 7, 8, 9]-[10, 11]", StreamEx.ofSubLists(input, 5).joining("-"));
+        assertEquals("[0, 1, 2, 3]-[4, 5, 6, 7]-[8, 9, 10, 11]", StreamEx.ofSubLists(input, 4).joining("-"));
+        assertEquals("[0]-[1]-[2]-[3]-[4]-[5]-[6]-[7]-[8]-[9]-[10]-[11]", StreamEx.ofSubLists(input, 1).joining("-"));
+        assertEquals("[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]", StreamEx.ofSubLists(input, 12).joining("-"));
+        assertEquals("[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]", StreamEx.ofSubLists(input, Integer.MAX_VALUE).joining("-"));
+        assertEquals("", StreamEx.ofSubLists(Collections.emptyList(), 1).joining("-"));
+        assertEquals("", StreamEx.ofSubLists(Collections.emptyList(), Integer.MAX_VALUE).joining("-"));
+    }
+    
+    @Test(expected=IllegalArgumentException.class)
+    public void testSubListsArg() {
+        StreamEx.ofSubLists(Collections.emptyList(), 0);
+    }
 }

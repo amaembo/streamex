@@ -1710,9 +1710,34 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return ofTree(root, t -> collectionClass.isInstance(t) ? mapper.apply((TT) t) : null);
     }
 
+    /**
+     * Returns a new {@code StreamEx} which consists of non-overlapping sublists
+     * of given source list having the specified length (the last sublist may be
+     * shorter).
+     * 
+     * <p>
+     * This method calls {@link List#subList(int, int)} internally, so source
+     * list must have it properly implemented as well as provide fast random
+     * access.
+     * 
+     * @param <T>
+     *            the type of source list elements.
+     * @param source
+     *            the source list
+     * @param length
+     *            the length of each sublist except possibly the last one.
+     * @return the new stream of sublists.
+     * @throws IllegalArgumentException
+     *             if length is negative or zero.
+     * @since 0.3.3
+     */
     public static <T> StreamEx<List<T>> ofSubLists(List<T> source, int length) {
+        if (length <= 0)
+            throw new IllegalArgumentException("length = " + length);
         int size = source.size();
-        return IntStreamEx.range(0, (size + length - 1) / length).mapToObj(
+        if (size <= 0)
+            return StreamEx.empty();
+        return IntStreamEx.range(0, (size - 1) / length + 1).mapToObj(
             n -> source.subList(n * length, Math.min(size, (n + 1) * length)));
     }
 }
