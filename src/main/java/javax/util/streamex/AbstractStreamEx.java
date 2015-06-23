@@ -683,12 +683,13 @@ import static javax.util.streamex.StreamExInternals.*;
      * 
      * <p>
      * This method is equivalent to
-     * {@code min(Comparator.comparingDouble(keyExtractor))}, but may work faster
-     * as keyExtractor function is applied only once per each input element.
+     * {@code min(Comparator.comparingDouble(keyExtractor))}, but may work
+     * faster as keyExtractor function is applied only once per each input
+     * element.
      *
      * @param keyExtractor
-     *            a non-interfering, stateless function to extract the double keys
-     *            from this stream elements
+     *            a non-interfering, stateless function to extract the double
+     *            keys from this stream elements
      * @return an {@code Optional} describing the minimum element of this
      *         stream, or an empty {@code Optional} if the stream is empty
      * @throws NullPointerException
@@ -829,12 +830,13 @@ import static javax.util.streamex.StreamExInternals.*;
      * 
      * <p>
      * This method is equivalent to
-     * {@code min(Comparator.comparingDouble(keyExtractor))}, but may work faster
-     * as keyExtractor function is applied only once per each input element.
+     * {@code min(Comparator.comparingDouble(keyExtractor))}, but may work
+     * faster as keyExtractor function is applied only once per each input
+     * element.
      *
      * @param keyExtractor
-     *            a non-interfering, stateless function to extract the double keys
-     *            from this stream elements
+     *            a non-interfering, stateless function to extract the double
+     *            keys from this stream elements
      * @return an {@code Optional} describing the maximum element of this
      *         stream, or an empty {@code Optional} if the stream is empty
      * @throws NullPointerException
@@ -1154,9 +1156,9 @@ import static javax.util.streamex.StreamExInternals.*;
 
     /**
      * Returns a stream consisting of the remaining elements of this stream
-     * after discarding the first {@code n} elements of the stream. If this
-     * stream contains fewer than {@code n} elements then an empty stream will
-     * be returned.
+     * after discarding the first {@code n} elements of the stream even if the
+     * stream is unordered. If this stream contains fewer than {@code n}
+     * elements then an empty stream will be returned.
      *
      * <p>
      * This is a stateful quasi-intermediate operation. Unlike

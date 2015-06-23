@@ -8,6 +8,7 @@
 * Added `MoreCollectors.countingInt` collector
 * `StreamEx/EntryStream.maxBy*/minBy*` methods optimized: now keyExtractor function is called at most once per element
 * `StreamEx.groupRuns` method optimized (up to 5x performance boost depending on data)
+* `StreamEx.collapse` methods changed: now the elements passed to predicate are guaranteed to be two adjacent elements from the source stream.
 * Updated documentation
 
 ### 0.3.2
