@@ -17,15 +17,15 @@
  * This library provides enhancements for Java 8 Stream API. Public API contains the following classes and interfaces:
  * 
  * <p>
- * {@link StreamEx}: implements {@link java.util.stream.Stream} 
+ * {@link javax.util.streamex.StreamEx}: implements {@link java.util.stream.Stream} 
  * and provides additional functionality for object streams.
  * 
  * <p>
- * {@link IntStreamEx}, {@link LongStreamEx}, {@link DoubleStreamEx}: 
+ * {@link javax.util.streamex.IntStreamEx}, {@link javax.util.streamex.LongStreamEx}, {@link javax.util.streamex.DoubleStreamEx}: 
  * implement corresponding interfaces for primitive streams and enhancing them with additional functionality.
  *  
  * <p>
- * {@link EntryStream}: implements {@link java.util.stream.Stream} of {@link java.util.Map.Entry} 
+ * {@link javax.util.streamex.EntryStream}: implements {@link java.util.stream.Stream} of {@link java.util.Map.Entry} 
  * objects providing specific methods for operate on keys or values independently.
  * 
  * <p>
@@ -33,11 +33,11 @@
  * collections, arrays, {@link java.io.Reader}, {@link java.util.Random} and so on.
  * 
  * <p>
- * {@link IntCollector}, {@link LongCollector}, {@link DoubleCollector}: 
+ * {@link javax.util.streamex.IntCollector}, {@link javax.util.streamex.LongCollector}, {@link javax.util.streamex.DoubleCollector}: 
  * specialized collectors to work efficiently with primitive streams.
  * 
  * <p>
- * {@link MoreCollectors}: utility class which provides a number of useful collectors 
+ * {@link javax.util.streamex.MoreCollectors}: utility class which provides a number of useful collectors 
  * which are absent in JDK {@link java.util.stream.Collectors} class.
  * 
  * <h2><a name="StreamOps">Stream operations and pipelines</a></h2>
@@ -60,12 +60,21 @@
  * operation, then unordered mode is not propagated through it, so the operations prior to the quasi-intermediate operation 
  * (including the quasi-intermediate operation itself) will remain ordered.
  * 
+ * <h3><a name="NonInterference">Non-interference</a></h3>
+ * 
+ * The function is called non-interfering if it does not modify the stream source. For more information see the {@linkplain java.util.stream Stream API} documentation.
+ *
+ * <h3><a name="Statelessness">Stateless behaviors</a></h3>
+ * 
+ * The function is called stateless if its result does not depend on any state which may be changed during the stream execution. For more information see the {@linkplain java.util.stream Stream API} documentation.
+ *
  * <h2><a name="Reduction">Reduction operations</a></h2>
  * 
  * <p>
  * A <em>reduction</em> operation takes a sequence of input elements and combines them into a single summary result. For more information see the {@linkplain java.util.stream Stream API} documentation.
  * In addition to symmetrical reduction which requires reduction function to be associative, StreamEx library provides asymmetrical reduction methods
- * like {@link StreamEx#foldLeft(Object, java.util.function.BiFunction)} and {@link StreamEx#foldRight(Object, java.util.function.BiFunction)}. These methods
+ * like {@linkplain javax.util.streamex.StreamEx#foldLeft(Object, java.util.function.BiFunction) foldLeft} and {@linkplain javax.util.streamex.StreamEx#foldRight(Object, java.util.function.BiFunction) foldRight}. 
+ * These methods
  * can be safely used for parallel streams, but the absence of associativity may lead to the performance drawback. Use them unly if you cannot provide
  * an associative reduction function.   
  * 
@@ -78,8 +87,22 @@
  * See the {@linkplain java.util.stream Stream API} documentation for more details.
  * 
  * <p>
- * StreamEx provides better support for mutable reduction on primitive streams. There are primitive collector classes {@link IntCollector}, {@link LongCollector} and {@link DoubleCollector}
+ * StreamEx provides better support for mutable reduction on primitive streams. There are primitive collector classes {@link javax.util.streamex.IntCollector}, 
+ * {@link javax.util.streamex.LongCollector} and {@link javax.util.streamex.DoubleCollector}
  * which extend {@link java.util.stream.Collector} interface, but capable to process primitive streams in more efficient way compared to using the boxed stream.
+ * 
+ * <p>
+ * Also StreamEx library defines a number of collectors absent in JDK. See {@link javax.util.streamex.MoreCollectors} class.
+ *
+ * <h3><a name="Associativity">Associativity</a></h3>
+ *
+ * An operator or function {@code op} is <em>associative</em> if the following
+ * holds:
+ * <pre>{@code
+ *     (a op b) op c == a op (b op c)
+ * }</pre>
+ *
+ * For more information see the {@linkplain java.util.stream Stream API} documentation.
  *
  * @author Tagir Valeev
  */
