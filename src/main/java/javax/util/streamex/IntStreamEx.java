@@ -373,6 +373,8 @@ public class IntStreamEx implements IntStream {
      * This is a <a href="package-summary.html#StreamOps">stateful intermediate
      * operation</a>.
      *
+     * @param <V>
+     *            the type of the {@code Comparable} sort key
      * @param keyExtractor
      *            a <a
      *            href="package-summary.html#NonInterference">non-interfering
