@@ -83,35 +83,18 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return strategy().newStreamEx(stream);
     }
 
-    /**
-     * Returns an equivalent stream that is sequential. May return itself,
-     * either because the stream was already sequential, or because the
-     * underlying stream state was modified to be sequential.
-     *
-     * <p>
-     * This is an intermediate operation.
-     *
-     * @return a sequential stream
-     */
     @Override
     public StreamEx<T> sequential() {
         return StreamFactory.DEFAULT.newStreamEx(stream.sequential());
     }
 
     /**
-     * Returns an equivalent stream that is parallel. May return itself, either
-     * because the stream was already parallel, or because the underlying stream
-     * state was modified to be parallel.
-     *
-     * <p>
-     * This is an intermediate operation.
+     * {@inheritDoc}
      * 
      * <p>
      * If this stream was created using {@link #parallel(ForkJoinPool)}, the new
      * stream forgets about supplied custom {@link ForkJoinPool} and its
      * terminal operation will be executed in common pool.
-     *
-     * @return a parallel stream
      */
     @Override
     public StreamEx<T> parallel() {
@@ -123,7 +106,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * {@link ForkJoinPool}.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
+     * operation.
      * 
      * <p>
      * The terminal operation of this stream or any derived stream (except the
@@ -146,7 +130,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * instances of given class.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
+     * operation.
      *
      * @param <TT>
      *            a type of instances to select.
@@ -165,7 +150,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * the given function to the elements of this stream.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
+     * operation.
      *
      * @param <V>
      *            The {@code Entry} value type
@@ -183,7 +169,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * elements of this stream.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
+     * operation.
      *
      * @param <K>
      *            The {@code Entry} key type
@@ -219,7 +206,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * values.
      * 
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
+     * operation.
      * 
      * @param <V>
      *            the type of array elements
@@ -249,7 +237,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * values.
      * 
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
+     * operation.
      * 
      * @param <V>
      *            the type of collection elements
@@ -270,7 +259,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * stream and corresponding values are supplied by given function.
      * 
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
+     * operation.
      * 
      * @param <V>
      *            the type of values.
@@ -301,7 +291,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * returned.
      *
      * <p>
-     * This is a terminal operation.
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
      * 
      * @param <K>
      *            the type of the keys
@@ -332,7 +323,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * returned.
      *
      * <p>
-     * This is a terminal operation.
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
      * 
      * @param <K>
      *            the type of the keys
@@ -369,7 +361,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * {@link ConcurrentMap} then concurrent collector is used.
      *
      * <p>
-     * This is a terminal operation.
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
      * 
      * @param <K>
      *            the type of the keys
@@ -414,7 +407,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * returned.
      *
      * <p>
-     * This is a terminal operation.
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
      * 
      * @param <K>
      *            the type of the keys
@@ -452,7 +446,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * {@link ConcurrentMap} then concurrent collector is used.
      *
      * <p>
-     * This is a terminal operation.
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
      * 
      * @param <K>
      *            the type of the keys
@@ -486,7 +481,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * the input elements according to a {@code Predicate}.
      *
      * <p>
-     * This is a terminal operation.
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
      *
      * <p>
      * There are no guarantees on the type, mutability, serializability, or
@@ -513,7 +509,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * according to the supplied {@code Collector}.
      *
      * <p>
-     * This is a terminal operation.
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
      *
      * <p>
      * There are no guarantees on the type, mutability, serializability, or
@@ -544,7 +541,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * input elements according to a {@code Predicate}.
      *
      * <p>
-     * This is a terminal operation.
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
      *
      * <p>
      * There are no guarantees on the type, mutability, serializability, or
@@ -578,7 +576,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * encounter order.
      *
      * <p>
-     * This is a terminal operation.
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
      * 
      * @return a {@code String}. For empty input stream empty String is
      *         returned.
@@ -593,7 +592,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * by the specified delimiter, in encounter order.
      *
      * <p>
-     * This is a terminal operation.
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
      * 
      * @param delimiter
      *            the delimiter to be used between each element
@@ -611,7 +611,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * encounter order.
      *
      * <p>
-     * This is a terminal operation.
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
      * 
      * @param delimiter
      *            the delimiter to be used between each element
@@ -634,7 +635,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * elements.
      *
      * <p>
-     * This is a terminal operation.
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
      * 
      * <p>
      * If this stream contains duplicates (according to
@@ -667,7 +669,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * the provided mapping functions to the input elements.
      *
      * <p>
-     * This is a terminal operation.
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
      * 
      * <p>
      * If the mapped keys contains duplicates (according to
@@ -704,7 +707,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * the provided mapping functions to the input elements.
      *
      * <p>
-     * This is a terminal operation.
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
      * 
      * <p>
      * If the mapped keys contains duplicates (according to
@@ -753,7 +757,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * input elements.
      *
      * <p>
-     * This is a terminal operation.
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
      * 
      * <p>
      * If this stream contains duplicates (according to
@@ -788,7 +793,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * applying the provided mapping functions to the input elements.
      *
      * <p>
-     * This is a terminal operation.
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
      * 
      * <p>
      * If the mapped keys contains duplicates (according to
@@ -827,7 +833,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * applying the provided mapping functions to the input elements.
      *
      * <p>
-     * This is a terminal operation.
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
      * 
      * <p>
      * If the mapped keys contains duplicates (according to
@@ -934,7 +941,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * Returns true if this stream contains the specified value.
      *
      * <p>
-     * This is a short-circuiting terminal operation.
+     * This is a short-circuiting <a
+     * href="package-summary.html#StreamOps">terminal</a> operation.
      * 
      * @param value
      *            the value to look for in the stream. If the value is null then
@@ -953,7 +961,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * equal to the given value.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
+     * operation.
      *
      * @param value
      *            the value to remove from the stream. If the value is null then
@@ -980,7 +989,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * stability guarantees are made.
      *
      * <p>
-     * This is a stateful intermediate operation.
+     * This is a stateful <a
+     * href="package-summary.html#StreamOps">intermediate</a> operation.
      *
      * @return the new stream
      * @since 0.2.0
@@ -1001,7 +1011,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * is preserved.
      *
      * <p>
-     * This is a stateful quasi-intermediate operation.
+     * This is a stateful <a
+     * href="package-summary.html#StreamOps">quasi-intermediate</a> operation.
      *
      * @param atLeast
      *            minimal number of occurrences required to select the element.
@@ -1029,7 +1040,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * to the every adjacent pair of elements of this stream.
      *
      * <p>
-     * This is a quasi-intermediate operation.
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate</a>
+     * operation.
      * 
      * <p>
      * The output stream will contain one element less than this stream. If this
@@ -1054,7 +1066,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * Performs an action for each adjacent pair of elements of this stream.
      *
      * <p>
-     * This is a terminal operation.
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
      *
      * <p>
      * The behavior of this operation is explicitly nondeterministic. For
@@ -1081,7 +1094,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * the merger function and return a new stream.
      * 
      * <p>
-     * This is a quasi-intermediate operation.
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate</a>
+     * operation.
      * 
      * @param collapsible
      *            a non-interfering, stateless predicate to apply to the pair of
@@ -1113,7 +1127,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * series.
      * 
      * <p>
-     * This is a quasi-intermediate operation.
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate</a>
+     * operation.
      * 
      * <p>
      * For sorted stream {@code collapse(Objects::equals)} is equivalent to
@@ -1136,7 +1151,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * collapsed.
      * 
      * <p>
-     * This is a quasi-intermediate operation.
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate</a>
+     * operation.
      * 
      * <p>
      * For sorted input {@code runLengths().toMap()} is the same as
@@ -1162,7 +1178,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * adjacent elements are grouped according to supplied predicate.
      * 
      * <p>
-     * This is a quasi-intermediate operation.
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate</a>
+     * operation.
      * 
      * <p>
      * There are no guarantees on the type, mutability, serializability, or
@@ -1200,7 +1217,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * the intervals created from the source elements.
      * 
      * <p>
-     * This is a quasi-intermediate operation. This operation is the same as
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate</a>
+     * operation. This operation is the same as
      * {@code groupRuns(sameInterval).map(list -> mapper.apply(list.get(0), list.get(list.size()-1)))}
      * , but has less overhead as only first and last elements of each interval
      * are tracked.

@@ -62,28 +62,11 @@ public class DoubleStreamEx implements DoubleStream {
         return StreamFactory.DEFAULT;
     }
 
-    /**
-     * Returns whether this stream, if a terminal operation were to be executed,
-     * would execute in parallel. Calling this method after invoking an terminal
-     * stream operation method may yield unpredictable results.
-     *
-     * @return {@code true} if this stream would execute in parallel if executed
-     */
     @Override
     public boolean isParallel() {
         return stream.isParallel();
     }
 
-    /**
-     * Returns an equivalent stream that is unordered. May return itself, either
-     * because the stream was already unordered, or because the underlying
-     * stream state was modified to be unordered.
-     *
-     * <p>
-     * This is an intermediate operation.
-     *
-     * @return an unordered stream
-     */
     @Override
     public DoubleStreamEx unordered() {
         return strategy().newDoubleStreamEx(stream.unordered());
@@ -94,12 +77,6 @@ public class DoubleStreamEx implements DoubleStream {
         return strategy().newDoubleStreamEx(stream.onClose(closeHandler));
     }
 
-    /**
-     * Closes this stream, causing all close handlers for this stream pipeline
-     * to be called.
-     *
-     * @see AutoCloseable#close()
-     */
     @Override
     public void close() {
         stream.close();
@@ -190,67 +167,21 @@ public class DoubleStreamEx implements DoubleStream {
         return filter(val -> val <= value);
     }
 
-    /**
-     * Returns a {@link DoubleStreamEx} consisting of the results of applying
-     * the given function to the elements of this stream.
-     *
-     * <p>
-     * This is an intermediate operation.
-     *
-     * @param mapper
-     *            a non-interfering, stateless function to apply to each element
-     * @return the new stream
-     */
     @Override
     public DoubleStreamEx map(DoubleUnaryOperator mapper) {
         return strategy().newDoubleStreamEx(stream.map(mapper));
     }
 
-    /**
-     * Returns an object-valued {@link StreamEx} consisting of the results of
-     * applying the given function to the elements of this stream.
-     *
-     * <p>
-     * This is an intermediate operation.
-     *
-     * @param <U>
-     *            the element type of the new stream
-     * @param mapper
-     *            a non-interfering, stateless function to apply to each element
-     * @return the new stream
-     */
     @Override
     public <U> StreamEx<U> mapToObj(DoubleFunction<? extends U> mapper) {
         return strategy().newStreamEx(stream.mapToObj(mapper));
     }
 
-    /**
-     * Returns an {@link IntStreamEx} consisting of the results of applying the
-     * given function to the elements of this stream.
-     *
-     * <p>
-     * This is an intermediate operation.
-     *
-     * @param mapper
-     *            a non-interfering, stateless function to apply to each element
-     * @return the new stream
-     */
     @Override
     public IntStreamEx mapToInt(DoubleToIntFunction mapper) {
         return strategy().newIntStreamEx(stream.mapToInt(mapper));
     }
 
-    /**
-     * Returns a {@link LongStreamEx} consisting of the results of applying the
-     * given function to the elements of this stream.
-     *
-     * <p>
-     * This is an intermediate operation.
-     *
-     * @param mapper
-     *            a non-interfering, stateless function to apply to each element
-     * @return the new stream
-     */
     @Override
     public LongStreamEx mapToLong(DoubleToLongFunction mapper) {
         return strategy().newLongStreamEx(stream.mapToLong(mapper));
@@ -281,21 +212,6 @@ public class DoubleStreamEx implements DoubleStream {
             stream.mapToObj(t -> new AbstractMap.SimpleImmutableEntry<>(keyMapper.apply(t), valueMapper.apply(t))));
     }
 
-    /**
-     * Returns a {@link DoubleStreamEx} consisting of the results of replacing
-     * each element of this stream with the contents of a mapped stream produced
-     * by applying the provided mapping function to each element. Each mapped
-     * stream is closed after its contents have been placed into this stream.
-     * (If a mapped stream is {@code null} an empty stream is used, instead.)
-     *
-     * <p>
-     * This is an intermediate operation.
-     *
-     * @param mapper
-     *            a non-interfering, stateless function to apply to each element
-     *            which produces a {@code DoubleStream} of new values
-     * @return the new stream
-     */
     @Override
     public DoubleStreamEx flatMap(DoubleFunction<? extends DoubleStream> mapper) {
         return strategy().newDoubleStreamEx(stream.flatMap(mapper));
@@ -368,16 +284,6 @@ public class DoubleStreamEx implements DoubleStream {
         return strategy().newDoubleStreamEx(stream.distinct());
     }
 
-    /**
-     * Returns a stream consisting of the elements of this stream in sorted
-     * order. The elements are compared for equality according to
-     * {@link java.lang.Double#compare(double, double)}.
-     *
-     * <p>
-     * This is a stateful intermediate operation.
-     *
-     * @return the new stream
-     */
     @Override
     public DoubleStreamEx sorted() {
         return strategy().newDoubleStreamEx(stream.sorted());
@@ -480,14 +386,6 @@ public class DoubleStreamEx implements DoubleStream {
         stream.forEachOrdered(action);
     }
 
-    /**
-     * Returns an array containing the elements of this stream.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @return an array containing the elements of this stream
-     */
     @Override
     public double[] toArray() {
         return stream.toArray();
@@ -530,33 +428,8 @@ public class DoubleStreamEx implements DoubleStream {
     }
 
     /**
-     * Performs a mutable reduction operation on the elements of this stream. A
-     * mutable reduction is one in which the reduced value is a mutable result
-     * container, such as an {@code ArrayList}, and elements are incorporated by
-     * updating the state of the result rather than by replacing the result.
-     *
-     * <p>
-     * Like {@link #reduce(double, DoubleBinaryOperator)}, {@code collect}
-     * operations can be parallelized without requiring additional
-     * synchronization.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @param <R>
-     *            type of the result
-     * @param supplier
-     *            a function that creates a new result container. For a parallel
-     *            execution, this function may be called multiple times and must
-     *            return a fresh value each time.
-     * @param accumulator
-     *            an associative, non-interfering, stateless function for
-     *            incorporating an additional element into a result
-     * @param combiner
-     *            an associative, non-interfering, stateless function for
-     *            combining two values, which must be compatible with the
-     *            accumulator function
-     * @return the result of the reduction
+     * {@inheritDoc}
+     * 
      * @see #collect(DoubleCollector)
      */
     @Override
@@ -797,14 +670,6 @@ public class DoubleStreamEx implements DoubleStream {
                 : b);
     }
 
-    /**
-     * Returns the count of elements in this stream.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @return the count of elements in this stream
-     */
     @Override
     public long count() {
         return stream.count();
@@ -864,19 +729,12 @@ public class DoubleStreamEx implements DoubleStream {
     }
 
     /**
-     * Returns an equivalent stream that is parallel. May return itself, either
-     * because the stream was already parallel, or because the underlying stream
-     * state was modified to be parallel.
-     *
-     * <p>
-     * This is an intermediate operation.
+     * {@inheritDoc}
      * 
      * <p>
      * If this stream was created using {@link #parallel(ForkJoinPool)}, the new
      * stream forgets about supplied custom {@link ForkJoinPool} and its
      * terminal operation will be executed in common pool.
-     *
-     * @return a parallel stream
      */
     @Override
     public DoubleStreamEx parallel() {

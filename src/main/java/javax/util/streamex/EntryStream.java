@@ -86,19 +86,12 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     }
 
     /**
-     * Returns an equivalent stream that is parallel. May return itself, either
-     * because the stream was already parallel, or because the underlying stream
-     * state was modified to be parallel.
-     *
-     * <p>
-     * This is an intermediate operation.
+     * {@inheritDoc}
      * 
      * <p>
      * If this stream was created using {@link #parallel(ForkJoinPool)}, the new
      * stream forgets about supplied custom {@link ForkJoinPool} and its
      * terminal operation will be executed in common pool.
-     *
-     * @return a parallel stream
      */
     @Override
     public EntryStream<K, V> parallel() {
@@ -110,7 +103,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * {@link ForkJoinPool}.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
      * 
      * <p>
      * The terminal operation of this stream or any derived stream (except the
@@ -133,7 +126,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * and values of the current stream using the specified delimiter.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
      *
      * @param delimiter
      *            the delimiter to be used between key and value
@@ -151,7 +144,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * specified prefix and suffix.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
      *
      * @param delimiter
      *            the delimiter to be used between key and value
@@ -191,7 +184,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * stream is {@code null} an empty stream is used, instead.)
      *
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
      *
      * @param <R>
      *            The element type of the new stream
@@ -352,7 +345,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * modified by applying the given function and values are left unchanged.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
      *
      * @param <KK>
      *            The type of the keys of the new stream
@@ -370,7 +363,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * left unchanged and values are modified by applying the given function.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
      *
      * @param <VV>
      *            The type of the values of the new stream
@@ -388,7 +381,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * given function to the keys and values of this stream.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
      *
      * @param <R>
      *            The element type of the new stream
@@ -406,7 +399,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * modified by applying the given function and values are left unchanged.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
      *
      * @param <KK>
      *            The type of the keys of the new stream
@@ -426,7 +419,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * left unchanged and values are modified by applying the given function.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
      *
      * @param <VV>
      *            The type of the values of the new stream
@@ -446,7 +439,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * modified by applying the given function and values are left unchanged.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
      *
      * @param <KK>
      *            The type of the keys of the new stream
@@ -466,7 +459,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * left unchanged and values are modified by applying the given function.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
      *
      * @param <VV>
      *            The type of the values of the new stream
@@ -483,10 +476,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
 
     /**
      * Returns a stream consisting of the {@link Entry} objects which keys are
-     * the values of this stream elements and vice versa
+     * the values of this stream elements and vice versa.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
      *
      * @return the new stream
      */
@@ -499,7 +492,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * match the given predicate.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
      *
      * @param keyPredicate
      *            a non-interfering, stateless predicate to apply to the key of
@@ -515,7 +508,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * match the given predicate.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
      *
      * @param valuePredicate
      *            a non-interfering, stateless predicate to apply to the value
@@ -531,7 +524,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * match the given predicate.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
      *
      * @param predicate
      *            a non-interfering, stateless predicate to apply to the
@@ -549,7 +542,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * don't match the given predicate.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
      *
      * @param keyPredicate
      *            a non-interfering, stateless predicate to apply to the key of
@@ -565,7 +558,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * don't match the given predicate.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
      *
      * @param valuePredicate
      *            a non-interfering, stateless predicate to apply to the value
@@ -581,7 +574,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * not null.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
      *
      * @return the new stream
      */
@@ -594,7 +587,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * not null.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
      *
      * @return the new stream
      */
@@ -618,7 +611,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * from the resulting stream.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
      *
      * <p>
      * For parallel stream pipelines, the action may be called at whatever time
@@ -642,7 +635,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * consumed from the resulting stream.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
      *
      * <p>
      * For parallel stream pipelines, the action may be called at whatever time
@@ -666,7 +659,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * are consumed from the resulting stream.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
      *
      * <p>
      * For parallel stream pipelines, the action may be called at whatever time
@@ -688,7 +681,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * Returns a stream consisting of the keys of this stream elements.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
      *
      * @return the new stream
      */
@@ -700,7 +693,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * Returns a stream consisting of the values of this stream elements.
      *
      * <p>
-     * This is an intermediate operation.
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
      *
      * @return the new stream
      */
@@ -720,7 +713,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * thrown when the collection operation is performed.
      * 
      * <p>
-     * This is a terminal operation.
+     * This is a <a href="package-summary.html#StreamOps">terminal</a> operation.
      *
      * <p>
      * Returned {@code Map} is guaranteed to be modifiable.
@@ -749,7 +742,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * function.
      * 
      * <p>
-     * This is a terminal operation.
+     * This is a <a href="package-summary.html#StreamOps">terminal</a> operation.
      *
      * <p>
      * Returned {@code Map} is guaranteed to be modifiable.
@@ -799,7 +792,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * thrown when the collection operation is performed.
      * 
      * <p>
-     * This is a terminal operation.
+     * This is a <a href="package-summary.html#StreamOps">terminal</a> operation.
      *
      * <p>
      * Returned {@code SortedMap} is guaranteed to be modifiable.
@@ -829,7 +822,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * function.
      * 
      * <p>
-     * This is a terminal operation.
+     * This is a <a href="package-summary.html#StreamOps">terminal</a> operation.
      *
      * <p>
      * Returned {@code SortedMap} is guaranteed to be modifiable.
@@ -894,7 +887,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * Performs an action for each key-value pair of this stream.
      *
      * <p>
-     * This is a terminal operation.
+     * This is a <a href="package-summary.html#StreamOps">terminal</a> operation.
      *
      * <p>
      * The behavior of this operation is explicitly nondeterministic. For
