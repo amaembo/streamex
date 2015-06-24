@@ -170,13 +170,25 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
     }
 
     /**
-     * Returns a {@code LongCollector} that counts the number of input elements.
-     * If no elements are present, the result is 0.
+     * Returns a {@code LongCollector} that counts the number of input elements
+     * and returns the result as {@code Long}. If no elements are present, the
+     * result is 0.
      *
      * @return a {@code LongCollector} that counts the input elements
      */
     static LongCollector<?, Long> counting() {
         return of(LONG_BOX, (box, i) -> box[0]++, SUM_LONG, UNBOX_LONG);
+    }
+
+    /**
+     * Returns an {@code LongCollector} that counts the number of input elements
+     * and returns the result as {@code Integer}. If no elements are present,
+     * the result is 0.
+     *
+     * @return an {@code LongCollector} that counts the input elements
+     */
+    static LongCollector<?, Integer> countingInt() {
+        return of(INT_BOX, (box, i) -> box[0]++, SUM_INT, UNBOX_INT);
     }
 
     /**

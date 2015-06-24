@@ -38,9 +38,11 @@ import java.util.stream.Stream;
 /* package */final class StreamExInternals {
     static final int INITIAL_SIZE = 128;
     static final Supplier<long[]> LONG_BOX = () -> new long[1];
+    static final Supplier<int[]> INT_BOX = () -> new int[1];
     static final Function<int[], Integer> UNBOX_INT = box -> box[0];
     static final Function<long[], Long> UNBOX_LONG = box -> box[0];
     static final BiConsumer<long[], long[]> SUM_LONG = (box1, box2) -> box1[0] += box2[0];
+    static final BiConsumer<int[], int[]> SUM_INT = (box1, box2) -> box1[0] += box2[0];
     static final Function<double[], Double> UNBOX_DOUBLE = box -> box[0];
     static final Object NONE = new Object();
     static final Set<Characteristics> NO_CHARACTERISTICS = EnumSet.noneOf(Characteristics.class);

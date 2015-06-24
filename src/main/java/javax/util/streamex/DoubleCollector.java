@@ -170,12 +170,24 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
 
     /**
      * Returns a {@code DoubleCollector} that counts the number of input
-     * elements. If no elements are present, the result is 0.
+     * elements and returns the result as {@code Long}. If no elements are
+     * present, the result is 0.
      *
      * @return a {@code DoubleCollector} that counts the input elements
      */
     static DoubleCollector<?, Long> counting() {
         return of(LONG_BOX, (box, i) -> box[0]++, SUM_LONG, UNBOX_LONG);
+    }
+
+    /**
+     * Returns an {@code DoubleCollector} that counts the number of input
+     * elements and returns the result as {@code Integer}. If no elements are
+     * present, the result is 0.
+     *
+     * @return an {@code DoubleCollector} that counts the input elements
+     */
+    static DoubleCollector<?, Integer> countingInt() {
+        return of(INT_BOX, (box, i) -> box[0]++, SUM_INT, UNBOX_INT);
     }
 
     /**

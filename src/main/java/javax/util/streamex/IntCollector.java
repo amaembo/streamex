@@ -166,17 +166,30 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      *         separated by the specified delimiter, in encounter order
      */
     static IntCollector<?, String> joining(CharSequence delimiter) {
-        return of(StringBuilder::new, StreamExInternals.joinAccumulatorInt(delimiter), joinMerger(delimiter), StringBuilder::toString);
+        return of(StringBuilder::new, StreamExInternals.joinAccumulatorInt(delimiter), joinMerger(delimiter),
+            StringBuilder::toString);
     }
 
     /**
-     * Returns an {@code IntCollector} that counts the number of input elements.
-     * If no elements are present, the result is 0.
+     * Returns an {@code IntCollector} that counts the number of input elements
+     * and returns the result as {@code Long}. If no elements are present, the
+     * result is 0.
      *
      * @return an {@code IntCollector} that counts the input elements
      */
     static IntCollector<?, Long> counting() {
         return of(LONG_BOX, (box, i) -> box[0]++, SUM_LONG, UNBOX_LONG);
+    }
+
+    /**
+     * Returns an {@code IntCollector} that counts the number of input elements
+     * and returns the result as {@code Integer}. If no elements are present,
+     * the result is 0.
+     *
+     * @return an {@code IntCollector} that counts the input elements
+     */
+    static IntCollector<?, Integer> countingInt() {
+        return of(INT_BOX, (box, i) -> box[0]++, SUM_INT, UNBOX_INT);
     }
 
     /**
@@ -187,7 +200,7 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      *         elements
      */
     static IntCollector<?, Integer> summing() {
-        return of(() -> new int[1], (box, i) -> box[0] += i, (box1, box2) -> box1[0] += box2[0], UNBOX_INT);
+        return of(INT_BOX, (box, i) -> box[0] += i, SUM_INT, UNBOX_INT);
     }
 
     /**
