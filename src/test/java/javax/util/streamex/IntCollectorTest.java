@@ -42,6 +42,8 @@ public class IntCollectorTest {
     public void testCounting() {
         assertEquals(5000L, (long) IntStreamEx.range(10000).atLeast(5000).collect(IntCollector.counting()));
         assertEquals(5000L, (long) IntStreamEx.range(10000).parallel().atLeast(5000).collect(IntCollector.counting()));
+        assertEquals(5000, (int) IntStreamEx.range(10000).atLeast(5000).collect(IntCollector.countingInt()));
+        assertEquals(5000, (int) IntStreamEx.range(10000).parallel().atLeast(5000).collect(IntCollector.countingInt()));
     }
 
     @Test

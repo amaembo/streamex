@@ -224,4 +224,10 @@ public class MoreCollectorsTest {
                 supplier.get().collect(MoreCollectors.greatest(Integer.MAX_VALUE)));
         }
     }
+    
+    @Test
+    public void testCountingInt() {
+        int count = IntStreamEx.range(1000).boxed().collect(MoreCollectors.countingInt());
+        assertEquals(1000, count);
+    }
 }

@@ -41,6 +41,8 @@ public class LongCollectorTest {
     public void testCounting() {
         assertEquals(5000L, (long) LongStreamEx.range(10000).atLeast(5000).collect(LongCollector.counting()));
         assertEquals(5000L, (long) LongStreamEx.range(10000).parallel().atLeast(5000).collect(LongCollector.counting()));
+        assertEquals(5000, (int) LongStreamEx.range(10000).atLeast(5000).collect(LongCollector.countingInt()));
+        assertEquals(5000, (int) LongStreamEx.range(10000).parallel().atLeast(5000).collect(LongCollector.countingInt()));
     }
 
     @Test

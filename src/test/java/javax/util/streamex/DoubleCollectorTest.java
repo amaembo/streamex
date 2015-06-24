@@ -46,6 +46,12 @@ public class DoubleCollectorTest {
             5000L,
             (long) IntStreamEx.range(10000).asDoubleStream().parallel().atLeast(5000)
                     .collect(DoubleCollector.counting()));
+        assertEquals(5000,
+            (int) IntStreamEx.range(10000).asDoubleStream().atLeast(5000).collect(DoubleCollector.countingInt()));
+        assertEquals(
+            5000,
+            (int) IntStreamEx.range(10000).asDoubleStream().parallel().atLeast(5000)
+                    .collect(DoubleCollector.countingInt()));
     }
 
     @Test
