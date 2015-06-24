@@ -95,7 +95,6 @@
               <goal>javadoc</goal>
             </goals>
             <configuration>
-              <outputDirectory>${project.build.directory}/apidocs_noinherit</outputDirectory>
               <quiet>true</quiet>
             </configuration>
           </execution>
