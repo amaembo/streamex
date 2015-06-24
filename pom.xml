@@ -64,6 +64,7 @@
         <version>1.8</version>
         <executions>
           <execution>
+            <!-- Unpack java.util.stream package from JDK source to inherit the documentation from it -->
             <id>prepare</id>
             <phase>prepare-package</phase>
             <configuration>
@@ -85,17 +86,31 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>2.10.3</version>
-        <configuration>
-          <sourcepath>${project.build.sourceDirectory};${project.build.directory}/jdk</sourcepath>
-          <excludePackageNames>java.util.stream</excludePackageNames>
-          <additionalparam>-Xdoclint:none</additionalparam>
-        </configuration>
         <executions>
           <execution>
+            <!-- This execution used just to run javadoc with doclint and fail on any errors -->
+            <id>verify-javadocs</id>
+            <phase>package</phase>
+            <goals>
+              <goal>javadoc</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/apidocs_noinherit</outputDirectory>
+              <quiet>true</quiet>
+            </configuration>
+          </execution>
+          <execution>
+            <!-- This is actualy javadoc build. The doclint cannot be used here as it fails on JDK sources -->
             <id>attach-javadocs</id>
             <goals>
               <goal>jar</goal>
             </goals>
+            <configuration>
+              <sourcepath>${project.build.sourceDirectory};${project.build.directory}/jdk</sourcepath>
+              <excludePackageNames>java.util.stream</excludePackageNames>
+              <additionalparam>-Xdoclint:none</additionalparam>
+              <quiet>true</quiet>
+            </configuration>
           </execution>
         </executions>
       </plugin>
