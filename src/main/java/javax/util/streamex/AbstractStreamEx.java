@@ -372,22 +372,123 @@ import static javax.util.streamex.StreamExInternals.*;
         return filter(predicate).findFirst();
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream, sorted in
+     * descending order according to the provided {@code Comparator}.
+     *
+     * <p>
+     * For ordered streams, the sort is stable. For unordered streams, no
+     * stability guarantees are made.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">stateful intermediate
+     * operation</a>.
+     *
+     * @param comparator
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            {@code Comparator} to be used to compare stream elements
+     * @return the new stream
+     */
     public S reverseSorted(Comparator<? super T> comparator) {
         return sorted(comparator.reversed());
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream, sorted
+     * according to the natural order of the keys extracted by provided
+     * function.
+     *
+     * <p>
+     * For ordered streams, the sort is stable. For unordered streams, no
+     * stability guarantees are made.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">stateful intermediate
+     * operation</a>.
+     *
+     * @param keyExtractor
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function to be used to extract sorting keys
+     * @return the new stream
+     */
     public <V extends Comparable<? super V>> S sortedBy(Function<T, ? extends V> keyExtractor) {
         return sorted(Comparator.comparing(keyExtractor));
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream, sorted
+     * according to the int values extracted by provided function.
+     *
+     * <p>
+     * For ordered streams, the sort is stable. For unordered streams, no
+     * stability guarantees are made.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">stateful intermediate
+     * operation</a>.
+     *
+     * @param keyExtractor
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function to be used to extract sorting keys
+     * @return the new stream
+     */
     public S sortedByInt(ToIntFunction<? super T> keyExtractor) {
         return sorted(Comparator.comparingInt(keyExtractor));
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream, sorted
+     * according to the long values extracted by provided function.
+     *
+     * <p>
+     * For ordered streams, the sort is stable. For unordered streams, no
+     * stability guarantees are made.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">stateful intermediate
+     * operation</a>.
+     *
+     * @param keyExtractor
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function to be used to extract sorting keys
+     * @return the new stream
+     */
     public S sortedByLong(ToLongFunction<? super T> keyExtractor) {
         return sorted(Comparator.comparingLong(keyExtractor));
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream, sorted
+     * according to the double values extracted by provided function.
+     *
+     * <p>
+     * For ordered streams, the sort is stable. For unordered streams, no
+     * stability guarantees are made.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">stateful intermediate
+     * operation</a>.
+     *
+     * @param keyExtractor
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function to be used to extract sorting keys
+     * @return the new stream
+     */
     public S sortedByDouble(ToDoubleFunction<? super T> keyExtractor) {
         return sorted(Comparator.comparingDouble(keyExtractor));
     }

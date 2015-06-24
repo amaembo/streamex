@@ -1406,13 +1406,43 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @param reader
      *            the reader to get the lines from
      * @return a {@code StreamEx<String>} providing the lines of text described
-     *         by this {@code BufferedReader}
+     *         by supplied {@code BufferedReader}
      * @see BufferedReader#lines()
      */
     public static StreamEx<String> ofLines(BufferedReader reader) {
         return new StreamEx<>(reader.lines());
     }
 
+    /**
+     * Returns a {@code StreamEx}, the elements of which are lines read from the
+     * supplied {@link Reader}. The {@code StreamEx} is lazily populated, i.e.,
+     * read only occurs during the terminal stream operation.
+     *
+     * <p>
+     * The reader must not be operated on during the execution of the terminal
+     * stream operation. Otherwise, the result of the terminal stream operation
+     * is undefined.
+     *
+     * <p>
+     * After execution of the terminal stream operation there are no guarantees
+     * that the reader will be at a specific position from which to read the
+     * next character or line.
+     *
+     * <p>
+     * If an {@link IOException} is thrown when accessing the underlying
+     * {@code Reader}, it is wrapped in an {@link UncheckedIOException} which
+     * will be thrown from the {@code StreamEx} method that caused the read to
+     * take place. This method will return a StreamEx if invoked on a Reader
+     * that is closed. Any operation on that stream that requires reading from
+     * the Reader after it is closed, will cause an UncheckedIOException to be
+     * thrown.
+     *
+     * @param reader
+     *            the reader to get the lines from
+     * @return a {@code StreamEx<String>} providing the lines of text described
+     *         by supplied {@code Reader}
+     * @see #ofLines(BufferedReader)
+     */
     public static StreamEx<String> ofLines(Reader reader) {
         if (reader instanceof BufferedReader)
             return new StreamEx<>(((BufferedReader) reader).lines());
@@ -1498,10 +1528,32 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return EntryStream.of(map).filterKeys(keyFilter).values();
     }
 
+    /**
+     * Return an ordered {@code StreamEx} over the zip file entries of given
+     * {@link ZipFile}. Entries appear in the {@code StreamEx} in the order they
+     * appear in the central directory of the zip file.
+     *
+     * @param file
+     *            a {@code ZipFile} object to read the entries from.
+     * @return an ordered {@code StreamEx} of entries in given zip file
+     * @throws IllegalStateException
+     *             if the zip file has been closed
+     */
     public static StreamEx<? extends ZipEntry> ofEntries(ZipFile file) {
         return new StreamEx<>(file.stream());
     }
 
+    /**
+     * Return an ordered {@code StreamEx} over the jar file entries of given
+     * {@link JarFile}. Entries appear in the {@code StreamEx} in the order they
+     * appear in the central directory of the jar file.
+     *
+     * @param file
+     *            a {@code JarFile} object to read the entries from.
+     * @return an ordered {@code StreamEx} of entries in given jar file
+     * @throws IllegalStateException
+     *             if the jar file has been closed
+     */
     public static StreamEx<JarEntry> ofEntries(JarFile file) {
         return new StreamEx<>(file.stream());
     }

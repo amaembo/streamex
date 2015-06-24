@@ -360,18 +360,99 @@ public class IntStreamEx implements IntStream {
         return sorted(Comparator.reverseOrder());
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream, sorted
+     * according to the natural order of the keys extracted by provided
+     * function.
+     *
+     * <p>
+     * For ordered streams, the sort is stable. For unordered streams, no
+     * stability guarantees are made.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">stateful intermediate
+     * operation</a>.
+     *
+     * @param keyExtractor
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function to be used to extract sorting keys
+     * @return the new stream
+     */
     public <V extends Comparable<? super V>> IntStreamEx sortedBy(IntFunction<V> keyExtractor) {
         return sorted(Comparator.comparing(i -> keyExtractor.apply(i)));
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream, sorted
+     * according to the int values extracted by provided function.
+     *
+     * <p>
+     * For ordered streams, the sort is stable. For unordered streams, no
+     * stability guarantees are made.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">stateful intermediate
+     * operation</a>.
+     *
+     * @param keyExtractor
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function to be used to extract sorting keys
+     * @return the new stream
+     */
     public IntStreamEx sortedByInt(IntUnaryOperator keyExtractor) {
         return sorted(Comparator.comparingInt(i -> keyExtractor.applyAsInt(i)));
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream, sorted
+     * according to the long values extracted by provided function.
+     *
+     * <p>
+     * For ordered streams, the sort is stable. For unordered streams, no
+     * stability guarantees are made.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">stateful intermediate
+     * operation</a>.
+     *
+     * @param keyExtractor
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function to be used to extract sorting keys
+     * @return the new stream
+     */
     public IntStreamEx sortedByLong(IntToLongFunction keyExtractor) {
         return sorted(Comparator.comparingLong(i -> keyExtractor.applyAsLong(i)));
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream, sorted
+     * according to the double values extracted by provided function.
+     *
+     * <p>
+     * For ordered streams, the sort is stable. For unordered streams, no
+     * stability guarantees are made.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">stateful intermediate
+     * operation</a>.
+     *
+     * @param keyExtractor
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function to be used to extract sorting keys
+     * @return the new stream
+     */
     public IntStreamEx sortedByDouble(IntToDoubleFunction keyExtractor) {
         return sorted(Comparator.comparingDouble(i -> keyExtractor.applyAsDouble(i)));
     }
@@ -514,6 +595,7 @@ public class IntStreamEx implements IntStream {
 
     /**
      * {@inheritDoc}
+     * 
      * @see #collect(IntCollector)
      */
     @Override
