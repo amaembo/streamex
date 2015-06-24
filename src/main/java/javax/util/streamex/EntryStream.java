@@ -44,7 +44,7 @@ import java.util.stream.Stream;
 import static javax.util.streamex.StreamExInternals.*;
 
 /**
- * A {@link Stream} of {@link Map.Entry} objects which provides additional
+ * A {@link Stream} of {@link Entry} objects which provides additional
  * specific functionality.
  * 
  * <p>
