@@ -1737,7 +1737,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         int size = source.size();
         if (size <= 0)
             return StreamEx.empty();
-        return IntStreamEx.range(0, (size - 1) / length + 1).mapToObj(
-            n -> source.subList(n * length, Math.min(size, (n + 1) * length)));
+        int fullChunks = (size - 1) / length;
+        return IntStreamEx.range(0, fullChunks + 1).mapToObj(
+            n -> source.subList(n * length, n == fullChunks ? size : (n + 1) * length));
     }
 }

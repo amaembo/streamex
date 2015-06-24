@@ -18,6 +18,7 @@ package javax.util.streamex;
 import java.io.BufferedReader;
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -1065,6 +1066,22 @@ public class StreamExTest {
         assertEquals("[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]", StreamEx.ofSubLists(input, Integer.MAX_VALUE).joining("-"));
         assertEquals("", StreamEx.ofSubLists(Collections.emptyList(), 1).joining("-"));
         assertEquals("", StreamEx.ofSubLists(Collections.emptyList(), Integer.MAX_VALUE).joining("-"));
+        
+        List<Integer> myList = new AbstractList<Integer>() {
+            @Override
+            public Integer get(int index) {
+                return index;
+            }
+
+            @Override
+            public int size() {
+                return Integer.MAX_VALUE-2;
+            }
+        };
+        assertEquals(1, StreamEx.ofSubLists(myList, Integer.MAX_VALUE-1).count());
+        assertEquals(Integer.MAX_VALUE-2, StreamEx.ofSubLists(myList, Integer.MAX_VALUE-1).findFirst().get().size());
+        assertEquals(1, StreamEx.ofSubLists(myList, Integer.MAX_VALUE-2).count());
+        assertEquals(1, StreamEx.ofSubLists(myList, Integer.MAX_VALUE-3).skip(1).findFirst().get().size());
     }
     
     @Test(expected=IllegalArgumentException.class)
