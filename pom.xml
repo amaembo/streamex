@@ -60,8 +60,36 @@
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <id>prepare</id>
+            <phase>validate</phase>
+            <configuration>
+              <target>
+                <unzip src="${java.home}/../src.zip" dest="${project.build.directory}/jdk">
+                  <patternset>
+                    <include name="java/util/stream/**/*.java" />
+                  </patternset>
+                </unzip>
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>2.10.3</version>
+        <configuration>
+          <sourcepath>${project.build.sourceDirectory};${project.build.directory}/jdk</sourcepath>
+          <excludePackageNames>java.util.stream</excludePackageNames>
+          <additionalparam>-Xdoclint:none</additionalparam>
+        </configuration>
         <executions>
           <execution>
             <id>attach-javadocs</id>
