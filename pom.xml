@@ -65,7 +65,7 @@
         <executions>
           <execution>
             <id>prepare</id>
-            <phase>validate</phase>
+            <phase>prepare-package</phase>
             <configuration>
               <target>
                 <unzip src="${java.home}/../src.zip" dest="${project.build.directory}/jdk">
