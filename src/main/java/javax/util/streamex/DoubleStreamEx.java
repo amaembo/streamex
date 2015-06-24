@@ -111,6 +111,86 @@ public class DoubleStreamEx implements DoubleStream {
     }
 
     /**
+     * Returns a stream consisting of the elements of this stream that don't
+     * match the given predicate.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param predicate
+     *            a non-interfering, stateless predicate to apply to each
+     *            element to determine if it should be excluded
+     * @return the new stream
+     */
+    public DoubleStreamEx remove(DoublePredicate predicate) {
+        return filter(predicate.negate());
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream that strictly
+     * greater than the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
+    public DoubleStreamEx greater(double value) {
+        return filter(val -> val > value);
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream that strictly
+     * less than the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
+    public DoubleStreamEx less(double value) {
+        return filter(val -> val < value);
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream that greater
+     * than or equal to the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
+    public DoubleStreamEx atLeast(double value) {
+        return filter(val -> val >= value);
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream that less than
+     * or equal to the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
+    public DoubleStreamEx atMost(double value) {
+        return filter(val -> val <= value);
+    }
+
+    /**
      * Returns a {@link DoubleStreamEx} consisting of the results of applying
      * the given function to the elements of this stream.
      *
@@ -303,6 +383,41 @@ public class DoubleStreamEx implements DoubleStream {
         return strategy().newDoubleStreamEx(stream.sorted());
     }
 
+    public DoubleStreamEx sorted(Comparator<Double> comparator) {
+        return strategy().newDoubleStreamEx(stream.boxed().sorted(comparator).mapToDouble(Double::doubleValue));
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream in reverse
+     * sorted order. The elements are compared for equality according to
+     * {@link java.lang.Double#compare(double, double)}.
+     *
+     * <p>
+     * This is a stateful intermediate operation.
+     *
+     * @return the new stream
+     * @since 0.0.8
+     */
+    public DoubleStreamEx reverseSorted() {
+        return sorted(Comparator.reverseOrder());
+    }
+
+    public <V extends Comparable<? super V>> DoubleStreamEx sortedBy(DoubleFunction<V> keyExtractor) {
+        return sorted(Comparator.comparing(i -> keyExtractor.apply(i)));
+    }
+
+    public DoubleStreamEx sortedByInt(DoubleToIntFunction keyExtractor) {
+        return sorted(Comparator.comparingInt(i -> keyExtractor.applyAsInt(i)));
+    }
+
+    public DoubleStreamEx sortedByLong(DoubleToLongFunction keyExtractor) {
+        return sorted(Comparator.comparingLong(i -> keyExtractor.applyAsLong(i)));
+    }
+
+    public DoubleStreamEx sortedByDouble(DoubleUnaryOperator keyExtractor) {
+        return sorted(Comparator.comparingDouble(i -> keyExtractor.applyAsDouble(i)));
+    }
+
     @Override
     public DoubleStreamEx peek(DoubleConsumer action) {
         return strategy().newDoubleStreamEx(stream.peek(action));
@@ -316,6 +431,43 @@ public class DoubleStreamEx implements DoubleStream {
     @Override
     public DoubleStreamEx skip(long n) {
         return strategy().newDoubleStreamEx(stream.skip(n));
+    }
+
+    /**
+     * Returns a stream consisting of the remaining elements of this stream
+     * after discarding the first {@code n} elements of the stream. If this
+     * stream contains fewer than {@code n} elements then an empty stream will
+     * be returned.
+     *
+     * <p>
+     * This is a stateful quasi-intermediate operation. Unlike
+     * {@link #skip(long)} it skips the first elements even if the stream is
+     * unordered. The main purpose of this method is to workaround the problem
+     * of skipping the first elements from non-sized source with further
+     * parallel processing and unordered terminal operation (such as
+     * {@link #forEach(DoubleConsumer)}). Also it behaves much better with
+     * infinite streams processed in parallel. For example,
+     * {@code DoubleStreamEx.iterate(0.0, i->i+1).skip(1).limit(100).parallel().toArray()}
+     * will likely to fail with {@code OutOfMemoryError}, but will work nicely
+     * if {@code skip} is replaced with {@code skipOrdered}.
+     *
+     * <p>
+     * For sequential streams this method behaves exactly like
+     * {@link #skip(long)}.
+     *
+     * @param n
+     *            the number of leading elements to skip
+     * @return the new stream
+     * @throws IllegalArgumentException
+     *             if {@code n} is negative
+     * @see #skip(long)
+     * @since 0.3.2
+     */
+    public DoubleStreamEx skipOrdered(long n) {
+        DoubleStream result = stream.isParallel() ? StreamSupport.doubleStream(
+            StreamSupport.doubleStream(stream.spliterator(), false).skip(n).spliterator(), true) : StreamSupport
+                .doubleStream(stream.skip(n).spliterator(), false);
+        return strategy().newDoubleStreamEx(result.onClose(stream::close));
     }
 
     @Override
@@ -339,6 +491,32 @@ public class DoubleStreamEx implements DoubleStream {
     @Override
     public double[] toArray() {
         return stream.toArray();
+    }
+
+    /**
+     * Returns a {@code float[]} array containing the elements of this stream
+     * which are converted to floats using {@code (float)} cast operation.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @return an array containing the elements of this stream
+     * @since 0.3.0
+     */
+    public float[] toFloatArray() {
+        if (isParallel())
+            return collect(DoubleCollector.toFloatArray());
+        java.util.Spliterator.OfDouble spliterator = stream.spliterator();
+        long size = spliterator.getExactSizeIfKnown();
+        FloatBuffer buf;
+        if (size >= 0 && size <= Integer.MAX_VALUE) {
+            buf = new FloatBuffer((int) size);
+            spliterator.forEachRemaining((DoubleConsumer) buf::addUnsafe);
+        } else {
+            buf = new FloatBuffer();
+            spliterator.forEachRemaining((DoubleConsumer) buf::add);
+        }
+        return buf.toArray();
     }
 
     @Override
@@ -429,9 +607,194 @@ public class DoubleStreamEx implements DoubleStream {
         return reduce(Math::min);
     }
 
+    /**
+     * Returns the minimum element of this stream according to the provided
+     * {@code Comparator}.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param comparator
+     *            a non-interfering, stateless {@link Comparator} to compare
+     *            elements of this stream
+     * @return an {@code OptionalDouble} describing the minimum element of this
+     *         stream, or an empty {@code OptionalDouble} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalDouble min(Comparator<Double> comparator) {
+        return reduce((a, b) -> comparator.compare(a, b) > 0 ? b : a);
+    }
+
+    /**
+     * Returns the minimum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param <V>
+     *            the type of the {@code Comparable} sort key
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalDouble} describing some element of this stream
+     *         for which the lowest value was returned by key extractor, or an
+     *         empty {@code OptionalDouble} if the stream is empty
+     * @since 0.1.2
+     */
+    public <V extends Comparable<? super V>> OptionalDouble minBy(DoubleFunction<V> keyExtractor) {
+        return reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? b : a);
+    }
+
+    /**
+     * Returns the minimum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalDouble} describing some element of this stream
+     *         for which the lowest value was returned by key extractor, or an
+     *         empty {@code OptionalDouble} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalDouble minByInt(DoubleToIntFunction keyExtractor) {
+        return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? b : a);
+    }
+
+    /**
+     * Returns the minimum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalDouble} describing some element of this stream
+     *         for which the lowest value was returned by key extractor, or an
+     *         empty {@code OptionalDouble} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalDouble minByLong(DoubleToLongFunction keyExtractor) {
+        return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? b : a);
+    }
+
+    /**
+     * Returns the minimum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalDouble} describing some element of this stream
+     *         for which the lowest value was returned by key extractor, or an
+     *         empty {@code OptionalDouble} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalDouble minByDouble(DoubleUnaryOperator keyExtractor) {
+        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? b
+                : a);
+    }
+
     @Override
     public OptionalDouble max() {
         return reduce(Math::max);
+    }
+
+    /**
+     * Returns the maximum element of this stream according to the provided
+     * {@code Comparator}.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param comparator
+     *            a non-interfering, stateless {@link Comparator} to compare
+     *            elements of this stream
+     * @return an {@code OptionalDouble} describing the minimum element of this
+     *         stream, or an empty {@code OptionalDouble} if the stream is empty
+     */
+    public OptionalDouble max(Comparator<Double> comparator) {
+        return reduce((a, b) -> comparator.compare(a, b) > 0 ? a : b);
+    }
+
+    /**
+     * Returns the maximum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param <V>
+     *            the type of the {@code Comparable} sort key
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalDouble} describing some element of this stream
+     *         for which the highest value was returned by key extractor, or an
+     *         empty {@code OptionalDouble} if the stream is empty
+     * @since 0.1.2
+     */
+    public <V extends Comparable<? super V>> OptionalDouble maxBy(DoubleFunction<V> keyExtractor) {
+        return reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? a : b);
+    }
+
+    /**
+     * Returns the maximum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalDouble} describing some element of this stream
+     *         for which the highest value was returned by key extractor, or an
+     *         empty {@code OptionalDouble} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalDouble maxByInt(DoubleToIntFunction keyExtractor) {
+        return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? a : b);
+    }
+
+    /**
+     * Returns the maximum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalDouble} describing some element of this stream
+     *         for which the highest value was returned by key extractor, or an
+     *         empty {@code OptionalDouble} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalDouble maxByLong(DoubleToLongFunction keyExtractor) {
+        return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? a : b);
+    }
+
+    /**
+     * Returns the maximum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalDouble} describing some element of this stream
+     *         for which the highest value was returned by key extractor, or an
+     *         empty {@code OptionalDouble} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalDouble maxByDouble(DoubleUnaryOperator keyExtractor) {
+        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? a
+                : b);
     }
 
     /**
@@ -477,9 +840,17 @@ public class DoubleStreamEx implements DoubleStream {
         return stream.findFirst();
     }
 
+    public OptionalDouble findFirst(DoublePredicate predicate) {
+        return filter(predicate).findFirst();
+    }
+
     @Override
     public OptionalDouble findAny() {
         return stream.findAny();
+    }
+
+    public OptionalDouble findAny(DoublePredicate predicate) {
+        return filter(predicate).findAny();
     }
 
     @Override
@@ -582,314 +953,6 @@ public class DoubleStreamEx implements DoubleStream {
     }
 
     /**
-     * Returns a stream consisting of the elements of this stream that strictly
-     * greater than the specified value.
-     *
-     * <p>
-     * This is an intermediate operation.
-     *
-     * @param value
-     *            a value to compare to
-     * @return the new stream
-     * @since 0.2.3
-     */
-    public DoubleStreamEx greater(double value) {
-        return filter(val -> val > value);
-    }
-
-    /**
-     * Returns a stream consisting of the elements of this stream that greater
-     * than or equal to the specified value.
-     *
-     * <p>
-     * This is an intermediate operation.
-     *
-     * @param value
-     *            a value to compare to
-     * @return the new stream
-     * @since 0.2.3
-     */
-    public DoubleStreamEx atLeast(double value) {
-        return filter(val -> val >= value);
-    }
-
-    /**
-     * Returns a stream consisting of the elements of this stream that strictly
-     * less than the specified value.
-     *
-     * <p>
-     * This is an intermediate operation.
-     *
-     * @param value
-     *            a value to compare to
-     * @return the new stream
-     * @since 0.2.3
-     */
-    public DoubleStreamEx less(double value) {
-        return filter(val -> val < value);
-    }
-
-    /**
-     * Returns a stream consisting of the elements of this stream that less than
-     * or equal to the specified value.
-     *
-     * <p>
-     * This is an intermediate operation.
-     *
-     * @param value
-     *            a value to compare to
-     * @return the new stream
-     * @since 0.2.3
-     */
-    public DoubleStreamEx atMost(double value) {
-        return filter(val -> val <= value);
-    }
-
-    /**
-     * Returns a stream consisting of the elements of this stream that don't
-     * match the given predicate.
-     *
-     * <p>
-     * This is an intermediate operation.
-     *
-     * @param predicate
-     *            a non-interfering, stateless predicate to apply to each
-     *            element to determine if it should be excluded
-     * @return the new stream
-     */
-    public DoubleStreamEx remove(DoublePredicate predicate) {
-        return filter(predicate.negate());
-    }
-
-    public OptionalDouble findAny(DoublePredicate predicate) {
-        return filter(predicate).findAny();
-    }
-
-    public OptionalDouble findFirst(DoublePredicate predicate) {
-        return filter(predicate).findFirst();
-    }
-
-    public DoubleStreamEx sorted(Comparator<Double> comparator) {
-        return strategy().newDoubleStreamEx(stream.boxed().sorted(comparator).mapToDouble(Double::doubleValue));
-    }
-
-    /**
-     * Returns a stream consisting of the elements of this stream in reverse
-     * sorted order. The elements are compared for equality according to
-     * {@link java.lang.Double#compare(double, double)}.
-     *
-     * <p>
-     * This is a stateful intermediate operation.
-     *
-     * @return the new stream
-     * @since 0.0.8
-     */
-    public DoubleStreamEx reverseSorted() {
-        return sorted(Comparator.reverseOrder());
-    }
-
-    public <V extends Comparable<? super V>> DoubleStreamEx sortedBy(DoubleFunction<V> keyExtractor) {
-        return sorted(Comparator.comparing(i -> keyExtractor.apply(i)));
-    }
-
-    public DoubleStreamEx sortedByInt(DoubleToIntFunction keyExtractor) {
-        return sorted(Comparator.comparingInt(i -> keyExtractor.applyAsInt(i)));
-    }
-
-    public DoubleStreamEx sortedByLong(DoubleToLongFunction keyExtractor) {
-        return sorted(Comparator.comparingLong(i -> keyExtractor.applyAsLong(i)));
-    }
-
-    public DoubleStreamEx sortedByDouble(DoubleUnaryOperator keyExtractor) {
-        return sorted(Comparator.comparingDouble(i -> keyExtractor.applyAsDouble(i)));
-    }
-
-    /**
-     * Returns the minimum element of this stream according to the provided
-     * {@code Comparator}.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @param comparator
-     *            a non-interfering, stateless {@link Comparator} to compare
-     *            elements of this stream
-     * @return an {@code OptionalDouble} describing the minimum element of this
-     *         stream, or an empty {@code OptionalDouble} if the stream is empty
-     * @since 0.1.2
-     */
-    public OptionalDouble min(Comparator<Double> comparator) {
-        return reduce((a, b) -> comparator.compare(a, b) > 0 ? b : a);
-    }
-
-    /**
-     * Returns the minimum element of this stream according to the provided key
-     * extractor function.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @param <V>
-     *            the type of the {@code Comparable} sort key
-     * @param keyExtractor
-     *            a non-interfering, stateless function
-     * @return an {@code OptionalDouble} describing some element of this stream
-     *         for which the lowest value was returned by key extractor, or an
-     *         empty {@code OptionalDouble} if the stream is empty
-     * @since 0.1.2
-     */
-    public <V extends Comparable<? super V>> OptionalDouble minBy(DoubleFunction<V> keyExtractor) {
-        return reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? b : a);
-    }
-
-    /**
-     * Returns the minimum element of this stream according to the provided key
-     * extractor function.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @param keyExtractor
-     *            a non-interfering, stateless function
-     * @return an {@code OptionalDouble} describing some element of this stream
-     *         for which the lowest value was returned by key extractor, or an
-     *         empty {@code OptionalDouble} if the stream is empty
-     * @since 0.1.2
-     */
-    public OptionalDouble minByInt(DoubleToIntFunction keyExtractor) {
-        return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? b : a);
-    }
-
-    /**
-     * Returns the minimum element of this stream according to the provided key
-     * extractor function.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @param keyExtractor
-     *            a non-interfering, stateless function
-     * @return an {@code OptionalDouble} describing some element of this stream
-     *         for which the lowest value was returned by key extractor, or an
-     *         empty {@code OptionalDouble} if the stream is empty
-     * @since 0.1.2
-     */
-    public OptionalDouble minByLong(DoubleToLongFunction keyExtractor) {
-        return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? b : a);
-    }
-
-    /**
-     * Returns the minimum element of this stream according to the provided key
-     * extractor function.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @param keyExtractor
-     *            a non-interfering, stateless function
-     * @return an {@code OptionalDouble} describing some element of this stream
-     *         for which the lowest value was returned by key extractor, or an
-     *         empty {@code OptionalDouble} if the stream is empty
-     * @since 0.1.2
-     */
-    public OptionalDouble minByDouble(DoubleUnaryOperator keyExtractor) {
-        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? b
-                : a);
-    }
-
-    /**
-     * Returns the maximum element of this stream according to the provided
-     * {@code Comparator}.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @param comparator
-     *            a non-interfering, stateless {@link Comparator} to compare
-     *            elements of this stream
-     * @return an {@code OptionalDouble} describing the minimum element of this
-     *         stream, or an empty {@code OptionalDouble} if the stream is empty
-     */
-    public OptionalDouble max(Comparator<Double> comparator) {
-        return reduce((a, b) -> comparator.compare(a, b) > 0 ? a : b);
-    }
-
-    /**
-     * Returns the maximum element of this stream according to the provided key
-     * extractor function.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @param <V>
-     *            the type of the {@code Comparable} sort key
-     * @param keyExtractor
-     *            a non-interfering, stateless function
-     * @return an {@code OptionalDouble} describing some element of this stream
-     *         for which the highest value was returned by key extractor, or an
-     *         empty {@code OptionalDouble} if the stream is empty
-     * @since 0.1.2
-     */
-    public <V extends Comparable<? super V>> OptionalDouble maxBy(DoubleFunction<V> keyExtractor) {
-        return reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? a : b);
-    }
-
-    /**
-     * Returns the maximum element of this stream according to the provided key
-     * extractor function.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @param keyExtractor
-     *            a non-interfering, stateless function
-     * @return an {@code OptionalDouble} describing some element of this stream
-     *         for which the highest value was returned by key extractor, or an
-     *         empty {@code OptionalDouble} if the stream is empty
-     * @since 0.1.2
-     */
-    public OptionalDouble maxByInt(DoubleToIntFunction keyExtractor) {
-        return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? a : b);
-    }
-
-    /**
-     * Returns the maximum element of this stream according to the provided key
-     * extractor function.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @param keyExtractor
-     *            a non-interfering, stateless function
-     * @return an {@code OptionalDouble} describing some element of this stream
-     *         for which the highest value was returned by key extractor, or an
-     *         empty {@code OptionalDouble} if the stream is empty
-     * @since 0.1.2
-     */
-    public OptionalDouble maxByLong(DoubleToLongFunction keyExtractor) {
-        return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? a : b);
-    }
-
-    /**
-     * Returns the maximum element of this stream according to the provided key
-     * extractor function.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @param keyExtractor
-     *            a non-interfering, stateless function
-     * @return an {@code OptionalDouble} describing some element of this stream
-     *         for which the highest value was returned by key extractor, or an
-     *         empty {@code OptionalDouble} if the stream is empty
-     * @since 0.1.2
-     */
-    public OptionalDouble maxByDouble(DoubleUnaryOperator keyExtractor) {
-        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? a
-                : b);
-    }
-
-    /**
      * Returns a stream consisting of the results of applying the given function
      * to the every adjacent pair of elements of this stream.
      *
@@ -911,32 +974,6 @@ public class DoubleStreamEx implements DoubleStream {
             StreamSupport.doubleStream(
                 new PairSpliterator.PSOfDouble(mapper, stream.spliterator(), 0, false, 0, false), stream.isParallel())
                     .onClose(stream::close));
-    }
-
-    /**
-     * Returns a {@code float[]} array containing the elements of this stream
-     * which are converted to floats using {@code (float)} cast operation.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @return an array containing the elements of this stream
-     * @since 0.3.0
-     */
-    public float[] toFloatArray() {
-        if (isParallel())
-            return collect(FloatBuffer::new, FloatBuffer::add, FloatBuffer::addAll).toArray();
-        java.util.Spliterator.OfDouble spliterator = stream.spliterator();
-        long size = spliterator.getExactSizeIfKnown();
-        FloatBuffer buf;
-        if (size >= 0 && size <= Integer.MAX_VALUE) {
-            buf = new FloatBuffer((int) size);
-            spliterator.forEachRemaining((DoubleConsumer) buf::addUnsafe);
-        } else {
-            buf = new FloatBuffer();
-            spliterator.forEachRemaining((DoubleConsumer) buf::add);
-        }
-        return buf.toArray();
     }
 
     /**
@@ -1206,42 +1243,5 @@ public class DoubleStreamEx implements DoubleStream {
     public static DoubleStreamEx zip(double[] first, double[] second, DoubleBinaryOperator mapper) {
         return intStreamForLength(first.length, second.length).mapToDouble(
             i -> mapper.applyAsDouble(first[i], second[i]));
-    }
-
-    /**
-     * Returns a stream consisting of the remaining elements of this stream
-     * after discarding the first {@code n} elements of the stream. If this
-     * stream contains fewer than {@code n} elements then an empty stream will
-     * be returned.
-     *
-     * <p>
-     * This is a stateful quasi-intermediate operation. Unlike
-     * {@link #skip(long)} it skips the first elements even if the stream is
-     * unordered. The main purpose of this method is to workaround the problem
-     * of skipping the first elements from non-sized source with further
-     * parallel processing and unordered terminal operation (such as
-     * {@link #forEach(DoubleConsumer)}). Also it behaves much better with
-     * infinite streams processed in parallel. For example,
-     * {@code DoubleStreamEx.iterate(0.0, i->i+1).skip(1).limit(100).parallel().toArray()}
-     * will likely to fail with {@code OutOfMemoryError}, but will work nicely
-     * if {@code skip} is replaced with {@code skipOrdered}.
-     *
-     * <p>
-     * For sequential streams this method behaves exactly like
-     * {@link #skip(long)}.
-     *
-     * @param n
-     *            the number of leading elements to skip
-     * @return the new stream
-     * @throws IllegalArgumentException
-     *             if {@code n} is negative
-     * @see #skip(long)
-     * @since 0.3.2
-     */
-    public DoubleStreamEx skipOrdered(long n) {
-        DoubleStream result = stream.isParallel() ? StreamSupport.doubleStream(
-            StreamSupport.doubleStream(stream.spliterator(), false).skip(n).spliterator(), true) : StreamSupport
-                .doubleStream(stream.skip(n).spliterator(), false);
-        return strategy().newDoubleStreamEx(result.onClose(stream::close));
     }
 }

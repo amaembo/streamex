@@ -112,6 +112,117 @@ public class LongStreamEx implements LongStream {
     }
 
     /**
+     * Returns a stream consisting of the elements of this stream that don't
+     * match the given predicate.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param predicate
+     *            a non-interfering, stateless predicate to apply to each
+     *            element to determine if it should be excluded
+     * @return the new stream
+     */
+    public LongStreamEx remove(LongPredicate predicate) {
+        return filter(predicate.negate());
+    }
+
+    /**
+     * Returns true if this stream contains the specified value
+     *
+     * <p>
+     * This is a short-circuiting terminal operation.
+     * 
+     * @param value
+     *            the value too look for in the stream
+     * @return true if this stream contains the specified value
+     * @see LongStream#anyMatch(LongPredicate)
+     */
+    public boolean has(long value) {
+        return anyMatch(x -> x == value);
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream that don't
+     * equal to the given value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            the value to remove from the stream.
+     * @return the new stream
+     * @since 0.2.2
+     */
+    public LongStreamEx without(long value) {
+        return filter(val -> val != value);
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream that strictly
+     * greater than the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
+    public LongStreamEx greater(long value) {
+        return filter(val -> val > value);
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream that greater
+     * than or equal to the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
+    public LongStreamEx atLeast(long value) {
+        return filter(val -> val >= value);
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream that strictly
+     * less than the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
+    public LongStreamEx less(long value) {
+        return filter(val -> val < value);
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream that less than
+     * or equal to the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
+    public LongStreamEx atMost(long value) {
+        return filter(val -> val <= value);
+    }
+
+    /**
      * Returns a {@link LongStreamEx} consisting of the results of applying the
      * given function to the elements of this stream.
      *
@@ -303,6 +414,40 @@ public class LongStreamEx implements LongStream {
         return strategy().newLongStreamEx(stream.sorted());
     }
 
+    public LongStreamEx sorted(Comparator<Long> comparator) {
+        return strategy().newLongStreamEx(stream.boxed().sorted(comparator).mapToLong(Long::longValue));
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream in reverse
+     * sorted order.
+     *
+     * <p>
+     * This is a stateful intermediate operation.
+     *
+     * @return the new stream
+     * @since 0.0.8
+     */
+    public LongStreamEx reverseSorted() {
+        return sorted(Comparator.reverseOrder());
+    }
+
+    public <V extends Comparable<? super V>> LongStreamEx sortedBy(LongFunction<V> keyExtractor) {
+        return sorted(Comparator.comparing(i -> keyExtractor.apply(i)));
+    }
+
+    public LongStreamEx sortedByInt(LongToIntFunction keyExtractor) {
+        return sorted(Comparator.comparingInt(i -> keyExtractor.applyAsInt(i)));
+    }
+
+    public LongStreamEx sortedByLong(LongUnaryOperator keyExtractor) {
+        return sorted(Comparator.comparingLong(i -> keyExtractor.applyAsLong(i)));
+    }
+
+    public LongStreamEx sortedByDouble(LongToDoubleFunction keyExtractor) {
+        return sorted(Comparator.comparingDouble(i -> keyExtractor.applyAsDouble(i)));
+    }
+
     @Override
     public LongStreamEx peek(LongConsumer action) {
         return strategy().newLongStreamEx(stream.peek(action));
@@ -316,6 +461,43 @@ public class LongStreamEx implements LongStream {
     @Override
     public LongStreamEx skip(long n) {
         return strategy().newLongStreamEx(stream.skip(n));
+    }
+
+    /**
+     * Returns a stream consisting of the remaining elements of this stream
+     * after discarding the first {@code n} elements of the stream. If this
+     * stream contains fewer than {@code n} elements then an empty stream will
+     * be returned.
+     *
+     * <p>
+     * This is a stateful quasi-intermediate operation. Unlike
+     * {@link #skip(long)} it skips the first elements even if the stream is
+     * unordered. The main purpose of this method is to workaround the problem
+     * of skipping the first elements from non-sized source with further
+     * parallel processing and unordered terminal operation (such as
+     * {@link #forEach(LongConsumer)}). Also it behaves much better with
+     * infinite streams processed in parallel. For example,
+     * {@code LongStreamEx.iterate(0L, i->i+1).skip(1).limit(100).parallel().toArray()}
+     * will likely to fail with {@code OutOfMemoryError}, but will work nicely
+     * if {@code skip} is replaced with {@code skipOrdered}.
+     *
+     * <p>
+     * For sequential streams this method behaves exactly like
+     * {@link #skip(long)}.
+     *
+     * @param n
+     *            the number of leading elements to skip
+     * @return the new stream
+     * @throws IllegalArgumentException
+     *             if {@code n} is negative
+     * @see #skip(long)
+     * @since 0.3.2
+     */
+    public LongStreamEx skipOrdered(long n) {
+        LongStream result = stream.isParallel() ? StreamSupport.longStream(
+            StreamSupport.longStream(stream.spliterator(), false).skip(n).spliterator(), true) : StreamSupport
+                .longStream(stream.skip(n).spliterator(), false);
+        return strategy().newLongStreamEx(result.onClose(stream::close));
     }
 
     @Override
@@ -429,9 +611,194 @@ public class LongStreamEx implements LongStream {
         return reduce(Long::min);
     }
 
+    /**
+     * Returns the minimum element of this stream according to the provided
+     * {@code Comparator}.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param comparator
+     *            a non-interfering, stateless {@link Comparator} to compare
+     *            elements of this stream
+     * @return an {@code OptionalLong} describing the minimum element of this
+     *         stream, or an empty {@code OptionalLong} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalLong min(Comparator<Long> comparator) {
+        return reduce((a, b) -> comparator.compare(a, b) > 0 ? b : a);
+    }
+
+    /**
+     * Returns the minimum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param <V>
+     *            the type of the {@code Comparable} sort key
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalLong} describing some element of this stream
+     *         for which the lowest value was returned by key extractor, or an
+     *         empty {@code OptionalLong} if the stream is empty
+     * @since 0.1.2
+     */
+    public <V extends Comparable<? super V>> OptionalLong minBy(LongFunction<V> keyExtractor) {
+        return reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? b : a);
+    }
+
+    /**
+     * Returns the minimum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalLong} describing some element of this stream
+     *         for which the lowest value was returned by key extractor, or an
+     *         empty {@code OptionalLong} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalLong minByInt(LongToIntFunction keyExtractor) {
+        return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? b : a);
+    }
+
+    /**
+     * Returns the minimum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalLong} describing some element of this stream
+     *         for which the lowest value was returned by key extractor, or an
+     *         empty {@code OptionalLong} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalLong minByLong(LongUnaryOperator keyExtractor) {
+        return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? b : a);
+    }
+
+    /**
+     * Returns the minimum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalLong} describing some element of this stream
+     *         for which the lowest value was returned by key extractor, or an
+     *         empty {@code OptionalLong} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalLong minByDouble(LongToDoubleFunction keyExtractor) {
+        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? b
+                : a);
+    }
+
     @Override
     public OptionalLong max() {
         return reduce(Long::max);
+    }
+
+    /**
+     * Returns the maximum element of this stream according to the provided
+     * {@code Comparator}.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param comparator
+     *            a non-interfering, stateless {@link Comparator} to compare
+     *            elements of this stream
+     * @return an {@code OptionalLong} describing the minimum element of this
+     *         stream, or an empty {@code OptionalLong} if the stream is empty
+     */
+    public OptionalLong max(Comparator<Long> comparator) {
+        return reduce((a, b) -> comparator.compare(a, b) > 0 ? a : b);
+    }
+
+    /**
+     * Returns the maximum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param <V>
+     *            the type of the {@code Comparable} sort key
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalLong} describing some element of this stream
+     *         for which the highest value was returned by key extractor, or an
+     *         empty {@code OptionalLong} if the stream is empty
+     * @since 0.1.2
+     */
+    public <V extends Comparable<? super V>> OptionalLong maxBy(LongFunction<V> keyExtractor) {
+        return reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? a : b);
+    }
+
+    /**
+     * Returns the maximum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalLong} describing some element of this stream
+     *         for which the highest value was returned by key extractor, or an
+     *         empty {@code OptionalLong} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalLong maxByInt(LongToIntFunction keyExtractor) {
+        return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? a : b);
+    }
+
+    /**
+     * Returns the maximum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalLong} describing some element of this stream
+     *         for which the highest value was returned by key extractor, or an
+     *         empty {@code OptionalLong} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalLong maxByLong(LongUnaryOperator keyExtractor) {
+        return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? a : b);
+    }
+
+    /**
+     * Returns the maximum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalLong} describing some element of this stream
+     *         for which the highest value was returned by key extractor, or an
+     *         empty {@code OptionalLong} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalLong maxByDouble(LongToDoubleFunction keyExtractor) {
+        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? a
+                : b);
     }
 
     /**
@@ -477,9 +844,17 @@ public class LongStreamEx implements LongStream {
         return stream.findFirst();
     }
 
+    public OptionalLong findFirst(LongPredicate predicate) {
+        return filter(predicate).findFirst();
+    }
+
     @Override
     public OptionalLong findAny() {
         return stream.findAny();
+    }
+
+    public OptionalLong findAny(LongPredicate predicate) {
+        return filter(predicate).findAny();
     }
 
     @Override
@@ -584,344 +959,6 @@ public class LongStreamEx implements LongStream {
 
     public LongStreamEx prepend(LongStream other) {
         return strategy().newLongStreamEx(LongStream.concat(other, stream));
-    }
-
-    /**
-     * Returns a stream consisting of the elements of this stream that don't
-     * match the given predicate.
-     *
-     * <p>
-     * This is an intermediate operation.
-     *
-     * @param predicate
-     *            a non-interfering, stateless predicate to apply to each
-     *            element to determine if it should be excluded
-     * @return the new stream
-     */
-    public LongStreamEx remove(LongPredicate predicate) {
-        return filter(predicate.negate());
-    }
-
-    public OptionalLong findAny(LongPredicate predicate) {
-        return filter(predicate).findAny();
-    }
-
-    public OptionalLong findFirst(LongPredicate predicate) {
-        return filter(predicate).findFirst();
-    }
-
-    /**
-     * Returns true if this stream contains the specified value
-     *
-     * <p>
-     * This is a short-circuiting terminal operation.
-     * 
-     * @param value
-     *            the value too look for in the stream
-     * @return true if this stream contains the specified value
-     * @see LongStream#anyMatch(LongPredicate)
-     */
-    public boolean has(long value) {
-        return anyMatch(x -> x == value);
-    }
-
-    /**
-     * Returns a stream consisting of the elements of this stream that don't
-     * equal to the given value.
-     *
-     * <p>
-     * This is an intermediate operation.
-     *
-     * @param value
-     *            the value to remove from the stream.
-     * @return the new stream
-     * @since 0.2.2
-     */
-    public LongStreamEx without(long value) {
-        return filter(val -> val != value);
-    }
-
-    /**
-     * Returns a stream consisting of the elements of this stream that strictly
-     * greater than the specified value.
-     *
-     * <p>
-     * This is an intermediate operation.
-     *
-     * @param value
-     *            a value to compare to
-     * @return the new stream
-     * @since 0.2.3
-     */
-    public LongStreamEx greater(long value) {
-        return filter(val -> val > value);
-    }
-
-    /**
-     * Returns a stream consisting of the elements of this stream that greater
-     * than or equal to the specified value.
-     *
-     * <p>
-     * This is an intermediate operation.
-     *
-     * @param value
-     *            a value to compare to
-     * @return the new stream
-     * @since 0.2.3
-     */
-    public LongStreamEx atLeast(long value) {
-        return filter(val -> val >= value);
-    }
-
-    /**
-     * Returns a stream consisting of the elements of this stream that strictly
-     * less than the specified value.
-     *
-     * <p>
-     * This is an intermediate operation.
-     *
-     * @param value
-     *            a value to compare to
-     * @return the new stream
-     * @since 0.2.3
-     */
-    public LongStreamEx less(long value) {
-        return filter(val -> val < value);
-    }
-
-    /**
-     * Returns a stream consisting of the elements of this stream that less than
-     * or equal to the specified value.
-     *
-     * <p>
-     * This is an intermediate operation.
-     *
-     * @param value
-     *            a value to compare to
-     * @return the new stream
-     * @since 0.2.3
-     */
-    public LongStreamEx atMost(long value) {
-        return filter(val -> val <= value);
-    }
-
-    public LongStreamEx sorted(Comparator<Long> comparator) {
-        return strategy().newLongStreamEx(stream.boxed().sorted(comparator).mapToLong(Long::longValue));
-    }
-
-    /**
-     * Returns a stream consisting of the elements of this stream in reverse
-     * sorted order.
-     *
-     * <p>
-     * This is a stateful intermediate operation.
-     *
-     * @return the new stream
-     * @since 0.0.8
-     */
-    public LongStreamEx reverseSorted() {
-        return sorted(Comparator.reverseOrder());
-    }
-
-    public <V extends Comparable<? super V>> LongStreamEx sortedBy(LongFunction<V> keyExtractor) {
-        return sorted(Comparator.comparing(i -> keyExtractor.apply(i)));
-    }
-
-    public LongStreamEx sortedByInt(LongToIntFunction keyExtractor) {
-        return sorted(Comparator.comparingInt(i -> keyExtractor.applyAsInt(i)));
-    }
-
-    public LongStreamEx sortedByLong(LongUnaryOperator keyExtractor) {
-        return sorted(Comparator.comparingLong(i -> keyExtractor.applyAsLong(i)));
-    }
-
-    public LongStreamEx sortedByDouble(LongToDoubleFunction keyExtractor) {
-        return sorted(Comparator.comparingDouble(i -> keyExtractor.applyAsDouble(i)));
-    }
-
-    /**
-     * Returns the minimum element of this stream according to the provided
-     * {@code Comparator}.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @param comparator
-     *            a non-interfering, stateless {@link Comparator} to compare
-     *            elements of this stream
-     * @return an {@code OptionalLong} describing the minimum element of this
-     *         stream, or an empty {@code OptionalLong} if the stream is empty
-     * @since 0.1.2
-     */
-    public OptionalLong min(Comparator<Long> comparator) {
-        return reduce((a, b) -> comparator.compare(a, b) > 0 ? b : a);
-    }
-
-    /**
-     * Returns the minimum element of this stream according to the provided key
-     * extractor function.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @param <V>
-     *            the type of the {@code Comparable} sort key
-     * @param keyExtractor
-     *            a non-interfering, stateless function
-     * @return an {@code OptionalLong} describing some element of this stream
-     *         for which the lowest value was returned by key extractor, or an
-     *         empty {@code OptionalLong} if the stream is empty
-     * @since 0.1.2
-     */
-    public <V extends Comparable<? super V>> OptionalLong minBy(LongFunction<V> keyExtractor) {
-        return reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? b : a);
-    }
-
-    /**
-     * Returns the minimum element of this stream according to the provided key
-     * extractor function.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @param keyExtractor
-     *            a non-interfering, stateless function
-     * @return an {@code OptionalLong} describing some element of this stream
-     *         for which the lowest value was returned by key extractor, or an
-     *         empty {@code OptionalLong} if the stream is empty
-     * @since 0.1.2
-     */
-    public OptionalLong minByInt(LongToIntFunction keyExtractor) {
-        return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? b : a);
-    }
-
-    /**
-     * Returns the minimum element of this stream according to the provided key
-     * extractor function.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @param keyExtractor
-     *            a non-interfering, stateless function
-     * @return an {@code OptionalLong} describing some element of this stream
-     *         for which the lowest value was returned by key extractor, or an
-     *         empty {@code OptionalLong} if the stream is empty
-     * @since 0.1.2
-     */
-    public OptionalLong minByLong(LongUnaryOperator keyExtractor) {
-        return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? b : a);
-    }
-
-    /**
-     * Returns the minimum element of this stream according to the provided key
-     * extractor function.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @param keyExtractor
-     *            a non-interfering, stateless function
-     * @return an {@code OptionalLong} describing some element of this stream
-     *         for which the lowest value was returned by key extractor, or an
-     *         empty {@code OptionalLong} if the stream is empty
-     * @since 0.1.2
-     */
-    public OptionalLong minByDouble(LongToDoubleFunction keyExtractor) {
-        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? b
-                : a);
-    }
-
-    /**
-     * Returns the maximum element of this stream according to the provided
-     * {@code Comparator}.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @param comparator
-     *            a non-interfering, stateless {@link Comparator} to compare
-     *            elements of this stream
-     * @return an {@code OptionalLong} describing the minimum element of this
-     *         stream, or an empty {@code OptionalLong} if the stream is empty
-     */
-    public OptionalLong max(Comparator<Long> comparator) {
-        return reduce((a, b) -> comparator.compare(a, b) > 0 ? a : b);
-    }
-
-    /**
-     * Returns the maximum element of this stream according to the provided key
-     * extractor function.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @param <V>
-     *            the type of the {@code Comparable} sort key
-     * @param keyExtractor
-     *            a non-interfering, stateless function
-     * @return an {@code OptionalLong} describing some element of this stream
-     *         for which the highest value was returned by key extractor, or an
-     *         empty {@code OptionalLong} if the stream is empty
-     * @since 0.1.2
-     */
-    public <V extends Comparable<? super V>> OptionalLong maxBy(LongFunction<V> keyExtractor) {
-        return reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? a : b);
-    }
-
-    /**
-     * Returns the maximum element of this stream according to the provided key
-     * extractor function.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @param keyExtractor
-     *            a non-interfering, stateless function
-     * @return an {@code OptionalLong} describing some element of this stream
-     *         for which the highest value was returned by key extractor, or an
-     *         empty {@code OptionalLong} if the stream is empty
-     * @since 0.1.2
-     */
-    public OptionalLong maxByInt(LongToIntFunction keyExtractor) {
-        return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? a : b);
-    }
-
-    /**
-     * Returns the maximum element of this stream according to the provided key
-     * extractor function.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @param keyExtractor
-     *            a non-interfering, stateless function
-     * @return an {@code OptionalLong} describing some element of this stream
-     *         for which the highest value was returned by key extractor, or an
-     *         empty {@code OptionalLong} if the stream is empty
-     * @since 0.1.2
-     */
-    public OptionalLong maxByLong(LongUnaryOperator keyExtractor) {
-        return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? a : b);
-    }
-
-    /**
-     * Returns the maximum element of this stream according to the provided key
-     * extractor function.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @param keyExtractor
-     *            a non-interfering, stateless function
-     * @return an {@code OptionalLong} describing some element of this stream
-     *         for which the highest value was returned by key extractor, or an
-     *         empty {@code OptionalLong} if the stream is empty
-     * @since 0.1.2
-     */
-    public OptionalLong maxByDouble(LongToDoubleFunction keyExtractor) {
-        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? a
-                : b);
     }
 
     /**
@@ -1226,42 +1263,5 @@ public class LongStreamEx implements LongStream {
      */
     public static LongStreamEx zip(long[] first, long[] second, LongBinaryOperator mapper) {
         return intStreamForLength(first.length, second.length).mapToLong(i -> mapper.applyAsLong(first[i], second[i]));
-    }
-
-    /**
-     * Returns a stream consisting of the remaining elements of this stream
-     * after discarding the first {@code n} elements of the stream. If this
-     * stream contains fewer than {@code n} elements then an empty stream will
-     * be returned.
-     *
-     * <p>
-     * This is a stateful quasi-intermediate operation. Unlike
-     * {@link #skip(long)} it skips the first elements even if the stream is
-     * unordered. The main purpose of this method is to workaround the problem
-     * of skipping the first elements from non-sized source with further
-     * parallel processing and unordered terminal operation (such as
-     * {@link #forEach(LongConsumer)}). Also it behaves much better with
-     * infinite streams processed in parallel. For example,
-     * {@code LongStreamEx.iterate(0L, i->i+1).skip(1).limit(100).parallel().toArray()}
-     * will likely to fail with {@code OutOfMemoryError}, but will work nicely
-     * if {@code skip} is replaced with {@code skipOrdered}.
-     *
-     * <p>
-     * For sequential streams this method behaves exactly like
-     * {@link #skip(long)}.
-     *
-     * @param n
-     *            the number of leading elements to skip
-     * @return the new stream
-     * @throws IllegalArgumentException
-     *             if {@code n} is negative
-     * @see #skip(long)
-     * @since 0.3.2
-     */
-    public LongStreamEx skipOrdered(long n) {
-        LongStream result = stream.isParallel() ? StreamSupport.longStream(
-            StreamSupport.longStream(stream.spliterator(), false).skip(n).spliterator(), true) : StreamSupport
-                .longStream(stream.skip(n).spliterator(), false);
-        return strategy().newLongStreamEx(result.onClose(stream::close));
     }
 }

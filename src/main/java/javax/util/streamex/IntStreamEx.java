@@ -134,6 +134,117 @@ public class IntStreamEx implements IntStream {
     }
 
     /**
+     * Returns a stream consisting of the elements of this stream that don't
+     * match the given predicate.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param predicate
+     *            a non-interfering, stateless predicate to apply to each
+     *            element to determine if it should be excluded
+     * @return the new stream
+     */
+    public IntStreamEx remove(IntPredicate predicate) {
+        return filter(predicate.negate());
+    }
+
+    /**
+     * Returns true if this stream contains the specified value.
+     *
+     * <p>
+     * This is a short-circuiting terminal operation.
+     * 
+     * @param value
+     *            the value too look for in the stream
+     * @return true if this stream contains the specified value
+     * @see IntStream#anyMatch(IntPredicate)
+     */
+    public boolean has(int value) {
+        return anyMatch(x -> x == value);
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream that don't
+     * equal to the given value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            the value to remove from the stream.
+     * @return the new stream
+     * @since 0.2.2
+     */
+    public IntStreamEx without(int value) {
+        return filter(val -> val != value);
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream that strictly
+     * greater than the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
+    public IntStreamEx greater(int value) {
+        return filter(val -> val > value);
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream that greater
+     * than or equal to the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
+    public IntStreamEx atLeast(int value) {
+        return filter(val -> val >= value);
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream that strictly
+     * less than the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
+    public IntStreamEx less(int value) {
+        return filter(val -> val < value);
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream that less than
+     * or equal to the specified value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value
+     *            a value to compare to
+     * @return the new stream
+     * @since 0.2.3
+     */
+    public IntStreamEx atMost(int value) {
+        return filter(val -> val <= value);
+    }
+
+    /**
      * Returns an {@link IntStreamEx} consisting of the results of applying the
      * given function to the elements of this stream.
      *
@@ -324,6 +435,40 @@ public class IntStreamEx implements IntStream {
         return strategy().newIntStreamEx(stream.sorted());
     }
 
+    public IntStreamEx sorted(Comparator<Integer> comparator) {
+        return strategy().newIntStreamEx(stream.boxed().sorted(comparator).mapToInt(Integer::intValue));
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream in reverse
+     * sorted order.
+     *
+     * <p>
+     * This is a stateful intermediate operation.
+     *
+     * @return the new stream
+     * @since 0.0.8
+     */
+    public IntStreamEx reverseSorted() {
+        return sorted(Comparator.reverseOrder());
+    }
+
+    public <V extends Comparable<? super V>> IntStreamEx sortedBy(IntFunction<V> keyExtractor) {
+        return sorted(Comparator.comparing(i -> keyExtractor.apply(i)));
+    }
+
+    public IntStreamEx sortedByInt(IntUnaryOperator keyExtractor) {
+        return sorted(Comparator.comparingInt(i -> keyExtractor.applyAsInt(i)));
+    }
+
+    public IntStreamEx sortedByLong(IntToLongFunction keyExtractor) {
+        return sorted(Comparator.comparingLong(i -> keyExtractor.applyAsLong(i)));
+    }
+
+    public IntStreamEx sortedByDouble(IntToDoubleFunction keyExtractor) {
+        return sorted(Comparator.comparingDouble(i -> keyExtractor.applyAsDouble(i)));
+    }
+
     @Override
     public IntStreamEx peek(IntConsumer action) {
         return strategy().newIntStreamEx(stream.peek(action));
@@ -337,6 +482,43 @@ public class IntStreamEx implements IntStream {
     @Override
     public IntStreamEx skip(long n) {
         return strategy().newIntStreamEx(stream.skip(n));
+    }
+
+    /**
+     * Returns a stream consisting of the remaining elements of this stream
+     * after discarding the first {@code n} elements of the stream. If this
+     * stream contains fewer than {@code n} elements then an empty stream will
+     * be returned.
+     *
+     * <p>
+     * This is a stateful quasi-intermediate operation. Unlike
+     * {@link #skip(long)} it skips the first elements even if the stream is
+     * unordered. The main purpose of this method is to workaround the problem
+     * of skipping the first elements from non-sized source with further
+     * parallel processing and unordered terminal operation (such as
+     * {@link #forEach(IntConsumer)}). Also it behaves much better with infinite
+     * streams processed in parallel. For example,
+     * {@code IntStreamEx.iterate(0, i->i+1).skip(1).limit(100).parallel().toArray()}
+     * will likely to fail with {@code OutOfMemoryError}, but will work nicely
+     * if {@code skip} is replaced with {@code skipOrdered}.
+     *
+     * <p>
+     * For sequential streams this method behaves exactly like
+     * {@link #skip(long)}.
+     *
+     * @param n
+     *            the number of leading elements to skip
+     * @return the new stream
+     * @throws IllegalArgumentException
+     *             if {@code n} is negative
+     * @see #skip(long)
+     * @since 0.3.2
+     */
+    public IntStreamEx skipOrdered(long n) {
+        IntStream result = stream.isParallel() ? StreamSupport.intStream(
+            StreamSupport.intStream(stream.spliterator(), false).skip(n).spliterator(), true) : StreamSupport
+                .intStream(stream.skip(n).spliterator(), false);
+        return strategy().newIntStreamEx(result.onClose(stream::close));
     }
 
     @Override
@@ -360,6 +542,65 @@ public class IntStreamEx implements IntStream {
     @Override
     public int[] toArray() {
         return stream.toArray();
+    }
+
+    /**
+     * Returns a {@code byte[]} array containing the elements of this stream
+     * which are converted to bytes using {@code (byte)} cast operation.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @return an array containing the elements of this stream
+     * @since 0.3.0
+     */
+    public byte[] toByteArray() {
+        return collectSized(ByteBuffer::new, ByteBuffer::add, ByteBuffer::addAll, ByteBuffer::new,
+            ByteBuffer::addUnsafe).toArray();
+    }
+
+    /**
+     * Returns a {@code char[]} array containing the elements of this stream
+     * which are converted to chars using {@code (char)} cast operation.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @return an array containing the elements of this stream
+     * @since 0.3.0
+     */
+    public char[] toCharArray() {
+        return collectSized(CharBuffer::new, CharBuffer::add, CharBuffer::addAll, CharBuffer::new,
+            CharBuffer::addUnsafe).toArray();
+    }
+
+    /**
+     * Returns a {@code short[]} array containing the elements of this stream
+     * which are converted to shorts using {@code (short)} cast operation.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @return an array containing the elements of this stream
+     * @since 0.3.0
+     */
+    public short[] toShortArray() {
+        return collectSized(ShortBuffer::new, ShortBuffer::add, ShortBuffer::addAll, ShortBuffer::new,
+            ShortBuffer::addUnsafe).toArray();
+    }
+
+    /**
+     * Returns a {@link BitSet} containing the elements of this stream.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @return a {@code BitSet} which set bits correspond to the elements of
+     *         this stream.
+     * @since 0.2.0
+     */
+    public BitSet toBitSet() {
+        return collect(BitSet::new, BitSet::set, BitSet::or);
     }
 
     @Override
@@ -447,9 +688,194 @@ public class IntStreamEx implements IntStream {
         return reduce(Integer::min);
     }
 
+    /**
+     * Returns the minimum element of this stream according to the provided
+     * {@code Comparator}.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param comparator
+     *            a non-interfering, stateless {@link Comparator} to compare
+     *            elements of this stream
+     * @return an {@code OptionalInt} describing the minimum element of this
+     *         stream, or an empty {@code OptionalInt} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalInt min(Comparator<Integer> comparator) {
+        return reduce((a, b) -> comparator.compare(a, b) > 0 ? b : a);
+    }
+
+    /**
+     * Returns the minimum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param <V>
+     *            the type of the {@code Comparable} sort key
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalInt} describing some element of this stream for
+     *         which the lowest value was returned by key extractor, or an empty
+     *         {@code OptionalInt} if the stream is empty
+     * @since 0.1.2
+     */
+    public <V extends Comparable<? super V>> OptionalInt minBy(IntFunction<V> keyExtractor) {
+        return reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? b : a);
+    }
+
+    /**
+     * Returns the minimum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalInt} describing some element of this stream for
+     *         which the lowest value was returned by key extractor, or an empty
+     *         {@code OptionalInt} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalInt minByInt(IntUnaryOperator keyExtractor) {
+        return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? b : a);
+    }
+
+    /**
+     * Returns the minimum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalInt} describing some element of this stream for
+     *         which the lowest value was returned by key extractor, or an empty
+     *         {@code OptionalInt} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalInt minByLong(IntToLongFunction keyExtractor) {
+        return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? b : a);
+    }
+
+    /**
+     * Returns the minimum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalInt} describing some element of this stream for
+     *         which the lowest value was returned by key extractor, or an empty
+     *         {@code OptionalInt} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalInt minByDouble(IntToDoubleFunction keyExtractor) {
+        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? b
+                : a);
+    }
+
     @Override
     public OptionalInt max() {
         return reduce(Integer::max);
+    }
+
+    /**
+     * Returns the maximum element of this stream according to the provided
+     * {@code Comparator}.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param comparator
+     *            a non-interfering, stateless {@link Comparator} to compare
+     *            elements of this stream
+     * @return an {@code OptionalInt} describing the minimum element of this
+     *         stream, or an empty {@code OptionalInt} if the stream is empty
+     */
+    public OptionalInt max(Comparator<Integer> comparator) {
+        return reduce((a, b) -> comparator.compare(a, b) > 0 ? a : b);
+    }
+
+    /**
+     * Returns the maximum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param <V>
+     *            the type of the {@code Comparable} sort key
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalInt} describing some element of this stream for
+     *         which the highest value was returned by key extractor, or an
+     *         empty {@code OptionalInt} if the stream is empty
+     * @since 0.1.2
+     */
+    public <V extends Comparable<? super V>> OptionalInt maxBy(IntFunction<V> keyExtractor) {
+        return reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? a : b);
+    }
+
+    /**
+     * Returns the maximum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalInt} describing some element of this stream for
+     *         which the highest value was returned by key extractor, or an
+     *         empty {@code OptionalInt} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalInt maxByInt(IntUnaryOperator keyExtractor) {
+        return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? a : b);
+    }
+
+    /**
+     * Returns the maximum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalInt} describing some element of this stream for
+     *         which the highest value was returned by key extractor, or an
+     *         empty {@code OptionalInt} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalInt maxByLong(IntToLongFunction keyExtractor) {
+        return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? a : b);
+    }
+
+    /**
+     * Returns the maximum element of this stream according to the provided key
+     * extractor function.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function
+     * @return an {@code OptionalInt} describing some element of this stream for
+     *         which the highest value was returned by key extractor, or an
+     *         empty {@code OptionalInt} if the stream is empty
+     * @since 0.1.2
+     */
+    public OptionalInt maxByDouble(IntToDoubleFunction keyExtractor) {
+        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? a
+                : b);
     }
 
     /**
@@ -495,9 +921,17 @@ public class IntStreamEx implements IntStream {
         return stream.findFirst();
     }
 
+    public OptionalInt findFirst(IntPredicate predicate) {
+        return filter(predicate).findFirst();
+    }
+
     @Override
     public OptionalInt findAny() {
         return stream.findAny();
+    }
+
+    public OptionalInt findAny(IntPredicate predicate) {
+        return filter(predicate).findAny();
     }
 
     @Override
@@ -610,344 +1044,6 @@ public class IntStreamEx implements IntStream {
     }
 
     /**
-     * Returns a stream consisting of the elements of this stream that don't
-     * match the given predicate.
-     *
-     * <p>
-     * This is an intermediate operation.
-     *
-     * @param predicate
-     *            a non-interfering, stateless predicate to apply to each
-     *            element to determine if it should be excluded
-     * @return the new stream
-     */
-    public IntStreamEx remove(IntPredicate predicate) {
-        return filter(predicate.negate());
-    }
-
-    public OptionalInt findAny(IntPredicate predicate) {
-        return filter(predicate).findAny();
-    }
-
-    public OptionalInt findFirst(IntPredicate predicate) {
-        return filter(predicate).findFirst();
-    }
-
-    /**
-     * Returns true if this stream contains the specified value.
-     *
-     * <p>
-     * This is a short-circuiting terminal operation.
-     * 
-     * @param value
-     *            the value too look for in the stream
-     * @return true if this stream contains the specified value
-     * @see IntStream#anyMatch(IntPredicate)
-     */
-    public boolean has(int value) {
-        return anyMatch(x -> x == value);
-    }
-
-    /**
-     * Returns a stream consisting of the elements of this stream that don't
-     * equal to the given value.
-     *
-     * <p>
-     * This is an intermediate operation.
-     *
-     * @param value
-     *            the value to remove from the stream.
-     * @return the new stream
-     * @since 0.2.2
-     */
-    public IntStreamEx without(int value) {
-        return filter(val -> val != value);
-    }
-
-    /**
-     * Returns a stream consisting of the elements of this stream that strictly
-     * greater than the specified value.
-     *
-     * <p>
-     * This is an intermediate operation.
-     *
-     * @param value
-     *            a value to compare to
-     * @return the new stream
-     * @since 0.2.3
-     */
-    public IntStreamEx greater(int value) {
-        return filter(val -> val > value);
-    }
-
-    /**
-     * Returns a stream consisting of the elements of this stream that greater
-     * than or equal to the specified value.
-     *
-     * <p>
-     * This is an intermediate operation.
-     *
-     * @param value
-     *            a value to compare to
-     * @return the new stream
-     * @since 0.2.3
-     */
-    public IntStreamEx atLeast(int value) {
-        return filter(val -> val >= value);
-    }
-
-    /**
-     * Returns a stream consisting of the elements of this stream that strictly
-     * less than the specified value.
-     *
-     * <p>
-     * This is an intermediate operation.
-     *
-     * @param value
-     *            a value to compare to
-     * @return the new stream
-     * @since 0.2.3
-     */
-    public IntStreamEx less(int value) {
-        return filter(val -> val < value);
-    }
-
-    /**
-     * Returns a stream consisting of the elements of this stream that less than
-     * or equal to the specified value.
-     *
-     * <p>
-     * This is an intermediate operation.
-     *
-     * @param value
-     *            a value to compare to
-     * @return the new stream
-     * @since 0.2.3
-     */
-    public IntStreamEx atMost(int value) {
-        return filter(val -> val <= value);
-    }
-
-    public IntStreamEx sorted(Comparator<Integer> comparator) {
-        return strategy().newIntStreamEx(stream.boxed().sorted(comparator).mapToInt(Integer::intValue));
-    }
-
-    /**
-     * Returns a stream consisting of the elements of this stream in reverse
-     * sorted order.
-     *
-     * <p>
-     * This is a stateful intermediate operation.
-     *
-     * @return the new stream
-     * @since 0.0.8
-     */
-    public IntStreamEx reverseSorted() {
-        return sorted(Comparator.reverseOrder());
-    }
-
-    public <V extends Comparable<? super V>> IntStreamEx sortedBy(IntFunction<V> keyExtractor) {
-        return sorted(Comparator.comparing(i -> keyExtractor.apply(i)));
-    }
-
-    public IntStreamEx sortedByInt(IntUnaryOperator keyExtractor) {
-        return sorted(Comparator.comparingInt(i -> keyExtractor.applyAsInt(i)));
-    }
-
-    public IntStreamEx sortedByLong(IntToLongFunction keyExtractor) {
-        return sorted(Comparator.comparingLong(i -> keyExtractor.applyAsLong(i)));
-    }
-
-    public IntStreamEx sortedByDouble(IntToDoubleFunction keyExtractor) {
-        return sorted(Comparator.comparingDouble(i -> keyExtractor.applyAsDouble(i)));
-    }
-
-    /**
-     * Returns the minimum element of this stream according to the provided
-     * {@code Comparator}.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @param comparator
-     *            a non-interfering, stateless {@link Comparator} to compare
-     *            elements of this stream
-     * @return an {@code OptionalInt} describing the minimum element of this
-     *         stream, or an empty {@code OptionalInt} if the stream is empty
-     * @since 0.1.2
-     */
-    public OptionalInt min(Comparator<Integer> comparator) {
-        return reduce((a, b) -> comparator.compare(a, b) > 0 ? b : a);
-    }
-
-    /**
-     * Returns the minimum element of this stream according to the provided key
-     * extractor function.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @param <V>
-     *            the type of the {@code Comparable} sort key
-     * @param keyExtractor
-     *            a non-interfering, stateless function
-     * @return an {@code OptionalInt} describing some element of this stream for
-     *         which the lowest value was returned by key extractor, or an empty
-     *         {@code OptionalInt} if the stream is empty
-     * @since 0.1.2
-     */
-    public <V extends Comparable<? super V>> OptionalInt minBy(IntFunction<V> keyExtractor) {
-        return reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? b : a);
-    }
-
-    /**
-     * Returns the minimum element of this stream according to the provided key
-     * extractor function.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @param keyExtractor
-     *            a non-interfering, stateless function
-     * @return an {@code OptionalInt} describing some element of this stream for
-     *         which the lowest value was returned by key extractor, or an empty
-     *         {@code OptionalInt} if the stream is empty
-     * @since 0.1.2
-     */
-    public OptionalInt minByInt(IntUnaryOperator keyExtractor) {
-        return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? b : a);
-    }
-
-    /**
-     * Returns the minimum element of this stream according to the provided key
-     * extractor function.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @param keyExtractor
-     *            a non-interfering, stateless function
-     * @return an {@code OptionalInt} describing some element of this stream for
-     *         which the lowest value was returned by key extractor, or an empty
-     *         {@code OptionalInt} if the stream is empty
-     * @since 0.1.2
-     */
-    public OptionalInt minByLong(IntToLongFunction keyExtractor) {
-        return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? b : a);
-    }
-
-    /**
-     * Returns the minimum element of this stream according to the provided key
-     * extractor function.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @param keyExtractor
-     *            a non-interfering, stateless function
-     * @return an {@code OptionalInt} describing some element of this stream for
-     *         which the lowest value was returned by key extractor, or an empty
-     *         {@code OptionalInt} if the stream is empty
-     * @since 0.1.2
-     */
-    public OptionalInt minByDouble(IntToDoubleFunction keyExtractor) {
-        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? b
-                : a);
-    }
-
-    /**
-     * Returns the maximum element of this stream according to the provided
-     * {@code Comparator}.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @param comparator
-     *            a non-interfering, stateless {@link Comparator} to compare
-     *            elements of this stream
-     * @return an {@code OptionalInt} describing the minimum element of this
-     *         stream, or an empty {@code OptionalInt} if the stream is empty
-     */
-    public OptionalInt max(Comparator<Integer> comparator) {
-        return reduce((a, b) -> comparator.compare(a, b) > 0 ? a : b);
-    }
-
-    /**
-     * Returns the maximum element of this stream according to the provided key
-     * extractor function.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @param <V>
-     *            the type of the {@code Comparable} sort key
-     * @param keyExtractor
-     *            a non-interfering, stateless function
-     * @return an {@code OptionalInt} describing some element of this stream for
-     *         which the highest value was returned by key extractor, or an
-     *         empty {@code OptionalInt} if the stream is empty
-     * @since 0.1.2
-     */
-    public <V extends Comparable<? super V>> OptionalInt maxBy(IntFunction<V> keyExtractor) {
-        return reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? a : b);
-    }
-
-    /**
-     * Returns the maximum element of this stream according to the provided key
-     * extractor function.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @param keyExtractor
-     *            a non-interfering, stateless function
-     * @return an {@code OptionalInt} describing some element of this stream for
-     *         which the highest value was returned by key extractor, or an
-     *         empty {@code OptionalInt} if the stream is empty
-     * @since 0.1.2
-     */
-    public OptionalInt maxByInt(IntUnaryOperator keyExtractor) {
-        return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? a : b);
-    }
-
-    /**
-     * Returns the maximum element of this stream according to the provided key
-     * extractor function.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @param keyExtractor
-     *            a non-interfering, stateless function
-     * @return an {@code OptionalInt} describing some element of this stream for
-     *         which the highest value was returned by key extractor, or an
-     *         empty {@code OptionalInt} if the stream is empty
-     * @since 0.1.2
-     */
-    public OptionalInt maxByLong(IntToLongFunction keyExtractor) {
-        return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? a : b);
-    }
-
-    /**
-     * Returns the maximum element of this stream according to the provided key
-     * extractor function.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @param keyExtractor
-     *            a non-interfering, stateless function
-     * @return an {@code OptionalInt} describing some element of this stream for
-     *         which the highest value was returned by key extractor, or an
-     *         empty {@code OptionalInt} if the stream is empty
-     * @since 0.1.2
-     */
-    public OptionalInt maxByDouble(IntToDoubleFunction keyExtractor) {
-        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? a
-                : b);
-    }
-
-    /**
      * Returns an object-valued {@link StreamEx} consisting of the elements of
      * given array corresponding to the indices which appear in this stream.
      *
@@ -1035,65 +1131,6 @@ public class IntStreamEx implements IntStream {
      */
     public DoubleStreamEx elements(double[] array) {
         return mapToDouble(idx -> array[idx]);
-    }
-
-    /**
-     * Returns a {@link BitSet} containing the elements of this stream.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @return a {@code BitSet} which set bits correspond to the elements of
-     *         this stream.
-     * @since 0.2.0
-     */
-    public BitSet toBitSet() {
-        return collect(BitSet::new, BitSet::set, BitSet::or);
-    }
-
-    /**
-     * Returns a {@code byte[]} array containing the elements of this stream
-     * which are converted to bytes using {@code (byte)} cast operation.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @return an array containing the elements of this stream
-     * @since 0.3.0
-     */
-    public byte[] toByteArray() {
-        return collectSized(ByteBuffer::new, ByteBuffer::add, ByteBuffer::addAll, ByteBuffer::new,
-            ByteBuffer::addUnsafe).toArray();
-    }
-
-    /**
-     * Returns a {@code char[]} array containing the elements of this stream
-     * which are converted to chars using {@code (char)} cast operation.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @return an array containing the elements of this stream
-     * @since 0.3.0
-     */
-    public char[] toCharArray() {
-        return collectSized(CharBuffer::new, CharBuffer::add, CharBuffer::addAll, CharBuffer::new,
-            CharBuffer::addUnsafe).toArray();
-    }
-
-    /**
-     * Returns a {@code short[]} array containing the elements of this stream
-     * which are converted to shorts using {@code (short)} cast operation.
-     *
-     * <p>
-     * This is a terminal operation.
-     *
-     * @return an array containing the elements of this stream
-     * @since 0.3.0
-     */
-    public short[] toShortArray() {
-        return collectSized(ShortBuffer::new, ShortBuffer::add, ShortBuffer::addAll, ShortBuffer::new,
-            ShortBuffer::addUnsafe).toArray();
     }
 
     /**
@@ -1775,42 +1812,5 @@ public class IntStreamEx implements IntStream {
      */
     public static IntStreamEx zip(int[] first, int[] second, IntBinaryOperator mapper) {
         return intStreamForLength(first.length, second.length).map(i -> mapper.applyAsInt(first[i], second[i]));
-    }
-
-    /**
-     * Returns a stream consisting of the remaining elements of this stream
-     * after discarding the first {@code n} elements of the stream. If this
-     * stream contains fewer than {@code n} elements then an empty stream will
-     * be returned.
-     *
-     * <p>
-     * This is a stateful quasi-intermediate operation. Unlike
-     * {@link #skip(long)} it skips the first elements even if the stream is
-     * unordered. The main purpose of this method is to workaround the problem
-     * of skipping the first elements from non-sized source with further
-     * parallel processing and unordered terminal operation (such as
-     * {@link #forEach(IntConsumer)}). Also it behaves much better with infinite
-     * streams processed in parallel. For example,
-     * {@code IntStreamEx.iterate(0, i->i+1).skip(1).limit(100).parallel().toArray()}
-     * will likely to fail with {@code OutOfMemoryError}, but will work nicely
-     * if {@code skip} is replaced with {@code skipOrdered}.
-     *
-     * <p>
-     * For sequential streams this method behaves exactly like
-     * {@link #skip(long)}.
-     *
-     * @param n
-     *            the number of leading elements to skip
-     * @return the new stream
-     * @throws IllegalArgumentException
-     *             if {@code n} is negative
-     * @see #skip(long)
-     * @since 0.3.2
-     */
-    public IntStreamEx skipOrdered(long n) {
-        IntStream result = stream.isParallel() ? StreamSupport.intStream(
-            StreamSupport.intStream(stream.spliterator(), false).skip(n).spliterator(), true) : StreamSupport
-                .intStream(stream.skip(n).spliterator(), false);
-        return strategy().newIntStreamEx(result.onClose(stream::close));
     }
 }
