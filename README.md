@@ -82,8 +82,7 @@ And more!
 
 ### JavaDoc
 
-API documentation is available [here](http://amaembo.github.io/streamex/javadoc/). Currently it's incomplete, so
-pull requests with documentation updates are appreciated. 
+API documentation is available [here](http://amaembo.github.io/streamex/javadoc/).
 
 ### License
 
