@@ -612,6 +612,15 @@ public class StreamExTest {
         Collection<Integer> numbers = Arrays.asList(10, 1, 15, 30, 2, 6);
         List<Integer> res = StreamEx.of(numbers).pairMap((a, b) -> a < b ? a : null).nonNull().toList();
         assertEquals(Arrays.asList(1, 15, 2), res);
+        
+        // Check whether stream is sorted
+        assertTrue(isSorted(Arrays.asList("a", "bb", "bb", "c")));
+        assertFalse(isSorted(Arrays.asList("a", "bb", "bb", "bba", "bb", "c")));
+        assertTrue(isSorted(IntStreamEx.of(new Random(1)).boxed().distinct().limit(1000).toCollection(TreeSet::new)));
+        
+        // Find first element which violates the sorting
+        assertEquals("bba", firstMisplaced(Arrays.asList("a", "bb", "bb", "bba", "bb", "c")).get());
+        assertFalse(firstMisplaced(Arrays.asList("a", "bb", "bb", "bb", "c")).isPresent());
     }
 
     private double interpolate(Point[] points, double x) {
@@ -648,11 +657,6 @@ public class StreamExTest {
                     .pairMap(
                         (c1, c2) -> !Character.isLetter(c1) && Character.isLetter(c2) ? Character.toTitleCase(c2)
                                 : Character.toLowerCase(c2)).joining());
-        assertTrue(isSorted(Arrays.asList("a", "bb", "bb", "c")));
-        assertFalse(isSorted(Arrays.asList("a", "bb", "bb", "bba", "bb", "c")));
-        assertTrue(isSorted(IntStreamEx.of(new Random(1)).boxed().distinct().limit(1000).toCollection(TreeSet::new)));
-        assertEquals("bba", firstMisplaced(Arrays.asList("a", "bb", "bb", "bba", "bb", "c")).get());
-        assertFalse(firstMisplaced(Arrays.asList("a", "bb", "bb", "bb", "c")).isPresent());
     }
 
     @Test
