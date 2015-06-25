@@ -16,6 +16,7 @@
 package javax.util.streamex;
 
 import static org.junit.Assert.*;
+import static javax.util.streamex.TestHelpers.*;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -29,37 +30,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.junit.Test;
 
 public class MoreCollectorsTest {
-    private static class StreamSupplier<T> implements Supplier<StreamEx<T>> {
-        private final Supplier<StreamEx<T>> base;
-        private final boolean parallel;
-
-        public StreamSupplier(Supplier<StreamEx<T>> base, boolean parallel) {
-            this.base = base;
-            this.parallel = parallel;
-        }
-
-        @Override
-        public StreamEx<T> get() {
-            return parallel ? base.get().parallel() : base.get().sequential();
-        }
-
-        @Override
-        public String toString() {
-            return parallel ? "Parallel" : "Sequential";
-        }
-    }
-
-    private static <T> List<StreamSupplier<T>> suppliers(Supplier<StreamEx<T>> base) {
-        return Arrays.asList(new StreamSupplier<>(base, false), new StreamSupplier<>(base, true));
-    }
-
     @Test(expected = UnsupportedOperationException.class)
     public void testInstantiate() throws Throwable {
         Constructor<MoreCollectors> constructor = MoreCollectors.class.getDeclaredConstructor();
@@ -74,7 +50,7 @@ public class MoreCollectorsTest {
     @Test
     public void testToArray() {
         List<String> input = Arrays.asList("a", "bb", "c", "", "cc", "eee", "bb", "ddd");
-        for (StreamSupplier<String> supplier : suppliers(() -> StreamEx.of(input))) {
+        for (StreamSupplier<String, StreamEx<String>> supplier : suppliers(() -> StreamEx.of(input))) {
             Map<Integer, String[]> result = supplier.get().groupingBy(String::length, HashMap::new,
                 MoreCollectors.toArray(String[]::new));
             assertArrayEquals(supplier.toString(), new String[] { "" }, result.get(0));
@@ -87,7 +63,7 @@ public class MoreCollectorsTest {
     @Test
     public void testDistinctCount() {
         List<String> input = Arrays.asList("a", "bb", "c", "cc", "eee", "bb", "bc", "ddd");
-        for (StreamSupplier<String> supplier : suppliers(() -> StreamEx.of(input))) {
+        for (StreamExSupplier<String> supplier : streamEx(input::stream)) {
             Map<String, Integer> result = supplier.get().groupingBy(s -> s.substring(0, 1), HashMap::new,
                 MoreCollectors.distinctCount(String::length));
             assertEquals(1, (int) result.get("a"));
@@ -101,7 +77,7 @@ public class MoreCollectorsTest {
     @Test
     public void testMaxAll() {
         List<String> input = Arrays.asList("a", "bb", "c", "", "cc", "eee", "bb", "ddd");
-        for (StreamSupplier<String> supplier : suppliers(() -> StreamEx.of(input))) {
+        for (StreamExSupplier<String> supplier : streamEx(input::stream)) {
             assertEquals(supplier.toString(), Arrays.asList("eee", "ddd"),
                 supplier.get().collect(MoreCollectors.maxAll(Comparator.comparingInt(String::length))));
             assertEquals(
@@ -143,7 +119,7 @@ public class MoreCollectorsTest {
         Collector<Integer, ?, SimpleEntry<Integer, Long>> downstream = MoreCollectors.pairing(MoreCollectors.first(),
             Collectors.counting(), (opt, cnt) -> new AbstractMap.SimpleEntry<>(opt.get(), cnt));
 
-        for (StreamSupplier<Integer> supplier : suppliers(() -> StreamEx.of(ints))) {
+        for (StreamExSupplier<Integer> supplier : streamEx(ints::stream)) {
             assertEquals(supplier.toString(), expectedMax,
                 supplier.get().collect(MoreCollectors.maxAll(Integer::compare)));
 
@@ -162,11 +138,11 @@ public class MoreCollectorsTest {
 
     @Test
     public void testFirstLast() {
-        for (StreamSupplier<Integer> supplier : suppliers(() -> IntStreamEx.range(1000).boxed())) {
+        for (StreamExSupplier<Integer> supplier : streamEx(() -> IntStreamEx.range(1000).boxed())) {
             assertEquals(supplier.toString(), 999, (int) supplier.get().collect(MoreCollectors.last()).get());
             assertEquals(supplier.toString(), 0, (int) supplier.get().collect(MoreCollectors.first()).get());
         }
-        for (StreamSupplier<Integer> supplier : suppliers(() -> IntStreamEx.empty().boxed())) {
+        for (StreamExSupplier<Integer> supplier : emptyStreamEx(Integer.class)) {
             assertFalse(supplier.toString(), supplier.get().collect(MoreCollectors.first()).isPresent());
             assertFalse(supplier.toString(), supplier.get().collect(MoreCollectors.last()).isPresent());
         }
@@ -174,7 +150,7 @@ public class MoreCollectorsTest {
 
     @Test
     public void testHeadTail() {
-        for (StreamSupplier<Integer> supplier : suppliers(() -> IntStreamEx.range(1000).boxed())) {
+        for (StreamExSupplier<Integer> supplier : streamEx(() -> IntStreamEx.range(1000).boxed())) {
             assertEquals(supplier.toString(), Arrays.asList(), supplier.get().collect(MoreCollectors.tail(0)));
             assertEquals(supplier.toString(), Arrays.asList(999), supplier.get().collect(MoreCollectors.tail(1)));
             assertEquals(supplier.toString(), Arrays.asList(998, 999), supplier.get().collect(MoreCollectors.tail(2)));
@@ -201,7 +177,7 @@ public class MoreCollectorsTest {
     public void testGreatest() {
         List<Integer> ints = IntStreamEx.of(new Random(1), 1000, 1, 1000).boxed().toList();
         Comparator<Integer> byString = Comparator.comparing(String::valueOf);
-        for (StreamSupplier<Integer> supplier : suppliers(() -> StreamEx.of(ints))) {
+        for (StreamExSupplier<Integer> supplier : streamEx(ints::stream)) {
             assertEquals(supplier.toString(), Collections.emptyList(), supplier.get().collect(MoreCollectors.least(0)));
             assertEquals(supplier.toString(), supplier.get().sorted().limit(5).toList(),
                 supplier.get().collect(MoreCollectors.least(5)));
@@ -224,10 +200,11 @@ public class MoreCollectorsTest {
                 supplier.get().collect(MoreCollectors.greatest(Integer.MAX_VALUE)));
         }
     }
-    
+
     @Test
     public void testCountingInt() {
-        int count = IntStreamEx.range(1000).boxed().collect(MoreCollectors.countingInt());
-        assertEquals(1000, count);
+        for (StreamExSupplier<Integer> supplier : streamEx(() -> IntStreamEx.range(1000).boxed())) {
+            assertEquals(supplier.toString(), 1000, (int)supplier.get().collect(MoreCollectors.countingInt()));
+        }
     }
 }
