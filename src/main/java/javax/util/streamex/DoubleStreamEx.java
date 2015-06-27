@@ -22,6 +22,7 @@ import java.util.Comparator;
 import java.util.DoubleSummaryStatistics;
 import java.util.OptionalDouble;
 import java.util.Random;
+import java.util.Spliterator;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator.OfDouble;
 import java.util.concurrent.ForkJoinPool;
@@ -1046,7 +1047,7 @@ public class DoubleStreamEx implements DoubleStream {
      */
     public static DoubleStreamEx of(float[] array, int startInclusive, int endExclusive) {
         rangeCheck(array.length, startInclusive, endExclusive);
-        return IntStreamEx.range(startInclusive, endExclusive).mapToDouble(i -> array[i]);
+        return of(new RangeMapSpliterator.RMOfDouble(startInclusive, endExclusive, i -> array[i]));
     }
 
     /**
@@ -1060,6 +1061,10 @@ public class DoubleStreamEx implements DoubleStream {
      */
     public static DoubleStreamEx of(DoubleStream stream) {
         return stream instanceof DoubleStreamEx ? (DoubleStreamEx) stream : new DoubleStreamEx(stream);
+    }
+
+    public static DoubleStreamEx of(Spliterator.OfDouble spliterator) {
+        return new DoubleStreamEx(StreamSupport.doubleStream(spliterator, false));
     }
 
     /**
@@ -1182,7 +1187,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.2.1
      */
     public static DoubleStreamEx zip(double[] first, double[] second, DoubleBinaryOperator mapper) {
-        return intStreamForLength(first.length, second.length).mapToDouble(
-            i -> mapper.applyAsDouble(first[i], second[i]));
+        return of(new RangeMapSpliterator.RMOfDouble(0, checkLength(first.length, second.length),
+                i -> mapper.applyAsDouble(first[i], second[i])));
     }
 }

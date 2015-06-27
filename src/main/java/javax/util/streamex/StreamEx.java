@@ -1346,6 +1346,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public static <T> StreamEx<T> of(Stream<T> stream) {
         return new StreamEx<>(unwrap(stream));
     }
+    
+    public static <T> StreamEx<T> of(Spliterator<T> spliterator) {
+        return new StreamEx<>(StreamSupport.stream(spliterator, false));
+    }
 
     /**
      * Returns a sequential {@code StreamEx} containing an {@link Optional}
@@ -1570,7 +1574,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.2.2
      */
     public static StreamEx<int[]> ofPermutations(int length) {
-        return new StreamEx<>(StreamSupport.stream(new PermutationSpliterator(length), false));
+        return of(new PermutationSpliterator(length));
     }
 
     /**
@@ -1706,7 +1710,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public static <U, V, T> StreamEx<T> zip(List<U> first, List<V> second,
             BiFunction<? super U, ? super V, ? extends T> mapper) {
-        return intStreamForLength(first.size(), second.size()).mapToObj(i -> mapper.apply(first.get(i), second.get(i)));
+        return of(new RangeMapSpliterator.RMOfRef<>(0, checkLength(first.size(), second.size()), i -> mapper.apply(
+            first.get(i), second.get(i))));
     }
 
     /**
@@ -1808,7 +1813,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         if (size <= 0)
             return StreamEx.empty();
         int fullChunks = (size - 1) / length;
-        return IntStreamEx.range(0, fullChunks + 1).mapToObj(
-            n -> source.subList(n * length, n == fullChunks ? size : (n + 1) * length));
+        return of(new RangeMapSpliterator.RMOfRef<>(0, fullChunks + 1, n -> source.subList(n * length,
+            n == fullChunks ? size : (n + 1) * length)));
     }
 }

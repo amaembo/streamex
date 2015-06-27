@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Spliterator;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -38,8 +39,8 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static javax.util.streamex.StreamExInternals.*;
 
@@ -1013,6 +1014,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return new EntryStream<>(unwrap(stream));
     }
 
+    public static <K, V> EntryStream<K, V> of(Spliterator<? extends Entry<K, V>> spliterator) {
+        return new EntryStream<>(StreamSupport.stream(spliterator, false));
+    }
+    
     /**
      * Returns an {@code EntryStream} object which contains the entries of
      * supplied {@code Map}.
@@ -1046,7 +1051,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.3
      */
     public static <V> EntryStream<Integer, V> of(List<V> list) {
-        return EntryStream.of(IntStream.range(0, list.size()).mapToObj(i -> new ObjIntBox<>(list.get(i), i)));
+        return EntryStream.of(new RangeMapSpliterator.RMOfRef<>(0, list.size(), i -> new ObjIntBox<>(list.get(i), i)));
     }
 
     /**
@@ -1061,7 +1066,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.3
      */
     public static <V> EntryStream<Integer, V> of(V[] array) {
-        return EntryStream.of(IntStream.range(0, array.length).mapToObj(i -> new ObjIntBox<>(array[i], i)));
+        return EntryStream.of(new RangeMapSpliterator.RMOfRef<>(0, array.length, i -> new ObjIntBox<>(array[i], i)));
     }
 
     /**
@@ -1154,8 +1159,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.1
      */
     public static <K, V> EntryStream<K, V> zip(List<K> keys, List<V> values) {
-        return of(intStreamForLength(keys.size(), values.size()).mapToObj(
-            i -> new SimpleImmutableEntry<>(keys.get(i), values.get(i))));
+        return of(new RangeMapSpliterator.RMOfRef<>(0, checkLength(keys.size(), values.size()),
+                i -> new SimpleImmutableEntry<>(keys.get(i), values.get(i))));
     }
 
     /**

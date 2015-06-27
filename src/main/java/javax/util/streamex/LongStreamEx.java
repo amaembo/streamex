@@ -23,6 +23,7 @@ import java.util.LongSummaryStatistics;
 import java.util.OptionalDouble;
 import java.util.OptionalLong;
 import java.util.Random;
+import java.util.Spliterator;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator.OfLong;
 import java.util.concurrent.ForkJoinPool;
@@ -1036,6 +1037,10 @@ public class LongStreamEx implements LongStream {
         return stream instanceof LongStreamEx ? (LongStreamEx) stream : new LongStreamEx(stream);
     }
 
+    public static LongStreamEx of(Spliterator.OfLong spliterator) {
+        return new LongStreamEx(StreamSupport.longStream(spliterator, false));
+    }
+
     /**
      * Returns a sequential {@code LongStreamEx} containing an
      * {@link OptionalLong} value, if present, otherwise returns an empty
@@ -1204,6 +1209,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.2.1
      */
     public static LongStreamEx zip(long[] first, long[] second, LongBinaryOperator mapper) {
-        return intStreamForLength(first.length, second.length).mapToLong(i -> mapper.applyAsLong(first[i], second[i]));
+        return of(new RangeMapSpliterator.RMOfLong(0, checkLength(first.length, second.length),
+                i -> mapper.applyAsLong(first[i], second[i])));
     }
 }

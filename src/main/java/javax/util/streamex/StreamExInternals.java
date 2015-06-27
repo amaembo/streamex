@@ -656,11 +656,11 @@ import java.util.stream.Stream;
     static <T> BinaryOperator<T> selectFirst() {
         return (u, v) -> u;
     }
-
-    static IntStreamEx intStreamForLength(int a, int b) {
+    
+    static int checkLength(int a, int b) {
         if (a != b)
             throw new IllegalArgumentException("Length differs: " + a + " != " + b);
-        return IntStreamEx.range(0, a);
+        return a;
     }
 
     static void rangeCheck(int arrayLength, int startInclusive, int endExclusive) {
