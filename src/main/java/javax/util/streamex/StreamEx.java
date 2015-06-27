@@ -1711,8 +1711,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public static <U, V, T> StreamEx<T> zip(List<U> first, List<V> second,
             BiFunction<? super U, ? super V, ? extends T> mapper) {
-        return of(new RangeBasedSpliterator.RMOfRef<>(0, checkLength(first.size(), second.size()), i -> mapper.apply(
-            first.get(i), second.get(i))));
+        return of(new RangeBasedSpliterator.ZipRef<>(0, checkLength(first.size(), second.size()), first, second, mapper));
     }
 
     public static <U, V, T> StreamEx<T> zipOld(List<U> first, List<V> second,
@@ -1819,8 +1818,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         int size = source.size();
         if (size <= 0)
             return StreamEx.empty();
-        int fullChunks = (size - 1) / length;
-        return of(new RangeBasedSpliterator.RMOfRef<>(0, fullChunks + 1, n -> source.subList(n * length,
-            n == fullChunks ? size : (n + 1) * length)));
+        return of(new RangeBasedSpliterator.OfSubLists<>(source, length));
     }
 }

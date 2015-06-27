@@ -1051,7 +1051,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.3
      */
     public static <V> EntryStream<Integer, V> of(List<V> list) {
-        return EntryStream.of(new RangeBasedSpliterator.RMOfRef<>(0, list.size(), i -> new ObjIntBox<>(list.get(i), i)));
+        return EntryStream.of(new RangeBasedSpliterator.AsEntry<>(list));
     }
 
     /**
@@ -1066,7 +1066,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.3
      */
     public static <V> EntryStream<Integer, V> of(V[] array) {
-        return EntryStream.of(new RangeBasedSpliterator.RMOfRef<>(0, array.length, i -> new ObjIntBox<>(array[i], i)));
+        return of(Arrays.asList(array));
     }
 
     /**
@@ -1159,8 +1159,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.1
      */
     public static <K, V> EntryStream<K, V> zip(List<K> keys, List<V> values) {
-        return of(new RangeBasedSpliterator.RMOfRef<>(0, checkLength(keys.size(), values.size()),
-                i -> new SimpleImmutableEntry<>(keys.get(i), values.get(i))));
+        return of(new RangeBasedSpliterator.ZipRef<>(0, checkLength(keys.size(), values.size()), keys, values,
+                SimpleImmutableEntry<K, V>::new));
     }
 
     /**

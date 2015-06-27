@@ -1259,7 +1259,7 @@ public class IntStreamEx implements IntStream {
      */
     public static IntStreamEx of(byte[] array, int startInclusive, int endExclusive) {
         rangeCheck(array.length, startInclusive, endExclusive);
-        return of(new RangeBasedSpliterator.RMOfInt(startInclusive, endExclusive, i -> array[i]));
+        return of(new RangeBasedSpliterator.OfByte(startInclusive, endExclusive, array));
     }
 
     /**
@@ -1294,7 +1294,7 @@ public class IntStreamEx implements IntStream {
      */
     public static IntStreamEx of(char[] array, int startInclusive, int endExclusive) {
         rangeCheck(array.length, startInclusive, endExclusive);
-        return of(new RangeBasedSpliterator.RMOfInt(startInclusive, endExclusive, i -> array[i]));
+        return of(new RangeBasedSpliterator.OfChar(startInclusive, endExclusive, array));
     }
 
     /**
@@ -1329,7 +1329,7 @@ public class IntStreamEx implements IntStream {
      */
     public static IntStreamEx of(short[] array, int startInclusive, int endExclusive) {
         rangeCheck(array.length, startInclusive, endExclusive);
-        return of(new RangeBasedSpliterator.RMOfInt(startInclusive, endExclusive, i -> array[i]));
+        return of(new RangeBasedSpliterator.OfShort(startInclusive, endExclusive, array));
     }
 
     /**
@@ -1614,7 +1614,7 @@ public class IntStreamEx implements IntStream {
      * @see CharSequence#chars()
      */
     public static IntStreamEx ofChars(CharSequence seq) {
-        return of(new RangeBasedSpliterator.RMOfInt(0, seq.length(), seq::charAt));
+        return of(new RangeBasedSpliterator.OfCharSequence(seq));
     }
 
     /**
@@ -1759,8 +1759,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.2.1
      */
     public static IntStreamEx zip(int[] first, int[] second, IntBinaryOperator mapper) {
-        return of(new RangeBasedSpliterator.RMOfInt(0, checkLength(first.length, second.length), i -> mapper.applyAsInt(
-            first[i], second[i])));
+        return of(new RangeBasedSpliterator.ZipInt(0, checkLength(first.length, second.length), mapper, first, second));
     }
 
     public static IntStreamEx zipOld(int[] first, int[] second, IntBinaryOperator mapper) {

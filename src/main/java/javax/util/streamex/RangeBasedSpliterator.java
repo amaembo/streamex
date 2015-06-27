@@ -15,20 +15,24 @@
  */
 package javax.util.streamex;
 
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.Spliterator;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleConsumer;
+import java.util.function.IntBinaryOperator;
 import java.util.function.IntConsumer;
-import java.util.function.IntFunction;
-import java.util.function.IntToDoubleFunction;
-import java.util.function.IntUnaryOperator;
 import java.util.function.LongBinaryOperator;
 import java.util.function.LongConsumer;
+
+import static javax.util.streamex.StreamExInternals.*;
 
 /**
  * @author Tagir Valeev
  */
-/* package */abstract class RangeBasedSpliterator<T> implements Spliterator<T> {
+/* package */abstract class RangeBasedSpliterator<T, S extends RangeBasedSpliterator<T, ?>> implements Spliterator<T>, Cloneable {
     int cur;
     int limit;
 
@@ -47,19 +51,35 @@ import java.util.function.LongConsumer;
         return Spliterator.ORDERED | Spliterator.SIZED | Spliterator.SUBSIZED;
     }
 
-    static class RMOfRef<T> extends RangeBasedSpliterator<T> {
-        private final IntFunction<T> mapper;
+    @SuppressWarnings("unchecked")
+    @Override
+    public S trySplit() {
+        int size = limit - cur;
+        if (size >= 2) {
+            S clone;
+            try {
+                clone = (S) clone();
+            } catch (CloneNotSupportedException e) {
+                throw new InternalError();
+            }
+            clone.limit = this.cur = this.cur + size / 2;
+            return clone;
+        }
+        return null;
+    }
 
-        public RMOfRef(int fromInclusive, int toExclusive, IntFunction<T> mapper) {
-            super(fromInclusive, toExclusive);
-            this.mapper = mapper;
+    static final class AsEntry<T> extends RangeBasedSpliterator<Entry<Integer, T>, AsEntry<T>> {
+        private final List<T> list;
+
+        public AsEntry(List<T> list) {
+            super(0, list.size());
+            this.list = list;
         }
 
         @Override
-        public boolean tryAdvance(Consumer<? super T> action) {
-            int c = cur;
-            if (c < limit) {
-                action.accept(mapper.apply(c));
+        public boolean tryAdvance(Consumer<? super Entry<Integer, T>> action) {
+            if (cur < limit) {
+                action.accept(new ObjIntBox<>(list.get(cur), cur));
                 cur++;
                 return true;
             }
@@ -67,36 +87,34 @@ import java.util.function.LongConsumer;
         }
 
         @Override
-        public Spliterator<T> trySplit() {
-            int size = limit - cur;
-            if (size >= 2)
-                return new RMOfRef<>(cur, cur = cur + size / 2, mapper);
-            return null;
-        }
-
-        @Override
-        public void forEachRemaining(Consumer<? super T> action) {
+        public void forEachRemaining(Consumer<? super Entry<Integer, T>> action) {
             int l = limit, c = cur;
+            List<T> list = this.list;
             while (c < l) {
-                action.accept(mapper.apply(c++));
+                action.accept(new ObjIntBox<>(list.get(c), c));
+                c++;
             }
             cur = limit;
         }
     }
     
-    static class RMOfInt extends RangeBasedSpliterator<Integer> implements Spliterator.OfInt {
-        private final IntUnaryOperator mapper;
+    static final class OfSubLists<T> extends RangeBasedSpliterator<List<T>, OfSubLists<T>> {
+        private final List<T> source;
+        private final int length;
+        private final int size;
         
-        public RMOfInt(int fromInclusive, int toExclusive, IntUnaryOperator mapper) {
-            super(fromInclusive, toExclusive);
-            this.mapper = mapper;
+        public OfSubLists(List<T> source, int length) {
+            super(0, (source.size() - 1) / length + 1);
+            this.source = source;
+            this.size = limit;
+            this.length = length;
         }
         
         @Override
-        public boolean tryAdvance(IntConsumer action) {
-            int c = cur;
-            if (c < limit) {
-                action.accept(mapper.applyAsInt(c));
+        public boolean tryAdvance(Consumer<? super List<T>> action) {
+            if (cur < limit) {
+                action.accept(source.subList(cur * length,
+                    cur == size-1 ? source.size() : (cur + 1) * length));
                 cur++;
                 return true;
             }
@@ -104,24 +122,197 @@ import java.util.function.LongConsumer;
         }
         
         @Override
-        public Spliterator.OfInt trySplit() {
-            int size = limit - cur;
-            if (size >= 2)
-                return new RMOfInt(cur, cur = cur + size / 2, mapper);
-            return null;
+        public void forEachRemaining(Consumer<? super List<T>> action) {
+            int l = limit, c = cur, ll = length, s = size-1;
+            int start = cur * ll;
+            while (c < l) {
+                int stop = c == s ? source.size() : start+ll;
+                action.accept(source.subList(start, stop));
+                start = stop;
+                c++;
+            }
+            cur = limit;
+        }
+    }
+    
+    static final class ZipRef<U, V, T> extends RangeBasedSpliterator<T, ZipRef<U, V, T>> {
+        private final List<U> l1;
+        private final List<V> l2;
+        private final BiFunction<? super U, ? super V, ? extends T> mapper;
+        
+        public ZipRef(int fromInclusive, int toExclusive, List<U> l1, List<V> l2, BiFunction<? super U, ? super V, ? extends T> mapper) {
+            super(fromInclusive, toExclusive);
+            this.l1 = l1;
+            this.l2 = l2;
+            this.mapper = mapper;
+        }
+        
+        @Override
+        public boolean tryAdvance(Consumer<? super T> action) {
+            if (cur < limit) {
+                action.accept(mapper.apply(l1.get(cur), l2.get(cur)));
+                cur++;
+                return true;
+            }
+            return false;
+        }
+        
+        @Override
+        public void forEachRemaining(Consumer<? super T> action) {
+            int l = limit, c = cur;
+            while (c < l) {
+                action.accept(mapper.apply(l1.get(c), l2.get(c)));
+                c++;
+            }
+            cur = limit;
+        }
+    }
+    
+    static final class ZipInt extends RangeBasedSpliterator<Integer, ZipInt> implements Spliterator.OfInt {
+        private final IntBinaryOperator mapper;
+        private final int[] arr1, arr2;
+        
+        public ZipInt(int fromInclusive, int toExclusive, IntBinaryOperator mapper, int[] arr1, int[] arr2) {
+            super(fromInclusive, toExclusive);
+            this.mapper = mapper;
+            this.arr1 = arr1;
+            this.arr2 = arr2;
+        }
+        
+        @Override
+        public boolean tryAdvance(IntConsumer action) {
+            if (cur < limit) {
+                action.accept(mapper.applyAsInt(arr1[cur], arr2[cur]));
+                cur++;
+                return true;
+            }
+            return false;
         }
         
         @Override
         public void forEachRemaining(IntConsumer action) {
             int l = limit, c = cur;
             while (c < l) {
-                action.accept(mapper.applyAsInt(c++));
+                action.accept(mapper.applyAsInt(arr1[c], arr2[c]));
+                c++;
             }
             cur = limit;
         }
     }
     
-    static class ZipLong extends RangeBasedSpliterator<Long> implements Spliterator.OfLong {
+    static final class OfByte extends RangeBasedSpliterator<Integer, OfByte> implements Spliterator.OfInt {
+        private final byte[] array;
+        
+        public OfByte(int fromInclusive, int toExclusive, byte[] array) {
+            super(fromInclusive, toExclusive);
+            this.array = array;
+        }
+        
+        @Override
+        public boolean tryAdvance(IntConsumer action) {
+            if (cur < limit) {
+                action.accept(array[cur]);
+                cur++;
+                return true;
+            }
+            return false;
+        }
+        
+        @Override
+        public void forEachRemaining(IntConsumer action) {
+            int l = limit, c = cur;
+            while (c < l) {
+                action.accept(array[c++]);
+            }
+            cur = limit;
+        }
+    }
+    
+    static final class OfChar extends RangeBasedSpliterator<Integer, OfChar> implements Spliterator.OfInt {
+        private final char[] array;
+        
+        public OfChar(int fromInclusive, int toExclusive, char[] array) {
+            super(fromInclusive, toExclusive);
+            this.array = array;
+        }
+        
+        @Override
+        public boolean tryAdvance(IntConsumer action) {
+            if (cur < limit) {
+                action.accept(array[cur]);
+                cur++;
+                return true;
+            }
+            return false;
+        }
+        
+        @Override
+        public void forEachRemaining(IntConsumer action) {
+            int l = limit, c = cur;
+            while (c < l) {
+                action.accept(array[c++]);
+            }
+            cur = limit;
+        }
+    }
+    
+    static final class OfCharSequence extends RangeBasedSpliterator<Integer, OfCharSequence> implements Spliterator.OfInt {
+        private final CharSequence seq;
+        
+        public OfCharSequence(CharSequence seq) {
+            super(0, seq.length());
+            this.seq = seq;
+        }
+        
+        @Override
+        public boolean tryAdvance(IntConsumer action) {
+            if (cur < limit) {
+                action.accept(seq.charAt(cur));
+                cur++;
+                return true;
+            }
+            return false;
+        }
+        
+        @Override
+        public void forEachRemaining(IntConsumer action) {
+            int l = limit, c = cur;
+            while (c < l) {
+                action.accept(seq.charAt(c++));
+            }
+            cur = limit;
+        }
+    }
+    
+    static final class OfShort extends RangeBasedSpliterator<Integer, OfShort> implements Spliterator.OfInt {
+        private final short[] array;
+        
+        public OfShort(int fromInclusive, int toExclusive, short[] array) {
+            super(fromInclusive, toExclusive);
+            this.array = array;
+        }
+        
+        @Override
+        public boolean tryAdvance(IntConsumer action) {
+            if (cur < limit) {
+                action.accept(array[cur]);
+                cur++;
+                return true;
+            }
+            return false;
+        }
+        
+        @Override
+        public void forEachRemaining(IntConsumer action) {
+            int l = limit, c = cur;
+            while (c < l) {
+                action.accept(array[c++]);
+            }
+            cur = limit;
+        }
+    }
+    
+    static final class ZipLong extends RangeBasedSpliterator<Long, ZipLong> implements Spliterator.OfLong {
         private final LongBinaryOperator mapper;
         private final long[] arr1, arr2;
         
@@ -134,21 +325,12 @@ import java.util.function.LongConsumer;
         
         @Override
         public boolean tryAdvance(LongConsumer action) {
-            int c = cur;
-            if (c < limit) {
-                action.accept(mapper.applyAsLong(arr1[c], arr2[c]));
+            if (cur < limit) {
+                action.accept(mapper.applyAsLong(arr1[cur], arr2[cur]));
                 cur++;
                 return true;
             }
             return false;
-        }
-        
-        @Override
-        public Spliterator.OfLong trySplit() {
-            int size = limit - cur;
-            if (size >= 2)
-                return new ZipLong(cur, cur = cur + size / 2, mapper, arr1, arr2);
-            return null;
         }
         
         @Override
@@ -162,19 +344,18 @@ import java.util.function.LongConsumer;
         }
     }
     
-    static class RMOfDouble extends RangeBasedSpliterator<Double> implements Spliterator.OfDouble {
-        private final IntToDoubleFunction mapper;
+    static final class OfFloat extends RangeBasedSpliterator<Double, OfFloat> implements Spliterator.OfDouble {
+        private final float[] array;
         
-        public RMOfDouble(int fromInclusive, int toExclusive, IntToDoubleFunction mapper) {
+        public OfFloat(int fromInclusive, int toExclusive, float[] array) {
             super(fromInclusive, toExclusive);
-            this.mapper = mapper;
+            this.array = array;
         }
         
         @Override
         public boolean tryAdvance(DoubleConsumer action) {
-            int c = cur;
-            if (c < limit) {
-                action.accept(mapper.applyAsDouble(c));
+            if (cur < limit) {
+                action.accept(array[cur]);
                 cur++;
                 return true;
             }
@@ -182,18 +363,42 @@ import java.util.function.LongConsumer;
         }
         
         @Override
-        public Spliterator.OfDouble trySplit() {
-            int size = limit - cur;
-            if (size >= 2)
-                return new RMOfDouble(cur, cur = cur + size / 2, mapper);
-            return null;
+        public void forEachRemaining(DoubleConsumer action) {
+            int l = limit, c = cur;
+            while (c < l) {
+                action.accept(array[c++]);
+            }
+            cur = limit;
+        }
+    }
+    
+    static final class ZipDouble extends RangeBasedSpliterator<Double, ZipDouble> implements Spliterator.OfDouble {
+        private final DoubleBinaryOperator mapper;
+        private final double[] arr1, arr2;
+        
+        public ZipDouble(int fromInclusive, int toExclusive, DoubleBinaryOperator mapper, double[] arr1, double[] arr2) {
+            super(fromInclusive, toExclusive);
+            this.mapper = mapper;
+            this.arr1 = arr1;
+            this.arr2 = arr2;
+        }
+        
+        @Override
+        public boolean tryAdvance(DoubleConsumer action) {
+            if (cur < limit) {
+                action.accept(mapper.applyAsDouble(arr1[cur], arr2[cur]));
+                cur++;
+                return true;
+            }
+            return false;
         }
         
         @Override
         public void forEachRemaining(DoubleConsumer action) {
             int l = limit, c = cur;
             while (c < l) {
-                action.accept(mapper.applyAsDouble(c++));
+                action.accept(mapper.applyAsDouble(arr1[c], arr2[c]));
+                c++;
             }
             cur = limit;
         }
