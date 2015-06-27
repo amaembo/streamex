@@ -21,18 +21,18 @@ import java.util.function.DoubleConsumer;
 import java.util.function.IntConsumer;
 import java.util.function.IntFunction;
 import java.util.function.IntToDoubleFunction;
-import java.util.function.IntToLongFunction;
 import java.util.function.IntUnaryOperator;
+import java.util.function.LongBinaryOperator;
 import java.util.function.LongConsumer;
 
 /**
  * @author Tagir Valeev
  */
-/* package */abstract class RangeMapSpliterator<T> implements Spliterator<T> {
+/* package */abstract class RangeBasedSpliterator<T> implements Spliterator<T> {
     int cur;
     int limit;
 
-    public RangeMapSpliterator(int fromInclusive, int toExclusive) {
+    public RangeBasedSpliterator(int fromInclusive, int toExclusive) {
         this.cur = fromInclusive;
         this.limit = toExclusive;
     }
@@ -47,7 +47,7 @@ import java.util.function.LongConsumer;
         return Spliterator.ORDERED | Spliterator.SIZED | Spliterator.SUBSIZED;
     }
 
-    static class RMOfRef<T> extends RangeMapSpliterator<T> {
+    static class RMOfRef<T> extends RangeBasedSpliterator<T> {
         private final IntFunction<T> mapper;
 
         public RMOfRef(int fromInclusive, int toExclusive, IntFunction<T> mapper) {
@@ -84,7 +84,7 @@ import java.util.function.LongConsumer;
         }
     }
     
-    static class RMOfInt extends RangeMapSpliterator<Integer> implements Spliterator.OfInt {
+    static class RMOfInt extends RangeBasedSpliterator<Integer> implements Spliterator.OfInt {
         private final IntUnaryOperator mapper;
         
         public RMOfInt(int fromInclusive, int toExclusive, IntUnaryOperator mapper) {
@@ -121,19 +121,22 @@ import java.util.function.LongConsumer;
         }
     }
     
-    static class RMOfLong extends RangeMapSpliterator<Long> implements Spliterator.OfLong {
-        private final IntToLongFunction mapper;
+    static class ZipLong extends RangeBasedSpliterator<Long> implements Spliterator.OfLong {
+        private final LongBinaryOperator mapper;
+        private final long[] arr1, arr2;
         
-        public RMOfLong(int fromInclusive, int toExclusive, IntToLongFunction mapper) {
+        public ZipLong(int fromInclusive, int toExclusive, LongBinaryOperator mapper, long[] arr1, long[] arr2) {
             super(fromInclusive, toExclusive);
             this.mapper = mapper;
+            this.arr1 = arr1;
+            this.arr2 = arr2;
         }
         
         @Override
         public boolean tryAdvance(LongConsumer action) {
             int c = cur;
             if (c < limit) {
-                action.accept(mapper.applyAsLong(c));
+                action.accept(mapper.applyAsLong(arr1[c], arr2[c]));
                 cur++;
                 return true;
             }
@@ -144,7 +147,7 @@ import java.util.function.LongConsumer;
         public Spliterator.OfLong trySplit() {
             int size = limit - cur;
             if (size >= 2)
-                return new RMOfLong(cur, cur = cur + size / 2, mapper);
+                return new ZipLong(cur, cur = cur + size / 2, mapper, arr1, arr2);
             return null;
         }
         
@@ -152,13 +155,14 @@ import java.util.function.LongConsumer;
         public void forEachRemaining(LongConsumer action) {
             int l = limit, c = cur;
             while (c < l) {
-                action.accept(mapper.applyAsLong(c++));
+                action.accept(mapper.applyAsLong(arr1[c], arr2[c]));
+                c++;
             }
             cur = limit;
         }
     }
     
-    static class RMOfDouble extends RangeMapSpliterator<Double> implements Spliterator.OfDouble {
+    static class RMOfDouble extends RangeBasedSpliterator<Double> implements Spliterator.OfDouble {
         private final IntToDoubleFunction mapper;
         
         public RMOfDouble(int fromInclusive, int toExclusive, IntToDoubleFunction mapper) {

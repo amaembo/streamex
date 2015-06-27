@@ -1209,7 +1209,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.2.1
      */
     public static LongStreamEx zip(long[] first, long[] second, LongBinaryOperator mapper) {
-        return of(new RangeMapSpliterator.RMOfLong(0, checkLength(first.length, second.length),
-                i -> mapper.applyAsLong(first[i], second[i])));
+        return of(new RangeBasedSpliterator.ZipLong(0, checkLength(first.length, second.length),
+                mapper, first, second));
     }
 }

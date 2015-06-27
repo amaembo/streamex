@@ -1047,7 +1047,7 @@ public class DoubleStreamEx implements DoubleStream {
      */
     public static DoubleStreamEx of(float[] array, int startInclusive, int endExclusive) {
         rangeCheck(array.length, startInclusive, endExclusive);
-        return of(new RangeMapSpliterator.RMOfDouble(startInclusive, endExclusive, i -> array[i]));
+        return of(new RangeBasedSpliterator.RMOfDouble(startInclusive, endExclusive, i -> array[i]));
     }
 
     /**
@@ -1187,7 +1187,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.2.1
      */
     public static DoubleStreamEx zip(double[] first, double[] second, DoubleBinaryOperator mapper) {
-        return of(new RangeMapSpliterator.RMOfDouble(0, checkLength(first.length, second.length),
+        return of(new RangeBasedSpliterator.RMOfDouble(0, checkLength(first.length, second.length),
                 i -> mapper.applyAsDouble(first[i], second[i])));
     }
 }

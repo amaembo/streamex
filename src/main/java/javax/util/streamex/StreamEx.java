@@ -52,6 +52,7 @@ import java.util.jar.JarFile;
 import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import java.util.zip.ZipEntry;
@@ -1710,8 +1711,14 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public static <U, V, T> StreamEx<T> zip(List<U> first, List<V> second,
             BiFunction<? super U, ? super V, ? extends T> mapper) {
-        return of(new RangeMapSpliterator.RMOfRef<>(0, checkLength(first.size(), second.size()), i -> mapper.apply(
+        return of(new RangeBasedSpliterator.RMOfRef<>(0, checkLength(first.size(), second.size()), i -> mapper.apply(
             first.get(i), second.get(i))));
+    }
+
+    public static <U, V, T> StreamEx<T> zipOld(List<U> first, List<V> second,
+            BiFunction<? super U, ? super V, ? extends T> mapper) {
+        return of(IntStream.range(0, checkLength(first.size(), second.size())).mapToObj(
+            i -> mapper.apply(first.get(i), second.get(i))));
     }
 
     /**
@@ -1813,7 +1820,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         if (size <= 0)
             return StreamEx.empty();
         int fullChunks = (size - 1) / length;
-        return of(new RangeMapSpliterator.RMOfRef<>(0, fullChunks + 1, n -> source.subList(n * length,
+        return of(new RangeBasedSpliterator.RMOfRef<>(0, fullChunks + 1, n -> source.subList(n * length,
             n == fullChunks ? size : (n + 1) * length)));
     }
 }
