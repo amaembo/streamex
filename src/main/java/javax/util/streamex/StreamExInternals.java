@@ -22,6 +22,7 @@ import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Map.Entry;
@@ -568,6 +569,24 @@ import java.util.stream.Stream;
         public A setValue(A value) {
             throw new UnsupportedOperationException();
         }
+
+        @Override
+        public int hashCode() {
+            return Integer.hashCode(b) ^ (a == null ? 0 : a.hashCode());
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof Map.Entry))
+                return false;
+            Map.Entry<?,?> e = (Map.Entry<?,?>)o;
+            return getKey().equals(e.getKey()) && Objects.equals(a, e.getValue());
+        }
+
+        @Override
+        public String toString() {
+            return b + "=" + a;
+        }
     }
     
     static final class ObjLongBox<A> extends Box<A> implements Entry<A, Long> {
@@ -591,6 +610,24 @@ import java.util.stream.Stream;
         @Override
         public Long setValue(Long value) {
             throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public int hashCode() {
+            return Long.hashCode(b) ^ (a == null ? 0 : a.hashCode());
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof Map.Entry))
+                return false;
+            Map.Entry<?,?> e = (Map.Entry<?,?>)o;
+            return getValue().equals(e.getValue()) && Objects.equals(a, e.getKey());
+        }
+
+        @Override
+        public String toString() {
+            return a + "=" + b;
         }
     }
 
