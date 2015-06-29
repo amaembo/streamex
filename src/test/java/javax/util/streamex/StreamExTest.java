@@ -473,7 +473,7 @@ public class StreamExTest {
                 supplier.get().foldLeft(false, (Boolean acc, String s) -> acc || s.equals("d")));
             assertEquals(supplier.toString(), 6, (int) supplier.get().foldLeft(0, (acc, v) -> acc + v.length()));
             assertEquals(supplier.toString(), "{ccc={bb={a={}}}}",
-                supplier.get().foldLeft(Collections.emptyMap(), (acc, v) -> Collections.singletonMap(v, acc))
+                supplier.get().foldLeft(Collections.emptyMap(), (Map<String, Object> acc, String v) -> Collections.singletonMap(v, acc))
                         .toString());
         }
     }
@@ -558,11 +558,11 @@ public class StreamExTest {
         assertEquals(
             "{a={bb={ccc={}}}}",
             StreamEx.of("a", "bb", "ccc")
-                    .foldRight(Collections.emptyMap(), (v, acc) -> Collections.singletonMap(v, acc)).toString());
+                    .foldRight(Collections.emptyMap(), (String v, Map<String, Object> acc) -> Collections.singletonMap(v, acc)).toString());
         assertEquals(
             "{a={bb={ccc={}}}}",
             StreamEx.of("a", "bb", "ccc").parallel()
-                    .foldRight(Collections.emptyMap(), (v, acc) -> Collections.singletonMap(v, acc)).toString());
+                    .foldRight(Collections.emptyMap(), (String v, Map<String, Object> acc) -> Collections.singletonMap(v, acc)).toString());
     }
 
     private <T extends Comparable<? super T>> boolean isSorted(Collection<T> c) {
@@ -959,7 +959,7 @@ public class StreamExTest {
         return ints
                 .distinct()
                 .sorted()
-                .intervalMap((i, j) -> j == i + 1,
+                .<String>intervalMap((i, j) -> j == i + 1,
                     (i, j) -> j == i ? i.toString() : j == i + 1 ? i + "," + j : i + ".." + j).joining(",");
     }
 

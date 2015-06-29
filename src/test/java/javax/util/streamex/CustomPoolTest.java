@@ -19,6 +19,7 @@ import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinWorkerThread;
 
@@ -68,7 +69,7 @@ public class CustomPoolTest {
         assertArrayEquals(new Object[] { "a", "b", "c" },
             StreamEx.of("a", "b", "c").parallel(pool).peek(this::checkThread).toArray());
         assertEquals("{ccc={bb={a={}}}}", StreamEx.of("a", "bb", "ccc").parallel(pool).peek(this::checkThread)
-                .foldLeft(Collections.emptyMap(), (acc, v) -> Collections.singletonMap(v, acc)).toString());
+                .foldLeft(Collections.emptyMap(), (Map<String, Object> acc, String v) -> Collections.singletonMap(v, acc)).toString());
         assertEquals(1000,
             IntStreamEx.constant(1, 1000).boxed().parallel(pool).peek(this::checkThread).foldLeft(0, Integer::sum)
                     .intValue());
