@@ -1002,11 +1002,12 @@ public class StreamExTest {
 
     @Test
     public void testRunLenghts() {
-        int[] input = { 1, 2, 2, 4, 2, 1, 1, 1 };
-        String res = IntStreamEx.of(input).boxed().runLengths().join(": ").joining(", ");
-        String resParallel = IntStreamEx.of(input).parallel().boxed().runLengths().join(": ").joining(", ");
-        assertEquals("1: 1, 2: 2, 4: 1, 2: 1, 1: 3", res);
-        assertEquals("1: 1, 2: 2, 4: 1, 2: 1, 1: 3", resParallel);
+        Integer[] input = { 1, 2, 2, 4, 2, null, null, 1, 1, 1, null, null };
+        String res = StreamEx.of(input).runLengths().join(": ").joining(", ");
+        String resParallel = StreamEx.of(input).parallel().runLengths().join(": ").joining(", ");
+        assertEquals("1: 1, 2: 2, 4: 1, 2: 1, null: 2, 1: 3, null: 2", res);
+        assertEquals("1: 1, 2: 2, 4: 1, 2: 1, null: 2, 1: 3, null: 2", resParallel);
+        assertEquals("1=1, 2=2, 4=1, 2=1, null=2, 1=3", StreamEx.of(input).parallel().runLengths().distinct().map(String::valueOf).joining(", "));
     }
 
     @Test
