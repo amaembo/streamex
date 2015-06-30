@@ -210,7 +210,7 @@ public class MoreCollectorsTest {
 
     @Test
     public void testMinIndex() {
-        List<Integer> ints = IntStreamEx.of(new Random(1), 100, 0, 100).boxed().toList();
+        List<Integer> ints = IntStreamEx.of(new Random(1), 1000, 0, 100).boxed().toList();
         long expectedMin = IntStreamEx.ofIndices(ints).minBy(ints::get).getAsInt();
         long expectedMax = IntStreamEx.ofIndices(ints).maxBy(ints::get).getAsInt();
         long expectedMinString = IntStreamEx.ofIndices(ints).minBy(i -> String.valueOf(ints.get(i))).getAsInt();
