@@ -600,9 +600,7 @@ public final class MoreCollectors {
         };
         BinaryOperator<Container> combiner = (c1, c2) -> {
             if (c1.index == -1 || (c2.index != -1 && comparator.compare(c1.value, c2.value) > 0)) {
-                if (c2.index != -1) {
-                    c2.index += c1.count;
-                }
+                c2.index += c1.count;
                 c2.count += c1.count;
                 return c2;
             }
