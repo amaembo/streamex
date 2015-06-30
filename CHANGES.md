@@ -1,5 +1,12 @@
 # StreamEx changes
 
+### 0.3.4
+
+* Fixed: `EntryStream.of(List<T>)`, `EntryStream.of(T[])` and `StreamEx.runLengths` returned stream
+of `Map.Entry` objects which violate the documented contract for `equals` and `hashCode`.
+* Added construction of all stream types from the `Spliterator`.
+* `minBy/maxBy` methods optimized for primitive streams: now keyExtractor function is called at most once per element
+
 ### 0.3.3
 
 * Added `StreamEx.intervalMap` method

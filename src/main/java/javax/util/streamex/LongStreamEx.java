@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.LongSummaryStatistics;
+import java.util.Objects;
 import java.util.OptionalDouble;
 import java.util.OptionalLong;
 import java.util.Random;
@@ -603,7 +604,19 @@ public class LongStreamEx implements LongStream {
      * @since 0.1.2
      */
     public <V extends Comparable<? super V>> OptionalLong minBy(LongFunction<V> keyExtractor) {
-        return reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? b : a);
+        ObjLongBox<V> result = collect(() -> new ObjLongBox<>(null, 0), (box, i) -> {
+            V val = Objects.requireNonNull(keyExtractor.apply(i));
+            if(box.a == null || box.a.compareTo(val) > 0) {
+                box.a = val;
+                box.b = i;
+            }
+        }, (box1, box2) -> {
+            if(box2.a != null && (box1.a == null || box1.a.compareTo(box2.a) > 0)) {
+                box1.a = box2.a;
+                box1.b = box2.b;
+            }
+        });
+        return result.a == null ? OptionalLong.empty() : OptionalLong.of(result.b);
     }
 
     /**
@@ -700,7 +713,19 @@ public class LongStreamEx implements LongStream {
      * @since 0.1.2
      */
     public <V extends Comparable<? super V>> OptionalLong maxBy(LongFunction<V> keyExtractor) {
-        return reduce((a, b) -> keyExtractor.apply(a).compareTo(keyExtractor.apply(b)) > 0 ? a : b);
+        ObjLongBox<V> result = collect(() -> new ObjLongBox<>(null, 0), (box, i) -> {
+            V val = Objects.requireNonNull(keyExtractor.apply(i));
+            if(box.a == null || box.a.compareTo(val) < 0) {
+                box.a = val;
+                box.b = i;
+            }
+        }, (box1, box2) -> {
+            if(box2.a != null && (box1.a == null || box1.a.compareTo(box2.a) < 0)) {
+                box1.a = box2.a;
+                box1.b = box2.b;
+            }
+        });
+        return result.a == null ? OptionalLong.empty() : OptionalLong.of(result.b);
     }
 
     /**
