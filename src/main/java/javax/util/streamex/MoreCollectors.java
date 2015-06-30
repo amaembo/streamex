@@ -585,7 +585,7 @@ public final class MoreCollectors {
         return greatest(Comparator.<T> reverseOrder(), n);
     }
     
-    public static <T> Collector<T, ?, OptionalLong> minIndex(Comparator<T> comparator) {
+    public static <T> Collector<T, ?, OptionalLong> minIndex(Comparator<? super T> comparator) {
         class Container {
             T value;
             long count = 0;
@@ -611,5 +611,17 @@ public final class MoreCollectors {
         };
         Function<Container, OptionalLong> finisher = c -> c.index == -1 ? OptionalLong.empty() : OptionalLong.of(c.index);
         return Collector.of(Container::new, accumulator, combiner, finisher);
+    }
+    
+    public static <T extends Comparable<? super T>> Collector<T, ?, OptionalLong> minIndex() {
+        return minIndex(Comparator.naturalOrder());
+    }
+    
+    public static <T> Collector<T, ?, OptionalLong> maxIndex(Comparator<? super T> comparator) {
+        return minIndex(comparator.reversed());
+    }
+    
+    public static <T extends Comparable<? super T>> Collector<T, ?, OptionalLong> maxIndex() {
+        return minIndex(Comparator.reverseOrder());
     }
 }

@@ -213,8 +213,8 @@ public class MoreCollectorsTest {
         List<Integer> ints = IntStreamEx.of(new Random(1), 100, 0, 100).boxed().toList();
         long expected = IntStreamEx.ofIndices(ints).minBy(ints::get).getAsInt();
         long expectedParallel = IntStreamEx.ofIndices(ints).minBy(ints::get).getAsInt();
-        long result = ints.stream().collect(MoreCollectors.minIndex(Comparator.<Integer>naturalOrder())).getAsLong();
-        long resultParallel = ints.stream().parallel().collect(MoreCollectors.minIndex(Comparator.<Integer>naturalOrder())).getAsLong();
+        long result = ints.stream().collect(MoreCollectors.minIndex()).getAsLong();
+        long resultParallel = ints.stream().parallel().collect(MoreCollectors.minIndex()).getAsLong();
         assertEquals(expected, expectedParallel);
         assertEquals(expected, result);
         assertEquals(expected, resultParallel);
