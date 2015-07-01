@@ -628,6 +628,14 @@ public class StreamExTest {
         assertFalse(firstMisplaced(Arrays.asList("a", "bb", "bb", "bb", "c")).isPresent());
     }
 
+    @Test
+    public void testPairMapFlatMapBug() {
+        Integer[][] input = { { 1 }, { 2, 3 }, { 4, 5, 6 }, { 7, 8 }, { 9 } };
+        for(StreamExSupplier<Integer> supplier : streamEx(() -> StreamEx.of(input).<Integer>flatMap(Arrays::stream))) {
+            assertEquals(supplier.toString(), 1L, supplier.get().pairMap((a, b) -> b-a).distinct().count());
+        }
+    }
+
     private double interpolate(Point[] points, double x) {
         return StreamEx.of(points).parallel()
                 .pairMap((p1, p2) -> p1.x <= x && p2.x >= x ? (x - p1.x) / (p2.x - p1.x) * (p2.y - p1.y) + p1.y : null)

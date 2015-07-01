@@ -1055,10 +1055,17 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return the new stream
      * @since 0.2.1
      */
-    public <R> StreamEx<R> pairMap(BiFunction<? super T, ? super T, ? extends R> mapper) {
+    public <R> StreamEx<R> pairMap2(BiFunction<? super T, ? super T, ? extends R> mapper) {
         return strategy().newStreamEx(
             StreamSupport.stream(
                 new PairSpliterator.PSOfRef<T, R>(mapper, stream.spliterator(), null, false, null, false),
+                stream.isParallel()).onClose(stream::close));
+    }
+
+    public <R> StreamEx<R> pairMap(BiFunction<? super T, ? super T, ? extends R> mapper) {
+        return strategy().newStreamEx(
+            StreamSupport.stream(
+                new PairSpliterator2.PSOfRef<T, R>(mapper, stream.spliterator()),
                 stream.isParallel()).onClose(stream::close));
     }
 
