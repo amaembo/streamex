@@ -27,11 +27,11 @@ class Merger<T> {
     private final Sink<T> left;
     private Sink<T> right;
     @SuppressWarnings({ "rawtypes" })
-    private static Merger.Sink EMPTY = new Sink<>();
+    private static Merger.Sink EMPTY = new Sink<>(null);
     
-    private Merger(Sink<T> left, Sink<T> right) {
-        this.left = left;
-        this.right = right;
+    Merger() {
+        this.left = new Sink<>(this);
+        this.right = new Sink<>(this);
     }
     
     @SuppressWarnings("unchecked")
@@ -39,18 +39,13 @@ class Merger<T> {
         return EMPTY;
     }
     
-    static <T> Merger<T> normal() {
-        Sink<T> left = new Sink<>();
-        Sink<T> right = new Sink<>();
-        Merger<T> merger = new Merger<>(left, right);
-        left.m = merger;
-        right.m = merger;
-        return merger;
-    }
-    
     static class Sink<T> {
         Merger<T> m;
         private T payload = none();
+        
+        Sink(Merger<T> m) {
+            this.m = m;
+        }
         
         T push(T payload, BinaryOperator<T> fn) {
             assert this.payload == NONE;

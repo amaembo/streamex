@@ -57,7 +57,7 @@ abstract class PairSpliterator2<T, S extends Spliterator<T>, R, SS extends PairS
         } catch (CloneNotSupportedException e) {
             throw new InternalError();
         }
-        Merger<T> merger = Merger.normal();
+        Merger<T> merger = new Merger<>();
         clone.source = prefixSource;
         clone.right = merger.getLeft();
         this.left = merger.getRight();
@@ -79,9 +79,6 @@ abstract class PairSpliterator2<T, S extends Spliterator<T>, R, SS extends PairS
 
         private BinaryOperator<T> fn(Consumer<? super R> action) {
             return (a, b) -> {
-                if (a == null || b == null) {
-                    System.out.println("!!");
-                }
                 action.accept(mapper.apply(a, b));
                 return a;
             };
