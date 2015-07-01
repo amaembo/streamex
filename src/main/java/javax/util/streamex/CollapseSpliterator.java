@@ -59,6 +59,13 @@ import static javax.util.streamex.StreamExInternals.*;
             return false;
         if (cur == NONE) {
             if (!source.tryAdvance(this::setCur)) {
+                source = null;
+                if(last != NONE) {
+                    action.accept(lastAcc);
+                    last = none();
+                    lastAcc = none();
+                    return true;
+                }
                 return false;
             }
         }
@@ -97,6 +104,8 @@ import static javax.util.streamex.StreamExInternals.*;
             return;
         if (cur == NONE) {
             if (!source.tryAdvance(this::setCur)) {
+                if(last != NONE)
+                    action.accept(lastAcc);
                 return;
             }
         }
