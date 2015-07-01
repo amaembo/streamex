@@ -937,7 +937,10 @@ public class StreamExTest {
         assertEquals(Arrays.asList("This is the first sentence.",
             "This is the second sentence.", "Third sentence.", "Fourth sentence.",
             "Fifth sentence.", "The last"), sentences(StreamEx.of(lines)).toList());
-        // Parallel stream for this test hits a JDK spliterator bug
+        assertEquals(Arrays.asList("This is the first sentence.",
+            "This is the second sentence.", "Third sentence.", "Fourth sentence.",
+            "Fifth sentence.", "The last"), sentences(StreamEx.of(lines)).parallel().toList());
+        // Parallelling stream before the collapse for this test hits a JDK spliterator bug
     }
 
     @Test
