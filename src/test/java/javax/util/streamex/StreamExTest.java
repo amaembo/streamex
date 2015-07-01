@@ -472,9 +472,12 @@ public class StreamExTest {
             assertFalse(supplier.toString(),
                 supplier.get().foldLeft(false, (Boolean acc, String s) -> acc || s.equals("d")));
             assertEquals(supplier.toString(), 6, (int) supplier.get().foldLeft(0, (acc, v) -> acc + v.length()));
-            assertEquals(supplier.toString(), "{ccc={bb={a={}}}}",
-                supplier.get().foldLeft(Collections.emptyMap(), (Map<String, Object> acc, String v) -> Collections.singletonMap(v, acc))
-                        .toString());
+            assertEquals(
+                supplier.toString(),
+                "{ccc={bb={a={}}}}",
+                supplier.get()
+                        .foldLeft(Collections.emptyMap(),
+                            (Map<String, Object> acc, String v) -> Collections.singletonMap(v, acc)).toString());
         }
     }
 
@@ -486,14 +489,13 @@ public class StreamExTest {
         assertEquals(Arrays.asList("b", null), StreamEx.of("a", "b", null, "c", "b", null).distinct(2).toList());
         assertEquals(Arrays.asList(null, "b"), StreamEx.of("a", "b", null, "c", null, "b", null, "b").distinct(2)
                 .toList());
-        for(StreamExSupplier<Integer> supplier : streamEx(() -> IntStreamEx.range(0, 1000).map(x -> x / 3).boxed())) {
+        for (StreamExSupplier<Integer> supplier : streamEx(() -> IntStreamEx.range(0, 1000).map(x -> x / 3).boxed())) {
             assertEquals(supplier.toString(), 334, supplier.get().distinct().count());
             assertEquals(supplier.toString(), 333, supplier.get().distinct(2).count());
             assertEquals(supplier.toString(), 333, supplier.get().distinct(3).count());
             assertEquals(supplier.toString(), 0, supplier.get().distinct(4).count());
-            
-            List<Integer> distinct3List = supplier.get().distinct(3)
-                    .toList();
+
+            List<Integer> distinct3List = supplier.get().distinct(3).toList();
             assertEquals(supplier.toString(), 333, distinct3List.size());
             Map<Integer, Long> map = supplier.get().collect(
                 Collectors.groupingBy(Function.identity(), LinkedHashMap::new, Collectors.counting()));
@@ -547,7 +549,7 @@ public class StreamExTest {
                 cur = i;
             }
         }
-        for(StreamExSupplier<Integer> supplier : streamEx(() -> new Random(1).ints(1000, 0, 100).sorted().boxed())) {
+        for (StreamExSupplier<Integer> supplier : streamEx(() -> new Random(1).ints(1000, 0, 100).sorted().boxed())) {
             assertEquals(supplier.toString(), expected, supplier.get().distinct(15).pairMap((a, b) -> b - a).toList());
         }
     }
@@ -558,11 +560,14 @@ public class StreamExTest {
         assertEquals(
             "{a={bb={ccc={}}}}",
             StreamEx.of("a", "bb", "ccc")
-                    .foldRight(Collections.emptyMap(), (String v, Map<String, Object> acc) -> Collections.singletonMap(v, acc)).toString());
+                    .foldRight(Collections.emptyMap(),
+                        (String v, Map<String, Object> acc) -> Collections.singletonMap(v, acc)).toString());
         assertEquals(
             "{a={bb={ccc={}}}}",
-            StreamEx.of("a", "bb", "ccc").parallel()
-                    .foldRight(Collections.emptyMap(), (String v, Map<String, Object> acc) -> Collections.singletonMap(v, acc)).toString());
+            StreamEx.of("a", "bb", "ccc")
+                    .parallel()
+                    .foldRight(Collections.emptyMap(),
+                        (String v, Map<String, Object> acc) -> Collections.singletonMap(v, acc)).toString());
     }
 
     private <T extends Comparable<? super T>> boolean isSorted(Collection<T> c) {
@@ -612,12 +617,12 @@ public class StreamExTest {
         Collection<Integer> numbers = Arrays.asList(10, 1, 15, 30, 2, 6);
         List<Integer> res = StreamEx.of(numbers).pairMap((a, b) -> a < b ? a : null).nonNull().toList();
         assertEquals(Arrays.asList(1, 15, 2), res);
-        
+
         // Check whether stream is sorted
         assertTrue(isSorted(Arrays.asList("a", "bb", "bb", "c")));
         assertFalse(isSorted(Arrays.asList("a", "bb", "bb", "bba", "bb", "c")));
         assertTrue(isSorted(IntStreamEx.of(new Random(1)).boxed().distinct().limit(1000).toCollection(TreeSet::new)));
-        
+
         // Find first element which violates the sorting
         assertEquals("bba", firstMisplaced(Arrays.asList("a", "bb", "bb", "bba", "bb", "c")).get());
         assertFalse(firstMisplaced(Arrays.asList("a", "bb", "bb", "bb", "c")).isPresent());
@@ -912,10 +917,27 @@ public class StreamExTest {
     public void testCollapsePairMap() {
         int[] input = { 0, 0, 1, 1, 1, 1, 4, 6, 6, 3, 3, 10 };
         List<Integer> expected = IntStreamEx.of(input).pairMap((a, b) -> b - a).without(0).boxed().toList();
-        assertEquals(expected, IntStreamEx.of(input).boxed().collapse(Integer::equals).pairMap((a, b) -> b - a)
-                .toList());
-        assertEquals(expected,
-            IntStreamEx.of(input).parallel().boxed().collapse(Integer::equals).pairMap((a, b) -> b - a).toList());
+        for (StreamExSupplier<Integer> supplier : streamEx(() -> IntStreamEx.of(input).boxed())) {
+            assertEquals(supplier.toString(), expected,
+                supplier.get().collapse(Integer::equals).pairMap((a, b) -> b - a).toList());
+        }
+    }
+
+    static StreamEx<String> sentences(StreamEx<String> source) {
+        return source
+                .flatMap(Pattern.compile("(?<=\\.)")::splitAsStream)
+                .collapse((a, b) -> !a.endsWith("."), (a, b) -> a + ' ' + b)
+                .map(String::trim);
+    }
+
+    @Test
+    public void testStreamOfSentences() {
+        List<String> lines = Arrays.asList("This is the", "first sentence.  This is the",
+            "second sentence. Third sentence. Fourth", "sentence. Fifth sentence.", "The last");
+        assertEquals(Arrays.asList("This is the first sentence.",
+            "This is the second sentence.", "Third sentence.", "Fourth sentence.",
+            "Fifth sentence.", "The last"), sentences(StreamEx.of(lines)).toList());
+        // Parallel stream for this test hits a JDK spliterator bug
     }
 
     @Test
@@ -959,7 +981,7 @@ public class StreamExTest {
         return ints
                 .distinct()
                 .sorted()
-                .<String>intervalMap((i, j) -> j == i + 1,
+                .<String> intervalMap((i, j) -> j == i + 1,
                     (i, j) -> j == i ? i.toString() : j == i + 1 ? i + "," + j : i + ".." + j).joining(",");
     }
 
@@ -1007,7 +1029,8 @@ public class StreamExTest {
         String resParallel = StreamEx.of(input).parallel().runLengths().join(": ").joining(", ");
         assertEquals("1: 1, 2: 2, 4: 1, 2: 1, null: 2, 1: 3, null: 2", res);
         assertEquals("1: 1, 2: 2, 4: 1, 2: 1, null: 2, 1: 3, null: 2", resParallel);
-        assertEquals("1=1, 2=2, 4=1, 2=1, null=2, 1=3", StreamEx.of(input).parallel().runLengths().distinct().map(String::valueOf).joining(", "));
+        assertEquals("1=1, 2=2, 4=1, 2=1, null=2, 1=3",
+            StreamEx.of(input).parallel().runLengths().distinct().map(String::valueOf).joining(", "));
     }
 
     @Test
