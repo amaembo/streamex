@@ -1347,7 +1347,17 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public static <T> StreamEx<T> of(Stream<T> stream) {
         return new StreamEx<>(unwrap(stream));
     }
-    
+
+    /**
+     * Returns a sequential {@link StreamEx} created from given
+     * {@link Spliterator}.
+     *
+     * @param <T> the type of stream elements
+     * @param spliterator
+     *            a spliterator to create the stream from.
+     * @return the new stream
+     * @since 0.3.4
+     */
     public static <T> StreamEx<T> of(Spliterator<T> spliterator) {
         return new StreamEx<>(StreamSupport.stream(spliterator, false));
     }

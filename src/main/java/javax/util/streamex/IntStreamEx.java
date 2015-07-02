@@ -1502,6 +1502,15 @@ public class IntStreamEx implements IntStream {
         return stream instanceof IntStreamEx ? (IntStreamEx) stream : new IntStreamEx(stream);
     }
 
+    /**
+     * Returns a sequential {@link IntStreamEx} created from given
+     * {@link Spliterator.OfInt}.
+     * 
+     * @param spliterator
+     *            a spliterator to create the stream from.
+     * @return the new stream
+     * @since 0.3.4
+     */
     public static IntStreamEx of(Spliterator.OfInt spliterator) {
         return new IntStreamEx(StreamSupport.intStream(spliterator, false));
     }

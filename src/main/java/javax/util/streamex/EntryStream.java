@@ -1014,10 +1014,23 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return new EntryStream<>(unwrap(stream));
     }
 
+    /**
+     * Returns a sequential {@link EntryStream} created from given
+     * {@link Spliterator}.
+     *
+     * @param <K>
+     *            the type of stream keys
+     * @param <V>
+     *            the type of stream values
+     * @param spliterator
+     *            a spliterator to create the stream from.
+     * @return the new stream
+     * @since 0.3.4
+     */
     public static <K, V> EntryStream<K, V> of(Spliterator<? extends Entry<K, V>> spliterator) {
         return new EntryStream<>(StreamSupport.stream(spliterator, false));
     }
-    
+
     /**
      * Returns an {@code EntryStream} object which contains the entries of
      * supplied {@code Map}.

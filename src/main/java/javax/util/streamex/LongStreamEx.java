@@ -1037,6 +1037,15 @@ public class LongStreamEx implements LongStream {
         return stream instanceof LongStreamEx ? (LongStreamEx) stream : new LongStreamEx(stream);
     }
 
+    /**
+     * Returns a sequential {@link LongStreamEx} created from given
+     * {@link Spliterator.OfLong}.
+     * 
+     * @param spliterator
+     *            a spliterator to create the stream from.
+     * @return the new stream
+     * @since 0.3.4
+     */
     public static LongStreamEx of(Spliterator.OfLong spliterator) {
         return new LongStreamEx(StreamSupport.longStream(spliterator, false));
     }

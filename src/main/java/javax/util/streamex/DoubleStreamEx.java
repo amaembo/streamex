@@ -1063,6 +1063,15 @@ public class DoubleStreamEx implements DoubleStream {
         return stream instanceof DoubleStreamEx ? (DoubleStreamEx) stream : new DoubleStreamEx(stream);
     }
 
+    /**
+     * Returns a sequential {@link DoubleStreamEx} created from given
+     * {@link Spliterator.OfDouble}.
+     * 
+     * @param spliterator
+     *            a spliterator to create the stream from.
+     * @return the new stream
+     * @since 0.3.4
+     */
     public static DoubleStreamEx of(Spliterator.OfDouble spliterator) {
         return new DoubleStreamEx(StreamSupport.doubleStream(spliterator, false));
     }
@@ -1187,6 +1196,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.2.1
      */
     public static DoubleStreamEx zip(double[] first, double[] second, DoubleBinaryOperator mapper) {
-        return of(new RangeBasedSpliterator.ZipDouble(0, checkLength(first.length, second.length), mapper, first, second));
+        return of(new RangeBasedSpliterator.ZipDouble(0, checkLength(first.length, second.length), mapper, first,
+                second));
     }
 }
