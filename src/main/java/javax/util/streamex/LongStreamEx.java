@@ -24,6 +24,7 @@ import java.util.Objects;
 import java.util.OptionalDouble;
 import java.util.OptionalLong;
 import java.util.Random;
+import java.util.Spliterator;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator.OfLong;
 import java.util.concurrent.ForkJoinPool;
@@ -1062,6 +1063,19 @@ public class LongStreamEx implements LongStream {
     }
 
     /**
+     * Returns a sequential {@link LongStreamEx} created from given
+     * {@link Spliterator.OfLong}.
+     * 
+     * @param spliterator
+     *            a spliterator to create the stream from.
+     * @return the new stream
+     * @since 0.3.4
+     */
+    public static LongStreamEx of(Spliterator.OfLong spliterator) {
+        return new LongStreamEx(StreamSupport.longStream(spliterator, false));
+    }
+
+    /**
      * Returns a sequential {@code LongStreamEx} containing an
      * {@link OptionalLong} value, if present, otherwise returns an empty
      * {@code LongStreamEx}.
@@ -1229,6 +1243,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.2.1
      */
     public static LongStreamEx zip(long[] first, long[] second, LongBinaryOperator mapper) {
-        return intStreamForLength(first.length, second.length).mapToLong(i -> mapper.applyAsLong(first[i], second[i]));
+        return of(new RangeBasedSpliterator.ZipLong(0, checkLength(first.length, second.length),
+                mapper, first, second));
     }
 }

@@ -52,6 +52,7 @@ import java.util.jar.JarFile;
 import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import java.util.zip.ZipEntry;
@@ -1348,6 +1349,20 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
+     * Returns a sequential {@link StreamEx} created from given
+     * {@link Spliterator}.
+     *
+     * @param <T> the type of stream elements
+     * @param spliterator
+     *            a spliterator to create the stream from.
+     * @return the new stream
+     * @since 0.3.4
+     */
+    public static <T> StreamEx<T> of(Spliterator<T> spliterator) {
+        return new StreamEx<>(StreamSupport.stream(spliterator, false));
+    }
+
+    /**
      * Returns a sequential {@code StreamEx} containing an {@link Optional}
      * value, if present, otherwise returns an empty {@code StreamEx}.
      *
@@ -1570,7 +1585,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.2.2
      */
     public static StreamEx<int[]> ofPermutations(int length) {
-        return new StreamEx<>(StreamSupport.stream(new PermutationSpliterator(length), false));
+        return of(new PermutationSpliterator(length));
     }
 
     /**
@@ -1706,7 +1721,13 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public static <U, V, T> StreamEx<T> zip(List<U> first, List<V> second,
             BiFunction<? super U, ? super V, ? extends T> mapper) {
-        return intStreamForLength(first.size(), second.size()).mapToObj(i -> mapper.apply(first.get(i), second.get(i)));
+        return of(new RangeBasedSpliterator.ZipRef<>(0, checkLength(first.size(), second.size()), first, second, mapper));
+    }
+
+    public static <U, V, T> StreamEx<T> zipOld(List<U> first, List<V> second,
+            BiFunction<? super U, ? super V, ? extends T> mapper) {
+        return of(IntStream.range(0, checkLength(first.size(), second.size())).mapToObj(
+            i -> mapper.apply(first.get(i), second.get(i))));
     }
 
     /**
@@ -1807,8 +1828,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         int size = source.size();
         if (size <= 0)
             return StreamEx.empty();
-        int fullChunks = (size - 1) / length;
-        return IntStreamEx.range(0, fullChunks + 1).mapToObj(
-            n -> source.subList(n * length, n == fullChunks ? size : (n + 1) * length));
+        return of(new RangeBasedSpliterator.OfSubLists<>(source, length));
     }
 }

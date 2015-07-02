@@ -454,6 +454,20 @@ public class StreamExTest {
         assertEquals("abc", StreamEx.of("a", "b", "c").joining());
         assertEquals("a,b,c", StreamEx.of("a", "b", "c").joining(","));
         assertEquals("[1;2;3]", StreamEx.of(1, 2, 3).joining(";", "[", "]"));
+        
+        Random r = new Random(1);
+        List<Integer> input1 = IntStreamEx.of(r, 1000, 0, 1000).boxed().toList();
+        List<String> input2 = IntStreamEx.of(r, 1000, 0, 1000).mapToObj(String::valueOf).toList();
+        StringBuilder sb = new StringBuilder();
+        for(int i=0; i<input1.size(); i++) {
+            if(sb.length() > 0) sb.append(',');
+            sb.append(input1.get(i)).append(':').append(input2.get(i));
+        }
+        String expected = sb.toString();
+        assertEquals(expected, StreamEx.zipOld(input1, input2, (i, s) -> i+":"+s).joining(","));
+        assertEquals(expected, StreamEx.zipOld(input1, input2, (i, s) -> i+":"+s).parallel().joining(","));
+        assertEquals(expected, StreamEx.zip(input1, input2, (i, s) -> i+":"+s).joining(","));
+        assertEquals(expected, StreamEx.zip(input1, input2, (i, s) -> i+":"+s).parallel().joining(","));
     }
 
     @Test

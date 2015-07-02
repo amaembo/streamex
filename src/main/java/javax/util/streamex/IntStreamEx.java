@@ -28,6 +28,7 @@ import java.util.OptionalInt;
 import java.util.Random;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator.OfInt;
+import java.util.Spliterator;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
 import java.util.function.DoublePredicate;
@@ -1283,7 +1284,7 @@ public class IntStreamEx implements IntStream {
      */
     public static IntStreamEx of(byte[] array, int startInclusive, int endExclusive) {
         rangeCheck(array.length, startInclusive, endExclusive);
-        return range(startInclusive, endExclusive).map(i -> array[i]);
+        return of(new RangeBasedSpliterator.OfByte(startInclusive, endExclusive, array));
     }
 
     /**
@@ -1318,7 +1319,7 @@ public class IntStreamEx implements IntStream {
      */
     public static IntStreamEx of(char[] array, int startInclusive, int endExclusive) {
         rangeCheck(array.length, startInclusive, endExclusive);
-        return range(startInclusive, endExclusive).map(i -> array[i]);
+        return of(new RangeBasedSpliterator.OfChar(startInclusive, endExclusive, array));
     }
 
     /**
@@ -1353,7 +1354,7 @@ public class IntStreamEx implements IntStream {
      */
     public static IntStreamEx of(short[] array, int startInclusive, int endExclusive) {
         rangeCheck(array.length, startInclusive, endExclusive);
-        return range(startInclusive, endExclusive).map(i -> array[i]);
+        return of(new RangeBasedSpliterator.OfShort(startInclusive, endExclusive, array));
     }
 
     /**
@@ -1527,6 +1528,19 @@ public class IntStreamEx implements IntStream {
     }
 
     /**
+     * Returns a sequential {@link IntStreamEx} created from given
+     * {@link Spliterator.OfInt}.
+     * 
+     * @param spliterator
+     *            a spliterator to create the stream from.
+     * @return the new stream
+     * @since 0.3.4
+     */
+    public static IntStreamEx of(Spliterator.OfInt spliterator) {
+        return new IntStreamEx(StreamSupport.intStream(spliterator, false));
+    }
+
+    /**
      * Returns a sequential {@code IntStreamEx} containing an
      * {@link OptionalInt} value, if present, otherwise returns an empty
      * {@code IntStreamEx}.
@@ -1634,7 +1648,7 @@ public class IntStreamEx implements IntStream {
      * @see CharSequence#chars()
      */
     public static IntStreamEx ofChars(CharSequence seq) {
-        return new IntStreamEx(seq.chars());
+        return of(new RangeBasedSpliterator.OfCharSequence(seq));
     }
 
     /**
@@ -1779,6 +1793,11 @@ public class IntStreamEx implements IntStream {
      * @since 0.2.1
      */
     public static IntStreamEx zip(int[] first, int[] second, IntBinaryOperator mapper) {
-        return intStreamForLength(first.length, second.length).map(i -> mapper.applyAsInt(first[i], second[i]));
+        return of(new RangeBasedSpliterator.ZipInt(0, checkLength(first.length, second.length), mapper, first, second));
+    }
+
+    public static IntStreamEx zipOld(int[] first, int[] second, IntBinaryOperator mapper) {
+        return of(IntStream.range(0, checkLength(first.length, second.length)).map(
+            i -> mapper.applyAsInt(first[i], second[i])));
     }
 }
