@@ -30,7 +30,9 @@ import static javax.util.streamex.StreamExInternals.*;
 
 abstract class PairSpliterator2<T, S extends Spliterator<T>, R, SS extends PairSpliterator2<T, S, R, SS>> implements
         Spliterator<R>, Cloneable {
-    private static Sink<?> EMPTY = new Sink<>(null);
+    private static Sink<?> EMPTY = new Sink<>(null, true);
+    // Common lock for all the derived spliterators
+    private final Object lock = new Object();
     S source;
     @SuppressWarnings("unchecked")
     Sink<T> left = (Sink<T>) EMPTY;
@@ -38,74 +40,68 @@ abstract class PairSpliterator2<T, S extends Spliterator<T>, R, SS extends PairS
     Sink<T> right = (Sink<T>) EMPTY;
 
     private static final class Sink<T> {
-        Merger<T> m;
+        final boolean isLeft;
+        Sink<T> other;
         private T payload = none();
+        private final Object lock;
 
-        Sink(Merger<T> m) {
-            this.m = m;
+        Sink(Object lock, boolean isLeft) {
+            this.lock = lock;
+            this.isLeft = isLeft;
         }
 
         boolean push(T payload, BiConsumer<T, T> fn) {
-            assert this.payload == NONE;
-            if (m == null)
+            //assert this.payload == NONE;
+            if(lock == null)
                 return false;
-            synchronized (m) {
+            synchronized(lock) {
+                Sink<T> that = other;
+                if (that == null)
+                    return false;
                 this.payload = payload;
-                return m.operate(fn);
+                return isLeft ? operate(this, that, fn) : operate(that, this, fn);
             }
         }
 
-        boolean connect(Sink<T> right, BiConsumer<T, T> fn) {
-            assert payload == NONE;
-            if (m == null) {
-                if (right.m != null) {
-                    right.m.clear();
-                }
-                return false;
-            }
-            assert m.right == this;
-            if (right.m == null) {
-                m.clear();
-                return false;
-            }
-            assert right.m.left == right;
-            synchronized (m) {
-                synchronized (right.m) {
-                    m.right = right.m.right;
-                    m.right.m = m;
-                    return m.operate(fn);
-                }
-            }
-        }
-
-        void clear() {
-            m = null;
-            payload = none();
-        }
-    }
-
-    private static final class Merger<T> {
-        final Sink<T> left;
-        Sink<T> right;
-
-        Merger() {
-            this.left = new Sink<>(this);
-            this.right = new Sink<>(this);
-        }
-
-        boolean operate(BiConsumer<T, T> fn) {
+        static <T> boolean operate(Sink<T> left, Sink<T> right, BiConsumer<T, T> fn) {
             if (left.payload == NONE || right.payload == NONE)
                 return false;
             fn.accept(left.payload, right.payload);
-            clear();
+            left.clear();
+            right.clear();
             return true;
         }
 
-        void clear() {
-            synchronized (this) {
-                left.clear();
-                right.clear();
+        boolean connect(Sink<T> right, BiConsumer<T, T> fn) {
+            //assert payload == NONE;
+            //assert !isLeft;
+            //assert right.isLeft;
+            if(lock == null)
+                return false;
+            synchronized(lock) {
+                Sink<T> leftLeft = this.other; 
+                Sink<T> rightRight = right.other;
+                if(leftLeft == null) {
+                    if(rightRight != null) {
+                        rightRight.clear();
+                    }
+                    return false;
+                }
+                if(rightRight == null) {
+                    leftLeft.clear();
+                    return false;
+                }
+                //assert rightRight.other == right;
+                //assert leftLeft == this;
+                rightRight.other = leftLeft;
+                leftLeft.other = rightRight;
+                return operate(leftLeft, rightRight, fn);
             }
+        }
+
+        void clear() {
+            other = null;
+            payload = none();
         }
     }
 
@@ -135,10 +131,11 @@ abstract class PairSpliterator2<T, S extends Spliterator<T>, R, SS extends PairS
             return null;
         try {
             SS clone = (SS) clone();
-            Merger<T> merger = new Merger<>();
+            Sink<T> left = new Sink<>(lock, true);
+            Sink<T> right = new Sink<>(lock, false);
             clone.source = prefixSource;
-            clone.right = merger.left;
-            this.left = merger.right;
+            clone.right = right.other = left;
+            this.left = left.other = right;
             return clone;
         } catch (CloneNotSupportedException e) {
             throw new InternalError();

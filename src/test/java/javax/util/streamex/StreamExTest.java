@@ -630,12 +630,13 @@ public class StreamExTest {
 
     @Test
     public void testPairMapCornerCase() {
-        for(int i=0; i<1000; i++)
-            assertEquals(Collections.singletonList(-999), IntStreamEx.range(1000).filter(x -> x == 0 || x == 999).boxed().parallel().pairMap((a, b) -> a-b).toList());
-        
-        /*for(StreamExSupplier<Integer> supplier : streamEx(() -> IntStreamEx.range(1000).filter(x -> x == 0 || x == 999).boxed())) {
-            assertEquals(supplier.toString(), Collections.singletonList(-999), supplier.get().pairMap((a, b) -> a-b).toList());
-        }*/
+        for (int i = 0; i < 100; i++) {
+            for (StreamExSupplier<Integer> supplier : streamEx(() -> IntStreamEx.range(1000)
+                    .filter(x -> x == 0 || x == 999).boxed())) {
+                assertEquals(supplier.toString(), Collections.singletonList(-999),
+                    supplier.get().pairMap((a, b) -> a - b).toList());
+            }
+        }
     }
     
     @Test
