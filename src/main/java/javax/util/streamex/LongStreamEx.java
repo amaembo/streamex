@@ -947,7 +947,7 @@ public class LongStreamEx implements LongStream {
      */
     public LongStreamEx pairMap(LongBinaryOperator mapper) {
         return strategy().newLongStreamEx(
-            StreamSupport.longStream(new PairSpliterator2.PSOfLong(mapper, stream.spliterator()),
+            StreamSupport.longStream(new PairSpliterator.PSOfLong(mapper, stream.spliterator()),
                 stream.isParallel()).onClose(stream::close));
     }
 
