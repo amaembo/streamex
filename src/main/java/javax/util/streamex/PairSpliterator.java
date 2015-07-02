@@ -33,7 +33,7 @@ import static javax.util.streamex.StreamExInternals.*;
  */
 /* package */ abstract class PairSpliterator<T, S extends Spliterator<T>, R, SS extends PairSpliterator<T, S, R, SS>> implements
         Spliterator<R>, Cloneable {
-    private static Sink<?> EMPTY = new Sink<>(null, true);
+    private static Sink<?> EMPTY = new Sink<>(null);
     // Common lock for all the derived spliterators
     private final Object lock = new Object();
     S source;
@@ -43,17 +43,15 @@ import static javax.util.streamex.StreamExInternals.*;
     Sink<T> right = (Sink<T>) EMPTY;
 
     private static final class Sink<T> {
-        final boolean isLeft;
         Sink<T> other;
         private T payload = none();
         private final Object lock;
 
-        Sink(Object lock, boolean isLeft) {
+        Sink(Object lock) {
             this.lock = lock;
-            this.isLeft = isLeft;
         }
 
-        boolean push(T payload, BiConsumer<T, T> fn) {
+        boolean push(T payload, BiConsumer<T, T> fn, boolean isLeft) {
             if(lock == null)
                 return false;
             synchronized(lock) {
@@ -128,8 +126,8 @@ import static javax.util.streamex.StreamExInternals.*;
             return null;
         try {
             SS clone = (SS) clone();
-            Sink<T> left = new Sink<>(lock, true);
-            Sink<T> right = new Sink<>(lock, false);
+            Sink<T> left = new Sink<>(lock);
+            Sink<T> right = new Sink<>(lock);
             clone.source = prefixSource;
             clone.right = right.other = left;
             this.left = left.other = right;
@@ -165,13 +163,13 @@ import static javax.util.streamex.StreamExInternals.*;
                     right = null;
                     return l.connect(r, fn(action));
                 }
-                if (l.push(cur, fn(action)))
+                if (l.push(cur, fn(action), false))
                     return true;
             }
             T prev = cur;
             if (!source.tryAdvance(this::setCur)) {
                 right = null;
-                return r != null && r.push(prev, fn(action));
+                return r != null && r.push(prev, fn(action), true);
             }
             action.accept(mapper.apply(prev, cur));
             return true;
@@ -186,11 +184,11 @@ import static javax.util.streamex.StreamExInternals.*;
                     l.connect(r, fn(action));
                     return;
                 }
-                l.push(cur, fn(action));
+                l.push(cur, fn(action), false);
             }
             source.forEachRemaining(next -> action.accept(mapper.apply(cur, cur = next)));
             if (r != null) {
-                r.push(cur, fn(action));
+                r.push(cur, fn(action), true);
             }
         }
     }
@@ -222,13 +220,13 @@ import static javax.util.streamex.StreamExInternals.*;
                     right = null;
                     return l.connect(r, fn(action));
                 }
-                if (l.push(cur, fn(action)))
+                if (l.push(cur, fn(action), false))
                     return true;
             }
             int prev = cur;
             if (!source.tryAdvance((IntConsumer) this::setCur)) {
                 right = null;
-                return r != null && r.push(prev, fn(action));
+                return r != null && r.push(prev, fn(action), true);
             }
             action.accept(mapper.applyAsInt(prev, cur));
             return true;
@@ -243,11 +241,11 @@ import static javax.util.streamex.StreamExInternals.*;
                     l.connect(r, fn(action));
                     return;
                 }
-                l.push(cur, fn(action));
+                l.push(cur, fn(action), false);
             }
             source.forEachRemaining((IntConsumer) next -> action.accept(mapper.applyAsInt(cur, cur = next)));
             if (r != null) {
-                r.push(cur, fn(action));
+                r.push(cur, fn(action), true);
             }
         }
     }
@@ -279,13 +277,13 @@ import static javax.util.streamex.StreamExInternals.*;
                     right = null;
                     return l.connect(r, fn(action));
                 }
-                if (l.push(cur, fn(action)))
+                if (l.push(cur, fn(action), false))
                     return true;
             }
             long prev = cur;
             if (!source.tryAdvance((LongConsumer) this::setCur)) {
                 right = null;
-                return r != null && r.push(prev, fn(action));
+                return r != null && r.push(prev, fn(action), true);
             }
             action.accept(mapper.applyAsLong(prev, cur));
             return true;
@@ -300,11 +298,11 @@ import static javax.util.streamex.StreamExInternals.*;
                     l.connect(r, fn(action));
                     return;
                 }
-                l.push(cur, fn(action));
+                l.push(cur, fn(action), false);
             }
             source.forEachRemaining((LongConsumer) next -> action.accept(mapper.applyAsLong(cur, cur = next)));
             if (r != null) {
-                r.push(cur, fn(action));
+                r.push(cur, fn(action), true);
             }
         }
     }
@@ -336,13 +334,13 @@ import static javax.util.streamex.StreamExInternals.*;
                     right = null;
                     return l.connect(r, fn(action));
                 }
-                if (l.push(cur, fn(action)))
+                if (l.push(cur, fn(action), false))
                     return true;
             }
             double prev = cur;
             if (!source.tryAdvance((DoubleConsumer) this::setCur)) {
                 right = null;
-                return r != null && r.push(prev, fn(action));
+                return r != null && r.push(prev, fn(action), true);
             }
             action.accept(mapper.applyAsDouble(prev, cur));
             return true;
@@ -357,11 +355,11 @@ import static javax.util.streamex.StreamExInternals.*;
                     l.connect(r, fn(action));
                     return;
                 }
-                l.push(cur, fn(action));
+                l.push(cur, fn(action), false);
             }
             source.forEachRemaining((DoubleConsumer) next -> action.accept(mapper.applyAsDouble(cur, cur = next)));
             if (r != null) {
-                r.push(cur, fn(action));
+                r.push(cur, fn(action), true);
             }
         }
     }
