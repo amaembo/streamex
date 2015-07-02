@@ -28,7 +28,10 @@ import java.util.function.LongConsumer;
 
 import static javax.util.streamex.StreamExInternals.*;
 
-abstract class PairSpliterator<T, S extends Spliterator<T>, R, SS extends PairSpliterator<T, S, R, SS>> implements
+/**
+ * @author Tagir Valeev
+ */
+/* package */ abstract class PairSpliterator<T, S extends Spliterator<T>, R, SS extends PairSpliterator<T, S, R, SS>> implements
         Spliterator<R>, Cloneable {
     private static Sink<?> EMPTY = new Sink<>(null, true);
     // Common lock for all the derived spliterators
@@ -51,7 +54,6 @@ abstract class PairSpliterator<T, S extends Spliterator<T>, R, SS extends PairSp
         }
 
         boolean push(T payload, BiConsumer<T, T> fn) {
-            //assert this.payload == NONE;
             if(lock == null)
                 return false;
             synchronized(lock) {
@@ -73,9 +75,6 @@ abstract class PairSpliterator<T, S extends Spliterator<T>, R, SS extends PairSp
         }
 
         boolean connect(Sink<T> right, BiConsumer<T, T> fn) {
-            //assert payload == NONE;
-            //assert !isLeft;
-            //assert right.isLeft;
             if(lock == null)
                 return false;
             synchronized(lock) {
@@ -91,8 +90,6 @@ abstract class PairSpliterator<T, S extends Spliterator<T>, R, SS extends PairSp
                     leftLeft.clear();
                     return false;
                 }
-                //assert rightRight.other == right;
-                //assert leftLeft == this;
                 rightRight.other = leftLeft;
                 leftLeft.other = rightRight;
                 return operate(leftLeft, rightRight, fn);
