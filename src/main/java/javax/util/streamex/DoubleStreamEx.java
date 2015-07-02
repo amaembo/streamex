@@ -938,7 +938,7 @@ public class DoubleStreamEx implements DoubleStream {
     public DoubleStreamEx pairMap(DoubleBinaryOperator mapper) {
         return strategy().newDoubleStreamEx(
             StreamSupport.doubleStream(
-                new PairSpliterator.PSOfDouble(mapper, stream.spliterator(), 0, false, 0, false), stream.isParallel())
+                new PairSpliterator2.PSOfDouble(mapper, stream.spliterator()), stream.isParallel())
                     .onClose(stream::close));
     }
 

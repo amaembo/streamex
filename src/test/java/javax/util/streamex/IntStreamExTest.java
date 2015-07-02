@@ -309,6 +309,11 @@ public class IntStreamExTest {
         }
         int[] result = IntStreamEx.of(data).map(x -> x * x).pairMap((a, b) -> b - a).toArray();
         assertArrayEquals(expected, result);
+        
+        assertEquals(1, IntStreamEx.range(1000).map(x -> x * x).pairMap((a, b) -> b-a).pairMap((a, b) -> b-a).distinct().count());
+        
+        assertArrayEquals(IntStreamEx.constant(1, 100).toArray(), IntStreamEx.iterate(0, i -> i + 1).parallel()
+                .pairMap((a, b) -> b - a).limit(100).toArray());
     }
 
     @Test

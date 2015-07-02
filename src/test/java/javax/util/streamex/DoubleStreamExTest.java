@@ -25,6 +25,7 @@ import java.util.Spliterator;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.DoubleStream;
 import java.util.stream.LongStream;
+
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -221,6 +222,8 @@ public class DoubleStreamExTest {
         assertArrayEquals(LongStreamEx.range(1, 100).asDoubleStream().toArray(),
             LongStreamEx.range(100).map(i -> i * (i + 1) / 2).prepend(LongStream.empty()).asDoubleStream().parallel()
                     .pairMap((a, b) -> b - a).toArray(), 0.0);
+        
+        assertEquals(1, LongStreamEx.range(1000).mapToDouble(x -> x * x).pairMap((a, b) -> b-a).pairMap((a, b) -> b-a).distinct().count());
     }
 
     @Test

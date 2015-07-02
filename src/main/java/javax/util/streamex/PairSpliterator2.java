@@ -19,6 +19,12 @@ import java.util.Spliterator;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.DoubleBinaryOperator;
+import java.util.function.DoubleConsumer;
+import java.util.function.IntBinaryOperator;
+import java.util.function.IntConsumer;
+import java.util.function.LongBinaryOperator;
+import java.util.function.LongConsumer;
 
 import static javax.util.streamex.StreamExInternals.*;
 
@@ -127,17 +133,16 @@ abstract class PairSpliterator2<T, S extends Spliterator<T>, R, SS extends PairS
         S prefixSource = (S) source.trySplit();
         if (prefixSource == null)
             return null;
-        SS clone;
         try {
-            clone = (SS) clone();
+            SS clone = (SS) clone();
+            Merger<T> merger = new Merger<>();
+            clone.source = prefixSource;
+            clone.right = merger.left;
+            this.left = merger.right;
+            return clone;
         } catch (CloneNotSupportedException e) {
             throw new InternalError();
         }
-        Merger<T> merger = new Merger<>();
-        clone.source = prefixSource;
-        clone.right = merger.left;
-        this.left = merger.right;
-        return clone;
     }
 
     static final class PSOfRef<T, R> extends PairSpliterator2<T, Spliterator<T>, R, PSOfRef<T, R>> {
@@ -189,10 +194,178 @@ abstract class PairSpliterator2<T, S extends Spliterator<T>, R, SS extends PairS
                 }
                 l.push(cur, fn(action));
             }
-            source.forEachRemaining(next -> {
-                action.accept(mapper.apply(cur, next));
-                this.cur = next;
-            });
+            source.forEachRemaining(next -> action.accept(mapper.apply(cur, cur = next)));
+            if (r != null) {
+                r.push(cur, fn(action));
+            }
+        }
+    }
+
+    static final class PSOfInt extends PairSpliterator2<Integer, Spliterator.OfInt, Integer, PSOfInt> implements
+            Spliterator.OfInt {
+        private final IntBinaryOperator mapper;
+        private int cur;
+
+        public PSOfInt(IntBinaryOperator mapper, Spliterator.OfInt source) {
+            super(source);
+            this.mapper = mapper;
+        }
+
+        void setCur(int t) {
+            cur = t;
+        }
+
+        private BiConsumer<Integer, Integer> fn(IntConsumer action) {
+            return (a, b) -> action.accept(mapper.applyAsInt(a, b));
+        }
+
+        @Override
+        public boolean tryAdvance(IntConsumer action) {
+            Sink<Integer> l = left, r = right;
+            if (l != null) {
+                left = null;
+                if (!source.tryAdvance((IntConsumer) this::setCur)) {
+                    right = null;
+                    return l.connect(r, fn(action));
+                }
+                if (l.push(cur, fn(action)))
+                    return true;
+            }
+            int prev = cur;
+            if (!source.tryAdvance((IntConsumer) this::setCur)) {
+                right = null;
+                return r != null && r.push(prev, fn(action));
+            }
+            action.accept(mapper.applyAsInt(prev, cur));
+            return true;
+        }
+
+        @Override
+        public void forEachRemaining(IntConsumer action) {
+            Sink<Integer> l = left, r = right;
+            left = right = null;
+            if (l != null) {
+                if (!source.tryAdvance((IntConsumer) this::setCur)) {
+                    l.connect(r, fn(action));
+                    return;
+                }
+                l.push(cur, fn(action));
+            }
+            source.forEachRemaining((IntConsumer) next -> action.accept(mapper.applyAsInt(cur, cur = next)));
+            if (r != null) {
+                r.push(cur, fn(action));
+            }
+        }
+    }
+
+    static final class PSOfLong extends PairSpliterator2<Long, Spliterator.OfLong, Long, PSOfLong> implements
+            Spliterator.OfLong {
+        private final LongBinaryOperator mapper;
+        private long cur;
+
+        public PSOfLong(LongBinaryOperator mapper, Spliterator.OfLong source) {
+            super(source);
+            this.mapper = mapper;
+        }
+
+        void setCur(long t) {
+            cur = t;
+        }
+
+        private BiConsumer<Long, Long> fn(LongConsumer action) {
+            return (a, b) -> action.accept(mapper.applyAsLong(a, b));
+        }
+
+        @Override
+        public boolean tryAdvance(LongConsumer action) {
+            Sink<Long> l = left, r = right;
+            if (l != null) {
+                left = null;
+                if (!source.tryAdvance((LongConsumer) this::setCur)) {
+                    right = null;
+                    return l.connect(r, fn(action));
+                }
+                if (l.push(cur, fn(action)))
+                    return true;
+            }
+            long prev = cur;
+            if (!source.tryAdvance((LongConsumer) this::setCur)) {
+                right = null;
+                return r != null && r.push(prev, fn(action));
+            }
+            action.accept(mapper.applyAsLong(prev, cur));
+            return true;
+        }
+
+        @Override
+        public void forEachRemaining(LongConsumer action) {
+            Sink<Long> l = left, r = right;
+            left = right = null;
+            if (l != null) {
+                if (!source.tryAdvance((LongConsumer) this::setCur)) {
+                    l.connect(r, fn(action));
+                    return;
+                }
+                l.push(cur, fn(action));
+            }
+            source.forEachRemaining((LongConsumer) next -> action.accept(mapper.applyAsLong(cur, cur = next)));
+            if (r != null) {
+                r.push(cur, fn(action));
+            }
+        }
+    }
+
+    static final class PSOfDouble extends PairSpliterator2<Double, Spliterator.OfDouble, Double, PSOfDouble> implements
+            Spliterator.OfDouble {
+        private final DoubleBinaryOperator mapper;
+        private double cur;
+
+        public PSOfDouble(DoubleBinaryOperator mapper, Spliterator.OfDouble source) {
+            super(source);
+            this.mapper = mapper;
+        }
+
+        void setCur(double t) {
+            cur = t;
+        }
+
+        private BiConsumer<Double, Double> fn(DoubleConsumer action) {
+            return (a, b) -> action.accept(mapper.applyAsDouble(a, b));
+        }
+
+        @Override
+        public boolean tryAdvance(DoubleConsumer action) {
+            Sink<Double> l = left, r = right;
+            if (l != null) {
+                left = null;
+                if (!source.tryAdvance((DoubleConsumer) this::setCur)) {
+                    right = null;
+                    return l.connect(r, fn(action));
+                }
+                if (l.push(cur, fn(action)))
+                    return true;
+            }
+            double prev = cur;
+            if (!source.tryAdvance((DoubleConsumer) this::setCur)) {
+                right = null;
+                return r != null && r.push(prev, fn(action));
+            }
+            action.accept(mapper.applyAsDouble(prev, cur));
+            return true;
+        }
+
+        @Override
+        public void forEachRemaining(DoubleConsumer action) {
+            Sink<Double> l = left, r = right;
+            left = right = null;
+            if (l != null) {
+                if (!source.tryAdvance((DoubleConsumer) this::setCur)) {
+                    l.connect(r, fn(action));
+                    return;
+                }
+                l.push(cur, fn(action));
+            }
+            source.forEachRemaining((DoubleConsumer) next -> action.accept(mapper.applyAsDouble(cur, cur = next)));
             if (r != null) {
                 r.push(cur, fn(action));
             }

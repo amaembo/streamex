@@ -612,7 +612,7 @@ public class StreamExTest {
         assertArrayEquals(expected, result);
         result = StreamEx.of(data).pairMap((a, b) -> (b - a) * 3.14).toArray(Double[]::new);
         assertArrayEquals(expected, result);
-
+        
         // Find all numbers where the integer preceded a larger value.
         Collection<Integer> numbers = Arrays.asList(10, 1, 15, 30, 2, 6);
         List<Integer> res = StreamEx.of(numbers).pairMap((a, b) -> a < b ? a : null).nonNull().toList();
@@ -628,6 +628,16 @@ public class StreamExTest {
         assertFalse(firstMisplaced(Arrays.asList("a", "bb", "bb", "bb", "c")).isPresent());
     }
 
+    @Test
+    public void testPairMapCornerCase() {
+        for(int i=0; i<1000; i++)
+            assertEquals(Collections.singletonList(-999), IntStreamEx.range(1000).filter(x -> x == 0 || x == 999).boxed().parallel().pairMap((a, b) -> a-b).toList());
+        
+        /*for(StreamExSupplier<Integer> supplier : streamEx(() -> IntStreamEx.range(1000).filter(x -> x == 0 || x == 999).boxed())) {
+            assertEquals(supplier.toString(), Collections.singletonList(-999), supplier.get().pairMap((a, b) -> a-b).toList());
+        }*/
+    }
+    
     @Test
     public void testPairMapFlatMapBug() {
         Integer[][] input = { { 1 }, { 2, 3 }, { 4, 5, 6 }, { 7, 8 }, { 9 } };

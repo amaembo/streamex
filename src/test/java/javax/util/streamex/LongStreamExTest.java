@@ -179,6 +179,8 @@ public class LongStreamExTest {
                 .append(LongStream.empty()).parallel().pairMap((a, b) -> b - a).toArray());
         assertArrayEquals(LongStreamEx.range(1, 100).toArray(), LongStreamEx.range(100).map(i -> i * (i + 1) / 2)
                 .prepend(LongStream.empty()).parallel().pairMap((a, b) -> b - a).toArray());
+        
+        assertEquals(1, LongStreamEx.range(1000).map(x -> x * x).pairMap((a, b) -> b-a).pairMap((a, b) -> b-a).distinct().count());
     }
 
     @Test
