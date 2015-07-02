@@ -16,18 +16,94 @@
 package javax.util.streamex;
 
 import java.util.Spliterator;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
-import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 
 import static javax.util.streamex.StreamExInternals.*;
 
-abstract class PairSpliterator2<T, S extends Spliterator<T>, R, SS extends PairSpliterator2<T,S,R,SS>> implements Spliterator<R>, Cloneable {
+abstract class PairSpliterator2<T, S extends Spliterator<T>, R, SS extends PairSpliterator2<T, S, R, SS>> implements
+        Spliterator<R>, Cloneable {
+    private static Sink<?> EMPTY = new Sink<>(null);
     S source;
-    Merger.Sink<T> left = Merger.empty();
-    Merger.Sink<T> right = Merger.empty();
+    @SuppressWarnings("unchecked")
+    Sink<T> left = (Sink<T>) EMPTY;
+    @SuppressWarnings("unchecked")
+    Sink<T> right = (Sink<T>) EMPTY;
 
-    public PairSpliterator2(S source) {
+    private static final class Sink<T> {
+        Merger<T> m;
+        private T payload = none();
+
+        Sink(Merger<T> m) {
+            this.m = m;
+        }
+
+        boolean push(T payload, BiConsumer<T, T> fn) {
+            assert this.payload == NONE;
+            if (m == null)
+                return false;
+            synchronized (m) {
+                this.payload = payload;
+                return m.operate(fn);
+            }
+        }
+
+        boolean connect(Sink<T> right, BiConsumer<T, T> fn) {
+            assert payload == NONE;
+            if (m == null) {
+                if (right.m != null) {
+                    right.m.clear();
+                }
+                return false;
+            }
+            assert m.right == this;
+            if (right.m == null) {
+                m.clear();
+                return false;
+            }
+            assert right.m.left == right;
+            synchronized (m) {
+                synchronized (right.m) {
+                    m.right = right.m.right;
+                    m.right.m = m;
+                    return m.operate(fn);
+                }
+            }
+        }
+
+        void clear() {
+            m = null;
+            payload = none();
+        }
+    }
+
+    private static final class Merger<T> {
+        final Sink<T> left;
+        Sink<T> right;
+
+        Merger() {
+            this.left = new Sink<>(this);
+            this.right = new Sink<>(this);
+        }
+
+        boolean operate(BiConsumer<T, T> fn) {
+            if (left.payload == NONE || right.payload == NONE)
+                return false;
+            fn.accept(left.payload, right.payload);
+            clear();
+            return true;
+        }
+
+        void clear() {
+            synchronized (this) {
+                left.clear();
+                right.clear();
+            }
+        }
+    }
+
+    PairSpliterator2(S source) {
         this.source = source;
     }
 
@@ -42,7 +118,7 @@ abstract class PairSpliterator2<T, S extends Spliterator<T>, R, SS extends PairS
     @Override
     public int characteristics() {
         return source.characteristics()
-            & ((left == Merger.empty() && right == Merger.empty() ? SIZED : 0) | CONCURRENT | IMMUTABLE | ORDERED);
+            & ((left == EMPTY && right == EMPTY ? SIZED : 0) | CONCURRENT | IMMUTABLE | ORDERED);
     }
 
     @SuppressWarnings("unchecked")
@@ -53,14 +129,14 @@ abstract class PairSpliterator2<T, S extends Spliterator<T>, R, SS extends PairS
             return null;
         SS clone;
         try {
-            clone = (SS)clone();
+            clone = (SS) clone();
         } catch (CloneNotSupportedException e) {
             throw new InternalError();
         }
         Merger<T> merger = new Merger<>();
         clone.source = prefixSource;
-        clone.right = merger.getLeft();
-        this.left = merger.getRight();
+        clone.right = merger.left;
+        this.left = merger.right;
         return clone;
     }
 
@@ -77,34 +153,26 @@ abstract class PairSpliterator2<T, S extends Spliterator<T>, R, SS extends PairS
             cur = t;
         }
 
-        private BinaryOperator<T> fn(Consumer<? super R> action) {
-            return (a, b) -> {
-                action.accept(mapper.apply(a, b));
-                return a;
-            };
+        private BiConsumer<T, T> fn(Consumer<? super R> action) {
+            return (a, b) -> action.accept(mapper.apply(a, b));
         }
 
         @Override
         public boolean tryAdvance(Consumer<? super R> action) {
-            if (left != null) {
-                boolean result;
-                if (!source.tryAdvance(this::setCur)) {
-                    result = left.connect(right, fn(action)) != NONE;
-                    left = right = null;
-                    return result;
-                }
-                result = left.push(cur, fn(action)) != NONE;
+            Sink<T> l = left, r = right;
+            if (l != null) {
                 left = null;
-                if (result)
-                    return result;
+                if (!source.tryAdvance(this::setCur)) {
+                    right = null;
+                    return l.connect(r, fn(action));
+                }
+                if (l.push(cur, fn(action)))
+                    return true;
             }
             T prev = cur;
             if (!source.tryAdvance(this::setCur)) {
-                if (right == null)
-                    return false;
-                boolean result = right.push(prev, fn(action)) != NONE;
                 right = null;
-                return result;
+                return r != null && r.push(prev, fn(action));
             }
             action.accept(mapper.apply(prev, cur));
             return true;
@@ -112,21 +180,21 @@ abstract class PairSpliterator2<T, S extends Spliterator<T>, R, SS extends PairS
 
         @Override
         public void forEachRemaining(Consumer<? super R> action) {
-            if (left != null) {
+            Sink<T> l = left, r = right;
+            left = right = null;
+            if (l != null) {
                 if (!source.tryAdvance(this::setCur)) {
-                    left.connect(right, fn(action));
-                    left = right = null;
+                    l.connect(r, fn(action));
                     return;
                 }
-                left.push(cur, fn(action));
-                left = null;
+                l.push(cur, fn(action));
             }
             source.forEachRemaining(next -> {
                 action.accept(mapper.apply(cur, next));
                 this.cur = next;
             });
-            if(right != null) {
-                right.push(cur, fn(action));
+            if (r != null) {
+                r.push(cur, fn(action));
             }
         }
     }
