@@ -54,44 +54,51 @@ import static javax.util.streamex.StreamExInternals.*;
         boolean push(T payload, BiConsumer<T, T> fn, boolean isLeft) {
             if(lock == null)
                 return false;
+            T otherPayload;
             synchronized(lock) {
                 Sink<T> that = other;
                 if (that == null)
                     return false;
-                this.payload = payload;
-                return isLeft ? operate(this, that, fn) : operate(that, this, fn);
+                otherPayload = that.payload;
+                if (otherPayload == NONE) {
+                    this.payload = payload;
+                    return false;
+                }
+                other = null;
+                that.clear();
             }
-        }
-
-        static <T> boolean operate(Sink<T> left, Sink<T> right, BiConsumer<T, T> fn) {
-            if (left.payload == NONE || right.payload == NONE)
-                return false;
-            fn.accept(left.payload, right.payload);
-            left.clear();
-            right.clear();
+            if(isLeft)
+                fn.accept(payload, otherPayload);
+            else
+                fn.accept(otherPayload, payload);
             return true;
         }
 
         boolean connect(Sink<T> right, BiConsumer<T, T> fn) {
             if(lock == null)
                 return false;
+            T a, b;
             synchronized(lock) {
                 Sink<T> leftLeft = this.other; 
                 Sink<T> rightRight = right.other;
-                if(leftLeft == null) {
-                    if(rightRight != null) {
+                if(leftLeft == null || rightRight == null) {
+                    if(rightRight != null)
                         rightRight.clear();
-                    }
-                    return false;
-                }
-                if(rightRight == null) {
-                    leftLeft.clear();
+                    if(leftLeft != null)
+                        leftLeft.clear();
                     return false;
                 }
                 rightRight.other = leftLeft;
                 leftLeft.other = rightRight;
-                return operate(leftLeft, rightRight, fn);
+                if (leftLeft.payload == NONE || rightRight.payload == NONE)
+                    return false;
+                a = leftLeft.payload;
+                b = rightRight.payload;
+                leftLeft.clear();
+                rightRight.clear();
             }
+            fn.accept(a, b);
+            return true;
         }
 
         void clear() {
