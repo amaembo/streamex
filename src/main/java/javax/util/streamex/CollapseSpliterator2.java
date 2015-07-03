@@ -73,15 +73,14 @@ import static javax.util.streamex.StreamExInternals.*;
     
     @Override
     public boolean tryAdvance(Consumer<? super R> action) {
-        Box<Container<T, R>> l = left, r = right;
-        if (l != null) {
-            if(accept(handleLeft(l, r), action)) {
+        if (left != null) {
+            if(accept(handleLeft(left, right), action)) {
                 return true;
             }
         }
         if(cur == none()) {// start
             if(!source.tryAdvance(this::setCur)) {
-                return accept(pushRight(none(), none(), r), action);
+                return accept(pushRight(none(), none(), right), action);
             }
         }
         T first = cur;
@@ -95,10 +94,19 @@ import static javax.util.streamex.StreamExInternals.*;
             last = cur;
             acc = this.accumulator.apply(acc, last);
         }
-        return accept(pushRight(acc, last, r), action);
+        return accept(pushRight(acc, last, right), action);
     }
     
     private boolean accept(R acc, Consumer<? super R> action) {
+        synchronized (root) {
+            if (left != null && left.a != null && left.a.acc != NONE) {
+                assert left.a.left == NONE || left.a.right != NONE;
+            }
+            if (right != null && right.a != null && right.a.acc != NONE) {
+                assert right.a.right == NONE || right.a.left != NONE;
+            }
+            
+        }
         if(acc != NONE) {
             action.accept(acc);
             return true;
@@ -185,14 +193,20 @@ import static javax.util.streamex.StreamExInternals.*;
             T raleft = r.a.left;
             r.a.left = none();
             if(r.a.acc == NONE) {
-                r.a.acc = acc;
-                r.a.right = last;
+                if(acc == NONE) {
+                    r.a = null;
+                } else {
+                    r.a.acc = acc;
+                    r.a.right = last;
+                }
                 return none();
             }
             if(acc == NONE) {
                 return drainRight(r);
             }
-            assert raleft != NONE;
+            if(raleft == NONE) {
+                assert raleft != NONE;
+            }
             assert last != NONE;
             if(mergeable.test(last, raleft)) {
                 r.a.acc = combiner.apply(acc, r.a.acc);
@@ -252,12 +266,13 @@ import static javax.util.streamex.StreamExInternals.*;
             if(r == null || r.a == null) {
                 return drainLeft(l);
             }
-            T raleft = r.a.left;
-            r.a.left = none();
             if(r.a.acc == NONE) {
                 r.a = l.a;
+                l.a.right = laright;
                 return none();
             }
+            T raleft = r.a.left;
+            r.a.left = none();
             assert raleft != NONE;
             if(mergeable.test(laright, raleft)) {
                 R acc = combiner.apply(l.a.acc, r.a.acc);

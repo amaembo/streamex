@@ -17,12 +17,15 @@ package javax.util.streamex;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Spliterator;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import org.junit.Test;
 
@@ -42,7 +45,7 @@ public class CollapseSpliteratorTest {
     }
 
     @Test
-    public void testSplit() {
+    public void testSimpleSplit() {
         List<Integer> input = Arrays.asList(1, 1, 1, 2, 2, 2, 2, 2);
         splitEquals(input.spliterator(), (left, right) -> {
             List<Integer> result = new ArrayList<>();
@@ -76,5 +79,44 @@ public class CollapseSpliteratorTest {
             right.forEachRemaining(result::add);
             assertEquals(Arrays.asList(1, 2), result);
         });
+        input = Arrays.asList( 0, 0, 1, 1, 1, 1, 4, 6, 6, 3, 3, 10 );
+        splitEquals(Stream.concat(Stream.empty(), input.parallelStream()).spliterator(), (left, right) -> {
+            List<Integer> result = new ArrayList<>();
+            left.forEachRemaining(result::add);
+            right.forEachRemaining(result::add);
+            assertEquals(Arrays.asList(0, 1, 4, 6, 3, 10), result);
+        });
+    }
+    
+    @Test
+    public void testMultiSplit() {
+        List<Integer> input = Arrays.asList( 0, 0, 1, 1, 1, 1, 4, 6, 6, 3, 3, 10 );
+        multiSplit(input::spliterator);
+        multiSplit(() -> Stream.concat(Stream.empty(), input.parallelStream()).spliterator());
+    }
+
+    private void multiSplit(Supplier<Spliterator<Integer>> inputSpliterator) throws AssertionError {
+        Random r = new Random(1);
+        for(int n = 1; n < 100; n++) {
+            Spliterator<Integer> spliterator = new CollapseSpliterator2<>(Objects::equals, Function.identity(),
+                    StreamExInternals.selectFirst(), StreamExInternals.selectFirst(), inputSpliterator.get());
+            List<Integer> result = new ArrayList<>();
+            List<Spliterator<Integer>> spliterators = new ArrayList<>();
+            spliterators.add(spliterator);
+            for(int i=0; i<8; i++) {
+                Spliterator<Integer> split = spliterators.get(r.nextInt(spliterators.size())).trySplit();
+                if(split != null)
+                    spliterators.add(split);
+            }
+            Collections.shuffle(spliterators, r);
+            for(int i=0; i<spliterators.size(); i++) {
+                try {
+                    spliterators.get(i).forEachRemaining(result::add);
+                } catch (AssertionError e) {
+                    throw new AssertionError("at #"+i, e);
+                }
+            }
+            assertEquals("#"+n, 6, result.size());
+        }
     }
 }
