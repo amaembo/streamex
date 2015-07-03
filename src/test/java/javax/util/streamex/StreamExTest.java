@@ -910,11 +910,11 @@ public class StreamExTest {
             if (last != null)
                 expected.add(last.toString());
             String expectedStr = String.join(" & ", expected);
-            assertEquals(expectedStr, result);
-            assertEquals(expectedStr, resultParallel);
-            assertEquals(expectedStr, resultParallel2);
-            assertEquals(expectedStr, resultIntervalMap);
-            assertEquals(expectedStr, resultIntervalMapParallel);
+            assertEquals("#"+i, expectedStr, result);
+            assertEquals("#"+i, expectedStr, resultParallel);
+            assertEquals("#"+i, expectedStr, resultParallel2);
+            assertEquals("#"+i, expectedStr, resultIntervalMap);
+            assertEquals("#"+i, expectedStr, resultIntervalMapParallel);
         }
     }
 

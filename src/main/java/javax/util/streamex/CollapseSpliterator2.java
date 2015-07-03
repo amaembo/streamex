@@ -178,7 +178,7 @@ import static javax.util.streamex.StreamExInternals.*;
                 return drain(l);
             }
         }
-        return none();
+        return acc;
     }
 
     // <?|acc|last> + r
