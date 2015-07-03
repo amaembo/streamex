@@ -95,7 +95,6 @@ import static javax.util.streamex.StreamExInternals.*;
             last = cur;
             acc = this.accumulator.apply(acc, last);
         }
-        cur = none();
         return accept(pushRight(acc, last, r), action);
     }
     
@@ -142,6 +141,7 @@ import static javax.util.streamex.StreamExInternals.*;
                 last = cur;
                 acc = this.accumulator.apply(acc, last);
             }
+            cur = none();
             return connectOne(l, first, acc, last, r);
         }
         return connectEmpty(l, r);
@@ -175,6 +175,7 @@ import static javax.util.streamex.StreamExInternals.*;
 
     // <?|acc|last> + r
     private R pushRight(R acc, T last, Box<Container<T, R>> r) {
+        cur = none();
         if(r == null)
             return acc;
         synchronized(root) {
@@ -217,6 +218,7 @@ import static javax.util.streamex.StreamExInternals.*;
                 return connectEmpty(l, r);
             }
             T laright = l.a.right;
+            assert laright != NONE;
             if(mergeable.test(laright, first)) {
                 l.a.acc = combiner.apply(l.a.acc, acc);
                 l.a.right = last;
@@ -243,7 +245,7 @@ import static javax.util.streamex.StreamExInternals.*;
             T laright = l.a.right;
             l.a.right = none();
             if(l.a.acc == NONE) {
-                l.a = r.a;
+                l.a = r == null ? null : r.a;
                 return none();
             }
             assert laright != NONE;
@@ -283,8 +285,8 @@ import static javax.util.streamex.StreamExInternals.*;
         if (prefix == null)
             return null;
         Box<Container<T, R>> newBox = new Box<>(new Container<>(none()));
-        CollapseSpliterator2<T, R> result = new CollapseSpliterator2<>(root, prefix, newBox, right);
-        this.right = newBox;
+        CollapseSpliterator2<T, R> result = new CollapseSpliterator2<>(root, prefix, left, newBox);
+        this.left = newBox;
         return result;
     }
 
