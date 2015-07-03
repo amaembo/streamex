@@ -1115,9 +1115,13 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
 
     private <R> StreamEx<R> collapseInternal(BiPredicate<T, T> collapsible, Function<T, R> mapper,
             BiFunction<R, T, R> accumulator, BinaryOperator<R> combiner) {
-        return strategy().newStreamEx(
+        /*return strategy().newStreamEx(
             StreamSupport.stream(
                 new CollapseSpliterator<>(collapsible, mapper, accumulator, combiner, stream.spliterator()),
+                stream.isParallel()).onClose(stream::close));*/
+        return strategy().newStreamEx(
+            StreamSupport.stream(
+                new CollapseSpliterator2<>(collapsible, mapper, accumulator, combiner, stream.spliterator()),
                 stream.isParallel()).onClose(stream::close));
     }
 

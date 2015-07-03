@@ -28,7 +28,7 @@ import static javax.util.streamex.StreamExInternals.*;
 
 /* package */final class CollapseSpliterator2<T, R> implements Spliterator<R> {
     private final Spliterator<T> source;
-    private final CollapseSpliterator2<T, R> root;
+    private final CollapseSpliterator2<T, R> root; // used as lock
     private T cur = none();
     private Box<Container<T, R>> left;
     private Box<Container<T, R>> right;
@@ -63,6 +63,8 @@ import static javax.util.streamex.StreamExInternals.*;
         this.mapper = root.mapper;
         this.accumulator = root.accumulator;
         this.combiner = root.combiner;
+        this.left = left;
+        this.right = right;
     }
 
     void setCur(T t) {
@@ -71,15 +73,30 @@ import static javax.util.streamex.StreamExInternals.*;
     
     @Override
     public boolean tryAdvance(Consumer<? super R> action) {
-        if (source == null)
-            return false;
         Box<Container<T, R>> l = left, r = right;
         if (l != null) {
             if(accept(handleLeft(l, r), action)) {
                 return true;
             }
         }
-        return true;
+        if(cur == none()) {// start
+            if(!source.tryAdvance(this::setCur)) {
+                return accept(pushRight(none(), none(), r), action);
+            }
+        }
+        T first = cur;
+        R acc = mapper.apply(cur);
+        T last = first;
+        while(source.tryAdvance(this::setCur)) {
+            if(!this.mergeable.test(last, cur)) {
+                action.accept(acc);
+                return true;
+            }
+            last = cur;
+            acc = this.accumulator.apply(acc, last);
+        }
+        cur = none();
+        return accept(pushRight(acc, last, r), action);
     }
     
     private boolean accept(R acc, Consumer<? super R> action) {
@@ -96,33 +113,12 @@ import static javax.util.streamex.StreamExInternals.*;
         return acc;
     }
     
-    private R handleRight(R acc, T last, Box<Container<T, R>> r) {
-        if(r == null)
-            return acc;
-        synchronized(root) {
-            right = null;
-            if(r.a == null)
-                return acc;
-            T raleft = r.a.left;
-            r.a.left = none();
-            if(r.a.acc == NONE) {
-                r.a.acc = acc;
-                r.a.right = last;
-                return none();
-            }
-            if(acc == NONE) {
-                return r.a.right == NONE ? drain(r) : none();
-            }
-            assert raleft != NONE;
-            assert last != NONE;
-            if(mergeable.test(last, raleft)) {
-                r.a.acc = combiner.apply(acc, r.a.acc);
-                return r.a.right == NONE ? drain(r) : none();
-            }
-            if(r.a.right == NONE)
-                right = new Box<>(new Container<>(drain(r)));
-            return acc;
-        }
+    private R drainLeft(Box<Container<T, R>> l) {
+        return l.a.left == NONE ? drain(l) : none();
+    }
+
+    private R drainRight(Box<Container<T, R>> r) {
+        return r.a.right == NONE ? drain(r) : none();
     }
 
     private R handleLeft(Box<Container<T, R>> l, Box<Container<T, R>> r) {
@@ -141,70 +137,108 @@ import static javax.util.streamex.StreamExInternals.*;
             T last = first;
             R acc = this.mapper.apply(first);
             while(source.tryAdvance(this::setCur)) {
-                if(this.mergeable.test(last, cur)) {
-                    last = cur;
-                    acc = this.accumulator.apply(acc, last);
-                } else {
-                    // push-left
-                    synchronized(root) {
-                        if(l.a == null)
-                            return acc;
-                        left = null;
-                        T laright = l.a.right;
-                        l.a.right = none();
-                        if(l.a.acc == NONE) {
-                            l.a.acc = acc;
-                            l.a.left = first;
-                            return none();
-                        }
-                        assert laright != NONE;
-                        if(this.mergeable.test(laright, first)) {
-                            l.a.acc = this.combiner.apply(l.a.acc, acc);
-                            return l.a.left == NONE ? drain(l) : none();
-                        }
-                        if(l.a.left == NONE) {
-                            left = new Box<>(new Container<>(acc));
-                            return drain(l);
-                        }
-                    }
-                    return none();
-                }
+                if(!this.mergeable.test(last, cur))
+                    return pushLeft(l, first, acc);
+                last = cur;
+                acc = this.accumulator.apply(acc, last);
             }
-            // connect-one (first, acc, last)
-            synchronized (root) {
-                left = right = null;
-                if(l.a == null) {
-                    return handleRight(acc, last, r);
-                }
-                if(l.a.acc == NONE) {
-                    l.a.acc = acc;
-                    l.a.left = first;
-                    l.a.right = last;
-                    return connectEmpty(l, r);
-                }
-                T laright = l.a.right;
-                if(mergeable.test(laright, first)) {
-                    l.a.acc = combiner.apply(l.a.acc, acc);
-                    l.a.right = last;
-                    return connectEmpty(l, r);
-                }
-                l.a.right = none();
-                if(l.a.left != NONE) {
-                    return handleRight(acc, last, r);
-                }
-                // TODO
+            return connectOne(l, first, acc, last, r);
+        }
+        return connectEmpty(l, r);
+    }
+
+    // l + <first|acc|?>
+    private R pushLeft(Box<Container<T, R>> l, T first, R acc) {
+        synchronized(root) {
+            if(l.a == null)
+                return acc;
+            left = null;
+            T laright = l.a.right;
+            l.a.right = none();
+            if(l.a.acc == NONE) {
+                l.a.acc = acc;
+                l.a.left = first;
+                return none();
             }
-        } else {
-            return connectEmpty(l, r);
+            assert laright != NONE;
+            if(this.mergeable.test(laright, first)) {
+                l.a.acc = this.combiner.apply(l.a.acc, acc);
+                return drainLeft(l);
+            }
+            if(l.a.left == NONE) {
+                left = new Box<>(new Container<>(acc));
+                return drain(l);
+            }
         }
         return none();
     }
 
+    // <?|acc|last> + r
+    private R pushRight(R acc, T last, Box<Container<T, R>> r) {
+        if(r == null)
+            return acc;
+        synchronized(root) {
+            right = null;
+            if(r.a == null)
+                return acc;
+            T raleft = r.a.left;
+            r.a.left = none();
+            if(r.a.acc == NONE) {
+                r.a.acc = acc;
+                r.a.right = last;
+                return none();
+            }
+            if(acc == NONE) {
+                return drainRight(r);
+            }
+            assert raleft != NONE;
+            assert last != NONE;
+            if(mergeable.test(last, raleft)) {
+                r.a.acc = combiner.apply(acc, r.a.acc);
+                return drainRight(r);
+            }
+            if(r.a.right == NONE)
+                right = new Box<>(new Container<>(drain(r)));
+            return acc;
+        }
+    }
+
+    // l + <first|acc|last> + r
+    private R connectOne(Box<Container<T, R>> l, T first, R acc, T last, Box<Container<T, R>> r) {
+        synchronized (root) {
+            left = right = null;
+            if(l.a == null) {
+                return pushRight(acc, last, r);
+            }
+            if(l.a.acc == NONE) {
+                l.a.acc = acc;
+                l.a.left = first;
+                l.a.right = last;
+                return connectEmpty(l, r);
+            }
+            T laright = l.a.right;
+            if(mergeable.test(laright, first)) {
+                l.a.acc = combiner.apply(l.a.acc, acc);
+                l.a.right = last;
+                return connectEmpty(l, r);
+            }
+            l.a.right = none();
+            if(l.a.left != NONE) {
+                return pushRight(acc, last, r);
+            }
+            acc = pushRight(acc, last, r);
+            if(acc != NONE)
+                left = new Box<>(new Container<>(acc));
+            return drain(l);
+        }
+    }
+
+    // l + r
     private R connectEmpty(Box<Container<T, R>> l, Box<Container<T, R>> r) {
         synchronized (root) {
             left = right = null;
             if(l.a == null) {
-                return handleRight(none(), none(), r);
+                return pushRight(none(), none(), r);
             }
             T laright = l.a.right;
             l.a.right = none();
@@ -214,7 +248,7 @@ import static javax.util.streamex.StreamExInternals.*;
             }
             assert laright != NONE;
             if(r == null || r.a == null) {
-                return l.a.left == NONE ? drain(l) : none();
+                return drainLeft(l);
             }
             T raleft = r.a.left;
             r.a.left = none();
@@ -239,7 +273,7 @@ import static javax.util.streamex.StreamExInternals.*;
                     right = new Box<>(new Container<>(drain(r)));
                 return drain(l);
             }
-            return r.a.right == NONE ? drain(r) : none();
+            return drainRight(r);
         }
     }
 
