@@ -21,113 +21,323 @@ import java.util.function.BiPredicate;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Function;
+
 import static javax.util.streamex.StreamExInternals.*;
 
 /* package */final class CollapseSpliterator<T, R> implements Spliterator<R> {
-    private Spliterator<T> source;
-    private T cur, last;
-    private R lastAcc;
+    private final Spliterator<T> source;
+    private final CollapseSpliterator<T, R> root; // used as lock
+    private T cur = none();
+    private volatile Connector<T, R> left;
+    private volatile Connector<T, R> right;
     private final Function<T, R> mapper;
     private final BiFunction<R, T, R> accumulator;
     private final BinaryOperator<R> combiner;
     private final BiPredicate<T, T> mergeable;
+    
+    private static final class Connector<T, R> {
+        CollapseSpliterator<T, R> lhs, rhs;
+        T left = none(), right = none();
+        R acc;
+        
+        Connector(CollapseSpliterator<T, R> lhs, R acc, CollapseSpliterator<T, R> rhs) {
+            this.lhs = lhs;
+            this.rhs = rhs;
+            this.acc = acc;
+        }
 
-    CollapseSpliterator(BiPredicate<T, T> mergeable, Function<T, R> mapper, BiFunction<R, T, R> accumulator,
-            BinaryOperator<R> combiner, Spliterator<T> source) {
-        this(mergeable, mapper, accumulator, combiner, source, none(), none(), none());
+        R drain() {
+            if(lhs != null)
+                lhs.right = null;
+            if(rhs != null)
+                rhs.left = null;
+            return acc;
+        }
+        
+        R drainLeft() {
+            return left == NONE ? drain() : none();
+        }
+
+        R drainRight() {
+            return right == NONE ? drain() : none();
+        }
     }
 
     CollapseSpliterator(BiPredicate<T, T> mergeable, Function<T, R> mapper, BiFunction<R, T, R> accumulator,
-            BinaryOperator<R> combiner, Spliterator<T> source, T prev, T last, R lastAcc) {
+            BinaryOperator<R> combiner, Spliterator<T> source) {
         this.source = source;
-        this.cur = prev;
-        this.last = last;
-        this.lastAcc = lastAcc;
         this.mergeable = mergeable;
         this.mapper = mapper;
         this.accumulator = accumulator;
         this.combiner = combiner;
+        this.root = this;
+    }
+
+    private CollapseSpliterator(CollapseSpliterator<T, R> root, Spliterator<T> source, Connector<T, R> left, Connector<T, R> right) {
+        this.source = source;
+        this.root = root;
+        this.mergeable = root.mergeable;
+        this.mapper = root.mapper;
+        this.accumulator = root.accumulator;
+        this.combiner = root.combiner;
+        this.left = left;
+        this.right = right;
+        if(left != null)
+            left.rhs = this;
+        right.lhs = this;
     }
 
     void setCur(T t) {
         cur = t;
     }
-
+    
     @Override
     public boolean tryAdvance(Consumer<? super R> action) {
-        if (source == null)
-            return false;
-        if (cur == NONE) {
-            if (!source.tryAdvance(this::setCur)) {
-                source = null;
-                if(last != NONE) {
-                    action.accept(lastAcc);
-                    last = none();
-                    lastAcc = none();
-                    return true;
-                }
-                return false;
+        if (left != null) {
+            if(accept(handleLeft(), action)) {
+                return true;
             }
         }
+        if(cur == none()) {// start
+            if(!source.tryAdvance(this::setCur)) {
+                return accept(pushRight(none(), none()), action);
+            }
+        }
+        T first = cur;
         R acc = mapper.apply(cur);
-        T prev = cur;
-        while (source.tryAdvance(this::setCur)) {
-            if (mergeable.test(prev, cur)) {
-                acc = accumulator.apply(acc, cur);
-                prev = cur;
-            } else {
+        T last = first;
+        while(source.tryAdvance(this::setCur)) {
+            if(!this.mergeable.test(last, cur)) {
                 action.accept(acc);
                 return true;
             }
+            last = cur;
+            acc = this.accumulator.apply(acc, last);
         }
-        if (last == NONE) {
-            source = null;
-        } else {
-            cur = last;
-            last = none();
-            if (mergeable.test(prev, cur)) {
-                acc = combiner.apply(acc, lastAcc);
-                lastAcc = none();
-                source = null;
-            } else {
-                action.accept(acc);
-                return true;
-            }
-        }
-        action.accept(lastAcc == NONE ? acc : lastAcc);
-        return true;
+        return accept(pushRight(acc, last), action);
     }
-
+    
     @Override
     public void forEachRemaining(Consumer<? super R> action) {
-        if (source == null)
-            return;
-        if (cur == NONE) {
-            if (!source.tryAdvance(this::setCur)) {
-                if(last != NONE)
-                    action.accept(lastAcc);
+        while (left != null) {
+            accept(handleLeft(), action);
+        }
+        if(cur == none()) {
+            if(!source.tryAdvance(this::setCur)) {
+                accept(pushRight(none(), none()), action);
                 return;
             }
         }
-        Box<R> accBox = new Box<>(mapper.apply(cur));
+        Box<R> c = new Box<>(mapper.apply(cur));
         source.forEachRemaining(next -> {
-            if (mergeable.test(cur, next)) {
-                accBox.a = accumulator.apply(accBox.a, next);
+            if(!this.mergeable.test(cur, next)) {
+                action.accept(c.a);
+                c.a = mapper.apply(next);
             } else {
-                action.accept(accBox.a);
-                accBox.a = mapper.apply(next);
+                c.a = accumulator.apply(c.a, next);
             }
             cur = next;
         });
-        if (last == NONE) {
-            action.accept(accBox.a);
-        } else if (mergeable.test(cur, last)) {
-            action.accept(combiner.apply(accBox.a, lastAcc));
-        } else {
-            action.accept(accBox.a);
-            action.accept(lastAcc);
+        if(accept(pushRight(c.a, cur), action)) {
+            if(right != null) {
+                action.accept(right.acc);
+                right = null;
+            }
         }
-        source = null;
+    }
+
+    private boolean accept(R acc, Consumer<? super R> action) {
+        if(acc != NONE) {
+            action.accept(acc);
+            return true;
+        }
+        return false;
+    }
+    
+    private R handleLeft() {
+        synchronized(root) {
+            Connector<T, R> l = left;
+            if(l == null) {
+                return none();
+            }
+            if(l.left == NONE && l.right == NONE && l.acc != NONE) {
+                return l.drain();
+            }
+        }
+        if(source.tryAdvance(this::setCur)) {
+            T first = this.cur;
+            T last = first;
+            R acc = this.mapper.apply(first);
+            while(source.tryAdvance(this::setCur)) {
+                if(!this.mergeable.test(last, cur))
+                    return pushLeft(first, acc);
+                last = cur;
+                acc = this.accumulator.apply(acc, last);
+            }
+            cur = none();
+            return connectOne(first, acc, last);
+        }
+        return connectEmpty();
+    }
+
+    // l + <first|acc|?>
+    private R pushLeft(T first, R acc) {
+        synchronized(root) {
+            Connector<T, R> l = left;
+            if(l == null)
+                return acc;
+            left = null;
+            l.rhs = null;
+            T laright = l.right;
+            l.right = none();
+            if(l.acc == NONE) {
+                l.acc = acc;
+                l.left = first;
+                return none();
+            }
+            assert laright != NONE;
+            if(this.mergeable.test(laright, first)) {
+                l.acc = this.combiner.apply(l.acc, acc);
+                return l.drainLeft();
+            }
+            if(l.left == NONE) {
+                left = new Connector<>(null, acc, this);
+                return l.drain();
+            }
+        }
+        return acc;
+    }
+
+    // <?|acc|last> + r
+    private R pushRight(R acc, T last) {
+        cur = none();
+        if(right == null)
+            return acc;
+        synchronized(root) {
+            Connector<T, R> r = right;
+            if(r == null)
+                return acc;
+            right = null;
+            r.lhs = null;
+            T raleft = r.left;
+            r.left = none();
+            if(r.acc == NONE) {
+                if(acc == NONE) {
+                    r.drain();
+                } else {
+                    r.acc = acc;
+                    r.right = last;
+                }
+                return none();
+            }
+            if(acc == NONE) {
+                return r.drainRight();
+            }
+            assert raleft != NONE;
+            assert last != NONE;
+            if(mergeable.test(last, raleft)) {
+                r.acc = combiner.apply(acc, r.acc);
+                return r.drainRight();
+            }
+            if(r.right == NONE)
+                right = new Connector<>(this, r.drain(), null);
+            return acc;
+        }
+    }
+
+    // l + <first|acc|last> + r
+    private R connectOne(T first, R acc, T last) {
+        synchronized (root) {
+            Connector<T, R> l = left;
+            if(l == null) {
+                return pushRight(acc, last);
+            }
+            if(l.acc == NONE) {
+                l.acc = acc;
+                l.left = first;
+                l.right = last;
+                return connectEmpty();
+            }
+            T laright = l.right;
+            assert laright != NONE;
+            if(mergeable.test(laright, first)) {
+                l.acc = combiner.apply(l.acc, acc);
+                l.right = last;
+                return connectEmpty();
+            }
+            left = null;
+            l.rhs = null;
+            l.right = none();
+            if(l.left != NONE) {
+                return pushRight(acc, last);
+            }
+            acc = pushRight(acc, last);
+            if(acc != NONE)
+                left = new Connector<>(null, acc, this);
+            return l.drain();
+        }
+    }
+
+    // l + r
+    private R connectEmpty() {
+        synchronized (root) {
+            Connector<T, R> l = left, r = right;
+            if(l == null) {
+                return pushRight(none(), none());
+            }
+            left = right = null;
+            l.rhs = null;
+            T laright = l.right;
+            l.right = none();
+            if(l.acc == NONE) {
+                if(r == null)
+                    l.drain();
+                else {
+                    if(l.lhs != null) {
+                        l.lhs.right = r;
+                        r.lhs = l.lhs;
+                    }
+                }
+                return none();
+            }
+            assert laright != NONE;
+            if(r == null) {
+                return l.drainLeft();
+            }
+            r.lhs = null;
+            if(r.acc == NONE) {
+                if(r.rhs != null) {
+                    r.rhs.left = l;
+                    l.rhs = r.rhs;
+                    l.right = laright;
+                }
+                return none();
+            }
+            T raleft = r.left;
+            r.left = none();
+            assert raleft != NONE;
+            if(mergeable.test(laright, raleft)) {
+                R acc = combiner.apply(l.acc, r.acc);
+                if(l.left == NONE && r.right == NONE) {
+                    l.drain();
+                    r.drain();
+                    return acc;
+                }
+                l.acc = acc;
+                l.right = r.right;
+                if(r.rhs != null) {
+                    r.rhs.left = l;
+                    l.rhs = r.rhs;
+                }
+                return none();
+            }
+            if(l.left == NONE) {
+                if(r.right == NONE)
+                    right = new Connector<>(this, r.drain(), null);
+                return l.drain();
+            }
+            return r.drainRight();
+        }
     }
 
     @Override
@@ -135,43 +345,12 @@ import static javax.util.streamex.StreamExInternals.*;
         Spliterator<T> prefix = source.trySplit();
         if (prefix == null)
             return null;
-        T prev = cur;
-        if (!source.tryAdvance(this::setCur)) {
-            source = prefix;
-            return null;
+        Connector<T, R> newBox = new Connector<>(null, none(), this);
+        synchronized(root) {
+            CollapseSpliterator<T, R> result = new CollapseSpliterator<>(root, prefix, left, newBox);
+            this.left = newBox;
+            return result;
         }
-        T last = cur;
-        T lastNext = last;
-        R lastAcc = mapper.apply(cur);
-        while (source.tryAdvance(this::setCur)) {
-            if (mergeable.test(lastNext, cur)) {
-                lastAcc = accumulator.apply(lastAcc, cur);
-                lastNext = cur;
-            } else {
-                return new CollapseSpliterator<>(mergeable, mapper, accumulator, combiner, prefix, prev, last,
-                        lastAcc);
-            }
-        }
-        if (this.last == NONE) {
-            source = prefix;
-            cur = prev;
-            this.last = last;
-            this.lastAcc = lastAcc;
-            return null;
-        }
-        if (mergeable.test(lastNext, this.last)) {
-            source = prefix;
-            cur = prev;
-            this.last = last;
-            this.lastAcc = combiner.apply(lastAcc, this.lastAcc);
-            return null;
-        }
-        cur = this.last;
-        Spliterator<R> result = new CollapseSpliterator<>(mergeable, mapper, accumulator, combiner, prefix, prev,
-                last, lastAcc);
-        this.last = none();
-        this.lastAcc = none();
-        return result;
     }
 
     @Override

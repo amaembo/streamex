@@ -1122,7 +1122,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
                 stream.isParallel()).onClose(stream::close));*/
         return strategy().newStreamEx(
             StreamSupport.stream(
-                new CollapseSpliterator2<>(collapsible, mapper, accumulator, combiner, stream.spliterator()),
+                new CollapseSpliterator<>(collapsible, mapper, accumulator, combiner, stream.spliterator()),
                 stream.isParallel()).onClose(stream::close));
     }
 

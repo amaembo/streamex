@@ -41,7 +41,7 @@ import static javax.util.streamex.TestHelpers.*;
  */
 public class CollapseSpliteratorTest {
     private static <T> void splitEquals(Spliterator<T> source, BiConsumer<Spliterator<T>, Spliterator<T>> consumer) {
-        Spliterator<T> right = new CollapseSpliterator2<>(Objects::equals, Function.identity(),
+        Spliterator<T> right = new CollapseSpliterator<>(Objects::equals, Function.identity(),
                 StreamExInternals.selectFirst(), StreamExInternals.selectFirst(), source);
         Spliterator<T> left = right.trySplit();
         assertNotNull(left);
@@ -99,7 +99,7 @@ public class CollapseSpliteratorTest {
     }
 
     private void checkNonIdentity(List<Integer> input) {
-        checkSpliterator("collpase", () -> new CollapseSpliterator2<Integer, Entry<Integer, Integer>>((a, b) -> (b - a == 1),
+        checkSpliterator("collpase", () -> new CollapseSpliterator<Integer, Entry<Integer, Integer>>((a, b) -> (b - a == 1),
                 a -> new AbstractMap.SimpleEntry<>(a, a), (acc, a) -> new AbstractMap.SimpleEntry<>(acc.getKey(), a), (
                         a, b) -> new AbstractMap.SimpleEntry<>(a.getKey(), b.getValue()), input.spliterator()));
     }
@@ -114,7 +114,7 @@ public class CollapseSpliteratorTest {
     private void multiSplit(Supplier<Spliterator<Integer>> inputSpliterator) throws AssertionError {
         Random r = new Random(1);
         for (int n = 1; n < 100; n++) {
-            Spliterator<Integer> spliterator = new CollapseSpliterator2<>(Objects::equals, Function.identity(),
+            Spliterator<Integer> spliterator = new CollapseSpliterator<>(Objects::equals, Function.identity(),
                     StreamExInternals.selectFirst(), StreamExInternals.selectFirst(), inputSpliterator.get());
             List<Integer> result = new ArrayList<>();
             List<Spliterator<Integer>> spliterators = new ArrayList<>();
