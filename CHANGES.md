@@ -6,8 +6,12 @@
 of `Map.Entry` objects which violate the documented contract for `equals` and `hashCode`.
 * Fixed: `pairMap` method for all streams worked incorrectly when previous steps included `parallel().flatMap()` due to JDK bug. New version may also work faster in parallel for certain sources.
 * Fixed: `collapse`-based methods (`collapse`, `groupRuns`, `runLengths`, `intervalMap`) worked incorrectly in various cases. New version may also work faster in parallel for certain sources.
+* Fixed: `minBy*/maxBy*` for primitive streams now return strictly the first matched element (not the arbitrary one). 
+* Optimized: `minBy/maxBy` methods for primitive streams now call keyExtractor function at most once per element
+* Optimized: many stream creation methods (`zip` for all streams, `EntryStream.of(List)`, `StreamEx.ofSubLists`, etc.) now use custom spliterator.
+* Optimized: `IntStreamEx.ofChars` reimplemented for JDK 8 as original `CharSequence.chars` implementation is poor.
 * Added construction of all stream types from the `Spliterator`.
-* `minBy/maxBy` methods optimized for primitive streams: now keyExtractor function is called at most once per element
+* Updated documentation
 
 ### 0.3.3
 
