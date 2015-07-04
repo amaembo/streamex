@@ -195,7 +195,6 @@ import static javax.util.streamex.StreamExInternals.*;
                 l.left = first;
                 return none();
             }
-            assert laright != NONE;
             if(this.mergeable.test(laright, first)) {
                 l.acc = this.combiner.apply(l.acc, acc);
                 return l.drainLeft();
@@ -233,8 +232,6 @@ import static javax.util.streamex.StreamExInternals.*;
             if(acc == NONE) {
                 return r.drainRight();
             }
-            assert raleft != NONE;
-            assert last != NONE;
             if(mergeable.test(last, raleft)) {
                 r.acc = combiner.apply(acc, r.acc);
                 return r.drainRight();
@@ -259,7 +256,6 @@ import static javax.util.streamex.StreamExInternals.*;
                 return connectEmpty();
             }
             T laright = l.right;
-            assert laright != NONE;
             if(mergeable.test(laright, first)) {
                 l.acc = combiner.apply(l.acc, acc);
                 l.right = last;
@@ -300,7 +296,6 @@ import static javax.util.streamex.StreamExInternals.*;
                 }
                 return none();
             }
-            assert laright != NONE;
             if(r == null) {
                 return l.drainLeft();
             }
@@ -315,7 +310,6 @@ import static javax.util.streamex.StreamExInternals.*;
             }
             T raleft = r.left;
             r.left = none();
-            assert raleft != NONE;
             if(mergeable.test(laright, raleft)) {
                 R acc = combiner.apply(l.acc, r.acc);
                 if(l.left == NONE && r.right == NONE) {
@@ -355,11 +349,11 @@ import static javax.util.streamex.StreamExInternals.*;
 
     @Override
     public long estimateSize() {
-        return source == null ? 0 : source.estimateSize();
+        return source.estimateSize();
     }
 
     @Override
     public int characteristics() {
-        return source == null ? (SIZED | DISTINCT) : source.characteristics() & (CONCURRENT | IMMUTABLE | ORDERED);
+        return source.characteristics() & (CONCURRENT | IMMUTABLE | ORDERED);
     }
 }
