@@ -16,6 +16,7 @@
 package javax.util.streamex;
 
 import java.util.AbstractMap;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -32,6 +33,7 @@ import java.util.stream.Stream;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
+import static javax.util.streamex.TestHelpers.*;
 
 /**
  * @author Tagir Valeev
@@ -97,7 +99,7 @@ public class CollapseSpliteratorTest {
     }
 
     private void checkNonIdentity(List<Integer> input) {
-        checkSpliterator(() -> new CollapseSpliterator2<Integer, Entry<Integer, Integer>>((a, b) -> (b - a == 1),
+        checkSpliterator("collpase", () -> new CollapseSpliterator2<Integer, Entry<Integer, Integer>>((a, b) -> (b - a == 1),
                 a -> new AbstractMap.SimpleEntry<>(a, a), (acc, a) -> new AbstractMap.SimpleEntry<>(acc.getKey(), a), (
                         a, b) -> new AbstractMap.SimpleEntry<>(a.getKey(), b.getValue()), input.spliterator()));
     }
@@ -131,66 +133,6 @@ public class CollapseSpliteratorTest {
                 }
             }
             assertEquals("#" + n, 6, result.size());
-        }
-    }
-
-    private <T> void checkSpliterator(Supplier<Spliterator<T>> supplier) {
-        List<T> expected = new ArrayList<>();
-        Spliterator<T> sequential = supplier.get();
-        sequential.forEachRemaining(expected::add);
-        assertFalse(sequential.tryAdvance(t -> fail("Advance called with " + t)));
-        sequential.forEachRemaining(t -> fail("Advance called with " + t));
-        Random r = new Random(1);
-        for (int n = 1; n < 1000; n++) {
-            Spliterator<T> spliterator = supplier.get();
-            List<Spliterator<T>> spliterators = new ArrayList<>();
-            spliterators.add(spliterator);
-            int p = r.nextInt(10) + 2;
-            for (int i = 0; i < p; i++) {
-                int idx = r.nextInt(spliterators.size());
-                Spliterator<T> split = spliterators.get(idx).trySplit();
-                if (split != null)
-                    spliterators.add(idx, split);
-            }
-            List<Integer> order = IntStreamEx.ofIndices(spliterators).boxed().toList();
-            Collections.shuffle(order, r);
-            List<T> list = StreamEx.of(order).mapToEntry(idx -> {
-                Spliterator<T> s = spliterators.get(idx);
-                Stream.Builder<T> builder = Stream.builder();
-                s.forEachRemaining(builder);
-                assertFalse(s.tryAdvance(t -> fail("Advance called with " + t)));
-                s.forEachRemaining(t -> fail("Advance called with " + t));
-                return builder.build();
-            }).sortedBy(Entry::getKey).values().flatMap(Function.identity()).toList();
-            assertEquals("#" + n, expected, list);
-        }
-        for (int n = 1; n < 1000; n++) {
-            Spliterator<T> spliterator = supplier.get();
-            List<Spliterator<T>> spliterators = new ArrayList<>();
-            spliterators.add(spliterator);
-            int p = r.nextInt(30) + 2;
-            for (int i = 0; i < p; i++) {
-                int idx = r.nextInt(spliterators.size());
-                Spliterator<T> split = spliterators.get(idx).trySplit();
-                if (split != null)
-                    spliterators.add(idx, split);
-            }
-            List<List<T>> results = StreamEx.<List<T>> generate(() -> new ArrayList<>()).limit(spliterators.size())
-                    .toList();
-            int count = spliterators.size();
-            while (count > 0) {
-                int i;
-                do {
-                    i = r.nextInt(spliterators.size());
-                    spliterator = spliterators.get(i);
-                } while (spliterator == null);
-                if (!spliterator.tryAdvance(results.get(i)::add)) {
-                    spliterators.set(i, null);
-                    count--;
-                }
-            }
-            List<T> list = StreamEx.of(results).flatMap(List::stream).toList();
-            assertEquals("#" + n, expected, list);
         }
     }
 }
