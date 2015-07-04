@@ -5,7 +5,18 @@ This library defines four classes: `StreamEx`, `IntStreamEx`, `LongStreamEx`, `D
 which are fully compatible with Java 8 stream classes and provide many additional useful methods.
 Also `EntryStream` class is provided which represents the stream of map entries and provides
 additional functionality for this case. Finally there are some new useful collectors defined in `MoreCollectors`
-class as well as primitive collectors concept. 
+class as well as primitive collectors concept.
+
+Full API documentation is available [here](http://amaembo.github.io/streamex/javadoc/).
+
+StreamEx library main points are following:
+
+* Shorter and convenient ways to do the common tasks.
+* Better interoperability with older code.
+* 100% compatibility with original JDK streams.
+* Friendliness for parallel processing: any new feature takes the advantage on parallel streams as much as possible.
+* Performance and minimal overhead. If StreamEx allows to solve the task using less code compared to standard Stream, it
+should not be significantly slower than the standard way (and sometimes it's even faster).
 
 ### Examples
 
@@ -78,11 +89,14 @@ Pairwise differences:
 DoubleStreamEx.of(input).pairMap((a, b) -> b-a).toArray();
 ```
 
+Support of byte/char/short/float types:
+```java
+short[] multiply(short[] src, short multiplier) {
+    return IntStreamEx.of(src).map(x -> x*multiplier).toShortArray(); 
+}
+```
+
 And more!
-
-### JavaDoc
-
-API documentation is available [here](http://amaembo.github.io/streamex/javadoc/).
 
 ### License
 
