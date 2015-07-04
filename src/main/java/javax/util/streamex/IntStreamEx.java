@@ -1648,7 +1648,9 @@ public class IntStreamEx implements IntStream {
      * @see CharSequence#chars()
      */
     public static IntStreamEx ofChars(CharSequence seq) {
-        return of(new RangeBasedSpliterator.OfCharSequence(seq));
+        // In JDK 8 there's only default chars() method which uses IteratorSpliterator
+        // In JDK 9 chars() method for most of implementations is much better
+        return IS_JDK9 ? of(seq.chars()) : of(new RangeBasedSpliterator.OfCharSequence(seq));
     }
 
     /**

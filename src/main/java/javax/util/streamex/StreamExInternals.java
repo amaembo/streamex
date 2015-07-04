@@ -37,6 +37,7 @@ import java.util.stream.Collector.Characteristics;
 import java.util.stream.Stream;
 
 /* package */final class StreamExInternals {
+    static final boolean IS_JDK9 = System.getProperty("java.version", "").compareTo("1.9") >= 0;
     static final int INITIAL_SIZE = 128;
     static final Supplier<long[]> LONG_BOX = () -> new long[1];
     static final Supplier<int[]> INT_BOX = () -> new int[1];
