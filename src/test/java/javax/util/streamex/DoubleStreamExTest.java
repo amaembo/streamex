@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.OptionalDouble;
 import java.util.Random;
 import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.DoubleStream;
 import java.util.stream.LongStream;
@@ -34,10 +35,8 @@ public class DoubleStreamExTest {
     @Test
     public void testCreate() {
         assertArrayEquals(new double[] {}, DoubleStreamEx.empty().toArray(), 0.0);
-        assertArrayEquals(new double[] {}, DoubleStreamEx.empty().toArray(), 0.0); // double
-                                                                                   // check
-                                                                                   // is
-                                                                                   // intended
+        // double check is intended
+        assertArrayEquals(new double[] {}, DoubleStreamEx.empty().toArray(), 0.0);
         assertArrayEquals(new double[] { 1 }, DoubleStreamEx.of(1).toArray(), 0.0);
         assertArrayEquals(new double[] { 1 }, DoubleStreamEx.of(OptionalDouble.of(1)).toArray(), 0.0);
         assertArrayEquals(new double[] {}, DoubleStreamEx.of(OptionalDouble.empty()).toArray(), 0.0);
@@ -60,6 +59,9 @@ public class DoubleStreamExTest {
 
         DoubleStream stream = DoubleStreamEx.of(1, 2, 3);
         assertSame(stream, DoubleStreamEx.of(stream));
+
+        assertArrayEquals(new double[] { 1, 5, 3 },
+            DoubleStreamEx.of(Spliterators.spliterator(new double[] { 1, 5, 3 }, 0)).toArray(), 0.0);
     }
 
     @Test
@@ -222,8 +224,10 @@ public class DoubleStreamExTest {
         assertArrayEquals(LongStreamEx.range(1, 100).asDoubleStream().toArray(),
             LongStreamEx.range(100).map(i -> i * (i + 1) / 2).prepend(LongStream.empty()).asDoubleStream().parallel()
                     .pairMap((a, b) -> b - a).toArray(), 0.0);
-        
-        assertEquals(1, LongStreamEx.range(1000).mapToDouble(x -> x * x).pairMap((a, b) -> b-a).pairMap((a, b) -> b-a).distinct().count());
+
+        assertEquals(1,
+            LongStreamEx.range(1000).mapToDouble(x -> x * x).pairMap((a, b) -> b - a).pairMap((a, b) -> b - a)
+                    .distinct().count());
     }
 
     @Test

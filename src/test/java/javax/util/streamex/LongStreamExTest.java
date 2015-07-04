@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.OptionalLong;
 import java.util.Random;
 import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.LongStream;
 
@@ -57,6 +58,9 @@ public class LongStreamExTest {
 
         assertArrayEquals(new long[] { 4, 2, 0, -2, -4 },
             LongStreamEx.zip(new long[] { 5, 4, 3, 2, 1 }, new long[] { 1, 2, 3, 4, 5 }, (a, b) -> a - b).toArray());
+        
+        assertArrayEquals(new long[] { 1, 5, 3 }, LongStreamEx.of(Spliterators.spliterator(new long[] { 1, 5, 3 }, 0))
+            .toArray());
     }
 
     @Test

@@ -73,6 +73,9 @@ public class IntStreamExTest {
 
         assertArrayEquals(new int[] { 4, 2, 0, -2, -4 },
             IntStreamEx.zip(new int[] { 5, 4, 3, 2, 1 }, new int[] { 1, 2, 3, 4, 5 }, (a, b) -> a - b).toArray());
+        
+        assertArrayEquals(new int[] { 1, 5, 3 }, IntStreamEx.of(Spliterators.spliterator(new int[] { 1, 5, 3 }, 0))
+                .toArray());
     }
 
     @Test(expected = ArrayIndexOutOfBoundsException.class)

@@ -63,8 +63,11 @@ public class EntryStreamTest {
         EntryStream<String, Integer> stream = EntryStream.of(data);
         assertSame(stream.stream, EntryStream.of(stream).stream);
         assertSame(stream.stream, EntryStream.of(StreamEx.of(EntryStream.of(stream))).stream);
+
+        assertEquals(Collections.singletonMap("aaa", 3),
+            EntryStream.of(Collections.singletonMap("aaa", 3).entrySet().spliterator()).toMap());
     }
-    
+
     @Test
     public void testZip() {
         Map<String, Integer> expected = new HashMap<>();
@@ -74,7 +77,7 @@ public class EntryStreamTest {
         assertEquals(expected, EntryStream.zip(Arrays.asList("aaa", "bbb", "c"), Arrays.asList(3, 3, 1)).toMap());
         assertEquals(expected, EntryStream.zip(new String[] { "aaa", "bbb", "c" }, new Integer[] { 3, 3, 1 }).toMap());
     }
-    
+
     @Test
     public void testWithIndex() {
         Map<Integer, String> map = EntryStream.of(Arrays.asList("a", "bbb", "cc")).toMap();
@@ -84,15 +87,17 @@ public class EntryStreamTest {
         assertEquals("cc", map.get(2));
         Map<Integer, String> map2 = EntryStream.of(new String[] { "a", "bbb", "cc" }).toMap();
         assertEquals(map, map2);
-        
-        Map<Integer, List<String>> grouping = EntryStream.of(new String[] { "a", "bbb", "cc", null, null }).append(EntryStream.of(new String[] {"bb", "bbb", "c", null, "e"})).distinct().grouping();
+
+        Map<Integer, List<String>> grouping = EntryStream.of(new String[] { "a", "bbb", "cc", null, null })
+                .append(EntryStream.of(new String[] { "bb", "bbb", "c", null, "e" })).distinct().grouping();
         assertEquals(Arrays.asList("a", "bb"), grouping.get(0));
         assertEquals(Arrays.asList("bbb"), grouping.get(1));
         assertEquals(Arrays.asList("cc", "c"), grouping.get(2));
         assertEquals(Collections.singletonList(null), grouping.get(3));
         assertEquals(Arrays.asList(null, "e"), grouping.get(4));
-        
-        assertEquals("0=a,1=bbb,2=cc", EntryStream.of(new String[] { "a", "bbb", "cc" }).map(Object::toString).joining(","));
+
+        assertEquals("0=a,1=bbb,2=cc",
+            EntryStream.of(new String[] { "a", "bbb", "cc" }).map(Object::toString).joining(","));
     }
 
     @Test
