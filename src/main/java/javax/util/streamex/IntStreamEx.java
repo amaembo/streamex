@@ -1797,9 +1797,4 @@ public class IntStreamEx implements IntStream {
     public static IntStreamEx zip(int[] first, int[] second, IntBinaryOperator mapper) {
         return of(new RangeBasedSpliterator.ZipInt(0, checkLength(first.length, second.length), mapper, first, second));
     }
-
-    public static IntStreamEx zipOld(int[] first, int[] second, IntBinaryOperator mapper) {
-        return of(IntStream.range(0, checkLength(first.length, second.length)).map(
-            i -> mapper.applyAsInt(first[i], second[i])));
-    }
 }

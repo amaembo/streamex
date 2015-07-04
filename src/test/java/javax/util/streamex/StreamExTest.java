@@ -467,8 +467,6 @@ public class StreamExTest {
             sb.append(input1.get(i)).append(':').append(input2.get(i));
         }
         String expected = sb.toString();
-        assertEquals(expected, StreamEx.zipOld(input1, input2, (i, s) -> i+":"+s).joining(","));
-        assertEquals(expected, StreamEx.zipOld(input1, input2, (i, s) -> i+":"+s).parallel().joining(","));
         assertEquals(expected, StreamEx.zip(input1, input2, (i, s) -> i+":"+s).joining(","));
         assertEquals(expected, StreamEx.zip(input1, input2, (i, s) -> i+":"+s).parallel().joining(","));
     }

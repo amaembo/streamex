@@ -52,7 +52,6 @@ import java.util.jar.JarFile;
 import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import java.util.zip.ZipEntry;
@@ -1726,12 +1725,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public static <U, V, T> StreamEx<T> zip(List<U> first, List<V> second,
             BiFunction<? super U, ? super V, ? extends T> mapper) {
         return of(new RangeBasedSpliterator.ZipRef<>(0, checkLength(first.size(), second.size()), mapper, first, second));
-    }
-
-    public static <U, V, T> StreamEx<T> zipOld(List<U> first, List<V> second,
-            BiFunction<? super U, ? super V, ? extends T> mapper) {
-        return of(IntStream.range(0, checkLength(first.size(), second.size())).mapToObj(
-            i -> mapper.apply(first.get(i), second.get(i))));
     }
 
     /**
