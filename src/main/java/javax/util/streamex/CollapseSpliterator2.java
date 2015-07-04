@@ -84,8 +84,7 @@ import static javax.util.streamex.StreamExInternals.*;
         this.right = right;
         if(left != null)
             left.rhs = this;
-        if(right != null)
-            right.lhs = this;
+        right.lhs = this;
     }
 
     void setCur(T t) {
@@ -118,6 +117,35 @@ import static javax.util.streamex.StreamExInternals.*;
         return accept(pushRight(acc, last), action);
     }
     
+    @Override
+    public void forEachRemaining(Consumer<? super R> action) {
+        while (left != null) {
+            accept(handleLeft(), action);
+        }
+        if(cur == none()) {
+            if(!source.tryAdvance(this::setCur)) {
+                accept(pushRight(none(), none()), action);
+                return;
+            }
+        }
+        Box<R> c = new Box<>(mapper.apply(cur));
+        source.forEachRemaining(next -> {
+            if(!this.mergeable.test(cur, next)) {
+                action.accept(c.a);
+                c.a = mapper.apply(next);
+            } else {
+                c.a = accumulator.apply(c.a, next);
+            }
+            cur = next;
+        });
+        if(accept(pushRight(c.a, cur), action)) {
+            if(right != null) {
+                action.accept(right.acc);
+                right = null;
+            }
+        }
+    }
+
     private boolean accept(R acc, Consumer<? super R> action) {
         if(acc != NONE) {
             action.accept(acc);
