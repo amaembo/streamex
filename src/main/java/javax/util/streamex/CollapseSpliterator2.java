@@ -34,7 +34,7 @@ import static javax.util.streamex.StreamExInternals.*;
     private final BiFunction<R, T, R> accumulator;
     private final BinaryOperator<R> combiner;
     private final BiPredicate<T, T> mergeable;
-
+    
     private static final class Container<T, R> {
         CollapseSpliterator2<T, R> lhs, rhs;
         T left = none(), right = none();
@@ -318,9 +318,11 @@ import static javax.util.streamex.StreamExInternals.*;
         if (prefix == null)
             return null;
         Container<T, R> newBox = new Container<>(null, none(), this);
-        CollapseSpliterator2<T, R> result = new CollapseSpliterator2<>(root, prefix, left, newBox);
-        this.left = newBox;
-        return result;
+        synchronized(root) {
+            CollapseSpliterator2<T, R> result = new CollapseSpliterator2<>(root, prefix, left, newBox);
+            this.left = newBox;
+            return result;
+        }
     }
 
     @Override
