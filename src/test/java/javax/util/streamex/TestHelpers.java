@@ -15,8 +15,18 @@
  */
 package javax.util.streamex;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
+
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
+import java.util.Spliterator;
+import java.util.Map.Entry;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.BaseStream;
 import java.util.stream.Stream;
@@ -89,5 +99,71 @@ public class TestHelpers {
     
     static <T> List<StreamExSupplier<T>> emptyStreamEx(Class<T> clazz) {
         return streamEx(() -> Stream.<T>empty());
+    }
+
+    /**
+     * Tests whether spliterators produced by given supplier
+     * produce the same sequence of elements under various splittings
+     * 
+     * @param supplier
+     */
+    static <T> void checkSpliterator(String msg, Supplier<Spliterator<T>> supplier) {
+        List<T> expected = new ArrayList<>();
+        Spliterator<T> sequential = supplier.get();
+        sequential.forEachRemaining(expected::add);
+        assertFalse(msg, sequential.tryAdvance(t -> fail(msg+": Advance called with " + t)));
+        sequential.forEachRemaining(t -> fail(msg+": Advance called with " + t));
+        Random r = new Random(1);
+        for (int n = 1; n < 500; n++) {
+            Spliterator<T> spliterator = supplier.get();
+            List<Spliterator<T>> spliterators = new ArrayList<>();
+            spliterators.add(spliterator);
+            int p = r.nextInt(10) + 2;
+            for (int i = 0; i < p; i++) {
+                int idx = r.nextInt(spliterators.size());
+                Spliterator<T> split = spliterators.get(idx).trySplit();
+                if (split != null)
+                    spliterators.add(idx, split);
+            }
+            List<Integer> order = IntStreamEx.ofIndices(spliterators).boxed().toList();
+            Collections.shuffle(order, r);
+            List<T> list = StreamEx.of(order).mapToEntry(idx -> {
+                Spliterator<T> s = spliterators.get(idx);
+                Stream.Builder<T> builder = Stream.builder();
+                s.forEachRemaining(builder);
+                assertFalse(msg, s.tryAdvance(t -> fail(msg+": Advance called with " + t)));
+                s.forEachRemaining(t -> fail(msg+": Advance called with " + t));
+                return builder.build();
+            }).sortedBy(Entry::getKey).values().flatMap(Function.identity()).toList();
+            assertEquals(msg+":#" + n, expected, list);
+        }
+        for (int n = 1; n < 500; n++) {
+            Spliterator<T> spliterator = supplier.get();
+            List<Spliterator<T>> spliterators = new ArrayList<>();
+            spliterators.add(spliterator);
+            int p = r.nextInt(30) + 2;
+            for (int i = 0; i < p; i++) {
+                int idx = r.nextInt(spliterators.size());
+                Spliterator<T> split = spliterators.get(idx).trySplit();
+                if (split != null)
+                    spliterators.add(idx, split);
+            }
+            List<List<T>> results = StreamEx.<List<T>> generate(() -> new ArrayList<>()).limit(spliterators.size())
+                    .toList();
+            int count = spliterators.size();
+            while (count > 0) {
+                int i;
+                do {
+                    i = r.nextInt(spliterators.size());
+                    spliterator = spliterators.get(i);
+                } while (spliterator == null);
+                if (!spliterator.tryAdvance(results.get(i)::add)) {
+                    spliterators.set(i, null);
+                    count--;
+                }
+            }
+            List<T> list = StreamEx.of(results).flatMap(List::stream).toList();
+            assertEquals(msg+":#" + n, expected, list);
+        }
     }
 }

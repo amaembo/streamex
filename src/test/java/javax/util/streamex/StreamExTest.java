@@ -31,6 +31,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
@@ -834,6 +835,13 @@ public class StreamExTest {
         assertEquals("", StreamEx.of(inputs).cross(Collections.emptyList()).join("->").joining(", "));
         assertEquals("i-i, j-j, k-k", StreamEx.of(inputs).cross(Stream::of).join("-").joining(", "));
     }
+    
+    @Test
+    public void testCollapse() {
+        for(StreamExSupplier<Integer> supplier : streamEx(() -> StreamEx.constant(1, 1000))) {
+            assertEquals(supplier.toString(), Collections.singletonList(1), supplier.get().collapse(Objects::equals).toList());
+        }
+    }
 
     @Test
     public void testCollapseEmptyLines() {
@@ -924,11 +932,11 @@ public class StreamExTest {
             if (last != null)
                 expected.add(last.toString());
             String expectedStr = String.join(" & ", expected);
-            assertEquals(expectedStr, result);
-            assertEquals(expectedStr, resultParallel);
-            assertEquals(expectedStr, resultParallel2);
-            assertEquals(expectedStr, resultIntervalMap);
-            assertEquals(expectedStr, resultIntervalMapParallel);
+            assertEquals("#"+i, expectedStr, result);
+            assertEquals("#"+i, expectedStr, resultParallel);
+            assertEquals("#"+i, expectedStr, resultParallel2);
+            assertEquals("#"+i, expectedStr, resultIntervalMap);
+            assertEquals("#"+i, expectedStr, resultIntervalMapParallel);
         }
     }
 
@@ -967,13 +975,11 @@ public class StreamExTest {
     public void testStreamOfSentences() {
         List<String> lines = Arrays.asList("This is the", "first sentence.  This is the",
             "second sentence. Third sentence. Fourth", "sentence. Fifth sentence.", "The last");
-        assertEquals(Arrays.asList("This is the first sentence.",
-            "This is the second sentence.", "Third sentence.", "Fourth sentence.",
-            "Fifth sentence.", "The last"), sentences(StreamEx.of(lines)).toList());
-        assertEquals(Arrays.asList("This is the first sentence.",
-            "This is the second sentence.", "Third sentence.", "Fourth sentence.",
-            "Fifth sentence.", "The last"), sentences(StreamEx.of(lines)).parallel().toList());
-        // Parallelling stream before the collapse for this test hits a JDK spliterator bug
+        for (StreamExSupplier<String> supplier : streamEx(lines::stream)) {
+            assertEquals(supplier.toString(), Arrays.asList("This is the first sentence.",
+                "This is the second sentence.", "Third sentence.", "Fourth sentence.",
+                "Fifth sentence.", "The last"), sentences(supplier.get()).toList());
+        }
     }
 
     @Test
@@ -1046,11 +1052,13 @@ public class StreamExTest {
         int[] input = { 1, 5, 2, 10, 8, 11, 7, 15, 6, 5 };
         String expected = formatNaive(input);
         assertEquals(expected, format(IntStreamEx.of(input).boxed()));
-        assertEquals(expected, format(IntStreamEx.of(input).boxed().parallel()));
+        for(int i=0; i<100; i++)
+            assertEquals(expected, format(IntStreamEx.of(input).boxed().parallel()));
 
         input = IntStreamEx.range(3, 100).prepend(1).toArray();
         assertEquals("1,3..99", format(IntStreamEx.of(input).boxed()));
-        assertEquals("1,3..99", format(IntStreamEx.of(input).boxed().parallel()));
+        for(int i=0; i<100; i++)
+            assertEquals("1,3..99", format(IntStreamEx.of(input).boxed().parallel()));
 
         input = IntStreamEx.of(new Random(1), 1000, 0, 2000).toArray();
         expected = formatNaive(input);
