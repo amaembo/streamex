@@ -953,13 +953,11 @@ public class StreamExTest {
     public void testStreamOfSentences() {
         List<String> lines = Arrays.asList("This is the", "first sentence.  This is the",
             "second sentence. Third sentence. Fourth", "sentence. Fifth sentence.", "The last");
-        assertEquals(Arrays.asList("This is the first sentence.",
-            "This is the second sentence.", "Third sentence.", "Fourth sentence.",
-            "Fifth sentence.", "The last"), sentences(StreamEx.of(lines)).toList());
-        assertEquals(Arrays.asList("This is the first sentence.",
-            "This is the second sentence.", "Third sentence.", "Fourth sentence.",
-            "Fifth sentence.", "The last"), sentences(StreamEx.of(lines)).parallel().toList());
-        // Parallelling stream before the collapse for this test hits a JDK spliterator bug
+        for (StreamExSupplier<String> supplier : streamEx(lines::stream)) {
+            assertEquals(supplier.toString(), Arrays.asList("This is the first sentence.",
+                "This is the second sentence.", "Third sentence.", "Fourth sentence.",
+                "Fifth sentence.", "The last"), sentences(supplier.get()).toList());
+        }
     }
 
     @Test
