@@ -1064,7 +1064,7 @@ public class LongStreamEx implements LongStream {
 
     /**
      * Returns a sequential {@link LongStreamEx} created from given
-     * {@link Spliterator.OfLong}.
+     * {@link java.util.Spliterator.OfLong}.
      * 
      * @param spliterator
      *            a spliterator to create the stream from.

@@ -1089,7 +1089,7 @@ public class DoubleStreamEx implements DoubleStream {
 
     /**
      * Returns a sequential {@link DoubleStreamEx} created from given
-     * {@link Spliterator.OfDouble}.
+     * {@link java.util.Spliterator.OfDouble}.
      * 
      * @param spliterator
      *            a spliterator to create the stream from.

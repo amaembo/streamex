@@ -1529,7 +1529,7 @@ public class IntStreamEx implements IntStream {
 
     /**
      * Returns a sequential {@link IntStreamEx} created from given
-     * {@link Spliterator.OfInt}.
+     * {@link java.util.Spliterator.OfInt}.
      * 
      * @param spliterator
      *            a spliterator to create the stream from.
