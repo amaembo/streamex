@@ -1038,7 +1038,8 @@ public class StreamExTest {
         int[] input = { 1, 5, 2, 10, 8, 11, 7, 15, 6, 5 };
         String expected = formatNaive(input);
         assertEquals(expected, format(IntStreamEx.of(input).boxed()));
-        assertEquals(expected, format(IntStreamEx.of(input).boxed().parallel()));
+        for(int i=0; i<100; i++)
+            assertEquals(expected, format(IntStreamEx.of(input).boxed().parallel()));
 
         input = IntStreamEx.range(3, 100).prepend(1).toArray();
         assertEquals("1,3..99", format(IntStreamEx.of(input).boxed()));
