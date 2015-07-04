@@ -15,10 +15,12 @@
  */
 package javax.util.streamex;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Spliterator;
@@ -65,7 +67,7 @@ public class CollapseSpliteratorTest {
         splitEquals(input.spliterator(), (left, right) -> {
             List<Integer> result = new ArrayList<>();
             List<Integer> resultRight = new ArrayList<>();
-            for(int i=0; i<10; i++) {
+            for (int i = 0; i < 10; i++) {
                 left.tryAdvance(result::add);
                 right.tryAdvance(resultRight::add);
             }
@@ -79,7 +81,7 @@ public class CollapseSpliteratorTest {
             right.forEachRemaining(result::add);
             assertEquals(Arrays.asList(1, 2), result);
         });
-        input = Arrays.asList( 0, 0, 1, 1, 1, 1, 4, 6, 6, 3, 3, 10 );
+        input = Arrays.asList(0, 0, 1, 1, 1, 1, 4, 6, 6, 3, 3, 10);
         splitEquals(Stream.concat(Stream.empty(), input.parallelStream()).spliterator(), (left, right) -> {
             List<Integer> result = new ArrayList<>();
             left.forEachRemaining(result::add);
@@ -87,36 +89,76 @@ public class CollapseSpliteratorTest {
             assertEquals(Arrays.asList(0, 1, 4, 6, 3, 10), result);
         });
     }
-    
+
+    @Test
+    public void testNonIdentity() {
+        List<Integer> input = Arrays.asList(1, 2, 5, 6, 7, 8, 10, 11, 15);
+        checkSpliterator(() -> new CollapseSpliterator2<Integer, Entry<Integer, Integer>>((a, b) -> (b - a == 1),
+                a -> new AbstractMap.SimpleEntry<>(a, a), (acc, a) -> new AbstractMap.SimpleEntry<>(acc.getKey(), a), (
+                        a, b) -> new AbstractMap.SimpleEntry<>(a.getKey(), b.getValue()), input.spliterator()));
+    }
+
     @Test
     public void testMultiSplit() {
-        List<Integer> input = Arrays.asList( 0, 0, 1, 1, 1, 1, 4, 6, 6, 3, 3, 10 );
+        List<Integer> input = Arrays.asList(0, 0, 1, 1, 1, 1, 4, 6, 6, 3, 3, 10);
         multiSplit(input::spliterator);
         multiSplit(() -> Stream.concat(Stream.empty(), input.parallelStream()).spliterator());
     }
 
     private void multiSplit(Supplier<Spliterator<Integer>> inputSpliterator) throws AssertionError {
         Random r = new Random(1);
-        for(int n = 1; n < 100; n++) {
+        for (int n = 1; n < 100; n++) {
             Spliterator<Integer> spliterator = new CollapseSpliterator2<>(Objects::equals, Function.identity(),
                     StreamExInternals.selectFirst(), StreamExInternals.selectFirst(), inputSpliterator.get());
             List<Integer> result = new ArrayList<>();
             List<Spliterator<Integer>> spliterators = new ArrayList<>();
             spliterators.add(spliterator);
-            for(int i=0; i<8; i++) {
+            for (int i = 0; i < 8; i++) {
                 Spliterator<Integer> split = spliterators.get(r.nextInt(spliterators.size())).trySplit();
-                if(split != null)
+                if (split != null)
                     spliterators.add(split);
             }
             Collections.shuffle(spliterators, r);
-            for(int i=0; i<spliterators.size(); i++) {
+            for (int i = 0; i < spliterators.size(); i++) {
                 try {
                     spliterators.get(i).forEachRemaining(result::add);
                 } catch (AssertionError e) {
-                    throw new AssertionError("at #"+i, e);
+                    throw new AssertionError("at #" + i, e);
                 }
             }
-            assertEquals("#"+n, 6, result.size());
+            assertEquals("#" + n, 6, result.size());
+        }
+    }
+
+    private <T> void checkSpliterator(Supplier<Spliterator<T>> supplier) {
+        List<T> expected = new ArrayList<>();
+        Spliterator<T> sequential = supplier.get();
+        sequential.forEachRemaining(expected::add);
+        assertFalse(sequential.tryAdvance(t -> fail("Advance called with "+t)));
+        sequential.forEachRemaining(t -> fail("Advance called with "+t));
+        Random r = new Random(1);
+        for (int n = 1; n < 100; n++) {
+            Spliterator<T> spliterator = supplier.get();
+            List<Spliterator<T>> spliterators = new ArrayList<>();
+            spliterators.add(spliterator);
+            int p = r.nextInt(10)+2;
+            for (int i = 0; i < p; i++) {
+                int idx = r.nextInt(spliterators.size());
+                Spliterator<T> split = spliterators.get(idx).trySplit();
+                if (split != null)
+                    spliterators.add(idx, split);
+            }
+            List<Integer> order = IntStreamEx.ofIndices(spliterators).boxed().toList();
+            Collections.shuffle(order, r);
+            List<T> list = StreamEx.of(order).mapToEntry(idx -> {
+                Spliterator<T> s = spliterators.get(idx);
+                Stream.Builder<T> builder = Stream.builder(); 
+                s.forEachRemaining(builder);
+                assertFalse(s.tryAdvance(t -> fail("Advance called with "+t)));
+                s.forEachRemaining(t -> fail("Advance called with "+t));
+                return builder.build();
+            }).sortedBy(Entry::getKey).values().flatMap(Function.identity()).toList();
+            assertEquals("#"+n, expected, list);
         }
     }
 }
