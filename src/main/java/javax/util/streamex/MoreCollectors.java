@@ -23,6 +23,7 @@ import java.util.Deque;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -582,5 +583,44 @@ public final class MoreCollectors {
      */
     public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> least(int n) {
         return greatest(Comparator.<T> reverseOrder(), n);
+    }
+
+    public static <T> Collector<T, ?, OptionalLong> minIndex(Comparator<? super T> comparator) {
+        class Container {
+            T value;
+            long count = 0;
+            long index = -1;
+        }
+        BiConsumer<Container, T> accumulator = (c, t) -> {
+            if (c.index == -1 || comparator.compare(c.value, t) > 0) {
+                c.value = t;
+                c.index = c.count;
+            }
+            c.count++;
+        };
+        BinaryOperator<Container> combiner = (c1, c2) -> {
+            if (c1.index == -1 || (c2.index != -1 && comparator.compare(c1.value, c2.value) > 0)) {
+                c2.index += c1.count;
+                c2.count += c1.count;
+                return c2;
+            }
+            c1.count += c2.count;
+            return c1;
+        };
+        Function<Container, OptionalLong> finisher = c -> c.index == -1 ? OptionalLong.empty() : OptionalLong
+                .of(c.index);
+        return Collector.of(Container::new, accumulator, combiner, finisher);
+    }
+
+    public static <T extends Comparable<? super T>> Collector<T, ?, OptionalLong> minIndex() {
+        return minIndex(Comparator.naturalOrder());
+    }
+
+    public static <T> Collector<T, ?, OptionalLong> maxIndex(Comparator<? super T> comparator) {
+        return minIndex(comparator.reversed());
+    }
+
+    public static <T extends Comparable<? super T>> Collector<T, ?, OptionalLong> maxIndex() {
+        return minIndex(Comparator.reverseOrder());
     }
 }

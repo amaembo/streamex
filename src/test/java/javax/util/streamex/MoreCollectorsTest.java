@@ -204,7 +204,34 @@ public class MoreCollectorsTest {
     @Test
     public void testCountingInt() {
         for (StreamExSupplier<Integer> supplier : streamEx(() -> IntStreamEx.range(1000).boxed())) {
-            assertEquals(supplier.toString(), 1000, (int)supplier.get().collect(MoreCollectors.countingInt()));
+            assertEquals(supplier.toString(), 1000, (int) supplier.get().collect(MoreCollectors.countingInt()));
+        }
+    }
+
+    @Test
+    public void testMinIndex() {
+        List<Integer> ints = IntStreamEx.of(new Random(1), 1000, 0, 100).boxed().toList();
+        long expectedMin = IntStreamEx.ofIndices(ints).minBy(ints::get).getAsInt();
+        long expectedMax = IntStreamEx.ofIndices(ints).maxBy(ints::get).getAsInt();
+        long expectedMinString = IntStreamEx.ofIndices(ints).minBy(i -> String.valueOf(ints.get(i))).getAsInt();
+        long expectedMaxString = IntStreamEx.ofIndices(ints).maxBy(i -> String.valueOf(ints.get(i))).getAsInt();
+        for (StreamExSupplier<Integer> supplier : streamEx(ints::stream)) {
+            assertEquals(supplier.toString(), expectedMin, supplier.get().collect(MoreCollectors.minIndex())
+                    .getAsLong());
+            assertEquals(supplier.toString(), expectedMax, supplier.get().collect(MoreCollectors.maxIndex())
+                    .getAsLong());
+            assertEquals(supplier.toString(), expectedMinString,
+                supplier.get().collect(MoreCollectors.minIndex(Comparator.comparing(String::valueOf))).getAsLong());
+            assertEquals(supplier.toString(), expectedMaxString,
+                supplier.get().collect(MoreCollectors.maxIndex(Comparator.comparing(String::valueOf))).getAsLong());
+            assertEquals(supplier.toString(), expectedMinString,
+                supplier.get().map(String::valueOf).collect(MoreCollectors.minIndex()).getAsLong());
+            assertEquals(supplier.toString(), expectedMaxString,
+                supplier.get().map(String::valueOf).collect(MoreCollectors.maxIndex()).getAsLong());
+        }
+        for (StreamExSupplier<Integer> supplier : emptyStreamEx(Integer.class)) {
+            assertFalse(supplier.toString(), supplier.get().collect(MoreCollectors.minIndex()).isPresent());
+            assertFalse(supplier.toString(), supplier.get().collect(MoreCollectors.maxIndex()).isPresent());
         }
     }
 }
