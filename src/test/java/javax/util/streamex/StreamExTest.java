@@ -31,6 +31,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
@@ -820,6 +821,13 @@ public class StreamExTest {
         assertEquals("", StreamEx.of(inputs).cross(Collections.emptyList()).join("->").joining(", "));
         assertEquals("i-i, j-j, k-k", StreamEx.of(inputs).cross(Stream::of).join("-").joining(", "));
     }
+    
+    @Test
+    public void testCollapse() {
+        for(StreamExSupplier<Integer> supplier : streamEx(() -> StreamEx.constant(1, 1000))) {
+            assertEquals(supplier.toString(), Collections.singletonList(1), supplier.get().collapse(Objects::equals).toList());
+        }
+    }
 
     @Test
     public void testCollapseEmptyLines() {
@@ -1034,7 +1042,8 @@ public class StreamExTest {
 
         input = IntStreamEx.range(3, 100).prepend(1).toArray();
         assertEquals("1,3..99", format(IntStreamEx.of(input).boxed()));
-        assertEquals("1,3..99", format(IntStreamEx.of(input).boxed().parallel()));
+        for(int i=0; i<100; i++)
+            assertEquals("1,3..99", format(IntStreamEx.of(input).boxed().parallel()));
 
         input = IntStreamEx.of(new Random(1), 1000, 0, 2000).toArray();
         expected = formatNaive(input);

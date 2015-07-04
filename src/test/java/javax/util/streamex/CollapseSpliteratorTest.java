@@ -92,7 +92,11 @@ public class CollapseSpliteratorTest {
 
     @Test
     public void testNonIdentity() {
-        List<Integer> input = Arrays.asList(1, 2, 5, 6, 7, 8, 10, 11, 15);
+        checkNonIdentity(Arrays.asList(1, 2, 5, 6, 7, 8, 10, 11, 15));
+        checkNonIdentity(IntStreamEx.range(3, 100).prepend(1).boxed().toList());
+    }
+
+    private void checkNonIdentity(List<Integer> input) {
         checkSpliterator(() -> new CollapseSpliterator2<Integer, Entry<Integer, Integer>>((a, b) -> (b - a == 1),
                 a -> new AbstractMap.SimpleEntry<>(a, a), (acc, a) -> new AbstractMap.SimpleEntry<>(acc.getKey(), a), (
                         a, b) -> new AbstractMap.SimpleEntry<>(a.getKey(), b.getValue()), input.spliterator()));
@@ -137,7 +141,7 @@ public class CollapseSpliteratorTest {
         assertFalse(sequential.tryAdvance(t -> fail("Advance called with "+t)));
         sequential.forEachRemaining(t -> fail("Advance called with "+t));
         Random r = new Random(1);
-        for (int n = 1; n < 100; n++) {
+        for (int n = 1; n < 1000; n++) {
             Spliterator<T> spliterator = supplier.get();
             List<Spliterator<T>> spliterators = new ArrayList<>();
             spliterators.add(spliterator);
@@ -158,6 +162,33 @@ public class CollapseSpliteratorTest {
                 s.forEachRemaining(t -> fail("Advance called with "+t));
                 return builder.build();
             }).sortedBy(Entry::getKey).values().flatMap(Function.identity()).toList();
+            assertEquals("#"+n, expected, list);
+        }
+        for (int n = 1; n < 1000; n++) {
+            Spliterator<T> spliterator = supplier.get();
+            List<Spliterator<T>> spliterators = new ArrayList<>();
+            spliterators.add(spliterator);
+            int p = r.nextInt(30)+2;
+            for (int i = 0; i < p; i++) {
+                int idx = r.nextInt(spliterators.size());
+                Spliterator<T> split = spliterators.get(idx).trySplit();
+                if (split != null)
+                    spliterators.add(idx, split);
+            }
+            List<List<T>> results = StreamEx.<List<T>>generate(() -> new ArrayList<>()).limit(spliterators.size()).toList();
+            int count = spliterators.size();
+            while(count > 0) {
+                int i;
+                do {
+                    i = r.nextInt(spliterators.size());
+                    spliterator = spliterators.get(i);
+                } while (spliterator == null);
+                if(!spliterator.tryAdvance(results.get(i)::add)) {
+                    spliterators.set(i, null);
+                    count--;
+                }
+            }
+            List<T> list = StreamEx.of(results).flatMap(List::stream).toList();
             assertEquals("#"+n, expected, list);
         }
     }

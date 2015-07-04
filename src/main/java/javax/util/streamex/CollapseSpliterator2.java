@@ -205,9 +205,7 @@ import static javax.util.streamex.StreamExInternals.*;
             if(acc == NONE) {
                 return drainRight(r);
             }
-            if(raleft == NONE) {
-                assert raleft != NONE;
-            }
+            assert raleft != NONE;
             assert last != NONE;
             if(mergeable.test(last, raleft)) {
                 r.acc = combiner.apply(acc, r.acc);
