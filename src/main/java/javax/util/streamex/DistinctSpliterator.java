@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
-/* package */final class DistinctSpliterator<T> implements Spliterator<T> {
+/* package */final class DistinctSpliterator<T> implements Spliterator<T>, Consumer<T> {
     private final Spliterator<T> source;
     private AtomicLong nullCounter;
     private Map<T, Long> counts;
@@ -41,21 +41,22 @@ import java.util.function.Consumer;
         this(source, atLeast, null, new HashMap<>());
     }
 
-    void setCur(T t) {
+    @Override
+    public void accept(T t) {
         cur = t;
     }
 
     @Override
     public boolean tryAdvance(Consumer<? super T> action) {
         if (nullCounter == null) {
-            while (source.tryAdvance(this::setCur)) {
+            while (source.tryAdvance(this)) {
                 if (counts.merge(cur, 1L, Long::sum) == atLeast) {
                     action.accept(cur);
                     return true;
                 }
             }
         } else {
-            while (source.tryAdvance(this::setCur)) {
+            while (source.tryAdvance(this)) {
                 long count = cur == null ? nullCounter.incrementAndGet() : counts.merge(cur, 1L, Long::sum);
                 if (count == atLeast) {
                     action.accept(cur);

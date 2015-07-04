@@ -24,7 +24,7 @@ import java.util.function.Function;
 
 import static javax.util.streamex.StreamExInternals.*;
 
-/* package */final class CollapseSpliterator<T, R> implements Spliterator<R> {
+/* package */final class CollapseSpliterator<T, R> implements Spliterator<R>, Consumer<T> {
     private final Spliterator<T> source;
     private final CollapseSpliterator<T, R> root; // used as lock
     private T cur = none();
@@ -87,7 +87,8 @@ import static javax.util.streamex.StreamExInternals.*;
         right.lhs = this;
     }
 
-    void setCur(T t) {
+    @Override
+    public void accept(T t) {
         cur = t;
     }
     
@@ -99,14 +100,14 @@ import static javax.util.streamex.StreamExInternals.*;
             }
         }
         if(cur == none()) {// start
-            if(!source.tryAdvance(this::setCur)) {
+            if(!source.tryAdvance(this)) {
                 return accept(pushRight(none(), none()), action);
             }
         }
         T first = cur;
         R acc = mapper.apply(cur);
         T last = first;
-        while(source.tryAdvance(this::setCur)) {
+        while(source.tryAdvance(this)) {
             if(!this.mergeable.test(last, cur)) {
                 action.accept(acc);
                 return true;
@@ -123,7 +124,7 @@ import static javax.util.streamex.StreamExInternals.*;
             accept(handleLeft(), action);
         }
         if(cur == none()) {
-            if(!source.tryAdvance(this::setCur)) {
+            if(!source.tryAdvance(this)) {
                 accept(pushRight(none(), none()), action);
                 return;
             }
@@ -164,11 +165,11 @@ import static javax.util.streamex.StreamExInternals.*;
                 return l.drain();
             }
         }
-        if(source.tryAdvance(this::setCur)) {
+        if(source.tryAdvance(this)) {
             T first = this.cur;
             T last = first;
             R acc = this.mapper.apply(first);
-            while(source.tryAdvance(this::setCur)) {
+            while(source.tryAdvance(this)) {
                 if(!this.mergeable.test(last, cur))
                     return pushLeft(first, acc);
                 last = cur;

@@ -144,7 +144,7 @@ import static javax.util.streamex.StreamExInternals.*;
         }
     }
 
-    static final class PSOfRef<T, R> extends PairSpliterator<T, Spliterator<T>, R, PSOfRef<T, R>> {
+    static final class PSOfRef<T, R> extends PairSpliterator<T, Spliterator<T>, R, PSOfRef<T, R>> implements Consumer<T> {
         private final BiFunction<? super T, ? super T, ? extends R> mapper;
         private T cur;
 
@@ -153,7 +153,8 @@ import static javax.util.streamex.StreamExInternals.*;
             this.mapper = mapper;
         }
 
-        void setCur(T t) {
+        @Override
+        public void accept(T t) {
             cur = t;
         }
 
@@ -166,7 +167,7 @@ import static javax.util.streamex.StreamExInternals.*;
             Sink<T> l = left, r = right;
             if (l != null) {
                 left = null;
-                if (!source.tryAdvance(this::setCur)) {
+                if (!source.tryAdvance(this)) {
                     right = null;
                     return l.connect(r, fn(action));
                 }
@@ -174,7 +175,7 @@ import static javax.util.streamex.StreamExInternals.*;
                     return true;
             }
             T prev = cur;
-            if (!source.tryAdvance(this::setCur)) {
+            if (!source.tryAdvance(this)) {
                 right = null;
                 return r != null && r.push(prev, fn(action), true);
             }
@@ -187,7 +188,7 @@ import static javax.util.streamex.StreamExInternals.*;
             Sink<T> l = left, r = right;
             left = right = null;
             if (l != null) {
-                if (!source.tryAdvance(this::setCur)) {
+                if (!source.tryAdvance(this)) {
                     l.connect(r, fn(action));
                     return;
                 }
@@ -201,7 +202,7 @@ import static javax.util.streamex.StreamExInternals.*;
     }
 
     static final class PSOfInt extends PairSpliterator<Integer, Spliterator.OfInt, Integer, PSOfInt> implements
-            Spliterator.OfInt {
+            Spliterator.OfInt, IntConsumer {
         private final IntBinaryOperator mapper;
         private int cur;
 
@@ -210,7 +211,8 @@ import static javax.util.streamex.StreamExInternals.*;
             this.mapper = mapper;
         }
 
-        void setCur(int t) {
+        @Override
+        public void accept(int t) {
             cur = t;
         }
 
@@ -223,7 +225,7 @@ import static javax.util.streamex.StreamExInternals.*;
             Sink<Integer> l = left, r = right;
             if (l != null) {
                 left = null;
-                if (!source.tryAdvance((IntConsumer) this::setCur)) {
+                if (!source.tryAdvance(this)) {
                     right = null;
                     return l.connect(r, fn(action));
                 }
@@ -231,7 +233,7 @@ import static javax.util.streamex.StreamExInternals.*;
                     return true;
             }
             int prev = cur;
-            if (!source.tryAdvance((IntConsumer) this::setCur)) {
+            if (!source.tryAdvance(this)) {
                 right = null;
                 return r != null && r.push(prev, fn(action), true);
             }
@@ -244,7 +246,7 @@ import static javax.util.streamex.StreamExInternals.*;
             Sink<Integer> l = left, r = right;
             left = right = null;
             if (l != null) {
-                if (!source.tryAdvance((IntConsumer) this::setCur)) {
+                if (!source.tryAdvance(this)) {
                     l.connect(r, fn(action));
                     return;
                 }
@@ -258,7 +260,7 @@ import static javax.util.streamex.StreamExInternals.*;
     }
 
     static final class PSOfLong extends PairSpliterator<Long, Spliterator.OfLong, Long, PSOfLong> implements
-            Spliterator.OfLong {
+            Spliterator.OfLong, LongConsumer {
         private final LongBinaryOperator mapper;
         private long cur;
 
@@ -267,7 +269,8 @@ import static javax.util.streamex.StreamExInternals.*;
             this.mapper = mapper;
         }
 
-        void setCur(long t) {
+        @Override
+        public void accept(long t) {
             cur = t;
         }
 
@@ -280,7 +283,7 @@ import static javax.util.streamex.StreamExInternals.*;
             Sink<Long> l = left, r = right;
             if (l != null) {
                 left = null;
-                if (!source.tryAdvance((LongConsumer) this::setCur)) {
+                if (!source.tryAdvance(this)) {
                     right = null;
                     return l.connect(r, fn(action));
                 }
@@ -288,7 +291,7 @@ import static javax.util.streamex.StreamExInternals.*;
                     return true;
             }
             long prev = cur;
-            if (!source.tryAdvance((LongConsumer) this::setCur)) {
+            if (!source.tryAdvance(this)) {
                 right = null;
                 return r != null && r.push(prev, fn(action), true);
             }
@@ -301,7 +304,7 @@ import static javax.util.streamex.StreamExInternals.*;
             Sink<Long> l = left, r = right;
             left = right = null;
             if (l != null) {
-                if (!source.tryAdvance((LongConsumer) this::setCur)) {
+                if (!source.tryAdvance(this)) {
                     l.connect(r, fn(action));
                     return;
                 }
@@ -315,7 +318,7 @@ import static javax.util.streamex.StreamExInternals.*;
     }
 
     static final class PSOfDouble extends PairSpliterator<Double, Spliterator.OfDouble, Double, PSOfDouble> implements
-            Spliterator.OfDouble {
+            Spliterator.OfDouble, DoubleConsumer {
         private final DoubleBinaryOperator mapper;
         private double cur;
 
@@ -324,7 +327,8 @@ import static javax.util.streamex.StreamExInternals.*;
             this.mapper = mapper;
         }
 
-        void setCur(double t) {
+        @Override
+        public void accept(double t) {
             cur = t;
         }
 
@@ -337,7 +341,7 @@ import static javax.util.streamex.StreamExInternals.*;
             Sink<Double> l = left, r = right;
             if (l != null) {
                 left = null;
-                if (!source.tryAdvance((DoubleConsumer) this::setCur)) {
+                if (!source.tryAdvance(this)) {
                     right = null;
                     return l.connect(r, fn(action));
                 }
@@ -345,7 +349,7 @@ import static javax.util.streamex.StreamExInternals.*;
                     return true;
             }
             double prev = cur;
-            if (!source.tryAdvance((DoubleConsumer) this::setCur)) {
+            if (!source.tryAdvance(this)) {
                 right = null;
                 return r != null && r.push(prev, fn(action), true);
             }
@@ -358,7 +362,7 @@ import static javax.util.streamex.StreamExInternals.*;
             Sink<Double> l = left, r = right;
             left = right = null;
             if (l != null) {
-                if (!source.tryAdvance((DoubleConsumer) this::setCur)) {
+                if (!source.tryAdvance(this)) {
                     l.connect(r, fn(action));
                     return;
                 }
