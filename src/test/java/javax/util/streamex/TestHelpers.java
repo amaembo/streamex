@@ -100,19 +100,26 @@ public class TestHelpers {
     static <T> List<StreamExSupplier<T>> emptyStreamEx(Class<T> clazz) {
         return streamEx(() -> Stream.<T>empty());
     }
-
-    /**
-     * Tests whether spliterators produced by given supplier
-     * produce the same sequence of elements under various splittings
-     * 
-     * @param supplier
-     */
+    
     static <T> void checkSpliterator(String msg, Supplier<Spliterator<T>> supplier) {
         List<T> expected = new ArrayList<>();
+        supplier.get().forEachRemaining(expected::add);
+        checkSpliterator(msg, expected, supplier);
+    }
+
+    /*
+     * Tests whether spliterators produced by given supplier
+     * produce the expected result under various splittings
+     * 
+     * This test is single-threaded and its results are stable
+     */
+    static <T> void checkSpliterator(String msg, List<T> expected, Supplier<Spliterator<T>> supplier) {
+        List<T> seq = new ArrayList<>();
         Spliterator<T> sequential = supplier.get();
-        sequential.forEachRemaining(expected::add);
+        sequential.forEachRemaining(seq::add);
         assertFalse(msg, sequential.tryAdvance(t -> fail(msg+": Advance called with " + t)));
         sequential.forEachRemaining(t -> fail(msg+": Advance called with " + t));
+        assertEquals(msg, expected, seq);
         Random r = new Random(1);
         for (int n = 1; n < 500; n++) {
             Spliterator<T> spliterator = supplier.get();

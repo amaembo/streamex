@@ -24,6 +24,12 @@ import java.util.Random;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.DoubleFunction;
+import java.util.function.DoubleToIntFunction;
+import java.util.function.DoubleToLongFunction;
+import java.util.function.DoubleUnaryOperator;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.DoubleStream;
 import java.util.stream.LongStream;
 
@@ -199,6 +205,20 @@ public class DoubleStreamExTest {
                 .getAsDouble(), 0.0);
         assertEquals(31.0, DoubleStreamEx.of(15, 8, 31, 47, 19, 29).minByLong(x -> (long) (x % 10 * 10 + x / 10))
                 .getAsDouble(), 0.0);
+
+        Supplier<DoubleStreamEx> s = () -> DoubleStreamEx.of(1, 50, 120, 35, 130, 12, 0);
+        DoubleToIntFunction intKey = x -> String.valueOf(x).length();
+        DoubleToLongFunction longKey = x -> String.valueOf(x).length();
+        DoubleUnaryOperator doubleKey = x -> String.valueOf(x).length();
+        DoubleFunction<Integer> objKey = x -> String.valueOf(x).length();
+        List<Function<DoubleStreamEx, OptionalDouble>> minFns = Arrays.asList(is -> is.minByInt(intKey), 
+            is -> is.minByLong(longKey), is -> is.minByDouble(doubleKey), is -> is.minBy(objKey));
+        List<Function<DoubleStreamEx, OptionalDouble>> maxFns = Arrays.asList(is -> is.maxByInt(intKey), 
+            is -> is.maxByLong(longKey), is -> is.maxByDouble(doubleKey), is -> is.maxBy(objKey));
+        minFns.forEach(fn -> assertEquals(1, fn.apply(s.get()).getAsDouble(), 0.0));
+        minFns.forEach(fn -> assertEquals(1, fn.apply(s.get().parallel()).getAsDouble(), 0.0));
+        maxFns.forEach(fn -> assertEquals(120, fn.apply(s.get()).getAsDouble(), 0.0));
+        maxFns.forEach(fn -> assertEquals(120, fn.apply(s.get().parallel()).getAsDouble(), 0.0));
     }
 
     @Test

@@ -28,6 +28,11 @@ import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.function.IntFunction;
+import java.util.function.IntToDoubleFunction;
+import java.util.function.IntToLongFunction;
+import java.util.function.IntUnaryOperator;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
@@ -73,7 +78,7 @@ public class IntStreamExTest {
 
         assertArrayEquals(new int[] { 4, 2, 0, -2, -4 },
             IntStreamEx.zip(new int[] { 5, 4, 3, 2, 1 }, new int[] { 1, 2, 3, 4, 5 }, (a, b) -> a - b).toArray());
-        
+
         assertArrayEquals(new int[] { 1, 5, 3 }, IntStreamEx.of(Spliterators.spliterator(new int[] { 1, 5, 3 }, 0))
                 .toArray());
     }
@@ -277,8 +282,22 @@ public class IntStreamExTest {
                 .getAsInt());
         assertEquals(31, IntStreamEx.of(15, 8, 31, 47, 19, 29).minByLong(x -> Long.MIN_VALUE + x % 10 * 10 + x / 10)
                 .getAsInt());
-    }
 
+        Supplier<IntStreamEx> s = () -> IntStreamEx.of(1, 50, 120, 35, 130, 12, 0);
+        IntUnaryOperator intKey = x -> String.valueOf(x).length();
+        IntToLongFunction longKey = x -> String.valueOf(x).length();
+        IntToDoubleFunction doubleKey = x -> String.valueOf(x).length();
+        IntFunction<Integer> objKey = x -> String.valueOf(x).length();
+        List<Function<IntStreamEx, OptionalInt>> minFns = Arrays.asList(is -> is.minByInt(intKey), 
+            is -> is.minByLong(longKey), is -> is.minByDouble(doubleKey), is -> is.minBy(objKey));
+        List<Function<IntStreamEx, OptionalInt>> maxFns = Arrays.asList(is -> is.maxByInt(intKey), 
+            is -> is.maxByLong(longKey), is -> is.maxByDouble(doubleKey), is -> is.maxBy(objKey));
+        minFns.forEach(fn -> assertEquals(1, fn.apply(s.get()).getAsInt()));
+        minFns.forEach(fn -> assertEquals(1, fn.apply(s.get().parallel()).getAsInt()));
+        maxFns.forEach(fn -> assertEquals(120, fn.apply(s.get()).getAsInt()));
+        maxFns.forEach(fn -> assertEquals(120, fn.apply(s.get().parallel()).getAsInt()));
+    }
+    
     private IntStreamEx dropLast(IntStreamEx s) {
         return s.pairMap((a, b) -> a);
     }
@@ -312,9 +331,10 @@ public class IntStreamExTest {
         }
         int[] result = IntStreamEx.of(data).map(x -> x * x).pairMap((a, b) -> b - a).toArray();
         assertArrayEquals(expected, result);
-        
-        assertEquals(1, IntStreamEx.range(1000).map(x -> x * x).pairMap((a, b) -> b-a).pairMap((a, b) -> b-a).distinct().count());
-        
+
+        assertEquals(1, IntStreamEx.range(1000).map(x -> x * x).pairMap((a, b) -> b - a).pairMap((a, b) -> b - a)
+                .distinct().count());
+
         assertArrayEquals(IntStreamEx.constant(1, 100).toArray(), IntStreamEx.iterate(0, i -> i + 1).parallel()
                 .pairMap((a, b) -> b - a).limit(100).toArray());
     }

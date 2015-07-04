@@ -1725,7 +1725,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public static <U, V, T> StreamEx<T> zip(List<U> first, List<V> second,
             BiFunction<? super U, ? super V, ? extends T> mapper) {
-        return of(new RangeBasedSpliterator.ZipRef<>(0, checkLength(first.size(), second.size()), first, second, mapper));
+        return of(new RangeBasedSpliterator.ZipRef<>(0, checkLength(first.size(), second.size()), mapper, first, second));
     }
 
     public static <U, V, T> StreamEx<T> zipOld(List<U> first, List<V> second,

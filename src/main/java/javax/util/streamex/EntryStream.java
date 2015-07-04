@@ -1172,8 +1172,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.1
      */
     public static <K, V> EntryStream<K, V> zip(List<K> keys, List<V> values) {
-        return of(new RangeBasedSpliterator.ZipRef<>(0, checkLength(keys.size(), values.size()), keys, values,
-                SimpleImmutableEntry<K, V>::new));
+        return of(new RangeBasedSpliterator.ZipRef<>(0, checkLength(keys.size(), values.size()), SimpleImmutableEntry<K, V>::new, keys,
+                values));
     }
 
     /**

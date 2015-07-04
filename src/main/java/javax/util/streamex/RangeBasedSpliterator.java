@@ -140,7 +140,7 @@ import static javax.util.streamex.StreamExInternals.*;
         private final List<V> l2;
         private final BiFunction<? super U, ? super V, ? extends T> mapper;
         
-        public ZipRef(int fromInclusive, int toExclusive, List<U> l1, List<V> l2, BiFunction<? super U, ? super V, ? extends T> mapper) {
+        public ZipRef(int fromInclusive, int toExclusive, BiFunction<? super U, ? super V, ? extends T> mapper, List<U> l1, List<V> l2) {
             super(fromInclusive, toExclusive);
             this.l1 = l1;
             this.l2 = l2;

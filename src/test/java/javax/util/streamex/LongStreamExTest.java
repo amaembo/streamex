@@ -23,6 +23,12 @@ import java.util.Random;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+import java.util.function.LongFunction;
+import java.util.function.LongToDoubleFunction;
+import java.util.function.LongToIntFunction;
+import java.util.function.LongUnaryOperator;
+import java.util.function.Supplier;
 import java.util.stream.LongStream;
 
 import org.junit.Test;
@@ -169,6 +175,20 @@ public class LongStreamExTest {
         assertEquals(31, LongStreamEx.of(15, 8, 31, 47, 19, 29).minByInt(x -> (int) (x % 10 * 10 + x / 10)).getAsLong());
         assertEquals(29, LongStreamEx.of(15, 8, 31, 47, 19, 29).maxByLong(x -> x % 10 * 10 + x / 10).getAsLong());
         assertEquals(31, LongStreamEx.of(15, 8, 31, 47, 19, 29).minByLong(x -> x % 10 * 10 + x / 10).getAsLong());
+
+        Supplier<LongStreamEx> s = () -> LongStreamEx.of(1, 50, 120, 35, 130, 12, 0);
+        LongToIntFunction intKey = x -> String.valueOf(x).length();
+        LongUnaryOperator longKey = x -> String.valueOf(x).length();
+        LongToDoubleFunction doubleKey = x -> String.valueOf(x).length();
+        LongFunction<Integer> objKey = x -> String.valueOf(x).length();
+        List<Function<LongStreamEx, OptionalLong>> minFns = Arrays.asList(is -> is.minByInt(intKey), 
+            is -> is.minByLong(longKey), is -> is.minByDouble(doubleKey), is -> is.minBy(objKey));
+        List<Function<LongStreamEx, OptionalLong>> maxFns = Arrays.asList(is -> is.maxByInt(intKey), 
+            is -> is.maxByLong(longKey), is -> is.maxByDouble(doubleKey), is -> is.maxBy(objKey));
+        minFns.forEach(fn -> assertEquals(1, fn.apply(s.get()).getAsLong()));
+        minFns.forEach(fn -> assertEquals(1, fn.apply(s.get().parallel()).getAsLong()));
+        maxFns.forEach(fn -> assertEquals(120, fn.apply(s.get()).getAsLong()));
+        maxFns.forEach(fn -> assertEquals(120, fn.apply(s.get().parallel()).getAsLong()));
     }
 
     @Test

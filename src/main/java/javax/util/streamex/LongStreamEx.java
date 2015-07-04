@@ -599,20 +599,20 @@ public class LongStreamEx implements LongStream {
      *            the type of the {@code Comparable} sort key
      * @param keyExtractor
      *            a non-interfering, stateless function
-     * @return an {@code OptionalLong} describing some element of this stream
-     *         for which the lowest value was returned by key extractor, or an
-     *         empty {@code OptionalLong} if the stream is empty
+     * @return an {@code OptionalLong} describing the first element of this
+     *         stream for which the lowest value was returned by key extractor,
+     *         or an empty {@code OptionalLong} if the stream is empty
      * @since 0.1.2
      */
     public <V extends Comparable<? super V>> OptionalLong minBy(LongFunction<V> keyExtractor) {
         ObjLongBox<V> result = collect(() -> new ObjLongBox<>(null, 0), (box, i) -> {
             V val = Objects.requireNonNull(keyExtractor.apply(i));
-            if(box.a == null || box.a.compareTo(val) > 0) {
+            if (box.a == null || box.a.compareTo(val) > 0) {
                 box.a = val;
                 box.b = i;
             }
         }, (box1, box2) -> {
-            if(box2.a != null && (box1.a == null || box1.a.compareTo(box2.a) > 0)) {
+            if (box2.a != null && (box1.a == null || box1.a.compareTo(box2.a) > 0)) {
                 box1.a = box2.a;
                 box1.b = box2.b;
             }
@@ -629,9 +629,9 @@ public class LongStreamEx implements LongStream {
      *
      * @param keyExtractor
      *            a non-interfering, stateless function
-     * @return an {@code OptionalLong} describing some element of this stream
-     *         for which the lowest value was returned by key extractor, or an
-     *         empty {@code OptionalLong} if the stream is empty
+     * @return an {@code OptionalLong} describing the first element of this
+     *         stream for which the lowest value was returned by key extractor,
+     *         or an empty {@code OptionalLong} if the stream is empty
      * @since 0.1.2
      */
     public OptionalLong minByInt(LongToIntFunction keyExtractor) {
@@ -647,9 +647,9 @@ public class LongStreamEx implements LongStream {
      *
      * @param keyExtractor
      *            a non-interfering, stateless function
-     * @return an {@code OptionalLong} describing some element of this stream
-     *         for which the lowest value was returned by key extractor, or an
-     *         empty {@code OptionalLong} if the stream is empty
+     * @return an {@code OptionalLong} describing the first element of this
+     *         stream for which the lowest value was returned by key extractor,
+     *         or an empty {@code OptionalLong} if the stream is empty
      * @since 0.1.2
      */
     public OptionalLong minByLong(LongUnaryOperator keyExtractor) {
@@ -665,9 +665,9 @@ public class LongStreamEx implements LongStream {
      *
      * @param keyExtractor
      *            a non-interfering, stateless function
-     * @return an {@code OptionalLong} describing some element of this stream
-     *         for which the lowest value was returned by key extractor, or an
-     *         empty {@code OptionalLong} if the stream is empty
+     * @return an {@code OptionalLong} describing the first element of this
+     *         stream for which the lowest value was returned by key extractor,
+     *         or an empty {@code OptionalLong} if the stream is empty
      * @since 0.1.2
      */
     public OptionalLong minByDouble(LongToDoubleFunction keyExtractor) {
@@ -690,11 +690,11 @@ public class LongStreamEx implements LongStream {
      * @param comparator
      *            a non-interfering, stateless {@link Comparator} to compare
      *            elements of this stream
-     * @return an {@code OptionalLong} describing the minimum element of this
+     * @return an {@code OptionalLong} describing the maximum element of this
      *         stream, or an empty {@code OptionalLong} if the stream is empty
      */
     public OptionalLong max(Comparator<Long> comparator) {
-        return reduce((a, b) -> comparator.compare(a, b) > 0 ? a : b);
+        return reduce((a, b) -> comparator.compare(a, b) >= 0 ? a : b);
     }
 
     /**
@@ -708,20 +708,20 @@ public class LongStreamEx implements LongStream {
      *            the type of the {@code Comparable} sort key
      * @param keyExtractor
      *            a non-interfering, stateless function
-     * @return an {@code OptionalLong} describing some element of this stream
-     *         for which the highest value was returned by key extractor, or an
-     *         empty {@code OptionalLong} if the stream is empty
+     * @return an {@code OptionalLong} describing the first element of this
+     *         stream for which the highest value was returned by key extractor,
+     *         or an empty {@code OptionalLong} if the stream is empty
      * @since 0.1.2
      */
     public <V extends Comparable<? super V>> OptionalLong maxBy(LongFunction<V> keyExtractor) {
         ObjLongBox<V> result = collect(() -> new ObjLongBox<>(null, 0), (box, i) -> {
             V val = Objects.requireNonNull(keyExtractor.apply(i));
-            if(box.a == null || box.a.compareTo(val) < 0) {
+            if (box.a == null || box.a.compareTo(val) < 0) {
                 box.a = val;
                 box.b = i;
             }
         }, (box1, box2) -> {
-            if(box2.a != null && (box1.a == null || box1.a.compareTo(box2.a) < 0)) {
+            if (box2.a != null && (box1.a == null || box1.a.compareTo(box2.a) < 0)) {
                 box1.a = box2.a;
                 box1.b = box2.b;
             }
@@ -738,13 +738,13 @@ public class LongStreamEx implements LongStream {
      *
      * @param keyExtractor
      *            a non-interfering, stateless function
-     * @return an {@code OptionalLong} describing some element of this stream
-     *         for which the highest value was returned by key extractor, or an
-     *         empty {@code OptionalLong} if the stream is empty
+     * @return an {@code OptionalLong} describing the first element of this
+     *         stream for which the highest value was returned by key extractor,
+     *         or an empty {@code OptionalLong} if the stream is empty
      * @since 0.1.2
      */
     public OptionalLong maxByInt(LongToIntFunction keyExtractor) {
-        return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? a : b);
+        return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) >= 0 ? a : b);
     }
 
     /**
@@ -756,13 +756,13 @@ public class LongStreamEx implements LongStream {
      *
      * @param keyExtractor
      *            a non-interfering, stateless function
-     * @return an {@code OptionalLong} describing some element of this stream
-     *         for which the highest value was returned by key extractor, or an
-     *         empty {@code OptionalLong} if the stream is empty
+     * @return an {@code OptionalLong} describing the first element of this
+     *         stream for which the highest value was returned by key extractor,
+     *         or an empty {@code OptionalLong} if the stream is empty
      * @since 0.1.2
      */
     public OptionalLong maxByLong(LongUnaryOperator keyExtractor) {
-        return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? a : b);
+        return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) >= 0 ? a : b);
     }
 
     /**
@@ -774,13 +774,13 @@ public class LongStreamEx implements LongStream {
      *
      * @param keyExtractor
      *            a non-interfering, stateless function
-     * @return an {@code OptionalLong} describing some element of this stream
-     *         for which the highest value was returned by key extractor, or an
-     *         empty {@code OptionalLong} if the stream is empty
+     * @return an {@code OptionalLong} describing the first element of this
+     *         stream for which the highest value was returned by key extractor,
+     *         or an empty {@code OptionalLong} if the stream is empty
      * @since 0.1.2
      */
     public OptionalLong maxByDouble(LongToDoubleFunction keyExtractor) {
-        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? a
+        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) >= 0 ? a
                 : b);
     }
 
@@ -948,8 +948,8 @@ public class LongStreamEx implements LongStream {
      */
     public LongStreamEx pairMap(LongBinaryOperator mapper) {
         return strategy().newLongStreamEx(
-            StreamSupport.longStream(new PairSpliterator.PSOfLong(mapper, stream.spliterator()),
-                stream.isParallel()).onClose(stream::close));
+            StreamSupport.longStream(new PairSpliterator.PSOfLong(mapper, stream.spliterator()), stream.isParallel())
+                    .onClose(stream::close));
     }
 
     /**
@@ -1243,7 +1243,6 @@ public class LongStreamEx implements LongStream {
      * @since 0.2.1
      */
     public static LongStreamEx zip(long[] first, long[] second, LongBinaryOperator mapper) {
-        return of(new RangeBasedSpliterator.ZipLong(0, checkLength(first.length, second.length),
-                mapper, first, second));
+        return of(new RangeBasedSpliterator.ZipLong(0, checkLength(first.length, second.length), mapper, first, second));
     }
 }
