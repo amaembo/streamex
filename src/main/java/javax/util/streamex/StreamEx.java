@@ -219,7 +219,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     @SuppressWarnings("unchecked")
     public <V> EntryStream<T, V> cross(V... other) {
         if (other.length == 0)
-            return strategy().<T, V> newEntryStream(Stream.empty()).onClose(stream::close);
+            return strategy().<T, V> newEntryStream(delegate(Spliterators.emptySpliterator()));
         if (other.length == 1)
             return mapToEntry(e -> other[0]);
         return strategy().newEntryStream(
@@ -249,7 +249,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public <V> EntryStream<T, V> cross(Collection<? extends V> other) {
         if (other.isEmpty())
-            return strategy().<T, V> newEntryStream(Stream.empty()).onClose(stream::close);
+            return strategy().<T, V> newEntryStream(delegate(Spliterators.emptySpliterator()));
         return strategy()
                 .newEntryStream(stream.flatMap(a -> other.stream().map(b -> new SimpleImmutableEntry<>(a, b))));
     }
@@ -1032,7 +1032,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             result = Spliterators.emptySpliterator();
         else
             result = new DistinctSpliterator<>(spliterator, atLeast);
-        return strategy().newStreamEx(StreamSupport.stream(result, stream.isParallel()).onClose(stream::close));
+        return strategy().newStreamEx(delegate(result));
     }
 
     /**
@@ -1056,9 +1056,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.2.1
      */
     public <R> StreamEx<R> pairMap(BiFunction<? super T, ? super T, ? extends R> mapper) {
-        return strategy().newStreamEx(
-            StreamSupport.stream(new PairSpliterator.PSOfRef<T, R>(mapper, stream.spliterator()), stream.isParallel())
-                    .onClose(stream::close));
+        return strategy().newStreamEx(delegate(new PairSpliterator.PSOfRef<T, R>(mapper, stream.spliterator())));
     }
 
     /**
@@ -1115,9 +1113,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     private <R> StreamEx<R> collapseInternal(BiPredicate<? super T, ? super T> collapsible, Function<T, R> mapper,
             BiFunction<R, T, R> accumulator, BinaryOperator<R> combiner) {
         return strategy().newStreamEx(
-            StreamSupport.stream(
-                new CollapseSpliterator<>(collapsible, mapper, accumulator, combiner, stream.spliterator()),
-                stream.isParallel()).onClose(stream::close));
+            delegate(new CollapseSpliterator<>(collapsible, mapper, accumulator, combiner, stream.spliterator())));
     }
 
     /**

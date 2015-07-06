@@ -55,6 +55,10 @@ import static javax.util.streamex.StreamExInternals.*;
     StreamFactory strategy() {
         return StreamFactory.DEFAULT;
     }
+    
+    <R> Stream<R> delegate(Spliterator<R> spliterator) {
+        return StreamSupport.stream(spliterator, stream.isParallel()).onClose(stream::close);
+    }
 
     abstract S supply(Stream<T> stream);
 
@@ -1155,8 +1159,7 @@ import static javax.util.streamex.StreamExInternals.*;
      * @since 0.3.2
      */
     public S skipOrdered(long n) {
-        Stream<T> result = stream.isParallel() ? StreamSupport.stream(StreamSupport.stream(stream.spliterator(), false)
-                .skip(n).spliterator(), true) : StreamSupport.stream(stream.skip(n).spliterator(), false);
-        return supply(result.onClose(stream::close));
+        return supply(delegate((stream.isParallel() ? StreamSupport.stream(stream.spliterator(), false) : stream).skip(
+            n).spliterator()));
     }
 }
