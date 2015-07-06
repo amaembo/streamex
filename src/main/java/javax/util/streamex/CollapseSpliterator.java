@@ -33,7 +33,7 @@ import static javax.util.streamex.StreamExInternals.*;
     private final Function<T, R> mapper;
     private final BiFunction<R, T, R> accumulator;
     private final BinaryOperator<R> combiner;
-    private final BiPredicate<T, T> mergeable;
+    private final BiPredicate<? super T, ? super T> mergeable;
     
     private static final class Connector<T, R> {
         CollapseSpliterator<T, R> lhs, rhs;
@@ -63,7 +63,7 @@ import static javax.util.streamex.StreamExInternals.*;
         }
     }
 
-    CollapseSpliterator(BiPredicate<T, T> mergeable, Function<T, R> mapper, BiFunction<R, T, R> accumulator,
+    CollapseSpliterator(BiPredicate<? super T, ? super T> mergeable, Function<T, R> mapper, BiFunction<R, T, R> accumulator,
             BinaryOperator<R> combiner, Spliterator<T> source) {
         this.source = source;
         this.mergeable = mergeable;

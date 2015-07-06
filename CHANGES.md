@@ -1,5 +1,10 @@
 # StreamEx changes
 
+### 0.3.5
+
+* Generic arguments relaxed for `StreamEx` methods: `forPairs`, `collapse`, `groupRuns`, `intervalMap`.
+* Added `MoreCollectors.minIndex/maxIndex` collectors.
+
 ### 0.3.4
 
 * Fixed: `EntryStream.of(List<T>)`, `EntryStream.of(T[])` and `StreamEx.runLengths` returned stream

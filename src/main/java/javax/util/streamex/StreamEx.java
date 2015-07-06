@@ -1057,9 +1057,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public <R> StreamEx<R> pairMap(BiFunction<? super T, ? super T, ? extends R> mapper) {
         return strategy().newStreamEx(
-            StreamSupport.stream(
-                new PairSpliterator.PSOfRef<T, R>(mapper, stream.spliterator()),
-                stream.isParallel()).onClose(stream::close));
+            StreamSupport.stream(new PairSpliterator.PSOfRef<T, R>(mapper, stream.spliterator()), stream.isParallel())
+                    .onClose(stream::close));
     }
 
     /**
@@ -1082,7 +1081,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *            a non-interfering action to perform on the elements
      * @since 0.2.2
      */
-    public void forPairs(BiConsumer<T, T> action) {
+    public void forPairs(BiConsumer<? super T, ? super T> action) {
         pairMap((a, b) -> {
             action.accept(a, b);
             return null;
@@ -1109,16 +1108,12 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return the new stream
      * @since 0.3.1
      */
-    public StreamEx<T> collapse(BiPredicate<T, T> collapsible, BinaryOperator<T> merger) {
+    public StreamEx<T> collapse(BiPredicate<? super T, ? super T> collapsible, BinaryOperator<T> merger) {
         return collapseInternal(collapsible, Function.identity(), merger, merger);
     }
 
-    private <R> StreamEx<R> collapseInternal(BiPredicate<T, T> collapsible, Function<T, R> mapper,
+    private <R> StreamEx<R> collapseInternal(BiPredicate<? super T, ? super T> collapsible, Function<T, R> mapper,
             BiFunction<R, T, R> accumulator, BinaryOperator<R> combiner) {
-        /*return strategy().newStreamEx(
-            StreamSupport.stream(
-                new CollapseSpliterator<>(collapsible, mapper, accumulator, combiner, stream.spliterator()),
-                stream.isParallel()).onClose(stream::close));*/
         return strategy().newStreamEx(
             StreamSupport.stream(
                 new CollapseSpliterator<>(collapsible, mapper, accumulator, combiner, stream.spliterator()),
@@ -1145,7 +1140,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return the new stream
      * @since 0.3.1
      */
-    public StreamEx<T> collapse(BiPredicate<T, T> collapsible) {
+    public StreamEx<T> collapse(BiPredicate<? super T, ? super T> collapsible) {
         return collapse(collapsible, selectFirst());
     }
 
@@ -1196,7 +1191,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return the new stream
      * @since 0.3.1
      */
-    public StreamEx<List<T>> groupRuns(BiPredicate<T, T> sameGroup) {
+    public StreamEx<List<T>> groupRuns(BiPredicate<? super T, ? super T> sameGroup) {
         return collapseInternal(sameGroup, Collections::singletonList, (acc, t) -> {
             if (!(acc instanceof ArrayList)) {
                 T old = acc.get(0);
@@ -1247,7 +1242,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see #groupRuns(BiPredicate)
      * @since 0.3.3
      */
-    public <U> StreamEx<U> intervalMap(BiPredicate<T, T> sameInterval, BiFunction<T, T, U> mapper) {
+    public <U> StreamEx<U> intervalMap(BiPredicate<? super T, ? super T> sameInterval,
+            BiFunction<? super T, ? super T, ? extends U> mapper) {
         return collapseInternal(sameInterval, PairBox::single, (box, t) -> {
             box.b = t;
             return box;
@@ -1355,7 +1351,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * Returns a sequential {@link StreamEx} created from given
      * {@link Spliterator}.
      *
-     * @param <T> the type of stream elements
+     * @param <T>
+     *            the type of stream elements
      * @param spliterator
      *            a spliterator to create the stream from.
      * @return the new stream
