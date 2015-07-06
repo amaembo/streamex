@@ -2,7 +2,7 @@
 
 ### 0.3.5
 
-* Generic arguments relaxed for `StreamEx` methods: `forPairs`, `collapse`, `groupRuns`, `intervalMap`.
+* Generic arguments relaxed for `StreamEx` methods: `forPairs`, `collapse`, `groupRuns`, `intervalMap`, `sortedBy`.
 * Added `MoreCollectors.minIndex/maxIndex` collectors.
 
 ### 0.3.4

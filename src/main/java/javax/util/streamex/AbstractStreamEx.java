@@ -423,7 +423,7 @@ import static javax.util.streamex.StreamExInternals.*;
      *            function to be used to extract sorting keys
      * @return the new stream
      */
-    public <V extends Comparable<? super V>> S sortedBy(Function<T, ? extends V> keyExtractor) {
+    public <V extends Comparable<? super V>> S sortedBy(Function<? super T, ? extends V> keyExtractor) {
         return sorted(Comparator.comparing(keyExtractor));
     }
 
