@@ -256,34 +256,6 @@ import static javax.util.streamex.StreamExInternals.*;
         }
     }
     
-    static final class OfCharSequence extends RangeBasedSpliterator<Integer, OfCharSequence> implements Spliterator.OfInt {
-        private final CharSequence seq;
-        
-        public OfCharSequence(CharSequence seq) {
-            super(0, seq.length());
-            this.seq = seq;
-        }
-        
-        @Override
-        public boolean tryAdvance(IntConsumer action) {
-            if (cur < limit) {
-                action.accept(seq.charAt(cur));
-                cur++;
-                return true;
-            }
-            return false;
-        }
-        
-        @Override
-        public void forEachRemaining(IntConsumer action) {
-            int l = limit, c = cur;
-            while (c < l) {
-                action.accept(seq.charAt(c++));
-            }
-            cur = limit;
-        }
-    }
-    
     static final class OfShort extends RangeBasedSpliterator<Integer, OfShort> implements Spliterator.OfInt {
         private final short[] array;
         
