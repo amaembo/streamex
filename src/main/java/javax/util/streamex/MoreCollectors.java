@@ -585,6 +585,18 @@ public final class MoreCollectors {
         return greatest(Comparator.<T> reverseOrder(), n);
     }
 
+    /**
+     * Returns a {@code Collector} which finds the index of the minimal stream
+     * element according to the specified {@link Comparator}. If there are
+     * several minimal elements, the index of the first one is returned.
+     *
+     * @param <T>
+     *            the type of the input elements
+     * @param comparator
+     *            a {@code Comparator} to compare the elements
+     * @return a {@code Collector} which finds the index of the minimal element.
+     * @see #minIndex()
+     */
     public static <T> Collector<T, ?, OptionalLong> minIndex(Comparator<? super T> comparator) {
         class Container {
             T value;
@@ -612,14 +624,46 @@ public final class MoreCollectors {
         return Collector.of(Container::new, accumulator, combiner, finisher);
     }
 
+    /**
+     * Returns a {@code Collector} which finds the index of the minimal stream
+     * element according to the elements natural order. If there are several
+     * minimal elements, the index of the first one is returned.
+     *
+     * @param <T>
+     *            the type of the input elements
+     * @return a {@code Collector} which finds the index of the minimal element.
+     * @see #minIndex(Comparator)
+     */
     public static <T extends Comparable<? super T>> Collector<T, ?, OptionalLong> minIndex() {
         return minIndex(Comparator.naturalOrder());
     }
 
+    /**
+     * Returns a {@code Collector} which finds the index of the maximal stream
+     * element according to the specified {@link Comparator}. If there are
+     * several maximal elements, the index of the first one is returned.
+     *
+     * @param <T>
+     *            the type of the input elements
+     * @param comparator
+     *            a {@code Comparator} to compare the elements
+     * @return a {@code Collector} which finds the index of the maximal element.
+     * @see #maxIndex()
+     */
     public static <T> Collector<T, ?, OptionalLong> maxIndex(Comparator<? super T> comparator) {
         return minIndex(comparator.reversed());
     }
 
+    /**
+     * Returns a {@code Collector} which finds the index of the maximal stream
+     * element according to the elements natural order. If there are several
+     * maximal elements, the index of the first one is returned.
+     *
+     * @param <T>
+     *            the type of the input elements
+     * @return a {@code Collector} which finds the index of the maximal element.
+     * @see #maxIndex(Comparator)
+     */
     public static <T extends Comparable<? super T>> Collector<T, ?, OptionalLong> maxIndex() {
         return minIndex(Comparator.reverseOrder());
     }
