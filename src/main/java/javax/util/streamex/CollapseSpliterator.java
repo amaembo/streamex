@@ -28,6 +28,7 @@ import static javax.util.streamex.StreamExInternals.*;
     private final Spliterator<T> source;
     private final CollapseSpliterator<T, R> root; // used as lock
     private T cur = none();
+    private R acc;
     private volatile Connector<T, R> left;
     private volatile Connector<T, R> right;
     private final Function<T, R> mapper;
@@ -129,17 +130,17 @@ import static javax.util.streamex.StreamExInternals.*;
                 return;
             }
         }
-        Box<R> c = new Box<>(mapper.apply(cur));
+        acc = mapper.apply(cur);
         source.forEachRemaining(next -> {
             if(!this.mergeable.test(cur, next)) {
-                action.accept(c.a);
-                c.a = mapper.apply(next);
+                action.accept(acc);
+                acc = mapper.apply(next);
             } else {
-                c.a = accumulator.apply(c.a, next);
+                acc = accumulator.apply(acc, next);
             }
             cur = next;
         });
-        if(accept(pushRight(c.a, cur), action)) {
+        if(accept(pushRight(acc, cur), action)) {
             if(right != null) {
                 action.accept(right.acc);
                 right = null;
