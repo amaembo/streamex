@@ -1684,9 +1684,9 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.1.2
      */
     public static <T> StreamEx<T> constant(T value, long length) {
-        return new StreamEx<>(Stream.generate(() -> value).limit(length));
+        return of(new ConstantSpliterator.ConstRef<>(value, length));
     }
-
+    
     /**
      * Returns a sequential {@code StreamEx} containing the results of applying
      * the given function to the corresponding pairs of values in given two

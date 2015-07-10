@@ -1774,7 +1774,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.2
      */
     public static IntStreamEx constant(int value, long length) {
-        return new IntStreamEx(IntStream.generate(() -> value).limit(length));
+        return of(new ConstantSpliterator.ConstInt(value, length));
     }
 
     /**

@@ -1222,7 +1222,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.1.2
      */
     public static LongStreamEx constant(long value, long length) {
-        return new LongStreamEx(LongStream.generate(() -> value).limit(length));
+        return of(new ConstantSpliterator.ConstLong(value, length));
     }
 
     /**

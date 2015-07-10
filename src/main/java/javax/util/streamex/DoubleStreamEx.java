@@ -1199,7 +1199,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.1.2
      */
     public static DoubleStreamEx constant(double value, long length) {
-        return new DoubleStreamEx(DoubleStream.generate(() -> value).limit(length));
+        return of(new ConstantSpliterator.ConstDouble(value, length));
     }
 
     /**
