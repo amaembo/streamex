@@ -1158,4 +1158,9 @@ public class StreamExTest {
     public void testSubListsArg() {
         StreamEx.ofSubLists(Collections.emptyList(), 0);
     }
+    
+    @Test
+    public void testTakeWhile() {
+        System.out.println(StreamEx.of("aaa", "b", "cccc").takeWhile(x -> x.length() > 1).toList());
+    }
 }

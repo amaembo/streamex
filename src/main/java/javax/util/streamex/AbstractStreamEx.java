@@ -1162,4 +1162,34 @@ import static javax.util.streamex.StreamExInternals.*;
         return supply(delegate((stream.isParallel() ? StreamSupport.stream(stream.spliterator(), false) : stream).skip(
             n).spliterator()));
     }
+    
+    public S takeWhile(Predicate<? super T> predicate) {
+        Objects.requireNonNull(predicate);
+        if(IS_JDK9 && JDK9_METHODS[IDX_STREAM] != null) {
+            try {
+                return supply((Stream<T>)JDK9_METHODS[IDX_STREAM][IDX_TAKE_WHILE].invokeExact(stream, predicate));
+            } catch(Error|RuntimeException e) {
+                throw e;
+            } catch (Throwable e) {
+                throw new InternalError(e);
+            }
+        }
+        // TODO
+        throw new UnsupportedOperationException();
+    }
+    
+    public S dropWhile(Predicate<? super T> predicate) {
+        Objects.requireNonNull(predicate);
+        if(IS_JDK9 && JDK9_METHODS[IDX_STREAM] != null) {
+            try {
+                return supply((Stream<T>)JDK9_METHODS[IDX_STREAM][IDX_DROP_WHILE].invokeExact(stream, predicate));
+            } catch(Error|RuntimeException e) {
+                throw e;
+            } catch (Throwable e) {
+                throw new InternalError(e);
+            }
+        }
+        // TODO
+        throw new UnsupportedOperationException();
+    }
 }

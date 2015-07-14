@@ -15,6 +15,10 @@
  */
 package javax.util.streamex;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.lang.invoke.MethodHandles.Lookup;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.Arrays;
@@ -28,12 +32,19 @@ import java.util.Set;
 import java.util.Map.Entry;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
+import java.util.function.DoublePredicate;
 import java.util.function.Function;
+import java.util.function.IntPredicate;
+import java.util.function.LongPredicate;
 import java.util.function.ObjDoubleConsumer;
 import java.util.function.ObjIntConsumer;
 import java.util.function.ObjLongConsumer;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collector.Characteristics;
+import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
 /* package */final class StreamExInternals {
@@ -49,7 +60,34 @@ import java.util.stream.Stream;
     static final Object NONE = new Object();
     static final Set<Characteristics> NO_CHARACTERISTICS = EnumSet.noneOf(Characteristics.class);
     static final Set<Characteristics> ID_CHARACTERISTICS = EnumSet.of(Characteristics.IDENTITY_FINISH);
+    static final MethodHandle[][] JDK9_METHODS;
+    static final int IDX_STREAM = 0;
+    static final int IDX_INT_STREAM = 1;
+    static final int IDX_LONG_STREAM = 2;
+    static final int IDX_DOUBLE_STREAM = 3;
+    static final int IDX_TAKE_WHILE = 0;
+    static final int IDX_DROP_WHILE = 1;
 
+    static {
+        Lookup lookup = MethodHandles.publicLookup();
+        MethodType[] types = {MethodType.methodType(Stream.class, Predicate.class),
+                MethodType.methodType(IntStream.class, IntPredicate.class),
+                MethodType.methodType(LongStream.class, LongPredicate.class),
+                MethodType.methodType(DoubleStream.class, DoublePredicate.class)};
+        JDK9_METHODS = new MethodHandle[types.length][];
+        try {
+            int i=0;
+            for(MethodType type : types) {
+                JDK9_METHODS[i++] = new MethodHandle[] {
+                        lookup.findVirtual(type.returnType(), "takeWhile", type),
+                        lookup.findVirtual(type.returnType(), "dropWhile", type)
+                };
+            }
+        } catch (NoSuchMethodException | IllegalAccessException e) {
+            // ignore
+        }
+    }
+    
     static final class ByteBuffer {
         int size = 0;
         byte[] data;
