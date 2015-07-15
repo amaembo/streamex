@@ -49,8 +49,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.util.streamex.TestHelpers.StreamExSupplier;
-
 import org.junit.Test;
 
 import static javax.util.streamex.TestHelpers.*;
