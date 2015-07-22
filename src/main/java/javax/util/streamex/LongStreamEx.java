@@ -635,7 +635,18 @@ public class LongStreamEx implements LongStream {
      * @since 0.1.2
      */
     public OptionalLong minByInt(LongToIntFunction keyExtractor) {
-        return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? b : a);
+        return collect(PrimitiveBox::new, (box, l) -> {
+            int key = keyExtractor.applyAsInt(l);
+            if(!box.b || box.i > key) {
+                box.b = true;
+                box.i = key;
+                box.l = l;
+            }
+        }, (box1, box2) -> {
+            if(box2.b && (!box1.b || box1.i > box2.i)) {
+                box1.from(box2);
+            }
+        }).asLong();
     }
 
     /**
@@ -653,7 +664,18 @@ public class LongStreamEx implements LongStream {
      * @since 0.1.2
      */
     public OptionalLong minByLong(LongUnaryOperator keyExtractor) {
-        return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? b : a);
+        long[] result = collect(() -> new long[3], (acc, l) -> {
+            long key = keyExtractor.applyAsLong(l);
+            if(acc[2] == 0 || acc[1] > key) {
+                acc[0] = l;
+                acc[1] = key;
+                acc[2] = 1;
+            }
+        }, (acc1, acc2) -> {
+            if(acc2[2] == 1 && (acc1[2] == 0 || acc1[1] > acc2[1]))
+                System.arraycopy(acc2, 0, acc1, 0, 3);
+        });
+        return result[2] == 1 ? OptionalLong.of(result[0]) : OptionalLong.empty();
     }
 
     /**
@@ -671,8 +693,18 @@ public class LongStreamEx implements LongStream {
      * @since 0.1.2
      */
     public OptionalLong minByDouble(LongToDoubleFunction keyExtractor) {
-        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? b
-                : a);
+        return collect(PrimitiveBox::new, (box, l) -> {
+            double key = keyExtractor.applyAsDouble(l);
+            if(!box.b || Double.compare(box.d, key) > 0) {
+                box.b = true;
+                box.d = key;
+                box.l = l;
+            }
+        }, (box1, box2) -> {
+            if(box2.b && (!box1.b || Double.compare(box1.d, box2.d) > 0)) {
+                box1.from(box2);
+            }
+        }).asLong();
     }
 
     @Override
@@ -744,7 +776,18 @@ public class LongStreamEx implements LongStream {
      * @since 0.1.2
      */
     public OptionalLong maxByInt(LongToIntFunction keyExtractor) {
-        return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) >= 0 ? a : b);
+        return collect(PrimitiveBox::new, (box, l) -> {
+            int key = keyExtractor.applyAsInt(l);
+            if(!box.b || box.i < key) {
+                box.b = true;
+                box.i = key;
+                box.l = l;
+            }
+        }, (box1, box2) -> {
+            if(box2.b && (!box1.b || box1.i < box2.i)) {
+                box1.from(box2);
+            }
+        }).asLong();
     }
 
     /**
@@ -762,7 +805,19 @@ public class LongStreamEx implements LongStream {
      * @since 0.1.2
      */
     public OptionalLong maxByLong(LongUnaryOperator keyExtractor) {
-        return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) >= 0 ? a : b);
+        long[] result = collect(() -> new long[3], (acc, l) -> {
+            long key = keyExtractor.applyAsLong(l);
+            if(acc[2] == 0 || acc[1] < key) {
+                acc[0] = l;
+                acc[1] = key;
+                acc[2] = 1;
+            }
+        }, (acc1, acc2) -> {
+            if(acc2[2] == 1 && (acc1[2] == 0 || acc1[1] < acc2[1]))
+                System.arraycopy(acc2, 0, acc1, 0, 3);
+        });
+        return result[2] == 1 ? OptionalLong.of(result[0]) : OptionalLong.empty();
+
     }
 
     /**
@@ -780,8 +835,18 @@ public class LongStreamEx implements LongStream {
      * @since 0.1.2
      */
     public OptionalLong maxByDouble(LongToDoubleFunction keyExtractor) {
-        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) >= 0 ? a
-                : b);
+        return collect(PrimitiveBox::new, (box, l) -> {
+            double key = keyExtractor.applyAsDouble(l);
+            if(!box.b || Double.compare(box.d, key) < 0) {
+                box.b = true;
+                box.d = key;
+                box.l = l;
+            }
+        }, (box1, box2) -> {
+            if(box2.b && (!box1.b || Double.compare(box1.d, box2.d) < 0)) {
+                box1.from(box2);
+            }
+        }).asLong();
     }
 
     @Override

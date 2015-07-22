@@ -630,7 +630,18 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.1.2
      */
     public OptionalDouble minByInt(DoubleToIntFunction keyExtractor) {
-        return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) > 0 ? b : a);
+        return collect(PrimitiveBox::new, (box, d) -> {
+            int key = keyExtractor.applyAsInt(d);
+            if (!box.b || box.i > key) {
+                box.b = true;
+                box.i = key;
+                box.d = d;
+            }
+        }, (box1, box2) -> {
+            if (box2.b && (!box1.b || box1.i > box2.i)) {
+                box1.from(box2);
+            }
+        }).asDouble();
     }
 
     /**
@@ -648,7 +659,18 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.1.2
      */
     public OptionalDouble minByLong(DoubleToLongFunction keyExtractor) {
-        return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) > 0 ? b : a);
+        return collect(PrimitiveBox::new, (box, d) -> {
+            long key = keyExtractor.applyAsLong(d);
+            if (!box.b || box.l > key) {
+                box.b = true;
+                box.l = key;
+                box.d = d;
+            }
+        }, (box1, box2) -> {
+            if (box2.b && (!box1.b || box1.l > box2.l)) {
+                box1.from(box2);
+            }
+        }).asDouble();
     }
 
     /**
@@ -666,8 +688,18 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.1.2
      */
     public OptionalDouble minByDouble(DoubleUnaryOperator keyExtractor) {
-        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) > 0 ? b
-                : a);
+        double[] result = collect(() -> new double[3], (acc, d) -> {
+            double key = keyExtractor.applyAsDouble(d);
+            if (acc[2] == 0 || Double.compare(acc[1], key) > 0) {
+                acc[0] = d;
+                acc[1] = key;
+                acc[2] = 1;
+            }
+        }, (acc1, acc2) -> {
+            if (acc2[2] == 1 && (acc1[2] == 0 || Double.compare(acc1[1], acc2[1]) > 0))
+                System.arraycopy(acc2, 0, acc1, 0, 3);
+        });
+        return result[2] == 1 ? OptionalDouble.of(result[0]) : OptionalDouble.empty();
     }
 
     @Override
@@ -739,7 +771,18 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.1.2
      */
     public OptionalDouble maxByInt(DoubleToIntFunction keyExtractor) {
-        return reduce((a, b) -> Integer.compare(keyExtractor.applyAsInt(a), keyExtractor.applyAsInt(b)) >= 0 ? a : b);
+        return collect(PrimitiveBox::new, (box, d) -> {
+            int key = keyExtractor.applyAsInt(d);
+            if (!box.b || box.i < key) {
+                box.b = true;
+                box.i = key;
+                box.d = d;
+            }
+        }, (box1, box2) -> {
+            if (box2.b && (!box1.b || box1.i < box2.i)) {
+                box1.from(box2);
+            }
+        }).asDouble();
     }
 
     /**
@@ -757,7 +800,18 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.1.2
      */
     public OptionalDouble maxByLong(DoubleToLongFunction keyExtractor) {
-        return reduce((a, b) -> Long.compare(keyExtractor.applyAsLong(a), keyExtractor.applyAsLong(b)) >= 0 ? a : b);
+        return collect(PrimitiveBox::new, (box, d) -> {
+            long key = keyExtractor.applyAsLong(d);
+            if (!box.b || box.l < key) {
+                box.b = true;
+                box.l = key;
+                box.d = d;
+            }
+        }, (box1, box2) -> {
+            if (box2.b && (!box1.b || box1.l < box2.l)) {
+                box1.from(box2);
+            }
+        }).asDouble();
     }
 
     /**
@@ -775,8 +829,18 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.1.2
      */
     public OptionalDouble maxByDouble(DoubleUnaryOperator keyExtractor) {
-        return reduce((a, b) -> Double.compare(keyExtractor.applyAsDouble(a), keyExtractor.applyAsDouble(b)) >= 0 ? a
-                : b);
+        double[] result = collect(() -> new double[3], (acc, d) -> {
+            double key = keyExtractor.applyAsDouble(d);
+            if (acc[2] == 0 || Double.compare(acc[1], key) < 0) {
+                acc[0] = d;
+                acc[1] = key;
+                acc[2] = 1;
+            }
+        }, (acc1, acc2) -> {
+            if (acc2[2] == 1 && (acc1[2] == 0 || Double.compare(acc1[1], acc2[1]) < 0))
+                System.arraycopy(acc2, 0, acc1, 0, 3);
+        });
+        return result[2] == 1 ? OptionalDouble.of(result[0]) : OptionalDouble.empty();
     }
 
     @Override
