@@ -24,6 +24,9 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.Set;
 import java.util.Map.Entry;
 import java.util.function.BiConsumer;
@@ -638,6 +641,32 @@ import java.util.stream.Stream;
         ObjDoubleBox(A a, double b) {
             super(a);
             this.b = b;
+        }
+    }
+    
+    static final class PrimitiveBox {
+        int i;
+        double d;
+        long l;
+        boolean b;
+        
+        OptionalInt asInt() {
+            return b ? OptionalInt.of(i) : OptionalInt.empty();
+        }
+
+        OptionalLong asLong() {
+            return b ? OptionalLong.of(l) : OptionalLong.empty();
+        }
+
+        OptionalDouble asDouble() {
+            return b ? OptionalDouble.of(d) : OptionalDouble.empty();
+        }
+
+        public void from(PrimitiveBox box) {
+            b = box.b;
+            i = box.i;
+            d = box.d;
+            l = box.l;
         }
     }
     
