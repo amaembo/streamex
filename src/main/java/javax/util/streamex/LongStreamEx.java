@@ -486,10 +486,10 @@ public class LongStreamEx implements LongStream {
      * @since 0.3.2
      */
     public LongStreamEx skipOrdered(long n) {
-        LongStream result = stream.isParallel() ? StreamSupport.longStream(
-            StreamSupport.longStream(stream.spliterator(), false).skip(n).spliterator(), true) : StreamSupport
-                .longStream(stream.skip(n).spliterator(), false);
-        return strategy().newLongStreamEx(result.onClose(stream::close));
+        Spliterator.OfLong spliterator = (stream.isParallel() ? StreamSupport.longStream(stream.spliterator(), false)
+                : stream).skip(n).spliterator();
+        return strategy().newLongStreamEx(
+            StreamSupport.longStream(spliterator, stream.isParallel()).onClose(stream::close));
     }
 
     @Override
@@ -637,13 +637,13 @@ public class LongStreamEx implements LongStream {
     public OptionalLong minByInt(LongToIntFunction keyExtractor) {
         return collect(PrimitiveBox::new, (box, l) -> {
             int key = keyExtractor.applyAsInt(l);
-            if(!box.b || box.i > key) {
+            if (!box.b || box.i > key) {
                 box.b = true;
                 box.i = key;
                 box.l = l;
             }
         }, (box1, box2) -> {
-            if(box2.b && (!box1.b || box1.i > box2.i)) {
+            if (box2.b && (!box1.b || box1.i > box2.i)) {
                 box1.from(box2);
             }
         }).asLong();
@@ -666,13 +666,13 @@ public class LongStreamEx implements LongStream {
     public OptionalLong minByLong(LongUnaryOperator keyExtractor) {
         long[] result = collect(() -> new long[3], (acc, l) -> {
             long key = keyExtractor.applyAsLong(l);
-            if(acc[2] == 0 || acc[1] > key) {
+            if (acc[2] == 0 || acc[1] > key) {
                 acc[0] = l;
                 acc[1] = key;
                 acc[2] = 1;
             }
         }, (acc1, acc2) -> {
-            if(acc2[2] == 1 && (acc1[2] == 0 || acc1[1] > acc2[1]))
+            if (acc2[2] == 1 && (acc1[2] == 0 || acc1[1] > acc2[1]))
                 System.arraycopy(acc2, 0, acc1, 0, 3);
         });
         return result[2] == 1 ? OptionalLong.of(result[0]) : OptionalLong.empty();
@@ -695,13 +695,13 @@ public class LongStreamEx implements LongStream {
     public OptionalLong minByDouble(LongToDoubleFunction keyExtractor) {
         return collect(PrimitiveBox::new, (box, l) -> {
             double key = keyExtractor.applyAsDouble(l);
-            if(!box.b || Double.compare(box.d, key) > 0) {
+            if (!box.b || Double.compare(box.d, key) > 0) {
                 box.b = true;
                 box.d = key;
                 box.l = l;
             }
         }, (box1, box2) -> {
-            if(box2.b && (!box1.b || Double.compare(box1.d, box2.d) > 0)) {
+            if (box2.b && (!box1.b || Double.compare(box1.d, box2.d) > 0)) {
                 box1.from(box2);
             }
         }).asLong();
@@ -778,13 +778,13 @@ public class LongStreamEx implements LongStream {
     public OptionalLong maxByInt(LongToIntFunction keyExtractor) {
         return collect(PrimitiveBox::new, (box, l) -> {
             int key = keyExtractor.applyAsInt(l);
-            if(!box.b || box.i < key) {
+            if (!box.b || box.i < key) {
                 box.b = true;
                 box.i = key;
                 box.l = l;
             }
         }, (box1, box2) -> {
-            if(box2.b && (!box1.b || box1.i < box2.i)) {
+            if (box2.b && (!box1.b || box1.i < box2.i)) {
                 box1.from(box2);
             }
         }).asLong();
@@ -807,13 +807,13 @@ public class LongStreamEx implements LongStream {
     public OptionalLong maxByLong(LongUnaryOperator keyExtractor) {
         long[] result = collect(() -> new long[3], (acc, l) -> {
             long key = keyExtractor.applyAsLong(l);
-            if(acc[2] == 0 || acc[1] < key) {
+            if (acc[2] == 0 || acc[1] < key) {
                 acc[0] = l;
                 acc[1] = key;
                 acc[2] = 1;
             }
         }, (acc1, acc2) -> {
-            if(acc2[2] == 1 && (acc1[2] == 0 || acc1[1] < acc2[1]))
+            if (acc2[2] == 1 && (acc1[2] == 0 || acc1[1] < acc2[1]))
                 System.arraycopy(acc2, 0, acc1, 0, 3);
         });
         return result[2] == 1 ? OptionalLong.of(result[0]) : OptionalLong.empty();
@@ -837,13 +837,13 @@ public class LongStreamEx implements LongStream {
     public OptionalLong maxByDouble(LongToDoubleFunction keyExtractor) {
         return collect(PrimitiveBox::new, (box, l) -> {
             double key = keyExtractor.applyAsDouble(l);
-            if(!box.b || Double.compare(box.d, key) < 0) {
+            if (!box.b || Double.compare(box.d, key) < 0) {
                 box.b = true;
                 box.d = key;
                 box.l = l;
             }
         }, (box1, box2) -> {
-            if(box2.b && (!box1.b || Double.compare(box1.d, box2.d) < 0)) {
+            if (box2.b && (!box1.b || Double.compare(box1.d, box2.d) < 0)) {
                 box1.from(box2);
             }
         }).asLong();

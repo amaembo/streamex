@@ -455,10 +455,10 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.3.2
      */
     public DoubleStreamEx skipOrdered(long n) {
-        DoubleStream result = stream.isParallel() ? StreamSupport.doubleStream(
-            StreamSupport.doubleStream(stream.spliterator(), false).skip(n).spliterator(), true) : StreamSupport
-                .doubleStream(stream.skip(n).spliterator(), false);
-        return strategy().newDoubleStreamEx(result.onClose(stream::close));
+        Spliterator.OfDouble spliterator = (stream.isParallel() ? StreamSupport.doubleStream(stream.spliterator(),
+            false) : stream).skip(n).spliterator();
+        return strategy().newDoubleStreamEx(
+            StreamSupport.doubleStream(spliterator, stream.isParallel()).onClose(stream::close));
     }
 
     @Override

@@ -507,10 +507,10 @@ public class IntStreamEx implements IntStream {
      * @since 0.3.2
      */
     public IntStreamEx skipOrdered(long n) {
-        IntStream result = stream.isParallel() ? StreamSupport.intStream(
-            StreamSupport.intStream(stream.spliterator(), false).skip(n).spliterator(), true) : StreamSupport
-                .intStream(stream.skip(n).spliterator(), false);
-        return strategy().newIntStreamEx(result.onClose(stream::close));
+        Spliterator.OfInt spliterator = (stream.isParallel() ? StreamSupport.intStream(stream.spliterator(),
+            false) : stream).skip(n).spliterator();
+        return strategy().newIntStreamEx(
+            StreamSupport.intStream(spliterator, stream.isParallel()).onClose(stream::close));
     }
 
     @Override
