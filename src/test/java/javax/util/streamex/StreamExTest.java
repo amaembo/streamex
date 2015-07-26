@@ -1019,6 +1019,27 @@ public class StreamExTest {
         assertEquals(expected, res1p);
     }
 
+    @Test
+    public void testGroupRunsSeparated() {
+        List<String> input = Arrays.asList("a", "b", null, "c", null, "d", "e");
+        for(StreamExSupplier<String> supplier : streamEx(input::stream)) {
+            assertEquals(supplier.toString(), Arrays.asList(Arrays.asList("a", "b"), Arrays.asList("c"), Arrays.asList("d", "e")),
+                supplier.get().groupRuns((a, b) -> a != null && b != null).remove(list -> list.get(0) == null).toList());
+        }
+    }
+
+    @Test
+    public void testGroupRunsByStart() {
+        List<String> input = Arrays.asList("str1","str2", "START: str3", "str4", "START: str5", "START: str6", "START: str7", "str8", "str9");
+        Pattern start = Pattern.compile("^START:");
+        for(StreamExSupplier<String> supplier : streamEx(input::stream)) {
+            assertEquals(supplier.toString(), Arrays.asList(Arrays.asList("str1", "str2"), 
+                Arrays.asList("START: str3", "str4"), Arrays.asList("START: str5"),
+                Arrays.asList("START: str6"),Arrays.asList("START: str7", "str8", "str9")),
+                supplier.get().groupRuns((a, b) -> !start.matcher(b).find()).toList());
+        }
+    }
+
     private String format(StreamEx<Integer> ints) {
         return ints
                 .distinct()
