@@ -1174,8 +1174,7 @@ import static javax.util.streamex.StreamExInternals.*;
                 throw new InternalError(e);
             }
         }
-        // TODO
-        throw new UnsupportedOperationException();
+        return supply(delegate(new TakeDropSpliterators.TDOfRef<>(stream.spliterator(), false, predicate)));
     }
     
     public S dropWhile(Predicate<? super T> predicate) {
@@ -1189,7 +1188,6 @@ import static javax.util.streamex.StreamExInternals.*;
                 throw new InternalError(e);
             }
         }
-        // TODO
-        throw new UnsupportedOperationException();
+        return supply(delegate(new TakeDropSpliterators.TDOfRef<>(stream.spliterator(), true, predicate)));
     }
 }
