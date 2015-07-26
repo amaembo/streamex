@@ -27,7 +27,7 @@ final class TakeDropSpliterators {
     static final class TDOfRef<T> extends AbstractSpliterator<T> implements Consumer<T> {
         private final Predicate<? super T> predicate;
         private final boolean drop;
-        private boolean checked = false;
+        private boolean checked;
         private final Spliterator<T> source;
         private T cur;
 
@@ -47,6 +47,7 @@ final class TakeDropSpliterators {
             if(drop) {
                 while(source.tryAdvance(this)) {
                     if(!predicate.test(cur)) {
+                        checked = true;
                         action.accept(cur);
                         return true;
                     }
