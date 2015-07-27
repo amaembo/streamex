@@ -1183,6 +1183,7 @@ public class StreamExTest {
     @Test
     public void testTakeWhile() {
         assertEquals(Arrays.asList("aaa"), StreamEx.of("aaa", "b", "cccc").takeWhile(x -> x.length() > 1).toList());
+        assertEquals(Arrays.asList("aaa"), StreamEx.of("aaa", "b", "cccc").sorted().takeWhile(x -> x.length() > 1).toList());
         assertEquals(Arrays.asList("aaa", "b", "cccc"), StreamEx.of("aaa", "b", "cccc").takeWhile(x -> x.length() > 0).toList());
         assertEquals(Collections.emptyList(), StreamEx.of("aaa", "b", "cccc").takeWhile(x -> x.length() > 5).toList());
     }

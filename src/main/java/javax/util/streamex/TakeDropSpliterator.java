@@ -15,6 +15,7 @@
  */
 package javax.util.streamex;
 
+import java.util.Comparator;
 import java.util.Spliterator;
 import java.util.Spliterators.AbstractDoubleSpliterator;
 import java.util.Spliterators.AbstractIntSpliterator;
@@ -45,6 +46,11 @@ import java.util.function.Predicate;
             this.drop = drop;
             this.predicate = predicate;
             this.source = source;
+        }
+
+        @Override
+        public Comparator<? super T> getComparator() {
+            return source.getComparator();
         }
 
         @Override
@@ -94,6 +100,11 @@ import java.util.function.Predicate;
         }
         
         @Override
+        public Comparator<? super Integer> getComparator() {
+            return source.getComparator();
+        }
+
+        @Override
         public boolean tryAdvance(IntConsumer action) {
             if(checked) {
                 if(!drop) return false;
@@ -140,6 +151,11 @@ import java.util.function.Predicate;
         }
         
         @Override
+        public Comparator<? super Long> getComparator() {
+            return source.getComparator();
+        }
+
+        @Override
         public boolean tryAdvance(LongConsumer action) {
             if(checked) {
                 if(!drop) return false;
@@ -185,6 +201,11 @@ import java.util.function.Predicate;
             this.source = source;
         }
         
+        @Override
+        public Comparator<? super Double> getComparator() {
+            return source.getComparator();
+        }
+
         @Override
         public boolean tryAdvance(DoubleConsumer action) {
             if(checked) {
