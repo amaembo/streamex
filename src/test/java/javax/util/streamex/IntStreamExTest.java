@@ -168,6 +168,8 @@ public class IntStreamExTest {
         double[] fractions = IntStreamEx.range(1, 5)
                 .flatMapToDouble(i -> IntStreamEx.range(1, i).mapToDouble(j -> ((double) j) / i)).toArray();
         assertArrayEquals(new double[] { 1 / 2.0, 1 / 3.0, 2 / 3.0, 1 / 4.0, 2 / 4.0, 3 / 4.0 }, fractions, 0.000001);
+        
+        assertArrayEquals(new int[] {0, 0, 1, 0, 1, 2}, IntStreamEx.of(1, 2, 3).flatMap(IntStreamEx::range).toArray());
     }
 
     @Test

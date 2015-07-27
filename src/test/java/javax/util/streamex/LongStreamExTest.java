@@ -97,6 +97,14 @@ public class LongStreamExTest {
         assertTrue(LongStreamEx.of(1, 2, 3).spliterator().hasCharacteristics(Spliterator.ORDERED));
         assertFalse(LongStreamEx.of(1, 2, 3).unordered().spliterator().hasCharacteristics(Spliterator.ORDERED));
     }
+    
+    @Test
+    public void testFlatMap() {
+        assertArrayEquals(new long[] {0, 0, 1, 0, 1, 2}, LongStreamEx.of(1, 2, 3).flatMap(LongStreamEx::range).toArray());
+        assertArrayEquals(new int[] { 1, 5, 1, 4, 2, 0, 9, 2, 2, 3, 3, 7, 2, 0, 3, 6, 8, 5, 4, 7, 7, 5, 8, 0, 7 },
+            LongStreamEx.of(15, 14, 20, Long.MAX_VALUE).flatMapToInt(n -> String.valueOf(n).chars().map(x -> x - '0'))
+                    .toArray());
+    }
 
     @Test
     public void testPrepend() {

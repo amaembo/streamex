@@ -133,6 +133,9 @@ public class DoubleStreamExTest {
         assertEquals("1:.:5:2:2:.:3:3:.:2:0:.:9",
             DoubleStreamEx.of(1.5, 22.3, 3.2, 0.9).flatMapToObj(x -> StreamEx.split(String.valueOf(x), ""))
                     .joining(":"));
+        
+        assertArrayEquals(new double[] { 0.0, 0.0, 1.0, 0.0, 1.0, 2.0 },
+            DoubleStreamEx.of(1, 2, 3).flatMap(x -> IntStreamEx.range((int) x).asDoubleStream()).toArray(), 0.0);
     }
 
     @Test
