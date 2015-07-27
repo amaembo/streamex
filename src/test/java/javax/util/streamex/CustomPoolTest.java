@@ -68,11 +68,30 @@ public class CustomPoolTest {
             StreamEx.of("a", "b", "c").parallel(pool).peek(this::checkThread).toArray(String[]::new));
         assertArrayEquals(new Object[] { "a", "b", "c" },
             StreamEx.of("a", "b", "c").parallel(pool).peek(this::checkThread).toArray());
-        assertEquals("{ccc={bb={a={}}}}", StreamEx.of("a", "bb", "ccc").parallel(pool).peek(this::checkThread)
-                .foldLeft(Collections.emptyMap(), (Map<String, Object> acc, String v) -> Collections.singletonMap(v, acc)).toString());
+        assertEquals(
+            "{ccc={bb={a={}}}}",
+            StreamEx.of("a", "bb", "ccc")
+                    .parallel(pool)
+                    .peek(this::checkThread)
+                    .foldLeft(Collections.emptyMap(),
+                        (Map<String, Object> acc, String v) -> Collections.singletonMap(v, acc)).toString());
         assertEquals(1000,
             IntStreamEx.constant(1, 1000).boxed().parallel(pool).peek(this::checkThread).foldLeft(0, Integer::sum)
                     .intValue());
+
+        assertEquals(2,
+            StreamEx.of("aa", "bbb", "cccc").parallel(pool).peek(this::checkThread).filter(x -> x.length() > 2).count());
+        assertEquals(
+            "bbbcccc",
+            StreamEx.of("aa", "bbb", "cccc").parallel(pool).peek(this::checkThread).filter(x -> x.length() > 2)
+                    .reduce(String::concat).get());
+        assertEquals(
+            "bbbcccc",
+            StreamEx.of("aa", "bbb", "cccc").parallel(pool).peek(this::checkThread).filter(x -> x.length() > 2)
+                    .reduce("", String::concat));
+        assertEquals(7,
+            (int) StreamEx.of("aa", "bbb", "cccc").parallel(pool).peek(this::checkThread).filter(x -> x.length() > 2)
+                    .reduce(0, (x, s) -> x + s.length(), Integer::sum));
     }
 
     @Test
@@ -89,6 +108,9 @@ public class CustomPoolTest {
         assertTrue(EntryStream.of("a", 1).parallel(pool).peek(this::checkThread).allMatch(e -> e.getKey().equals("a")));
         assertFalse(EntryStream.of("a", 1).parallel(pool).peek(this::checkThread)
                 .noneMatch(e -> e.getKey().equals("a")));
+        assertEquals(2,
+            EntryStream.of("a", 1, "b", 2, "c", 3).parallel(pool).filterValues(v -> v > 1).peek(this::checkThread)
+                    .count());
     }
 
     @Test
