@@ -1,5 +1,11 @@
 # StreamEx changes
 
+### 0.3.6
+
+* Added `StreamEx.collapse(Predicate, Collector)` operation.
+* Optimized: `minBy*/maxBy*` methods for primitive streams now call keyExtractor function at most once per element.
+* Updated documentation
+
 ### 0.3.5
 
 * Generic arguments relaxed for `StreamEx` methods: `forPairs`, `collapse`, `groupRuns`, `intervalMap`, `sortedBy`.

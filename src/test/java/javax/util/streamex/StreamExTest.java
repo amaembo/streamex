@@ -87,7 +87,7 @@ public class StreamExTest {
             StreamEx.zip(Arrays.asList("a", "b", "c"), Arrays.asList(1, 2, 3), (s, i) -> s + i).toList());
         assertEquals(Arrays.asList("a1", "b2", "c3"),
             StreamEx.zip(new String[] { "a", "b", "c" }, new Integer[] { 1, 2, 3 }, (s, i) -> s + i).toList());
-        
+
         assertEquals(Arrays.asList("a", "b"), StreamEx.of(Arrays.asList("a", "b").spliterator()).toList());
     }
 
@@ -457,18 +457,19 @@ public class StreamExTest {
         assertEquals("abc", StreamEx.of("a", "b", "c").joining());
         assertEquals("a,b,c", StreamEx.of("a", "b", "c").joining(","));
         assertEquals("[1;2;3]", StreamEx.of(1, 2, 3).joining(";", "[", "]"));
-        
+
         Random r = new Random(1);
         List<Integer> input1 = IntStreamEx.of(r, 1000, 0, 1000).boxed().toList();
         List<String> input2 = IntStreamEx.of(r, 1000, 0, 1000).mapToObj(String::valueOf).toList();
         StringBuilder sb = new StringBuilder();
-        for(int i=0; i<input1.size(); i++) {
-            if(sb.length() > 0) sb.append(',');
+        for (int i = 0; i < input1.size(); i++) {
+            if (sb.length() > 0)
+                sb.append(',');
             sb.append(input1.get(i)).append(':').append(input2.get(i));
         }
         String expected = sb.toString();
-        assertEquals(expected, StreamEx.zip(input1, input2, (i, s) -> i+":"+s).joining(","));
-        assertEquals(expected, StreamEx.zip(input1, input2, (i, s) -> i+":"+s).parallel().joining(","));
+        assertEquals(expected, StreamEx.zip(input1, input2, (i, s) -> i + ":" + s).joining(","));
+        assertEquals(expected, StreamEx.zip(input1, input2, (i, s) -> i + ":" + s).parallel().joining(","));
     }
 
     @Test
@@ -627,7 +628,7 @@ public class StreamExTest {
         assertArrayEquals(expected, result);
         result = StreamEx.of(data).pairMap((a, b) -> (b - a) * 3.14).toArray(Double[]::new);
         assertArrayEquals(expected, result);
-        
+
         // Find all numbers where the integer preceded a larger value.
         Collection<Integer> numbers = Arrays.asList(10, 1, 15, 30, 2, 6);
         List<Integer> res = StreamEx.of(numbers).pairMap((a, b) -> a < b ? a : null).nonNull().toList();
@@ -653,12 +654,12 @@ public class StreamExTest {
             }
         }
     }
-    
+
     @Test
     public void testPairMapFlatMapBug() {
         Integer[][] input = { { 1 }, { 2, 3 }, { 4, 5, 6 }, { 7, 8 }, { 9 } };
-        for(StreamExSupplier<Integer> supplier : streamEx(() -> StreamEx.of(input).<Integer>flatMap(Arrays::stream))) {
-            assertEquals(supplier.toString(), 1L, supplier.get().pairMap((a, b) -> b-a).distinct().count());
+        for (StreamExSupplier<Integer> supplier : streamEx(() -> StreamEx.of(input).<Integer> flatMap(Arrays::stream))) {
+            assertEquals(supplier.toString(), 1L, supplier.get().pairMap((a, b) -> b - a).distinct().count());
         }
     }
 
@@ -835,11 +836,12 @@ public class StreamExTest {
         assertEquals("", StreamEx.of(inputs).cross(Collections.emptyList()).join("->").joining(", "));
         assertEquals("i-i, j-j, k-k", StreamEx.of(inputs).cross(Stream::of).join("-").joining(", "));
     }
-    
+
     @Test
     public void testCollapse() {
-        for(StreamExSupplier<Integer> supplier : streamEx(() -> StreamEx.constant(1, 1000))) {
-            assertEquals(supplier.toString(), Collections.singletonList(1), supplier.get().collapse(Objects::equals).toList());
+        for (StreamExSupplier<Integer> supplier : streamEx(() -> StreamEx.constant(1, 1000))) {
+            assertEquals(supplier.toString(), Collections.singletonList(1), supplier.get().collapse(Objects::equals)
+                    .toList());
         }
     }
 
@@ -913,6 +915,9 @@ public class StreamExTest {
                     .collapse(Interval::adjacent, Interval::merge).joining(" & ");
             String resultParallel2 = IntStreamEx.of(input).sorted().boxed().distinct().map(Interval::new)
                     .collapse(Interval::adjacent, Interval::merge).parallel().joining(" & ");
+            String resultCollector = IntStreamEx.of(input).sorted().boxed().distinct().map(Interval::new)
+                    .collapse(Interval::adjacent, Collectors.reducing(Interval::merge)).map(Optional::get).parallel()
+                    .joining(" & ");
             int[] sorted = Arrays.copyOf(input, input.length);
             Arrays.sort(sorted);
             List<String> expected = new ArrayList<>();
@@ -932,11 +937,12 @@ public class StreamExTest {
             if (last != null)
                 expected.add(last.toString());
             String expectedStr = String.join(" & ", expected);
-            assertEquals("#"+i, expectedStr, result);
-            assertEquals("#"+i, expectedStr, resultParallel);
-            assertEquals("#"+i, expectedStr, resultParallel2);
-            assertEquals("#"+i, expectedStr, resultIntervalMap);
-            assertEquals("#"+i, expectedStr, resultIntervalMapParallel);
+            assertEquals("#" + i, expectedStr, result);
+            assertEquals("#" + i, expectedStr, resultParallel);
+            assertEquals("#" + i, expectedStr, resultParallel2);
+            assertEquals("#" + i, expectedStr, resultIntervalMap);
+            assertEquals("#" + i, expectedStr, resultIntervalMapParallel);
+            assertEquals("#" + i, expectedStr, resultCollector);
         }
     }
 
@@ -947,10 +953,16 @@ public class StreamExTest {
             int size = r.nextInt(i * 5 + 1);
             List<Integer> input = IntStreamEx.of(r, size, 0, size * 3 / 2 + 2).boxed().sorted().toList();
             List<Integer> distinct = StreamEx.of(input).collapse(Integer::equals).toList();
+            List<Integer> distinctCollector = StreamEx.of(input).collapse(Integer::equals, MoreCollectors.first())
+                    .map(Optional::get).toList();
             List<Integer> distinctParallel = StreamEx.of(input).parallel().collapse(Integer::equals).toList();
+            List<Integer> distinctCollectorParallel = StreamEx.of(input).parallel()
+                    .collapse(Integer::equals, MoreCollectors.first()).map(Optional::get).toList();
             List<Integer> expected = input.stream().distinct().collect(Collectors.toList());
             assertEquals(expected, distinct);
             assertEquals(expected, distinctParallel);
+            assertEquals(expected, distinctCollector);
+            assertEquals(expected, distinctCollectorParallel);
         }
     }
 
@@ -965,10 +977,8 @@ public class StreamExTest {
     }
 
     static StreamEx<String> sentences(StreamEx<String> source) {
-        return source
-                .flatMap(Pattern.compile("(?<=\\.)")::splitAsStream)
-                .collapse((a, b) -> !a.endsWith("."), (a, b) -> a + ' ' + b)
-                .map(String::trim);
+        return source.flatMap(Pattern.compile("(?<=\\.)")::splitAsStream)
+                .collapse((a, b) -> !a.endsWith("."), (a, b) -> a + ' ' + b).map(String::trim);
     }
 
     @Test
@@ -977,21 +987,40 @@ public class StreamExTest {
             "second sentence. Third sentence. Fourth", "sentence. Fifth sentence.", "The last");
         for (StreamExSupplier<String> supplier : streamEx(lines::stream)) {
             assertEquals(supplier.toString(), Arrays.asList("This is the first sentence.",
-                "This is the second sentence.", "Third sentence.", "Fourth sentence.",
-                "Fifth sentence.", "The last"), sentences(supplier.get()).toList());
+                "This is the second sentence.", "Third sentence.", "Fourth sentence.", "Fifth sentence.", "The last"),
+                sentences(supplier.get()).toList());
+        }
+    }
+
+    @Test
+    public void testCollapseCollector() {
+        List<String> input = Arrays.asList("aaa", "bb", "baz", "bar", "foo", "fee", "abc");
+        for (StreamExSupplier<String> supplier : streamEx(input::stream)) {
+            assertEquals(supplier.toString(), Arrays.asList("aaa", "bb:baz:bar", "foo:fee", "abc"), supplier.get()
+                    .collapse((a, b) -> a.charAt(0) == b.charAt(0), Collectors.joining(":")).toList());
+        }
+    }
+
+    @Test
+    public void testLongestSeries() {
+        List<Integer> input = Arrays.asList(1, 2, 2, 3, 3, 2, 2, 2, 3, 4, 4, 4, 4, 4, 2);
+        for (StreamExSupplier<Integer> supplier : streamEx(input::stream)) {
+            assertEquals(supplier.toString(), 5L, (long) supplier.get().collapse(Object::equals, Collectors.counting())
+                    .maxBy(Function.identity()).get());
         }
     }
 
     @Test
     public void testGroupRuns() {
         List<String> input = Arrays.asList("aaa", "bb", "baz", "bar", "foo", "fee", "abc");
-        List<List<String>> result = StreamEx.of(input).groupRuns((a, b) -> a.charAt(0) == b.charAt(0)).toList();
-        List<List<String>> resultParallel = StreamEx.of(input).parallel()
-                .groupRuns((a, b) -> a.charAt(0) == b.charAt(0)).toList();
         List<List<String>> expected = Arrays.asList(Arrays.asList("aaa"), Arrays.asList("bb", "baz", "bar"),
             Arrays.asList("foo", "fee"), Arrays.asList("abc"));
-        assertEquals(expected, result);
-        assertEquals(expected, resultParallel);
+        for (StreamExSupplier<String> supplier : streamEx(input::stream)) {
+            assertEquals(supplier.toString(), expected, supplier.get().groupRuns((a, b) -> a.charAt(0) == b.charAt(0))
+                    .toList());
+            assertEquals(supplier.toString(), expected,
+                supplier.get().collapse((a, b) -> a.charAt(0) == b.charAt(0), Collectors.toList()).toList());
+        }
     }
 
     @Test
@@ -1022,20 +1051,24 @@ public class StreamExTest {
     @Test
     public void testGroupRunsSeparated() {
         List<String> input = Arrays.asList("a", "b", null, "c", null, "d", "e");
-        for(StreamExSupplier<String> supplier : streamEx(input::stream)) {
-            assertEquals(supplier.toString(), Arrays.asList(Arrays.asList("a", "b"), Arrays.asList("c"), Arrays.asList("d", "e")),
-                supplier.get().groupRuns((a, b) -> a != null && b != null).remove(list -> list.get(0) == null).toList());
+        for (StreamExSupplier<String> supplier : streamEx(input::stream)) {
+            assertEquals(supplier.toString(),
+                Arrays.asList(Arrays.asList("a", "b"), Arrays.asList("c"), Arrays.asList("d", "e")), supplier.get()
+                        .groupRuns((a, b) -> a != null && b != null).remove(list -> list.get(0) == null).toList());
         }
     }
 
     @Test
     public void testGroupRunsByStart() {
-        List<String> input = Arrays.asList("str1","str2", "START: str3", "str4", "START: str5", "START: str6", "START: str7", "str8", "str9");
+        List<String> input = Arrays.asList("str1", "str2", "START: str3", "str4", "START: str5", "START: str6",
+            "START: str7", "str8", "str9");
         Pattern start = Pattern.compile("^START:");
-        for(StreamExSupplier<String> supplier : streamEx(input::stream)) {
-            assertEquals(supplier.toString(), Arrays.asList(Arrays.asList("str1", "str2"), 
-                Arrays.asList("START: str3", "str4"), Arrays.asList("START: str5"),
-                Arrays.asList("START: str6"),Arrays.asList("START: str7", "str8", "str9")),
+        for (StreamExSupplier<String> supplier : streamEx(input::stream)) {
+            assertEquals(
+                supplier.toString(),
+                Arrays.asList(Arrays.asList("str1", "str2"), Arrays.asList("START: str3", "str4"),
+                    Arrays.asList("START: str5"), Arrays.asList("START: str6"),
+                    Arrays.asList("START: str7", "str8", "str9")),
                 supplier.get().groupRuns((a, b) -> !start.matcher(b).find()).toList());
         }
     }
@@ -1073,12 +1106,12 @@ public class StreamExTest {
         int[] input = { 1, 5, 2, 10, 8, 11, 7, 15, 6, 5 };
         String expected = formatNaive(input);
         assertEquals(expected, format(IntStreamEx.of(input).boxed()));
-        for(int i=0; i<100; i++)
+        for (int i = 0; i < 100; i++)
             assertEquals(expected, format(IntStreamEx.of(input).boxed().parallel()));
 
         input = IntStreamEx.range(3, 100).prepend(1).toArray();
         assertEquals("1,3..99", format(IntStreamEx.of(input).boxed()));
-        for(int i=0; i<100; i++)
+        for (int i = 0; i < 100; i++)
             assertEquals("1,3..99", format(IntStreamEx.of(input).boxed().parallel()));
 
         input = IntStreamEx.of(new Random(1), 1000, 0, 2000).toArray();

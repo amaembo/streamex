@@ -83,6 +83,12 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return strategy().newStreamEx(stream);
     }
 
+    final <R> StreamEx<R> collapseInternal(BiPredicate<? super T, ? super T> collapsible, Function<T, R> mapper,
+            BiFunction<R, T, R> accumulator, BinaryOperator<R> combiner) {
+        return strategy().newStreamEx(
+            delegate(new CollapseSpliterator<>(collapsible, mapper, accumulator, combiner, stream.spliterator())));
+    }
+
     @Override
     public StreamEx<T> sequential() {
         return StreamFactory.DEFAULT.newStreamEx(stream.sequential());
@@ -1094,6 +1100,11 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate</a>
      * operation.
      * 
+     * <p>
+     * This operation is equivalent to
+     * {@code collapse(collapsible, Collectors.reducing(merger)).map(Optional::get)}
+     * , but more efficient.
+     * 
      * @param collapsible
      *            a non-interfering, stateless predicate to apply to the pair of
      *            adjacent elements of the input stream which returns true for
@@ -1110,10 +1121,46 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return collapseInternal(collapsible, Function.identity(), merger, merger);
     }
 
-    private <R> StreamEx<R> collapseInternal(BiPredicate<? super T, ? super T> collapsible, Function<T, R> mapper,
-            BiFunction<R, T, R> accumulator, BinaryOperator<R> combiner) {
-        return strategy().newStreamEx(
-            delegate(new CollapseSpliterator<>(collapsible, mapper, accumulator, combiner, stream.spliterator())));
+    /**
+     * Perform a partial mutable reduction using the supplied {@link Collector}
+     * on a series of adjacent elements.
+     * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate</a>
+     * operation.
+     * 
+     * @param <R>
+     *            the type of the elements in the resulting stream
+     * @param <A>
+     *            the intermediate accumulation type of the {@code Collector}
+     * @param collapsible
+     *            a non-interfering, stateless predicate to apply to the pair of
+     *            adjacent elements of the input stream which returns true for
+     *            elements which should be collected together.
+     * @param collector
+     *            a {@code Collector} which is used to combine the adjacent
+     *            elements.
+     * @return the new stream
+     * @since 0.3.6
+     */
+    public <R, A> StreamEx<R> collapse(BiPredicate<? super T, ? super T> collapsible,
+            Collector<? super T, A, R> collector) {
+        Supplier<A> supplier = collector.supplier();
+        BiConsumer<A, ? super T> accumulator = collector.accumulator();
+        StreamEx<A> stream = collapseInternal(collapsible, t -> {
+            A acc = supplier.get();
+            accumulator.accept(acc, t);
+            return acc;
+        }, (acc, t) -> {
+            accumulator.accept(acc, t);
+            return acc;
+        }, collector.combiner());
+        if (collector.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
+            @SuppressWarnings("unchecked")
+            StreamEx<R> result = (StreamEx<R>) stream;
+            return result;
+        }
+        return stream.map(collector.finisher());
     }
 
     /**
@@ -1124,6 +1171,11 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate</a>
      * operation.
+     * 
+     * <p>
+     * This operation is equivalent to
+     * {@code collapse(collapsible, MoreCollectors.first()).map(Optional::get)}
+     * , but more efficient.
      * 
      * <p>
      * For sorted stream {@code collapse(Objects::equals)} is equivalent to
@@ -1179,6 +1231,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * <p>
      * There are no guarantees on the type, mutability, serializability, or
      * thread-safety of the {@code List} objects of the resulting stream.
+     * 
+     * <p>
+     * This operation is equivalent to
+     * {@code collapse(collapsible, Collectors.toList())}, but more efficient.
      * 
      * @param sameGroup
      *            a non-interfering, stateless predicate to apply to the pair of
@@ -1686,7 +1742,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public static <T> StreamEx<T> constant(T value, long length) {
         return of(new ConstantSpliterator.ConstRef<>(value, length));
     }
-    
+
     /**
      * Returns a sequential {@code StreamEx} containing the results of applying
      * the given function to the corresponding pairs of values in given two
