@@ -56,10 +56,20 @@ import static javax.util.streamex.StreamExInternals.*;
         return StreamFactory.DEFAULT;
     }
     
-    <R> Stream<R> delegate(Spliterator<R> spliterator) {
+    final <R> Stream<R> delegate(Spliterator<R> spliterator) {
         return StreamSupport.stream(spliterator, stream.isParallel()).onClose(stream::close);
     }
 
+    final S callWhile(Predicate<? super T> predicate, int methodId) {
+        try {
+            return supply((Stream<T>)JDK9_METHODS[IDX_STREAM][methodId].invokeExact(stream, predicate));
+        } catch(Error|RuntimeException e) {
+            throw e;
+        } catch (Throwable e) {
+            throw new InternalError(e);
+        }
+    }
+    
     abstract S supply(Stream<T> stream);
 
     @Override
@@ -1166,13 +1176,7 @@ import static javax.util.streamex.StreamExInternals.*;
     public S takeWhile(Predicate<? super T> predicate) {
         Objects.requireNonNull(predicate);
         if(IS_JDK9 && JDK9_METHODS[IDX_STREAM] != null) {
-            try {
-                return supply((Stream<T>)JDK9_METHODS[IDX_STREAM][IDX_TAKE_WHILE].invokeExact(stream, predicate));
-            } catch(Error|RuntimeException e) {
-                throw e;
-            } catch (Throwable e) {
-                throw new InternalError(e);
-            }
+            return callWhile(predicate, IDX_TAKE_WHILE);
         }
         return supply(delegate(new TakeDropSpliterators.TDOfRef<>(stream.spliterator(), false, predicate)));
     }
@@ -1180,13 +1184,7 @@ import static javax.util.streamex.StreamExInternals.*;
     public S dropWhile(Predicate<? super T> predicate) {
         Objects.requireNonNull(predicate);
         if(IS_JDK9 && JDK9_METHODS[IDX_STREAM] != null) {
-            try {
-                return supply((Stream<T>)JDK9_METHODS[IDX_STREAM][IDX_DROP_WHILE].invokeExact(stream, predicate));
-            } catch(Error|RuntimeException e) {
-                throw e;
-            } catch (Throwable e) {
-                throw new InternalError(e);
-            }
+            return callWhile(predicate, IDX_DROP_WHILE);
         }
         return supply(delegate(new TakeDropSpliterators.TDOfRef<>(stream.spliterator(), true, predicate)));
     }

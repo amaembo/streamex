@@ -64,11 +64,22 @@ public class DoubleStreamEx implements DoubleStream {
         return StreamFactory.DEFAULT;
     }
 
-    DoubleStreamEx delegate(Spliterator.OfDouble spliterator) {
+    final DoubleStreamEx delegate(Spliterator.OfDouble spliterator) {
         return strategy().newDoubleStreamEx(
             StreamSupport.doubleStream(spliterator, stream.isParallel()).onClose(stream::close));
     }
 
+    final DoubleStreamEx callWhile(DoublePredicate predicate, int methodId) {
+        try {
+            return strategy().newDoubleStreamEx(
+                (DoubleStream) JDK9_METHODS[IDX_DOUBLE_STREAM][methodId].invokeExact(stream, predicate));
+        } catch (Error | RuntimeException e) {
+            throw e;
+        } catch (Throwable e) {
+            throw new InternalError(e);
+        }
+    }
+    
     @Override
     public boolean isParallel() {
         return stream.isParallel();
@@ -1054,14 +1065,7 @@ public class DoubleStreamEx implements DoubleStream {
     public DoubleStreamEx takeWhile(DoublePredicate predicate) {
         Objects.requireNonNull(predicate);
         if (IS_JDK9 && JDK9_METHODS[IDX_DOUBLE_STREAM] != null) {
-            try {
-                return strategy().newDoubleStreamEx(
-                    (DoubleStream) JDK9_METHODS[IDX_DOUBLE_STREAM][IDX_TAKE_WHILE].invokeExact(stream, predicate));
-            } catch (Error | RuntimeException e) {
-                throw e;
-            } catch (Throwable e) {
-                throw new InternalError(e);
-            }
+            return callWhile(predicate, IDX_TAKE_WHILE);
         }
         return delegate(new TakeDropSpliterators.TDOfDouble(stream.spliterator(), false, predicate));
     }
@@ -1069,14 +1073,7 @@ public class DoubleStreamEx implements DoubleStream {
     public DoubleStreamEx dropWhile(DoublePredicate predicate) {
         Objects.requireNonNull(predicate);
         if (IS_JDK9 && JDK9_METHODS[IDX_DOUBLE_STREAM] != null) {
-            try {
-                return strategy().newDoubleStreamEx(
-                    (DoubleStream) JDK9_METHODS[IDX_DOUBLE_STREAM][IDX_DROP_WHILE].invokeExact(stream, predicate));
-            } catch (Error | RuntimeException e) {
-                throw e;
-            } catch (Throwable e) {
-                throw new InternalError(e);
-            }
+            return callWhile(predicate, IDX_DROP_WHILE);
         }
         return delegate(new TakeDropSpliterators.TDOfDouble(stream.spliterator(), true, predicate));
     }

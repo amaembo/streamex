@@ -70,11 +70,22 @@ public class IntStreamEx implements IntStream {
         return StreamFactory.DEFAULT;
     }
 
-    IntStreamEx delegate(Spliterator.OfInt spliterator) {
+    final IntStreamEx delegate(Spliterator.OfInt spliterator) {
         return strategy().newIntStreamEx(
             StreamSupport.intStream(spliterator, stream.isParallel()).onClose(stream::close));
     }
 
+    final IntStreamEx callWhile(IntPredicate predicate, int methodId) {
+        try {
+            return strategy().newIntStreamEx(
+                (IntStream) JDK9_METHODS[IDX_INT_STREAM][methodId].invokeExact(stream, predicate));
+        } catch (Error | RuntimeException e) {
+            throw e;
+        } catch (Throwable e) {
+            throw new InternalError(e);
+        }
+    }
+    
     <A> A collectSized(Supplier<A> supplier, ObjIntConsumer<A> accumulator, BiConsumer<A, A> combiner,
             IntFunction<A> sizedSupplier, ObjIntConsumer<A> sizedAccumulator) {
         if (isParallel())
@@ -1267,14 +1278,7 @@ public class IntStreamEx implements IntStream {
     public IntStreamEx takeWhile(IntPredicate predicate) {
         Objects.requireNonNull(predicate);
         if (IS_JDK9 && JDK9_METHODS[IDX_INT_STREAM] != null) {
-            try {
-                return strategy().newIntStreamEx(
-                    (IntStream) JDK9_METHODS[IDX_INT_STREAM][IDX_TAKE_WHILE].invokeExact(stream, predicate));
-            } catch (Error | RuntimeException e) {
-                throw e;
-            } catch (Throwable e) {
-                throw new InternalError(e);
-            }
+            return callWhile(predicate, IDX_TAKE_WHILE);
         }
         return delegate(new TakeDropSpliterators.TDOfInt(stream.spliterator(), false, predicate));
     }
@@ -1282,14 +1286,7 @@ public class IntStreamEx implements IntStream {
     public IntStreamEx dropWhile(IntPredicate predicate) {
         Objects.requireNonNull(predicate);
         if (IS_JDK9 && JDK9_METHODS[IDX_INT_STREAM] != null) {
-            try {
-                return strategy().newIntStreamEx(
-                    (IntStream) JDK9_METHODS[IDX_INT_STREAM][IDX_DROP_WHILE].invokeExact(stream, predicate));
-            } catch (Error | RuntimeException e) {
-                throw e;
-            } catch (Throwable e) {
-                throw new InternalError(e);
-            }
+            return callWhile(predicate, IDX_DROP_WHILE);
         }
         return delegate(new TakeDropSpliterators.TDOfInt(stream.spliterator(), true, predicate));
     }

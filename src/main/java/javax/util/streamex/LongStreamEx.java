@@ -65,11 +65,22 @@ public class LongStreamEx implements LongStream {
         return StreamFactory.DEFAULT;
     }
 
-    LongStreamEx delegate(Spliterator.OfLong spliterator) {
+    final LongStreamEx delegate(Spliterator.OfLong spliterator) {
         return strategy().newLongStreamEx(
             StreamSupport.longStream(spliterator, stream.isParallel()).onClose(stream::close));
     }
 
+    final LongStreamEx callWhile(LongPredicate predicate, int methodId) {
+        try {
+            return strategy().newLongStreamEx(
+                (LongStream) JDK9_METHODS[IDX_LONG_STREAM][methodId].invokeExact(stream, predicate));
+        } catch (Error | RuntimeException e) {
+            throw e;
+        } catch (Throwable e) {
+            throw new InternalError(e);
+        }
+    }
+    
     @Override
     public boolean isParallel() {
         return stream.isParallel();
@@ -1065,14 +1076,7 @@ public class LongStreamEx implements LongStream {
     public LongStreamEx takeWhile(LongPredicate predicate) {
         Objects.requireNonNull(predicate);
         if (IS_JDK9 && JDK9_METHODS[IDX_LONG_STREAM] != null) {
-            try {
-                return strategy().newLongStreamEx(
-                    (LongStream) JDK9_METHODS[IDX_LONG_STREAM][IDX_TAKE_WHILE].invokeExact(stream, predicate));
-            } catch (Error | RuntimeException e) {
-                throw e;
-            } catch (Throwable e) {
-                throw new InternalError(e);
-            }
+            return callWhile(predicate, IDX_TAKE_WHILE);
         }
         return delegate(new TakeDropSpliterators.TDOfLong(stream.spliterator(), false, predicate));
     }
@@ -1080,14 +1084,7 @@ public class LongStreamEx implements LongStream {
     public LongStreamEx dropWhile(LongPredicate predicate) {
         Objects.requireNonNull(predicate);
         if (IS_JDK9 && JDK9_METHODS[IDX_LONG_STREAM] != null) {
-            try {
-                return strategy().newLongStreamEx(
-                    (LongStream) JDK9_METHODS[IDX_LONG_STREAM][IDX_DROP_WHILE].invokeExact(stream, predicate));
-            } catch (Error | RuntimeException e) {
-                throw e;
-            } catch (Throwable e) {
-                throw new InternalError(e);
-            }
+            return callWhile(predicate, IDX_DROP_WHILE);
         }
         return delegate(new TakeDropSpliterators.TDOfLong(stream.spliterator(), true, predicate));
     }
