@@ -65,6 +65,11 @@ public class LongStreamEx implements LongStream {
         return StreamFactory.DEFAULT;
     }
 
+    LongStreamEx delegate(Spliterator.OfLong spliterator) {
+        return strategy().newLongStreamEx(
+            StreamSupport.longStream(spliterator, stream.isParallel()).onClose(stream::close));
+    }
+
     @Override
     public boolean isParallel() {
         return stream.isParallel();
@@ -488,8 +493,7 @@ public class LongStreamEx implements LongStream {
     public LongStreamEx skipOrdered(long n) {
         Spliterator.OfLong spliterator = (stream.isParallel() ? StreamSupport.longStream(stream.spliterator(), false)
                 : stream).skip(n).spliterator();
-        return strategy().newLongStreamEx(
-            StreamSupport.longStream(spliterator, stream.isParallel()).onClose(stream::close));
+        return delegate(spliterator);
     }
 
     @Override
@@ -1012,9 +1016,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.2.1
      */
     public LongStreamEx pairMap(LongBinaryOperator mapper) {
-        return strategy().newLongStreamEx(
-            StreamSupport.longStream(new PairSpliterator.PSOfLong(mapper, stream.spliterator()), stream.isParallel())
-                    .onClose(stream::close));
+        return delegate(new PairSpliterator.PSOfLong(mapper, stream.spliterator()));
     }
 
     /**
@@ -1058,6 +1060,36 @@ public class LongStreamEx implements LongStream {
      */
     public String joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return collect(LongCollector.joining(delimiter, prefix, suffix));
+    }
+
+    public LongStreamEx takeWhile(LongPredicate predicate) {
+        Objects.requireNonNull(predicate);
+        if (IS_JDK9 && JDK9_METHODS[IDX_LONG_STREAM] != null) {
+            try {
+                return strategy().newLongStreamEx(
+                    (LongStream) JDK9_METHODS[IDX_LONG_STREAM][IDX_TAKE_WHILE].invokeExact(stream, predicate));
+            } catch (Error | RuntimeException e) {
+                throw e;
+            } catch (Throwable e) {
+                throw new InternalError(e);
+            }
+        }
+        return delegate(new TakeDropSpliterators.TDOfLong(stream.spliterator(), false, predicate));
+    }
+
+    public LongStreamEx dropWhile(LongPredicate predicate) {
+        Objects.requireNonNull(predicate);
+        if (IS_JDK9 && JDK9_METHODS[IDX_LONG_STREAM] != null) {
+            try {
+                return strategy().newLongStreamEx(
+                    (LongStream) JDK9_METHODS[IDX_LONG_STREAM][IDX_DROP_WHILE].invokeExact(stream, predicate));
+            } catch (Error | RuntimeException e) {
+                throw e;
+            } catch (Throwable e) {
+                throw new InternalError(e);
+            }
+        }
+        return delegate(new TakeDropSpliterators.TDOfLong(stream.spliterator(), true, predicate));
     }
 
     /**
