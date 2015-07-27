@@ -248,7 +248,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.3.0
      */
     public <R> StreamEx<R> flatMapKeyValue(BiFunction<? super K, ? super V, ? extends Stream<? extends R>> mapper) {
-        return flatMap(toFunction(mapper));
+        return this.<R>flatMap(toFunction(mapper));
     }
 
     /**
@@ -447,7 +447,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public <R> StreamEx<R> mapKeyValue(BiFunction<? super K, ? super V, ? extends R> mapper) {
-        return map(toFunction(mapper));
+        return this.<R>map(toFunction(mapper));
     }
 
     /**

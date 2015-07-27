@@ -69,7 +69,9 @@
             <phase>prepare-package</phase>
             <configuration>
               <target>
-                <unzip src="${java.home}/../src.zip" dest="${project.build.directory}/jdk">
+                <available property="src.zip" file="${java.home}/../src.zip" value="${java.home}/../src.zip" />
+                <available property="src.zip" file="${java.home}/src.zip" value="${java.home}/src.zip" />
+                <unzip src="${src.zip}" dest="${project.build.directory}/jdk">
                   <patternset>
                     <include name="java/util/stream/**/*.java" />
                   </patternset>
