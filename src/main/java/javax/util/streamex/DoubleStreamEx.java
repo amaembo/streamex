@@ -64,6 +64,22 @@ public class DoubleStreamEx implements DoubleStream {
         return StreamFactory.DEFAULT;
     }
 
+    final DoubleStreamEx delegate(Spliterator.OfDouble spliterator) {
+        return strategy().newDoubleStreamEx(
+            StreamSupport.doubleStream(spliterator, stream.isParallel()).onClose(stream::close));
+    }
+
+    final DoubleStreamEx callWhile(DoublePredicate predicate, int methodId) {
+        try {
+            return strategy().newDoubleStreamEx(
+                (DoubleStream) JDK9_METHODS[IDX_DOUBLE_STREAM][methodId].invokeExact(stream, predicate));
+        } catch (Error | RuntimeException e) {
+            throw e;
+        } catch (Throwable e) {
+            throw new InternalError(e);
+        }
+    }
+    
     @Override
     public boolean isParallel() {
         return stream.isParallel();
@@ -457,8 +473,7 @@ public class DoubleStreamEx implements DoubleStream {
     public DoubleStreamEx skipOrdered(long n) {
         Spliterator.OfDouble spliterator = (stream.isParallel() ? StreamSupport.doubleStream(stream.spliterator(),
             false) : stream).skip(n).spliterator();
-        return strategy().newDoubleStreamEx(
-            StreamSupport.doubleStream(spliterator, stream.isParallel()).onClose(stream::close));
+        return delegate(spliterator);
     }
 
     @Override
@@ -1001,9 +1016,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.2.1
      */
     public DoubleStreamEx pairMap(DoubleBinaryOperator mapper) {
-        return strategy().newDoubleStreamEx(
-            StreamSupport.doubleStream(new PairSpliterator.PSOfDouble(mapper, stream.spliterator()),
-                stream.isParallel()).onClose(stream::close));
+        return delegate(new PairSpliterator.PSOfDouble(mapper, stream.spliterator()));
     }
 
     /**
@@ -1047,6 +1060,22 @@ public class DoubleStreamEx implements DoubleStream {
      */
     public String joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return collect(DoubleCollector.joining(delimiter, prefix, suffix));
+    }
+
+    public DoubleStreamEx takeWhile(DoublePredicate predicate) {
+        Objects.requireNonNull(predicate);
+        if (IS_JDK9 && JDK9_METHODS[IDX_DOUBLE_STREAM] != null) {
+            return callWhile(predicate, IDX_TAKE_WHILE);
+        }
+        return delegate(new TakeDropSpliterators.TDOfDouble(stream.spliterator(), false, predicate));
+    }
+
+    public DoubleStreamEx dropWhile(DoublePredicate predicate) {
+        Objects.requireNonNull(predicate);
+        if (IS_JDK9 && JDK9_METHODS[IDX_DOUBLE_STREAM] != null) {
+            return callWhile(predicate, IDX_DROP_WHILE);
+        }
+        return delegate(new TakeDropSpliterators.TDOfDouble(stream.spliterator(), true, predicate));
     }
 
     /**

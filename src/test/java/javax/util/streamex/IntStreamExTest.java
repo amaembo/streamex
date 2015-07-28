@@ -443,4 +443,19 @@ public class IntStreamExTest {
         assertEquals(expected, IntStreamEx.iterate(0, i -> i + 1).skipOrdered(1).greater(0).limit(99).boxed()
                 .parallel().toSet());
     }
+    
+    @Test
+    public void testTakeWhile() {
+        assertArrayEquals(IntStreamEx.range(100).toArray(), IntStreamEx.iterate(0, i -> i+1).takeWhile(i -> i<100).toArray());
+        assertEquals(0, IntStreamEx.iterate(0, i -> i+1).takeWhile(i -> i<0).count());
+        assertEquals(1, IntStreamEx.of(1, 3, 2).takeWhile(i -> i<3).count());
+        assertEquals(3, IntStreamEx.of(1, 2, 3).takeWhile(i -> i<100).count());
+    }
+    
+    @Test
+    public void testDropWhile() {
+        assertArrayEquals(new int[] {5,6,7,8,9,10,11,12,13,14}, IntStreamEx.range(100).dropWhile(i -> i % 10 < 5).limit(10).toArray());
+        assertEquals(100, IntStreamEx.range(100).dropWhile(i -> i % 10 < 0).count());
+        assertEquals(0, IntStreamEx.range(100).dropWhile(i -> i % 10 < 10).count());
+    }
 }

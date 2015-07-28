@@ -70,6 +70,22 @@ public class IntStreamEx implements IntStream {
         return StreamFactory.DEFAULT;
     }
 
+    final IntStreamEx delegate(Spliterator.OfInt spliterator) {
+        return strategy().newIntStreamEx(
+            StreamSupport.intStream(spliterator, stream.isParallel()).onClose(stream::close));
+    }
+
+    final IntStreamEx callWhile(IntPredicate predicate, int methodId) {
+        try {
+            return strategy().newIntStreamEx(
+                (IntStream) JDK9_METHODS[IDX_INT_STREAM][methodId].invokeExact(stream, predicate));
+        } catch (Error | RuntimeException e) {
+            throw e;
+        } catch (Throwable e) {
+            throw new InternalError(e);
+        }
+    }
+    
     <A> A collectSized(Supplier<A> supplier, ObjIntConsumer<A> accumulator, BiConsumer<A, A> combiner,
             IntFunction<A> sizedSupplier, ObjIntConsumer<A> sizedAccumulator) {
         if (isParallel())
@@ -507,10 +523,9 @@ public class IntStreamEx implements IntStream {
      * @since 0.3.2
      */
     public IntStreamEx skipOrdered(long n) {
-        Spliterator.OfInt spliterator = (stream.isParallel() ? StreamSupport.intStream(stream.spliterator(),
-            false) : stream).skip(n).spliterator();
-        return strategy().newIntStreamEx(
-            StreamSupport.intStream(spliterator, stream.isParallel()).onClose(stream::close));
+        Spliterator.OfInt spliterator = (stream.isParallel() ? StreamSupport.intStream(stream.spliterator(), false)
+                : stream).skip(n).spliterator();
+        return delegate(spliterator);
     }
 
     @Override
@@ -715,13 +730,13 @@ public class IntStreamEx implements IntStream {
     public OptionalInt minByInt(IntUnaryOperator keyExtractor) {
         int[] result = collect(() -> new int[3], (acc, i) -> {
             int key = keyExtractor.applyAsInt(i);
-            if(acc[2] == 0 || acc[1] > key) {
+            if (acc[2] == 0 || acc[1] > key) {
                 acc[0] = i;
                 acc[1] = key;
                 acc[2] = 1;
             }
         }, (acc1, acc2) -> {
-            if(acc2[2] == 1 && (acc1[2] == 0 || acc1[1] > acc2[1]))
+            if (acc2[2] == 1 && (acc1[2] == 0 || acc1[1] > acc2[1]))
                 System.arraycopy(acc2, 0, acc1, 0, 3);
         });
         return result[2] == 1 ? OptionalInt.of(result[0]) : OptionalInt.empty();
@@ -744,13 +759,13 @@ public class IntStreamEx implements IntStream {
     public OptionalInt minByLong(IntToLongFunction keyExtractor) {
         return collect(PrimitiveBox::new, (box, i) -> {
             long key = keyExtractor.applyAsLong(i);
-            if(!box.b || box.l > key) {
+            if (!box.b || box.l > key) {
                 box.b = true;
                 box.l = key;
                 box.i = i;
             }
         }, (box1, box2) -> {
-            if(box2.b && (!box1.b || box1.l > box2.l)) {
+            if (box2.b && (!box1.b || box1.l > box2.l)) {
                 box1.from(box2);
             }
         }).asInt();
@@ -773,13 +788,13 @@ public class IntStreamEx implements IntStream {
     public OptionalInt minByDouble(IntToDoubleFunction keyExtractor) {
         return collect(PrimitiveBox::new, (box, i) -> {
             double key = keyExtractor.applyAsDouble(i);
-            if(!box.b || Double.compare(box.d, key) > 0) {
+            if (!box.b || Double.compare(box.d, key) > 0) {
                 box.b = true;
                 box.d = key;
                 box.i = i;
             }
         }, (box1, box2) -> {
-            if(box2.b && (!box1.b || Double.compare(box1.d, box2.d) > 0)) {
+            if (box2.b && (!box1.b || Double.compare(box1.d, box2.d) > 0)) {
                 box1.from(box2);
             }
         }).asInt();
@@ -856,13 +871,13 @@ public class IntStreamEx implements IntStream {
     public OptionalInt maxByInt(IntUnaryOperator keyExtractor) {
         int[] result = collect(() -> new int[3], (acc, i) -> {
             int key = keyExtractor.applyAsInt(i);
-            if(acc[2] == 0 || acc[1] < key) {
+            if (acc[2] == 0 || acc[1] < key) {
                 acc[0] = i;
                 acc[1] = key;
                 acc[2] = 1;
             }
         }, (acc1, acc2) -> {
-            if(acc2[2] == 1 && (acc1[2] == 0 || acc1[1] < acc2[1]))
+            if (acc2[2] == 1 && (acc1[2] == 0 || acc1[1] < acc2[1]))
                 System.arraycopy(acc2, 0, acc1, 0, 3);
         });
         return result[2] == 1 ? OptionalInt.of(result[0]) : OptionalInt.empty();
@@ -885,13 +900,13 @@ public class IntStreamEx implements IntStream {
     public OptionalInt maxByLong(IntToLongFunction keyExtractor) {
         return collect(PrimitiveBox::new, (box, i) -> {
             long key = keyExtractor.applyAsLong(i);
-            if(!box.b || box.l < key) {
+            if (!box.b || box.l < key) {
                 box.b = true;
                 box.l = key;
                 box.i = i;
             }
         }, (box1, box2) -> {
-            if(box2.b && (!box1.b || box1.l < box2.l)) {
+            if (box2.b && (!box1.b || box1.l < box2.l)) {
                 box1.from(box2);
             }
         }).asInt();
@@ -906,21 +921,21 @@ public class IntStreamEx implements IntStream {
      *
      * @param keyExtractor
      *            a non-interfering, stateless function
-     * @return an {@code OptionalInt} describing the first element of this stream for
-     *         which the highest value was returned by key extractor, or an
-     *         empty {@code OptionalInt} if the stream is empty
+     * @return an {@code OptionalInt} describing the first element of this
+     *         stream for which the highest value was returned by key extractor,
+     *         or an empty {@code OptionalInt} if the stream is empty
      * @since 0.1.2
      */
     public OptionalInt maxByDouble(IntToDoubleFunction keyExtractor) {
         return collect(PrimitiveBox::new, (box, i) -> {
             double key = keyExtractor.applyAsDouble(i);
-            if(!box.b || Double.compare(box.d, key) < 0) {
+            if (!box.b || Double.compare(box.d, key) < 0) {
                 box.b = true;
                 box.d = key;
                 box.i = i;
             }
         }, (box1, box2) -> {
-            if(box2.b && (!box1.b || Double.compare(box1.d, box2.d) < 0)) {
+            if (box2.b && (!box1.b || Double.compare(box1.d, box2.d) < 0)) {
                 box1.from(box2);
             }
         }).asInt();
@@ -1214,9 +1229,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.2.1
      */
     public IntStreamEx pairMap(IntBinaryOperator mapper) {
-        return strategy().newIntStreamEx(
-            StreamSupport.intStream(new PairSpliterator.PSOfInt(mapper, stream.spliterator()), stream.isParallel())
-                    .onClose(stream::close));
+        return delegate(new PairSpliterator.PSOfInt(mapper, stream.spliterator()));
     }
 
     /**
@@ -1260,6 +1273,22 @@ public class IntStreamEx implements IntStream {
      */
     public String joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return collect(IntCollector.joining(delimiter, prefix, suffix));
+    }
+
+    public IntStreamEx takeWhile(IntPredicate predicate) {
+        Objects.requireNonNull(predicate);
+        if (IS_JDK9 && JDK9_METHODS[IDX_INT_STREAM] != null) {
+            return callWhile(predicate, IDX_TAKE_WHILE);
+        }
+        return delegate(new TakeDropSpliterators.TDOfInt(stream.spliterator(), false, predicate));
+    }
+
+    public IntStreamEx dropWhile(IntPredicate predicate) {
+        Objects.requireNonNull(predicate);
+        if (IS_JDK9 && JDK9_METHODS[IDX_INT_STREAM] != null) {
+            return callWhile(predicate, IDX_DROP_WHILE);
+        }
+        return delegate(new TakeDropSpliterators.TDOfInt(stream.spliterator(), true, predicate));
     }
 
     /**
@@ -1712,7 +1741,8 @@ public class IntStreamEx implements IntStream {
      * @see CharSequence#chars()
      */
     public static IntStreamEx ofChars(CharSequence seq) {
-        // In JDK 8 there's only default chars() method which uses IteratorSpliterator
+        // In JDK 8 there's only default chars() method which uses
+        // IteratorSpliterator
         // In JDK 9 chars() method for most of implementations is much better
         return of(IS_JDK9 ? seq.chars() : java.nio.CharBuffer.wrap(seq).chars());
     }

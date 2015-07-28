@@ -237,4 +237,19 @@ public class LongStreamExTest {
         assertEquals(500, (long) LongStreamEx.iterate(0, i -> i + 1).parallel().skipOrdered(1).greater(0).boxed()
                 .findAny(i -> i == 500).get());
     }
+    
+    @Test
+    public void testTakeWhile() {
+        assertArrayEquals(LongStreamEx.range(100).toArray(), LongStreamEx.iterate(0, i -> i+1).takeWhile(i -> i<100).toArray());
+        assertEquals(0, LongStreamEx.iterate(0, i -> i+1).takeWhile(i -> i<0).count());
+        assertEquals(1, LongStreamEx.of(1, 3, 2).takeWhile(i -> i<3).count());
+        assertEquals(3, LongStreamEx.of(1, 2, 3).takeWhile(i -> i<100).count());
+    }
+    
+    @Test
+    public void testDropWhile() {
+        assertArrayEquals(new long[] {5,6,7,8,9,10,11,12,13,14}, LongStreamEx.range(100).dropWhile(i -> i % 10 < 5).limit(10).toArray());
+        assertEquals(100, LongStreamEx.range(100).dropWhile(i -> i % 10 < 0).count());
+        assertEquals(0, LongStreamEx.range(100).dropWhile(i -> i % 10 < 10).count());
+    }
 }
