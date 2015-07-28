@@ -20,6 +20,7 @@ import static org.junit.Assert.*;
 import java.util.HashMap;
 import java.util.LongSummaryStatistics;
 import java.util.Map;
+import java.util.OptionalLong;
 import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
@@ -42,7 +43,8 @@ public class LongCollectorTest {
         assertEquals(5000L, (long) LongStreamEx.range(10000).atLeast(5000).collect(LongCollector.counting()));
         assertEquals(5000L, (long) LongStreamEx.range(10000).parallel().atLeast(5000).collect(LongCollector.counting()));
         assertEquals(5000, (int) LongStreamEx.range(10000).atLeast(5000).collect(LongCollector.countingInt()));
-        assertEquals(5000, (int) LongStreamEx.range(10000).parallel().atLeast(5000).collect(LongCollector.countingInt()));
+        assertEquals(5000, (int) LongStreamEx.range(10000).parallel().atLeast(5000)
+                .collect(LongCollector.countingInt()));
     }
 
     @Test
@@ -86,6 +88,15 @@ public class LongCollectorTest {
     }
 
     @Test
+    public void testProduct() {
+        assertEquals(24L, (long) LongStreamEx.of(1, 2, 3, 4).collect(LongCollector.reducing(1, (a, b) -> a * b)));
+        assertEquals(
+            24L,
+            (long) LongStreamEx.of(1, 2, 3, 4).collect(
+                LongCollector.collectingAndThen(LongCollector.reducing((a, b) -> a * b), OptionalLong::getAsLong)));
+    }
+
+    @Test
     public void testPartitioning() {
         long[] expectedEven = LongStream.range(0, 1000).map(i -> i * 2).toArray();
         long[] expectedOdd = LongStream.range(0, 1000).map(i -> i * 2 + 1).toArray();
@@ -101,12 +112,19 @@ public class LongCollectorTest {
     public void testParts() {
         LongCollector<?, Map<Boolean, String>> collector = LongCollector.partitioningBy(i -> i % 2 == 0,
             LongCollector.mapping(i -> i / 3, LongCollector.joining(",")));
-        Map<Boolean, String> parts = LongStreamEx.range(10).parallel().collect(collector);
+        LongCollector<?, Map<Boolean, String>> collector2 = LongCollector.partitioningBy(i -> i % 2 == 0,
+                LongCollector.mappingToObj(i -> i / 3, LongCollector.joining(",")));
         Map<Boolean, String> expected = new HashMap<>();
         expected.put(true, "0,0,1,2,2");
         expected.put(false, "0,1,1,2,3");
+        
+        Map<Boolean, String> parts = LongStreamEx.range(10).parallel().collect(collector);
         assertEquals(expected, parts);
         assertEquals(parts, expected);
+
+        Map<Boolean, String> parts2 = LongStreamEx.range(10).parallel().collect(collector2);
+        assertEquals(expected, parts2);
+        assertEquals(parts2, expected);
     }
 
     @Test

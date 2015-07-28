@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.OptionalDouble;
+import java.util.PrimitiveIterator.OfDouble;
 import java.util.Random;
 import java.util.Spliterator;
 import java.util.Spliterators;
@@ -59,6 +60,7 @@ public class DoubleStreamExTest {
         assertArrayEquals(new double[] { 1, 1, 1, 1 }, DoubleStreamEx.generate(() -> 1).limit(4).toArray(), 0.0);
         assertArrayEquals(new double[] { 1, 1, 1, 1 }, DoubleStreamEx.constant(1.0, 4).toArray(), 0.0);
         assertEquals(10, DoubleStreamEx.of(new Random(), 10).count());
+        assertArrayEquals(DoubleStreamEx.of(new Random(1), 10).toArray(), DoubleStreamEx.of(new Random(1)).limit(10).toArray(), 0.0);
         assertTrue(DoubleStreamEx.of(new Random(), 100, 1, 10).allMatch(x -> x >= 1 && x < 10));
         assertArrayEquals(DoubleStreamEx.of(new Random(1), 100, 1, 10).toArray(),
             DoubleStreamEx.of(new Random(1), 1, 10).limit(100).toArray(), 0.0);
@@ -119,6 +121,12 @@ public class DoubleStreamExTest {
 
         assertTrue(DoubleStreamEx.of(1, 2, 3).spliterator().hasCharacteristics(Spliterator.ORDERED));
         assertFalse(DoubleStreamEx.of(1, 2, 3).unordered().spliterator().hasCharacteristics(Spliterator.ORDERED));
+        
+        OfDouble iterator = DoubleStreamEx.of(1.0, 2.0, 3.0).iterator();
+        assertEquals(1.0, iterator.next(), 0.0);
+        assertEquals(2.0, iterator.next(), 0.0);
+        assertEquals(3.0, iterator.next(), 0.0);
+        assertFalse(iterator.hasNext());
     }
 
     @Test
@@ -141,11 +149,17 @@ public class DoubleStreamExTest {
     @Test
     public void testPrepend() {
         assertArrayEquals(new double[] { -1, 0, 1, 2, 3 }, DoubleStreamEx.of(1, 2, 3).prepend(-1, 0).toArray(), 0.0);
+        assertArrayEquals(new double[] { -1, 0, 1, 2, 3 }, DoubleStreamEx.of(1, 2, 3).prepend(DoubleStream.of(-1, 0)).toArray(), 0.0);
+        DoubleStreamEx s = DoubleStreamEx.of(1, 2, 3);
+        assertSame(s, s.prepend());
     }
 
     @Test
     public void testAppend() {
         assertArrayEquals(new double[] { 1, 2, 3, 4, 5 }, DoubleStreamEx.of(1, 2, 3).append(4, 5).toArray(), 0.0);
+        assertArrayEquals(new double[] { 1, 2, 3, 4, 5 }, DoubleStreamEx.of(1, 2, 3).append(DoubleStream.of(4, 5)).toArray(), 0.0);
+        DoubleStreamEx s = DoubleStreamEx.of(1, 2, 3);
+        assertSame(s, s.append());
     }
 
     @Test
@@ -186,6 +200,8 @@ public class DoubleStreamExTest {
             DoubleStreamEx
                     .of(0, 1, 1000, -10, -Double.MAX_VALUE, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY,
                         Double.MAX_VALUE, -0.0, Double.MIN_VALUE).reverseSorted().toArray(), 0.0);
+        assertArrayEquals(new double[] { 1, 10, 2, 21, 9 }, DoubleStreamEx.of(1, 10, 2, 9, 21)
+                .sortedBy(String::valueOf).toArray(), 0.0);
     }
 
     @Test
