@@ -41,7 +41,7 @@ import java.util.function.Predicate;
         private final Spliterator<T> source;
         private T cur;
 
-        public TDOfRef(Spliterator<T> source, boolean drop, Predicate<? super T> predicate) {
+        TDOfRef(Spliterator<T> source, boolean drop, Predicate<? super T> predicate) {
             super(source.estimateSize(), source.characteristics() & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL | DISTINCT));
             this.drop = drop;
             this.predicate = predicate;
@@ -92,7 +92,7 @@ import java.util.function.Predicate;
         private final Spliterator.OfInt source;
         private int cur;
         
-        public TDOfInt(Spliterator.OfInt source, boolean drop, IntPredicate predicate) {
+        TDOfInt(Spliterator.OfInt source, boolean drop, IntPredicate predicate) {
             super(source.estimateSize(), source.characteristics() & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL | DISTINCT));
             this.drop = drop;
             this.predicate = predicate;
@@ -143,7 +143,7 @@ import java.util.function.Predicate;
         private final Spliterator.OfLong source;
         private long cur;
         
-        public TDOfLong(Spliterator.OfLong source, boolean drop, LongPredicate predicate) {
+        TDOfLong(Spliterator.OfLong source, boolean drop, LongPredicate predicate) {
             super(source.estimateSize(), source.characteristics() & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL | DISTINCT));
             this.drop = drop;
             this.predicate = predicate;
@@ -194,7 +194,7 @@ import java.util.function.Predicate;
         private final Spliterator.OfDouble source;
         private double cur;
         
-        public TDOfDouble(Spliterator.OfDouble source, boolean drop, DoublePredicate predicate) {
+        TDOfDouble(Spliterator.OfDouble source, boolean drop, DoublePredicate predicate) {
             super(source.estimateSize(), source.characteristics() & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL | DISTINCT));
             this.drop = drop;
             this.predicate = predicate;
