@@ -1775,6 +1775,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             BiFunction<? super U, ? super V, ? extends T> mapper) {
         return of(new RangeBasedSpliterator.ZipRef<>(0, checkLength(first.size(), second.size()), mapper, first, second));
     }
+    
+    public static <U, T> StreamEx<T> ofPairs(List<U> list, BiFunction<? super U, ? super U, ? extends T> mapper) {
+        return of(new PairPermutationSpliterator<>(list, mapper));
+    }
 
     /**
      * Returns a sequential {@code StreamEx} containing the results of applying

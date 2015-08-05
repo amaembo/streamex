@@ -15,6 +15,7 @@
  */
 package javax.util.streamex;
 
+import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Arrays;
 import java.util.Collection;
@@ -248,7 +249,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.3.0
      */
     public <R> StreamEx<R> flatMapKeyValue(BiFunction<? super K, ? super V, ? extends Stream<? extends R>> mapper) {
-        return this.<R>flatMap(toFunction(mapper));
+        return this.<R> flatMap(toFunction(mapper));
     }
 
     /**
@@ -447,7 +448,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public <R> StreamEx<R> mapKeyValue(BiFunction<? super K, ? super V, ? extends R> mapper) {
-        return this.<R>map(toFunction(mapper));
+        return this.<R> map(toFunction(mapper));
     }
 
     /**
@@ -1172,8 +1173,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.1
      */
     public static <K, V> EntryStream<K, V> zip(List<K> keys, List<V> values) {
-        return of(new RangeBasedSpliterator.ZipRef<>(0, checkLength(keys.size(), values.size()), SimpleImmutableEntry<K, V>::new, keys,
-                values));
+        return of(new RangeBasedSpliterator.ZipRef<>(0, checkLength(keys.size(), values.size()),
+                SimpleImmutableEntry<K, V>::new, keys, values));
     }
 
     /**
@@ -1195,5 +1196,9 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     public static <K, V> EntryStream<K, V> zip(K[] keys, V[] values) {
         return zip(Arrays.asList(keys), Arrays.asList(values));
+    }
+
+    public static <T> EntryStream<T, T> ofPairs(List<T> list) {
+        return of(new PairPermutationSpliterator<>(list, AbstractMap.SimpleImmutableEntry<T, T>::new));
     }
 }
