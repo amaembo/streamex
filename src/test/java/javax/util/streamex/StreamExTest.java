@@ -45,6 +45,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.IntPredicate;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -1226,5 +1227,17 @@ public class StreamExTest {
         assertEquals(Arrays.asList("b", "cccc"), StreamEx.of("aaa", "b", "cccc").dropWhile(x -> x.length() > 1).toList());
         assertEquals(Collections.emptyList(), StreamEx.of("aaa", "b", "cccc").dropWhile(x -> x.length() > 0).toList());
         assertEquals(Arrays.asList("aaa", "b", "cccc"), StreamEx.of("aaa", "b", "cccc").dropWhile(x -> x.length() > 5).toList());
+
+        // When testing with JDK9, "dropWhile" must redirect the call to JDK 9 dropWhile which propagates the "parallel" mode.
+        // When testing with JDK8, "dropWhile" is quasi-intermediate and "parallel" mode is not propagated.
+        boolean propagate = true;
+        try {
+            Stream.class.getDeclaredMethod("dropWhile", Predicate.class);
+        } catch (NoSuchMethodException e) {
+            propagate = false;
+        }
+        StreamEx<String> input = StreamEx.of("aaa", "b", "cccc");
+        input.dropWhile(x -> x.length() > 1).parallel();
+        assertEquals(propagate, input.isParallel());
     }
 }
