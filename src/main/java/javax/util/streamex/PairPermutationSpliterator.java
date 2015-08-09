@@ -51,6 +51,24 @@ import java.util.function.Consumer;
         return Spliterator.ORDERED | Spliterator.SIZED | Spliterator.SUBSIZED;
     }
 
+    /*
+     * Calculates (int) (Math.sqrt(8 * n + 1)-1)/2 using the Newton Method
+     * Produces exact result for any long input from 0 to 0x1FFFFFFFC0000000L
+     * (2^61-2^30). Math.sqrt cannot be used here due to the low precision
+     */
+    static int isqrt(long n) {
+        // Good starting guess which is the lowest possible 2^k-1 number
+        // bigger than the result
+        long xi = (1 << (32 - (Long.numberOfLeadingZeros(n) - 1) / 2)) - 1;
+        while (true) {
+            long xi1 = (xi * xi + 2 * n) / (2 * xi + 1);
+            if (xi1 == xi) {
+                return (int) xi;
+            }
+            xi = xi1;
+        }
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public Spliterator<R> trySplit() {
@@ -65,7 +83,7 @@ import java.util.function.Consumer;
             clone.limit = this.cur = this.cur + size / 2;
             int s = this.size;
             long rev = s * (s - 1L) / 2 - this.cur - 1;
-            int row = (int) (Math.sqrt(1 + 8 * rev) - 1) / 2;
+            int row = isqrt(rev);
             int col = (int) (rev - (row) * (row + 1L) / 2);
             this.idx1 = s - row - 2;
             this.idx2 = s - col - 1;
@@ -93,14 +111,14 @@ import java.util.function.Consumer;
         int size = this.size;
         long cur = this.cur;
         long limit = this.limit;
-        while(cur < limit) {
+        while (cur < limit) {
             T item1 = list.get(idx1++);
-            while(cur < limit && idx2 < size) {
+            while (cur < limit && idx2 < size) {
                 T item2 = list.get(idx2++);
                 action.accept(mapper.apply(item1, item2));
                 cur++;
             }
-            idx2 = idx1+1;
+            idx2 = idx1 + 1;
         }
         this.cur = this.limit;
     }

@@ -20,20 +20,37 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
+
 import static javax.util.streamex.TestHelpers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Tagir Valeev
  */
 public class PairPermutationSpliteratorTest {
     @Test
+    public void testSqrt() {
+        for (int rev = 0; rev < 1000; rev++) {
+            int row = (int) (Math.sqrt(8 * rev + 1) - 1) / 2;
+            int row2 = PairPermutationSpliterator.isqrt(rev);
+            assertEquals(row, row2);
+        }
+        for (int row : new int[] { 1_000_000_000, 2_000_000_000, Integer.MAX_VALUE - 1, Integer.MAX_VALUE }) {
+            assertEquals(row, PairPermutationSpliterator.isqrt(row * (row + 1L) / 2));
+            assertEquals(row - 1, PairPermutationSpliterator.isqrt(row * (row + 1L) / 2 - 1));
+        }
+    }
+
+    @Test
     public void testSpliterator() {
         for (int i : IntStreamEx.rangeClosed(2, 13).boxed()) {
             List<Integer> input = IntStreamEx.range(i).boxed().toList();
-            List<Map.Entry<Integer, Integer>> expected = IntStreamEx.range(i)
-                    .<Map.Entry<Integer, Integer>>flatMapToObj(a -> IntStreamEx.range(a + 1, i).mapToObj(b -> new AbstractMap.SimpleEntry<>(a, b)))
-                    .toList();
-            checkSpliterator("#"+i, expected, () -> new PairPermutationSpliterator<>(input, AbstractMap.SimpleEntry<Integer, Integer>::new));
+            List<Map.Entry<Integer, Integer>> expected = IntStreamEx
+                    .range(i)
+                    .<Map.Entry<Integer, Integer>> flatMapToObj(
+                        a -> IntStreamEx.range(a + 1, i).mapToObj(b -> new AbstractMap.SimpleEntry<>(a, b))).toList();
+            checkSpliterator("#" + i, expected, () -> new PairPermutationSpliterator<>(input,
+                    AbstractMap.SimpleEntry<Integer, Integer>::new));
         }
     }
 }
