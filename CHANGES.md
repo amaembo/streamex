@@ -4,6 +4,7 @@
 
 * Added `StreamEx.collapse(Predicate, Collector)` operation.
 * Added `takeWhile` and `dropWhile` methods for all stream types.
+* Added `StreamEx.ofPairs` and `EntryStream.ofPairs` methods.
 * Optimized: `minBy*/maxBy*` methods for primitive streams now call keyExtractor function at most once per element.
 * Updated documentation
 
