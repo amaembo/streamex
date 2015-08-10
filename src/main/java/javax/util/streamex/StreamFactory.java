@@ -21,7 +21,6 @@ import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ForkJoinTask;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
@@ -29,6 +28,7 @@ import java.util.function.Consumer;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleConsumer;
 import java.util.function.DoublePredicate;
+import java.util.function.Function;
 import java.util.function.IntBinaryOperator;
 import java.util.function.IntConsumer;
 import java.util.function.IntFunction;
@@ -82,8 +82,11 @@ import java.util.stream.Stream;
         }
 
         public <T> T terminate(Supplier<T> terminalOperation) {
-            ForkJoinTask<T> task = fjp.submit(terminalOperation::get);
-            return task.join();
+            return fjp.submit(terminalOperation::get).join();
+        }
+
+        public <T, U> T terminate(U value, Function<U, T> terminalOperation) {
+            return fjp.submit(() -> terminalOperation.apply(value)).join();
         }
     }
 
@@ -118,7 +121,7 @@ import java.util.stream.Stream;
 
         @Override
         public <A> A[] toArray(IntFunction<A[]> generator) {
-            return strategy.terminate(() -> stream.toArray(generator));
+            return strategy.terminate(generator, stream::toArray);
         }
 
         @Override
@@ -128,7 +131,7 @@ import java.util.stream.Stream;
 
         @Override
         public Optional<Entry<K, V>> reduce(BinaryOperator<Entry<K, V>> accumulator) {
-            return strategy.terminate(() -> stream.reduce(accumulator));
+            return strategy.terminate(accumulator, stream::reduce);
         }
 
         @Override
@@ -144,7 +147,7 @@ import java.util.stream.Stream;
 
         @Override
         public <R, A> R collect(Collector<? super Entry<K, V>, A, R> collector) {
-            return strategy.terminate(() -> stream.collect(collector));
+            return strategy.terminate(collector, stream::collect);
         }
 
         @Override
@@ -154,12 +157,12 @@ import java.util.stream.Stream;
 
         @Override
         public boolean anyMatch(Predicate<? super Entry<K, V>> predicate) {
-            return strategy.terminate(() -> stream.anyMatch(predicate));
+            return strategy.terminate(predicate, stream::anyMatch);
         }
 
         @Override
         public boolean allMatch(Predicate<? super Entry<K, V>> predicate) {
-            return strategy.terminate(() -> stream.allMatch(predicate));
+            return strategy.terminate(predicate, stream::allMatch);
         }
 
         @Override
@@ -204,7 +207,7 @@ import java.util.stream.Stream;
 
         @Override
         public <A> A[] toArray(IntFunction<A[]> generator) {
-            return strategy.terminate(() -> stream.toArray(generator));
+            return strategy.terminate(generator, stream::toArray);
         }
 
         @Override
@@ -214,7 +217,7 @@ import java.util.stream.Stream;
 
         @Override
         public Optional<T> reduce(BinaryOperator<T> accumulator) {
-            return strategy.terminate(() -> stream.reduce(accumulator));
+            return strategy.terminate(accumulator, stream::reduce);
         }
 
         @Override
@@ -229,7 +232,7 @@ import java.util.stream.Stream;
 
         @Override
         public <R, A> R collect(Collector<? super T, A, R> collector) {
-            return strategy.terminate(() -> stream.collect(collector));
+            return strategy.terminate(collector, stream::collect);
         }
 
         @Override
@@ -239,12 +242,12 @@ import java.util.stream.Stream;
 
         @Override
         public boolean anyMatch(Predicate<? super T> predicate) {
-            return strategy.terminate(() -> stream.anyMatch(predicate));
+            return strategy.terminate(predicate, stream::anyMatch);
         }
 
         @Override
         public boolean allMatch(Predicate<? super T> predicate) {
-            return strategy.terminate(() -> stream.allMatch(predicate));
+            return strategy.terminate(predicate, stream::allMatch);
         }
 
         @Override
@@ -299,7 +302,7 @@ import java.util.stream.Stream;
 
         @Override
         public OptionalInt reduce(IntBinaryOperator op) {
-            return strategy.terminate(() -> stream.reduce(op));
+            return strategy.terminate(op, stream::reduce);
         }
 
         @Override
@@ -319,12 +322,12 @@ import java.util.stream.Stream;
 
         @Override
         public boolean anyMatch(IntPredicate predicate) {
-            return strategy.terminate(() -> stream.anyMatch(predicate));
+            return strategy.terminate(predicate, stream::anyMatch);
         }
 
         @Override
         public boolean allMatch(IntPredicate predicate) {
-            return strategy.terminate(() -> stream.allMatch(predicate));
+            return strategy.terminate(predicate, stream::allMatch);
         }
 
         @Override
@@ -379,7 +382,7 @@ import java.util.stream.Stream;
 
         @Override
         public OptionalLong reduce(LongBinaryOperator op) {
-            return strategy.terminate(() -> stream.reduce(op));
+            return strategy.terminate(op, stream::reduce);
         }
 
         @Override
@@ -399,12 +402,12 @@ import java.util.stream.Stream;
 
         @Override
         public boolean anyMatch(LongPredicate predicate) {
-            return strategy.terminate(() -> stream.anyMatch(predicate));
+            return strategy.terminate(predicate, stream::anyMatch);
         }
 
         @Override
         public boolean allMatch(LongPredicate predicate) {
-            return strategy.terminate(() -> stream.allMatch(predicate));
+            return strategy.terminate(predicate, stream::allMatch);
         }
 
         @Override
@@ -459,7 +462,7 @@ import java.util.stream.Stream;
 
         @Override
         public OptionalDouble reduce(DoubleBinaryOperator op) {
-            return strategy.terminate(() -> stream.reduce(op));
+            return strategy.terminate(op, stream::reduce);
         }
 
         @Override
@@ -484,12 +487,12 @@ import java.util.stream.Stream;
 
         @Override
         public boolean anyMatch(DoublePredicate predicate) {
-            return strategy.terminate(() -> stream.anyMatch(predicate));
+            return strategy.terminate(predicate, stream::anyMatch);
         }
 
         @Override
         public boolean allMatch(DoublePredicate predicate) {
-            return strategy.terminate(() -> stream.allMatch(predicate));
+            return strategy.terminate(predicate, stream::allMatch);
         }
 
         @Override
