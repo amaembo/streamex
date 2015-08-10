@@ -55,21 +55,21 @@ import static javax.util.streamex.StreamExInternals.*;
     StreamFactory strategy() {
         return StreamFactory.DEFAULT;
     }
-    
+
     final <R> Stream<R> delegate(Spliterator<R> spliterator) {
         return StreamSupport.stream(spliterator, stream.isParallel()).onClose(stream::close);
     }
 
     final S callWhile(Predicate<? super T> predicate, int methodId) {
         try {
-            return supply((Stream<T>)JDK9_METHODS[IDX_STREAM][methodId].invokeExact(stream, predicate));
-        } catch(Error|RuntimeException e) {
+            return supply((Stream<T>) JDK9_METHODS[IDX_STREAM][methodId].invokeExact(stream, predicate));
+        } catch (Error | RuntimeException e) {
             throw e;
         } catch (Throwable e) {
             throw new InternalError(e);
         }
     }
-    
+
     abstract S supply(Stream<T> stream);
 
     @Override
@@ -1172,18 +1172,59 @@ import static javax.util.streamex.StreamExInternals.*;
         return supply(delegate((stream.isParallel() ? StreamSupport.stream(stream.spliterator(), false) : stream).skip(
             n).spliterator()));
     }
-    
+
+    /**
+     * Returns a stream consisting of all elements from this stream until the
+     * first element which does not match the given predicate is found.
+     * 
+     * <p>
+     * This is a short-circuiting stateful operation. It can be either <a
+     * href="package-summary.html#StreamOps">intermediate or
+     * quasi-intermediate</a>. When using with JDK 1.9 or higher it calls the
+     * corresponding JDK 1.9 implementation. When using with JDK 1.8 it uses own
+     * implementation.
+     * 
+     * <p>
+     * While this operation is quite cheap for sequential stream, it can be
+     * quite expensive on parallel pipelines.
+     * 
+     * @param predicate
+     *            a non-interfering, stateless predicate to apply to elements.
+     * @return the new stream.
+     * @since 0.3.6
+     */
     public S takeWhile(Predicate<? super T> predicate) {
         Objects.requireNonNull(predicate);
-        if(IS_JDK9 && JDK9_METHODS[IDX_STREAM] != null) {
+        if (IS_JDK9 && JDK9_METHODS[IDX_STREAM] != null) {
             return callWhile(predicate, IDX_TAKE_WHILE);
         }
         return supply(delegate(new TDOfRef<>(stream.spliterator(), false, predicate)));
     }
-    
+
+    /**
+     * Returns a stream consisting of all elements from this stream starting
+     * from the first element which does not match the given predicate. If the
+     * predicate is true for all stream elements, an empty stream is returned.
+     * 
+     * <p>
+     * This is a stateful operation. It can be either <a
+     * href="package-summary.html#StreamOps">intermediate or
+     * quasi-intermediate</a>. When using with JDK 1.9 or higher it calls the
+     * corresponding JDK 1.9 implementation. When using with JDK 1.8 it uses own
+     * implementation.
+     * 
+     * <p>
+     * While this operation is quite cheap for sequential stream, it can be
+     * quite expensive on parallel pipelines.
+     * 
+     * @param predicate
+     *            a non-interfering, stateless predicate to apply to elements.
+     * @return the new stream.
+     * @since 0.3.6
+     */
     public S dropWhile(Predicate<? super T> predicate) {
         Objects.requireNonNull(predicate);
-        if(IS_JDK9 && JDK9_METHODS[IDX_STREAM] != null) {
+        if (IS_JDK9 && JDK9_METHODS[IDX_STREAM] != null) {
             return callWhile(predicate, IDX_DROP_WHILE);
         }
         return supply(delegate(new TDOfRef<>(stream.spliterator(), true, predicate)));

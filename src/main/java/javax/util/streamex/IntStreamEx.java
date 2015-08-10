@@ -1275,6 +1275,26 @@ public class IntStreamEx implements IntStream {
         return collect(IntCollector.joining(delimiter, prefix, suffix));
     }
 
+    /**
+     * Returns a stream consisting of all elements from this stream until the
+     * first element which does not match the given predicate is found.
+     * 
+     * <p>
+     * This is a short-circuiting stateful operation. It can be either <a
+     * href="package-summary.html#StreamOps">intermediate or
+     * quasi-intermediate</a>. When using with JDK 1.9 or higher it calls the
+     * corresponding JDK 1.9 implementation. When using with JDK 1.8 it uses own
+     * implementation.
+     * 
+     * <p>
+     * While this operation is quite cheap for sequential stream, it can be
+     * quite expensive on parallel pipelines.
+     * 
+     * @param predicate
+     *            a non-interfering, stateless predicate to apply to elements.
+     * @return the new stream.
+     * @since 0.3.6
+     */
     public IntStreamEx takeWhile(IntPredicate predicate) {
         Objects.requireNonNull(predicate);
         if (IS_JDK9 && JDK9_METHODS[IDX_INT_STREAM] != null) {
@@ -1283,6 +1303,27 @@ public class IntStreamEx implements IntStream {
         return delegate(new TDOfInt(stream.spliterator(), false, predicate));
     }
 
+    /**
+     * Returns a stream consisting of all elements from this stream starting
+     * from the first element which does not match the given predicate. If the
+     * predicate is true for all stream elements, an empty stream is returned.
+     * 
+     * <p>
+     * This is a stateful operation. It can be either <a
+     * href="package-summary.html#StreamOps">intermediate or
+     * quasi-intermediate</a>. When using with JDK 1.9 or higher it calls the
+     * corresponding JDK 1.9 implementation. When using with JDK 1.8 it uses own
+     * implementation.
+     * 
+     * <p>
+     * While this operation is quite cheap for sequential stream, it can be
+     * quite expensive on parallel pipelines.
+     * 
+     * @param predicate
+     *            a non-interfering, stateless predicate to apply to elements.
+     * @return the new stream.
+     * @since 0.3.6
+     */
     public IntStreamEx dropWhile(IntPredicate predicate) {
         Objects.requireNonNull(predicate);
         if (IS_JDK9 && JDK9_METHODS[IDX_INT_STREAM] != null) {
