@@ -47,6 +47,21 @@ public class IntCollectorTest {
     }
 
     @Test
+    public void testReducing() {
+        assertEquals(120, (int) IntStreamEx.rangeClosed(1, 5).collect(IntCollector.reducing(1, (a, b) -> a * b)));
+        assertEquals(120,
+            (int) IntStreamEx.rangeClosed(1, 5).parallel().collect(IntCollector.reducing(1, (a, b) -> a * b)));
+    }
+
+    @Test
+    public void testCollectingAndThen() {
+        assertEquals(
+            9,
+            (int) IntStreamEx.rangeClosed(1, 5).collect(
+                IntCollector.collectingAndThen(IntCollector.joining(","), String::length)));
+    }
+
+    @Test
     public void testSumming() {
         assertEquals(3725, (int) IntStreamEx.range(100).atLeast(50).collect(IntCollector.summing()));
         assertEquals(3725, (int) IntStreamEx.range(100).parallel().atLeast(50).collect(IntCollector.summing()));
@@ -126,6 +141,11 @@ public class IntCollectorTest {
         int[] ints = IntStreamEx.range(1000).toArray();
         assertArrayEquals(ints, oddEven.get(true));
         assertArrayEquals(ints, oddEven.get(false));
+
+        Map<Boolean, IntSummaryStatistics> sums = IntStreamEx.rangeClosed(0, 100).collect(
+            IntCollector.partitioningBy(i -> i % 2 == 0, IntCollector.summarizing()));
+        assertEquals(2500, sums.get(false).getSum());
+        assertEquals(2550, sums.get(true).getSum());
     }
 
     @Test
