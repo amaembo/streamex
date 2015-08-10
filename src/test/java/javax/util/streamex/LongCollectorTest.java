@@ -90,6 +90,7 @@ public class LongCollectorTest {
     @Test
     public void testProduct() {
         assertEquals(24L, (long) LongStreamEx.of(1, 2, 3, 4).collect(LongCollector.reducing(1, (a, b) -> a * b)));
+        assertEquals(24L, (long) LongStreamEx.of(1, 2, 3, 4).parallel().collect(LongCollector.reducing(1, (a, b) -> a * b)));
         assertEquals(
             24L,
             (long) LongStreamEx.of(1, 2, 3, 4).collect(

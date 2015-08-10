@@ -140,6 +140,7 @@ public class DoubleCollectorTest {
     @Test
     public void testReducing() {
         assertEquals(7.0, DoubleStreamEx.of(1.0, 2.0, 3.5).collect(DoubleCollector.reducing(1.0, (a, b) -> a * b)), 0.0);
+        assertEquals(7.0, DoubleStreamEx.of(1.0, 2.0, 3.5).parallel().collect(DoubleCollector.reducing(1.0, (a, b) -> a * b)), 0.0);
     }
 
     @Test
