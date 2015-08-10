@@ -22,7 +22,6 @@ import java.util.function.Consumer;
 
 /**
  * @author Tagir Valeev
- *
  */
 /* package */final class PairPermutationSpliterator<T, R> implements Spliterator<R>, Cloneable {
     private long cur;
