@@ -1178,7 +1178,7 @@ import static javax.util.streamex.StreamExInternals.*;
         if(IS_JDK9 && JDK9_METHODS[IDX_STREAM] != null) {
             return callWhile(predicate, IDX_TAKE_WHILE);
         }
-        return supply(delegate(new TakeDropSpliterators.TDOfRef<>(stream.spliterator(), false, predicate)));
+        return supply(delegate(new TDOfRef<>(stream.spliterator(), false, predicate)));
     }
     
     public S dropWhile(Predicate<? super T> predicate) {
@@ -1186,6 +1186,6 @@ import static javax.util.streamex.StreamExInternals.*;
         if(IS_JDK9 && JDK9_METHODS[IDX_STREAM] != null) {
             return callWhile(predicate, IDX_DROP_WHILE);
         }
-        return supply(delegate(new TakeDropSpliterators.TDOfRef<>(stream.spliterator(), true, predicate)));
+        return supply(delegate(new TDOfRef<>(stream.spliterator(), true, predicate)));
     }
 }

@@ -1067,7 +1067,7 @@ public class DoubleStreamEx implements DoubleStream {
         if (IS_JDK9 && JDK9_METHODS[IDX_DOUBLE_STREAM] != null) {
             return callWhile(predicate, IDX_TAKE_WHILE);
         }
-        return delegate(new TakeDropSpliterators.TDOfDouble(stream.spliterator(), false, predicate));
+        return delegate(new TDOfDouble(stream.spliterator(), false, predicate));
     }
 
     public DoubleStreamEx dropWhile(DoublePredicate predicate) {
@@ -1075,7 +1075,7 @@ public class DoubleStreamEx implements DoubleStream {
         if (IS_JDK9 && JDK9_METHODS[IDX_DOUBLE_STREAM] != null) {
             return callWhile(predicate, IDX_DROP_WHILE);
         }
-        return delegate(new TakeDropSpliterators.TDOfDouble(stream.spliterator(), true, predicate));
+        return delegate(new TDOfDouble(stream.spliterator(), true, predicate));
     }
 
     /**

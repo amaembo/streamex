@@ -1280,7 +1280,7 @@ public class IntStreamEx implements IntStream {
         if (IS_JDK9 && JDK9_METHODS[IDX_INT_STREAM] != null) {
             return callWhile(predicate, IDX_TAKE_WHILE);
         }
-        return delegate(new TakeDropSpliterators.TDOfInt(stream.spliterator(), false, predicate));
+        return delegate(new TDOfInt(stream.spliterator(), false, predicate));
     }
 
     public IntStreamEx dropWhile(IntPredicate predicate) {
@@ -1288,7 +1288,7 @@ public class IntStreamEx implements IntStream {
         if (IS_JDK9 && JDK9_METHODS[IDX_INT_STREAM] != null) {
             return callWhile(predicate, IDX_DROP_WHILE);
         }
-        return delegate(new TakeDropSpliterators.TDOfInt(stream.spliterator(), true, predicate));
+        return delegate(new TDOfInt(stream.spliterator(), true, predicate));
     }
 
     /**

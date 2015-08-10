@@ -1078,7 +1078,7 @@ public class LongStreamEx implements LongStream {
         if (IS_JDK9 && JDK9_METHODS[IDX_LONG_STREAM] != null) {
             return callWhile(predicate, IDX_TAKE_WHILE);
         }
-        return delegate(new TakeDropSpliterators.TDOfLong(stream.spliterator(), false, predicate));
+        return delegate(new TDOfLong(stream.spliterator(), false, predicate));
     }
 
     public LongStreamEx dropWhile(LongPredicate predicate) {
@@ -1086,7 +1086,7 @@ public class LongStreamEx implements LongStream {
         if (IS_JDK9 && JDK9_METHODS[IDX_LONG_STREAM] != null) {
             return callWhile(predicate, IDX_DROP_WHILE);
         }
-        return delegate(new TakeDropSpliterators.TDOfLong(stream.spliterator(), true, predicate));
+        return delegate(new TDOfLong(stream.spliterator(), true, predicate));
     }
 
     /**
