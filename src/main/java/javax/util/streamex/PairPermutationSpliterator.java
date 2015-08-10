@@ -60,6 +60,7 @@ import java.util.function.Consumer;
         // Good starting guess which is the lowest possible 2^k-1 number
         // bigger than the result
         long xi = (1 << (32 - (Long.numberOfLeadingZeros(n) - 1) / 2)) - 1;
+        // Usually no more than 5 iterations is necessary
         while (true) {
             long xi1 = (xi * xi + 2 * n) / (2 * xi + 1);
             if (xi1 == xi) {
