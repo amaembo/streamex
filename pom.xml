@@ -3,7 +3,7 @@
 
   <groupId>io.github.amaembo</groupId>
   <artifactId>streamex</artifactId>
-  <version>0.3.6</version>
+  <version>0.3.7-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>StreamEx</name>
