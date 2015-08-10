@@ -248,7 +248,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.3.0
      */
     public <R> StreamEx<R> flatMapKeyValue(BiFunction<? super K, ? super V, ? extends Stream<? extends R>> mapper) {
-        return this.<R>flatMap(toFunction(mapper));
+        return this.<R> flatMap(toFunction(mapper));
     }
 
     /**
@@ -447,7 +447,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public <R> StreamEx<R> mapKeyValue(BiFunction<? super K, ? super V, ? extends R> mapper) {
-        return this.<R>map(toFunction(mapper));
+        return this.<R> map(toFunction(mapper));
     }
 
     /**
@@ -663,11 +663,39 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return filter(e -> e.getValue() != null);
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream which keys are
+     * instances of given class.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
+     * operation.
+     *
+     * @param <KK>
+     *            a type of keys to select.
+     * @param clazz
+     *            a class to filter the keys.
+     * @return the new stream
+     */
     @SuppressWarnings({ "unchecked" })
     public <KK extends K> EntryStream<KK, V> selectKeys(Class<KK> clazz) {
         return (EntryStream<KK, V>) filter(e -> clazz.isInstance(e.getKey()));
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream which values
+     * are instances of given class.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
+     * operation.
+     *
+     * @param <VV>
+     *            a type of values to select.
+     * @param clazz
+     *            a class to filter the values.
+     * @return the new stream
+     */
     @SuppressWarnings({ "unchecked" })
     public <VV extends V> EntryStream<K, VV> selectValues(Class<VV> clazz) {
         return (EntryStream<K, VV>) filter(e -> clazz.isInstance(e.getValue()));
@@ -1172,8 +1200,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.1
      */
     public static <K, V> EntryStream<K, V> zip(List<K> keys, List<V> values) {
-        return of(new RangeBasedSpliterator.ZipRef<>(0, checkLength(keys.size(), values.size()), SimpleImmutableEntry<K, V>::new, keys,
-                values));
+        return of(new RangeBasedSpliterator.ZipRef<>(0, checkLength(keys.size(), values.size()),
+                SimpleImmutableEntry<K, V>::new, keys, values));
     }
 
     /**
