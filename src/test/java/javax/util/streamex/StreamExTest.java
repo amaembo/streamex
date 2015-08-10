@@ -544,6 +544,9 @@ public class StreamExTest {
                 assertEquals(0, StreamEx.of(expected).distinct(2).toSet().size());
             }
         }
+        
+        assertEquals(IntStreamEx.range(10).boxed().toList(), IntStreamEx.range(100).mapToObj(x -> x / 10).sorted()
+                .distinct(3).sorted().toList());
     }
 
     @Test
