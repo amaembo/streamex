@@ -1248,7 +1248,7 @@ public class StreamExTest {
     @Test
     public void testOfPairs() {
         Random r = new Random(1);
-        List<Point> pts = StreamEx.generate(() -> new Point(r.nextDouble(), r.nextDouble())).limit(100).toList();
+        Point[] pts = StreamEx.generate(() -> new Point(r.nextDouble(), r.nextDouble())).limit(100).toArray(Point[]::new);
         double expected = StreamEx.of(pts).cross(pts).mapKeyValue(Point::distance).mapToDouble(Double::doubleValue).max().getAsDouble();
         for(StreamExSupplier<Double> supplier : streamEx(() -> StreamEx.ofPairs(pts, Point::distance))) {
             assertEquals(supplier.toString(), expected, supplier.get().mapToDouble(Double::doubleValue).max().getAsDouble(), 0.0);

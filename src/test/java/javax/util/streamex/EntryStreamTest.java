@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedMap;
@@ -35,6 +36,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import javax.util.streamex.StreamExTest.Point;
 import org.junit.Test;
 
 public class EntryStreamTest {
@@ -442,5 +444,14 @@ public class EntryStreamTest {
         data.put("bb", 22);
         data.put("ccc", 33);
         return data;
+    }
+
+    @Test
+    public void testOfPairs() {
+        Random r = new Random(1);
+        Point[] pts = StreamEx.generate(() -> new Point(r.nextDouble(), r.nextDouble())).limit(100).toArray(Point[]::new);
+        double expected = StreamEx.of(pts).cross(pts).mapKeyValue(Point::distance).mapToDouble(Double::doubleValue).max().getAsDouble();
+        assertEquals(expected, EntryStream.ofPairs(pts).mapKeyValue(Point::distance).mapToDouble(Double::doubleValue).max().getAsDouble(), 0.0);
+        assertEquals(expected, EntryStream.ofPairs(pts).parallel().mapKeyValue(Point::distance).mapToDouble(Double::doubleValue).max().getAsDouble(), 0.0);
     }
 }

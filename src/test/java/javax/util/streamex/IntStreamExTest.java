@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.OptionalInt;
 import java.util.PrimitiveIterator;
+import java.util.PrimitiveIterator.OfInt;
 import java.util.Random;
 import java.util.Set;
 import java.util.Spliterator;
@@ -148,6 +149,12 @@ public class IntStreamExTest {
 
         assertTrue(IntStreamEx.of(1, 2, 3).spliterator().hasCharacteristics(Spliterator.ORDERED));
         assertFalse(IntStreamEx.of(1, 2, 3).unordered().spliterator().hasCharacteristics(Spliterator.ORDERED));
+
+        OfInt iterator = IntStreamEx.of(1, 2, 3).iterator();
+        assertEquals(1, iterator.nextInt());
+        assertEquals(2, iterator.nextInt());
+        assertEquals(3, iterator.nextInt());
+        assertFalse(iterator.hasNext());
     }
 
     @Test
