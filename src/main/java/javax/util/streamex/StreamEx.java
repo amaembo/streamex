@@ -1744,6 +1744,75 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
+     * Returns a sequential ordered {@code StreamEx} containing the results of
+     * applying the given mapper function to the all possible pairs of elements
+     * taken from the provided list.
+     * 
+     * <p>
+     * The indices of two elements supplied to the mapper function are always
+     * ordered: first element index is strictly less than the second element
+     * index. The pairs are lexicographically ordered. For example, for the list
+     * of three elements the stream of three elements is created:
+     * {@code mapper.apply(list.get(0), list.get(1))},
+     * {@code mapper.apply(list.get(0), list.get(2))} and
+     * {@code mapper.apply(list.get(1), list.get(2))}. The number of elements in
+     * the resulting stream is {@code list.size()*(list.size()+1L)/2}.
+     * 
+     * <p>
+     * The list values are accessed using {@link List#get(int)}, so the list
+     * should provide fast random access. The list is assumed to be unmodifiable
+     * during the stream operations.
+     *
+     * @param <U>
+     *            type of the list elements
+     * @param <T>
+     *            type of the stream elements
+     * @param list
+     *            a list to take the elements from
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each pair of
+     *            list elements.
+     * @return a new {@code StreamEx}
+     * @see EntryStream#ofPairs(List)
+     * @since 0.3.6
+     */
+    public static <U, T> StreamEx<T> ofPairs(List<U> list, BiFunction<? super U, ? super U, ? extends T> mapper) {
+        return of(new PairPermutationSpliterator<>(list, mapper));
+    }
+
+    /**
+     * Returns a sequential ordered {@code StreamEx} containing the results of
+     * applying the given mapper function to the all possible pairs of elements
+     * taken from the provided array.
+     * 
+     * <p>
+     * The indices of two array elements supplied to the mapper function are
+     * always ordered: first element index is strictly less than the second
+     * element index. The pairs are lexicographically ordered. For example, for
+     * the array of three elements the stream of three elements is created:
+     * {@code mapper.apply(array[0], array[1])},
+     * {@code mapper.apply(array[0], array[2])} and
+     * {@code mapper.apply(array[1], array[2])}. The number of elements in the
+     * resulting stream is {@code array.length*(array.length+1L)/2}.
+     * 
+     * @param <U>
+     *            type of the array elements
+     * @param <T>
+     *            type of the stream elements
+     * @param array
+     *            an array to take the elements from
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each pair of
+     *            array elements.
+     * @return a new {@code StreamEx}
+     * @see EntryStream#ofPairs(Object[])
+     * @since 0.3.6
+     */
+    public static <U, T> StreamEx<T> ofPairs(U[] array, BiFunction<? super U, ? super U, ? extends T> mapper) {
+        return ofPairs(Arrays.asList(array), mapper);
+    }
+
+    /**
      * Returns a sequential {@code StreamEx} containing the results of applying
      * the given function to the corresponding pairs of values in given two
      * lists.
@@ -1769,15 +1838,12 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return a new {@code StreamEx}
      * @throws IllegalArgumentException
      *             if length of the lists differs.
+     * @see EntryStream#zip(List, List)
      * @since 0.2.1
      */
     public static <U, V, T> StreamEx<T> zip(List<U> first, List<V> second,
             BiFunction<? super U, ? super V, ? extends T> mapper) {
         return of(new RangeBasedSpliterator.ZipRef<>(0, checkLength(first.size(), second.size()), mapper, first, second));
-    }
-    
-    public static <U, T> StreamEx<T> ofPairs(List<U> list, BiFunction<? super U, ? super U, ? extends T> mapper) {
-        return of(new PairPermutationSpliterator<>(list, mapper));
     }
 
     /**
@@ -1801,6 +1867,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return a new {@code StreamEx}
      * @throws IllegalArgumentException
      *             if length of the arrays differs.
+     * @see EntryStream#zip(Object[], Object[])
      * @since 0.2.1
      */
     public static <U, V, T> StreamEx<T> zip(U[] first, V[] second, BiFunction<? super U, ? super V, ? extends T> mapper) {
