@@ -602,6 +602,10 @@ public class StreamExTest {
             this.x = x;
             this.y = y;
         }
+        
+        double distance(Point o) {
+            return Math.sqrt((x-o.x)*(x-o.x)+(y-o.y)*(y-o.y));
+        }
     }
 
     @Test
@@ -1239,5 +1243,15 @@ public class StreamExTest {
         StreamEx<String> input = StreamEx.of("aaa", "b", "cccc");
         input.dropWhile(x -> x.length() > 1).parallel();
         assertEquals(propagate, input.isParallel());
+    }
+    
+    @Test
+    public void testOfPairs() {
+        Random r = new Random(1);
+        List<Point> pts = StreamEx.generate(() -> new Point(r.nextDouble(), r.nextDouble())).limit(100).toList();
+        double expected = StreamEx.of(pts).cross(pts).mapKeyValue(Point::distance).mapToDouble(Double::doubleValue).max().getAsDouble();
+        for(StreamExSupplier<Double> supplier : streamEx(() -> StreamEx.ofPairs(pts, Point::distance))) {
+            assertEquals(supplier.toString(), expected, supplier.get().mapToDouble(Double::doubleValue).max().getAsDouble(), 0.0);
+        }
     }
 }

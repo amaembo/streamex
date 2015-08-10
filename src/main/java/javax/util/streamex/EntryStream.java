@@ -15,6 +15,7 @@
  */
 package javax.util.streamex;
 
+import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Arrays;
 import java.util.Collection;
@@ -1197,6 +1198,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return a new {@code EntryStream}
      * @throws IllegalArgumentException
      *             if length of the lists differs.
+     * @see StreamEx#zip(List, List, BiFunction)
      * @since 0.2.1
      */
     public static <K, V> EntryStream<K, V> zip(List<K> keys, List<V> values) {
@@ -1219,9 +1221,67 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return a new {@code EntryStream}
      * @throws IllegalArgumentException
      *             if length of the arrays differs.
+     * @see StreamEx#zip(Object[], Object[], BiFunction)
      * @since 0.2.1
      */
     public static <K, V> EntryStream<K, V> zip(K[] keys, V[] values) {
         return zip(Arrays.asList(keys), Arrays.asList(values));
+    }
+
+    /**
+     * Returns a sequential ordered {@code EntryStream} containing the possible
+     * pairs of elements taken from the provided list.
+     * 
+     * <p>
+     * Both keys and values are taken from the input list. The index of the key
+     * is always strictly less than the index of the value. The pairs in the
+     * stream are lexicographically ordered. For example, for the list of three
+     * elements the stream of three elements is created:
+     * {@code Map.Entry(list.get(0), list.get(1))},
+     * {@code Map.Entry(list.get(0), list.get(2))} and
+     * {@code Map.Entry(list.get(1), list.get(2))}. The number of elements in
+     * the resulting stream is {@code list.size()*(list.size()+1L)/2}.
+     * 
+     * <p>
+     * The list values are accessed using {@link List#get(int)}, so the list
+     * should provide fast random access. The list is assumed to be unmodifiable
+     * during the stream operations.
+     *
+     * @param <T>
+     *            type of the list elements
+     * @param list
+     *            a list to take the elements from
+     * @return a new {@code EntryStream}
+     * @see StreamEx#ofPairs(List, BiFunction)
+     * @since 0.3.6
+     */
+    public static <T> EntryStream<T, T> ofPairs(List<T> list) {
+        return of(new PairPermutationSpliterator<>(list, AbstractMap.SimpleImmutableEntry<T, T>::new));
+    }
+    
+    /**
+     * Returns a sequential ordered {@code EntryStream} containing the possible
+     * pairs of elements taken from the provided array.
+     * 
+     * <p>
+     * Both keys and values are taken from the input array. The index of the key
+     * is always strictly less than the index of the value. The pairs in the
+     * stream are lexicographically ordered. For example, for the array of three
+     * elements the stream of three elements is created:
+     * {@code Map.Entry(array[0], array[1])},
+     * {@code Map.Entry(array[0], array[2])} and
+     * {@code Map.Entry(array[1], array[2])}. The number of elements in
+     * the resulting stream is {@code array.length*(array.length+1L)/2}..
+     * 
+     * @param <T>
+     *            type of the array elements
+     * @param array
+     *            a array to take the elements from
+     * @return a new {@code EntryStream}
+     * @see StreamEx#ofPairs(Object[], BiFunction)
+     * @since 0.3.6
+     */
+    public static <T> EntryStream<T, T> ofPairs(T[] array) {
+        return ofPairs(Arrays.asList(array));
     }
 }
