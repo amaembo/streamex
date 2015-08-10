@@ -107,8 +107,15 @@ public class IntCollectorTest {
         int[] expectedEven = IntStream.range(0, 1000).map(i -> i * 2).toArray();
         int[] expectedOdd = IntStream.range(0, 1000).map(i -> i * 2 + 1).toArray();
         Map<Boolean, int[]> oddEven = IntStreamEx.range(2000).collect(IntCollector.partitioningBy(i -> i % 2 == 0));
+        assertTrue(oddEven.containsKey(true));
+        assertTrue(oddEven.containsKey(false));
+        assertFalse(oddEven.containsKey(null));
+        assertFalse(oddEven.containsKey(0));
         assertArrayEquals(expectedEven, oddEven.get(true));
         assertArrayEquals(expectedOdd, oddEven.get(false));
+        assertNull(oddEven.get(null));
+        assertNull(oddEven.get(0));
+        assertEquals(2, oddEven.entrySet().size());
         oddEven = IntStreamEx.range(2000).parallel().collect(IntCollector.partitioningBy(i -> i % 2 == 0));
         assertArrayEquals(expectedEven, oddEven.get(true));
         assertArrayEquals(expectedOdd, oddEven.get(false));

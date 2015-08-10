@@ -67,9 +67,9 @@ import java.util.stream.Stream;
     static final Supplier<int[]> INT_BOX = () -> new int[1];
     static final Function<int[], Integer> UNBOX_INT = box -> box[0];
     static final Function<long[], Long> UNBOX_LONG = box -> box[0];
+    static final Function<double[], Double> UNBOX_DOUBLE = box -> box[0];
     static final BiConsumer<long[], long[]> SUM_LONG = (box1, box2) -> box1[0] += box2[0];
     static final BiConsumer<int[], int[]> SUM_INT = (box1, box2) -> box1[0] += box2[0];
-    static final Function<double[], Double> UNBOX_DOUBLE = box -> box[0];
     static final Object NONE = new Object();
     static final Set<Characteristics> NO_CHARACTERISTICS = EnumSet.noneOf(Characteristics.class);
     static final Set<Characteristics> ID_CHARACTERISTICS = EnumSet.of(Characteristics.IDENTITY_FINISH);
@@ -367,7 +367,7 @@ import java.util.stream.Stream;
 
         @Override
         public boolean containsKey(Object key) {
-            return Boolean.TRUE.equals(key) || Boolean.FALSE.equals(key);
+            return key instanceof Boolean;
         }
 
         @Override
@@ -435,18 +435,16 @@ import java.util.stream.Stream;
                     downstreamFinisher.apply(par.falseValue));
         }
     }
-
-    static final class IntCollectorImpl<A, R> implements IntCollector<A, R> {
+    
+    private static abstract class BaseCollector<T, A, R> implements MergingCollector<T, A, R> {
         private final Supplier<A> supplier;
-        private final ObjIntConsumer<A> intAccumulator;
         private final BiConsumer<A, A> merger;
         private final Function<A, R> finisher;
         private final Set<Characteristics> characteristics;
 
-        public IntCollectorImpl(Supplier<A> supplier, ObjIntConsumer<A> intAccumulator, BiConsumer<A, A> merger,
+        public BaseCollector(Supplier<A> supplier, BiConsumer<A, A> merger,
                 Function<A, R> finisher, Set<Characteristics> characteristics) {
             this.supplier = supplier;
-            this.intAccumulator = intAccumulator;
             this.merger = merger;
             this.finisher = finisher;
             this.characteristics = characteristics;
@@ -465,100 +463,56 @@ import java.util.stream.Stream;
         @Override
         public Function<A, R> finisher() {
             return finisher;
+        }
+
+        @Override
+        public BiConsumer<A, A> merger() {
+            return merger;
+        }
+    }
+
+    static final class IntCollectorImpl<A, R> extends BaseCollector<Integer, A, R> implements IntCollector<A, R> {
+        private final ObjIntConsumer<A> intAccumulator;
+
+        public IntCollectorImpl(Supplier<A> supplier, ObjIntConsumer<A> intAccumulator, BiConsumer<A, A> merger,
+                Function<A, R> finisher, Set<Characteristics> characteristics) {
+            super(supplier, merger, finisher, characteristics);
+            this.intAccumulator = intAccumulator;
         }
 
         @Override
         public ObjIntConsumer<A> intAccumulator() {
             return intAccumulator;
         }
-
-        @Override
-        public BiConsumer<A, A> merger() {
-            return merger;
-        }
     }
 
-    static final class LongCollectorImpl<A, R> implements LongCollector<A, R> {
-        private final Supplier<A> supplier;
+    static final class LongCollectorImpl<A, R> extends BaseCollector<Long, A, R> implements LongCollector<A, R> {
         private final ObjLongConsumer<A> longAccumulator;
-        private final BiConsumer<A, A> merger;
-        private final Function<A, R> finisher;
-        private final Set<Characteristics> characteristics;
 
         public LongCollectorImpl(Supplier<A> supplier, ObjLongConsumer<A> longAccumulator, BiConsumer<A, A> merger,
                 Function<A, R> finisher, Set<Characteristics> characteristics) {
-            this.supplier = supplier;
+            super(supplier, merger, finisher, characteristics);
             this.longAccumulator = longAccumulator;
-            this.merger = merger;
-            this.finisher = finisher;
-            this.characteristics = characteristics;
-        }
-
-        @Override
-        public Set<Characteristics> characteristics() {
-            return characteristics;
-        }
-
-        @Override
-        public Supplier<A> supplier() {
-            return supplier;
-        }
-
-        @Override
-        public Function<A, R> finisher() {
-            return finisher;
         }
 
         @Override
         public ObjLongConsumer<A> longAccumulator() {
             return longAccumulator;
         }
-
-        @Override
-        public BiConsumer<A, A> merger() {
-            return merger;
-        }
     }
 
-    static final class DoubleCollectorImpl<A, R> implements DoubleCollector<A, R> {
-        private final Supplier<A> supplier;
+    static final class DoubleCollectorImpl<A, R> extends BaseCollector<Double, A, R> implements DoubleCollector<A, R> {
         private final ObjDoubleConsumer<A> doubleAccumulator;
-        private final BiConsumer<A, A> merger;
-        private final Function<A, R> finisher;
-        private final Set<Characteristics> characteristics;
 
         public DoubleCollectorImpl(Supplier<A> supplier, ObjDoubleConsumer<A> doubleAccumulator,
                 BiConsumer<A, A> merger, Function<A, R> finisher, Set<Characteristics> characteristics) {
-            this.supplier = supplier;
+            super(supplier, merger, finisher, characteristics);
             this.doubleAccumulator = doubleAccumulator;
-            this.merger = merger;
-            this.finisher = finisher;
-            this.characteristics = characteristics;
-        }
-
-        @Override
-        public Set<Characteristics> characteristics() {
-            return characteristics;
-        }
-
-        @Override
-        public Supplier<A> supplier() {
-            return supplier;
-        }
-
-        @Override
-        public Function<A, R> finisher() {
-            return finisher;
         }
 
         @Override
         public ObjDoubleConsumer<A> doubleAccumulator() {
             return doubleAccumulator;
-        }
-
-        @Override
-        public BiConsumer<A, A> merger() {
-            return merger;
         }
     }
 
