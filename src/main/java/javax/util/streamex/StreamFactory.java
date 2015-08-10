@@ -47,33 +47,7 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
-/* package */abstract class StreamFactory {
-    static final class DefaultStreamFactory extends StreamFactory {
-        @Override
-        public <T> StreamEx<T> newStreamEx(Stream<T> src) {
-            return new StreamEx<>(src);
-        }
-
-        @Override
-        public <K, V> EntryStream<K, V> newEntryStream(Stream<Entry<K, V>> src) {
-            return new EntryStream<>(src);
-        }
-
-        @Override
-        public LongStreamEx newLongStreamEx(LongStream src) {
-            return new LongStreamEx(src);
-        }
-
-        @Override
-        public IntStreamEx newIntStreamEx(IntStream src) {
-            return new IntStreamEx(src);
-        }
-
-        @Override
-        public DoubleStreamEx newDoubleStreamEx(DoubleStream src) {
-            return new DoubleStreamEx(src);
-        }
-    }
+/* package */ class StreamFactory {
 
     static final class CustomPoolStreamFactory extends StreamFactory {
         private final ForkJoinPool fjp;
@@ -520,26 +494,36 @@ import java.util.stream.Stream;
 
         @Override
         public OptionalDouble findFirst() {
-            return strategy.terminate(() -> stream.findFirst());
+            return strategy.terminate(stream::findFirst);
         }
 
         @Override
         public OptionalDouble findAny() {
-            return strategy.terminate(() -> stream.findAny());
+            return strategy.terminate(stream::findAny);
         }
     }
 
-    abstract <T> StreamEx<T> newStreamEx(Stream<T> src);
+    public <T> StreamEx<T> newStreamEx(Stream<T> src) {
+        return new StreamEx<>(src);
+    }
 
-    abstract <K, V> EntryStream<K, V> newEntryStream(Stream<Entry<K, V>> src);
+    public <K, V> EntryStream<K, V> newEntryStream(Stream<Entry<K, V>> src) {
+        return new EntryStream<>(src);
+    }
 
-    abstract IntStreamEx newIntStreamEx(IntStream src);
+    public LongStreamEx newLongStreamEx(LongStream src) {
+        return new LongStreamEx(src);
+    }
 
-    abstract LongStreamEx newLongStreamEx(LongStream src);
+    public IntStreamEx newIntStreamEx(IntStream src) {
+        return new IntStreamEx(src);
+    }
 
-    abstract DoubleStreamEx newDoubleStreamEx(DoubleStream src);
+    public DoubleStreamEx newDoubleStreamEx(DoubleStream src) {
+        return new DoubleStreamEx(src);
+    }
 
-    static final StreamFactory DEFAULT = new DefaultStreamFactory();
+    static final StreamFactory DEFAULT = new StreamFactory();
 
     static StreamFactory forCustomPool(ForkJoinPool fjp) {
         return new CustomPoolStreamFactory(fjp);
