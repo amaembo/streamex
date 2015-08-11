@@ -15,7 +15,6 @@
  */
 package javax.util.streamex;
 
-import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Arrays;
 import java.util.Collection;
@@ -866,10 +865,11 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.1.0
      */
     public Map<K, V> toMap(BinaryOperator<V> mergeFunction) {
+        Function<Entry<K, V>, K> keyMapper = Entry::getKey;
+        Function<Entry<K, V>, V> valueMapper = Entry::getValue;
         if (stream.isParallel())
-            return collect(Collectors.toConcurrentMap(Entry::getKey, Entry::getValue, mergeFunction,
-                ConcurrentHashMap::new));
-        return collect(Collectors.toMap(Entry::getKey, Entry::getValue, mergeFunction, HashMap::new));
+            return collect(Collectors.toConcurrentMap(keyMapper, valueMapper, mergeFunction, ConcurrentHashMap::new));
+        return collect(Collectors.toMap(keyMapper, valueMapper, mergeFunction, HashMap::new));
     }
 
     public <M extends Map<K, V>> M toCustomMap(Supplier<M> mapSupplier) {
@@ -878,10 +878,12 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
 
     @SuppressWarnings("unchecked")
     public <M extends Map<K, V>> M toCustomMap(BinaryOperator<V> mergeFunction, Supplier<M> mapSupplier) {
+        Function<Entry<K, V>, K> keyMapper = Entry::getKey;
+        Function<Entry<K, V>, V> valueMapper = Entry::getValue;
         if (stream.isParallel() && mapSupplier.get() instanceof ConcurrentMap)
-            return (M) collect(Collectors.toConcurrentMap(Entry::getKey, Entry::getValue, mergeFunction,
+            return (M) collect(Collectors.toConcurrentMap(keyMapper, valueMapper, mergeFunction,
                 (Supplier<? extends ConcurrentMap<K, V>>) mapSupplier));
-        return collect(Collectors.toMap(Entry::getKey, Entry::getValue, mergeFunction, mapSupplier));
+        return collect(Collectors.toMap(keyMapper, valueMapper, mergeFunction, mapSupplier));
     }
 
     /**
@@ -948,10 +950,12 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.1.0
      */
     public SortedMap<K, V> toSortedMap(BinaryOperator<V> mergeFunction) {
+        Function<Entry<K, V>, K> keyMapper = Entry::getKey;
+        Function<Entry<K, V>, V> valueMapper = Entry::getValue;
         if (stream.isParallel())
-            return collect(Collectors.toConcurrentMap(Entry::getKey, Entry::getValue, mergeFunction,
-                ConcurrentSkipListMap::new));
-        return collect(Collectors.toMap(Entry::getKey, Entry::getValue, mergeFunction, TreeMap::new));
+            return collect(Collectors
+                    .toConcurrentMap(keyMapper, valueMapper, mergeFunction, ConcurrentSkipListMap::new));
+        return collect(Collectors.toMap(keyMapper, valueMapper, mergeFunction, TreeMap::new));
     }
 
     public Map<K, List<V>> grouping() {
@@ -963,21 +967,23 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     }
 
     public <A, D> Map<K, D> grouping(Collector<? super V, A, D> downstream) {
-        if (stream.isParallel())
-            return collect(Collectors.groupingByConcurrent(Entry::getKey,
-                Collectors.<Entry<K, V>, V, A, D> mapping(Entry::getValue, downstream)));
-        return collect(Collectors.groupingBy(Entry::getKey,
-            Collectors.<Entry<K, V>, V, A, D> mapping(Entry::getValue, downstream)));
+        Function<Entry<K, V>, K> keyMapper = Entry::getKey;
+        Collector<Entry<K, V>, ?, D> mapping = Collectors.mapping(Entry::getValue, downstream);
+        if (stream.isParallel()) {
+            return collect(Collectors.groupingByConcurrent(keyMapper, mapping));
+        }
+        return collect(Collectors.groupingBy(keyMapper, mapping));
     }
 
     @SuppressWarnings("unchecked")
     public <A, D, M extends Map<K, D>> M grouping(Supplier<M> mapSupplier, Collector<? super V, A, D> downstream) {
-        if (stream.isParallel() && mapSupplier.get() instanceof ConcurrentMap)
-            return (M) collect(Collectors.groupingByConcurrent(Entry::getKey,
-                (Supplier<? extends ConcurrentMap<K, D>>) mapSupplier,
-                Collectors.<Entry<K, V>, V, A, D> mapping(Entry::getValue, downstream)));
-        return collect(Collectors.groupingBy(Entry::getKey, mapSupplier,
-            Collectors.<Entry<K, V>, V, A, D> mapping(Entry::getValue, downstream)));
+        Function<Entry<K, V>, K> keyMapper = Entry::getKey;
+        Collector<Entry<K, V>, ?, D> mapping = Collectors.mapping(Entry::getValue, downstream);
+        if (stream.isParallel() && mapSupplier.get() instanceof ConcurrentMap) {
+            return (M) collect(Collectors.groupingByConcurrent(keyMapper,
+                (Supplier<? extends ConcurrentMap<K, D>>) mapSupplier, mapping));
+        }
+        return collect(Collectors.groupingBy(keyMapper, mapSupplier, mapping));
     }
 
     public <C extends Collection<V>> Map<K, C> groupingTo(Supplier<C> collectionFactory) {
@@ -1256,9 +1262,9 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.3.6
      */
     public static <T> EntryStream<T, T> ofPairs(List<T> list) {
-        return of(new PairPermutationSpliterator<>(list, AbstractMap.SimpleImmutableEntry<T, T>::new));
+        return of(new PairPermutationSpliterator<>(list, SimpleImmutableEntry<T, T>::new));
     }
-    
+
     /**
      * Returns a sequential ordered {@code EntryStream} containing the possible
      * pairs of elements taken from the provided array.
@@ -1270,8 +1276,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * elements the stream of three elements is created:
      * {@code Map.Entry(array[0], array[1])},
      * {@code Map.Entry(array[0], array[2])} and
-     * {@code Map.Entry(array[1], array[2])}. The number of elements in
-     * the resulting stream is {@code array.length*(array.length+1L)/2}..
+     * {@code Map.Entry(array[1], array[2])}. The number of elements in the
+     * resulting stream is {@code array.length*(array.length+1L)/2}..
      * 
      * @param <T>
      *            type of the array elements
