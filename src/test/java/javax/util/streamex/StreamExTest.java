@@ -1257,4 +1257,15 @@ public class StreamExTest {
             assertEquals(supplier.toString(), expected, supplier.get().mapToDouble(Double::doubleValue).max().getAsDouble(), 0.0);
         }
     }
+    
+    @Test
+    public void testToFlatCollection() {
+        List<List<String>> strings = IntStreamEx.range(100).mapToObj(String::valueOf).groupRuns((a, b) -> a.charAt(0) == b.charAt(0)).toList();
+        Set<String> expected = IntStreamEx.range(100).mapToObj(String::valueOf).toSet();
+        List<String> expectedList = IntStreamEx.range(100).mapToObj(String::valueOf).toList();
+        for(StreamExSupplier<List<String>> supplier : streamEx(strings::stream)) {
+            assertEquals(supplier.toString(), expected, supplier.get().toFlatCollection(Function.identity(), HashSet::new));
+            assertEquals(supplier.toString(), expectedList, supplier.get().toFlatList(Function.identity()));
+        }
+    }
 }
