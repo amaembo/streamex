@@ -277,6 +277,8 @@ public class IntStreamExTest {
 
     @Test
     public void testMinMax() {
+        assertFalse(IntStreamEx.empty().maxBy(Integer::valueOf).isPresent());
+        assertFalse(IntStreamEx.empty().maxByLong(x -> x).isPresent());
         assertEquals(9, IntStreamEx.range(5, 12).max((a, b) -> String.valueOf(a).compareTo(String.valueOf(b)))
                 .getAsInt());
         assertEquals(10, IntStreamEx.range(5, 12).min((a, b) -> String.valueOf(a).compareTo(String.valueOf(b)))

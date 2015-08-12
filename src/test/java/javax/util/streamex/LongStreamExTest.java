@@ -188,6 +188,8 @@ public class LongStreamExTest {
 
     @Test
     public void testMinMax() {
+        assertFalse(LongStreamEx.empty().maxBy(Long::valueOf).isPresent());
+        assertFalse(LongStreamEx.empty().maxByInt(x -> (int) x).isPresent());
         assertEquals(9, LongStreamEx.range(5, 12).max((a, b) -> String.valueOf(a).compareTo(String.valueOf(b)))
                 .getAsLong());
         assertEquals(10, LongStreamEx.range(5, 12).min((a, b) -> String.valueOf(a).compareTo(String.valueOf(b)))

@@ -206,6 +206,8 @@ public class DoubleStreamExTest {
 
     @Test
     public void testMinMax() {
+        assertFalse(DoubleStreamEx.empty().maxBy(Double::valueOf).isPresent());
+        assertFalse(DoubleStreamEx.empty().maxByLong(x -> (long)x).isPresent());
         assertEquals(9,
             IntStreamEx.range(5, 12).asDoubleStream().max((a, b) -> String.valueOf(a).compareTo(String.valueOf(b)))
                     .getAsDouble(), 0.0);
