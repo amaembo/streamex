@@ -26,12 +26,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.Test;
 
@@ -232,6 +236,18 @@ public class MoreCollectorsTest {
         for (StreamExSupplier<Integer> supplier : emptyStreamEx(Integer.class)) {
             assertFalse(supplier.toString(), supplier.get().collect(MoreCollectors.minIndex()).isPresent());
             assertFalse(supplier.toString(), supplier.get().collect(MoreCollectors.maxIndex()).isPresent());
+        }
+    }
+    
+    @Test
+    public void testGroupingByEnum() {
+        for(StreamExSupplier<TimeUnit> supplier:streamEx(() -> Stream.of(TimeUnit.SECONDS, TimeUnit.DAYS, TimeUnit.DAYS, TimeUnit.NANOSECONDS))) {
+            EnumMap<TimeUnit, Long> map = supplier.get().collect(
+                MoreCollectors.groupingByEnum(TimeUnit.class, Function.identity(), Collectors.counting()));
+            assertEquals(supplier.toString(), 1L, (long)map.get(TimeUnit.SECONDS));
+            assertEquals(supplier.toString(), 2L, (long)map.get(TimeUnit.DAYS));
+            assertEquals(supplier.toString(), 1L, (long)map.get(TimeUnit.NANOSECONDS));
+            assertEquals(supplier.toString(), 0L, (long)map.get(TimeUnit.MICROSECONDS));
         }
     }
 }

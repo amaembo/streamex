@@ -19,6 +19,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Deque;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
@@ -662,5 +663,17 @@ public final class MoreCollectors {
      */
     public static <T extends Comparable<? super T>> Collector<T, ?, OptionalLong> maxIndex() {
         return minIndex(Comparator.reverseOrder());
+    }
+    
+    public static <T, K extends Enum<K>, A, D> Collector<T, ?, EnumMap<K, D>> groupingByEnum(Class<K> enumClass,
+            Function<? super T, ? extends K> classifier, Collector<? super T, A, D> downstream) {
+        Collector<T, ?, EnumMap<K, D>> groupingBy = Collectors.groupingBy(classifier, () -> new EnumMap<>(enumClass),
+            downstream);
+        return Collectors.collectingAndThen(groupingBy, map -> {
+            Function<A, D> finisher = downstream.finisher();
+            Supplier<A> supplier = downstream.supplier();
+            EnumSet.allOf(enumClass).forEach(key -> map.computeIfAbsent(key, k -> finisher.apply(supplier.get())));
+            return map;
+        });
     }
 }
