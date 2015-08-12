@@ -593,6 +593,7 @@ public final class MoreCollectors {
      *            a {@code Comparator} to compare the elements
      * @return a {@code Collector} which finds the index of the minimal element.
      * @see #minIndex()
+     * @since 0.3.5
      */
     public static <T> Collector<T, ?, OptionalLong> minIndex(Comparator<? super T> comparator) {
         class Container {
@@ -630,6 +631,7 @@ public final class MoreCollectors {
      *            the type of the input elements
      * @return a {@code Collector} which finds the index of the minimal element.
      * @see #minIndex(Comparator)
+     * @since 0.3.5
      */
     public static <T extends Comparable<? super T>> Collector<T, ?, OptionalLong> minIndex() {
         return minIndex(Comparator.naturalOrder());
@@ -646,6 +648,7 @@ public final class MoreCollectors {
      *            a {@code Comparator} to compare the elements
      * @return a {@code Collector} which finds the index of the maximal element.
      * @see #maxIndex()
+     * @since 0.3.5
      */
     public static <T> Collector<T, ?, OptionalLong> maxIndex(Comparator<? super T> comparator) {
         return minIndex(comparator.reversed());
@@ -660,13 +663,48 @@ public final class MoreCollectors {
      *            the type of the input elements
      * @return a {@code Collector} which finds the index of the maximal element.
      * @see #maxIndex(Comparator)
+     * @since 0.3.5
      */
     public static <T extends Comparable<? super T>> Collector<T, ?, OptionalLong> maxIndex() {
         return minIndex(Comparator.reverseOrder());
     }
-    
+
+    /**
+     * Returns a {@code Collector} implementing a cascaded "group by" operation
+     * on input elements of type {@code T}, for classification function which
+     * maps input elements to the enum values. The downstream reduction for
+     * repeating keys is performed using the specified downstream
+     * {@code Collector}.
+     *
+     * <p>
+     * Unlike the {@link Collectors#groupingBy(Function, Collector)} collector
+     * this collector produces an {@link EnumMap} which contains all possible
+     * keys including keys which were never returned by the classification
+     * function. For these keys The classification function maps elements to
+     * some key type {@code K}. The downstream collector operates on elements of
+     * type {@code T} and produces a result of type {@code D}. The resulting
+     * collector produces a {@code Map<K, D>}.
+     *
+     * @param <T>
+     *            the type of the input elements
+     * @param <K>
+     *            the type of the enum values returned by the classifier
+     * @param <A>
+     *            the intermediate accumulation type of the downstream collector
+     * @param <D>
+     *            the result type of the downstream reduction
+     * @param enumClass
+     *            the class of enum values returned by the classifier
+     * @param classifier
+     *            a classifier function mapping input elements to enum values
+     * @param downstream
+     *            a {@code Collector} implementing the downstream reduction
+     * @return a {@code Collector} implementing the cascaded group-by operation
+     * @see Collectors#groupingBy(Function, Collector)
+     * @since 0.3.7
+     */
     public static <T, K extends Enum<K>, A, D> Collector<T, ?, EnumMap<K, D>> groupingByEnum(Class<K> enumClass,
-            Function<? super T, ? extends K> classifier, Collector<? super T, A, D> downstream) {
+            Function<? super T, K> classifier, Collector<? super T, A, D> downstream) {
         Collector<T, ?, EnumMap<K, D>> groupingBy = Collectors.groupingBy(classifier, () -> new EnumMap<>(enumClass),
             downstream);
         return Collectors.collectingAndThen(groupingBy, map -> {
