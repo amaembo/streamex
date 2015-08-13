@@ -680,10 +680,8 @@ public final class MoreCollectors {
      * Unlike the {@link Collectors#groupingBy(Function, Collector)} collector
      * this collector produces an {@link EnumMap} which contains all possible
      * keys including keys which were never returned by the classification
-     * function. For these keys The classification function maps elements to
-     * some key type {@code K}. The downstream collector operates on elements of
-     * type {@code T} and produces a result of type {@code D}. The resulting
-     * collector produces a {@code Map<K, D>}.
+     * function. These keys are mapped to the default collector value which is
+     * equivalent to collecting an empty stream with the same collector.
      *
      * @param <T>
      *            the type of the input elements
