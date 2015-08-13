@@ -1,5 +1,10 @@
 # StreamEx changes
 
+### 0.3.7
+
+* Added `MoreCollectors.groupingByEnum` collector.
+* Added `StreamEx.toFlatCollection` and `StreamEx.toFlatList` terminal operations. 
+
 ### 0.3.6
 
 * Added `StreamEx.collapse(Predicate, Collector)` operation.
