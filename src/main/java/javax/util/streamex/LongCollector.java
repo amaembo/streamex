@@ -31,6 +31,8 @@ import java.util.function.ObjLongConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 
+import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 
 import static javax.util.streamex.StreamExInternals.*;
 
@@ -205,6 +207,12 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
     /**
      * Returns an {@code LongCollector} that produces the arithmetic mean of the
      * input elements or an empty optional if no elements are collected.
+     *
+     * <p>
+     * Note that unlike {@link LongStream#average()},
+     * {@link Collectors#averagingLong(java.util.function.ToLongFunction)} and
+     * {@link LongSummaryStatistics#getAverage()} this collector does not
+     * overflow if an intermediate sum exceeds {@code Long.MAX_VALUE}.
      *
      * @return an {@code LongCollector} that produces the sum of a derived
      *         property
