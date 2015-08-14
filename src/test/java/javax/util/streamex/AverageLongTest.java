@@ -21,11 +21,15 @@ import static org.junit.Assert.*;
 import java.math.BigInteger;
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.util.Arrays;
 import java.util.OptionalDouble;
 import java.util.Random;
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 
 import org.junit.Test;
 
@@ -47,11 +51,12 @@ public class AverageLongTest {
         avg.accept(-4);
         avg.accept(8);
         assertEquals(2.0, avg.result().getAsDouble(), 0.0);
-        
-        OptionalDouble expected = IntStreamEx.of(new Random(1), 1000).average();
-        assertEquals(expected,
-            IntStreamEx.of(new Random(1), 1000).collect(AverageLong::new, AverageLong::accept, AverageLong::combine).result());
-        
+
+        int[] input = new Random(1).ints(1000).toArray();
+        OptionalDouble expected = IntStream.of(input).average();
+        assertEquals(expected, Arrays.stream(input)
+                .collect(AverageLong::new, AverageLong::accept, AverageLong::combine).result());
+
         AverageLong avg1 = new AverageLong();
         avg1.accept(-2);
         AverageLong avg2 = new AverageLong();
@@ -59,20 +64,44 @@ public class AverageLongTest {
         assertEquals(-2.0, avg1.combine(avg2).result().getAsDouble(), 0.0);
 
         assertEquals(expected,
-            IntStreamEx.of(new Random(1), 1000).parallel().collect(AverageLong::new, AverageLong::accept, AverageLong::combine).result());
+            Arrays.stream(input).parallel().collect(AverageLong::new, AverageLong::accept, AverageLong::combine)
+                    .result());
     }
-    
+
+    @Test
+    public void testCombine() {
+        Random r = new Random(1);
+        for (int i = 0; i < 100; i++) {
+            AverageLong avg1 = new AverageLong();
+            AverageLong avg2 = new AverageLong();
+            long[] set1 = r.longs(100).toArray();
+            long[] set2 = r.longs(100).toArray();
+            double expected = LongStreamEx.of(set1).append(set2).boxed().collect(getBigIntegerAverager()).getAsDouble();
+            LongStream.of(set1).forEach(avg1::accept);
+            LongStream.of(set2).forEach(avg2::accept);
+            assertEquals("#" + i, expected, avg1.combine(avg2).result().getAsDouble(), Math.abs(expected / 1e14));
+        }
+    }
+
     @Test
     public void testCompareToBigInteger() {
-        Collector<Long, ?, BigInteger> summing = Collectors.reducing(BigInteger.ZERO, BigInteger::valueOf,
-            BigInteger::add);
-        BiFunction<BigInteger, Long, OptionalDouble> finisher = (BigInteger sum, Long cnt) -> cnt == 0L ? OptionalDouble.empty() : 
-            OptionalDouble.of(new BigDecimal(sum).divide(BigDecimal.valueOf(cnt), MathContext.DECIMAL64).doubleValue());
-        OptionalDouble expected = LongStreamEx.of(new Random(1), 1000).boxed()
-                .collect(MoreCollectors.pairing(summing, Collectors.counting(), finisher));
+        long[] input = LongStreamEx.of(new Random(1), 1000).toArray();
+        Supplier<LongStream> supplier = () -> Arrays.stream(input);
+        double expected = supplier.get().boxed().collect(getBigIntegerAverager()).getAsDouble();
+        assertEquals(expected, supplier.get().collect(AverageLong::new, AverageLong::accept, AverageLong::combine)
+                .result().getAsDouble(), Math.abs(expected) / 1e14);
         assertEquals(expected,
-            LongStreamEx.of(new Random(1), 1000).collect(AverageLong::new, AverageLong::accept, AverageLong::combine).result());
-        assertEquals(expected,
-            LongStreamEx.of(new Random(1), 1000).parallel().collect(AverageLong::new, AverageLong::accept, AverageLong::combine).result());
+            supplier.get().parallel().collect(AverageLong::new, AverageLong::accept, AverageLong::combine).result()
+                    .getAsDouble(), Math.abs(expected) / 1e14);
+    }
+
+    private Collector<Long, ?, OptionalDouble> getBigIntegerAverager() {
+        BiFunction<BigInteger, Long, OptionalDouble> finisher = (BigInteger sum, Long cnt) -> cnt == 0L ? OptionalDouble
+                .empty() : OptionalDouble.of(new BigDecimal(sum).divide(BigDecimal.valueOf(cnt), MathContext.DECIMAL64)
+                .doubleValue());
+        Collector<Long, ?, OptionalDouble> averager = MoreCollectors
+                .pairing(Collectors.reducing(BigInteger.ZERO, BigInteger::valueOf, BigInteger::add),
+                    Collectors.counting(), finisher);
+        return averager;
     }
 }
