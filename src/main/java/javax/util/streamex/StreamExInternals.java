@@ -19,6 +19,10 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.MethodHandles.Lookup;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.MathContext;
+import java.nio.ByteOrder;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.Arrays;
@@ -857,6 +861,40 @@ import java.util.stream.Stream;
         @Override
         public void accept(double t) {
             this.cur = t;
+        }
+    }
+
+    static final class AverageLong {
+        long hi, lo, cnt;
+
+        public void accept(long val) {
+            cnt++;
+            int cmp = Long.compareUnsigned(lo, lo += val);
+            if (val > 0) {
+                if (cmp > 0)
+                    hi++;
+            } else if (cmp < 0)
+                hi--;
+        }
+
+        public AverageLong combine(AverageLong other) {
+            cnt += other.cnt;
+            hi += other.hi;
+            if (Long.compareUnsigned(lo, lo += other.lo) > 0) {
+                hi++;
+            }
+            return this;
+        }
+
+        public OptionalDouble result() {
+            if (cnt == 0)
+                return OptionalDouble.empty();
+            if (hi == 0 && lo >= 0 || hi == -1 && lo < 0) {
+                return OptionalDouble.of(((double) lo) / cnt);
+            }
+            return OptionalDouble.of(new BigDecimal(new BigInteger(java.nio.ByteBuffer.allocate(16)
+                    .order(ByteOrder.BIG_ENDIAN).putLong(hi).putLong(lo).array())).divide(BigDecimal.valueOf(cnt),
+                MathContext.DECIMAL64).doubleValue());
         }
     }
 
