@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.IntSummaryStatistics;
 import java.util.Map;
 import java.util.Objects;
+import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -30,6 +31,8 @@ import java.util.function.IntUnaryOperator;
 import java.util.function.ObjIntConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import javax.util.streamex.StreamExInternals.Box;
 
@@ -201,6 +204,24 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      */
     static IntCollector<?, Integer> summing() {
         return of(INT_BOX, (box, i) -> box[0] += i, SUM_INT, UNBOX_INT);
+    }
+
+    /**
+     * Returns an {@code IntCollector} that produces the arithmetic mean of the
+     * input elements or an empty optional if no elements are collected.
+     * 
+     * <p>
+     * Note that unlike {@link IntStream#average()},
+     * {@link Collectors#averagingInt(java.util.function.ToIntFunction)} and
+     * {@link IntSummaryStatistics#getAverage()} this collector does not
+     * overflow if an intermediate sum exceeds {@code Long.MAX_VALUE}.
+     *
+     * @return an {@code IntCollector} that produces the sum of a derived
+     *         property
+     * @since 0.3.7
+     */
+    static IntCollector<?, OptionalDouble> averaging() {
+        return of(AverageLong::new, AverageLong::accept, AverageLong::combine, AverageLong::result);
     }
 
     /**

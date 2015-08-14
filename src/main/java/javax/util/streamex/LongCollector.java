@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.LongSummaryStatistics;
 import java.util.Map;
 import java.util.Objects;
+import java.util.OptionalDouble;
 import java.util.OptionalLong;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -30,7 +31,6 @@ import java.util.function.ObjLongConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 
-import javax.util.streamex.StreamExInternals.Box;
 
 import static javax.util.streamex.StreamExInternals.*;
 
@@ -200,6 +200,18 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      */
     static LongCollector<?, Long> summing() {
         return of(LONG_BOX, (box, i) -> box[0] += i, SUM_LONG, UNBOX_LONG);
+    }
+
+    /**
+     * Returns an {@code LongCollector} that produces the arithmetic mean of the
+     * input elements or an empty optional if no elements are collected.
+     *
+     * @return an {@code LongCollector} that produces the sum of a derived
+     *         property
+     * @since 0.3.7
+     */
+    static LongCollector<?, OptionalDouble> averaging() {
+        return of(AverageLong::new, AverageLong::accept, AverageLong::combine, AverageLong::result);
     }
 
     /**
