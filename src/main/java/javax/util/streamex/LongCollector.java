@@ -68,6 +68,10 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
         return longAccumulator()::accept;
     }
 
+    default <RR> LongCollector<A, RR> andThen(Function<R, RR> finisher) {
+        return collectingAndThen(this, finisher);
+    }
+
     /**
      * Returns a new {@code LongCollector} described by the given
      * {@code supplier}, {@code accumulator}, and {@code merger} functions. The

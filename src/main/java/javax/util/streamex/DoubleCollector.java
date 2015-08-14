@@ -65,6 +65,10 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
     default BiConsumer<A, Double> accumulator() {
         return doubleAccumulator()::accept;
     }
+    
+    default <RR> DoubleCollector<A, RR> andThen(Function<R, RR> finisher) {
+        return collectingAndThen(this, finisher);
+    }
 
     /**
      * Returns a new {@code DoubleCollector} described by the given

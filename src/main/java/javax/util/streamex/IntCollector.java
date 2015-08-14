@@ -68,6 +68,10 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
     default BiConsumer<A, Integer> accumulator() {
         return intAccumulator()::accept;
     }
+    
+    default <RR> IntCollector<A, RR> andThen(Function<R, RR> finisher) {
+        return collectingAndThen(this, finisher);
+    }
 
     /**
      * Returns a new {@code IntCollector} described by the given

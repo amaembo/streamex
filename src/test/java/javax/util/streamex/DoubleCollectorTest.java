@@ -18,6 +18,7 @@ package javax.util.streamex;
 import static org.junit.Assert.*;
 
 import java.util.Map;
+import java.util.OptionalDouble;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -65,6 +66,10 @@ public class DoubleCollectorTest {
     public void testMin() {
         assertEquals(50, IntStreamEx.range(100).asDoubleStream().atLeast(50).collect(DoubleCollector.min())
                 .getAsDouble(), 0.0);
+        assertEquals(
+            50,
+            IntStreamEx.range(100).asDoubleStream().atLeast(50)
+                    .collect(DoubleCollector.min().andThen(OptionalDouble::getAsDouble)), 0.0);
         assertFalse(IntStreamEx.range(100).asDoubleStream().atLeast(200).collect(DoubleCollector.min()).isPresent());
     }
 
