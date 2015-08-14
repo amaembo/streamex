@@ -51,22 +51,14 @@ import java.util.function.Consumer;
     }
 
     /*
-     * Calculates (int) (Math.sqrt(8 * n + 1)-1)/2 using the Newton Method
-     * Produces exact result for any long input from 0 to 0x1FFFFFFFC0000000L
-     * (2^61-2^30). Math.sqrt cannot be used here due to the low precision
+     * Calculates (int) (Math.sqrt(8 * n + 1)-1)/2 Produces exact result for any
+     * long input from 0 to 0x1FFFFFFFC0000000L (2^61-2^30).
      */
     static int isqrt(long n) {
-        // Good starting guess which is the lowest possible 2^k-1 number
-        // bigger than the result
-        long xi = (1 << (32 - (Long.numberOfLeadingZeros(n) - 1) / 2)) - 1;
-        // Usually no more than 5 iterations is necessary
-        while (true) {
-            long xi1 = (xi * xi + 2 * n) / (2 * xi + 1);
-            if (xi1 == xi) {
-                return (int) xi;
-            }
-            xi = xi1;
-        }
+        int x = (int) ((Math.sqrt(8.0 * n + 1.0) - 1.0) / 2.0);
+        if (x * (x + 1L) / 2 > n)
+            x--;
+        return x;
     }
 
     @SuppressWarnings("unchecked")
