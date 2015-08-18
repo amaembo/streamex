@@ -30,7 +30,6 @@ import java.util.function.LongUnaryOperator;
 import java.util.function.ObjLongConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
-
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
@@ -70,6 +69,18 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
         return longAccumulator()::accept;
     }
 
+    /**
+     * Adapts this collector to perform an additional finishing transformation.
+     *
+     * @param <RR>
+     *            result type of the resulting collector
+     * @param finisher
+     *            a function to be applied to the final result of this collector
+     * @return a collector which performs the action of this collector, followed
+     *         by an additional finishing step
+     * @see #collectingAndThen(LongCollector, Function)
+     * @since 0.3.7
+     */
     default <RR> LongCollector<A, RR> andThen(Function<R, RR> finisher) {
         return collectingAndThen(this, finisher);
     }
@@ -317,6 +328,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      *            collector
      * @return a collector which performs the action of the downstream
      *         collector, followed by an additional finishing step
+     * @see #andThen(Function)
      */
     static <A, R, RR> LongCollector<A, RR> collectingAndThen(LongCollector<A, R> downstream, Function<R, RR> finisher) {
         return of(downstream.supplier(), downstream.longAccumulator(), downstream.merger(), downstream.finisher()

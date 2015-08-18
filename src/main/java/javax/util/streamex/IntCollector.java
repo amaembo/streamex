@@ -71,7 +71,19 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
     default BiConsumer<A, Integer> accumulator() {
         return intAccumulator()::accept;
     }
-    
+
+    /**
+     * Adapts this collector to perform an additional finishing transformation.
+     *
+     * @param <RR>
+     *            result type of the resulting collector
+     * @param finisher
+     *            a function to be applied to the final result of this collector
+     * @return a collector which performs the action of this collector, followed
+     *         by an additional finishing step
+     * @see #collectingAndThen(IntCollector, Function)
+     * @since 0.3.7
+     */
     default <RR> IntCollector<A, RR> andThen(Function<R, RR> finisher) {
         return collectingAndThen(this, finisher);
     }
@@ -319,6 +331,7 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      *            collector
      * @return a collector which performs the action of the downstream
      *         collector, followed by an additional finishing step
+     * @see #andThen(Function)
      */
     static <A, R, RR> IntCollector<A, RR> collectingAndThen(IntCollector<A, R> downstream, Function<R, RR> finisher) {
         return of(downstream.supplier(), downstream.intAccumulator(), downstream.merger(), downstream.finisher()
