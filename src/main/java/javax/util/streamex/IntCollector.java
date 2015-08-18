@@ -87,6 +87,22 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
     default <RR> IntCollector<A, RR> andThen(Function<R, RR> finisher) {
         return of(supplier(), intAccumulator(), merger(), finisher().andThen(finisher));
     }
+    
+    default IntCollector<?, Map<Boolean, R>> toPartitions(IntPredicate predicate) {
+        return partitioningBy(predicate, this);
+    }
+
+    default <K> IntCollector<?, Map<K, R>> toGroups(IntFunction<? extends K> classifier) {
+        return groupingBy(classifier, this);
+    }
+
+    default <K, M extends Map<K, R>> IntCollector<?, M> toGroups(IntFunction<? extends K> classifier, Supplier<M> mapfactory) {
+        return groupingBy(classifier, mapfactory, this);
+    }
+    
+    default IntCollector<?, R> withMapping(IntUnaryOperator mapper) {
+        return mapping(mapper, this);
+    }
 
     /**
      * Returns a new {@code IntCollector} described by the given
@@ -470,7 +486,7 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      * @return an {@code IntCollector} implementing the group-by operation
      */
     static <K> IntCollector<?, Map<K, int[]>> groupingBy(IntFunction<? extends K> classifier) {
-        return groupingBy(classifier, toArray());
+        return toArray().toGroups(classifier);
     }
 
     /**

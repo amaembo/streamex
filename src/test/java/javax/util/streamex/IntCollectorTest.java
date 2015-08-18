@@ -136,15 +136,14 @@ public class IntCollectorTest {
         assertArrayEquals(expectedEven, oddEven.get(true));
         assertArrayEquals(expectedOdd, oddEven.get(false));
 
-        IntCollector<?, Map<Boolean, int[]>> partitionMapToArray = IntCollector.partitioningBy(i -> i % 2 == 0,
-            IntCollector.mapping(i -> i / 2, IntCollector.toArray()));
-        oddEven = IntStreamEx.range(2000).collect(partitionMapToArray);
+        oddEven = IntStreamEx.range(2000).collect(
+            IntCollector.toArray().withMapping(i -> i / 2).toPartitions(i -> i % 2 == 0));
         int[] ints = IntStreamEx.range(1000).toArray();
         assertArrayEquals(ints, oddEven.get(true));
         assertArrayEquals(ints, oddEven.get(false));
 
         Map<Boolean, IntSummaryStatistics> sums = IntStreamEx.rangeClosed(0, 100).collect(
-            IntCollector.partitioningBy(i -> i % 2 == 0, IntCollector.summarizing()));
+            IntCollector.summarizing().toPartitions(i -> i % 2 == 0));
         assertEquals(2500, sums.get(false).getSum());
         assertEquals(2550, sums.get(true).getSum());
     }
@@ -172,8 +171,7 @@ public class IntCollectorTest {
             assertArrayEquals(IntStream.range(0, 2000).filter(a -> a % 3 == rem).toArray(), collected.get(i));
         }
 
-        Map<Integer, BitSet> mapBitSet = IntStreamEx.range(10).collect(
-            IntCollector.groupingBy(i -> i % 3, IntCollector.toBitSet()));
+        Map<Integer, BitSet> mapBitSet = IntStreamEx.range(10).collect(IntCollector.toBitSet().toGroups(i -> i % 3));
         assertEquals("{0, 3, 6, 9}", mapBitSet.get(0).toString());
         assertEquals("{1, 4, 7}", mapBitSet.get(1).toString());
         assertEquals("{2, 5, 8}", mapBitSet.get(2).toString());
@@ -182,8 +180,8 @@ public class IntCollectorTest {
     @Test
     public void testByDigit() {
         int[] input = new Random(1).ints(2000, -1000, 1000).toArray();
-        IntCollector<?, Map<Integer, List<Integer>>> collector = IntCollector.groupingBy(i -> i % 10,
-            IntCollector.of(Collectors.toList()));
+        IntCollector<?, Map<Integer, List<Integer>>> collector = IntCollector.of(Collectors.toList()).toGroups(
+            i -> i % 10);
         Map<Integer, List<Integer>> groups = IntStreamEx.of(input).collect(collector);
         Map<Integer, List<Integer>> groupsBoxed = IntStream.of(input).boxed()
                 .collect(Collectors.groupingBy(i -> i % 10));
