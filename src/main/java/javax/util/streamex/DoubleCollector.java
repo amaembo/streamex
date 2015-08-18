@@ -29,7 +29,6 @@ import java.util.function.DoubleUnaryOperator;
 import java.util.function.ObjDoubleConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
-
 import static javax.util.streamex.StreamExInternals.*;
 
 /**
@@ -65,7 +64,7 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
     default BiConsumer<A, Double> accumulator() {
         return doubleAccumulator()::accept;
     }
-    
+
     /**
      * Adapts this collector to perform an additional finishing transformation.
      *
@@ -79,7 +78,7 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
      * @since 0.3.7
      */
     default <RR> DoubleCollector<A, RR> andThen(Function<R, RR> finisher) {
-        return collectingAndThen(this, finisher);
+        return of(supplier(), doubleAccumulator(), merger(), finisher().andThen(finisher));
     }
 
     /**
@@ -215,7 +214,20 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
      */
     static DoubleCollector<?, Double> summing() {
         // Using DoubleSummaryStatistics as Kahan algorithm is implemented there
-        return collectingAndThen(summarizing(), DoubleSummaryStatistics::getSum);
+        return summarizing().andThen(DoubleSummaryStatistics::getSum);
+    }
+
+    /**
+     * Returns a {@code DoubleCollector} that produces the arithmetic mean of
+     * the input elements or an empty optional if no elements are collected.
+     *
+     * @return a {@code DoubleCollector} that produces the arithmetic mean of
+     *         the input elements
+     * @since 0.3.7
+     */
+    static DoubleCollector<?, OptionalDouble> averaging() {
+        return summarizing().andThen(
+            dss -> dss.getCount() == 0L ? OptionalDouble.empty() : OptionalDouble.of(dss.getAverage()));
     }
 
     /**
@@ -314,8 +326,7 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
      */
     static <A, R, RR> DoubleCollector<A, RR> collectingAndThen(DoubleCollector<A, R> downstream,
             Function<R, RR> finisher) {
-        return of(downstream.supplier(), downstream.doubleAccumulator(), downstream.merger(), downstream.finisher()
-                .andThen(finisher));
+        return downstream.andThen(finisher);
     }
 
     /**

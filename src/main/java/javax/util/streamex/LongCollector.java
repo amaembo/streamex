@@ -82,7 +82,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * @since 0.3.7
      */
     default <RR> LongCollector<A, RR> andThen(Function<R, RR> finisher) {
-        return collectingAndThen(this, finisher);
+        return of(supplier(), longAccumulator(), merger(), finisher().andThen(finisher));
     }
 
     /**
@@ -220,7 +220,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
     }
 
     /**
-     * Returns an {@code LongCollector} that produces the arithmetic mean of the
+     * Returns a {@code LongCollector} that produces the arithmetic mean of the
      * input elements or an empty optional if no elements are collected.
      *
      * <p>
@@ -229,8 +229,8 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * {@link LongSummaryStatistics#getAverage()} this collector does not
      * overflow if an intermediate sum exceeds {@code Long.MAX_VALUE}.
      *
-     * @return an {@code LongCollector} that produces the sum of a derived
-     *         property
+     * @return a {@code LongCollector} that produces the arithmetic mean of
+     *         the input elements
      * @since 0.3.7
      */
     static LongCollector<?, OptionalDouble> averaging() {
@@ -331,8 +331,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * @see #andThen(Function)
      */
     static <A, R, RR> LongCollector<A, RR> collectingAndThen(LongCollector<A, R> downstream, Function<R, RR> finisher) {
-        return of(downstream.supplier(), downstream.longAccumulator(), downstream.merger(), downstream.finisher()
-                .andThen(finisher));
+        return downstream.andThen(finisher);
     }
 
     /**

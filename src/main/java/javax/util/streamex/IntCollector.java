@@ -85,7 +85,7 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      * @since 0.3.7
      */
     default <RR> IntCollector<A, RR> andThen(Function<R, RR> finisher) {
-        return collectingAndThen(this, finisher);
+        return of(supplier(), intAccumulator(), merger(), finisher().andThen(finisher));
     }
 
     /**
@@ -232,8 +232,8 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      * {@link IntSummaryStatistics#getAverage()} this collector does not
      * overflow if an intermediate sum exceeds {@code Long.MAX_VALUE}.
      *
-     * @return an {@code IntCollector} that produces the sum of a derived
-     *         property
+     * @return an {@code IntCollector} that produces the arithmetic mean of
+     *         the input elements
      * @since 0.3.7
      */
     static IntCollector<?, OptionalDouble> averaging() {
@@ -334,8 +334,7 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      * @see #andThen(Function)
      */
     static <A, R, RR> IntCollector<A, RR> collectingAndThen(IntCollector<A, R> downstream, Function<R, RR> finisher) {
-        return of(downstream.supplier(), downstream.intAccumulator(), downstream.merger(), downstream.finisher()
-                .andThen(finisher));
+        return downstream.andThen(finisher);
     }
 
     /**
