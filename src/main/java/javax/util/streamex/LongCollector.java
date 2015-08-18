@@ -328,8 +328,9 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      *            collector
      * @return a collector which performs the action of the downstream
      *         collector, followed by an additional finishing step
-     * @see #andThen(Function)
+     * @deprecated use {@link #andThen(Function)}.
      */
+    @Deprecated
     static <A, R, RR> LongCollector<A, RR> collectingAndThen(LongCollector<A, R> downstream, Function<R, RR> finisher) {
         return downstream.andThen(finisher);
     }

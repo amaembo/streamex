@@ -3,8 +3,10 @@
 ### 0.3.7
 
 * Added `MoreCollectors.groupingByEnum` collector.
-* Added `IntCollector.averaging`, `LongCollector.averaging`, `DoubleCollector.averaging` primitive collectors.
-* Added `StreamEx.toFlatCollection` and `StreamEx.toFlatList` terminal operations. 
+* Added `IntCollector/LongCollector/DoubleCollector.averaging` primitive collectors.
+* Added `IntCollector/LongCollector/DoubleCollector.andThen` default methods to replace `collectingAndThen`.
+* Added `StreamEx.toFlatCollection` and `StreamEx.toFlatList` terminal operations.
+* Methods `IntCollector/LongCollector/DoubleCollector.collectingAndThen` are declared as deprecated and may be removed in future releases!
 
 ### 0.3.6
 

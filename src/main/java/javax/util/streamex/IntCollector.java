@@ -331,8 +331,9 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      *            collector
      * @return a collector which performs the action of the downstream
      *         collector, followed by an additional finishing step
-     * @see #andThen(Function)
+     * @deprecated use {@link #andThen(Function)}.
      */
+    @Deprecated
     static <A, R, RR> IntCollector<A, RR> collectingAndThen(IntCollector<A, R> downstream, Function<R, RR> finisher) {
         return downstream.andThen(finisher);
     }
