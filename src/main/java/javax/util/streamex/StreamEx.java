@@ -1995,23 +1995,68 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * list must have it properly implemented as well as provide fast random
      * access.
      * 
+     * <p>
+     * This method is equivalent to
+     * {@code StreamEx.ofSubLists(source, length, length)}.
+     * 
      * @param <T>
      *            the type of source list elements.
      * @param source
      *            the source list
      * @param length
-     *            the length of each sublist except possibly the last one.
+     *            the length of each sublist except possibly the last one (must
+     *            be positive number).
      * @return the new stream of sublists.
      * @throws IllegalArgumentException
      *             if length is negative or zero.
      * @since 0.3.3
+     * @see #ofSubLists(List, int, int)
+     * @see List#subList(int, int)
      */
     public static <T> StreamEx<List<T>> ofSubLists(List<T> source, int length) {
+        return ofSubLists(source, length, length);
+    }
+
+    /**
+     * Returns a new {@code StreamEx} which consists of possibly-overlapping
+     * sublists of given source list having the specified length with given
+     * shift value.
+     * 
+     * <p>
+     * This method calls {@link List#subList(int, int)} internally, so source
+     * list must have it properly implemented as well as provide fast random
+     * access.
+     * 
+     * <p>
+     * The shift value specifies how many elements the next sublist is shifted
+     * relative to the previous one. If the shift value is greater than one,
+     * then the last sublist might be shorter than the specified length value.
+     * If the shift value is greater than the length, some elements will not
+     * appear in sublists at all.
+     * 
+     * @param <T>
+     *            the type of source list elements.
+     * @param source
+     *            the source list
+     * @param length
+     *            the length of each sublist except possibly the last one (must
+     *            be positive number).
+     * @param shift
+     *            the number of elements the next sublist is shifted relative to
+     *            the previous one (must be positive number).
+     * @return the new stream of sublists.
+     * @throws IllegalArgumentException
+     *             if length is negative or zero.
+     * @since 0.3.7
+     * @see List#subList(int, int)
+     */
+    public static <T> StreamEx<List<T>> ofSubLists(List<T> source, int length, int shift) {
         if (length <= 0)
             throw new IllegalArgumentException("length = " + length);
-        int size = source.size();
-        if (size <= 0)
+        if (shift <= 0)
+            throw new IllegalArgumentException("shift = " + shift);
+        if (source.isEmpty())
             return StreamEx.empty();
-        return of(new RangeBasedSpliterator.OfSubLists<>(source, length));
+        return of(new RangeBasedSpliterator.OfSubLists<>(source, length, shift));
     }
 }

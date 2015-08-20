@@ -38,9 +38,13 @@ public class RangeBasedSpliteratorTest {
     public void testOfSublists() {
         List<Integer> list = IntStreamEx.range(10).boxed().toList();
         checkSpliterator(
-            "asEntry",
+            "ofSubLists",
             Arrays.asList(Arrays.asList(0, 1), Arrays.asList(2, 3), Arrays.asList(4, 5), Arrays.asList(6, 7),
-                Arrays.asList(8, 9)), () -> new RangeBasedSpliterator.OfSubLists<>(list, 2));
+                Arrays.asList(8, 9)), () -> new RangeBasedSpliterator.OfSubLists<>(list, 2, 2));
+        checkSpliterator(
+            "ofSubLists",
+            Arrays.asList(Arrays.asList(0, 1, 2), Arrays.asList(2, 3, 4), Arrays.asList(4, 5, 6),
+                Arrays.asList(6, 7, 8), Arrays.asList(8, 9)), () -> new RangeBasedSpliterator.OfSubLists<>(list, 3, 2));
     }
 
     @Test

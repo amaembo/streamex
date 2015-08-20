@@ -1187,6 +1187,24 @@ public class StreamExTest {
         assertEquals(expected, resParallel);
     }
 
+    private final class SeqList extends AbstractList<Integer> {
+        final int size;
+        
+        SeqList(int size) {
+            this.size = size;
+        }
+        
+        @Override
+        public Integer get(int index) {
+            return index;
+        }
+    
+        @Override
+        public int size() {
+            return size;
+        }
+    }
+
     @Test
     public void testSubLists() {
         List<Integer> input = IntStreamEx.range(12).boxed().toList();
@@ -1199,26 +1217,55 @@ public class StreamExTest {
         assertEquals("", StreamEx.ofSubLists(Collections.emptyList(), 1).joining("-"));
         assertEquals("", StreamEx.ofSubLists(Collections.emptyList(), Integer.MAX_VALUE).joining("-"));
 
-        List<Integer> myList = new AbstractList<Integer>() {
-            @Override
-            public Integer get(int index) {
-                return index;
-            }
-
-            @Override
-            public int size() {
-                return Integer.MAX_VALUE - 2;
-            }
-        };
+        List<Integer> myList = new SeqList(Integer.MAX_VALUE-2);
         assertEquals(1, StreamEx.ofSubLists(myList, Integer.MAX_VALUE - 1).count());
         assertEquals(Integer.MAX_VALUE - 2, StreamEx.ofSubLists(myList, Integer.MAX_VALUE - 1).findFirst().get().size());
         assertEquals(1, StreamEx.ofSubLists(myList, Integer.MAX_VALUE - 2).count());
         assertEquals(1, StreamEx.ofSubLists(myList, Integer.MAX_VALUE - 3).skip(1).findFirst().get().size());
     }
+    
+    @Test
+    public void testSubListsStep() {
+        List<Integer> input = IntStreamEx.range(12).boxed().toList();
+        assertEquals("[0, 1, 2, 3, 4]", StreamEx.ofSubLists(input, 5, Integer.MAX_VALUE).joining("-"));
+        assertEquals("[0, 1, 2, 3, 4]", StreamEx.ofSubLists(input, 5, 12).joining("-"));
+        assertEquals("[0, 1, 2, 3, 4]-[11]", StreamEx.ofSubLists(input, 5, 11).joining("-"));
+        assertEquals("[0, 1, 2, 3, 4]-[9, 10, 11]", StreamEx.ofSubLists(input, 5, 9).joining("-"));
+        assertEquals("[0, 1, 2, 3, 4]-[8, 9, 10, 11]", StreamEx.ofSubLists(input, 5, 8).joining("-"));
+        assertEquals("[0, 1, 2, 3, 4]-[7, 8, 9, 10, 11]", StreamEx.ofSubLists(input, 5, 7).joining("-"));
+        assertEquals("[0, 1, 2, 3, 4]-[6, 7, 8, 9, 10]", StreamEx.ofSubLists(input, 5, 6).joining("-"));
+        assertEquals("[0, 1, 2, 3, 4]-[4, 5, 6, 7, 8]-[8, 9, 10, 11]", StreamEx.ofSubLists(input, 5, 4).joining("-"));
+        assertEquals("[0, 1, 2, 3, 4]-[3, 4, 5, 6, 7]-[6, 7, 8, 9, 10]-[9, 10, 11]", StreamEx.ofSubLists(input, 5, 3)
+                .joining("-"));
+        assertEquals("[0, 1, 2, 3, 4]-[2, 3, 4, 5, 6]-[4, 5, 6, 7, 8]-[6, 7, 8, 9, 10]-[8, 9, 10, 11]", StreamEx
+                .ofSubLists(input, 5, 2).joining("-"));
+        assertEquals("[0, 1, 2, 3, 4]-[1, 2, 3, 4, 5]-[2, 3, 4, 5, 6]-[3, 4, 5, 6, 7]-"
+            + "[4, 5, 6, 7, 8]-[5, 6, 7, 8, 9]-[6, 7, 8, 9, 10]-[7, 8, 9, 10, 11]", StreamEx.ofSubLists(input, 5, 1)
+                .joining("-"));
+
+        List<Integer> myList = new SeqList(Integer.MAX_VALUE - 2);
+        assertEquals(1, StreamEx.ofSubLists(myList, Integer.MAX_VALUE - 1, 1).count());
+        assertEquals("[0]", StreamEx.ofSubLists(myList, 1, Integer.MAX_VALUE - 1).joining());
+        assertEquals("[0]", StreamEx.ofSubLists(myList, 1, Integer.MAX_VALUE - 2).joining());
+        assertEquals("[0][2147483644]", StreamEx.ofSubLists(myList, 1, Integer.MAX_VALUE - 3).joining());
+        assertEquals("[0, 1]", StreamEx.ofSubLists(myList, 2, Integer.MAX_VALUE - 1).joining());
+        assertEquals("[0, 1]", StreamEx.ofSubLists(myList, 2, Integer.MAX_VALUE - 2).joining());
+        assertEquals("[0, 1][2147483644]", StreamEx.ofSubLists(myList, 2, Integer.MAX_VALUE - 3).joining());
+        assertEquals(Integer.MAX_VALUE - 2, StreamEx.ofSubLists(myList, Integer.MAX_VALUE - 1, 1).findFirst().get()
+                .size());
+        assertEquals(1, StreamEx.ofSubLists(myList, Integer.MAX_VALUE - 2, 1).count());
+        assertEquals(998, StreamEx.ofSubLists(myList, Integer.MAX_VALUE - 3, Integer.MAX_VALUE - 1000).skip(1)
+                .findFirst().get().size());
+    }
 
     @Test(expected = IllegalArgumentException.class)
     public void testSubListsArg() {
         StreamEx.ofSubLists(Collections.emptyList(), 0);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testSubListsStepArg() {
+        StreamEx.ofSubLists(Collections.emptyList(), 1, 0);
     }
     
     @Test

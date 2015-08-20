@@ -101,20 +101,23 @@ import static javax.util.streamex.StreamExInternals.*;
     static final class OfSubLists<T> extends RangeBasedSpliterator<List<T>, OfSubLists<T>> {
         private final List<T> source;
         private final int length;
-        private final int size;
+        private final int shift;
+        private final int listSize;
         
-        public OfSubLists(List<T> source, int length) {
-            super(0, (source.size() - 1) / length + 1);
+        public OfSubLists(List<T> source, int length, int shift) {
+            super(0, Math.max(0, source.size() - Math.max(length - shift, 0) - 1) / shift + 1);
             this.source = source;
-            this.size = limit;
+            this.listSize = source.size();
+            this.shift = shift;
             this.length = length;
         }
         
         @Override
         public boolean tryAdvance(Consumer<? super List<T>> action) {
             if (cur < limit) {
-                action.accept(source.subList(cur * length,
-                    cur == size-1 ? source.size() : (cur + 1) * length));
+                int start = cur * shift;
+                int stop = listSize - length > start ? start + length : listSize;
+                action.accept(source.subList(start, stop));
                 cur++;
                 return true;
             }
@@ -123,12 +126,12 @@ import static javax.util.streamex.StreamExInternals.*;
         
         @Override
         public void forEachRemaining(Consumer<? super List<T>> action) {
-            int l = limit, c = cur, ll = length, s = size-1;
-            int start = cur * ll;
+            int l = limit, c = cur, ll = length, sf = shift, ls = listSize;
+            int start = cur * sf;
             while (c < l) {
-                int stop = c == s ? source.size() : start+ll;
+                int stop = ls - ll > start ? start + ll : ls;
                 action.accept(source.subList(start, stop));
-                start = stop;
+                start += sf;
                 c++;
             }
             cur = limit;
