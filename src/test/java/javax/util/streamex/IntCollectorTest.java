@@ -209,4 +209,14 @@ public class IntCollectorTest {
         assertArrayEquals(IntStreamEx.range(1000).asDoubleStream().toArray(),
             IntStreamEx.range(1000).collect(IntCollector.mappingToObj(i -> (double) i, DoubleCollector.toArray())), 0.0);
     }
+
+    @Test
+    public void testAveraging() {
+        assertFalse(IntStreamEx.empty().collect(IntCollector.averaging()).isPresent());
+        assertEquals(Integer.MAX_VALUE,
+            IntStreamEx.of(Integer.MAX_VALUE, Integer.MAX_VALUE).collect(IntCollector.averaging()).getAsDouble(), 1);
+        assertEquals(Integer.MAX_VALUE,
+            IntStreamEx.of(Integer.MAX_VALUE, Integer.MAX_VALUE).parallel().collect(IntCollector.averaging())
+                    .getAsDouble(), 1);
+    }
 }

@@ -160,4 +160,10 @@ public class DoubleCollectorTest {
             DoubleStreamEx.of(0.8, 1.3, 1.7, 2.9).collect(
                 DoubleCollector.mappingToObj(Math::round, LongCollector.toArray())));
     }
+    
+    @Test
+    public void testAveraging() {
+        assertFalse(DoubleStreamEx.empty().collect(DoubleCollector.averaging()).isPresent());
+        assertEquals(1.0, DoubleStreamEx.of(0.0, 0.5, 1.0, 1.5, 2.0).collect(DoubleCollector.averaging()).getAsDouble(), 0.0);
+    }
 }

@@ -163,4 +163,15 @@ public class LongCollectorTest {
             (long) LongStreamEx.range(10000000, 10001000).collect(
                 LongCollector.of(Collectors.summingLong(Long::longValue))));
     }
+    
+    @Test
+    public void testAveraging() {
+        assertFalse(LongStreamEx.empty().collect(LongCollector.averaging()).isPresent());
+        assertEquals(Long.MAX_VALUE, LongStreamEx.of(Long.MAX_VALUE, Long.MAX_VALUE).collect(LongCollector.averaging())
+                .getAsDouble(), 1);
+        assertEquals(
+            Long.MAX_VALUE,
+            LongStreamEx.of(Long.MAX_VALUE, Long.MAX_VALUE).parallel().collect(LongCollector.averaging()).getAsDouble(),
+            1);
+    }
 }
