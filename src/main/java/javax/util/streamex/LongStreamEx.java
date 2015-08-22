@@ -339,6 +339,27 @@ public class LongStreamEx implements LongStream {
         return strategy().newLongStreamEx(stream.sorted());
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream sorted
+     * according to the given comparator. Stream elements are boxed before
+     * passing to the comparator.
+     *
+     * <p>
+     * For ordered streams, the sort is stable. For unordered streams, no
+     * stability guarantees are made.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">stateful intermediate
+     * operation</a>.
+     *
+     * @param comparator
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            {@code Comparator} to be used to compare stream elements
+     * @return the new stream
+     */
     public LongStreamEx sorted(Comparator<Long> comparator) {
         return strategy().newLongStreamEx(stream.boxed().sorted(comparator).mapToLong(Long::longValue));
     }

@@ -360,6 +360,27 @@ public class IntStreamEx implements IntStream {
         return strategy().newIntStreamEx(stream.sorted());
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream sorted
+     * according to the given comparator. Stream elements are boxed before
+     * passing to the comparator.
+     *
+     * <p>
+     * For ordered streams, the sort is stable. For unordered streams, no
+     * stability guarantees are made.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">stateful intermediate
+     * operation</a>.
+     *
+     * @param comparator
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            {@code Comparator} to be used to compare stream elements
+     * @return the new stream
+     */
     public IntStreamEx sorted(Comparator<Integer> comparator) {
         return strategy().newIntStreamEx(stream.boxed().sorted(comparator).mapToInt(Integer::intValue));
     }
