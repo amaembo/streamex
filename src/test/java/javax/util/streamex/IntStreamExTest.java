@@ -43,6 +43,8 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class IntStreamExTest {
+    private static final byte[] EVEN_BYTES = new byte[] { 2, 4, 6, 8, 10 };
+
     @Test
     public void testCreate() {
         assertArrayEquals(new int[] {}, IntStreamEx.empty().toArray());
@@ -54,7 +56,7 @@ public class IntStreamExTest {
         assertArrayEquals(new int[] { 1, 2, 3 }, IntStreamEx.of(1, 2, 3).toArray());
         assertArrayEquals(new int[] { 4, 6 }, IntStreamEx.of(new int[] { 2, 4, 6, 8, 10 }, 1, 3).toArray());
         assertArrayEquals(new int[] { 1, 2, 3 }, IntStreamEx.of(new byte[] { 1, 2, 3 }).toArray());
-        assertArrayEquals(new int[] { 4, 6 }, IntStreamEx.of(new byte[] { 2, 4, 6, 8, 10 }, 1, 3).toArray());
+        assertArrayEquals(new int[] { 4, 6 }, IntStreamEx.of(EVEN_BYTES, 1, 3).toArray());
         assertArrayEquals(new int[] { 1, 2, 3 }, IntStreamEx.of(new short[] { 1, 2, 3 }).toArray());
         assertArrayEquals(new int[] { 4, 6 }, IntStreamEx.of(new short[] { 2, 4, 6, 8, 10 }, 1, 3).toArray());
         assertArrayEquals(new int[] { 'a', 'b', 'c' }, IntStreamEx.of('a', 'b', 'c').toArray());
@@ -86,22 +88,22 @@ public class IntStreamExTest {
 
     @Test(expected = ArrayIndexOutOfBoundsException.class)
     public void testArrayOffsetUnderflow() {
-        IntStreamEx.of(new byte[] { 2, 4, 6, 8, 10 }, -1, 3).findAny();
+        IntStreamEx.of(EVEN_BYTES, -1, 3).findAny();
     }
 
     @Test(expected = ArrayIndexOutOfBoundsException.class)
     public void testArrayOffsetWrong() {
-        IntStreamEx.of(new byte[] { 2, 4, 6, 8, 10 }, 3, 1).findAny();
+        IntStreamEx.of(EVEN_BYTES, 3, 1).findAny();
     }
 
     @Test(expected = ArrayIndexOutOfBoundsException.class)
     public void testArrayLengthOverflow() {
-        IntStreamEx.of(new byte[] { 2, 4, 6, 8, 10 }, 3, 6).findAny();
+        IntStreamEx.of(EVEN_BYTES, 3, 6).findAny();
     }
 
     @Test
     public void testArrayLengthOk() {
-        assertEquals(10, IntStreamEx.of(new byte[] { 2, 4, 6, 8, 10 }, 3, 5).skip(1).findFirst().getAsInt());
+        assertEquals(10, IntStreamEx.of(EVEN_BYTES, 3, 5).skip(1).findFirst().getAsInt());
     }
 
     @Test
