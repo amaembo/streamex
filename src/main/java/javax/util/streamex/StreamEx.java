@@ -2059,4 +2059,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             return StreamEx.empty();
         return of(new RangeBasedSpliterator.OfSubLists<>(source, length, shift));
     }
+    
+    public static <T, A, R> StreamEx<R> ofCrossProduct(Collection<? extends Collection<T>> source, Collector<T, A, R> collector) {
+        if(source.isEmpty())
+            return of(collector.finisher().apply(collector.supplier().get()));
+        return of(new CrossSpliterator<>(source, collector));
+    }
 }
