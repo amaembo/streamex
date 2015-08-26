@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import javax.util.streamex.StreamExInternals.PartialCollector;
+import javax.util.streamex.StreamExInternals.PrimitiveBox;
 
 import static javax.util.streamex.StreamExInternals.*;
 
@@ -345,23 +346,22 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      * @return an {@code IntCollector} which implements the reduction operation.
      */
     static IntCollector<?, OptionalInt> reducing(IntBinaryOperator op) {
-        return of(() -> new int[2], (box, i) -> {
-            if (box[1] == 0) {
-                box[0] = i;
-                box[1] = 1;
+        return of(PrimitiveBox::new, (box, i) -> {
+            if(!box.b) {
+                box.b = true;
+                box.i = i;
             } else {
-                box[0] = op.applyAsInt(box[0], i);
+                box.i = op.applyAsInt(box.i, i);
             }
         }, (box1, box2) -> {
-            if (box2[1] == 1) {
-                if (box1[1] == 0) {
-                    box1[0] = box2[0];
-                    box1[1] = 1;
+            if (box2.b) {
+                if (!box1.b) {
+                    box1.from(box2);
                 } else {
-                    box1[0] = op.applyAsInt(box1[0], box2[0]);
+                    box1.i = op.applyAsInt(box1.i, box2.i);
                 }
             }
-        }, box -> box[1] == 1 ? OptionalInt.of(box[0]) : OptionalInt.empty());
+        }, PrimitiveBox::asInt);
     }
 
     /**

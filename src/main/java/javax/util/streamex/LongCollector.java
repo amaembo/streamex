@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
 import javax.util.streamex.StreamExInternals.PartialCollector;
+import javax.util.streamex.StreamExInternals.PrimitiveBox;
 
 import static javax.util.streamex.StreamExInternals.*;
 
@@ -344,23 +345,22 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * @return a {@code LongCollector} which implements the reduction operation.
      */
     static LongCollector<?, OptionalLong> reducing(LongBinaryOperator op) {
-        return of(() -> new long[2], (box, i) -> {
-            if (box[1] == 0) {
-                box[0] = i;
-                box[1] = 1;
+        return of(PrimitiveBox::new, (box, l) -> {
+            if(!box.b) {
+                box.b = true;
+                box.l = l;
             } else {
-                box[0] = op.applyAsLong(box[0], i);
+                box.l = op.applyAsLong(box.l, l);
             }
         }, (box1, box2) -> {
-            if (box2[1] == 1) {
-                if (box1[1] == 0) {
-                    box1[0] = box2[0];
-                    box1[1] = 1;
+            if (box2.b) {
+                if (!box1.b) {
+                    box1.from(box2);
                 } else {
-                    box1[0] = op.applyAsLong(box1[0], box2[0]);
+                    box1.l = op.applyAsLong(box1.l, box2.l);
                 }
             }
-        }, box -> box[1] == 1 ? OptionalLong.of(box[0]) : OptionalLong.empty());
+        }, PrimitiveBox::asLong);
     }
 
     /**

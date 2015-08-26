@@ -342,23 +342,22 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
      *         operation.
      */
     static DoubleCollector<?, OptionalDouble> reducing(DoubleBinaryOperator op) {
-        return of(() -> new double[2], (box, i) -> {
-            if (box[1] == 0) {
-                box[0] = i;
-                box[1] = 1;
+        return of(PrimitiveBox::new, (box, d) -> {
+            if(!box.b) {
+                box.b = true;
+                box.d = d;
             } else {
-                box[0] = op.applyAsDouble(box[0], i);
+                box.d = op.applyAsDouble(box.d, d);
             }
         }, (box1, box2) -> {
-            if (box2[1] == 1) {
-                if (box1[1] == 0) {
-                    box1[0] = box2[0];
-                    box1[1] = 1;
+            if (box2.b) {
+                if (!box1.b) {
+                    box1.from(box2);
                 } else {
-                    box1[0] = op.applyAsDouble(box1[0], box2[0]);
+                    box1.d = op.applyAsDouble(box1.d, box2.d);
                 }
             }
-        }, box -> box[1] == 1 ? OptionalDouble.of(box[0]) : OptionalDouble.empty());
+        }, PrimitiveBox::asDouble);
     }
 
     /**
