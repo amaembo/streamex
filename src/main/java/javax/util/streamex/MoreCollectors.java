@@ -31,6 +31,7 @@ import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.IntFunction;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collector.Characteristics;
@@ -91,6 +92,14 @@ public final class MoreCollectors {
      */
     public static <T> Collector<T, ?, T[]> toArray(IntFunction<T[]> generator) {
         return Collectors.collectingAndThen(Collectors.toList(), list -> list.toArray(generator.apply(list.size())));
+    }
+    
+    public static <T> Collector<T, ?, boolean[]> toBooleanArray(Predicate<T> predicate) {
+        return PartialCollector.booleanArray().asRef((box, t) -> {
+            if(predicate.test(t))
+                box.a.set(box.b);
+            box.b = StrictMath.addExact(box.b, 1);
+        });
     }
 
     /**

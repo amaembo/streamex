@@ -34,6 +34,8 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import javax.util.streamex.StreamExInternals.PartialCollector;
+
 import static javax.util.streamex.StreamExInternals.*;
 
 /**
@@ -595,5 +597,13 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      */
     static IntCollector<?, short[]> toShortArray() {
         return of(ShortBuffer::new, ShortBuffer::add, ShortBuffer::addAll, ShortBuffer::toArray);
+    }
+
+    static IntCollector<?, boolean[]> toBooleanArray(IntPredicate predicate) {
+        return PartialCollector.booleanArray().asInt((box, t) -> {
+            if(predicate.test(t))
+                box.a.set(box.b);
+            box.b = StrictMath.addExact(box.b, 1);
+        });
     }
 }

@@ -33,6 +33,8 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
+import javax.util.streamex.StreamExInternals.PartialCollector;
+
 import static javax.util.streamex.StreamExInternals.*;
 
 /**
@@ -548,5 +550,13 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      */
     static LongCollector<?, long[]> toArray() {
         return of(LongBuffer::new, LongBuffer::add, LongBuffer::addAll, LongBuffer::toArray);
+    }
+
+    static LongCollector<?, boolean[]> toBooleanArray(LongPredicate predicate) {
+        return PartialCollector.booleanArray().asLong((box, t) -> {
+            if(predicate.test(t))
+                box.a.set(box.b);
+            box.b = StrictMath.addExact(box.b, 1);
+        });
     }
 }

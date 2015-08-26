@@ -250,4 +250,16 @@ public class MoreCollectorsTest {
             assertEquals(supplier.toString(), 0L, (long)map.get(TimeUnit.MICROSECONDS));
         }
     }
+    
+    @Test
+    public void testToBooleanArray() {
+        List<Integer> input = IntStreamEx.of(new Random(1), 1000, 1, 100).boxed().toList();
+        boolean[] expected = new boolean[input.size()];
+        for(int i=0; i<expected.length; i++)
+            expected[i] = input.get(i) > 50;
+        for(StreamExSupplier<Integer> supplier : streamEx(input::stream)) {
+            assertArrayEquals(supplier.toString(), expected,
+                supplier.get().collect(MoreCollectors.toBooleanArray(x -> x > 50)));
+        }
+    }
 }

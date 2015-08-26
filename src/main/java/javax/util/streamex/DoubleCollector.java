@@ -29,6 +29,9 @@ import java.util.function.DoubleUnaryOperator;
 import java.util.function.ObjDoubleConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
+
+import javax.util.streamex.StreamExInternals.PartialCollector;
+
 import static javax.util.streamex.StreamExInternals.*;
 
 /**
@@ -562,5 +565,13 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
      */
     static DoubleCollector<?, float[]> toFloatArray() {
         return of(FloatBuffer::new, FloatBuffer::add, FloatBuffer::addAll, FloatBuffer::toArray);
+    }
+
+    static DoubleCollector<?, boolean[]> toBooleanArray(DoublePredicate predicate) {
+        return PartialCollector.booleanArray().asDouble((box, t) -> {
+            if(predicate.test(t))
+                box.a.set(box.b);
+            box.b = StrictMath.addExact(box.b, 1);
+        });
     }
 }
