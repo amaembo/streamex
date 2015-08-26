@@ -46,6 +46,8 @@ import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import javax.util.streamex.StreamExInternals.PrimitiveBox;
+
 import static javax.util.streamex.StreamExInternals.*;
 
 /**
@@ -673,11 +675,7 @@ public class DoubleStreamEx implements DoubleStream {
                 box.i = key;
                 box.d = d;
             }
-        }, (box1, box2) -> {
-            if (box2.b && (!box1.b || box1.i > box2.i)) {
-                box1.from(box2);
-            }
-        }).asDouble();
+        }, PrimitiveBox.MIN_INT).asDouble();
     }
 
     /**
@@ -702,11 +700,7 @@ public class DoubleStreamEx implements DoubleStream {
                 box.l = key;
                 box.d = d;
             }
-        }, (box1, box2) -> {
-            if (box2.b && (!box1.b || box1.l > box2.l)) {
-                box1.from(box2);
-            }
-        }).asDouble();
+        }, PrimitiveBox.MIN_LONG).asDouble();
     }
 
     /**
@@ -814,11 +808,7 @@ public class DoubleStreamEx implements DoubleStream {
                 box.i = key;
                 box.d = d;
             }
-        }, (box1, box2) -> {
-            if (box2.b && (!box1.b || box1.i < box2.i)) {
-                box1.from(box2);
-            }
-        }).asDouble();
+        }, PrimitiveBox.MAX_INT).asDouble();
     }
 
     /**
@@ -843,11 +833,7 @@ public class DoubleStreamEx implements DoubleStream {
                 box.l = key;
                 box.d = d;
             }
-        }, (box1, box2) -> {
-            if (box2.b && (!box1.b || box1.l < box2.l)) {
-                box1.from(box2);
-            }
-        }).asDouble();
+        }, PrimitiveBox.MAX_LONG).asDouble();
     }
 
     /**

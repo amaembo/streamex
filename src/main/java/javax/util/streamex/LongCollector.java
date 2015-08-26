@@ -167,8 +167,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      *         separated by the specified delimiter, in encounter order
      */
     static LongCollector<?, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
-        return of(StringBuilder::new, StreamExInternals.joinAccumulatorLong(delimiter), joinMerger(delimiter),
-            joinFinisher(prefix, suffix));
+        return PartialCollector.joining(delimiter, prefix, suffix, true).asLong(StreamExInternals.joinAccumulatorLong(delimiter));
     }
 
     /**
@@ -182,8 +181,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      *         separated by the specified delimiter, in encounter order
      */
     static LongCollector<?, String> joining(CharSequence delimiter) {
-        return of(StringBuilder::new, StreamExInternals.joinAccumulatorLong(delimiter), joinMerger(delimiter),
-            StringBuilder::toString);
+        return PartialCollector.joining(delimiter, null, null, false).asLong(StreamExInternals.joinAccumulatorLong(delimiter));
     }
 
     /**
@@ -194,7 +192,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * @return a {@code LongCollector} that counts the input elements
      */
     static LongCollector<?, Long> counting() {
-        return of(LONG_BOX, (box, i) -> box[0]++, SUM_LONG, UNBOX_LONG);
+        return PartialCollector.longSum().asLong((box, i) -> box[0]++);
     }
 
     /**
@@ -205,7 +203,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * @return an {@code LongCollector} that counts the input elements
      */
     static LongCollector<?, Integer> countingInt() {
-        return of(INT_BOX, (box, i) -> box[0]++, SUM_INT, UNBOX_INT);
+        return PartialCollector.intSum().asLong((box, i) -> box[0]++);
     }
 
     /**
@@ -216,7 +214,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      *         elements
      */
     static LongCollector<?, Long> summing() {
-        return of(LONG_BOX, (box, i) -> box[0] += i, SUM_LONG, UNBOX_LONG);
+        return PartialCollector.longSum().asLong((box, i) -> box[0] += i);
     }
 
     /**
@@ -307,8 +305,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
                     ((MergingCollector<U, A, R>) downstream).merger(), downstream.finisher(),
                     downstream.characteristics());
         }
-        return of(Box.supplier(downstream.supplier()), (box, i) -> accumulator.accept(box.a, mapper.apply(i)),
-            Box.combiner(downstream.combiner()), Box.finisher(downstream.finisher()));
+        return Box.partialCollector(downstream).asLong((box, i) -> accumulator.accept(box.a, mapper.apply(i)));
     }
 
     /**
@@ -430,19 +427,12 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * @return a {@code LongCollector} implementing the cascaded partitioning
      *         operation
      */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     static <A, D> LongCollector<?, Map<Boolean, D>> partitioningBy(LongPredicate predicate,
             LongCollector<A, D> downstream) {
         ObjLongConsumer<A> downstreamAccumulator = downstream.longAccumulator();
         ObjLongConsumer<BooleanMap<A>> accumulator = (result, t) -> downstreamAccumulator.accept(
             predicate.test(t) ? result.trueValue : result.falseValue, t);
-        BiConsumer<BooleanMap<A>, BooleanMap<A>> merger = BooleanMap.merger(downstream.merger());
-        Supplier<BooleanMap<A>> supplier = BooleanMap.supplier(downstream.supplier());
-        if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
-            return (LongCollector) of(supplier, accumulator, merger);
-        } else {
-            return of(supplier, accumulator, merger, BooleanMap.finisher(downstream.finisher()));
-        }
+        return BooleanMap.partialCollector(downstream).asLong(accumulator);
     }
 
     /**
@@ -536,7 +526,6 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * @return a {@code LongCollector} implementing the cascaded group-by
      *         operation
      */
-    @SuppressWarnings("unchecked")
     static <K, D, A, M extends Map<K, D>> LongCollector<?, M> groupingBy(LongFunction<? extends K> classifier,
             Supplier<M> mapFactory, LongCollector<A, D> downstream) {
         Supplier<A> downstreamSupplier = downstream.supplier();
@@ -547,14 +536,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
             A container = m.computeIfAbsent(key, supplier);
             downstreamAccumulator.accept(container, t);
         };
-        BiConsumer<Map<K, A>, Map<K, A>> merger = mapMerger(downstream.merger());
-
-        if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
-            return (LongCollector<?, M>) of((Supplier<Map<K, A>>) mapFactory, accumulator, merger);
-        } else {
-            return of((Supplier<Map<K, A>>) mapFactory, accumulator, merger,
-                mapFinisher((Function<A, A>) downstream.finisher()));
-        }
+        return PartialCollector.grouping(mapFactory, downstream).asLong(accumulator);
     }
 
     /**

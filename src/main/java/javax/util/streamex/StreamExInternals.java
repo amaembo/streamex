@@ -17,8 +17,8 @@ package javax.util.streamex;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
 import java.lang.invoke.MethodHandles.Lookup;
+import java.lang.invoke.MethodType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
@@ -26,18 +26,18 @@ import java.nio.ByteOrder;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.Set;
-import java.util.Map.Entry;
 import java.util.Spliterator;
 import java.util.Spliterators.AbstractDoubleSpliterator;
 import java.util.Spliterators.AbstractIntSpliterator;
@@ -58,6 +58,7 @@ import java.util.function.ObjIntConsumer;
 import java.util.function.ObjLongConsumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collector;
 import java.util.stream.Collector.Characteristics;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
@@ -67,13 +68,9 @@ import java.util.stream.Stream;
 /* package */final class StreamExInternals {
     static final boolean IS_JDK9 = System.getProperty("java.version", "").compareTo("1.9") >= 0;
     static final int INITIAL_SIZE = 128;
-    static final Supplier<long[]> LONG_BOX = () -> new long[1];
-    static final Supplier<int[]> INT_BOX = () -> new int[1];
     static final Function<int[], Integer> UNBOX_INT = box -> box[0];
     static final Function<long[], Long> UNBOX_LONG = box -> box[0];
     static final Function<double[], Double> UNBOX_DOUBLE = box -> box[0];
-    static final BiConsumer<long[], long[]> SUM_LONG = (box1, box2) -> box1[0] += box2[0];
-    static final BiConsumer<int[], int[]> SUM_INT = (box1, box2) -> box1[0] += box2[0];
     static final Object NONE = new Object();
     static final Set<Characteristics> NO_CHARACTERISTICS = EnumSet.noneOf(Characteristics.class);
     static final Set<Characteristics> ID_CHARACTERISTICS = EnumSet.of(Characteristics.IDENTITY_FINISH);
@@ -87,24 +84,22 @@ import java.util.stream.Stream;
 
     static {
         Lookup lookup = MethodHandles.publicLookup();
-        MethodType[] types = {MethodType.methodType(Stream.class, Predicate.class),
+        MethodType[] types = { MethodType.methodType(Stream.class, Predicate.class),
                 MethodType.methodType(IntStream.class, IntPredicate.class),
                 MethodType.methodType(LongStream.class, LongPredicate.class),
-                MethodType.methodType(DoubleStream.class, DoublePredicate.class)};
+                MethodType.methodType(DoubleStream.class, DoublePredicate.class) };
         JDK9_METHODS = new MethodHandle[types.length][];
         try {
-            int i=0;
-            for(MethodType type : types) {
-                JDK9_METHODS[i++] = new MethodHandle[] {
-                        lookup.findVirtual(type.returnType(), "takeWhile", type),
-                        lookup.findVirtual(type.returnType(), "dropWhile", type)
-                };
+            int i = 0;
+            for (MethodType type : types) {
+                JDK9_METHODS[i++] = new MethodHandle[] { lookup.findVirtual(type.returnType(), "takeWhile", type),
+                        lookup.findVirtual(type.returnType(), "dropWhile", type) };
             }
         } catch (NoSuchMethodException | IllegalAccessException e) {
             // ignore
         }
     }
-    
+
     static final class ByteBuffer {
         int size = 0;
         byte[] data;
@@ -388,27 +383,8 @@ import java.util.stream.Stream;
             return new AbstractSet<Map.Entry<Boolean, T>>() {
                 @Override
                 public Iterator<Map.Entry<Boolean, T>> iterator() {
-                    return new Iterator<Map.Entry<Boolean, T>>() {
-                        int pos = 0;
-
-                        @Override
-                        public boolean hasNext() {
-                            return pos < 2;
-                        }
-
-                        @Override
-                        public java.util.Map.Entry<Boolean, T> next() {
-                            switch (pos++) {
-                            case 0:
-                                return new SimpleEntry<>(true, trueValue);
-                            case 1:
-                                return new SimpleEntry<>(false, falseValue);
-                            default:
-                                pos = 2;
-                                throw new NoSuchElementException();
-                            }
-                        }
-                    };
+                    return Arrays.<Map.Entry<Boolean, T>> asList(new SimpleEntry<>(Boolean.TRUE, trueValue),
+                        new SimpleEntry<>(Boolean.FALSE, falseValue)).iterator();
                 }
 
                 @Override
@@ -423,31 +399,37 @@ import java.util.stream.Stream;
             return 2;
         }
 
-        static <A> Supplier<BooleanMap<A>> supplier(Supplier<A> downstreamSupplier) {
-            return () -> new BooleanMap<>(downstreamSupplier.get(), downstreamSupplier.get());
-        }
-
-        static <A> BiConsumer<BooleanMap<A>, BooleanMap<A>> merger(BiConsumer<A, A> downstreamMerger) {
-            return (left, right) -> {
+        @SuppressWarnings({ "unchecked", "rawtypes" })
+        static <A, R> PartialCollector<BooleanMap<A>, Map<Boolean, R>> partialCollector(
+                MergingCollector<?, A, R> downstream) {
+            Supplier<A> downstreamSupplier = downstream.supplier();
+            Supplier<BooleanMap<A>> supplier = () -> new BooleanMap<>(downstreamSupplier.get(),
+                    downstreamSupplier.get());
+            BiConsumer<A, A> downstreamMerger = downstream.merger();
+            BiConsumer<BooleanMap<A>, BooleanMap<A>> merger = (left, right) -> {
                 downstreamMerger.accept(left.trueValue, right.trueValue);
                 downstreamMerger.accept(left.falseValue, right.falseValue);
             };
-        }
-
-        static <A, D> Function<BooleanMap<A>, Map<Boolean, D>> finisher(Function<A, D> downstreamFinisher) {
-            return par -> new BooleanMap<>(downstreamFinisher.apply(par.trueValue),
-                    downstreamFinisher.apply(par.falseValue));
+            if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
+                return (PartialCollector) new PartialCollector<>(supplier, merger, Function.identity(),
+                        ID_CHARACTERISTICS);
+            } else {
+                Function<A, R> downstreamFinisher = downstream.finisher();
+                return new PartialCollector<>(supplier, merger, par -> new BooleanMap<>(
+                        downstreamFinisher.apply(par.trueValue), downstreamFinisher.apply(par.falseValue)),
+                        NO_CHARACTERISTICS);
+            }
         }
     }
-    
-    private static abstract class BaseCollector<T, A, R> implements MergingCollector<T, A, R> {
-        private final Supplier<A> supplier;
-        private final BiConsumer<A, A> merger;
-        private final Function<A, R> finisher;
-        private final Set<Characteristics> characteristics;
 
-        public BaseCollector(Supplier<A> supplier, BiConsumer<A, A> merger,
-                Function<A, R> finisher, Set<Characteristics> characteristics) {
+    abstract static class BaseCollector<T, A, R> implements MergingCollector<T, A, R> {
+        final Supplier<A> supplier;
+        final BiConsumer<A, A> merger;
+        final Function<A, R> finisher;
+        final Set<Characteristics> characteristics;
+
+        BaseCollector(Supplier<A> supplier, BiConsumer<A, A> merger, Function<A, R> finisher,
+                Set<Characteristics> characteristics) {
             this.supplier = supplier;
             this.merger = merger;
             this.finisher = finisher;
@@ -472,6 +454,95 @@ import java.util.stream.Stream;
         @Override
         public BiConsumer<A, A> merger() {
             return merger;
+        }
+
+    }
+
+    static final class PartialCollector<A, R> extends BaseCollector<Object, A, R> {
+        PartialCollector(Supplier<A> supplier, BiConsumer<A, A> merger, Function<A, R> finisher,
+                Set<Characteristics> characteristics) {
+            super(supplier, merger, finisher, characteristics);
+        }
+
+        @Override
+        public BiConsumer<A, Object> accumulator() {
+            throw new InternalError();
+        }
+
+        IntCollector<A, R> asInt(ObjIntConsumer<A> intAccumulator) {
+            return new IntCollectorImpl<>(supplier, intAccumulator, merger, finisher, characteristics);
+        }
+
+        LongCollector<A, R> asLong(ObjLongConsumer<A> longAccumulator) {
+            return new LongCollectorImpl<>(supplier, longAccumulator, merger, finisher, characteristics);
+        }
+
+        DoubleCollector<A, R> asDouble(ObjDoubleConsumer<A> doubleAccumulator) {
+            return new DoubleCollectorImpl<>(supplier, doubleAccumulator, merger, finisher, characteristics);
+        }
+
+        <T> Collector<T, A, R> asRef(BiConsumer<A, T> accumulator) {
+            return Collector.of(supplier, accumulator, combiner(), finisher,
+                characteristics.toArray(new Characteristics[characteristics.size()]));
+        }
+        
+        static PartialCollector<int[], Integer> intSum() {
+            return new PartialCollector<>(() -> new int[1], (box1, box2) -> box1[0] += box2[0], UNBOX_INT, NO_CHARACTERISTICS);
+        }
+
+        static PartialCollector<long[], Long> longSum() {
+            return new PartialCollector<>(() -> new long[1], (box1, box2) -> box1[0] += box2[0], UNBOX_LONG, NO_CHARACTERISTICS);
+        }
+        
+        static PartialCollector<ObjIntBox<BitSet>, boolean[]> booleanArray() {
+            return new PartialCollector<>(() -> new ObjIntBox<>(new BitSet(), 0), (box1, box2) -> {
+                box2.a.stream().forEach(i -> box1.a.set(i + box1.b));
+                box1.b = StrictMath.addExact(box1.b, box2.b);
+            }, box -> {
+                boolean[] res = new boolean[box.b];
+                box.a.stream().forEach(i -> res[i] = true);
+                return res;
+            }, NO_CHARACTERISTICS);
+        }
+
+        @SuppressWarnings("unchecked")
+        static <K, D, A, M extends Map<K, D>> PartialCollector<Map<K, A>, M> grouping(
+                Supplier<M> mapFactory, MergingCollector<?, A, D> downstream) {
+            BiConsumer<A, A> downstreamMerger = downstream.merger();
+            BiConsumer<Map<K, A>, Map<K, A>> merger = (map1, map2) -> {
+                for (Map.Entry<K, A> e : map2.entrySet())
+                    map1.merge(e.getKey(), e.getValue(), (a, b) -> {
+                        downstreamMerger.accept(a, b);
+                        return a;
+                    });
+            };
+
+            if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
+                return (StreamExInternals.PartialCollector<Map<K, A>, M>) new StreamExInternals.PartialCollector<>(
+                        (Supplier<Map<K, A>>) mapFactory, merger, Function.identity(),
+                        StreamExInternals.ID_CHARACTERISTICS);
+            } else {
+                Function<A, D> downstreamFinisher = downstream.finisher();
+                return new StreamExInternals.PartialCollector<>((Supplier<Map<K, A>>) mapFactory, merger, map -> {
+                    map.replaceAll((k, v) -> ((Function<A, A>) downstreamFinisher).apply(v));
+                    return (M) map;
+                }, StreamExInternals.NO_CHARACTERISTICS);
+            }
+        }
+        
+        static PartialCollector<StringBuilder, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix, boolean hasPS) {
+            BiConsumer<StringBuilder, StringBuilder> merger = (sb1, sb2) -> {
+                    if (sb2.length() > 0) {
+                        if (sb1.length() > 0)
+                            sb1.append(delimiter);
+                        sb1.append(sb2);
+                    }
+                };
+            Supplier<StringBuilder> supplier = StringBuilder::new;
+            if(hasPS)
+                return new PartialCollector<>(supplier, merger, sb -> new StringBuilder().append(prefix).append(sb)
+                        .append(suffix).toString(), NO_CHARACTERISTICS);
+            return new PartialCollector<>(supplier, merger, StringBuilder::toString, NO_CHARACTERISTICS);
         }
     }
 
@@ -527,20 +598,16 @@ import java.util.stream.Stream;
             this.a = obj;
         }
 
-        static <A> Supplier<Box<A>> supplier(Supplier<A> supplier) {
-            return () -> new Box<>(supplier.get());
+        static <A, R> PartialCollector<Box<A>, R> partialCollector(Collector<?, A, R> c) {
+            Supplier<A> supplier = c.supplier();
+            BinaryOperator<A> combiner = c.combiner();
+            Function<A, R> finisher = c.finisher();
+            return new PartialCollector<>(() -> new Box<>(supplier.get()), (box1, box2) -> box1.a = combiner.apply(
+                box1.a, box2.a), box -> finisher.apply(box.a), NO_CHARACTERISTICS);
         }
 
-        static <A> BiConsumer<Box<A>, Box<A>> combiner(BinaryOperator<A> combiner) {
-            return (box1, box2) -> box1.a = combiner.apply(box1.a, box2.a);
-        }
-
-        static <A, R> Function<Box<A>, R> finisher(Function<A, R> finisher) {
-            return box -> finisher.apply(box.a);
-        }
-        
         static <A> Optional<A> asOptional(Box<A> box) {
-            return box == null ? Optional.empty() : Optional.of(box.a);  
+            return box == null ? Optional.empty() : Optional.of(box.a);
         }
     }
 
@@ -551,15 +618,15 @@ import java.util.stream.Stream;
             super(a);
             this.b = b;
         }
-        
+
         static <T> PairBox<T, T> single(T a) {
             return new PairBox<>(a, a);
         }
     }
-    
+
     static final class ObjIntBox<A> extends Box<A> implements Entry<Integer, A> {
         int b;
-        
+
         ObjIntBox(A a, int b) {
             super(a);
             this.b = b;
@@ -589,7 +656,7 @@ import java.util.stream.Stream;
         public boolean equals(Object o) {
             if (!(o instanceof Map.Entry))
                 return false;
-            Map.Entry<?,?> e = (Map.Entry<?,?>)o;
+            Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
             return getKey().equals(e.getKey()) && Objects.equals(a, e.getValue());
         }
 
@@ -598,10 +665,10 @@ import java.util.stream.Stream;
             return b + "=" + a;
         }
     }
-    
+
     static final class ObjLongBox<A> extends Box<A> implements Entry<A, Long> {
         long b;
-        
+
         ObjLongBox(A a, long b) {
             super(a);
             this.b = b;
@@ -631,7 +698,7 @@ import java.util.stream.Stream;
         public boolean equals(Object o) {
             if (!(o instanceof Map.Entry))
                 return false;
-            Map.Entry<?,?> e = (Map.Entry<?,?>)o;
+            Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
             return getValue().equals(e.getValue()) && Objects.equals(a, e.getKey());
         }
 
@@ -643,19 +710,19 @@ import java.util.stream.Stream;
 
     static final class ObjDoubleBox<A> extends Box<A> {
         double b;
-        
+
         ObjDoubleBox(A a, double b) {
             super(a);
             this.b = b;
         }
     }
-    
+
     static final class PrimitiveBox {
         int i;
         double d;
         long l;
         boolean b;
-        
+
         OptionalInt asInt() {
             return b ? OptionalInt.of(i) : OptionalInt.empty();
         }
@@ -668,6 +735,42 @@ import java.util.stream.Stream;
             return b ? OptionalDouble.of(d) : OptionalDouble.empty();
         }
 
+        static final BiConsumer<PrimitiveBox, PrimitiveBox> MAX_LONG = (box1, box2) -> {
+            if (box2.b && (!box1.b || box1.l < box2.l)) {
+                box1.from(box2);
+            }
+        };
+
+        static final BiConsumer<PrimitiveBox, PrimitiveBox> MIN_LONG = (box1, box2) -> {
+            if (box2.b && (!box1.b || box1.l > box2.l)) {
+                box1.from(box2);
+            }
+        };
+
+        static final BiConsumer<PrimitiveBox, PrimitiveBox> MAX_INT = (box1, box2) -> {
+            if (box2.b && (!box1.b || box1.i < box2.i)) {
+                box1.from(box2);
+            }
+        };
+        
+        static final BiConsumer<PrimitiveBox, PrimitiveBox> MIN_INT = (box1, box2) -> {
+            if (box2.b && (!box1.b || box1.i > box2.i)) {
+                box1.from(box2);
+            }
+        };
+        
+        static final BiConsumer<PrimitiveBox, PrimitiveBox> MAX_DOUBLE = (box1, box2) -> {
+            if (box2.b && (!box1.b || Double.compare(box1.d, box2.d) < 0)) {
+                box1.from(box2);
+            }
+        };
+        
+        static final BiConsumer<PrimitiveBox, PrimitiveBox> MIN_DOUBLE = (box1, box2) -> {
+            if (box2.b && (!box1.b || Double.compare(box1.d, box2.d) > 0)) {
+                box1.from(box2);
+            }
+        };
+        
         public void from(PrimitiveBox box) {
             b = box.b;
             i = box.i;
@@ -675,7 +778,7 @@ import java.util.stream.Stream;
             l = box.l;
         }
     }
-    
+
     static final class TDOfRef<T> extends AbstractSpliterator<T> implements Consumer<T> {
         private final Predicate<? super T> predicate;
         private final boolean drop;
@@ -684,7 +787,8 @@ import java.util.stream.Stream;
         private T cur;
 
         TDOfRef(Spliterator<T> source, boolean drop, Predicate<? super T> predicate) {
-            super(source.estimateSize(), source.characteristics() & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL | DISTINCT));
+            super(source.estimateSize(), source.characteristics()
+                & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL | DISTINCT));
             this.drop = drop;
             this.predicate = predicate;
             this.source = source;
@@ -697,11 +801,11 @@ import java.util.stream.Stream;
 
         @Override
         public boolean tryAdvance(Consumer<? super T> action) {
-            if(drop) {
-                if(checked)
+            if (drop) {
+                if (checked)
                     return source.tryAdvance(action);
-                while(source.tryAdvance(this)) {
-                    if(!predicate.test(cur)) {
+                while (source.tryAdvance(this)) {
+                    if (!predicate.test(cur)) {
                         checked = true;
                         action.accept(cur);
                         return true;
@@ -709,7 +813,7 @@ import java.util.stream.Stream;
                 }
                 return false;
             }
-            if(!checked && source.tryAdvance(this) && predicate.test(cur)) {
+            if (!checked && source.tryAdvance(this) && predicate.test(cur)) {
                 action.accept(cur);
                 return true;
             }
@@ -729,14 +833,15 @@ import java.util.stream.Stream;
         private boolean checked;
         private final Spliterator.OfInt source;
         private int cur;
-        
+
         TDOfInt(Spliterator.OfInt source, boolean drop, IntPredicate predicate) {
-            super(source.estimateSize(), source.characteristics() & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL | DISTINCT));
+            super(source.estimateSize(), source.characteristics()
+                & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL | DISTINCT));
             this.drop = drop;
             this.predicate = predicate;
             this.source = source;
         }
-        
+
         @Override
         public Comparator<? super Integer> getComparator() {
             return source.getComparator();
@@ -744,11 +849,11 @@ import java.util.stream.Stream;
 
         @Override
         public boolean tryAdvance(IntConsumer action) {
-            if(drop) {
-                if(checked)
+            if (drop) {
+                if (checked)
                     return source.tryAdvance(action);
-                while(source.tryAdvance(this)) {
-                    if(!predicate.test(cur)) {
+                while (source.tryAdvance(this)) {
+                    if (!predicate.test(cur)) {
                         checked = true;
                         action.accept(cur);
                         return true;
@@ -756,14 +861,14 @@ import java.util.stream.Stream;
                 }
                 return false;
             }
-            if(!checked && source.tryAdvance(this) && predicate.test(cur)) {
+            if (!checked && source.tryAdvance(this) && predicate.test(cur)) {
                 action.accept(cur);
                 return true;
             }
             checked = true;
             return false;
         }
-        
+
         @Override
         public void accept(int t) {
             this.cur = t;
@@ -776,14 +881,15 @@ import java.util.stream.Stream;
         private boolean checked;
         private final Spliterator.OfLong source;
         private long cur;
-        
+
         TDOfLong(Spliterator.OfLong source, boolean drop, LongPredicate predicate) {
-            super(source.estimateSize(), source.characteristics() & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL | DISTINCT));
+            super(source.estimateSize(), source.characteristics()
+                & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL | DISTINCT));
             this.drop = drop;
             this.predicate = predicate;
             this.source = source;
         }
-        
+
         @Override
         public Comparator<? super Long> getComparator() {
             return source.getComparator();
@@ -791,11 +897,11 @@ import java.util.stream.Stream;
 
         @Override
         public boolean tryAdvance(LongConsumer action) {
-            if(drop) {
-                if(checked)
+            if (drop) {
+                if (checked)
                     return source.tryAdvance(action);
-                while(source.tryAdvance(this)) {
-                    if(!predicate.test(cur)) {
+                while (source.tryAdvance(this)) {
+                    if (!predicate.test(cur)) {
                         checked = true;
                         action.accept(cur);
                         return true;
@@ -803,14 +909,14 @@ import java.util.stream.Stream;
                 }
                 return false;
             }
-            if(!checked && source.tryAdvance(this) && predicate.test(cur)) {
+            if (!checked && source.tryAdvance(this) && predicate.test(cur)) {
                 action.accept(cur);
                 return true;
             }
             checked = true;
             return false;
         }
-        
+
         @Override
         public void accept(long t) {
             this.cur = t;
@@ -823,14 +929,15 @@ import java.util.stream.Stream;
         private boolean checked;
         private final Spliterator.OfDouble source;
         private double cur;
-        
+
         TDOfDouble(Spliterator.OfDouble source, boolean drop, DoublePredicate predicate) {
-            super(source.estimateSize(), source.characteristics() & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL | DISTINCT));
+            super(source.estimateSize(), source.characteristics()
+                & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL | DISTINCT));
             this.drop = drop;
             this.predicate = predicate;
             this.source = source;
         }
-        
+
         @Override
         public Comparator<? super Double> getComparator() {
             return source.getComparator();
@@ -838,11 +945,11 @@ import java.util.stream.Stream;
 
         @Override
         public boolean tryAdvance(DoubleConsumer action) {
-            if(drop) {
-                if(checked)
+            if (drop) {
+                if (checked)
                     return source.tryAdvance(action);
-                while(source.tryAdvance(this)) {
-                    if(!predicate.test(cur)) {
+                while (source.tryAdvance(this)) {
+                    if (!predicate.test(cur)) {
                         checked = true;
                         action.accept(cur);
                         return true;
@@ -850,14 +957,14 @@ import java.util.stream.Stream;
                 }
                 return false;
             }
-            if(!checked && source.tryAdvance(this) && predicate.test(cur)) {
+            if (!checked && source.tryAdvance(this) && predicate.test(cur)) {
                 action.accept(cur);
                 return true;
             }
             checked = true;
             return false;
         }
-        
+
         @Override
         public void accept(double t) {
             this.cur = t;
@@ -910,38 +1017,6 @@ import java.util.stream.Stream;
         return (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i);
     }
 
-    static BiConsumer<StringBuilder, StringBuilder> joinMerger(CharSequence delimiter) {
-        return (sb1, sb2) -> {
-            if (sb2.length() > 0) {
-                if (sb1.length() > 0)
-                    sb1.append(delimiter);
-                sb1.append(sb2);
-            }
-        };
-    }
-
-    static Function<StringBuilder, String> joinFinisher(CharSequence prefix, CharSequence suffix) {
-        return sb -> new StringBuilder().append(prefix).append(sb).append(suffix).toString();
-    }
-
-    static <K, A> BiConsumer<Map<K, A>, Map<K, A>> mapMerger(BiConsumer<A, A> downstreamMerger) {
-        return (map1, map2) -> {
-            for (Map.Entry<K, A> e : map2.entrySet())
-                map1.merge(e.getKey(), e.getValue(), (a, b) -> {
-                    downstreamMerger.accept(a, b);
-                    return a;
-                });
-        };
-    }
-
-    @SuppressWarnings("unchecked")
-    static <K, A, D, M extends Map<K, D>> Function<Map<K, A>, M> mapFinisher(Function<A, A> downstreamFinisher) {
-        return map -> {
-            map.replaceAll((k, v) -> downstreamFinisher.apply(v));
-            return (M) map;
-        };
-    }
-
     static <V> BinaryOperator<V> throwingMerger() {
         return (u, v) -> {
             throw new IllegalStateException(String.format("Duplicate key %s", u));
@@ -951,7 +1026,7 @@ import java.util.stream.Stream;
     static <T> BinaryOperator<T> selectFirst() {
         return (u, v) -> u;
     }
-    
+
     static int checkLength(int a, int b) {
         if (a != b)
             throw new IllegalArgumentException("Length differs: " + a + " != " + b);
@@ -982,9 +1057,9 @@ import java.util.stream.Stream;
     static <T> Stream<T> unwrap(Stream<T> stream) {
         return stream instanceof AbstractStreamEx ? ((AbstractStreamEx<T, ?>) stream).stream : stream;
     }
-    
+
     @SuppressWarnings("unchecked")
     static <T> T none() {
-        return (T)NONE;
+        return (T) NONE;
     }
 }
