@@ -219,4 +219,14 @@ public class IntCollectorTest {
             IntStreamEx.of(Integer.MAX_VALUE, Integer.MAX_VALUE).parallel().collect(IntCollector.averaging())
                     .getAsDouble(), 1);
     }
+
+    @Test
+    public void testToBooleanArray() {
+        assertArrayEquals(new boolean[0], IntStreamEx.empty().collect(IntCollector.toBooleanArray(x -> true)));
+        boolean[] expected = new boolean[] { true, false, false, true };
+        assertArrayEquals(expected,
+            IntStreamEx.of(-1, 2, 3, -4).collect(IntCollector.toBooleanArray(x -> x < 0)));
+        assertArrayEquals(expected,
+            IntStreamEx.of(-1, 2, 3, -4).parallel().collect(IntCollector.toBooleanArray(x -> x < 0)));
+    }
 }

@@ -166,4 +166,13 @@ public class DoubleCollectorTest {
         assertFalse(DoubleStreamEx.empty().collect(DoubleCollector.averaging()).isPresent());
         assertEquals(1.0, DoubleStreamEx.of(0.0, 0.5, 1.0, 1.5, 2.0).collect(DoubleCollector.averaging()).getAsDouble(), 0.0);
     }
-}
+    
+    @Test
+    public void testToBooleanArray() {
+        assertArrayEquals(new boolean[0], DoubleStreamEx.empty().collect(DoubleCollector.toBooleanArray(x -> true)));
+        boolean[] expected = new boolean[] { true, false, false, true };
+        assertArrayEquals(expected,
+            DoubleStreamEx.of(1.0, 1.5, 2.7, 3.0).collect(DoubleCollector.toBooleanArray(x -> Math.floor(x) == x)));
+        assertArrayEquals(expected,
+            DoubleStreamEx.of(1.0, 1.5, 2.7, 3.0).parallel().collect(DoubleCollector.toBooleanArray(x -> Math.floor(x) == x)));
+    }}
