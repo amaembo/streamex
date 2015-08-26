@@ -1,5 +1,9 @@
 # StreamEx changes
 
+### 0.3.8
+
+* Added `toBooleanArray` collectors (object and primitive).
+
 ### 0.3.7
 
 * Added `MoreCollectors.groupingByEnum` collector.
