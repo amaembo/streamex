@@ -170,7 +170,8 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      *         separated by the specified delimiter, in encounter order
      */
     static LongCollector<?, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
-        return PartialCollector.joining(delimiter, prefix, suffix, true).asLong(StreamExInternals.joinAccumulatorLong(delimiter));
+        return PartialCollector.joining(delimiter, prefix, suffix, true).asLong(
+            StreamExInternals.joinAccumulatorLong(delimiter));
     }
 
     /**
@@ -184,7 +185,8 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      *         separated by the specified delimiter, in encounter order
      */
     static LongCollector<?, String> joining(CharSequence delimiter) {
-        return PartialCollector.joining(delimiter, null, null, false).asLong(StreamExInternals.joinAccumulatorLong(delimiter));
+        return PartialCollector.joining(delimiter, null, null, false).asLong(
+            StreamExInternals.joinAccumulatorLong(delimiter));
     }
 
     /**
@@ -230,8 +232,8 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * {@link LongSummaryStatistics#getAverage()} this collector does not
      * overflow if an intermediate sum exceeds {@code Long.MAX_VALUE}.
      *
-     * @return a {@code LongCollector} that produces the arithmetic mean of
-     *         the input elements
+     * @return a {@code LongCollector} that produces the arithmetic mean of the
+     *         input elements
      * @since 0.3.7
      */
     static LongCollector<?, OptionalDouble> averaging() {
@@ -346,7 +348,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      */
     static LongCollector<?, OptionalLong> reducing(LongBinaryOperator op) {
         return of(PrimitiveBox::new, (box, l) -> {
-            if(!box.b) {
+            if (!box.b) {
                 box.b = true;
                 box.l = l;
             } else {
@@ -552,9 +554,22 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
         return of(LongBuffer::new, LongBuffer::add, LongBuffer::addAll, LongBuffer::toArray);
     }
 
+    /**
+     * Returns a {@code LongCollector} which produces a boolean array containing
+     * the results of applying the given predicate to the input elements, in
+     * encounter order.
+     * 
+     * @param predicate
+     *            a non-interfering, stateless predicate to apply to each input
+     *            element. The result values of this predicate are collected to
+     *            the resulting boolean array.
+     * @return a {@code LongCollector} which collects the results of the
+     *         predicate function to the boolean array, in encounter order.
+     * @since 0.3.8
+     */
     static LongCollector<?, boolean[]> toBooleanArray(LongPredicate predicate) {
         return PartialCollector.booleanArray().asLong((box, t) -> {
-            if(predicate.test(t))
+            if (predicate.test(t))
                 box.a.set(box.b);
             box.b = StrictMath.addExact(box.b, 1);
         });

@@ -93,10 +93,25 @@ public final class MoreCollectors {
     public static <T> Collector<T, ?, T[]> toArray(IntFunction<T[]> generator) {
         return Collectors.collectingAndThen(Collectors.toList(), list -> list.toArray(generator.apply(list.size())));
     }
-    
+
+    /**
+     * Returns a {@code Collector} which produces a boolean array containing the
+     * results of applying the given predicate to the input elements, in
+     * encounter order.
+     * 
+     * @param <T>
+     *            the type of the input elements
+     * @param predicate
+     *            a non-interfering, stateless predicate to apply to each input
+     *            element. The result values of this predicate are collected to
+     *            the resulting boolean array.
+     * @return a {@code Collector} which collects the results of the predicate
+     *         function to the boolean array, in encounter order.
+     * @since 0.3.8
+     */
     public static <T> Collector<T, ?, boolean[]> toBooleanArray(Predicate<T> predicate) {
         return PartialCollector.booleanArray().asRef((box, t) -> {
-            if(predicate.test(t))
+            if (predicate.test(t))
                 box.a.set(box.b);
             box.b = StrictMath.addExact(box.b, 1);
         });

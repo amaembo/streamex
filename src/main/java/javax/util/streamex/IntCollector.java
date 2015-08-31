@@ -171,7 +171,8 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      *         separated by the specified delimiter, in encounter order
      */
     static IntCollector<?, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
-        return PartialCollector.joining(delimiter, prefix, suffix, true).asInt(StreamExInternals.joinAccumulatorInt(delimiter));
+        return PartialCollector.joining(delimiter, prefix, suffix, true).asInt(
+            StreamExInternals.joinAccumulatorInt(delimiter));
     }
 
     /**
@@ -185,7 +186,8 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      *         separated by the specified delimiter, in encounter order
      */
     static IntCollector<?, String> joining(CharSequence delimiter) {
-        return PartialCollector.joining(delimiter, null, null, false).asInt(StreamExInternals.joinAccumulatorInt(delimiter));
+        return PartialCollector.joining(delimiter, null, null, false).asInt(
+            StreamExInternals.joinAccumulatorInt(delimiter));
     }
 
     /**
@@ -231,8 +233,8 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      * {@link IntSummaryStatistics#getAverage()} this collector does not
      * overflow if an intermediate sum exceeds {@code Long.MAX_VALUE}.
      *
-     * @return an {@code IntCollector} that produces the arithmetic mean of
-     *         the input elements
+     * @return an {@code IntCollector} that produces the arithmetic mean of the
+     *         input elements
      * @since 0.3.7
      */
     static IntCollector<?, OptionalDouble> averaging() {
@@ -347,7 +349,7 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      */
     static IntCollector<?, OptionalInt> reducing(IntBinaryOperator op) {
         return of(PrimitiveBox::new, (box, i) -> {
-            if(!box.b) {
+            if (!box.b) {
                 box.b = true;
                 box.i = i;
             } else {
@@ -599,9 +601,22 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
         return of(ShortBuffer::new, ShortBuffer::add, ShortBuffer::addAll, ShortBuffer::toArray);
     }
 
+    /**
+     * Returns an {@code IntCollector} which produces a boolean array containing
+     * the results of applying the given predicate to the input elements, in
+     * encounter order.
+     * 
+     * @param predicate
+     *            a non-interfering, stateless predicate to apply to each input
+     *            element. The result values of this predicate are collected to
+     *            the resulting boolean array.
+     * @return an {@code IntCollector} which collects the results of the
+     *         predicate function to the boolean array, in encounter order.
+     * @since 0.3.8
+     */
     static IntCollector<?, boolean[]> toBooleanArray(IntPredicate predicate) {
         return PartialCollector.booleanArray().asInt((box, t) -> {
-            if(predicate.test(t))
+            if (predicate.test(t))
                 box.a.set(box.b);
             box.b = StrictMath.addExact(box.b, 1);
         });

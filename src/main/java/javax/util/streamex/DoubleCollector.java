@@ -167,7 +167,8 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
      *         separated by the specified delimiter, in encounter order
      */
     static DoubleCollector<?, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
-        return PartialCollector.joining(delimiter, prefix, suffix, true).asDouble(StreamExInternals.joinAccumulatorDouble(delimiter));
+        return PartialCollector.joining(delimiter, prefix, suffix, true).asDouble(
+            StreamExInternals.joinAccumulatorDouble(delimiter));
     }
 
     /**
@@ -181,7 +182,8 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
      *         separated by the specified delimiter, in encounter order
      */
     static DoubleCollector<?, String> joining(CharSequence delimiter) {
-        return PartialCollector.joining(delimiter, null, null, false).asDouble(StreamExInternals.joinAccumulatorDouble(delimiter));
+        return PartialCollector.joining(delimiter, null, null, false).asDouble(
+            StreamExInternals.joinAccumulatorDouble(delimiter));
     }
 
     /**
@@ -343,7 +345,7 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
      */
     static DoubleCollector<?, OptionalDouble> reducing(DoubleBinaryOperator op) {
         return of(PrimitiveBox::new, (box, d) -> {
-            if(!box.b) {
+            if (!box.b) {
                 box.b = true;
                 box.d = d;
             } else {
@@ -566,9 +568,22 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
         return of(FloatBuffer::new, FloatBuffer::add, FloatBuffer::addAll, FloatBuffer::toArray);
     }
 
+    /**
+     * Returns a {@code DoubleCollector} which produces a boolean array
+     * containing the results of applying the given predicate to the input
+     * elements, in encounter order.
+     * 
+     * @param predicate
+     *            a non-interfering, stateless predicate to apply to each input
+     *            element. The result values of this predicate are collected to
+     *            the resulting boolean array.
+     * @return a {@code DoubleCollector} which collects the results of the
+     *         predicate function to the boolean array, in encounter order.
+     * @since 0.3.8
+     */
     static DoubleCollector<?, boolean[]> toBooleanArray(DoublePredicate predicate) {
         return PartialCollector.booleanArray().asDouble((box, t) -> {
-            if(predicate.test(t))
+            if (predicate.test(t))
                 box.a.set(box.b);
             box.b = StrictMath.addExact(box.b, 1);
         });
