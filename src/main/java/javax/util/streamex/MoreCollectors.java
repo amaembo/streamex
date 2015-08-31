@@ -135,7 +135,7 @@ public final class MoreCollectors {
      * @see Collectors#counting()
      */
     public static <T> Collector<T, ?, Integer> countingInt() {
-        return Collectors.reducing(0, t -> 1, Integer::sum);
+        return PartialCollector.intSum().asRef((acc, t) -> acc[0]++);
     }
 
     /**
