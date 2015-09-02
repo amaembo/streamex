@@ -3,6 +3,7 @@
 ### 0.3.8
 
 * Added `toBooleanArray` collectors (object and primitive).
+* Optimized: `MoreCollectors.least/greatest` collectors are now much faster (up to 10x depending on input).
 
 ### 0.3.7
 

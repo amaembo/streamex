@@ -522,9 +522,12 @@ public final class MoreCollectors {
         if (n <= 0)
             return empty();
         BiConsumer<PriorityQueue<T>, T> accumulator = (queue, t) -> {
-            queue.add(t);
-            if (queue.size() > n)
+            if (queue.size() < n)
+                queue.add(t);
+            else if(comparator.compare(queue.peek(), t) < 0) {
                 queue.poll();
+                queue.add(t);
+            }
         };
         return Collector.of(() -> new PriorityQueue<>(comparator), accumulator, (q1, q2) -> {
             for (T t : q2) {

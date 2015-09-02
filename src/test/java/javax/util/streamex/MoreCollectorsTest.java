@@ -203,6 +203,19 @@ public class MoreCollectorsTest {
             assertEquals(supplier.toString(), supplier.get().reverseSorted().toList(),
                 supplier.get().collect(MoreCollectors.greatest(Integer.MAX_VALUE)));
         }
+
+        for (StreamExSupplier<Integer> supplier : streamEx(() -> IntStreamEx.range(100).boxed())) {
+            assertEquals(supplier.toString(), IntStreamEx.range(1).boxed().toList(),
+                supplier.get().collect(MoreCollectors.least(1)));
+            assertEquals(supplier.toString(), IntStreamEx.range(2).boxed().toList(),
+                supplier.get().collect(MoreCollectors.least(2)));
+            assertEquals(supplier.toString(), IntStreamEx.range(10).boxed().toList(),
+                supplier.get().collect(MoreCollectors.least(10)));
+            assertEquals(supplier.toString(), IntStreamEx.range(100).boxed().toList(),
+                supplier.get().collect(MoreCollectors.least(100)));
+            assertEquals(supplier.toString(), IntStreamEx.range(100).boxed().toList(),
+                supplier.get().collect(MoreCollectors.least(200)));
+        }
     }
 
     @Test
