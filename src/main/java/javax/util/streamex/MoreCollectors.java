@@ -127,14 +127,12 @@ public final class MoreCollectors {
      * 
      * @param <T>
      *            the type of the input elements
-     * @param <U>
-     *            the type of objects the mapper function produces
      * @param mapper
      *            a function which classifies input elements.
      * @return a collector which counts a number of distinct classes the mapper
      *         function returns for the stream elements.
      */
-    public static <T, U> Collector<T, ?, Integer> distinctCount(Function<? super T, U> mapper) {
+    public static <T> Collector<T, ?, Integer> distinctCount(Function<? super T, ?> mapper) {
         return Collectors.collectingAndThen(Collectors.mapping(mapper, Collectors.toSet()), Set::size);
     }
 
