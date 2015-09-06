@@ -392,7 +392,15 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return prepend(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
             new SimpleImmutableEntry<>(k3, v3)));
     }
+    
+    public EntryStream<K, V> distinctKeys() {
+        return strategy().newEntryStream(stream.map(e -> new PairBox<>(e, e.getKey())).distinct().map(b -> b.a));
+    }
 
+    public EntryStream<K, V> distinctValues() {
+        return strategy().newEntryStream(stream.map(e -> new PairBox<>(e, e.getValue())).distinct().map(b -> b.a));
+    }
+    
     /**
      * Returns an {@code EntryStream} consisting of the entries whose keys are
      * modified by applying the given function and values are left unchanged.

@@ -622,6 +622,18 @@ import java.util.stream.Stream;
         static <T> PairBox<T, T> single(T a) {
             return new PairBox<>(a, a);
         }
+
+        @Override
+        public int hashCode() {
+            return b == null ? 0 : b.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == null || obj.getClass() != PairBox.class)
+                return false;
+            return Objects.equals(b, ((PairBox<?, ?>)obj).b);
+        }
     }
 
     static final class ObjIntBox<A> extends Box<A> implements Entry<Integer, A> {
