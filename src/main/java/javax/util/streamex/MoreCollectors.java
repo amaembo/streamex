@@ -150,6 +150,10 @@ public final class MoreCollectors {
      * There are no guarantees on the type, mutability, serializability, or
      * thread-safety of the {@code List} returned.
      * 
+     * The operation performed by the returned collector is equivalent to
+     * {@code stream.distinct(mapper).toList()}. This collector is mostly useful
+     * as a downstream collector.
+     * 
      * @param <T>
      *            the type of the input elements
      * @param mapper
