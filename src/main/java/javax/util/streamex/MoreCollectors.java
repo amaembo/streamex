@@ -21,7 +21,10 @@ import java.util.Comparator;
 import java.util.Deque;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.PriorityQueue;
@@ -134,6 +137,34 @@ public final class MoreCollectors {
      */
     public static <T> Collector<T, ?, Integer> distinctCount(Function<? super T, ?> mapper) {
         return Collectors.collectingAndThen(Collectors.mapping(mapper, Collectors.toSet()), Set::size);
+    }
+
+    /**
+     * Returns a {@code Collector} which collects into the {@link List} the
+     * input elements for which given mapper function returns distinct results.
+     *
+     * For ordered source the order of collected elements is preserved. If the
+     * same result is returned by mapper function for several elements, only the
+     * first element is included into the resulting list.
+     * 
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code List} returned.
+     * 
+     * @param <T>
+     *            the type of the input elements
+     * @param mapper
+     *            a function which classifies input elements.
+     * @return a collector which collects distinct elements to the {@code List}.
+     * @since 0.3.8
+     */
+    public static <T> Collector<T, ?, List<T>> distinctBy(Function<? super T, ?> mapper) {
+        return Collector.<T, Map<Object, T>, List<T>> of(LinkedHashMap::new,
+            (map, t) -> map.putIfAbsent(mapper.apply(t), t), (m1, m2) -> {
+                for(Entry<Object, T> e : m2.entrySet()) {
+                    m1.putIfAbsent(e.getKey(), e.getValue());
+                }
+                return m1;
+            }, map -> new ArrayList<>(map.values()));
     }
 
     /**
@@ -522,7 +553,7 @@ public final class MoreCollectors {
         BiConsumer<PriorityQueue<T>, T> accumulator = (queue, t) -> {
             if (queue.size() < n)
                 queue.add(t);
-            else if(comparator.compare(queue.peek(), t) < 0) {
+            else if (comparator.compare(queue.peek(), t) < 0) {
                 queue.poll();
                 queue.add(t);
             }
