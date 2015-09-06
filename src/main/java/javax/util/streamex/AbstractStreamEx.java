@@ -151,7 +151,27 @@ import static javax.util.streamex.StreamExInternals.*;
     public S distinct() {
         return supply(stream.distinct());
     }
-    
+
+    /**
+     * Returns a stream consisting of the distinct elements of this stream
+     * (according to object equality of the results of applying the given
+     * function).
+     *
+     * <p>
+     * For ordered streams, the selection of distinct elements is stable (for
+     * duplicated elements, the element appearing first in the encounter order
+     * is preserved.) For unordered streams, no stability guarantees are made.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">stateful intermediate
+     * operation</a>.
+     *
+     * @param keyExtractor
+     *            a non-interfering, stateless function which classifies input
+     *            elements.
+     * @return the new stream
+     * @since 0.3.8
+     */
     public S distinct(Function<? super T, ?> keyExtractor) {
         return supply(stream.map(t -> new PairBox<>(t, keyExtractor.apply(t))).distinct().map(box -> box.a));
     }
