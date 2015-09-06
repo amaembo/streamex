@@ -1315,4 +1315,14 @@ public class StreamExTest {
             assertEquals(supplier.toString(), expectedList, supplier.get().toFlatList(Function.identity()));
         }
     }
+    
+    @Test
+    public void testDistinct() {
+        List<String> input = Arrays.asList("str", "a", "foo", "", "bbbb", null, "abcd", "s");
+        for(StreamExSupplier<String> supplier : streamEx(input::stream)) {
+            assertEquals(supplier.toString(), input, supplier.get().distinct(x -> x).toList());
+            assertEquals(supplier.toString(), Arrays.asList("str", "a", "", "bbbb"),
+                supplier.get().distinct(x -> x == null ? 0 : x.length()).toList());
+        }
+    }
 }

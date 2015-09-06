@@ -151,6 +151,10 @@ import static javax.util.streamex.StreamExInternals.*;
     public S distinct() {
         return supply(stream.distinct());
     }
+    
+    public S distinct(Function<? super T, ?> keyExtractor) {
+        return supply(stream.map(t -> new PairBox<>(t, keyExtractor.apply(t))).distinct().map(box -> box.a));
+    }
 
     @Override
     public S sorted() {

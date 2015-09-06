@@ -394,11 +394,11 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     }
     
     public EntryStream<K, V> distinctKeys() {
-        return strategy().newEntryStream(stream.map(e -> new PairBox<>(e, e.getKey())).distinct().map(b -> b.a));
+        return distinct(Entry::getKey);
     }
 
     public EntryStream<K, V> distinctValues() {
-        return strategy().newEntryStream(stream.map(e -> new PairBox<>(e, e.getValue())).distinct().map(b -> b.a));
+        return distinct(Entry::getValue);
     }
     
     /**
