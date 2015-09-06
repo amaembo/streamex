@@ -73,9 +73,11 @@ public class TestHelpers {
             StreamEx<T> res = super.get();
             switch(mode) {
             case APPEND:
-                return res.append(Stream.empty());
+                // using Stream.empty() here makes the resulting stream unordered
+                // which is undesired
+                return res.append(Arrays.<T>asList().stream());
             case PREPEND:
-                return res.prepend(Stream.empty());
+                return res.prepend(Arrays.<T>asList().stream());
             default:
                 return res;
             }
