@@ -16,6 +16,7 @@
 package javax.util.streamex;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Spliterator;
@@ -28,10 +29,8 @@ import java.util.stream.Collector;
 /**
  * @author Tagir Valeev
  */
-/* package */class CrossSpliterator<T, A, R> implements Spliterator<R> {
-    private final Supplier<A> supplier;
-    private final BiConsumer<A, T> accumulator;
-    private final Function<A, R> finisher;
+/* package */class CrossSpliterator<T, R> implements Spliterator<R> {
+    private final Function<Collection<Entry<T>>, R> mapper;
     private long est;
     private List<Entry<T>> entries;
     private final int splitPos;
@@ -69,11 +68,38 @@ import java.util.stream.Collector;
             return true;
         }
     }
-
-    public CrossSpliterator(Collection<? extends Collection<T>> source, Collector<T, A, R> collector) {
-        this.supplier = collector.supplier();
-        this.accumulator = collector.accumulator();
-        this.finisher = collector.finisher();
+    
+    static <T, A, R> CrossSpliterator<T, R> ofCollector(Collection<? extends Collection<T>> source,
+            Collector<T, A, R> collector) {
+        Supplier<A> supplier = collector.supplier();
+        BiConsumer<A, T> accumulator = collector.accumulator();
+        Function<A, R> finisher = collector.finisher();
+        return new CrossSpliterator<>(source, entries -> {
+            A res = supplier.get();
+            for (Entry<T> e : entries) {
+                accumulator.accept(res, e.cur);
+            }
+            return finisher.apply(res);
+        });
+    }
+    
+    static <T, R extends Collection<T>> CrossSpliterator<T, R> ofCollection(Collection<? extends Collection<T>> source,
+            Supplier<R> supplier) {
+        return new CrossSpliterator<>(source, entries -> {
+            @SuppressWarnings("unchecked")
+            T[] arr = (T[]) new Object[entries.size()];
+            int i=0;
+            for (Entry<T> e : entries) {
+                arr[i++] = e.cur;
+            }
+            R res = supplier.get();
+            res.addAll(Arrays.asList(arr));
+            return res;
+        });
+    }
+    
+    private CrossSpliterator(Collection<? extends Collection<T>> source, Function<Collection<Entry<T>>, R> mapper) {
+        this.mapper = mapper;
         this.splitPos = 0;
         long est = 1;
         try {
@@ -92,11 +118,9 @@ import java.util.stream.Collector;
         }
     }
 
-    CrossSpliterator(Supplier<A> supplier, BiConsumer<A, T> accumulator, Function<A, R> finisher, long est,
+    CrossSpliterator(Function<Collection<Entry<T>>, R> mapper, long est,
             int splitPos, List<Entry<T>> entries) {
-        this.supplier = supplier;
-        this.accumulator = accumulator;
-        this.finisher = finisher;
+        this.mapper = mapper;
         this.est = est;
         this.splitPos = splitPos;
         this.entries = entries;
@@ -109,20 +133,12 @@ import java.util.stream.Collector;
         if (est < Long.MAX_VALUE && est > 0)
             est--;
         if (entries.get(entries.size() - 1).advance()) {
-            action.accept(collect());
+            action.accept(mapper.apply(entries));
             return true;
         }
         entries = null;
         est = 0;
         return false;
-    }
-
-    private R collect() {
-        A res = supplier.get();
-        for (Entry<T> e : entries) {
-            accumulator.accept(res, e.cur);
-        }
-        return finisher.apply(res);
     }
 
     @Override
@@ -163,7 +179,7 @@ import java.util.stream.Collector;
             }
         }
         this.est = newEst;
-        return new CrossSpliterator<>(supplier, accumulator, finisher, prefixEst, splitPos, prefixEntries);
+        return new CrossSpliterator<>(mapper, prefixEst, splitPos, prefixEntries);
     }
 
     @Override
