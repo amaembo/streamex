@@ -52,6 +52,8 @@ import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import javax.util.streamex.StreamExInternals.PrimitiveBox;
+
 import static javax.util.streamex.StreamExInternals.*;
 
 /**
@@ -785,11 +787,7 @@ public class IntStreamEx implements IntStream {
                 box.l = key;
                 box.i = i;
             }
-        }, (box1, box2) -> {
-            if (box2.b && (!box1.b || box1.l > box2.l)) {
-                box1.from(box2);
-            }
-        }).asInt();
+        }, PrimitiveBox.MIN_LONG).asInt();
     }
 
     /**
@@ -814,11 +812,7 @@ public class IntStreamEx implements IntStream {
                 box.d = key;
                 box.i = i;
             }
-        }, (box1, box2) -> {
-            if (box2.b && (!box1.b || Double.compare(box1.d, box2.d) > 0)) {
-                box1.from(box2);
-            }
-        }).asInt();
+        }, PrimitiveBox.MIN_DOUBLE).asInt();
     }
 
     @Override
@@ -926,11 +920,7 @@ public class IntStreamEx implements IntStream {
                 box.l = key;
                 box.i = i;
             }
-        }, (box1, box2) -> {
-            if (box2.b && (!box1.b || box1.l < box2.l)) {
-                box1.from(box2);
-            }
-        }).asInt();
+        }, PrimitiveBox.MAX_LONG).asInt();
     }
 
     /**
@@ -955,11 +945,7 @@ public class IntStreamEx implements IntStream {
                 box.d = key;
                 box.i = i;
             }
-        }, (box1, box2) -> {
-            if (box2.b && (!box1.b || Double.compare(box1.d, box2.d) < 0)) {
-                box1.from(box2);
-            }
-        }).asInt();
+        }, PrimitiveBox.MAX_DOUBLE).asInt();
     }
 
     @Override

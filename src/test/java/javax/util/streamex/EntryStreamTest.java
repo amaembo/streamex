@@ -33,10 +33,12 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import javax.util.streamex.StreamExTest.Point;
+
 import org.junit.Test;
 
 public class EntryStreamTest {
@@ -453,5 +455,15 @@ public class EntryStreamTest {
         double expected = StreamEx.of(pts).cross(pts).mapKeyValue(Point::distance).mapToDouble(Double::doubleValue).max().getAsDouble();
         assertEquals(expected, EntryStream.ofPairs(pts).mapKeyValue(Point::distance).mapToDouble(Double::doubleValue).max().getAsDouble(), 0.0);
         assertEquals(expected, EntryStream.ofPairs(pts).parallel().mapKeyValue(Point::distance).mapToDouble(Double::doubleValue).max().getAsDouble(), 0.0);
+    }
+    
+    @Test
+    public void testDistinctKeysValues() {
+        Supplier<EntryStream<Integer, String>> s = () -> EntryStream.of(1, "a", 1, "b", 2, "b").append(2, "c", 1, "c",
+            3, "c");
+        assertEquals("1=a,2=b,3=c", s.get().distinctKeys().join("=").joining(","));
+        assertEquals("1=a,2=b,3=c", s.get().parallel().distinctKeys().join("=").joining(","));
+        assertEquals("1=a,1=b,2=c", s.get().distinctValues().join("=").joining(","));
+        assertEquals("1=a,1=b,2=c", s.get().parallel().distinctValues().join("=").joining(","));
     }
 }

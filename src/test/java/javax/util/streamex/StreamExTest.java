@@ -1334,4 +1334,13 @@ public class StreamExTest {
             assertEquals(supplier.toString(), "[1, 3, 4],[1, 3, 5],[2, 3, 4],[2, 3, 5]", supplier.get().joining(","));
         }
     }
+
+    public void testDistinct() {
+        List<String> input = Arrays.asList("str", "a", "foo", "", "bbbb", null, "abcd", "s");
+        for(StreamExSupplier<String> supplier : streamEx(input::stream)) {
+            assertEquals(supplier.toString(), input, supplier.get().distinct(x -> x).toList());
+            assertEquals(supplier.toString(), Arrays.asList("str", "a", "", "bbbb"),
+                supplier.get().distinct(x -> x == null ? 0 : x.length()).toList());
+        }
+    }
 }

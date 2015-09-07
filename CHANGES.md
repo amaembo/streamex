@@ -1,5 +1,13 @@
 # StreamEx changes
 
+### 0.3.8
+
+* Added `toBooleanArray` collectors (object and primitive).
+* Added `MoreCollectors.distinctBy` collector.
+* Added `StreamEx/EntryStream.distinct(keyExtractor)` intermediate operation.
+* Added `EntryStream.distinctKeys/distinctValues` intermediate operations.
+* Optimized: `MoreCollectors.least/greatest` collectors are now much faster (up to 10x depending on input).
+
 ### 0.3.7
 
 * Added `MoreCollectors.groupingByEnum` collector.

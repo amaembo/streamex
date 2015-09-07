@@ -33,6 +33,9 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
+import javax.util.streamex.StreamExInternals.PartialCollector;
+import javax.util.streamex.StreamExInternals.PrimitiveBox;
+
 import static javax.util.streamex.StreamExInternals.*;
 
 /**
@@ -167,8 +170,8 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      *         separated by the specified delimiter, in encounter order
      */
     static LongCollector<?, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
-        return of(StringBuilder::new, StreamExInternals.joinAccumulatorLong(delimiter), joinMerger(delimiter),
-            joinFinisher(prefix, suffix));
+        return PartialCollector.joining(delimiter, prefix, suffix, true).asLong(
+            StreamExInternals.joinAccumulatorLong(delimiter));
     }
 
     /**
@@ -182,8 +185,8 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      *         separated by the specified delimiter, in encounter order
      */
     static LongCollector<?, String> joining(CharSequence delimiter) {
-        return of(StringBuilder::new, StreamExInternals.joinAccumulatorLong(delimiter), joinMerger(delimiter),
-            StringBuilder::toString);
+        return PartialCollector.joining(delimiter, null, null, false).asLong(
+            StreamExInternals.joinAccumulatorLong(delimiter));
     }
 
     /**
@@ -194,7 +197,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * @return a {@code LongCollector} that counts the input elements
      */
     static LongCollector<?, Long> counting() {
-        return of(LONG_BOX, (box, i) -> box[0]++, SUM_LONG, UNBOX_LONG);
+        return PartialCollector.longSum().asLong((box, i) -> box[0]++);
     }
 
     /**
@@ -205,7 +208,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * @return an {@code LongCollector} that counts the input elements
      */
     static LongCollector<?, Integer> countingInt() {
-        return of(INT_BOX, (box, i) -> box[0]++, SUM_INT, UNBOX_INT);
+        return PartialCollector.intSum().asLong((box, i) -> box[0]++);
     }
 
     /**
@@ -216,7 +219,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      *         elements
      */
     static LongCollector<?, Long> summing() {
-        return of(LONG_BOX, (box, i) -> box[0] += i, SUM_LONG, UNBOX_LONG);
+        return PartialCollector.longSum().asLong((box, i) -> box[0] += i);
     }
 
     /**
@@ -229,8 +232,8 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * {@link LongSummaryStatistics#getAverage()} this collector does not
      * overflow if an intermediate sum exceeds {@code Long.MAX_VALUE}.
      *
-     * @return a {@code LongCollector} that produces the arithmetic mean of
-     *         the input elements
+     * @return a {@code LongCollector} that produces the arithmetic mean of the
+     *         input elements
      * @since 0.3.7
      */
     static LongCollector<?, OptionalDouble> averaging() {
@@ -307,8 +310,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
                     ((MergingCollector<U, A, R>) downstream).merger(), downstream.finisher(),
                     downstream.characteristics());
         }
-        return of(Box.supplier(downstream.supplier()), (box, i) -> accumulator.accept(box.a, mapper.apply(i)),
-            Box.combiner(downstream.combiner()), Box.finisher(downstream.finisher()));
+        return Box.partialCollector(downstream).asLong((box, i) -> accumulator.accept(box.a, mapper.apply(i)));
     }
 
     /**
@@ -345,23 +347,22 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * @return a {@code LongCollector} which implements the reduction operation.
      */
     static LongCollector<?, OptionalLong> reducing(LongBinaryOperator op) {
-        return of(() -> new long[2], (box, i) -> {
-            if (box[1] == 0) {
-                box[0] = i;
-                box[1] = 1;
+        return of(PrimitiveBox::new, (box, l) -> {
+            if (!box.b) {
+                box.b = true;
+                box.l = l;
             } else {
-                box[0] = op.applyAsLong(box[0], i);
+                box.l = op.applyAsLong(box.l, l);
             }
         }, (box1, box2) -> {
-            if (box2[1] == 1) {
-                if (box1[1] == 0) {
-                    box1[0] = box2[0];
-                    box1[1] = 1;
+            if (box2.b) {
+                if (!box1.b) {
+                    box1.from(box2);
                 } else {
-                    box1[0] = op.applyAsLong(box1[0], box2[0]);
+                    box1.l = op.applyAsLong(box1.l, box2.l);
                 }
             }
-        }, box -> box[1] == 1 ? OptionalLong.of(box[0]) : OptionalLong.empty());
+        }, PrimitiveBox::asLong);
     }
 
     /**
@@ -430,19 +431,12 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * @return a {@code LongCollector} implementing the cascaded partitioning
      *         operation
      */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     static <A, D> LongCollector<?, Map<Boolean, D>> partitioningBy(LongPredicate predicate,
             LongCollector<A, D> downstream) {
         ObjLongConsumer<A> downstreamAccumulator = downstream.longAccumulator();
         ObjLongConsumer<BooleanMap<A>> accumulator = (result, t) -> downstreamAccumulator.accept(
             predicate.test(t) ? result.trueValue : result.falseValue, t);
-        BiConsumer<BooleanMap<A>, BooleanMap<A>> merger = BooleanMap.merger(downstream.merger());
-        Supplier<BooleanMap<A>> supplier = BooleanMap.supplier(downstream.supplier());
-        if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
-            return (LongCollector) of(supplier, accumulator, merger);
-        } else {
-            return of(supplier, accumulator, merger, BooleanMap.finisher(downstream.finisher()));
-        }
+        return BooleanMap.partialCollector(downstream).asLong(accumulator);
     }
 
     /**
@@ -536,7 +530,6 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * @return a {@code LongCollector} implementing the cascaded group-by
      *         operation
      */
-    @SuppressWarnings("unchecked")
     static <K, D, A, M extends Map<K, D>> LongCollector<?, M> groupingBy(LongFunction<? extends K> classifier,
             Supplier<M> mapFactory, LongCollector<A, D> downstream) {
         Supplier<A> downstreamSupplier = downstream.supplier();
@@ -547,14 +540,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
             A container = m.computeIfAbsent(key, supplier);
             downstreamAccumulator.accept(container, t);
         };
-        BiConsumer<Map<K, A>, Map<K, A>> merger = mapMerger(downstream.merger());
-
-        if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
-            return (LongCollector<?, M>) of((Supplier<Map<K, A>>) mapFactory, accumulator, merger);
-        } else {
-            return of((Supplier<Map<K, A>>) mapFactory, accumulator, merger,
-                mapFinisher((Function<A, A>) downstream.finisher()));
-        }
+        return PartialCollector.grouping(mapFactory, downstream).asLong(accumulator);
     }
 
     /**
@@ -566,5 +552,26 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      */
     static LongCollector<?, long[]> toArray() {
         return of(LongBuffer::new, LongBuffer::add, LongBuffer::addAll, LongBuffer::toArray);
+    }
+
+    /**
+     * Returns a {@code LongCollector} which produces a boolean array containing
+     * the results of applying the given predicate to the input elements, in
+     * encounter order.
+     * 
+     * @param predicate
+     *            a non-interfering, stateless predicate to apply to each input
+     *            element. The result values of this predicate are collected to
+     *            the resulting boolean array.
+     * @return a {@code LongCollector} which collects the results of the
+     *         predicate function to the boolean array, in encounter order.
+     * @since 0.3.8
+     */
+    static LongCollector<?, boolean[]> toBooleanArray(LongPredicate predicate) {
+        return PartialCollector.booleanArray().asLong((box, t) -> {
+            if (predicate.test(t))
+                box.a.set(box.b);
+            box.b = StrictMath.addExact(box.b, 1);
+        });
     }
 }

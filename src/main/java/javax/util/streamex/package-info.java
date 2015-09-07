@@ -75,7 +75,7 @@
  * In addition to symmetrical reduction which requires reduction function to be associative, StreamEx library provides asymmetrical reduction methods
  * like {@linkplain javax.util.streamex.StreamEx#foldLeft(Object, java.util.function.BiFunction) foldLeft} and {@linkplain javax.util.streamex.StreamEx#foldRight(Object, java.util.function.BiFunction) foldRight}. 
  * These methods
- * can be safely used for parallel streams, but the absence of associativity may lead to the performance drawback. Use them unly if you cannot provide
+ * can be safely used for parallel streams, but the absence of associativity may lead to the performance drawback. Use them only if you cannot provide
  * an associative reduction function.   
  * 
  * <h3><a name="MutableReduction">Mutable reduction</a></h3>

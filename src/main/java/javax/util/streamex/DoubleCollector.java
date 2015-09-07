@@ -29,6 +29,9 @@ import java.util.function.DoubleUnaryOperator;
 import java.util.function.ObjDoubleConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
+
+import javax.util.streamex.StreamExInternals.PartialCollector;
+
 import static javax.util.streamex.StreamExInternals.*;
 
 /**
@@ -164,8 +167,8 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
      *         separated by the specified delimiter, in encounter order
      */
     static DoubleCollector<?, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
-        return of(StringBuilder::new, StreamExInternals.joinAccumulatorDouble(delimiter), joinMerger(delimiter),
-            joinFinisher(prefix, suffix));
+        return PartialCollector.joining(delimiter, prefix, suffix, true).asDouble(
+            StreamExInternals.joinAccumulatorDouble(delimiter));
     }
 
     /**
@@ -179,8 +182,8 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
      *         separated by the specified delimiter, in encounter order
      */
     static DoubleCollector<?, String> joining(CharSequence delimiter) {
-        return of(StringBuilder::new, StreamExInternals.joinAccumulatorDouble(delimiter), joinMerger(delimiter),
-            StringBuilder::toString);
+        return PartialCollector.joining(delimiter, null, null, false).asDouble(
+            StreamExInternals.joinAccumulatorDouble(delimiter));
     }
 
     /**
@@ -191,7 +194,7 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
      * @return a {@code DoubleCollector} that counts the input elements
      */
     static DoubleCollector<?, Long> counting() {
-        return of(LONG_BOX, (box, i) -> box[0]++, SUM_LONG, UNBOX_LONG);
+        return PartialCollector.longSum().asDouble((box, i) -> box[0]++);
     }
 
     /**
@@ -202,7 +205,7 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
      * @return an {@code DoubleCollector} that counts the input elements
      */
     static DoubleCollector<?, Integer> countingInt() {
-        return of(INT_BOX, (box, i) -> box[0]++, SUM_INT, UNBOX_INT);
+        return PartialCollector.intSum().asDouble((box, i) -> box[0]++);
     }
 
     /**
@@ -301,8 +304,7 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
                     ((MergingCollector<U, A, R>) downstream).merger(), downstream.finisher(),
                     downstream.characteristics());
         }
-        return of(Box.supplier(downstream.supplier()), (box, i) -> accumulator.accept(box.a, mapper.apply(i)),
-            Box.combiner(downstream.combiner()), Box.finisher(downstream.finisher()));
+        return Box.partialCollector(downstream).asDouble((box, i) -> accumulator.accept(box.a, mapper.apply(i)));
     }
 
     /**
@@ -342,23 +344,22 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
      *         operation.
      */
     static DoubleCollector<?, OptionalDouble> reducing(DoubleBinaryOperator op) {
-        return of(() -> new double[2], (box, i) -> {
-            if (box[1] == 0) {
-                box[0] = i;
-                box[1] = 1;
+        return of(PrimitiveBox::new, (box, d) -> {
+            if (!box.b) {
+                box.b = true;
+                box.d = d;
             } else {
-                box[0] = op.applyAsDouble(box[0], i);
+                box.d = op.applyAsDouble(box.d, d);
             }
         }, (box1, box2) -> {
-            if (box2[1] == 1) {
-                if (box1[1] == 0) {
-                    box1[0] = box2[0];
-                    box1[1] = 1;
+            if (box2.b) {
+                if (!box1.b) {
+                    box1.from(box2);
                 } else {
-                    box1[0] = op.applyAsDouble(box1[0], box2[0]);
+                    box1.d = op.applyAsDouble(box1.d, box2.d);
                 }
             }
-        }, box -> box[1] == 1 ? OptionalDouble.of(box[0]) : OptionalDouble.empty());
+        }, PrimitiveBox::asDouble);
     }
 
     /**
@@ -430,19 +431,12 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
      * @return a {@code DoubleCollector} implementing the cascaded partitioning
      *         operation
      */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     static <A, D> DoubleCollector<?, Map<Boolean, D>> partitioningBy(DoublePredicate predicate,
             DoubleCollector<A, D> downstream) {
         ObjDoubleConsumer<A> downstreamAccumulator = downstream.doubleAccumulator();
         ObjDoubleConsumer<BooleanMap<A>> accumulator = (result, t) -> downstreamAccumulator.accept(
             predicate.test(t) ? result.trueValue : result.falseValue, t);
-        BiConsumer<BooleanMap<A>, BooleanMap<A>> merger = BooleanMap.merger(downstream.merger());
-        Supplier<BooleanMap<A>> supplier = BooleanMap.supplier(downstream.supplier());
-        if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
-            return (DoubleCollector) of(supplier, accumulator, merger);
-        } else {
-            return of(supplier, accumulator, merger, BooleanMap.finisher(downstream.finisher()));
-        }
+        return BooleanMap.partialCollector(downstream).asDouble(accumulator);
     }
 
     /**
@@ -538,7 +532,6 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
      * @return a {@code DoubleCollector} implementing the cascaded group-by
      *         operation
      */
-    @SuppressWarnings("unchecked")
     static <K, D, A, M extends Map<K, D>> DoubleCollector<?, M> groupingBy(DoubleFunction<? extends K> classifier,
             Supplier<M> mapFactory, DoubleCollector<A, D> downstream) {
         Supplier<A> downstreamSupplier = downstream.supplier();
@@ -549,14 +542,7 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
             A container = m.computeIfAbsent(key, supplier);
             downstreamAccumulator.accept(container, t);
         };
-        BiConsumer<Map<K, A>, Map<K, A>> merger = mapMerger(downstream.merger());
-
-        if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
-            return (DoubleCollector<?, M>) of((Supplier<Map<K, A>>) mapFactory, accumulator, merger);
-        } else {
-            return of((Supplier<Map<K, A>>) mapFactory, accumulator, merger,
-                mapFinisher((Function<A, A>) downstream.finisher()));
-        }
+        return PartialCollector.grouping(mapFactory, downstream).asDouble(accumulator);
     }
 
     /**
@@ -580,5 +566,26 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
      */
     static DoubleCollector<?, float[]> toFloatArray() {
         return of(FloatBuffer::new, FloatBuffer::add, FloatBuffer::addAll, FloatBuffer::toArray);
+    }
+
+    /**
+     * Returns a {@code DoubleCollector} which produces a boolean array
+     * containing the results of applying the given predicate to the input
+     * elements, in encounter order.
+     * 
+     * @param predicate
+     *            a non-interfering, stateless predicate to apply to each input
+     *            element. The result values of this predicate are collected to
+     *            the resulting boolean array.
+     * @return a {@code DoubleCollector} which collects the results of the
+     *         predicate function to the boolean array, in encounter order.
+     * @since 0.3.8
+     */
+    static DoubleCollector<?, boolean[]> toBooleanArray(DoublePredicate predicate) {
+        return PartialCollector.booleanArray().asDouble((box, t) -> {
+            if (predicate.test(t))
+                box.a.set(box.b);
+            box.b = StrictMath.addExact(box.b, 1);
+        });
     }
 }

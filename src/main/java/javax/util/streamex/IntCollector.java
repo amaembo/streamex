@@ -34,7 +34,8 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import javax.util.streamex.StreamExInternals.Box;
+import javax.util.streamex.StreamExInternals.PartialCollector;
+import javax.util.streamex.StreamExInternals.PrimitiveBox;
 
 import static javax.util.streamex.StreamExInternals.*;
 
@@ -170,8 +171,8 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      *         separated by the specified delimiter, in encounter order
      */
     static IntCollector<?, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
-        return of(StringBuilder::new, StreamExInternals.joinAccumulatorInt(delimiter), joinMerger(delimiter),
-            joinFinisher(prefix, suffix));
+        return PartialCollector.joining(delimiter, prefix, suffix, true).asInt(
+            StreamExInternals.joinAccumulatorInt(delimiter));
     }
 
     /**
@@ -185,8 +186,8 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      *         separated by the specified delimiter, in encounter order
      */
     static IntCollector<?, String> joining(CharSequence delimiter) {
-        return of(StringBuilder::new, StreamExInternals.joinAccumulatorInt(delimiter), joinMerger(delimiter),
-            StringBuilder::toString);
+        return PartialCollector.joining(delimiter, null, null, false).asInt(
+            StreamExInternals.joinAccumulatorInt(delimiter));
     }
 
     /**
@@ -197,7 +198,7 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      * @return an {@code IntCollector} that counts the input elements
      */
     static IntCollector<?, Long> counting() {
-        return of(LONG_BOX, (box, i) -> box[0]++, SUM_LONG, UNBOX_LONG);
+        return PartialCollector.longSum().asInt((box, i) -> box[0]++);
     }
 
     /**
@@ -208,7 +209,7 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      * @return an {@code IntCollector} that counts the input elements
      */
     static IntCollector<?, Integer> countingInt() {
-        return of(INT_BOX, (box, i) -> box[0]++, SUM_INT, UNBOX_INT);
+        return PartialCollector.intSum().asInt((box, i) -> box[0]++);
     }
 
     /**
@@ -219,7 +220,7 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      *         elements
      */
     static IntCollector<?, Integer> summing() {
-        return of(INT_BOX, (box, i) -> box[0] += i, SUM_INT, UNBOX_INT);
+        return PartialCollector.intSum().asInt((box, i) -> box[0] += i);
     }
 
     /**
@@ -232,8 +233,8 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      * {@link IntSummaryStatistics#getAverage()} this collector does not
      * overflow if an intermediate sum exceeds {@code Long.MAX_VALUE}.
      *
-     * @return an {@code IntCollector} that produces the arithmetic mean of
-     *         the input elements
+     * @return an {@code IntCollector} that produces the arithmetic mean of the
+     *         input elements
      * @since 0.3.7
      */
     static IntCollector<?, OptionalDouble> averaging() {
@@ -310,8 +311,7 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
                     ((MergingCollector<U, A, R>) downstream).merger(), downstream.finisher(),
                     downstream.characteristics());
         }
-        return of(Box.supplier(downstream.supplier()), (box, i) -> accumulator.accept(box.a, mapper.apply(i)),
-            Box.combiner(downstream.combiner()), Box.finisher(downstream.finisher()));
+        return Box.partialCollector(downstream).asInt((box, i) -> accumulator.accept(box.a, mapper.apply(i)));
     }
 
     /**
@@ -348,23 +348,22 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      * @return an {@code IntCollector} which implements the reduction operation.
      */
     static IntCollector<?, OptionalInt> reducing(IntBinaryOperator op) {
-        return of(() -> new int[2], (box, i) -> {
-            if (box[1] == 0) {
-                box[0] = i;
-                box[1] = 1;
+        return of(PrimitiveBox::new, (box, i) -> {
+            if (!box.b) {
+                box.b = true;
+                box.i = i;
             } else {
-                box[0] = op.applyAsInt(box[0], i);
+                box.i = op.applyAsInt(box.i, i);
             }
         }, (box1, box2) -> {
-            if (box2[1] == 1) {
-                if (box1[1] == 0) {
-                    box1[0] = box2[0];
-                    box1[1] = 1;
+            if (box2.b) {
+                if (!box1.b) {
+                    box1.from(box2);
                 } else {
-                    box1[0] = op.applyAsInt(box1[0], box2[0]);
+                    box1.i = op.applyAsInt(box1.i, box2.i);
                 }
             }
-        }, box -> box[1] == 1 ? OptionalInt.of(box[0]) : OptionalInt.empty());
+        }, PrimitiveBox::asInt);
     }
 
     /**
@@ -433,18 +432,11 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      * @return an {@code IntCollector} implementing the cascaded partitioning
      *         operation
      */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     static <A, D> IntCollector<?, Map<Boolean, D>> partitioningBy(IntPredicate predicate, IntCollector<A, D> downstream) {
         ObjIntConsumer<A> downstreamAccumulator = downstream.intAccumulator();
         ObjIntConsumer<BooleanMap<A>> accumulator = (result, t) -> downstreamAccumulator.accept(
             predicate.test(t) ? result.trueValue : result.falseValue, t);
-        BiConsumer<BooleanMap<A>, BooleanMap<A>> merger = BooleanMap.merger(downstream.merger());
-        Supplier<BooleanMap<A>> supplier = BooleanMap.supplier(downstream.supplier());
-        if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
-            return (IntCollector) of(supplier, accumulator, merger);
-        } else {
-            return of(supplier, accumulator, merger, BooleanMap.finisher(downstream.finisher()));
-        }
+        return BooleanMap.partialCollector(downstream).asInt(accumulator);
     }
 
     /**
@@ -538,7 +530,6 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      * @return an {@code IntCollector} implementing the cascaded group-by
      *         operation
      */
-    @SuppressWarnings("unchecked")
     static <K, D, A, M extends Map<K, D>> IntCollector<?, M> groupingBy(IntFunction<? extends K> classifier,
             Supplier<M> mapFactory, IntCollector<A, D> downstream) {
         Supplier<A> downstreamSupplier = downstream.supplier();
@@ -549,14 +540,7 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
             A container = m.computeIfAbsent(key, supplier);
             downstreamAccumulator.accept(container, t);
         };
-        BiConsumer<Map<K, A>, Map<K, A>> merger = mapMerger(downstream.merger());
-
-        if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
-            return (IntCollector<?, M>) of((Supplier<Map<K, A>>) mapFactory, accumulator, merger);
-        } else {
-            return of((Supplier<Map<K, A>>) mapFactory, accumulator, merger,
-                mapFinisher((Function<A, A>) downstream.finisher()));
-        }
+        return PartialCollector.grouping(mapFactory, downstream).asInt(accumulator);
     }
 
     /**
@@ -615,5 +599,26 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      */
     static IntCollector<?, short[]> toShortArray() {
         return of(ShortBuffer::new, ShortBuffer::add, ShortBuffer::addAll, ShortBuffer::toArray);
+    }
+
+    /**
+     * Returns an {@code IntCollector} which produces a boolean array containing
+     * the results of applying the given predicate to the input elements, in
+     * encounter order.
+     * 
+     * @param predicate
+     *            a non-interfering, stateless predicate to apply to each input
+     *            element. The result values of this predicate are collected to
+     *            the resulting boolean array.
+     * @return an {@code IntCollector} which collects the results of the
+     *         predicate function to the boolean array, in encounter order.
+     * @since 0.3.8
+     */
+    static IntCollector<?, boolean[]> toBooleanArray(IntPredicate predicate) {
+        return PartialCollector.booleanArray().asInt((box, t) -> {
+            if (predicate.test(t))
+                box.a.set(box.b);
+            box.b = StrictMath.addExact(box.b, 1);
+        });
     }
 }

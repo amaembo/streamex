@@ -90,7 +90,8 @@ public class LongCollectorTest {
     @Test
     public void testProduct() {
         assertEquals(24L, (long) LongStreamEx.of(1, 2, 3, 4).collect(LongCollector.reducing(1, (a, b) -> a * b)));
-        assertEquals(24L, (long) LongStreamEx.of(1, 2, 3, 4).parallel().collect(LongCollector.reducing(1, (a, b) -> a * b)));
+        assertEquals(24L,
+            (long) LongStreamEx.of(1, 2, 3, 4).parallel().collect(LongCollector.reducing(1, (a, b) -> a * b)));
         assertEquals(
             24L,
             (long) LongStreamEx.of(1, 2, 3, 4).collect(
@@ -118,11 +119,11 @@ public class LongCollectorTest {
         LongCollector<?, Map<Boolean, String>> collector = LongCollector.partitioningBy(i -> i % 2 == 0,
             LongCollector.mapping(i -> i / 3, LongCollector.joining(",")));
         LongCollector<?, Map<Boolean, String>> collector2 = LongCollector.partitioningBy(i -> i % 2 == 0,
-                LongCollector.mappingToObj(i -> i / 3, LongCollector.joining(",")));
+            LongCollector.mappingToObj(i -> i / 3, LongCollector.joining(",")));
         Map<Boolean, String> expected = new HashMap<>();
         expected.put(true, "0,0,1,2,2");
         expected.put(false, "0,1,1,2,3");
-        
+
         Map<Boolean, String> parts = LongStreamEx.range(10).parallel().collect(collector);
         assertEquals(expected, parts);
         assertEquals(parts, expected);
@@ -163,7 +164,7 @@ public class LongCollectorTest {
             (long) LongStreamEx.range(10000000, 10001000).collect(
                 LongCollector.of(Collectors.summingLong(Long::longValue))));
     }
-    
+
     @Test
     public void testAveraging() {
         assertFalse(LongStreamEx.empty().collect(LongCollector.averaging()).isPresent());
@@ -173,5 +174,18 @@ public class LongCollectorTest {
             Long.MAX_VALUE,
             LongStreamEx.of(Long.MAX_VALUE, Long.MAX_VALUE).parallel().collect(LongCollector.averaging()).getAsDouble(),
             1);
+    }
+
+    @Test
+    public void testToBooleanArray() {
+        assertArrayEquals(new boolean[0], LongStreamEx.empty().collect(LongCollector.toBooleanArray(x -> true)));
+        boolean[] expected = new boolean[] { true, false, false, false, true };
+        assertArrayEquals(
+            expected,
+            LongStreamEx.of(Long.MIN_VALUE, Integer.MIN_VALUE, 0, Integer.MAX_VALUE, Long.MAX_VALUE).collect(
+                LongCollector.toBooleanArray(x -> x < Integer.MIN_VALUE || x > Integer.MAX_VALUE)));
+        assertArrayEquals(expected,
+            LongStreamEx.of(Long.MIN_VALUE, Integer.MIN_VALUE, 0, Integer.MAX_VALUE, Long.MAX_VALUE).parallel()
+                    .collect(LongCollector.toBooleanArray(x -> x < Integer.MIN_VALUE || x > Integer.MAX_VALUE)));
     }
 }

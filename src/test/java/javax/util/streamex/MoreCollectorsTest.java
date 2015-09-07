@@ -203,6 +203,19 @@ public class MoreCollectorsTest {
             assertEquals(supplier.toString(), supplier.get().reverseSorted().toList(),
                 supplier.get().collect(MoreCollectors.greatest(Integer.MAX_VALUE)));
         }
+
+        for (StreamExSupplier<Integer> supplier : streamEx(() -> IntStreamEx.range(100).boxed())) {
+            assertEquals(supplier.toString(), IntStreamEx.range(1).boxed().toList(),
+                supplier.get().collect(MoreCollectors.least(1)));
+            assertEquals(supplier.toString(), IntStreamEx.range(2).boxed().toList(),
+                supplier.get().collect(MoreCollectors.least(2)));
+            assertEquals(supplier.toString(), IntStreamEx.range(10).boxed().toList(),
+                supplier.get().collect(MoreCollectors.least(10)));
+            assertEquals(supplier.toString(), IntStreamEx.range(100).boxed().toList(),
+                supplier.get().collect(MoreCollectors.least(100)));
+            assertEquals(supplier.toString(), IntStreamEx.range(100).boxed().toList(),
+                supplier.get().collect(MoreCollectors.least(200)));
+        }
     }
 
     @Test
@@ -248,6 +261,18 @@ public class MoreCollectorsTest {
             assertEquals(supplier.toString(), 2L, (long)map.get(TimeUnit.DAYS));
             assertEquals(supplier.toString(), 1L, (long)map.get(TimeUnit.NANOSECONDS));
             assertEquals(supplier.toString(), 0L, (long)map.get(TimeUnit.MICROSECONDS));
+        }
+    }
+    
+    @Test
+    public void testToBooleanArray() {
+        List<Integer> input = IntStreamEx.of(new Random(1), 1000, 1, 100).boxed().toList();
+        boolean[] expected = new boolean[input.size()];
+        for(int i=0; i<expected.length; i++)
+            expected[i] = input.get(i) > 50;
+        for(StreamExSupplier<Integer> supplier : streamEx(input::stream)) {
+            assertArrayEquals(supplier.toString(), expected,
+                supplier.get().collect(MoreCollectors.toBooleanArray(x -> x > 50)));
         }
     }
 }

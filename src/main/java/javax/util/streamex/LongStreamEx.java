@@ -678,11 +678,7 @@ public class LongStreamEx implements LongStream {
                 box.i = key;
                 box.l = l;
             }
-        }, (box1, box2) -> {
-            if (box2.b && (!box1.b || box1.i > box2.i)) {
-                box1.from(box2);
-            }
-        }).asLong();
+        }, PrimitiveBox.MIN_INT).asLong();
     }
 
     /**
@@ -736,11 +732,7 @@ public class LongStreamEx implements LongStream {
                 box.d = key;
                 box.l = l;
             }
-        }, (box1, box2) -> {
-            if (box2.b && (!box1.b || Double.compare(box1.d, box2.d) > 0)) {
-                box1.from(box2);
-            }
-        }).asLong();
+        }, PrimitiveBox.MIN_DOUBLE).asLong();
     }
 
     @Override
@@ -819,11 +811,7 @@ public class LongStreamEx implements LongStream {
                 box.i = key;
                 box.l = l;
             }
-        }, (box1, box2) -> {
-            if (box2.b && (!box1.b || box1.i < box2.i)) {
-                box1.from(box2);
-            }
-        }).asLong();
+        }, PrimitiveBox.MAX_INT).asLong();
     }
 
     /**
@@ -878,11 +866,7 @@ public class LongStreamEx implements LongStream {
                 box.d = key;
                 box.l = l;
             }
-        }, (box1, box2) -> {
-            if (box2.b && (!box1.b || Double.compare(box1.d, box2.d) < 0)) {
-                box1.from(box2);
-            }
-        }).asLong();
+        }, PrimitiveBox.MAX_DOUBLE).asLong();
     }
 
     @Override

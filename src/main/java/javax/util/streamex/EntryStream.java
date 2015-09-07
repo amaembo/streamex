@@ -394,6 +394,48 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     }
 
     /**
+     * Returns a stream consisting of the elements of this stream which have
+     * distinct keys (according to object equality).
+     *
+     * <p>
+     * For ordered streams, the selection of distinct keys is stable (for
+     * elements with duplicating keys, the element appearing first in the
+     * encounter order is preserved.) For unordered streams, no stability
+     * guarantees are made.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">stateful intermediate
+     * operation</a>.
+     *
+     * @return the new stream
+     * @since 0.3.8
+     */
+    public EntryStream<K, V> distinctKeys() {
+        return distinct(Entry::getKey);
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream which have
+     * distinct values (according to object equality).
+     *
+     * <p>
+     * For ordered streams, the selection of distinct values is stable (for
+     * elements with duplicating values, the element appearing first in the
+     * encounter order is preserved.) For unordered streams, no stability
+     * guarantees are made.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">stateful intermediate
+     * operation</a>.
+     *
+     * @return the new stream
+     * @since 0.3.8
+     */
+    public EntryStream<K, V> distinctValues() {
+        return distinct(Entry::getValue);
+    }
+
+    /**
      * Returns an {@code EntryStream} consisting of the entries whose keys are
      * modified by applying the given function and values are left unchanged.
      *
