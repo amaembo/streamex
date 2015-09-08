@@ -18,6 +18,8 @@ StreamEx library main points are following:
 * Performance and minimal overhead. If StreamEx allows to solve the task using less code compared to standard Stream, it
 should not be significantly slower than the standard way (and sometimes it's even faster).
 
+[![Build Status](https://travis-ci.org/amaembo/streamex.svg?branch=master)](https://travis-ci.org/amaembo/streamex)
+
 ### Examples
 
 Collector shortcut methods (toList, toSet, groupingBy, joining, etc.)
