@@ -2065,4 +2065,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             return of(collector.finisher().apply(collector.supplier().get()));
         return of(CrossSpliterator.ofCollector(source, collector));
     }
+    
+    public static <T, R extends Collection<T>> StreamEx<R> ofCrossProduct(Collection<? extends Collection<T>> source, Supplier<R> supplier) {
+        if(source.isEmpty())
+            return StreamEx.<R>of(supplier.get());
+        return of(CrossSpliterator.ofCollection(source, supplier));
+    }
 }

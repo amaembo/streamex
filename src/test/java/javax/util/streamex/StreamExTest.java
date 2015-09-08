@@ -1333,8 +1333,13 @@ public class StreamExTest {
         for(StreamExSupplier<List<Integer>> supplier : streamEx(() -> StreamEx.ofCrossProduct(input3, Collectors.toList()))) {
             assertEquals(supplier.toString(), "[1, 3, 4],[1, 3, 5],[2, 3, 4],[2, 3, 5]", supplier.get().joining(","));
         }
+        for (StreamExSupplier<List<Integer>> supplier : streamEx(() -> StreamEx
+                .<Integer, List<Integer>> ofCrossProduct(input3, ArrayList::new))) {
+            assertEquals(supplier.toString(), "[1, 3, 4],[1, 3, 5],[2, 3, 4],[2, 3, 5]", supplier.get().joining(","));
+        }
     }
 
+    @Test
     public void testDistinct() {
         List<String> input = Arrays.asList("str", "a", "foo", "", "bbbb", null, "abcd", "s");
         for(StreamExSupplier<String> supplier : streamEx(input::stream)) {
