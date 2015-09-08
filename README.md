@@ -19,6 +19,7 @@ StreamEx library main points are following:
 should not be significantly slower than the standard way (and sometimes it's even faster).
 
 [![Build Status](https://travis-ci.org/amaembo/streamex.svg?branch=master)](https://travis-ci.org/amaembo/streamex)
+[![Coverage Status](https://coveralls.io/repos/amaembo/streamex/badge.svg?branch=master&service=github)](https://coveralls.io/github/amaembo/streamex?branch=master)
 
 ### Examples
 
