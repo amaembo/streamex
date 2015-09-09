@@ -100,7 +100,7 @@ public class AverageLongTest {
                 .empty() : OptionalDouble.of(new BigDecimal(sum).divide(BigDecimal.valueOf(cnt), MathContext.DECIMAL64)
                 .doubleValue());
         Collector<Long, ?, OptionalDouble> averager = MoreCollectors
-                .pairing(Collectors.reducing(BigInteger.ZERO, BigInteger::valueOf, BigInteger::add),
+                .pairing(Collectors.reducing(BigInteger.ZERO, BigInteger::valueOf, (BigInteger b1, BigInteger b2) -> b1.add(b2)),
                     Collectors.counting(), finisher);
         return averager;
     }
