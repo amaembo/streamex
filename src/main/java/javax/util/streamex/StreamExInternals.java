@@ -518,15 +518,15 @@ import java.util.stream.Stream;
             };
 
             if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
-                return (StreamExInternals.PartialCollector<Map<K, A>, M>) new StreamExInternals.PartialCollector<>(
+                return (PartialCollector<Map<K, A>, M>) new PartialCollector<>(
                         (Supplier<Map<K, A>>) mapFactory, merger, Function.identity(),
-                        StreamExInternals.ID_CHARACTERISTICS);
+                        ID_CHARACTERISTICS);
             } else {
                 Function<A, D> downstreamFinisher = downstream.finisher();
-                return new StreamExInternals.PartialCollector<>((Supplier<Map<K, A>>) mapFactory, merger, map -> {
+                return new PartialCollector<>((Supplier<Map<K, A>>) mapFactory, merger, map -> {
                     map.replaceAll((k, v) -> ((Function<A, A>) downstreamFinisher).apply(v));
                     return (M) map;
-                }, StreamExInternals.NO_CHARACTERISTICS);
+                }, NO_CHARACTERISTICS);
             }
         }
         
