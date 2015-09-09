@@ -16,10 +16,13 @@
 package javax.util.streamex;
 
 import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinWorkerThread;
 
@@ -92,6 +95,10 @@ public class CustomPoolTest {
         assertEquals(7,
             (int) StreamEx.of("aa", "bbb", "cccc").parallel(pool).peek(this::checkThread).filter(x -> x.length() > 2)
                     .reduce(0, (x, s) -> x + s.length(), Integer::sum));
+		assertEquals(
+				"aabbbcccc",
+				StreamEx.of("aa", "bbb", "cccc").parallel(pool)
+						.peek(this::checkThread).foldLeft("", String::concat));
     }
 
     @Test
@@ -109,8 +116,21 @@ public class CustomPoolTest {
         assertFalse(EntryStream.of("a", 1).parallel(pool).peek(this::checkThread)
                 .noneMatch(e -> e.getKey().equals("a")));
         assertEquals(2,
-            EntryStream.of("a", 1, "b", 2, "c", 3).parallel(pool).filterValues(v -> v > 1).peek(this::checkThread)
+            EntryStream.of("a", 1, "b", 2, "c", 3).parallel(pool).peek(this::checkThread).filterValues(v -> v > 1)
                     .count());
+        List<Integer> res = Collections.synchronizedList(new ArrayList<>());
+        EntryStream.of("a", 1, "b", 2, "c", 3).parallel(pool).peek(this::checkThread).filterValues(v -> v > 1)
+            .forEachOrdered(entry -> res.add(entry.getValue()));
+        assertEquals(Arrays.asList(2, 3), res);
+		assertEquals(
+				6,
+				(int) EntryStream
+						.of("a", 1, "b", 2, "c", 3)
+						.parallel(pool)
+						.peek(this::checkThread)
+						.reduce(0, (sum, e) -> sum + e.getValue(), Integer::sum));
+		assertEquals(Arrays.asList(1, 2, 3), EntryStream.of("a", 1, "b", 2, "c", 3).parallel(pool).peek(this::checkThread)
+            .collect(ArrayList::new, (List<Integer> list, Entry<String, Integer> e) -> list.add(e.getValue()), List::addAll));
     }
 
     @Test
