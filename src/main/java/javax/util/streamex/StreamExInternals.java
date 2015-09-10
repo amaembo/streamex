@@ -67,6 +67,7 @@ import java.util.stream.Stream;
 
 /* package */final class StreamExInternals {
     static final boolean IS_JDK9 = System.getProperty("java.version", "").compareTo("1.9") >= 0;
+    static final MethodHandle[][] JDK9_METHODS = IS_JDK9 ? initJdk9Methods() : null;
     static final int INITIAL_SIZE = 128;
     static final Function<int[], Integer> UNBOX_INT = box -> box[0];
     static final Function<long[], Long> UNBOX_LONG = box -> box[0];
@@ -74,30 +75,30 @@ import java.util.stream.Stream;
     static final Object NONE = new Object();
     static final Set<Characteristics> NO_CHARACTERISTICS = EnumSet.noneOf(Characteristics.class);
     static final Set<Characteristics> ID_CHARACTERISTICS = EnumSet.of(Characteristics.IDENTITY_FINISH);
-    static final MethodHandle[][] JDK9_METHODS;
     static final int IDX_STREAM = 0;
     static final int IDX_INT_STREAM = 1;
     static final int IDX_LONG_STREAM = 2;
     static final int IDX_DOUBLE_STREAM = 3;
     static final int IDX_TAKE_WHILE = 0;
     static final int IDX_DROP_WHILE = 1;
-
-    static {
+    
+    static MethodHandle[][] initJdk9Methods() {
         Lookup lookup = MethodHandles.publicLookup();
         MethodType[] types = { MethodType.methodType(Stream.class, Predicate.class),
                 MethodType.methodType(IntStream.class, IntPredicate.class),
                 MethodType.methodType(LongStream.class, LongPredicate.class),
                 MethodType.methodType(DoubleStream.class, DoublePredicate.class) };
-        JDK9_METHODS = new MethodHandle[types.length][];
+        MethodHandle[][] methods = new MethodHandle[types.length][];
         try {
             int i = 0;
             for (MethodType type : types) {
-                JDK9_METHODS[i++] = new MethodHandle[] { lookup.findVirtual(type.returnType(), "takeWhile", type),
+                methods[i++] = new MethodHandle[] { lookup.findVirtual(type.returnType(), "takeWhile", type),
                         lookup.findVirtual(type.returnType(), "dropWhile", type) };
             }
         } catch (NoSuchMethodException | IllegalAccessException e) {
             // ignore
         }
+        return methods;
     }
 
     static final class ByteBuffer {
@@ -518,15 +519,15 @@ import java.util.stream.Stream;
             };
 
             if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
-                return (StreamExInternals.PartialCollector<Map<K, A>, M>) new StreamExInternals.PartialCollector<>(
+                return (PartialCollector<Map<K, A>, M>) new PartialCollector<>(
                         (Supplier<Map<K, A>>) mapFactory, merger, Function.identity(),
-                        StreamExInternals.ID_CHARACTERISTICS);
+                        ID_CHARACTERISTICS);
             } else {
                 Function<A, D> downstreamFinisher = downstream.finisher();
-                return new StreamExInternals.PartialCollector<>((Supplier<Map<K, A>>) mapFactory, merger, map -> {
+                return new PartialCollector<>((Supplier<Map<K, A>>) mapFactory, merger, map -> {
                     map.replaceAll((k, v) -> ((Function<A, A>) downstreamFinisher).apply(v));
                     return (M) map;
-                }, StreamExInternals.NO_CHARACTERISTICS);
+                }, NO_CHARACTERISTICS);
             }
         }
         

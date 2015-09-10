@@ -15,7 +15,9 @@
  */
 package javax.util.streamex;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -84,6 +86,12 @@ public class IntStreamExTest {
 
         assertArrayEquals(new int[] { 1, 5, 3 }, IntStreamEx.of(Spliterators.spliterator(new int[] { 1, 5, 3 }, 0))
                 .toArray());
+        
+        BitSet bs = new BitSet();
+        bs.set(1);
+        bs.set(3);
+        bs.set(5);
+		assertArrayEquals(new int[] { 1, 3, 5 }, IntStreamEx.of(bs).toArray());
     }
 
     @Test(expected = ArrayIndexOutOfBoundsException.class)
@@ -157,6 +165,14 @@ public class IntStreamExTest {
         assertEquals(2, iterator.nextInt());
         assertEquals(3, iterator.nextInt());
         assertFalse(iterator.hasNext());
+        
+		List<Integer> list = new ArrayList<>();
+		IntStreamEx.range(10).parallel().forEachOrdered(x -> list.add(x));
+		assertEquals(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9), list);
+		
+		assertTrue(IntStreamEx.empty().noneMatch(x -> true));
+		assertFalse(IntStreamEx.of(1).noneMatch(x -> true));
+		assertTrue(IntStreamEx.of(1).noneMatch(x -> false));
     }
 
     @Test
