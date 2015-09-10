@@ -236,6 +236,20 @@ import static javax.util.streamex.StreamExInternals.*;
         return stream.reduce(identity, accumulator, combiner);
     }
 
+    public <U> U reduceShortCircuit(U identity, BiFunction<U, ? super T, U> accumulator, BinaryOperator<U> combiner, Predicate<U> cancelPredicate) {
+		return strategy()
+				.newStreamEx(
+						StreamSupport.stream(
+								new CancellableReduceSpliterator<>(stream
+										.spliterator(), identity, accumulator,
+										cancelPredicate), stream.isParallel()))
+				.reduce(combiner).orElse(identity);
+    }
+    
+    public T reduceShortCircuit(T identity, BinaryOperator<T> combiner, Predicate<T> cancelPredicate) {
+        return reduceShortCircuit(identity, combiner, combiner, cancelPredicate);
+    }
+    
     @Override
     public <R> R collect(Supplier<R> supplier, BiConsumer<R, ? super T> accumulator, BiConsumer<R, R> combiner) {
         return stream.collect(supplier, accumulator, combiner);
