@@ -2060,28 +2060,15 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return of(new RangeBasedSpliterator.OfSubLists<>(source, length, shift));
     }
     
-    public static <T, A, R> StreamEx<R> ofCrossProduct(Collection<? extends Collection<T>> source, Collector<T, A, R> collector) {
+    public static <T> StreamEx<List<T>> ofCrossProduct(Collection<? extends Collection<T>> source) {
         if(source.isEmpty())
-            return of(collector.finisher().apply(collector.supplier().get()));
-        Supplier<A> supplier = collector.supplier();
-        BiConsumer<A, T> accumulator = collector.accumulator();
-        Function<A, R> finisher = collector.finisher();
-        return of(new CrossSpliterator<>(source, entries -> {
-            A res = supplier.get();
-            for (T e : entries) {
-                accumulator.accept(res, e);
-            }
-            return finisher.apply(res);
-        }));
+            return StreamEx.of(Collections.emptyList());
+        return of(new CrossSpliterator<>(source));
     }
     
-    public static <T, R extends Collection<T>> StreamEx<R> ofCrossProduct(Collection<? extends Collection<T>> source, Supplier<R> supplier) {
-        if(source.isEmpty())
-            return StreamEx.<R>of(supplier.get());
-        return of(new CrossSpliterator<>(source, entries -> {
-            R res = supplier.get();
-            res.addAll(entries);
-            return res;
-        }));
+    public static <T> StreamEx<List<T>> ofCrossProduct(int n, Collection<T> source) {
+        if(n == 0)
+            return StreamEx.of(Collections.emptyList());
+        return of(new CrossSpliterator<>(Collections.nCopies(n, source)));
     }
 }

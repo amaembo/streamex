@@ -17,10 +17,9 @@ package javax.util.streamex;
 
 import static javax.util.streamex.TestHelpers.*;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
-
 import org.junit.Test;
 
 /**
@@ -29,9 +28,15 @@ import org.junit.Test;
 public class CrossSpliteratorTest {
     @Test
     public void testCross() {
-        List<List<Integer>> input = Collections.nCopies(3, IntStreamEx.range(10).boxed().toList());
-        List<Integer> expected = IntStreamEx.range(1000).boxed().toList();
-        Function<List<Integer>, Integer> mapper = list -> list.get(0)*100+list.get(1)*10+list.get(2);
-        checkSpliterator("cross", expected, () -> new CrossSpliterator<>(input, mapper));
+        for(int limit : new int[] {1, 2, 4, 9}) {
+			List<List<Integer>> input = Collections.nCopies(3, IntStreamEx
+					.range(limit).boxed().toList());
+			List<List<Integer>> expected = IntStreamEx
+					.range(limit * limit * limit)
+					.mapToObj(
+							i -> Arrays.asList(i / limit / limit, i / limit
+									% limit, i % limit)).toList();
+            checkSpliterator("cross", expected, () -> new CrossSpliterator<>(input));
+        }
     }
 }
