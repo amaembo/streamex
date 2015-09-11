@@ -42,6 +42,7 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import java.util.stream.Collector.Characteristics;
 
 import static javax.util.streamex.StreamExInternals.*;
 
@@ -251,7 +252,7 @@ import static javax.util.streamex.StreamExInternals.*;
                 strategy()
                         .newStreamEx(
                             StreamSupport.stream(new CancellableCollectSpliterator<>(stream.spliterator(),
-                                    c.supplier(), c.accumulator(), finished), stream.isParallel()))
+                                    c.supplier(), c.accumulator(), finished, !c.characteristics().contains(Characteristics.UNORDERED)), stream.isParallel()))
                         .reduce(
                             (acc1, acc2) -> finished.test(acc1) ? acc1 : finished.test(acc2) ? acc2 : combiner.apply(
                                 acc1, acc2)).get());

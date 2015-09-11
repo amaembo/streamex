@@ -26,39 +26,48 @@ import java.util.function.Supplier;
  * @author Tagir Valeev
  */
 /* package */ final class CancellableCollectSpliterator<T, A> implements Spliterator<A>, Consumer<T>, Cloneable {
-    private Spliterator<T> source;
+    private volatile Spliterator<T> source;
     private final BiConsumer<A, ? super T> accumulator;
     private final Predicate<A> cancelPredicate;
     private final Supplier<A> supplier;
     private final AtomicBoolean cancelled = new AtomicBoolean();
+    private final boolean ordered;
+    private CancellableCollectSpliterator<T, A> prefix;
 	private A acc;
 
 	CancellableCollectSpliterator(Spliterator<T> source,
 	        Supplier<A> supplier,
 			BiConsumer<A, ? super T> accumulator,
-			Predicate<A> cancelPredicate) {
+			Predicate<A> cancelPredicate,
+			boolean ordered) {
 		this.source = source;
 		this.supplier = supplier;
 		this.accumulator = accumulator;
 		this.cancelPredicate = cancelPredicate;
+		this.ordered = ordered & source.hasCharacteristics(ORDERED);
 	}
 
 	@Override
 	public boolean tryAdvance(Consumer<? super A> action) {
+	    Spliterator<T> source = this.source;
 	    if(source == null)
 	        return false;
 	    acc = supplier.get();
+	    boolean cancel = false;
 	    if(cancelPredicate.test(acc)) {
-	        cancelled.set(true);
+	        cancel = true;
 	    } else {
     	    while(!cancelled.get() && source.tryAdvance(this)) {
     	        if(cancelPredicate.test(acc)) {
-    	            cancelled.set(true);
+    	            cancel = true;
     	            break;
     	        }
     	    }
 	    }
-	    source = null;
+	    this.source = null;
+	    if(cancel && isFinished()) {
+	        cancelled.set(true);
+	    }
 	    action.accept(acc);
 		return true;
 	}
@@ -77,10 +86,16 @@ import java.util.function.Supplier;
 			@SuppressWarnings("unchecked")
 			CancellableCollectSpliterator<T, A> result = (CancellableCollectSpliterator<T, A>) this.clone();
 			result.source = prefix;
+			if(ordered)
+			    this.prefix = result;
 			return result;
 		} catch (CloneNotSupportedException e) {
 		    throw new InternalError();
 		}
+	}
+	
+	private boolean isFinished() {
+	    return source == null && (prefix == null || prefix.isFinished());
 	}
 
 	@Override
@@ -90,7 +105,7 @@ import java.util.function.Supplier;
 
 	@Override
 	public int characteristics() {
-		return source == null ? SIZED : source.characteristics() & ORDERED;
+		return source == null ? SIZED : ordered ? ORDERED : 0;
 	}
 
 	@Override
