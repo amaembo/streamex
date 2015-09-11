@@ -144,7 +144,7 @@ public class MoreCollectorsTest {
     public void testFirstLast() {
         for (StreamExSupplier<Integer> supplier : streamEx(() -> IntStreamEx.range(1000).boxed())) {
             assertEquals(supplier.toString(), 999, (int) supplier.get().collect(MoreCollectors.last()).get());
-            assertEquals(supplier.toString(), 0, (int) supplier.get().collect(MoreCollectors.first()).get());
+            assertEquals(supplier.toString(), 0, (int) supplier.get().collect(MoreCollectors.first()).orElse(-1));
         }
         for (StreamExSupplier<Integer> supplier : emptyStreamEx(Integer.class)) {
             assertFalse(supplier.toString(), supplier.get().collect(MoreCollectors.first()).isPresent());

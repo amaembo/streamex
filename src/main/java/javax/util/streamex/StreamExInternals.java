@@ -546,6 +546,56 @@ import java.util.stream.Stream;
             return new PartialCollector<>(supplier, merger, StringBuilder::toString, NO_CHARACTERISTICS);
         }
     }
+    
+    static final class CancellableCollectorImpl<T, A, R> implements CancellableCollector<T, A, R> {
+        private final Supplier<A> supplier;
+        private final BiConsumer<A, T> accumulator;
+        private final BinaryOperator<A> combiner;
+        private final Function<A, R> finisher;
+        private final Predicate<A> finished;
+        private final Set<Characteristics> characteristics;
+        
+        public CancellableCollectorImpl(Supplier<A> supplier, BiConsumer<A, T> accumulator, BinaryOperator<A> combiner,
+                Function<A, R> finisher, Predicate<A> finished,
+                Set<java.util.stream.Collector.Characteristics> characteristics) {
+            this.supplier = supplier;
+            this.accumulator = accumulator;
+            this.combiner = combiner;
+            this.finisher = finisher;
+            this.finished = finished;
+            this.characteristics = characteristics;
+        }
+
+        @Override
+        public Supplier<A> supplier() {
+            return supplier;
+        }
+
+        @Override
+        public BiConsumer<A, T> accumulator() {
+            return accumulator;
+        }
+
+        @Override
+        public BinaryOperator<A> combiner() {
+            return combiner;
+        }
+
+        @Override
+        public Function<A, R> finisher() {
+            return finisher;
+        }
+
+        @Override
+        public Set<Characteristics> characteristics() {
+            return characteristics;
+        }
+
+        @Override
+        public Predicate<A> finished() {
+            return finished;
+        }
+    }
 
     static final class IntCollectorImpl<A, R> extends BaseCollector<Integer, A, R> implements IntCollector<A, R> {
         private final ObjIntConsumer<A> intAccumulator;

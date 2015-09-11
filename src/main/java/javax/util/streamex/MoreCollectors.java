@@ -460,7 +460,11 @@ public final class MoreCollectors {
      *         {@code Optional} is returned.
      */
     public static <T> Collector<T, ?, Optional<T>> first() {
-        return Collectors.reducing(selectFirst());
+        return new CancellableCollectorImpl<T, Box<T>, Optional<T>>(() -> new Box<>(none()), (box, t) -> {
+            if (box.a == NONE)
+                box.a = t;
+        }, (box1, box2) -> box2.a == NONE ? box1 : box2, box -> box.a == NONE ? Optional.empty() : Optional.of(box.a),
+                box -> box.a != NONE, NO_CHARACTERISTICS);
     }
 
     /**
