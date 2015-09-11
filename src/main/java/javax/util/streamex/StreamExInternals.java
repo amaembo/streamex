@@ -358,7 +358,7 @@ import java.util.stream.Stream;
     }
 
     static final class BooleanMap<T> extends AbstractMap<Boolean, T> {
-        final T trueValue, falseValue;
+        T trueValue, falseValue;
 
         BooleanMap(T trueValue, T falseValue) {
             this.trueValue = trueValue;
@@ -402,14 +402,14 @@ import java.util.stream.Stream;
 
         @SuppressWarnings({ "unchecked", "rawtypes" })
         static <A, R> PartialCollector<BooleanMap<A>, Map<Boolean, R>> partialCollector(
-                MergingCollector<?, A, R> downstream) {
+                Collector<?, A, R> downstream) {
             Supplier<A> downstreamSupplier = downstream.supplier();
             Supplier<BooleanMap<A>> supplier = () -> new BooleanMap<>(downstreamSupplier.get(),
                     downstreamSupplier.get());
-            BiConsumer<A, A> downstreamMerger = downstream.merger();
+            BinaryOperator<A> downstreamCombiner = downstream.combiner();
             BiConsumer<BooleanMap<A>, BooleanMap<A>> merger = (left, right) -> {
-                downstreamMerger.accept(left.trueValue, right.trueValue);
-                downstreamMerger.accept(left.falseValue, right.falseValue);
+                left.trueValue = downstreamCombiner.apply(left.trueValue, right.trueValue);
+                left.falseValue = downstreamCombiner.apply(left.falseValue, right.falseValue);
             };
             if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
                 return (PartialCollector) new PartialCollector<>(supplier, merger, Function.identity(),
@@ -485,6 +485,11 @@ import java.util.stream.Stream;
         <T> Collector<T, A, R> asRef(BiConsumer<A, T> accumulator) {
             return Collector.of(supplier, accumulator, combiner(), finisher,
                 characteristics.toArray(new Characteristics[characteristics.size()]));
+        }
+        
+        <T> CancellableCollector<T, A, R> asCancellable(BiConsumer<A, T> accumulator, Predicate<A> finished) {
+            return new CancellableCollectorImpl<>(supplier, accumulator, combiner(), finisher, finished,
+                    characteristics);
         }
         
         static PartialCollector<int[], Integer> intSum() {

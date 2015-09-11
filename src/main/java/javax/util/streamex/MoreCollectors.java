@@ -777,4 +777,17 @@ public final class MoreCollectors {
             return map;
         });
     }
+
+    public static <T, D, A>
+    Collector<T, ?, Map<Boolean, D>> partitioningBy(Predicate<? super T> predicate,
+                                                    Collector<? super T, A, D> downstream) {
+        if(downstream instanceof CancellableCollector) {
+            BiConsumer<A, ? super T> accumulator = downstream.accumulator();
+            Predicate<A> finished = ((CancellableCollector<? super T, A, D>) downstream).finished();
+            return BooleanMap.partialCollector(downstream).asCancellable(
+                (map, t) -> accumulator.accept(predicate.test(t) ? map.trueValue : map.falseValue, t),
+                map -> finished.test(map.trueValue) && finished.test(map.falseValue));
+        }
+        return Collectors.partitioningBy(predicate, downstream);
+    }
 }

@@ -30,8 +30,10 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -274,5 +276,25 @@ public class MoreCollectorsTest {
             assertArrayEquals(supplier.toString(), expected,
                 supplier.get().collect(MoreCollectors.toBooleanArray(x -> x > 50)));
         }
+    }
+    
+    @Test
+    public void testPartitioningBy() {
+        AtomicInteger counter = new AtomicInteger();
+        Map<Boolean, Optional<Integer>> map = IntStreamEx.range(1, 100).boxed()
+                .peek(x -> counter.incrementAndGet())
+                .collect(MoreCollectors.partitioningBy(x -> x % 20 == 0, MoreCollectors.first()));
+        assertEquals(20, (int)map.get(true).get());
+        assertEquals(1, (int)map.get(false).get());
+        assertEquals(20, counter.get()); // short-circuit
+
+        counter.set(0);
+        map = IntStreamEx.range(1, 100).boxed()
+                .peek(x -> counter.incrementAndGet())
+                .collect(MoreCollectors.partitioningBy(x -> x % 200 == 0, MoreCollectors.first()));
+        assertFalse(map.get(true).isPresent());
+        assertEquals(1, (int)map.get(false).get());
+        assertEquals(99, counter.get());
+        
     }
 }
