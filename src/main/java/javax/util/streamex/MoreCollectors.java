@@ -69,6 +69,7 @@ public final class MoreCollectors {
      */
     private static <T, U> Collector<T, ?, U> empty(Supplier<U> supplier) {
         return Collector.of(() -> null, (acc, t) -> {
+            // empty
         }, selectFirst(), acc -> supplier.get(), Collector.Characteristics.UNORDERED,
             Collector.Characteristics.CONCURRENT);
     }
@@ -463,7 +464,7 @@ public final class MoreCollectors {
         return new CancellableCollectorImpl<T, Box<T>, Optional<T>>(() -> new Box<>(none()), (box, t) -> {
             if (box.a == NONE)
                 box.a = t;
-        }, (box1, box2) -> box2.a == NONE ? box1 : box2, box -> box.a == NONE ? Optional.empty() : Optional.of(box.a),
+        }, (box1, box2) -> box1.a == NONE ? box2 : box1, box -> box.a == NONE ? Optional.empty() : Optional.of(box.a),
                 box -> box.a != NONE, NO_CHARACTERISTICS);
     }
 
