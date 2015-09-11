@@ -153,6 +153,13 @@ public class MoreCollectorsTest {
             assertFalse(supplier.toString(), supplier.get().collect(MoreCollectors.last()).isPresent());
         }
     }
+    
+    @Test
+    public void testHeadTailParallel() {
+        for(int i=0; i<100; i++) {
+            assertEquals("#"+i, Arrays.asList(0, 1), IntStreamEx.range(1000).boxed().parallel().collect(MoreCollectors.head(2)));
+        }
+    }
 
     @Test
     public void testHeadTail() {

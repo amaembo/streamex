@@ -52,9 +52,9 @@ import java.util.function.Supplier;
 	    Spliterator<T> source = this.source;
 	    if(source == null)
 	        return false;
-	    this.source = null;
 	    acc = supplier.get();
 	    if(cancelled == null) {
+	        this.source = null;
 	        // sequential mode
             while(!cancelPredicate.test(acc) && source.tryAdvance(this)) {
                 // empty
@@ -62,11 +62,13 @@ import java.util.function.Supplier;
 	    } else {
 	        do {
                 if(cancelPredicate.test(acc)) {
+                    this.source = null;
                     if(isFinished())
                         cancelled.set(true);
                     break;
                 }
 	        } while(!cancelled.get() && source.tryAdvance(this));
+	        this.source = null;
 	    }
 	    action.accept(acc);
 		return true;
