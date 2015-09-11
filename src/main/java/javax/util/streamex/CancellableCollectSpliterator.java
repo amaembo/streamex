@@ -30,7 +30,7 @@ import java.util.function.Supplier;
     private final BiConsumer<A, ? super T> accumulator;
     private final Predicate<A> cancelPredicate;
     private final Supplier<A> supplier;
-    private final AtomicBoolean cancelled = new AtomicBoolean();
+    private AtomicBoolean cancelled = null;
     private final boolean ordered;
     private CancellableCollectSpliterator<T, A> prefix;
 	private A acc;
@@ -52,21 +52,21 @@ import java.util.function.Supplier;
 	    Spliterator<T> source = this.source;
 	    if(source == null)
 	        return false;
-	    acc = supplier.get();
-	    boolean cancel = false;
-	    if(cancelPredicate.test(acc)) {
-	        cancel = true;
-	    } else {
-    	    while(!cancelled.get() && source.tryAdvance(this)) {
-    	        if(cancelPredicate.test(acc)) {
-    	            cancel = true;
-    	            break;
-    	        }
-    	    }
-	    }
 	    this.source = null;
-	    if(cancel && isFinished()) {
-	        cancelled.set(true);
+	    acc = supplier.get();
+	    if(cancelled == null) {
+	        // sequential mode
+            while(!cancelPredicate.test(acc) && source.tryAdvance(this)) {
+                // empty
+            }
+	    } else {
+	        do {
+                if(cancelPredicate.test(acc)) {
+                    if(isFinished())
+                        cancelled.set(true);
+                    break;
+                }
+	        } while(!cancelled.get() && source.tryAdvance(this));
 	    }
 	    action.accept(acc);
 		return true;
@@ -82,6 +82,8 @@ import java.util.function.Supplier;
 	    Spliterator<T> prefix = source.trySplit();
 	    if(prefix == null)
 	        return null;
+	    if(cancelled == null)
+	        cancelled = new AtomicBoolean();
 	    try {
 			@SuppressWarnings("unchecked")
 			CancellableCollectSpliterator<T, A> result = (CancellableCollectSpliterator<T, A>) this.clone();
@@ -100,7 +102,7 @@ import java.util.function.Supplier;
 
 	@Override
 	public long estimateSize() {
-		return source == null ? 0 : Long.MAX_VALUE;
+		return source == null ? 0 : source.estimateSize();
 	}
 
 	@Override
