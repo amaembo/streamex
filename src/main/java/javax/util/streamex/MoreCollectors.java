@@ -501,13 +501,13 @@ public final class MoreCollectors {
     public static <T> Collector<T, ?, List<T>> head(int n) {
         if (n <= 0)
             return empty();
-        return Collector.<T, List<T>> of(ArrayList::new, (acc, t) -> {
+        return new CancellableCollectorImpl<>(ArrayList::new, (acc, t) -> {
             if (acc.size() < n)
                 acc.add(t);
         }, (acc1, acc2) -> {
             acc1.addAll(acc2.subList(0, Math.min(acc2.size(), n - acc1.size())));
             return acc1;
-        });
+        }, Function.identity(), acc -> acc.size() >= n, ID_CHARACTERISTICS);
     }
 
     /**
