@@ -79,6 +79,20 @@ public class MoreCollectorsTest {
             assertEquals(1, (int) result.get("e"));
         }
     }
+    
+    @Test
+    public void testDistinctBy() {
+        List<String> input = Arrays.asList("a", "bb", "c", "cc", "eee", "bb", "bc", "ddd", "ca", "ce", "cf", "ded", "dump");
+        for (StreamExSupplier<String> supplier : streamEx(input::stream)) {
+            Map<String, List<String>> result = supplier.get().groupingBy(s -> s.substring(0, 1), HashMap::new,
+                MoreCollectors.distinctBy(String::length));
+            assertEquals(supplier.toString(), Arrays.asList("a"), result.get("a"));
+            assertEquals(supplier.toString(), Arrays.asList("bb"), result.get("b"));
+            assertEquals(supplier.toString(), Arrays.asList("c", "cc"), result.get("c"));
+            assertEquals(supplier.toString(), Arrays.asList("ddd", "dump"), result.get("d"));
+            assertEquals(supplier.toString(), Arrays.asList("eee"), result.get("e"));
+        }
+    }
 
     @Test
     public void testMaxAll() {
@@ -139,6 +153,20 @@ public class MoreCollectorsTest {
             entry = supplier.get().collect(MoreCollectors.minAll(downstream));
             assertEquals(supplier.toString(), expectedMin.size(), (long) entry.getValue());
             assertEquals(supplier.toString(), expectedMin.get(0), entry.getKey());
+        }
+        
+        Integer a = new Integer(1), b = new Integer(1), c = new Integer(1000), d = new Integer(1000);
+        ints = IntStreamEx.range(10, 100).boxed().append(a, c).prepend(b, d).toList();
+        for (StreamExSupplier<Integer> supplier : streamEx(ints::stream)) {
+            List<Integer> list = supplier.get().collect(MoreCollectors.maxAll());
+            assertEquals(2, list.size());
+            assertSame(d, list.get(0));
+            assertSame(c, list.get(1));
+            
+            list = supplier.get().collect(MoreCollectors.minAll());
+            assertEquals(2, list.size());
+            assertSame(b, list.get(0));
+            assertSame(a, list.get(1));
         }
     }
 

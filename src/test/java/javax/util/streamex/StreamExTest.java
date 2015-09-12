@@ -1317,6 +1317,31 @@ public class StreamExTest {
     }
     
     @Test
+    public void testCartesian() {
+        List<List<Integer>> expected = IntStreamEx.range(32)
+                .mapToObj(i -> IntStreamEx.range(5).mapToObj(n -> (i >> (4-n)) & 1).toList())
+                .toList();
+        for(StreamExSupplier<List<Integer>> supplier : streamEx(() -> StreamEx.cartesianPower(5, Arrays.asList(0, 1)))) {
+            assertEquals(supplier.toString(), expected, supplier.get().toList());
+        }
+        List<List<Integer>> input2 = Arrays.asList(Arrays.asList(1, 2, 3), Arrays.asList(), Arrays.asList(4, 5, 6));
+        for(StreamExSupplier<List<Integer>> supplier : streamEx(() -> StreamEx.cartesianProduct(input2))) {
+            assertFalse(supplier.toString(), supplier.get().findAny().isPresent());
+        }
+        List<List<Integer>> input3 = Arrays.asList(Arrays.asList(1, 2), Arrays.asList(3), Arrays.asList(4, 5));
+        for(StreamExSupplier<List<Integer>> supplier : streamEx(() -> StreamEx.cartesianProduct(input3))) {
+            assertEquals(supplier.toString(), "[1, 3, 4],[1, 3, 5],[2, 3, 4],[2, 3, 5]", supplier.get().joining(","));
+        }
+        Set<Integer> input4 = IntStreamEx.range(10).boxed().toCollection(TreeSet::new);
+        for(StreamExSupplier<List<Integer>> supplier : streamEx(() -> StreamEx.cartesianPower(3, input4))) {
+            assertEquals(supplier.toString(), IntStreamEx.range(1000).boxed().toList(),
+                supplier.get().map(list -> list.get(0) * 100 + list.get(1) * 10 + list.get(2)).toList());
+        }
+        assertEquals(Arrays.asList(Collections.emptyList()), StreamEx.cartesianProduct(Collections.emptyList()).toList());
+        assertEquals(Arrays.asList(Collections.emptyList()), StreamEx.cartesianPower(0, Arrays.asList(1,2,3)).toList());
+    }
+
+    @Test
     public void testDistinct() {
         List<String> input = Arrays.asList("str", "a", "foo", "", "bbbb", null, "abcd", "s");
         for(StreamExSupplier<String> supplier : streamEx(input::stream)) {

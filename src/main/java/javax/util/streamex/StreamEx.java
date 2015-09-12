@@ -2059,4 +2059,75 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             return StreamEx.empty();
         return of(new RangeBasedSpliterator.OfSubLists<>(source, length, shift));
     }
+
+    /**
+     * Returns a new {@code StreamEx} which elements are {@link List} objects
+     * containing all possible tuples of the elements of supplied collection of
+     * collections. The whole stream forms an n-fold Cartesian product (or
+     * cross-product) of the input collections.
+     * 
+     * <p>
+     * Every stream element is the {@code List} of the same size as supplied
+     * collection. The first element in the list is taken from the first
+     * collection which appears in source and so on. The elements are ordered
+     * lexicographically according to the order of the input collections.
+     * 
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code List} elements. It's however guaranteed that
+     * each element is the distinct object.
+     * 
+     * <p>
+     * The supplied collection is assumed to be unchanged during the operation.
+     *
+     * @param <T>
+     *            the type of the elements
+     * @param source
+     *            the input collection of collections which is used to generate
+     *            the cross-product.
+     * @return the new stream of lists.
+     * @see #cartesianPower(int, Collection)
+     * @since 0.3.8
+     */
+    public static <T> StreamEx<List<T>> cartesianProduct(Collection<? extends Collection<T>> source) {
+        if (source.isEmpty())
+            return of(Stream.of(Collections.emptyList()));
+        return of(new CrossSpliterator<>(source));
+    }
+
+    /**
+     * Returns a new {@code StreamEx} which elements are {@link List} objects
+     * containing all possible n-tuples of the elements of supplied collection.
+     * The whole stream forms an n-fold Cartesian product of input collection
+     * with itself or n-ary Cartesian power of the input collection.
+     * 
+     * <p>
+     * Every stream element is the {@code List} of the supplied size. The
+     * elements are ordered lexicographically according to the order of the
+     * input collection.
+     * 
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code List} elements. It's however guaranteed that
+     * each element is the distinct object.
+     * 
+     * <p>
+     * The supplied collection is assumed to be unchanged during the operation.
+     *
+     * @param <T>
+     *            the type of the elements
+     * @param n
+     *            the size of the {@code List} elements of the resulting stream.
+     * @param source
+     *            the input collection of collections which is used to generate
+     *            the Cartesian power.
+     * @return the new stream of lists.
+     * @see #cartesianProduct(Collection)
+     * @since 0.3.8
+     */
+    public static <T> StreamEx<List<T>> cartesianPower(int n, Collection<T> source) {
+        if (n == 0)
+            return of(Stream.of(Collections.emptyList()));
+        return of(new CrossSpliterator<>(Collections.nCopies(n, source)));
+    }
 }
