@@ -793,6 +793,17 @@ public final class MoreCollectors {
         return Collectors.partitioningBy(predicate, downstream);
     }
     
+    public static <T, U, A, R> Collector<T, ?, R> mapping(Function<? super T, ? extends U> mapper,
+            Collector<? super U, A, R> downstream) {
+        if (downstream instanceof CancellableCollector) {
+            BiConsumer<A, ? super U> downstreamAccumulator = downstream.accumulator();
+            return new CancellableCollectorImpl<>(downstream.supplier(), (r, t) -> downstreamAccumulator.accept(r,
+                mapper.apply(t)), downstream.combiner(), downstream.finisher(),
+                    ((CancellableCollector<? super U, A, R>) downstream).finished(), downstream.characteristics());
+        }
+        return Collectors.mapping(mapper, downstream);
+    }
+
     public static <T, S extends Collection<T>> Collector<S, ?, Set<T>> intersecting() {
         return new CancellableCollectorImpl<S, Box<Set<T>>, Set<T>>(() -> new Box<>(null), (b, t) -> {
             if (b.a == null) {

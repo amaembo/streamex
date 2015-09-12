@@ -305,6 +305,33 @@ public class MoreCollectorsTest {
     }
     
     @Test
+    public void testMapping() {
+        List<String> input = Arrays.asList("Capital", "lower", "Foo", "bar");
+        Collector<String, ?, Map<Boolean, Optional<Integer>>> collector = MoreCollectors
+                .partitioningBy(str -> Character.isUpperCase(str.charAt(0)),
+                    MoreCollectors.mapping(String::length, MoreCollectors.first()));
+        AtomicInteger counter = new AtomicInteger();
+        StreamEx.of(input).peek(x -> counter.incrementAndGet()).collect(collector);
+        assertEquals(2, counter.get());
+        for (StreamExSupplier<String> supplier : streamEx(input::stream)) {
+            Map<Boolean, Optional<Integer>> map = supplier.get().collect(collector);
+            assertEquals(7, (int) map.get(true).get());
+            assertEquals(5, (int) map.get(false).get());
+            map = supplier.get().collect(Collectors.collectingAndThen(collector, Function.identity()));
+            assertEquals(7, (int) map.get(true).get());
+            assertEquals(5, (int) map.get(false).get());
+        }
+        Collector<String, ?, Map<Boolean, Optional<Integer>>> collectorLast = MoreCollectors
+                .partitioningBy(str -> Character.isUpperCase(str.charAt(0)),
+                    MoreCollectors.mapping(String::length, MoreCollectors.last()));
+        for (StreamExSupplier<String> supplier : streamEx(input::stream)) {
+            Map<Boolean, Optional<Integer>> map = supplier.get().collect(collectorLast);
+            assertEquals(3, (int) map.get(true).get());
+            assertEquals(3, (int) map.get(false).get());
+        }
+    }
+    
+    @Test
     public void testIntersecting() {
         List<List<String>> input = Arrays.asList(Arrays.asList("aa", "bb", "cc"), Arrays.asList("cc", "bb", "dd"),
             Arrays.asList("ee", "dd"), Arrays.asList("aa", "bb", "dd"));
