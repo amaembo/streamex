@@ -116,18 +116,20 @@ import java.util.stream.StreamSupport;
 			return trySplit();
 		}
 		long prefixEst = Long.MAX_VALUE;
-		long newEst = Long.MAX_VALUE;
-		if (est < Long.MAX_VALUE) {
-			newEst = spliterators[splitPos].getExactSizeIfKnown();
-			try {
-				for (int i = splitPos + 1; i < collections.length; i++) {
-					newEst = StrictMath.multiplyExact(newEst,
-							collections[i].size());
-				}
-				prefixEst = est - newEst;
-			} catch (ArithmeticException e) {
-				newEst = Long.MAX_VALUE;
-			}
+		long newEst = spliterators[splitPos].getExactSizeIfKnown();
+		if(newEst == -1) {
+		    newEst = Long.MAX_VALUE;
+		} else {
+	        try {
+	            for (int i = splitPos + 1; i < collections.length; i++) {
+	                newEst = StrictMath.multiplyExact(newEst,
+	                        collections[i].size());
+	            }
+	            if(est != Long.MAX_VALUE)
+	                prefixEst = est - newEst;
+	        } catch (ArithmeticException e) {
+	            newEst = Long.MAX_VALUE;
+	        }
 		}
 		Spliterator<T>[] prefixSpliterators = spliterators.clone();
 		Collection<T>[] prefixCollections = collections.clone();

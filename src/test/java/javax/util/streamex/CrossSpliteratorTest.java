@@ -16,10 +16,14 @@
 package javax.util.streamex;
 
 import static javax.util.streamex.TestHelpers.*;
+import static org.junit.Assert.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Spliterator;
+
 import org.junit.Test;
 
 /**
@@ -38,5 +42,21 @@ public class CrossSpliteratorTest {
 									% limit, i % limit)).toList();
             checkSpliterator("cross", expected, () -> new CrossSpliterator<>(input));
         }
+    }
+    
+    @Test
+    public void testBigSize() {
+        List<List<Integer>> input = new ArrayList<>();
+        input.add(IntStreamEx.rangeClosed(1, 20).boxed().toList());
+        input.addAll(Collections.nCopies(18, IntStreamEx.rangeClosed(1, 10).boxed().toList()));
+        Spliterator<List<Integer>> spltr = new CrossSpliterator<>(input);
+        assertFalse(spltr.hasCharacteristics(Spliterator.SIZED));
+        assertEquals(Long.MAX_VALUE, spltr.estimateSize());
+        spltr.trySplit();
+        assertFalse(spltr.hasCharacteristics(Spliterator.SIZED));
+        assertEquals(Long.MAX_VALUE, spltr.estimateSize());
+        spltr.trySplit();
+        assertTrue(spltr.hasCharacteristics(Spliterator.SIZED));
+        assertEquals(5_000_000_000_000_000_000L, spltr.estimateSize());
     }
 }
