@@ -27,7 +27,7 @@ import java.util.stream.StreamSupport;
 /**
  * @author Tagir Valeev
  */
-/* package */class CrossSpliterator<T> implements Spliterator<List<T>> {
+/* package */final class CrossSpliterator<T> implements Spliterator<List<T>> {
 	private long est;
 	private int splitPos;
 	private final Spliterator<T>[] spliterators;
