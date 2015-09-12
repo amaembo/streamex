@@ -80,7 +80,7 @@ public class LongStreamEx implements LongStream {
             throw new InternalError(e);
         }
     }
-    
+
     @Override
     public boolean isParallel() {
         return stream.isParallel();
@@ -992,6 +992,18 @@ public class LongStreamEx implements LongStream {
         return strategy().newLongStreamEx(LongStream.concat(stream, LongStream.of(values)));
     }
 
+    /**
+     * Creates a lazily concatenated stream whose elements are all the elements
+     * of this stream followed by all the elements of the other stream. The
+     * resulting stream is ordered if both of the input streams are ordered, and
+     * parallel if either of the input streams is parallel. When the resulting
+     * stream is closed, the close handlers for both input streams are invoked.
+     *
+     * @param other
+     *            the other stream
+     * @return this stream appended by the other stream
+     * @see LongStream#concat(LongStream, LongStream)
+     */
     public LongStreamEx append(LongStream other) {
         return strategy().newLongStreamEx(LongStream.concat(stream, other));
     }
@@ -1010,6 +1022,18 @@ public class LongStreamEx implements LongStream {
         return strategy().newLongStreamEx(LongStream.concat(LongStream.of(values), stream));
     }
 
+    /**
+     * Creates a lazily concatenated stream whose elements are all the elements
+     * of the other stream followed by all the elements of this stream. The
+     * resulting stream is ordered if both of the input streams are ordered, and
+     * parallel if either of the input streams is parallel. When the resulting
+     * stream is closed, the close handlers for both input streams are invoked.
+     *
+     * @param other
+     *            the other stream
+     * @return this stream prepended by the other stream
+     * @see LongStream#concat(LongStream, LongStream)
+     */
     public LongStreamEx prepend(LongStream other) {
         return strategy().newLongStreamEx(LongStream.concat(other, stream));
     }
@@ -1230,8 +1254,17 @@ public class LongStreamEx implements LongStream {
         return optional.isPresent() ? of(optional.getAsLong()) : empty();
     }
 
-    public static LongStreamEx of(Collection<Long> c) {
-        return new LongStreamEx(c.stream().mapToLong(Long::longValue));
+    /**
+     * Returns a sequential ordered {@code LongStreamEx} whose elements are the
+     * unboxed elements of supplied collection.
+     *
+     * @param collection
+     *            the collection to create the stream from.
+     * @return the new stream
+     * @see Collection#stream()
+     */
+    public static LongStreamEx of(Collection<Long> collection) {
+        return new LongStreamEx(collection.stream().mapToLong(Long::longValue));
     }
 
     /**

@@ -124,6 +124,7 @@ public final class MoreCollectors {
      * Returns a {@code Collector} which counts a number of distinct values the
      * mapper function returns for the stream elements.
      * 
+     * <p>
      * The operation performed by the returned collector is equivalent to
      * {@code stream.map(mapper).distinct().count()}. This collector is mostly
      * useful as a downstream collector.
@@ -143,16 +144,18 @@ public final class MoreCollectors {
      * Returns a {@code Collector} which collects into the {@link List} the
      * input elements for which given mapper function returns distinct results.
      *
+     * <p>
      * For ordered source the order of collected elements is preserved. If the
      * same result is returned by mapper function for several elements, only the
      * first element is included into the resulting list.
      * 
+     * <p>
      * There are no guarantees on the type, mutability, serializability, or
      * thread-safety of the {@code List} returned.
      * 
+     * <p>
      * The operation performed by the returned collector is equivalent to
-     * {@code stream.distinct(mapper).toList()}. This collector is mostly useful
-     * as a downstream collector.
+     * {@code stream.distinct(mapper).toList()}, but may work faster.
      * 
      * @param <T>
      *            the type of the input elements
@@ -537,6 +540,7 @@ public final class MoreCollectors {
      * {@link Comparator} into the {@link List}. The resulting {@code List} is
      * sorted in comparator reverse order (greatest element is the first).
      * 
+     * <p>
      * The operation performed by the returned collector is equivalent to
      * {@code stream.sorted(comparator.reversed()).limit(n).collect(Collectors.toList())}
      * , but can be performed much faster if the input is not sorted and
@@ -580,6 +584,7 @@ public final class MoreCollectors {
      * {@link List}. The resulting {@code List} is sorted in reverse order
      * (greatest element is the first).
      * 
+     * <p>
      * The operation performed by the returned collector is equivalent to
      * {@code stream.sorted(Comparator.reverseOrder()).limit(n).collect(Collectors.toList())}
      * , but can be performed much faster if the input is not sorted and
@@ -602,6 +607,7 @@ public final class MoreCollectors {
      * into the {@link List}. The resulting {@code List} is sorted in comparator
      * order (least element is the first).
      * 
+     * <p>
      * The operation performed by the returned collector is equivalent to
      * {@code stream.sorted(comparator).limit(n).collect(Collectors.toList())},
      * but can be performed much faster if the input is not sorted and {@code n}
@@ -626,6 +632,7 @@ public final class MoreCollectors {
      * {@link List}. The resulting {@code List} is sorted in natural order
      * (least element is the first).
      * 
+     * <p>
      * The operation performed by the returned collector is equivalent to
      * {@code stream.sorted().limit(n).collect(Collectors.toList())}, but can be
      * performed much faster if the input is not sorted and {@code n} is much

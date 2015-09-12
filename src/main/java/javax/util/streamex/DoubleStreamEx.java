@@ -983,6 +983,18 @@ public class DoubleStreamEx implements DoubleStream {
         return strategy().newDoubleStreamEx(DoubleStream.concat(stream, DoubleStream.of(values)));
     }
 
+    /**
+     * Creates a lazily concatenated stream whose elements are all the elements
+     * of this stream followed by all the elements of the other stream. The
+     * resulting stream is ordered if both of the input streams are ordered, and
+     * parallel if either of the input streams is parallel. When the resulting
+     * stream is closed, the close handlers for both input streams are invoked.
+     *
+     * @param other
+     *            the other stream
+     * @return this stream appended by the other stream
+     * @see DoubleStream#concat(DoubleStream, DoubleStream)
+     */
     public DoubleStreamEx append(DoubleStream other) {
         return strategy().newDoubleStreamEx(DoubleStream.concat(stream, other));
     }
@@ -1001,6 +1013,18 @@ public class DoubleStreamEx implements DoubleStream {
         return strategy().newDoubleStreamEx(DoubleStream.concat(DoubleStream.of(values), stream));
     }
 
+    /**
+     * Creates a lazily concatenated stream whose elements are all the elements
+     * of the other stream followed by all the elements of this stream. The
+     * resulting stream is ordered if both of the input streams are ordered, and
+     * parallel if either of the input streams is parallel. When the resulting
+     * stream is closed, the close handlers for both input streams are invoked.
+     *
+     * @param other
+     *            the other stream
+     * @return this stream prepended by the other stream
+     * @see DoubleStream#concat(DoubleStream, DoubleStream)
+     */
     public DoubleStreamEx prepend(DoubleStream other) {
         return strategy().newDoubleStreamEx(DoubleStream.concat(other, stream));
     }
@@ -1256,8 +1280,17 @@ public class DoubleStreamEx implements DoubleStream {
         return optional.isPresent() ? of(optional.getAsDouble()) : empty();
     }
 
-    public static DoubleStreamEx of(Collection<Double> c) {
-        return new DoubleStreamEx(c.stream().mapToDouble(Double::doubleValue));
+    /**
+     * Returns a sequential ordered {@code DoubleStreamEx} whose elements are
+     * the unboxed elements of supplied collection. 
+     *
+     * @param collection
+     *            the collection to create the stream from.
+     * @return the new stream
+     * @see Collection#stream()
+     */
+    public static DoubleStreamEx of(Collection<Double> collection) {
+        return new DoubleStreamEx(collection.stream().mapToDouble(Double::doubleValue));
     }
 
     /**

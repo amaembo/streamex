@@ -8,6 +8,7 @@
 * Added `EntryStream.distinctKeys/distinctValues` intermediate operations.
 * Added `StreamEx.cartesianPower/cartesianProduct` static methods.
 * Optimized: `MoreCollectors.least/greatest` collectors are now much faster (up to 10x depending on input).
+* Updated documentation
 
 ### 0.3.7
 

@@ -1076,6 +1076,18 @@ public class IntStreamEx implements IntStream {
         return strategy().newIntStreamEx(IntStream.concat(stream, IntStream.of(values)));
     }
 
+    /**
+     * Creates a lazily concatenated stream whose elements are all the elements
+     * of this stream followed by all the elements of the other stream. The
+     * resulting stream is ordered if both of the input streams are ordered, and
+     * parallel if either of the input streams is parallel. When the resulting
+     * stream is closed, the close handlers for both input streams are invoked.
+     *
+     * @param other
+     *            the other stream
+     * @return this stream appended by the other stream
+     * @see IntStream#concat(IntStream, IntStream)
+     */
     public IntStreamEx append(IntStream other) {
         return strategy().newIntStreamEx(IntStream.concat(stream, other));
     }
@@ -1094,6 +1106,18 @@ public class IntStreamEx implements IntStream {
         return strategy().newIntStreamEx(IntStream.concat(IntStream.of(values), stream));
     }
 
+    /**
+     * Creates a lazily concatenated stream whose elements are all the elements
+     * of the other stream followed by all the elements of this stream. The
+     * resulting stream is ordered if both of the input streams are ordered, and
+     * parallel if either of the input streams is parallel. When the resulting
+     * stream is closed, the close handlers for both input streams are invoked.
+     *
+     * @param other
+     *            the other stream
+     * @return this stream prepended by the other stream
+     * @see IntStream#concat(IntStream, IntStream)
+     */
     public IntStreamEx prepend(IntStream other) {
         return strategy().newIntStreamEx(IntStream.concat(other, stream));
     }
@@ -1718,16 +1742,16 @@ public class IntStreamEx implements IntStream {
     }
 
     /**
-     * Returns an {@code IntStreamEx} containing primitive integers from given
-     * collection
+     * Returns a sequential ordered {@code DoubleStreamEx} whose elements are
+     * the unboxed elements of supplied collection. 
      *
-     * @param c
-     *            a collection to produce the stream from
+     * @param collection
+     *            the collection to create the stream from.
      * @return the new stream
      * @see Collection#stream()
      */
-    public static IntStreamEx of(Collection<Integer> c) {
-        return new IntStreamEx(c.stream().mapToInt(Integer::intValue));
+    public static IntStreamEx of(Collection<Integer> collection) {
+        return new IntStreamEx(collection.stream().mapToInt(Integer::intValue));
     }
 
     /**

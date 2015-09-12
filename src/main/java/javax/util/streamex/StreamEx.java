@@ -2079,7 +2079,9 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * 
      * <p>
      * The supplied collection is assumed to be unchanged during the operation.
-     * 
+     *
+     * @param <T>
+     *            the type of the elements
      * @param source
      *            the input collection of collections which is used to generate
      *            the cross-product.
@@ -2112,6 +2114,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * <p>
      * The supplied collection is assumed to be unchanged during the operation.
      *
+     * @param <T>
+     *            the type of the elements
      * @param n
      *            the size of the {@code List} elements of the resulting stream.
      * @param source
