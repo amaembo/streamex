@@ -215,10 +215,10 @@
        <goal>check</goal>
       </goals>
       <configuration>
-       <rules><!-- implementation is needed only for Maven 2 -->
+       <rules>
         <rule implementation="org.jacoco.maven.RuleConfiguration">
          <element>BUNDLE</element>
-         <limits><!-- implementation is needed only for Maven 2 -->
+         <limits>
           <limit implementation="org.jacoco.report.check.Limit">
            <counter>COMPLEXITY</counter>
            <value>COVEREDRATIO</value>
