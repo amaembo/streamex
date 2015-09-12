@@ -17,10 +17,13 @@ package javax.util.streamex;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -778,9 +781,8 @@ public final class MoreCollectors {
         });
     }
 
-    public static <T, D, A>
-    Collector<T, ?, Map<Boolean, D>> partitioningBy(Predicate<? super T> predicate,
-                                                    Collector<? super T, A, D> downstream) {
+    public static <T, D, A> Collector<T, ?, Map<Boolean, D>> partitioningBy(Predicate<? super T> predicate,
+            Collector<? super T, A, D> downstream) {
         if(downstream instanceof CancellableCollector) {
             BiConsumer<A, ? super T> accumulator = downstream.accumulator();
             Predicate<A> finished = ((CancellableCollector<? super T, A, D>) downstream).finished();
@@ -789,5 +791,21 @@ public final class MoreCollectors {
                 map -> finished.test(map.trueValue) && finished.test(map.falseValue));
         }
         return Collectors.partitioningBy(predicate, downstream);
+    }
+    
+    public static <T, S extends Collection<T>> Collector<S, ?, Set<T>> intersecting() {
+        return new CancellableCollectorImpl<S, Box<Set<T>>, Set<T>>(() -> new Box<>(null), (b, t) -> {
+            if (b.a == null) {
+                b.a = new HashSet<>(t);
+            } else {
+                b.a.retainAll(t);
+            }
+        }, (b1, b2) -> {
+            if (b1.a == null)
+                return b2;
+            if (b2.a != null)
+                b1.a.retainAll(b2.a);
+            return b1;
+        }, b -> b.a == null ? Collections.emptySet() : b.a, b -> b.a != null && b.a.isEmpty(), UNORDERED_CHARACTERISTICS);
     }
 }
