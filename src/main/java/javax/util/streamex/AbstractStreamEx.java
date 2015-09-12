@@ -256,9 +256,7 @@ import static javax.util.streamex.StreamExInternals.*;
                             StreamSupport.stream(
                                 new CancellableCollectSpliterator<>(spliterator, c.supplier(), c.accumulator(),
                                         finished), stream.isParallel()))
-                        .reduce(
-                            (acc1, acc2) -> finished.test(acc1) ? acc1 : finished.test(acc2) ? acc2 : combiner.apply(
-                                acc1, acc2)).get());
+                        .reduce(combiner).get());
         }
         return stream.collect(collector);
     }
