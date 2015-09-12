@@ -246,13 +246,16 @@ import static javax.util.streamex.StreamExInternals.*;
     public <R, A> R collect(Collector<? super T, A, R> collector) {
         if(collector instanceof CancellableCollector) {
             CancellableCollector<? super T, A, R> c = (CancellableCollector<? super T, A, R>) collector;
+            Spliterator<T> spliterator = (c.characteristics().contains(Characteristics.UNORDERED) ? stream.unordered()
+                    : stream).spliterator();
             Predicate<A> finished = c.finished();
             BinaryOperator<A> combiner = c.combiner();
             return c.finisher().apply(
                 strategy()
                         .newStreamEx(
-                            StreamSupport.stream(new CancellableCollectSpliterator<>(stream.spliterator(),
-                                    c.supplier(), c.accumulator(), finished, !c.characteristics().contains(Characteristics.UNORDERED)), stream.isParallel()))
+                            StreamSupport.stream(
+                                new CancellableCollectSpliterator<>(spliterator, c.supplier(), c.accumulator(),
+                                        finished), stream.isParallel()))
                         .reduce(
                             (acc1, acc2) -> finished.test(acc1) ? acc1 : finished.test(acc2) ? acc2 : combiner.apply(
                                 acc1, acc2)).get());

@@ -38,13 +38,12 @@ import java.util.function.Supplier;
 	CancellableCollectSpliterator(Spliterator<T> source,
 	        Supplier<A> supplier,
 			BiConsumer<A, ? super T> accumulator,
-			Predicate<A> cancelPredicate,
-			boolean ordered) {
+			Predicate<A> cancelPredicate) {
 		this.source = source;
 		this.supplier = supplier;
 		this.accumulator = accumulator;
 		this.cancelPredicate = cancelPredicate;
-		this.ordered = ordered & source.hasCharacteristics(ORDERED);
+		this.ordered = source.hasCharacteristics(ORDERED);
 	}
 
 	@Override
