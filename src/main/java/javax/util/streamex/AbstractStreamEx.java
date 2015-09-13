@@ -375,8 +375,9 @@ import static javax.util.streamex.StreamExInternals.*;
      *            </a>, <a
      *            href="package-summary.html#Statelessness">stateless</a>
      *            predicate which returned value should match
-     * @return an {@code Optional} describing some element of this stream, or an
-     *         empty {@code Optional} if the stream is empty
+     * @return an {@code Optional} describing some matching element of this
+     *         stream, or an empty {@code Optional} if there's no matching
+     *         element
      * @throws NullPointerException
      *             if the element selected is null
      * @see #findAny()
@@ -400,8 +401,9 @@ import static javax.util.streamex.StreamExInternals.*;
      *            </a>, <a
      *            href="package-summary.html#Statelessness">stateless</a>
      *            predicate which returned value should match
-     * @return an {@code Optional} describing the first element of this stream,
-     *         or an empty {@code Optional} if the stream is empty
+     * @return an {@code Optional} describing the first matching element of this
+     *         stream, or an empty {@code Optional} if there's no matching
+     *         element
      * @throws NullPointerException
      *             if the element selected is null
      * @see #findFirst()
