@@ -485,4 +485,17 @@ public class IntStreamExTest {
         assertEquals(100, IntStreamEx.range(100).dropWhile(i -> i % 10 < 0).count());
         assertEquals(0, IntStreamEx.range(100).dropWhile(i -> i % 10 < 10).count());
     }
+    
+    @Test
+    public void testIndexOf() {
+        assertEquals(5, IntStreamEx.range(50, 100).indexOf(55).getAsLong());
+        assertFalse(IntStreamEx.range(50, 100).indexOf(200).isPresent());
+        assertEquals(5, IntStreamEx.range(50, 100).parallel().indexOf(55).getAsLong());
+        assertFalse(IntStreamEx.range(50, 100).parallel().indexOf(200).isPresent());
+        
+        assertEquals(11, IntStreamEx.range(50, 100).indexOf(x -> x > 60).getAsLong());
+        assertFalse(IntStreamEx.range(50, 100).indexOf(x -> x < 0).isPresent());
+        assertEquals(11, IntStreamEx.range(50, 100).parallel().indexOf(x -> x > 60).getAsLong());
+        assertFalse(IntStreamEx.range(50, 100).parallel().indexOf(x -> x < 0).isPresent());
+    }
 }

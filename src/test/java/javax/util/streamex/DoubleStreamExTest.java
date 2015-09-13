@@ -324,4 +324,12 @@ public class DoubleStreamExTest {
         assertEquals(100, LongStreamEx.range(100).asDoubleStream().sorted().dropWhile(i -> i % 10 < 0).count());
         assertEquals(0, LongStreamEx.range(100).asDoubleStream().dropWhile(i -> i % 10 < 10).count());
     }
+    
+    @Test
+    public void testIndexOf() {
+        assertEquals(11, LongStreamEx.range(50, 100).asDoubleStream().indexOf(x -> x > 60).getAsLong());
+        assertFalse(LongStreamEx.range(50, 100).asDoubleStream().indexOf(x -> x < 0).isPresent());
+        assertEquals(11, LongStreamEx.range(50, 100).asDoubleStream().parallel().indexOf(x -> x > 60).getAsLong());
+        assertFalse(LongStreamEx.range(50, 100).asDoubleStream().parallel().indexOf(x -> x < 0).isPresent());
+    }
 }
