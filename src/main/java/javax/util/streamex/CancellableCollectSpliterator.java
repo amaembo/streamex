@@ -25,110 +25,134 @@ import java.util.function.Supplier;
 /**
  * @author Tagir Valeev
  */
-/* package */ final class CancellableCollectSpliterator<T, A> implements Spliterator<A>, Consumer<T>, Cloneable {
+/* package */final class CancellableCollectSpliterator<T, A> implements Spliterator<A>, Consumer<T>, Cloneable {
     private volatile Spliterator<T> source;
     private final BiConsumer<A, ? super T> accumulator;
     private final Predicate<A> cancelPredicate;
     private final Supplier<A> supplier;
-    private AtomicBoolean cancelled = null;
+    private AtomicBoolean cancelled;
+    private volatile boolean localCancelled;
     private final boolean ordered;
     private CancellableCollectSpliterator<T, A> prefix;
-	private A acc;
+    private volatile CancellableCollectSpliterator<T, A> suffix;
+    private A acc;
 
-	CancellableCollectSpliterator(Spliterator<T> source,
-	        Supplier<A> supplier,
-			BiConsumer<A, ? super T> accumulator,
-			Predicate<A> cancelPredicate) {
-		this.source = source;
-		this.supplier = supplier;
-		this.accumulator = accumulator;
-		this.cancelPredicate = cancelPredicate;
-		this.ordered = source.hasCharacteristics(ORDERED);
-	}
+    CancellableCollectSpliterator(Spliterator<T> source, Supplier<A> supplier, BiConsumer<A, ? super T> accumulator,
+            Predicate<A> cancelPredicate) {
+        this.source = source;
+        this.supplier = supplier;
+        this.accumulator = accumulator;
+        this.cancelPredicate = cancelPredicate;
+        this.ordered = source.hasCharacteristics(ORDERED);
+    }
 
-	@Override
-	public boolean tryAdvance(Consumer<? super A> action) {
-	    Spliterator<T> source = this.source;
-	    if(source == null)
-	        return false;
-	    if(cancelled == null) {
-	        this.source = null;
-	        acc = supplier.get();
-	        // sequential mode
-            while(!cancelPredicate.test(acc) && source.tryAdvance(this)) {
+    @Override
+    public boolean tryAdvance(Consumer<? super A> action) {
+        Spliterator<T> source = this.source;
+        if (source == null)
+            return false;
+        if (cancelled == null) {
+            this.source = null;
+            acc = supplier.get();
+            // sequential mode
+            while (!cancelPredicate.test(acc) && source.tryAdvance(this)) {
                 // empty
             }
             action.accept(acc);
             return true;
-	    }
-	    // parallel mode
-        if(cancelled.get()) {
+        }
+        // parallel mode
+        if (localCancelled || cancelled.get()) {
             this.source = null;
             return false;
         }
         acc = supplier.get();
         do {
-            if(cancelPredicate.test(acc)) {
+            if (cancelPredicate.test(acc)) {
                 this.source = null;
-                if(isFinished())
+                this.localCancelled = true;
+                CancellableCollectSpliterator<T, A> suffix = this.suffix;
+                if (isFinished()) {
                     cancelled.set(true);
+                } else {
+                    // Due to possible race with trySplit some spliterators can
+                    // be skipped. This is handled in trySplit
+                    while (suffix != null && !suffix.localCancelled && !cancelled.get()) {
+                        suffix.localCancelled = true;
+                        suffix = suffix.suffix;
+                    }
+                }
                 action.accept(acc);
                 return true;
             }
-            if(cancelled.get()) {
+            if (localCancelled || cancelled.get()) {
                 this.source = null;
                 return false;
             }
-        } while(source.tryAdvance(this));
+        } while (source.tryAdvance(this));
         this.source = null;
         action.accept(acc);
         return true;
-	}
+    }
 
-	@Override
-	public void forEachRemaining(Consumer<? super A> action) {
-	    tryAdvance(action);
-	}
+    @Override
+    public void forEachRemaining(Consumer<? super A> action) {
+        tryAdvance(action);
+    }
 
-	@Override
-	public Spliterator<A> trySplit() {
-	    if(source == null || (cancelled != null && cancelled.get())) {
-	        source = null;
-	        return null;
-	    }
-	    Spliterator<T> prefix = source.trySplit();
-	    if(prefix == null)
-	        return null;
-	    if(cancelled == null)
-	        cancelled = new AtomicBoolean();
-	    try {
-			@SuppressWarnings("unchecked")
-			CancellableCollectSpliterator<T, A> result = (CancellableCollectSpliterator<T, A>) this.clone();
-			result.source = prefix;
-			if(ordered)
-			    this.prefix = result;
-			return result;
-		} catch (CloneNotSupportedException e) {
-		    throw new InternalError();
-		}
-	}
-	
-	private boolean isFinished() {
-	    return source == null && (prefix == null || prefix.isFinished());
-	}
+    @Override
+    public Spliterator<A> trySplit() {
+        if (source == null || (cancelled != null && (cancelled.get() || localCancelled))) {
+            source = null;
+            return null;
+        }
+        Spliterator<T> prefix = source.trySplit();
+        if (prefix == null) {
+            // if parallel processing was requested, but source refuses to split
+            // this spliterator stays in sequential mode for better performance
+            return null;
+        }
+        if (cancelled == null)
+            cancelled = new AtomicBoolean();
+        try {
+            @SuppressWarnings("unchecked")
+            CancellableCollectSpliterator<T, A> result = (CancellableCollectSpliterator<T, A>) this.clone();
+            result.source = prefix;
+            if (ordered) {
+                this.prefix = result;
+                result.suffix = this;
+                CancellableCollectSpliterator<T, A> prefixPrefix = result.prefix;
+                if (prefixPrefix != null)
+                    prefixPrefix.suffix = result;
+                if (this.localCancelled || result.localCancelled) {
+                    // we can end up here due to the race with suffix updates in
+                    // tryAdvance
+                    this.localCancelled = result.localCancelled = true;
+                    return null;
+                }
+            }
+            return cancelled.get() ? null : result;
+        } catch (CloneNotSupportedException e) {
+            throw new InternalError();
+        }
+    }
 
-	@Override
-	public long estimateSize() {
-		return source == null ? 0 : source.estimateSize();
-	}
+    private boolean isFinished() {
+        return source == null && (prefix == null || prefix.isFinished());
+    }
 
-	@Override
-	public int characteristics() {
-		return source == null ? SIZED : ordered ? ORDERED : 0;
-	}
+    @Override
+    public long estimateSize() {
+        return source == null ? 0 : source.estimateSize();
+    }
 
-	@Override
-	public void accept(T t) {
-	    accumulator.accept(this.acc, t);
-	}
+    @Override
+    public int characteristics() {
+        return source == null ? SIZED : ordered ? ORDERED : 0;
+    }
+
+    @Override
+    public void accept(T t) {
+        accumulator.accept(this.acc, t);
+    }
 }
