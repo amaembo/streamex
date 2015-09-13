@@ -45,8 +45,6 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import java.util.stream.Collector.Characteristics;
 
-import javax.util.streamex.StreamExInternals.CancellableCollectorImpl;
-
 import static javax.util.streamex.StreamExInternals.*;
 
 /* package */abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> implements Stream<T>, Iterable<T> {
