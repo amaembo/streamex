@@ -59,6 +59,10 @@ import java.util.function.Supplier;
                 // empty
             }
 	    } else {
+	        if(cancelled.get()) {
+	            this.source = null;
+	            return false;
+	        }
 	        do {
                 if(cancelPredicate.test(acc)) {
                     this.source = null;
@@ -80,6 +84,10 @@ import java.util.function.Supplier;
 
 	@Override
 	public Spliterator<A> trySplit() {
+	    if(source == null || (cancelled != null && cancelled.get())) {
+	        source = null;
+	        return null;
+	    }
 	    Spliterator<T> prefix = source.trySplit();
 	    if(prefix == null)
 	        return null;

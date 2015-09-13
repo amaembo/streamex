@@ -180,6 +180,7 @@ public class MoreCollectorsTest {
             assertFalse(supplier.toString(), supplier.get().collect(MoreCollectors.first()).isPresent());
             assertFalse(supplier.toString(), supplier.get().collect(MoreCollectors.last()).isPresent());
         }
+        assertEquals(1, (int)StreamEx.iterate(1, x -> x+1).parallel().collect(MoreCollectors.first()).get());
     }
     
     @Test
@@ -187,6 +188,7 @@ public class MoreCollectorsTest {
         for(int i=0; i<100; i++) {
             assertEquals("#"+i, Arrays.asList(0, 1), IntStreamEx.range(1000).boxed().parallel().collect(MoreCollectors.head(2)));
         }
+        assertEquals(Arrays.asList(0, 1), StreamEx.iterate(0, x -> x+1).parallel().collect(MoreCollectors.head(2)));
     }
 
     @Test
