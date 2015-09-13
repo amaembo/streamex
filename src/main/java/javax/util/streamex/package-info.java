@@ -98,7 +98,7 @@
  * 
  * <p>
  * While Stream API has some <em>short-circuiting</em> operations which may process only some of input elements (in particular may allow to process an infinite stream in finite time),
- * a mutable reduction via {@link java.util.stream.Stream#collect(java.util.stream.Collector)} is always non short-circuiting.
+ * a mutable reduction via {@link java.util.stream.Stream#collect(java.util.stream.Collector) Stream.collect(Collector)} is always non short-circuiting.
  * This method is extended in StreamEx library. A new type of collectors is introduced which is called <em>short-circuiting collectors</em>.
  * If such special collector is passed to {@code StreamEx.collect} or {@code EntryStream.collect} terminal operation, then this operation
  * becomes short-circuiting as well. If you however pass such collector to the normal {@code Stream.collect}, it will act as an ordinary 
@@ -115,8 +115,8 @@
  * </pre>
  *
  * <p>
- * Note that when short-circuiting collector is used as the downstream, to standard JDK collectors like {@link java.util.stream.Collectors#mapping(java.util.function.Function, java.util.stream.Collector)}
- * or {@link java.util.stream.Collectors#partitioningBy(java.util.function.Predicate, java.util.stream.Collector)}, the resulting collector will not be short-circuiting. 
+ * Note that when short-circuiting collector is used as the downstream, to standard JDK collectors like {@link java.util.stream.Collectors#mapping(java.util.function.Function, java.util.stream.Collector) Collectors.mapping(Function, Collector)}
+ * or {@link java.util.stream.Collectors#partitioningBy(java.util.function.Predicate, java.util.stream.Collector) Collectors.partitioningBy(Predicate, Collector)}, the resulting collector will not be short-circuiting. 
  * Instead you can use the corresponding method from {@code MoreCollectors} class. 
  * For example, this way you can get up to two odd and even numbers from the input stream in short-circuiting manner: 
  *  
