@@ -51,30 +51,38 @@ import java.util.function.Supplier;
 	    Spliterator<T> source = this.source;
 	    if(source == null)
 	        return false;
-	    acc = supplier.get();
 	    if(cancelled == null) {
 	        this.source = null;
+	        acc = supplier.get();
 	        // sequential mode
             while(!cancelPredicate.test(acc) && source.tryAdvance(this)) {
                 // empty
             }
-	    } else {
-	        if(cancelled.get()) {
-	            this.source = null;
-	            return false;
-	        }
-	        do {
-                if(cancelPredicate.test(acc)) {
-                    this.source = null;
-                    if(isFinished())
-                        cancelled.set(true);
-                    break;
-                }
-	        } while(!cancelled.get() && source.tryAdvance(this));
-	        this.source = null;
+            action.accept(acc);
+            return true;
 	    }
-	    action.accept(acc);
-		return true;
+	    // parallel mode
+        if(cancelled.get()) {
+            this.source = null;
+            return false;
+        }
+        acc = supplier.get();
+        do {
+            if(cancelPredicate.test(acc)) {
+                this.source = null;
+                if(isFinished())
+                    cancelled.set(true);
+                action.accept(acc);
+                return true;
+            }
+            if(cancelled.get()) {
+                this.source = null;
+                return false;
+            }
+        } while(source.tryAdvance(this));
+        this.source = null;
+        action.accept(acc);
+        return true;
 	}
 
 	@Override
