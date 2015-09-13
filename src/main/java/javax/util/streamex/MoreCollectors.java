@@ -506,9 +506,8 @@ public final class MoreCollectors {
      * 
      * <p>
      * The operation performed by the returned collector is equivalent to
-     * {@code stream.limit(n).collect(Collectors.toList())}, but the whole input
-     * stream is consumed. This collector is mostly useful as a downstream
-     * collector.
+     * {@code stream.limit(n).collect(Collectors.toList())}. This collector is
+     * mostly useful as a downstream collector.
      * 
      * @param <T>
      *            the type of the input elements
