@@ -245,9 +245,17 @@ import static javax.util.streamex.StreamExInternals.*;
         return stream.collect(supplier, accumulator, combiner);
     }
 
+    /**
+     * {@inheritDoc}
+     * 
+     * <p>
+     * If special <a
+     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * collector</a> is passed, this operation becomes short-circuiting as well.
+     */
     @Override
     public <R, A> R collect(Collector<? super T, A, R> collector) {
-        if(collector instanceof CancellableCollector) {
+        if (collector instanceof CancellableCollector) {
             CancellableCollector<? super T, A, R> c = (CancellableCollector<? super T, A, R>) collector;
             Spliterator<T> spliterator = (c.characteristics().contains(Characteristics.UNORDERED) ? stream.unordered()
                     : stream).spliterator();
@@ -258,8 +266,7 @@ import static javax.util.streamex.StreamExInternals.*;
                         .newStreamEx(
                             StreamSupport.stream(
                                 new CancellableCollectSpliterator<>(spliterator, c.supplier(), c.accumulator(),
-                                        finished), stream.isParallel()))
-                        .reduce(combiner).get());
+                                        finished), stream.isParallel())).reduce(combiner).get());
         }
         return stream.collect(collector);
     }
@@ -304,10 +311,47 @@ import static javax.util.streamex.StreamExInternals.*;
         return stream.findAny();
     }
 
+    /**
+     * Returns an {@link OptionalLong} describing the zero-based index of the first element
+     * of this stream, which equals to the given element, or an empty
+     * {@code OptionalLong} if there's no matching element.
+     *
+     * <p>
+     * This is a short-circuiting terminal operation.
+     *
+     * @param element
+     *            an element to look for
+     * @return an {@code OptionalLong} describing the index of the first
+     *         matching element of this stream, or an empty {@code OptionalLong}
+     *         if there's no matching element.
+     * @see #indexOf(Predicate)
+     * @since 0.4.0
+     */
     public OptionalLong indexOf(T element) {
         return indexOf(Predicate.isEqual(element));
     }
-    
+
+    /**
+     * Returns an {@link OptionalLong} describing the zero-based index of the first element
+     * of this stream, which matches given predicate, or an empty
+     * {@code OptionalLong} if there's no matching element.
+     *
+     * <p>
+     * This is a short-circuiting terminal operation.
+     *
+     * @param predicate
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            predicate which returned value should match
+     * @return an {@code OptionalLong} describing the index of the first
+     *         matching element of this stream, or an empty {@code OptionalLong}
+     *         if there's no matching element.
+     * @see #findFirst(Predicate)
+     * @see #indexOf(Object)
+     * @since 0.4.0
+     */
     public OptionalLong indexOf(Predicate<? super T> predicate) {
         return collect(new CancellableCollectorImpl<T, long[], OptionalLong>(() -> new long[] { -1 }, (acc, t) -> {
             if (acc[0] < 0) {

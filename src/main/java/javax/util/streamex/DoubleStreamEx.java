@@ -914,6 +914,26 @@ public class DoubleStreamEx implements DoubleStream {
         return filter(predicate).findAny();
     }
 
+    /**
+     * Returns an {@link OptionalLong} describing the zero-based index of the first element
+     * of this stream, which matches given predicate, or an empty
+     * {@code OptionalLong} if there's no matching element.
+     *
+     * <p>
+     * This is a short-circuiting terminal operation.
+     *
+     * @param predicate
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            predicate which returned value should match
+     * @return an {@code OptionalLong} describing the index of the first
+     *         matching element of this stream, or an empty {@code OptionalLong}
+     *         if there's no matching element.
+     * @see #findFirst(DoublePredicate)
+     * @since 0.4.0
+     */
     public OptionalLong indexOf(DoublePredicate predicate) {
         return boxed().indexOf(predicate::test);
     }

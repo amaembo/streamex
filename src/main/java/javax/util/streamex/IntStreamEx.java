@@ -996,11 +996,47 @@ public class IntStreamEx implements IntStream {
     public OptionalInt findAny(IntPredicate predicate) {
         return filter(predicate).findAny();
     }
-    
+
+    /**
+     * Returns an {@link OptionalLong} describing the zero-based index of the
+     * first element of this stream, which equals to the given value, or an
+     * empty {@code OptionalLong} if there's no matching element.
+     *
+     * <p>
+     * This is a short-circuiting terminal operation.
+     *
+     * @param value
+     *            a value to look for
+     * @return an {@code OptionalLong} describing the index of the first
+     *         matching element of this stream, or an empty {@code OptionalLong}
+     *         if there's no matching element.
+     * @see #indexOf(IntPredicate)
+     * @since 0.4.0
+     */
     public OptionalLong indexOf(int value) {
         return boxed().indexOf(i -> i == value);
     }
-    
+
+    /**
+     * Returns an {@link OptionalLong} describing the zero-based index of the first element
+     * of this stream, which matches given predicate, or an empty
+     * {@code OptionalLong} if there's no matching element.
+     *
+     * <p>
+     * This is a short-circuiting terminal operation.
+     *
+     * @param predicate
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            predicate which returned value should match
+     * @return an {@code OptionalLong} describing the index of the first
+     *         matching element of this stream, or an empty {@code OptionalLong}
+     *         if there's no matching element.
+     * @see #findFirst(IntPredicate)
+     * @since 0.4.0
+     */
     public OptionalLong indexOf(IntPredicate predicate) {
         return boxed().indexOf(predicate::test);
     }
@@ -1752,7 +1788,7 @@ public class IntStreamEx implements IntStream {
 
     /**
      * Returns a sequential ordered {@code DoubleStreamEx} whose elements are
-     * the unboxed elements of supplied collection. 
+     * the unboxed elements of supplied collection.
      *
      * @param collection
      *            the collection to create the stream from.
