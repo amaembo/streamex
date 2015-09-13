@@ -1356,9 +1356,13 @@ public class StreamExTest {
     @Test
     public void testIndexOf() {
         List<Integer> input = IntStreamEx.range(100).boxed().toList();
+        input.addAll(input);
         AtomicInteger counter = new AtomicInteger();
         assertEquals(10, StreamEx.of(input).peek(t -> counter.incrementAndGet()).indexOf(10).getAsLong());
         assertEquals(11, counter.get());
+        for(int i=0; i<100; i++) {
+            assertEquals(99, StreamEx.of(input).parallel().prepend().peek(t -> counter.incrementAndGet()).indexOf(99).getAsLong());
+        }
         for(StreamExSupplier<Integer> supplier : streamEx(input::stream)) {
             for(int i : new int[] {0, 1, 10, 50, 78, 99}) {
                 assertEquals(supplier + "/#" + i, i,
