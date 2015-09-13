@@ -22,6 +22,7 @@ import java.util.Comparator;
 import java.util.DoubleSummaryStatistics;
 import java.util.Objects;
 import java.util.OptionalDouble;
+import java.util.OptionalLong;
 import java.util.Random;
 import java.util.Spliterator;
 import java.util.Map.Entry;
@@ -911,6 +912,10 @@ public class DoubleStreamEx implements DoubleStream {
 
     public OptionalDouble findAny(DoublePredicate predicate) {
         return filter(predicate).findAny();
+    }
+
+    public OptionalLong indexOf(DoublePredicate predicate) {
+        return boxed().indexOf(predicate::test);
     }
 
     @Override

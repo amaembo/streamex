@@ -826,25 +826,4 @@ public final class MoreCollectors {
             return b1;
         }, b -> b.a == null ? Collections.emptySet() : b.a, b -> b.a != null && b.a.isEmpty(), UNORDERED_CHARACTERISTICS);
     }
-    
-    public static <T> Collector<T, ?, OptionalLong> indexOf(Predicate<T> predicate) {
-        return new CancellableCollectorImpl<T, long[], OptionalLong>(() -> new long[] {-1}, (acc, t) -> {
-            if(acc[0] < 0) {
-                if(predicate.test(t)) {
-                    acc[0] = -acc[0]-1;
-                } else {
-                    acc[0]--;
-                }
-            }
-        }, (acc1, acc2) -> {
-            if(acc1[0] < 0) {
-                if(acc2[0] < 0) {
-                    acc1[0] = acc1[0]+acc2[0]+1;
-                } else {
-                    acc1[0] = acc2[0]-acc1[0]-1; 
-                }
-            }
-            return acc1;
-        }, acc -> acc[0] < 0 ? OptionalLong.empty() : OptionalLong.of(acc[0]), acc -> acc[0] >= 0, NO_CHARACTERISTICS);
-    }
 }

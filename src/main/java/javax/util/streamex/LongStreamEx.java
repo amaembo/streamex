@@ -917,6 +917,14 @@ public class LongStreamEx implements LongStream {
         return filter(predicate).findAny();
     }
 
+    public OptionalLong indexOf(long value) {
+        return boxed().indexOf(i -> i == value);
+    }
+    
+    public OptionalLong indexOf(LongPredicate predicate) {
+        return boxed().indexOf(predicate::test);
+    }
+
     @Override
     public DoubleStreamEx asDoubleStream() {
         return strategy().newDoubleStreamEx(stream.asDoubleStream());

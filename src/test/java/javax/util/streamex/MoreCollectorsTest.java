@@ -383,28 +383,4 @@ public class MoreCollectorsTest {
         }
         assertEquals(Collections.emptySet(), StreamEx.<List<Integer>>empty().collect(MoreCollectors.intersecting()));
     }
-    
-    @Test
-    public void testIndexOf() {
-        List<Integer> input = IntStreamEx.range(100).boxed().toList();
-        AtomicInteger counter = new AtomicInteger();
-        assertEquals(10, StreamEx.of(input).peek(t -> counter.incrementAndGet()).collect(MoreCollectors.indexOf(x -> x == 10)).getAsLong());
-        assertEquals(11, counter.get());
-        for(StreamExSupplier<Integer> supplier : streamEx(input::stream)) {
-            for(Integer i : new int[] {0, 1, 10, 50, 78, 99}) {
-                assertEquals(
-                    supplier + "/#" + i,
-                    (long)i,
-                    supplier.get().collect(
-                        Collectors.collectingAndThen(MoreCollectors.indexOf(i::equals), Function.identity())).getAsLong());
-                assertEquals(supplier + "/#" + i, (long)i, supplier.get().peek(t -> counter.incrementAndGet()).collect(MoreCollectors.indexOf(i::equals)).getAsLong());
-            }
-            assertFalse(supplier.toString(), supplier.get().collect(MoreCollectors.indexOf(""::equals)).isPresent());
-            assertFalse(
-                supplier.toString(),
-                supplier.get()
-                        .collect(Collectors.collectingAndThen(MoreCollectors.indexOf(""::equals), Function.identity()))
-                        .isPresent());
-        }
-    }
 }

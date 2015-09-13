@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.Random;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator.OfInt;
@@ -994,6 +995,14 @@ public class IntStreamEx implements IntStream {
 
     public OptionalInt findAny(IntPredicate predicate) {
         return filter(predicate).findAny();
+    }
+    
+    public OptionalLong indexOf(int value) {
+        return boxed().indexOf(i -> i == value);
+    }
+    
+    public OptionalLong indexOf(IntPredicate predicate) {
+        return boxed().indexOf(predicate::test);
     }
 
     @Override

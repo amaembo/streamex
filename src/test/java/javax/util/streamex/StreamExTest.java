@@ -50,6 +50,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.util.streamex.TestHelpers.StreamExSupplier;
+
 import org.junit.Test;
 
 import static javax.util.streamex.TestHelpers.*;
@@ -1348,6 +1350,21 @@ public class StreamExTest {
             assertEquals(supplier.toString(), input, supplier.get().distinct(x -> x).toList());
             assertEquals(supplier.toString(), Arrays.asList("str", "a", "", "bbbb"),
                 supplier.get().distinct(x -> x == null ? 0 : x.length()).toList());
+        }
+    }
+    
+    @Test
+    public void testIndexOf() {
+        List<Integer> input = IntStreamEx.range(100).boxed().toList();
+        AtomicInteger counter = new AtomicInteger();
+        assertEquals(10, StreamEx.of(input).peek(t -> counter.incrementAndGet()).indexOf(x -> x == 10).getAsLong());
+        assertEquals(11, counter.get());
+        for(StreamExSupplier<Integer> supplier : streamEx(input::stream)) {
+            for(int i : new int[] {0, 1, 10, 50, 78, 99}) {
+                assertEquals(supplier + "/#" + i, i,
+                    supplier.get().peek(t -> counter.incrementAndGet()).indexOf(x -> x == i).getAsLong());
+            }
+            assertFalse(supplier.toString(), supplier.get().indexOf(""::equals).isPresent());
         }
     }
 }
