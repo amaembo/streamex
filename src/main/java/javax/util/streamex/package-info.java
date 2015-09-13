@@ -94,6 +94,45 @@
  * <p>
  * Also StreamEx library defines a number of collectors absent in JDK. See {@link javax.util.streamex.MoreCollectors} class.
  *
+ * <h3><a name="ShortCircuitReduction">Short circuiting reduction</a></h3>
+ * 
+ * <p>
+ * While Stream API has some <em>short-circuiting</em> operations which may process only some of input elements (in particular may allow to process an infinite stream in finite time),
+ * a mutable reduction via {@link java.util.stream.Stream#collect(java.util.stream.Collector)} is always non short-circuiting.
+ * This method is extended in StreamEx library. A new type of collectors is introduced which is called <em>short-circuiting collectors</em>.
+ * If such special collector is passed to {@code StreamEx.collect} or {@code EntryStream.collect} terminal operation, then this operation
+ * becomes short-circuiting as well. If you however pass such collector to the normal {@code Stream.collect}, it will act as an ordinary 
+ * non-short-circuiting collector. For example, this will process only one element from an input stream:
+ * 
+ * <pre>
+ * Optional&lt;Integer&gt; result = IntStreamEx.range(100).boxed().collect(MoreCollectors.first());
+ * </pre>
+ * 
+ * While this will process all the elements producing the same result:
+ * 
+ * <pre>
+ * Optional&lt;Integer&gt; result = IntStream.range(0, 100).boxed().collect(MoreCollectors.first());
+ * </pre>
+ *
+ * <p>
+ * Note that when short-circuiting collector is used as the downstream, to standard JDK collectors like {@link java.util.stream.Collectors#mapping(java.util.function.Function, java.util.stream.Collector)}
+ * or {@link java.util.stream.Collectors#partitioningBy(java.util.function.Predicate, java.util.stream.Collector)}, the resulting collector will not be short-circuiting. 
+ * Instead you can use the corresponding method from {@code MoreCollectors} class. 
+ * For example, this way you can get up to two odd and even numbers from the input stream in short-circuiting manner: 
+ *  
+ * <pre>
+ * Map&lt;Boolean, List&lt;Integer&gt;&gt; map = IntStreamEx.range(0, 100).boxed()
+ *                .collect(MoreCollectors.partitioningBy(x -&gt; x % 2 == 0, MoreCollectors.head(2)));
+ * </pre>
+ * 
+ * <p>
+ * For some operations like {@code groupingBy} it's impossible to create a short-circuiting collector even if the downstream is short-circuiting, because it's not known whether 
+ * all the possible groups are already created.
+ * 
+ * <p>
+ * Currently there's no public API to create user-defined short-circuiting collectors. 
+ * Also there are no short-circuiting collectors for primitive streams.
+ *
  * <h3><a name="Associativity">Associativity</a></h3>
  *
  * An operator or function {@code op} is <em>associative</em> if the following
