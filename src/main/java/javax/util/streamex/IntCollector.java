@@ -34,9 +34,6 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import javax.util.streamex.StreamExInternals.PartialCollector;
-import javax.util.streamex.StreamExInternals.PrimitiveBox;
-
 import static javax.util.streamex.StreamExInternals.*;
 
 /**

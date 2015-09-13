@@ -30,8 +30,6 @@ import java.util.function.ObjDoubleConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 
-import javax.util.streamex.StreamExInternals.PartialCollector;
-
 import static javax.util.streamex.StreamExInternals.*;
 
 /**
