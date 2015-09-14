@@ -43,6 +43,8 @@ import java.util.stream.Collector;
 import java.util.stream.Collector.Characteristics;
 import java.util.stream.Collectors;
 
+import javax.util.streamex.StreamExInternals.ObjIntBox;
+
 import static javax.util.streamex.StreamExInternals.*;
 
 /**
@@ -71,11 +73,10 @@ public final class MoreCollectors {
      *         provided supplier once to return the output.
      */
     private static <T, U> Collector<T, ?, U> empty(Supplier<U> supplier) {
-        return Collector.of(() -> null,
+        return new CancellableCollectorImpl<>(() -> NONE,
             (acc, t) -> {
                 // empty
-        }, selectFirst(), acc -> supplier.get(), Collector.Characteristics.UNORDERED,
-            Collector.Characteristics.CONCURRENT);
+        }, selectFirst(), acc -> supplier.get(), acc -> true, EnumSet.allOf(Characteristics.class));
     }
 
     private static <T> Collector<T, ?, List<T>> empty() {
@@ -895,5 +896,61 @@ public final class MoreCollectors {
                     ((CancellableCollector<? super U, A, R>) downstream).finished(), downstream.characteristics());
         }
         return Collectors.mapping(mapper, downstream);
+    }
+    
+    public static Collector<CharSequence, ?, String> joining(CharSequence delimiter, CharSequence ellipsis, int limit) {
+        if(limit <= 0)
+            return empty(() -> "");
+        int delimLength = delimiter.length();
+        BiConsumer<ObjIntBox<ArrayList<String>>, CharSequence> accumulator = (acc, str) -> {
+            if(acc.b <= limit) {
+                acc.b += str.length() + (acc.a.isEmpty() ? 0 : delimLength);
+                acc.a.add(str.toString());
+            }
+        };
+        return new CancellableCollectorImpl<>(() -> new ObjIntBox<>(new ArrayList<String>(), 0), accumulator, (acc1, acc2) -> {
+            int len = acc1.b + acc2.b+((acc1.a.isEmpty() || acc2.a.isEmpty()) ? 0 : delimLength);
+            if (len <= limit) {
+                acc1.b = len;
+                acc1.a.addAll(acc2.a);
+            } else {
+                for(CharSequence s : acc2.a) {
+                    if(acc1.b > limit)
+                        break;
+                    accumulator.accept(acc1, s);
+                }
+            }
+            return acc1;
+        }, acc -> {
+            char[] result = new char[Math.min(limit, acc.b)];
+            char[] delimArray = delimiter.toString().toCharArray();
+            int pos = 0;
+            boolean overflow = false;
+            for(int i=0; i<acc.a.size(); i++) {
+                String s = acc.a.get(i);
+                int nextPos;
+                if(i > 0) {
+                    nextPos = pos+delimArray.length;
+                    System.arraycopy(delimArray, 0, result, pos, Math.min(nextPos, limit)-pos);
+                    if(nextPos > limit) {
+                        overflow = true;
+                        break;
+                    }
+                    pos = nextPos;
+                }
+                nextPos = pos+s.length();
+                s.getChars(0, Math.min(nextPos, limit)-pos, result, pos);
+                if(nextPos > limit) {
+                    overflow = true;
+                    break;
+                }
+                pos = nextPos;
+            }
+            if(overflow) {
+                int ellipsisLength = Math.min(ellipsis.length(), limit);
+                ellipsis.toString().getChars(0, ellipsisLength, result, limit-ellipsisLength);
+            }
+            return new String(result);
+        }, acc -> acc.b > limit, NO_CHARACTERISTICS);
     }
 }

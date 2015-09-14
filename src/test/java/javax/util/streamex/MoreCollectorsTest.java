@@ -383,4 +383,19 @@ public class MoreCollectorsTest {
         }
         assertEquals(Collections.emptySet(), StreamEx.<List<Integer>>empty().collect(MoreCollectors.intersecting()));
     }
+    
+    @Test
+    public void testJoining() {
+        List<String> input = Arrays.asList("one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten");
+        String expected = "one, two, three, four, five, six, seven, eight, nine, ten";
+        for(int i=3; i<expected.length()+5; i++) {
+            String exp = expected;
+            if(exp.length() > i) {
+                exp = exp.substring(0, i-3)+"...";
+            }
+            for(StreamExSupplier<String> supplier : streamEx(input::stream)) {
+                assertEquals(supplier+"/#"+i, exp, supplier.get().collect(MoreCollectors.joining(", ", "...", i)));
+            }
+        }
+    }
 }
