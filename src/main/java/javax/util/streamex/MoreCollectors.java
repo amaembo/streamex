@@ -898,7 +898,7 @@ public final class MoreCollectors {
         return Collectors.mapping(mapper, downstream);
     }
     
-    public static Collector<CharSequence, ?, String> joining(CharSequence delimiter, CharSequence ellipsis, int limit) {
+    public static Collector<CharSequence, ?, String> joining(CharSequence delimiter, CharSequence ellipsis, int limit, boolean partial) {
         if(limit <= 0)
             return empty(() -> "");
         int delimLength = delimiter.length();
@@ -924,8 +924,10 @@ public final class MoreCollectors {
         }, acc -> {
             char[] result = new char[Math.min(limit, acc.b)];
             char[] delimArray = delimiter.toString().toCharArray();
+            int ellipsisLength = Math.min(ellipsis.length(), limit);
             int pos = 0;
             boolean overflow = false;
+            int prevPos = 0;
             for(int i=0; i<acc.a.size(); i++) {
                 String s = acc.a.get(i);
                 int nextPos;
@@ -937,6 +939,9 @@ public final class MoreCollectors {
                         break;
                     }
                     pos = nextPos;
+                    if(!partial && pos <= limit-ellipsisLength) {
+                        prevPos = pos;
+                    }
                 }
                 nextPos = pos+s.length();
                 s.getChars(0, Math.min(nextPos, limit)-pos, result, pos);
@@ -947,7 +952,10 @@ public final class MoreCollectors {
                 pos = nextPos;
             }
             if(overflow) {
-                int ellipsisLength = Math.min(ellipsis.length(), limit);
+                if(!partial) {
+                    ellipsis.toString().getChars(0, ellipsisLength, result, prevPos);
+                    return new String(result, 0, prevPos+ellipsisLength);
+                }
                 ellipsis.toString().getChars(0, ellipsisLength, result, limit-ellipsisLength);
             }
             return new String(result);

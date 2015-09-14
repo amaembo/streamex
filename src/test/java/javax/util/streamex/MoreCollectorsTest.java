@@ -39,6 +39,7 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 public class MoreCollectorsTest {
@@ -387,14 +388,24 @@ public class MoreCollectorsTest {
     @Test
     public void testJoining() {
         List<String> input = Arrays.asList("one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten");
+        assertEquals("", StreamEx.of(input).peek(Assert::fail).collect(MoreCollectors.joining(", ", "...", 0, true)));
+        assertEquals("", StreamEx.of(input).parallel().peek(Assert::fail).collect(MoreCollectors.joining(", ", "...", 0, true)));
         String expected = "one, two, three, four, five, six, seven, eight, nine, ten";
         for(int i=3; i<expected.length()+5; i++) {
             String exp = expected;
             if(exp.length() > i) {
                 exp = exp.substring(0, i-3)+"...";
             }
+            String exp2 = expected;
+            while (exp2.length() > i) {
+                int pos = exp2.lastIndexOf(", ", exp2.endsWith(", ...") ? exp2.length()-6 : exp2.length());
+                exp2 = pos >= 0 ? exp2.substring(0, pos + 2) + "..." : "...";
+            }
             for(StreamExSupplier<String> supplier : streamEx(input::stream)) {
-                assertEquals(supplier+"/#"+i, exp, supplier.get().collect(MoreCollectors.joining(", ", "...", i)));
+                assertEquals(supplier+"/#"+i, exp, supplier.get().collect(MoreCollectors.joining(", ", "...", i, true)));
+                assertEquals(supplier + "/#" + i, expected.substring(0, Math.min(i, expected.length())), supplier.get()
+                        .collect(MoreCollectors.joining(", ", "", i, true)));
+                assertEquals(supplier+"/#"+i, exp2, supplier.get().collect(MoreCollectors.joining(", ", "...", i, false)));
             }
         }
     }
