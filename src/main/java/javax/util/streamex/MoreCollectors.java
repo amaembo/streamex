@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.OptionalLong;
@@ -791,16 +792,57 @@ public final class MoreCollectors {
      */
     public static <T, K extends Enum<K>, A, D> Collector<T, ?, EnumMap<K, D>> groupingByEnum(Class<K> enumClass,
             Function<? super T, K> classifier, Collector<? super T, A, D> downstream) {
-        Collector<T, ?, EnumMap<K, D>> groupingBy = Collectors.groupingBy(classifier, () -> new EnumMap<>(enumClass),
-            downstream);
-        return Collectors.collectingAndThen(groupingBy, map -> {
+        return groupingBy(classifier, EnumSet.allOf(enumClass), () -> new EnumMap<>(enumClass), downstream);
+    }
+    
+    public static <T, K, D, A, M extends Map<K, D>> Collector<T, ?, M> groupingBy(
+            Function<? super T, ? extends K> classifier, Set<K> domain, Supplier<M> mapFactory,
+            Collector<? super T, A, D> downstream) {
+        Supplier<A> downstreamSupplier = downstream.supplier();
+        Collector<T, ?, M> groupingBy;
+        if(downstream instanceof CancellableCollectorImpl) {
+            Function<K, A> supplier = k -> {
+                if(!domain.contains(k))
+                    throw new IllegalStateException("Classifier returned value '"+k+"' which is out of domain");
+                return downstreamSupplier.get();
+            };
+            BiConsumer<A, ? super T> downstreamAccumulator = downstream.accumulator();
+            Predicate<A> downstreamFinished = ((CancellableCollectorImpl<? super T, A, D>) downstream).finished();
+            BiConsumer<Map<K, A>, T> accumulator = (m, t) -> {
+                K key = Objects.requireNonNull(classifier.apply(t));
+                A container = m.computeIfAbsent(key, supplier);
+                downstreamAccumulator.accept(container, t);
+            };
+            int size = domain.size();
+            groupingBy = PartialCollector.grouping(mapFactory, downstream).asCancellable(accumulator, map -> {
+                if(map.size() < size)
+                    return false;
+                for(A container : map.values()) {
+                    if(!downstreamFinished.test(container))
+                        return false;
+                }
+                return true;
+            });
+        } else {
+            groupingBy = Collectors.groupingBy(classifier, mapFactory, downstream);
+        }
+        return collectingAndThen(groupingBy, map -> {
             Function<A, D> finisher = downstream.finisher();
-            Supplier<A> supplier = downstream.supplier();
-            EnumSet.allOf(enumClass).forEach(key -> map.computeIfAbsent(key, k -> finisher.apply(supplier.get())));
+            domain.forEach(key -> map.computeIfAbsent(key, k -> finisher.apply(downstreamSupplier.get())));
             return map;
         });
     }
-
+    
+    public static <T, A, R, RR> Collector<T, A, RR> collectingAndThen(Collector<T, A, R> downstream,
+            Function<R, RR> finisher) {
+        if (downstream instanceof CancellableCollector) {
+            return new CancellableCollectorImpl<>(downstream.supplier(), downstream.accumulator(),
+                    downstream.combiner(), downstream.finisher().andThen(finisher),
+                    ((CancellableCollector<T, A, R>) downstream).finished(), NO_CHARACTERISTICS);
+        }
+        return Collectors.collectingAndThen(downstream, finisher);
+    }
+    
     public static <T, S extends Collection<T>> Collector<S, ?, Set<T>> intersecting() {
         return new CancellableCollectorImpl<S, Box<Set<T>>, Set<T>>(() -> new Box<>(null), (b, t) -> {
             if (b.a == null) {

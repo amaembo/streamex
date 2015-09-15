@@ -514,14 +514,11 @@ import java.util.stream.Stream;
 
         @SuppressWarnings("unchecked")
         static <K, D, A, M extends Map<K, D>> PartialCollector<Map<K, A>, M> grouping(
-                Supplier<M> mapFactory, MergingCollector<?, A, D> downstream) {
-            BiConsumer<A, A> downstreamMerger = downstream.merger();
+                Supplier<M> mapFactory, Collector<?, A, D> downstream) {
+            BinaryOperator<A> downstreamMerger = downstream.combiner();
             BiConsumer<Map<K, A>, Map<K, A>> merger = (map1, map2) -> {
                 for (Map.Entry<K, A> e : map2.entrySet())
-                    map1.merge(e.getKey(), e.getValue(), (a, b) -> {
-                        downstreamMerger.accept(a, b);
-                        return a;
-                    });
+                    map1.merge(e.getKey(), e.getValue(), downstreamMerger);
             };
 
             if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {

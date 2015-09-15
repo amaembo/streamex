@@ -28,11 +28,14 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Random;
+import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -303,6 +306,37 @@ public class MoreCollectorsTest {
             assertEquals(supplier.toString(), 1L, (long)map.get(TimeUnit.NANOSECONDS));
             assertEquals(supplier.toString(), 0L, (long)map.get(TimeUnit.MICROSECONDS));
         }
+    }
+    
+    @Test
+    public void testGroupingByWithDomain() {
+        List<String> data = Arrays.asList("a", "foo", "test", "ququq", "bar", "blahblah");
+        Collector<String, ?, Map<Integer, Optional<String>>> collector = MoreCollectors.groupingBy(String::length,
+            IntStreamEx.range(10).boxed().toSet(), TreeMap::new, MoreCollectors.first());
+        for(StreamExSupplier<String> supplier : streamEx(data::stream)) {
+            Map<Integer, Optional<String>> map = supplier.get().collect(collector);
+            assertEquals(supplier.toString(), "{0=Optional.empty, 1=Optional[a], 2=Optional.empty, 3=Optional[foo], 4=Optional[test], 5=Optional[ququq], "
+                + "6=Optional.empty, 7=Optional.empty, 8=Optional[blahblah], 9=Optional.empty}", map.toString());
+        }
+        
+        Map<String, String> name2sex = new LinkedHashMap<>();
+        name2sex.put("Mary", "Girl");
+        name2sex.put("John", "Boy");
+        name2sex.put("James", "Boy");
+        name2sex.put("Lucie", "Girl");
+        name2sex.put("Fred", "Boy");
+        name2sex.put("Thomas", "Boy");
+        name2sex.put("Jane", "Girl");
+        name2sex.put("Ruth", "Girl");
+        name2sex.put("Melanie", "Girl");
+        Collector<Entry<String, String>, ?, HashMap<String, String>> groupingBy = MoreCollectors.groupingBy(
+            Entry::getValue, StreamEx.of("Girl", "Boy").toSet(), HashMap::new,
+            MoreCollectors.mapping(Entry::getKey, MoreCollectors.joining(", ", "...", 16, false)));
+        AtomicInteger counter = new AtomicInteger();
+        Map<String,String> map = EntryStream.of(name2sex).peek(c -> counter.incrementAndGet()).collect(groupingBy);
+        assertEquals("Mary, Lucie, ...", map.get("Girl"));
+        assertEquals("John, James, ...", map.get("Boy"));
+        assertEquals(7, counter.get());
     }
     
     @Test
