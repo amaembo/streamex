@@ -23,6 +23,7 @@ import java.util.Comparator;
 import java.util.Deque;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -793,6 +794,11 @@ public final class MoreCollectors {
     public static <T, K extends Enum<K>, A, D> Collector<T, ?, EnumMap<K, D>> groupingByEnum(Class<K> enumClass,
             Function<? super T, K> classifier, Collector<? super T, A, D> downstream) {
         return groupingBy(classifier, EnumSet.allOf(enumClass), () -> new EnumMap<>(enumClass), downstream);
+    }
+    
+    public static <T, K, D, A> Collector<T, ?, Map<K, D>> groupingBy(Function<? super T, ? extends K> classifier,
+            Set<K> domain, Collector<? super T, A, D> downstream) {
+        return groupingBy(classifier, domain, HashMap::new, downstream);
     }
     
     public static <T, K, D, A, M extends Map<K, D>> Collector<T, ?, M> groupingBy(

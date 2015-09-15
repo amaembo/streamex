@@ -329,8 +329,8 @@ public class MoreCollectorsTest {
         name2sex.put("Jane", "Girl");
         name2sex.put("Ruth", "Girl");
         name2sex.put("Melanie", "Girl");
-        Collector<Entry<String, String>, ?, HashMap<String, String>> groupingBy = MoreCollectors.groupingBy(
-            Entry::getValue, StreamEx.of("Girl", "Boy").toSet(), HashMap::new,
+        Collector<Entry<String, String>, ?, Map<String, String>> groupingBy = MoreCollectors.groupingBy(
+            Entry::getValue, StreamEx.of("Girl", "Boy").toSet(),
             MoreCollectors.mapping(Entry::getKey, MoreCollectors.joining(", ", "...", 16, false)));
         AtomicInteger counter = new AtomicInteger();
         Map<String,String> map = EntryStream.of(name2sex).peek(c -> counter.incrementAndGet()).collect(groupingBy);
