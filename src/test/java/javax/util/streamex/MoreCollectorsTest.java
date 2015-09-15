@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -408,5 +409,9 @@ public class MoreCollectorsTest {
                 assertEquals(supplier+"/#"+i, exp2, supplier.get().collect(MoreCollectors.joining(", ", "...", i, false)));
             }
         }
+        
+        byte[] data = {(byte) 0xFF, 0x30, 0x40, 0x50, 0x70, 0x12, (byte) 0xF0};
+        assertEquals("FF 30 40 50 ...", IntStreamEx.of(data).mapToObj(b -> String.format(Locale.ENGLISH, "%02X", b & 0xFF))
+                .collect(MoreCollectors.joining(" ", "...", 15, false)));
     }
 }

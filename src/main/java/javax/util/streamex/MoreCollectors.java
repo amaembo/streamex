@@ -908,7 +908,7 @@ public final class MoreCollectors {
                 acc.a.add(str.toString());
             }
         };
-        return new CancellableCollectorImpl<>(() -> new ObjIntBox<>(new ArrayList<String>(), 0), accumulator, (acc1, acc2) -> {
+        BinaryOperator<ObjIntBox<ArrayList<String>>> combiner = (acc1, acc2) -> {
             int len = acc1.b + acc2.b+((acc1.a.isEmpty() || acc2.a.isEmpty()) ? 0 : delimLength);
             if (len <= limit) {
                 acc1.b = len;
@@ -921,7 +921,8 @@ public final class MoreCollectors {
                 }
             }
             return acc1;
-        }, acc -> {
+        };
+        Function<ObjIntBox<ArrayList<String>>, String> finisher = acc -> {
             char[] result = new char[Math.min(limit, acc.b)];
             char[] delimArray = delimiter.toString().toCharArray();
             int ellipsisLength = Math.min(ellipsis.length(), limit);
@@ -959,6 +960,8 @@ public final class MoreCollectors {
                 ellipsis.toString().getChars(0, ellipsisLength, result, limit-ellipsisLength);
             }
             return new String(result);
-        }, acc -> acc.b > limit, NO_CHARACTERISTICS);
+        };
+        return new CancellableCollectorImpl<>(() -> new ObjIntBox<>(new ArrayList<String>(), 0), accumulator, combiner,
+                finisher, acc -> acc.b > limit, NO_CHARACTERISTICS);
     }
 }
