@@ -1908,6 +1908,16 @@ public class IntStreamEx implements IntStream {
     public static IntStreamEx range(int startInclusive, int endExclusive) {
         return new IntStreamEx(IntStream.range(startInclusive, endExclusive));
     }
+    
+    public static IntStreamEx range(int startInclusive, int endExclusive, int step) {
+        if(step == 0)
+            throw new IllegalArgumentException("step = 0");
+        if((endExclusive > startInclusive ^ step > 0) || endExclusive == startInclusive)
+            return IntStreamEx.empty();
+        int limit = (endExclusive-startInclusive)*Integer.signum(step)-1;
+        limit = Integer.divideUnsigned(limit, Math.abs(step))+1;
+        return of(IntStream.range(0, limit).map(x -> x * step + startInclusive));
+    }
 
     /**
      * Returns a sequential ordered {@code IntStreamEx} from
