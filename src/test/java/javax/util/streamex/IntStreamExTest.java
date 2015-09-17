@@ -131,6 +131,10 @@ public class IntStreamExTest {
         assertEquals(0, IntStreamEx.range(0, 1000, -1).count());
         assertEquals(0, IntStreamEx.range(0, 0, -1).count());
         assertEquals(0, IntStreamEx.range(0, 0, 1).count());
+        assertEquals(0, IntStreamEx.range(0, -1000, 2).count());
+        assertEquals(0, IntStreamEx.range(0, 1000, -2).count());
+        assertEquals(0, IntStreamEx.range(0, 0, -2).count());
+        assertEquals(0, IntStreamEx.range(0, 0, 2).count());
     }
 
     @Test(expected = ArrayIndexOutOfBoundsException.class)
