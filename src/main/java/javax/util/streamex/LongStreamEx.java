@@ -1366,6 +1366,23 @@ public class LongStreamEx implements LongStream {
         return new LongStreamEx(LongStream.range(startInclusive, endExclusive));
     }
 
+    public static LongStreamEx range(long startInclusive, long endExclusive, long step) {
+        if(step == 0)
+            throw new IllegalArgumentException("step = 0");
+        if(step == 1)
+            return of(LongStream.range(startInclusive, endExclusive));
+        if(step == -1) {
+            // Handled specially as number of elements can exceed Integer.MAX_VALUE
+            long sum = endExclusive+startInclusive;
+            return of(LongStream.range(endExclusive, startInclusive).map(x -> sum - x));
+        }
+        if((endExclusive > startInclusive ^ step > 0) || endExclusive == startInclusive)
+            return LongStreamEx.empty();
+        long limit = (endExclusive-startInclusive)*Long.signum(step)-1;
+        limit = Long.divideUnsigned(limit, Math.abs(step));
+        return of(LongStream.rangeClosed(0, limit).map(x -> x * step + startInclusive));
+    }
+
     /**
      * Returns a sequential ordered {@code LongStreamEx} from
      * {@code startInclusive} (inclusive) to {@code endInclusive} (inclusive) by
