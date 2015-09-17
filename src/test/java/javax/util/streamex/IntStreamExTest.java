@@ -136,6 +136,11 @@ public class IntStreamExTest {
         assertEquals(0, IntStreamEx.range(0, 0, -2).count());
         assertEquals(0, IntStreamEx.range(0, 0, 2).count());
     }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testRangeIllegalStep() {
+        IntStreamEx.range(0, 1000, 0);
+    }
 
     @Test(expected = ArrayIndexOutOfBoundsException.class)
     public void testArrayOffsetUnderflow() {
