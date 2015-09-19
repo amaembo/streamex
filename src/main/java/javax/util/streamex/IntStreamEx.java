@@ -1910,20 +1910,11 @@ public class IntStreamEx implements IntStream {
     }
     
     public static IntStreamEx range(int startInclusive, int endExclusive, int step) {
-        if(step == 0)
-            throw new IllegalArgumentException("step = 0");
-        if(step == 1)
-            return of(IntStream.range(startInclusive, endExclusive));
-        if(step == -1) {
-            // Handled specially as number of elements can exceed Integer.MAX_VALUE
-            int sum = endExclusive+startInclusive;
-            return of(IntStream.range(endExclusive, startInclusive).map(x -> sum - x));
-        }
-        if((endExclusive > startInclusive ^ step > 0) || endExclusive == startInclusive)
-            return IntStreamEx.empty();
-        int limit = (endExclusive-startInclusive)*Integer.signum(step)-1;
-        limit = Integer.divideUnsigned(limit, Math.abs(step));
-        return of(IntStream.rangeClosed(0, limit).map(x -> x * step + startInclusive));
+        int endInclusive = endExclusive-Integer.signum(step);
+        if(endInclusive > endExclusive && step > 0 ||
+                endInclusive < endExclusive && step < 0)
+            return empty();
+        return rangeClosed(startInclusive, endInclusive, step);
     }
 
     /**
@@ -1941,6 +1932,23 @@ public class IntStreamEx implements IntStream {
      */
     public static IntStreamEx rangeClosed(int startInclusive, int endInclusive) {
         return new IntStreamEx(IntStream.rangeClosed(startInclusive, endInclusive));
+    }
+
+    public static IntStreamEx rangeClosed(int startInclusive, int endExclusive, int step) {
+        if(step == 0)
+            throw new IllegalArgumentException("step = 0");
+        if(step == 1)
+            return of(IntStream.rangeClosed(startInclusive, endExclusive));
+        if(step == -1) {
+            // Handled specially as number of elements can exceed Integer.MAX_VALUE
+            int sum = endExclusive+startInclusive;
+            return of(IntStream.rangeClosed(endExclusive, startInclusive).map(x -> sum - x));
+        }
+        if(endExclusive > startInclusive ^ step > 0)
+            return empty();
+        int limit = (endExclusive-startInclusive)*Integer.signum(step);
+        limit = Integer.divideUnsigned(limit, Math.abs(step));
+        return of(IntStream.rangeClosed(0, limit).map(x -> x * step + startInclusive));
     }
 
     /**

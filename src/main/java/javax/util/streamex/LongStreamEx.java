@@ -1367,20 +1367,11 @@ public class LongStreamEx implements LongStream {
     }
 
     public static LongStreamEx range(long startInclusive, long endExclusive, long step) {
-        if(step == 0)
-            throw new IllegalArgumentException("step = 0");
-        if(step == 1)
-            return of(LongStream.range(startInclusive, endExclusive));
-        if(step == -1) {
-            // Handled specially as number of elements can exceed Integer.MAX_VALUE
-            long sum = endExclusive+startInclusive;
-            return of(LongStream.range(endExclusive, startInclusive).map(x -> sum - x));
-        }
-        if((endExclusive > startInclusive ^ step > 0) || endExclusive == startInclusive)
-            return LongStreamEx.empty();
-        long limit = (endExclusive-startInclusive)*Long.signum(step)-1;
-        limit = Long.divideUnsigned(limit, Math.abs(step));
-        return of(LongStream.rangeClosed(0, limit).map(x -> x * step + startInclusive));
+        long endInclusive = endExclusive-Long.signum(step);
+        if(endInclusive > endExclusive && step > 0 ||
+                endInclusive < endExclusive && step < 0)
+            return empty();
+        return rangeClosed(startInclusive, endInclusive, step);
     }
 
     /**
@@ -1398,6 +1389,23 @@ public class LongStreamEx implements LongStream {
      */
     public static LongStreamEx rangeClosed(long startInclusive, long endInclusive) {
         return new LongStreamEx(LongStream.rangeClosed(startInclusive, endInclusive));
+    }
+
+    public static LongStreamEx rangeClosed(long startInclusive, long endExclusive, long step) {
+        if(step == 0)
+            throw new IllegalArgumentException("step = 0");
+        if(step == 1)
+            return of(LongStream.rangeClosed(startInclusive, endExclusive));
+        if(step == -1) {
+            // Handled specially as number of elements can exceed Integer.MAX_VALUE
+            long sum = endExclusive+startInclusive;
+            return of(LongStream.rangeClosed(endExclusive, startInclusive).map(x -> sum - x));
+        }
+        if((endExclusive > startInclusive ^ step > 0) || endExclusive == startInclusive)
+            return empty();
+        long limit = (endExclusive-startInclusive)*Long.signum(step);
+        limit = Long.divideUnsigned(limit, Math.abs(step));
+        return of(LongStream.rangeClosed(0, limit).map(x -> x * step + startInclusive));
     }
 
     /**
