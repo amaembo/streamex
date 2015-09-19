@@ -192,10 +192,7 @@ public class EntryStreamTest {
         expected.put("a", 2);
         expected.put("bb", 24);
         expected.put("ccc", 36);
-        Map<String, Integer> result = EntryStream.of(createMap())
-                .mapEntryValues(e -> e.getKey().length() + e.getValue()).toMap();
-        assertEquals(expected, result);
-        result = EntryStream.of(createMap()).mapToValue((str, num) -> str.length() + num).toMap();
+        Map<String, Integer> result = EntryStream.of(createMap()).mapToValue((str, num) -> str.length() + num).toMap();
         assertEquals(expected, result);
     }
 
@@ -205,10 +202,7 @@ public class EntryStreamTest {
         expected.put("a:1", 1);
         expected.put("bb:22", 22);
         expected.put("ccc:33", 33);
-        Map<String, Integer> result = EntryStream.of(createMap()).mapEntryKeys(e -> e.getKey() + ":" + e.getValue())
-                .toMap();
-        assertEquals(expected, result);
-        result = EntryStream.of(createMap()).mapToKey((str, num) -> str + ":" + num).toMap();
+        Map<String, Integer> result = EntryStream.of(createMap()).mapToKey((str, num) -> str + ":" + num).toMap();
         assertEquals(expected, result);
     }
 

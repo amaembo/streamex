@@ -1,5 +1,10 @@
 # StreamEx changes
 
+### 0.4.0
+
+* Added `IntStreamEx/LongStreamEx.range/rangeClosed` methods with additional step parameter.
+* Deprecated methods `EntryStream.mapEntryKeys`/`mapEntryValues` are removed!
+
 ### 0.3.8
 
 * Added `toBooleanArray` collectors (object and primitive).
