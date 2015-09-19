@@ -246,11 +246,18 @@ public final class MoreCollectors {
             acc1.b = c2combiner.apply(acc1.b, acc2.b);
             return acc1;
         };
-        return Collector.of(supplier, accumulator, combiner, acc -> {
+        Function<PairBox<A1, A2>, R> resFinisher = acc -> {
             R1 r1 = c1.finisher().apply(acc.a);
             R2 r2 = c2.finisher().apply(acc.b);
             return finisher.apply(r1, r2);
-        }, c.toArray(new Characteristics[c.size()]));
+        };
+        if (c1 instanceof CancellableCollector && c2 instanceof CancellableCollector) {
+            Predicate<A1> c1Finished = ((CancellableCollector<? super T, A1, R1>) c1).finished();
+            Predicate<A2> c2Finished = ((CancellableCollector<? super T, A2, R2>) c2).finished();
+            Predicate<PairBox<A1, A2>> finished = acc -> c1Finished.test(acc.a) && c2Finished.test(acc.b);
+            return new CancellableCollectorImpl<>(supplier, accumulator, combiner, resFinisher, finished, c);
+        }
+        return Collector.of(supplier, accumulator, combiner, resFinisher, c.toArray(new Characteristics[c.size()]));
     }
 
     /**
@@ -772,6 +779,13 @@ public final class MoreCollectors {
      * keys including keys which were never returned by the classification
      * function. These keys are mapped to the default collector value which is
      * equivalent to collecting an empty stream with the same collector.
+     * 
+     * <p>
+     * This method returns a <a
+     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * collector</a> if the downstream collector is short-circuiting. The
+     * collection might stop when for every possible enum key the downstream
+     * collection is known to be finished.
      *
      * @param <T>
      *            the type of the input elements
@@ -795,21 +809,21 @@ public final class MoreCollectors {
             Function<? super T, K> classifier, Collector<? super T, A, D> downstream) {
         return groupingBy(classifier, EnumSet.allOf(enumClass), () -> new EnumMap<>(enumClass), downstream);
     }
-    
+
     public static <T, K, D, A> Collector<T, ?, Map<K, D>> groupingBy(Function<? super T, ? extends K> classifier,
             Set<K> domain, Collector<? super T, A, D> downstream) {
         return groupingBy(classifier, domain, HashMap::new, downstream);
     }
-    
+
     public static <T, K, D, A, M extends Map<K, D>> Collector<T, ?, M> groupingBy(
             Function<? super T, ? extends K> classifier, Set<K> domain, Supplier<M> mapFactory,
             Collector<? super T, A, D> downstream) {
         Supplier<A> downstreamSupplier = downstream.supplier();
         Collector<T, ?, M> groupingBy;
-        if(downstream instanceof CancellableCollectorImpl) {
+        if (downstream instanceof CancellableCollectorImpl) {
             Function<K, A> supplier = k -> {
-                if(!domain.contains(k))
-                    throw new IllegalStateException("Classifier returned value '"+k+"' which is out of domain");
+                if (!domain.contains(k))
+                    throw new IllegalStateException("Classifier returned value '" + k + "' which is out of domain");
                 return downstreamSupplier.get();
             };
             BiConsumer<A, ? super T> downstreamAccumulator = downstream.accumulator();
@@ -821,10 +835,10 @@ public final class MoreCollectors {
             };
             int size = domain.size();
             groupingBy = PartialCollector.grouping(mapFactory, downstream).asCancellable(accumulator, map -> {
-                if(map.size() < size)
+                if (map.size() < size)
                     return false;
-                for(A container : map.values()) {
-                    if(!downstreamFinished.test(container))
+                for (A container : map.values()) {
+                    if (!downstreamFinished.test(container))
                         return false;
                 }
                 return true;
@@ -838,7 +852,7 @@ public final class MoreCollectors {
             return map;
         });
     }
-    
+
     public static <T, A, R, RR> Collector<T, A, RR> collectingAndThen(Collector<T, A, R> downstream,
             Function<R, RR> finisher) {
         if (downstream instanceof CancellableCollector) {
@@ -848,7 +862,7 @@ public final class MoreCollectors {
         }
         return Collectors.collectingAndThen(downstream, finisher);
     }
-    
+
     public static <T, S extends Collection<T>> Collector<S, ?, Set<T>> intersecting() {
         return new CancellableCollectorImpl<S, Box<Set<T>>, Set<T>>(() -> new Box<>(null), (b, t) -> {
             if (b.a == null) {
@@ -945,25 +959,41 @@ public final class MoreCollectors {
         }
         return Collectors.mapping(mapper, downstream);
     }
-    
-    public static Collector<CharSequence, ?, String> joining(CharSequence delimiter, CharSequence ellipsis, int limit, boolean partial) {
-        if(limit <= 0)
+
+    public static <T, A, R> Collector<T, ?, R> filtering(Predicate<? super T> filter, Collector<T, A, R> downstream) {
+        BiConsumer<A, T> downstreamAccumulator = downstream.accumulator();
+        BiConsumer<A, T> accumulator = (acc, t) -> {
+            if (filter.test(t))
+                downstreamAccumulator.accept(acc, t);
+        };
+        if (downstream instanceof CancellableCollector) {
+            return new CancellableCollectorImpl<T, A, R>(downstream.supplier(), accumulator, downstream.combiner(),
+                    downstream.finisher(), ((CancellableCollector<T, A, R>) downstream).finished(),
+                    downstream.characteristics());
+        }
+        return Collector.of(downstream.supplier(), accumulator, downstream.combiner(), downstream.finisher(),
+            downstream.characteristics().toArray(new Characteristics[downstream.characteristics().size()]));
+    }
+
+    public static Collector<CharSequence, ?, String> joining(CharSequence delimiter, CharSequence ellipsis, int limit,
+            boolean partial) {
+        if (limit <= 0)
             return empty(() -> "");
         int delimLength = delimiter.length();
         BiConsumer<ObjIntBox<ArrayList<String>>, CharSequence> accumulator = (acc, str) -> {
-            if(acc.b <= limit) {
+            if (acc.b <= limit) {
                 acc.b += str.length() + (acc.a.isEmpty() ? 0 : delimLength);
                 acc.a.add(str.toString());
             }
         };
         BinaryOperator<ObjIntBox<ArrayList<String>>> combiner = (acc1, acc2) -> {
-            int len = acc1.b + acc2.b+((acc1.a.isEmpty() || acc2.a.isEmpty()) ? 0 : delimLength);
+            int len = acc1.b + acc2.b + ((acc1.a.isEmpty() || acc2.a.isEmpty()) ? 0 : delimLength);
             if (len <= limit) {
                 acc1.b = len;
                 acc1.a.addAll(acc2.a);
             } else {
-                for(CharSequence s : acc2.a) {
-                    if(acc1.b > limit)
+                for (CharSequence s : acc2.a) {
+                    if (acc1.b > limit)
                         break;
                     accumulator.accept(acc1, s);
                 }
@@ -977,35 +1007,35 @@ public final class MoreCollectors {
             int pos = 0;
             boolean overflow = false;
             int prevPos = 0;
-            for(int i=0; i<acc.a.size(); i++) {
+            for (int i = 0; i < acc.a.size(); i++) {
                 String s = acc.a.get(i);
                 int nextPos;
-                if(i > 0) {
-                    nextPos = pos+delimArray.length;
-                    System.arraycopy(delimArray, 0, result, pos, Math.min(nextPos, limit)-pos);
-                    if(nextPos > limit) {
+                if (i > 0) {
+                    nextPos = pos + delimArray.length;
+                    System.arraycopy(delimArray, 0, result, pos, Math.min(nextPos, limit) - pos);
+                    if (nextPos > limit) {
                         overflow = true;
                         break;
                     }
                     pos = nextPos;
-                    if(!partial && pos <= limit-ellipsisLength) {
+                    if (!partial && pos <= limit - ellipsisLength) {
                         prevPos = pos;
                     }
                 }
-                nextPos = pos+s.length();
-                s.getChars(0, Math.min(nextPos, limit)-pos, result, pos);
-                if(nextPos > limit) {
+                nextPos = pos + s.length();
+                s.getChars(0, Math.min(nextPos, limit) - pos, result, pos);
+                if (nextPos > limit) {
                     overflow = true;
                     break;
                 }
                 pos = nextPos;
             }
-            if(overflow) {
-                if(!partial) {
+            if (overflow) {
+                if (!partial) {
                     ellipsis.toString().getChars(0, ellipsisLength, result, prevPos);
-                    return new String(result, 0, prevPos+ellipsisLength);
+                    return new String(result, 0, prevPos + ellipsisLength);
                 }
-                ellipsis.toString().getChars(0, ellipsisLength, result, limit-ellipsisLength);
+                ellipsis.toString().getChars(0, ellipsisLength, result, limit - ellipsisLength);
             }
             return new String(result);
         };
