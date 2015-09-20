@@ -249,10 +249,10 @@ public class DoubleStreamExTest {
         int[] data = new Random(1).ints(1000, 1, 1000).toArray();
         double[] expected = new double[data.length - 1];
         for (int i = 0; i < expected.length; i++)
-            expected[i] = (data[i + 1] - data[i]) * 3.14;
-        double[] result = IntStreamEx.of(data).parallel().asDoubleStream().pairMap((a, b) -> (b - a) * 3.14).toArray();
+            expected[i] = (data[i + 1] - data[i]) * 1.23;
+        double[] result = IntStreamEx.of(data).parallel().asDoubleStream().pairMap((a, b) -> (b - a) * 1.23).toArray();
         assertArrayEquals(expected, result, 0.0);
-        result = IntStreamEx.of(data).asDoubleStream().pairMap((a, b) -> (b - a) * 3.14).toArray();
+        result = IntStreamEx.of(data).asDoubleStream().pairMap((a, b) -> (b - a) * 1.23).toArray();
         assertArrayEquals(expected, result, 0.0);
         assertEquals(984.0, IntStreamEx.of(data).asDoubleStream().parallel().pairMap((a, b) -> Math.abs(a - b)).max()
                 .getAsDouble(), 0.0);

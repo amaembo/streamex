@@ -631,10 +631,10 @@ public class StreamExTest {
         Integer[] data = new Random(1).ints(1000, 1, 1000).boxed().toArray(Integer[]::new);
         Double[] expected = new Double[data.length - 1];
         for (int i = 0; i < expected.length; i++)
-            expected[i] = (data[i + 1] - data[i]) * 3.14;
-        Double[] result = StreamEx.of(data).parallel().pairMap((a, b) -> (b - a) * 3.14).toArray(Double[]::new);
+            expected[i] = (data[i + 1] - data[i]) * 1.23;
+        Double[] result = StreamEx.of(data).parallel().pairMap((a, b) -> (b - a) * 1.23).toArray(Double[]::new);
         assertArrayEquals(expected, result);
-        result = StreamEx.of(data).pairMap((a, b) -> (b - a) * 3.14).toArray(Double[]::new);
+        result = StreamEx.of(data).pairMap((a, b) -> (b - a) * 1.23).toArray(Double[]::new);
         assertArrayEquals(expected, result);
 
         // Find all numbers where the integer preceded a larger value.
@@ -1086,7 +1086,7 @@ public class StreamExTest {
                 .distinct()
                 .sorted()
                 .<String> intervalMap((i, j) -> j == i + 1,
-                    (i, j) -> j == i ? i.toString() : j == i + 1 ? i + "," + j : i + ".." + j).joining(",");
+                    (i, j) -> j.equals(i) ? i.toString() : j == i + 1 ? i + "," + j : i + ".." + j).joining(",");
     }
 
     private String formatNaive(int[] input) {
