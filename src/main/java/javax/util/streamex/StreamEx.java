@@ -2092,7 +2092,23 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public static <T> StreamEx<List<T>> cartesianProduct(Collection<? extends Collection<T>> source) {
         if (source.isEmpty())
             return of(Stream.of(Collections.emptyList()));
-        return of(new CrossSpliterator<>(source));
+        return of(new CrossSpliterator.ToList<>(source));
+    }
+
+    public static <T, U> StreamEx<U> cartesianProduct(Collection<? extends Collection<T>> source, U identity,
+            BiFunction<U, ? super T, U> accumulator) {
+        if (source.isEmpty())
+            return of(identity);
+        return of(new CrossSpliterator.Reducing<>(source, identity, accumulator));
+    }
+
+    public static <T, U> StreamEx<U> cartesianProduct2(Collection<? extends Collection<T>> source, U identity,
+            BiFunction<U, ? super T, U> accumulator) {
+        return of(StreamEx
+                .of(source)
+                .<Supplier<Stream<T>>> map(c -> () -> c.stream())
+                .<Supplier<Stream<U>>> foldLeft(() -> Stream.of(identity),
+                    (s1, s2) -> () -> s1.get().flatMap(acc -> s2.get().map(t -> accumulator.apply(acc, t)))).get());
     }
 
     /**
@@ -2128,6 +2144,16 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public static <T> StreamEx<List<T>> cartesianPower(int n, Collection<T> source) {
         if (n == 0)
             return of(Stream.of(Collections.emptyList()));
-        return of(new CrossSpliterator<>(Collections.nCopies(n, source)));
+        return of(new CrossSpliterator.ToList<>(Collections.nCopies(n, source)));
+    }
+
+    public static <T, U> StreamEx<U> cartesianPower(int n, Collection<T> source, U identity, BiFunction<U, ? super T, U> accumulator) {
+        if (n == 0)
+            return of(identity);
+        return of(new CrossSpliterator.Reducing<>(Collections.nCopies(n, source), identity, accumulator));
+    }
+    
+    public static <T, U> StreamEx<U> cartesianPower2(int n, Collection<T> source, U identity, BiFunction<U, ? super T, U> accumulator) {
+        return cartesianProduct2(Collections.nCopies(n, source), identity, accumulator);
     }
 }

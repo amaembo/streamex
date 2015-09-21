@@ -40,7 +40,7 @@ public class CrossSpliteratorTest {
 					.mapToObj(
 							i -> Arrays.asList(i / limit / limit, i / limit
 									% limit, i % limit)).toList();
-            checkSpliterator("cross", expected, () -> new CrossSpliterator<>(input));
+            checkSpliterator("cross", expected, () -> new CrossSpliterator.ToList<>(input));
         }
     }
     
@@ -49,7 +49,7 @@ public class CrossSpliteratorTest {
         List<List<Integer>> input = new ArrayList<>();
         input.add(IntStreamEx.rangeClosed(1, 20).boxed().toList());
         input.addAll(Collections.nCopies(18, IntStreamEx.rangeClosed(1, 10).boxed().toList()));
-        Spliterator<List<Integer>> spltr = new CrossSpliterator<>(input);
+        Spliterator<List<Integer>> spltr = new CrossSpliterator.ToList<>(input);
         assertFalse(spltr.hasCharacteristics(Spliterator.SIZED));
         assertEquals(Long.MAX_VALUE, spltr.estimateSize());
         spltr.trySplit();
