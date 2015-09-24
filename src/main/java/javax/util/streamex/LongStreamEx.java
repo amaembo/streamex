@@ -47,6 +47,8 @@ import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import javax.util.streamex.StreamExInternals.PrimitiveBox;
+
 import static javax.util.streamex.StreamExInternals.*;
 
 /**
@@ -551,6 +553,25 @@ public class LongStreamEx implements LongStream {
     @Override
     public OptionalLong reduce(LongBinaryOperator op) {
         return stream.reduce(op);
+    }
+
+    public long foldLeft(int identity, LongBinaryOperator op) {
+        long[] box = new long[] {identity};
+        stream.forEachOrdered(t -> box[0] = op.applyAsLong(box[0], t));
+        return box[0];
+    }
+    
+    public OptionalLong foldLeft(LongBinaryOperator op) {
+        PrimitiveBox b = new PrimitiveBox();
+        stream.forEachOrdered(t -> {
+            if(b.b)
+                b.l = op.applyAsLong(b.l, t);
+            else {
+                b.l = t;
+                b.b = true;
+            }
+        });
+        return b.asLong();
     }
 
     /**

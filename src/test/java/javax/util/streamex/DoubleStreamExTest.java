@@ -25,6 +25,7 @@ import java.util.Random;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleFunction;
 import java.util.function.DoubleToIntFunction;
 import java.util.function.DoubleToLongFunction;
@@ -323,5 +324,16 @@ public class DoubleStreamExTest {
         assertArrayEquals(new double[] {5,6,7,8,9,10,11,12,13,14}, LongStreamEx.range(100).asDoubleStream().dropWhile(i -> i % 10 < 5).limit(10).toArray(), 0.0);
         assertEquals(100, LongStreamEx.range(100).asDoubleStream().sorted().dropWhile(i -> i % 10 < 0).count());
         assertEquals(0, LongStreamEx.range(100).asDoubleStream().dropWhile(i -> i % 10 < 10).count());
+    }
+    
+    @Test
+    public void testFoldLeft() {
+        // non-associative
+        DoubleBinaryOperator accumulator = (x, y) -> (x + y) * (x + y);
+        assertEquals(2322576, DoubleStreamEx.constant(3, 4).foldLeft(accumulator).orElse(-1), 0.0);
+        assertEquals(2322576, DoubleStreamEx.constant(3, 4).parallel().foldLeft(accumulator).orElse(-1), 0.0);
+        assertFalse(DoubleStreamEx.empty().foldLeft(accumulator).isPresent());
+        assertEquals(144, DoubleStreamEx.of(1, 2, 3).foldLeft(0, accumulator), 144);
+        assertEquals(144, DoubleStreamEx.of(1, 2, 3).parallel().foldLeft(0, accumulator), 144);
     }
 }

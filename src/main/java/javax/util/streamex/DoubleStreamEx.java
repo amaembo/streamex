@@ -46,6 +46,8 @@ import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import javax.util.streamex.StreamExInternals.PrimitiveBox;
+
 import static javax.util.streamex.StreamExInternals.*;
 
 /**
@@ -546,6 +548,25 @@ public class DoubleStreamEx implements DoubleStream {
     @Override
     public OptionalDouble reduce(DoubleBinaryOperator op) {
         return stream.reduce(op);
+    }
+
+    public double foldLeft(int identity, DoubleBinaryOperator op) {
+        double[] box = new double[] {identity};
+        stream.forEachOrdered(t -> box[0] = op.applyAsDouble(box[0], t));
+        return box[0];
+    }
+    
+    public OptionalDouble foldLeft(DoubleBinaryOperator op) {
+        PrimitiveBox b = new PrimitiveBox();
+        stream.forEachOrdered(t -> {
+            if(b.b)
+                b.d = op.applyAsDouble(b.d, t);
+            else {
+                b.d = t;
+                b.b = true;
+            }
+        });
+        return b.asDouble();
     }
 
     /**

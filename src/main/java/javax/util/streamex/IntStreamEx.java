@@ -633,6 +633,25 @@ public class IntStreamEx implements IntStream {
         return stream.reduce(op);
     }
 
+    public int foldLeft(int identity, IntBinaryOperator op) {
+        int[] box = new int[] {identity};
+        stream.forEachOrdered(t -> box[0] = op.applyAsInt(box[0], t));
+        return box[0];
+    }
+    
+    public OptionalInt foldLeft(IntBinaryOperator op) {
+        PrimitiveBox b = new PrimitiveBox();
+        stream.forEachOrdered(t -> {
+            if(b.b)
+                b.i = op.applyAsInt(b.i, t);
+            else {
+                b.i = t;
+                b.b = true;
+            }
+        });
+        return b.asInt();
+    }
+
     /**
      * {@inheritDoc}
      * 
