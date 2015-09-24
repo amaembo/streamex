@@ -1075,7 +1075,7 @@ import static javax.util.streamex.StreamExInternals.*;
     }
 
     public Optional<T> foldRight(BinaryOperator<T> accumulator) {
-        return toListAndThen(list -> {
+        return this.<Optional<T>>toListAndThen(list -> {
             if(list.isEmpty())
                 return Optional.empty();
             int i = list.size() - 1;
