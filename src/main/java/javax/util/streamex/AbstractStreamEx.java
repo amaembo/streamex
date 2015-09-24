@@ -1024,6 +1024,12 @@ import static javax.util.streamex.StreamExInternals.*;
         return result.a;
     }
 
+    public Optional<T> foldLeft(BinaryOperator<T> accumulator) {
+        Box<T> result = new Box<>(none());
+        forEachOrdered(t -> result.a = result.a == NONE ? t : accumulator.apply(result.a, t));
+        return result.a == NONE ? Optional.empty() : Optional.of(result.a);
+    }
+
     /**
      * Folds the elements of this stream using the provided identity object and
      * accumulation function, going right to left.
@@ -1065,6 +1071,18 @@ import static javax.util.streamex.StreamExInternals.*;
             for (int i = list.size() - 1; i >= 0; i--)
                 result = accumulator.apply(list.get(i), result);
             return result;
+        });
+    }
+
+    public Optional<T> foldRight(BinaryOperator<T> accumulator) {
+        return toListAndThen(list -> {
+            if(list.isEmpty())
+                return Optional.empty();
+            int i = list.size() - 1;
+            T result = list.get(i--);
+            for (; i >= 0; i--)
+                result = accumulator.apply(list.get(i), result);
+            return Optional.of(result);
         });
     }
 
