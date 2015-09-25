@@ -3,6 +3,8 @@
 ### 0.4.0
 
 * Added `IntStreamEx/LongStreamEx.range/rangeClosed` methods with additional step parameter.
+* Added `StreamEx/EntryStream.foldLeft/foldRight` methods without identity operator.
+* Added `StreamEx/EntryStream.scanLeft/scanRight` methods without identity operator.
 * Deprecated methods `EntryStream.mapEntryKeys`/`mapEntryValues` are removed!
 
 ### 0.3.8

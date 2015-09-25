@@ -783,18 +783,28 @@ public class StreamExTest {
 
     @Test
     public void testScanLeft() {
-        assertEquals(Arrays.asList(0, 1, 3, 6, 10), IntStreamEx.rangeClosed(1, 4).boxed().scanLeft(0, Integer::sum));
-        assertEquals(Arrays.asList(0, 1, 3, 6, 10),
-            IntStreamEx.rangeClosed(1, 4).boxed().parallel().scanLeft(0, Integer::sum));
+        for(StreamExSupplier<Integer> supplier : streamEx(() -> IntStreamEx.rangeClosed(1, 4).boxed())) {
+            assertEquals(supplier.toString(), Arrays.asList(0, 1, 3, 6, 10), supplier.get().scanLeft(0, Integer::sum));
+            assertEquals(supplier.toString(), Arrays.asList(1, 3, 6, 10), supplier.get().scanLeft(Integer::sum));
+        }
+        for(StreamExSupplier<Integer> supplier : emptyStreamEx(Integer.class)) {
+            assertTrue(supplier.toString(), supplier.get().scanLeft(Integer::sum).isEmpty());
+            assertEquals(supplier.toString(), Arrays.asList(0), supplier.get().scanLeft(0, Integer::sum));
+        }
         assertEquals(167167000, IntStreamEx.rangeClosed(1, 1000).boxed().parallel().scanLeft(0, Integer::sum).stream()
                 .mapToLong(x -> x).sum());
     }
 
     @Test
     public void testScanRight() {
-        assertEquals(Arrays.asList(10, 9, 7, 4, 0), IntStreamEx.rangeClosed(1, 4).boxed().scanRight(0, Integer::sum));
-        assertEquals(Arrays.asList(10, 9, 7, 4, 0),
-            IntStreamEx.rangeClosed(1, 4).boxed().parallel().scanRight(0, Integer::sum));
+        for(StreamExSupplier<Integer> supplier : streamEx(() -> IntStreamEx.rangeClosed(1, 4).boxed())) {
+            assertEquals(supplier.toString(), Arrays.asList(10, 9, 7, 4, 0), supplier.get().scanRight(0, Integer::sum));
+            assertEquals(supplier.toString(), Arrays.asList(10, 9, 7, 4), supplier.get().scanRight(Integer::sum));
+        }
+        for(StreamExSupplier<Integer> supplier : emptyStreamEx(Integer.class)) {
+            assertTrue(supplier.toString(), supplier.get().scanRight(Integer::sum).isEmpty());
+            assertEquals(supplier.toString(), Arrays.asList(0), supplier.get().scanRight(0, Integer::sum));
+        }
         assertEquals(333833500, IntStreamEx.rangeClosed(1, 1000).boxed().parallel().scanRight(0, Integer::sum).stream()
                 .mapToLong(x -> x).sum());
     }
