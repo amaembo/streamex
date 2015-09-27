@@ -1459,20 +1459,20 @@ public class LongStreamEx implements LongStream {
      * @see LongStreamEx#rangeClosed(long, long)
      * @since 0.4.0
      */
-    public static LongStreamEx rangeClosed(long startInclusive, long endExclusive, long step) {
+    public static LongStreamEx rangeClosed(long startInclusive, long endInclusive, long step) {
         if (step == 0)
             throw new IllegalArgumentException("step = 0");
         if (step == 1)
-            return of(LongStream.rangeClosed(startInclusive, endExclusive));
+            return of(LongStream.rangeClosed(startInclusive, endInclusive));
         if (step == -1) {
             // Handled specially as number of elements can exceed
             // Long.MAX_VALUE
-            long sum = endExclusive + startInclusive;
-            return of(LongStream.rangeClosed(endExclusive, startInclusive).map(x -> sum - x));
+            long sum = endInclusive + startInclusive;
+            return of(LongStream.rangeClosed(endInclusive, startInclusive).map(x -> sum - x));
         }
-        if ((endExclusive > startInclusive ^ step > 0) || endExclusive == startInclusive)
+        if ((endInclusive > startInclusive ^ step > 0) || endInclusive == startInclusive)
             return empty();
-        long limit = (endExclusive - startInclusive) * Long.signum(step);
+        long limit = (endInclusive - startInclusive) * Long.signum(step);
         limit = Long.divideUnsigned(limit, Math.abs(step));
         return of(LongStream.rangeClosed(0, limit).map(x -> x * step + startInclusive));
     }

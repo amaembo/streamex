@@ -2000,20 +2000,20 @@ public class IntStreamEx implements IntStream {
      * @see IntStreamEx#rangeClosed(int, int)
      * @since 0.4.0
      */
-    public static IntStreamEx rangeClosed(int startInclusive, int endExclusive, int step) {
+    public static IntStreamEx rangeClosed(int startInclusive, int endInclusive, int step) {
         if (step == 0)
             throw new IllegalArgumentException("step = 0");
         if (step == 1)
-            return of(IntStream.rangeClosed(startInclusive, endExclusive));
+            return of(IntStream.rangeClosed(startInclusive, endInclusive));
         if (step == -1) {
             // Handled specially as number of elements can exceed
             // Integer.MAX_VALUE
-            int sum = endExclusive + startInclusive;
-            return of(IntStream.rangeClosed(endExclusive, startInclusive).map(x -> sum - x));
+            int sum = endInclusive + startInclusive;
+            return of(IntStream.rangeClosed(endInclusive, startInclusive).map(x -> sum - x));
         }
-        if (endExclusive > startInclusive ^ step > 0)
+        if (endInclusive > startInclusive ^ step > 0)
             return empty();
-        int limit = (endExclusive - startInclusive) * Integer.signum(step);
+        int limit = (endInclusive - startInclusive) * Integer.signum(step);
         limit = Integer.divideUnsigned(limit, Math.abs(step));
         return of(IntStream.rangeClosed(0, limit).map(x -> x * step + startInclusive));
     }
