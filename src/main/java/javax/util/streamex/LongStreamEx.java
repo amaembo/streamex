@@ -556,15 +556,15 @@ public class LongStreamEx implements LongStream {
     }
 
     public long foldLeft(int identity, LongBinaryOperator op) {
-        long[] box = new long[] {identity};
+        long[] box = new long[] { identity };
         stream.forEachOrdered(t -> box[0] = op.applyAsLong(box[0], t));
         return box[0];
     }
-    
+
     public OptionalLong foldLeft(LongBinaryOperator op) {
         PrimitiveBox b = new PrimitiveBox();
         stream.forEachOrdered(t -> {
-            if(b.b)
+            if (b.b)
                 b.l = op.applyAsLong(b.l, t);
             else {
                 b.l = t;
@@ -1387,10 +1387,30 @@ public class LongStreamEx implements LongStream {
         return new LongStreamEx(LongStream.range(startInclusive, endExclusive));
     }
 
+    /**
+     * Returns a sequential ordered {@code LongStreamEx} from
+     * {@code startInclusive} (inclusive) to {@code endExclusive} (exclusive) by
+     * the specified incremental step. The negative step values are also
+     * supported. In this case the {@code startInclusive} should be greater than
+     * {@code endExclusive}.
+     *
+     * @param startInclusive
+     *            the (inclusive) initial value
+     * @param endExclusive
+     *            the exclusive upper bound
+     * @param step
+     *            the non-zero value which designates the difference between the
+     *            consecutive values of the resulting stream.
+     * @return a sequential {@code LongStreamEx} for the range of {@code long}
+     *         elements
+     * @throws IllegalArgumentException
+     *             if step is zero
+     * @see LongStreamEx#range(long, long)
+     * @since 0.4.0
+     */
     public static LongStreamEx range(long startInclusive, long endExclusive, long step) {
-        long endInclusive = endExclusive-Long.signum(step);
-        if(endInclusive > endExclusive && step > 0 ||
-                endInclusive < endExclusive && step < 0)
+        long endInclusive = endExclusive - Long.signum(step);
+        if (endInclusive > endExclusive && step > 0 || endInclusive < endExclusive && step < 0)
             return empty();
         return rangeClosed(startInclusive, endInclusive, step);
     }
@@ -1412,19 +1432,47 @@ public class LongStreamEx implements LongStream {
         return new LongStreamEx(LongStream.rangeClosed(startInclusive, endInclusive));
     }
 
+    /**
+     * Returns a sequential ordered {@code LongStreamEx} from
+     * {@code startInclusive} (inclusive) to {@code endInclusive} (inclusive) by
+     * the specified incremental step. The negative step values are also
+     * supported. In this case the {@code startInclusive} should be greater than
+     * {@code endInclusive}.
+     * 
+     * <p>
+     * Note that depending on the step value the {@code endInclusive} bound may
+     * still not be reached. For example
+     * {@code LongStreamEx.rangeClosed(0, 5, 2)} will yield the stream of three
+     * numbers: 0L, 2L and 4L.
+     *
+     * @param startInclusive
+     *            the (inclusive) initial value
+     * @param endInclusive
+     *            the inclusive upper bound
+     * @param step
+     *            the non-zero value which designates the difference between the
+     *            consecutive values of the resulting stream.
+     * @return a sequential {@code LongStreamEx} for the range of {@code long}
+     *         elements
+     * @throws IllegalArgumentException
+     *             if step is zero
+     * @see LongStreamEx#rangeClosed(long, long)
+     * @since 0.4.0
+     */
     public static LongStreamEx rangeClosed(long startInclusive, long endExclusive, long step) {
-        if(step == 0)
+        if (step == 0)
             throw new IllegalArgumentException("step = 0");
-        if(step == 1)
+        if (step == 1)
             return of(LongStream.rangeClosed(startInclusive, endExclusive));
-        if(step == -1) {
-            // Handled specially as number of elements can exceed Integer.MAX_VALUE
-            long sum = endExclusive+startInclusive;
+        if (step == -1) {
+            // Handled specially as number of elements can exceed
+            // Long.MAX_VALUE
+            long sum = endExclusive + startInclusive;
             return of(LongStream.rangeClosed(endExclusive, startInclusive).map(x -> sum - x));
         }
-        if((endExclusive > startInclusive ^ step > 0) || endExclusive == startInclusive)
+        if ((endExclusive > startInclusive ^ step > 0) || endExclusive == startInclusive)
             return empty();
-        long limit = (endExclusive-startInclusive)*Long.signum(step);
+        long limit = (endExclusive - startInclusive) * Long.signum(step);
         limit = Long.divideUnsigned(limit, Math.abs(step));
         return of(LongStream.rangeClosed(0, limit).map(x -> x * step + startInclusive));
     }

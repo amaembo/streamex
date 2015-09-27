@@ -85,7 +85,7 @@ public class IntStreamEx implements IntStream {
             throw new InternalError(e);
         }
     }
-    
+
     <A> A collectSized(Supplier<A> supplier, ObjIntConsumer<A> accumulator, BiConsumer<A, A> combiner,
             IntFunction<A> sizedSupplier, ObjIntConsumer<A> sizedAccumulator) {
         if (isParallel())
@@ -634,15 +634,15 @@ public class IntStreamEx implements IntStream {
     }
 
     public int foldLeft(int identity, IntBinaryOperator op) {
-        int[] box = new int[] {identity};
+        int[] box = new int[] { identity };
         stream.forEachOrdered(t -> box[0] = op.applyAsInt(box[0], t));
         return box[0];
     }
-    
+
     public OptionalInt foldLeft(IntBinaryOperator op) {
         PrimitiveBox b = new PrimitiveBox();
         stream.forEachOrdered(t -> {
-            if(b.b)
+            if (b.b)
                 b.i = op.applyAsInt(b.i, t);
             else {
                 b.i = t;
@@ -1760,7 +1760,7 @@ public class IntStreamEx implements IntStream {
 
     /**
      * Returns a sequential ordered {@code DoubleStreamEx} whose elements are
-     * the unboxed elements of supplied collection. 
+     * the unboxed elements of supplied collection.
      *
      * @param collection
      *            the collection to create the stream from.
@@ -1927,11 +1927,31 @@ public class IntStreamEx implements IntStream {
     public static IntStreamEx range(int startInclusive, int endExclusive) {
         return new IntStreamEx(IntStream.range(startInclusive, endExclusive));
     }
-    
+
+    /**
+     * Returns a sequential ordered {@code IntStreamEx} from
+     * {@code startInclusive} (inclusive) to {@code endExclusive} (exclusive) by
+     * the specified incremental step. The negative step values are also
+     * supported. In this case the {@code startInclusive} should be greater than
+     * {@code endExclusive}.
+     *
+     * @param startInclusive
+     *            the (inclusive) initial value
+     * @param endExclusive
+     *            the exclusive upper bound
+     * @param step
+     *            the non-zero value which designates the difference between the
+     *            consecutive values of the resulting stream.
+     * @return a sequential {@code IntStreamEx} for the range of {@code int}
+     *         elements
+     * @throws IllegalArgumentException
+     *             if step is zero
+     * @see IntStreamEx#range(int, int)
+     * @since 0.4.0
+     */
     public static IntStreamEx range(int startInclusive, int endExclusive, int step) {
-        int endInclusive = endExclusive-Integer.signum(step);
-        if(endInclusive > endExclusive && step > 0 ||
-                endInclusive < endExclusive && step < 0)
+        int endInclusive = endExclusive - Integer.signum(step);
+        if (endInclusive > endExclusive && step > 0 || endInclusive < endExclusive && step < 0)
             return empty();
         return rangeClosed(startInclusive, endInclusive, step);
     }
@@ -1953,19 +1973,47 @@ public class IntStreamEx implements IntStream {
         return new IntStreamEx(IntStream.rangeClosed(startInclusive, endInclusive));
     }
 
+    /**
+     * Returns a sequential ordered {@code IntStreamEx} from
+     * {@code startInclusive} (inclusive) to {@code endInclusive} (inclusive) by
+     * the specified incremental step. The negative step values are also
+     * supported. In this case the {@code startInclusive} should be greater than
+     * {@code endInclusive}.
+     * 
+     * <p>
+     * Note that depending on the step value the {@code endInclusive} bound may
+     * still not be reached. For example
+     * {@code IntStreamEx.rangeClosed(0, 5, 2)} will yield the stream of three
+     * numbers: 0, 2 and 4.
+     *
+     * @param startInclusive
+     *            the (inclusive) initial value
+     * @param endInclusive
+     *            the inclusive upper bound
+     * @param step
+     *            the non-zero value which designates the difference between the
+     *            consecutive values of the resulting stream.
+     * @return a sequential {@code IntStreamEx} for the range of {@code int}
+     *         elements
+     * @throws IllegalArgumentException
+     *             if step is zero
+     * @see IntStreamEx#rangeClosed(int, int)
+     * @since 0.4.0
+     */
     public static IntStreamEx rangeClosed(int startInclusive, int endExclusive, int step) {
-        if(step == 0)
+        if (step == 0)
             throw new IllegalArgumentException("step = 0");
-        if(step == 1)
+        if (step == 1)
             return of(IntStream.rangeClosed(startInclusive, endExclusive));
-        if(step == -1) {
-            // Handled specially as number of elements can exceed Integer.MAX_VALUE
-            int sum = endExclusive+startInclusive;
+        if (step == -1) {
+            // Handled specially as number of elements can exceed
+            // Integer.MAX_VALUE
+            int sum = endExclusive + startInclusive;
             return of(IntStream.rangeClosed(endExclusive, startInclusive).map(x -> sum - x));
         }
-        if(endExclusive > startInclusive ^ step > 0)
+        if (endExclusive > startInclusive ^ step > 0)
             return empty();
-        int limit = (endExclusive-startInclusive)*Integer.signum(step);
+        int limit = (endExclusive - startInclusive) * Integer.signum(step);
         limit = Integer.divideUnsigned(limit, Math.abs(step));
         return of(IntStream.rangeClosed(0, limit).map(x -> x * step + startInclusive));
     }
