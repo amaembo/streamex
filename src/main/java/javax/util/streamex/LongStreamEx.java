@@ -555,17 +555,99 @@ public class LongStreamEx implements LongStream {
         return stream.reduce(op);
     }
 
-    public long foldLeft(int identity, LongBinaryOperator op) {
+    /**
+     * Folds the elements of this stream using the provided identity object and
+     * accumulation function, going left to right. This is equivalent to:
+     * 
+     * <pre>
+     * {@code
+     *     long result = identity;
+     *     for (long element : this stream)
+     *         result = accumulator.apply(result, element)
+     *     return result;
+     * }
+     * </pre>
+     *
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * This method may work slowly on parallel streams as it must process
+     * elements strictly left to right. If your accumulator function is
+     * associative, consider using {@link #reduce(long, LongBinaryOperator)}
+     * method.
+     * 
+     * <p>
+     * For parallel stream it's not guaranteed that accumulator will always be
+     * executed in the same thread.
+     *
+     * @param identity
+     *            the identity value
+     * @param accumulator
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function for incorporating an additional element into a result
+     * @return the result of the folding
+     * @see #reduce(long, LongBinaryOperator)
+     * @see #foldLeft(LongBinaryOperator)
+     * @since 0.4.0
+     */
+    public long foldLeft(long identity, LongBinaryOperator accumulator) {
         long[] box = new long[] { identity };
-        stream.forEachOrdered(t -> box[0] = op.applyAsLong(box[0], t));
+        stream.forEachOrdered(t -> box[0] = accumulator.applyAsLong(box[0], t));
         return box[0];
     }
 
-    public OptionalLong foldLeft(LongBinaryOperator op) {
+    /**
+     * Folds the elements of this stream using the provided accumulation
+     * function, going left to right. This is equivalent to:
+     * 
+     * <pre>
+     * {@code
+     *     boolean foundAny = false;
+     *     long result = 0;
+     *     for (long element : this stream) {
+     *         if (!foundAny) {
+     *             foundAny = true;
+     *             result = element;
+     *         }
+     *         else
+     *             result = accumulator.apply(result, element);
+     *     }
+     *     return foundAny ? OptionalLong.of(result) : OptionalLong.empty();
+     * }
+     * </pre>
+     * 
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * This method may work slowly on parallel streams as it must process
+     * elements strictly left to right. If your accumulator function is
+     * associative, consider using {@link #reduce(LongBinaryOperator)} method.
+     * 
+     * <p>
+     * For parallel stream it's not guaranteed that accumulator will always be
+     * executed in the same thread.
+     *
+     * @param accumulator
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function for incorporating an additional element into a result
+     * @return the result of the folding
+     * @see #foldLeft(long, LongBinaryOperator)
+     * @see #reduce(LongBinaryOperator)
+     * @since 0.4.0
+     */
+    public OptionalLong foldLeft(LongBinaryOperator accumulator) {
         PrimitiveBox b = new PrimitiveBox();
         stream.forEachOrdered(t -> {
             if (b.b)
-                b.l = op.applyAsLong(b.l, t);
+                b.l = accumulator.applyAsLong(b.l, t);
             else {
                 b.l = t;
                 b.b = true;

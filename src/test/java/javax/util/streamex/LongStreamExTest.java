@@ -394,7 +394,7 @@ public class LongStreamExTest {
         assertEquals(2322576, LongStreamEx.constant(3, 4).foldLeft(accumulator).orElse(-1));
         assertEquals(2322576, LongStreamEx.constant(3, 4).parallel().foldLeft(accumulator).orElse(-1));
         assertFalse(LongStreamEx.empty().foldLeft(accumulator).isPresent());
-        assertEquals(144, LongStreamEx.rangeClosed(1, 3).foldLeft(0, accumulator));
-        assertEquals(144, LongStreamEx.rangeClosed(1, 3).parallel().foldLeft(0, accumulator));
+        assertEquals(144, LongStreamEx.rangeClosed(1, 3).foldLeft(0L, accumulator));
+        assertEquals(144, LongStreamEx.rangeClosed(1, 3).parallel().foldLeft(0L, accumulator));
     }
 }

@@ -333,7 +333,7 @@ public class DoubleStreamExTest {
         assertEquals(2322576, DoubleStreamEx.constant(3, 4).foldLeft(accumulator).orElse(-1), 0.0);
         assertEquals(2322576, DoubleStreamEx.constant(3, 4).parallel().foldLeft(accumulator).orElse(-1), 0.0);
         assertFalse(DoubleStreamEx.empty().foldLeft(accumulator).isPresent());
-        assertEquals(144, DoubleStreamEx.of(1, 2, 3).foldLeft(0, accumulator), 144);
-        assertEquals(144, DoubleStreamEx.of(1, 2, 3).parallel().foldLeft(0, accumulator), 144);
+        assertEquals(144, DoubleStreamEx.of(1, 2, 3).foldLeft(0.0, accumulator), 144);
+        assertEquals(144, DoubleStreamEx.of(1, 2, 3).parallel().foldLeft(0.0, accumulator), 144);
     }
 }

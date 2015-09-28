@@ -550,17 +550,99 @@ public class DoubleStreamEx implements DoubleStream {
         return stream.reduce(op);
     }
 
-    public double foldLeft(int identity, DoubleBinaryOperator op) {
+    /**
+     * Folds the elements of this stream using the provided identity object and
+     * accumulation function, going left to right. This is equivalent to:
+     * 
+     * <pre>
+     * {@code
+     *     double result = identity;
+     *     for (double element : this stream)
+     *         result = accumulator.apply(result, element)
+     *     return result;
+     * }
+     * </pre>
+     *
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * This method may work slowly on parallel streams as it must process
+     * elements strictly left to right. If your accumulator function is
+     * associative, consider using {@link #reduce(double, DoubleBinaryOperator)}
+     * method.
+     * 
+     * <p>
+     * For parallel stream it's not guaranteed that accumulator will always be
+     * executed in the same thread.
+     *
+     * @param identity
+     *            the identity value
+     * @param accumulator
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function for incorporating an additional element into a result
+     * @return the result of the folding
+     * @see #reduce(double, DoubleBinaryOperator)
+     * @see #foldLeft(DoubleBinaryOperator)
+     * @since 0.4.0
+     */
+    public double foldLeft(double identity, DoubleBinaryOperator accumulator) {
         double[] box = new double[] {identity};
-        stream.forEachOrdered(t -> box[0] = op.applyAsDouble(box[0], t));
+        stream.forEachOrdered(t -> box[0] = accumulator.applyAsDouble(box[0], t));
         return box[0];
     }
     
-    public OptionalDouble foldLeft(DoubleBinaryOperator op) {
+    /**
+     * Folds the elements of this stream using the provided accumulation
+     * function, going left to right. This is equivalent to:
+     * 
+     * <pre>
+     * {@code
+     *     boolean foundAny = false;
+     *     double result = 0;
+     *     for (double element : this stream) {
+     *         if (!foundAny) {
+     *             foundAny = true;
+     *             result = element;
+     *         }
+     *         else
+     *             result = accumulator.apply(result, element);
+     *     }
+     *     return foundAny ? OptionalDouble.of(result) : OptionalDouble.empty();
+     * }
+     * </pre>
+     * 
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * This method may work slowly on parallel streams as it must process
+     * elements strictly left to right. If your accumulator function is
+     * associative, consider using {@link #reduce(DoubleBinaryOperator)} method.
+     * 
+     * <p>
+     * For parallel stream it's not guaranteed that accumulator will always be
+     * executed in the same thread.
+     *
+     * @param accumulator
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function for incorporating an additional element into a result
+     * @return the result of the folding
+     * @see #foldLeft(double, DoubleBinaryOperator)
+     * @see #reduce(DoubleBinaryOperator)
+     * @since 0.4.0
+     */
+    public OptionalDouble foldLeft(DoubleBinaryOperator accumulator) {
         PrimitiveBox b = new PrimitiveBox();
         stream.forEachOrdered(t -> {
             if(b.b)
-                b.d = op.applyAsDouble(b.d, t);
+                b.d = accumulator.applyAsDouble(b.d, t);
             else {
                 b.d = t;
                 b.b = true;
