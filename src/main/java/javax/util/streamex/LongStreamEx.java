@@ -47,6 +47,8 @@ import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import javax.util.streamex.StreamExInternals.PrimitiveBox;
+
 import static javax.util.streamex.StreamExInternals.*;
 
 /**
@@ -551,6 +553,107 @@ public class LongStreamEx implements LongStream {
     @Override
     public OptionalLong reduce(LongBinaryOperator op) {
         return stream.reduce(op);
+    }
+
+    /**
+     * Folds the elements of this stream using the provided identity object and
+     * accumulation function, going left to right. This is equivalent to:
+     * 
+     * <pre>
+     * {@code
+     *     long result = identity;
+     *     for (long element : this stream)
+     *         result = accumulator.apply(result, element)
+     *     return result;
+     * }
+     * </pre>
+     *
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * This method may work slowly on parallel streams as it must process
+     * elements strictly left to right. If your accumulator function is
+     * associative, consider using {@link #reduce(long, LongBinaryOperator)}
+     * method.
+     * 
+     * <p>
+     * For parallel stream it's not guaranteed that accumulator will always be
+     * executed in the same thread.
+     *
+     * @param identity
+     *            the identity value
+     * @param accumulator
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function for incorporating an additional element into a result
+     * @return the result of the folding
+     * @see #reduce(long, LongBinaryOperator)
+     * @see #foldLeft(LongBinaryOperator)
+     * @since 0.4.0
+     */
+    public long foldLeft(long identity, LongBinaryOperator accumulator) {
+        long[] box = new long[] { identity };
+        stream.forEachOrdered(t -> box[0] = accumulator.applyAsLong(box[0], t));
+        return box[0];
+    }
+
+    /**
+     * Folds the elements of this stream using the provided accumulation
+     * function, going left to right. This is equivalent to:
+     * 
+     * <pre>
+     * {@code
+     *     boolean foundAny = false;
+     *     long result = 0;
+     *     for (long element : this stream) {
+     *         if (!foundAny) {
+     *             foundAny = true;
+     *             result = element;
+     *         }
+     *         else
+     *             result = accumulator.apply(result, element);
+     *     }
+     *     return foundAny ? OptionalLong.of(result) : OptionalLong.empty();
+     * }
+     * </pre>
+     * 
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * This method may work slowly on parallel streams as it must process
+     * elements strictly left to right. If your accumulator function is
+     * associative, consider using {@link #reduce(LongBinaryOperator)} method.
+     * 
+     * <p>
+     * For parallel stream it's not guaranteed that accumulator will always be
+     * executed in the same thread.
+     *
+     * @param accumulator
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function for incorporating an additional element into a result
+     * @return the result of the folding
+     * @see #foldLeft(long, LongBinaryOperator)
+     * @see #reduce(LongBinaryOperator)
+     * @since 0.4.0
+     */
+    public OptionalLong foldLeft(LongBinaryOperator accumulator) {
+        PrimitiveBox b = new PrimitiveBox();
+        stream.forEachOrdered(t -> {
+            if (b.b)
+                b.l = accumulator.applyAsLong(b.l, t);
+            else {
+                b.l = t;
+                b.b = true;
+            }
+        });
+        return b.asLong();
     }
 
     /**
@@ -1366,10 +1469,30 @@ public class LongStreamEx implements LongStream {
         return new LongStreamEx(LongStream.range(startInclusive, endExclusive));
     }
 
+    /**
+     * Returns a sequential ordered {@code LongStreamEx} from
+     * {@code startInclusive} (inclusive) to {@code endExclusive} (exclusive) by
+     * the specified incremental step. The negative step values are also
+     * supported. In this case the {@code startInclusive} should be greater than
+     * {@code endExclusive}.
+     *
+     * @param startInclusive
+     *            the (inclusive) initial value
+     * @param endExclusive
+     *            the exclusive upper bound
+     * @param step
+     *            the non-zero value which designates the difference between the
+     *            consecutive values of the resulting stream.
+     * @return a sequential {@code LongStreamEx} for the range of {@code long}
+     *         elements
+     * @throws IllegalArgumentException
+     *             if step is zero
+     * @see LongStreamEx#range(long, long)
+     * @since 0.4.0
+     */
     public static LongStreamEx range(long startInclusive, long endExclusive, long step) {
-        long endInclusive = endExclusive-Long.signum(step);
-        if(endInclusive > endExclusive && step > 0 ||
-                endInclusive < endExclusive && step < 0)
+        long endInclusive = endExclusive - Long.signum(step);
+        if (endInclusive > endExclusive && step > 0 || endInclusive < endExclusive && step < 0)
             return empty();
         return rangeClosed(startInclusive, endInclusive, step);
     }
@@ -1391,19 +1514,47 @@ public class LongStreamEx implements LongStream {
         return new LongStreamEx(LongStream.rangeClosed(startInclusive, endInclusive));
     }
 
-    public static LongStreamEx rangeClosed(long startInclusive, long endExclusive, long step) {
-        if(step == 0)
+    /**
+     * Returns a sequential ordered {@code LongStreamEx} from
+     * {@code startInclusive} (inclusive) to {@code endInclusive} (inclusive) by
+     * the specified incremental step. The negative step values are also
+     * supported. In this case the {@code startInclusive} should be greater than
+     * {@code endInclusive}.
+     * 
+     * <p>
+     * Note that depending on the step value the {@code endInclusive} bound may
+     * still not be reached. For example
+     * {@code LongStreamEx.rangeClosed(0, 5, 2)} will yield the stream of three
+     * numbers: 0L, 2L and 4L.
+     *
+     * @param startInclusive
+     *            the (inclusive) initial value
+     * @param endInclusive
+     *            the inclusive upper bound
+     * @param step
+     *            the non-zero value which designates the difference between the
+     *            consecutive values of the resulting stream.
+     * @return a sequential {@code LongStreamEx} for the range of {@code long}
+     *         elements
+     * @throws IllegalArgumentException
+     *             if step is zero
+     * @see LongStreamEx#rangeClosed(long, long)
+     * @since 0.4.0
+     */
+    public static LongStreamEx rangeClosed(long startInclusive, long endInclusive, long step) {
+        if (step == 0)
             throw new IllegalArgumentException("step = 0");
-        if(step == 1)
-            return of(LongStream.rangeClosed(startInclusive, endExclusive));
-        if(step == -1) {
-            // Handled specially as number of elements can exceed Integer.MAX_VALUE
-            long sum = endExclusive+startInclusive;
-            return of(LongStream.rangeClosed(endExclusive, startInclusive).map(x -> sum - x));
+        if (step == 1)
+            return of(LongStream.rangeClosed(startInclusive, endInclusive));
+        if (step == -1) {
+            // Handled specially as number of elements can exceed
+            // Long.MAX_VALUE
+            long sum = endInclusive + startInclusive;
+            return of(LongStream.rangeClosed(endInclusive, startInclusive).map(x -> sum - x));
         }
-        if((endExclusive > startInclusive ^ step > 0) || endExclusive == startInclusive)
+        if ((endInclusive > startInclusive ^ step > 0) || endInclusive == startInclusive)
             return empty();
-        long limit = (endExclusive-startInclusive)*Long.signum(step);
+        long limit = (endInclusive - startInclusive) * Long.signum(step);
         limit = Long.divideUnsigned(limit, Math.abs(step));
         return of(LongStream.rangeClosed(0, limit).map(x -> x * step + startInclusive));
     }

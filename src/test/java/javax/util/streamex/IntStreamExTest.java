@@ -31,6 +31,7 @@ import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.function.IntBinaryOperator;
 import java.util.function.IntFunction;
 import java.util.function.IntToDoubleFunction;
 import java.util.function.IntToLongFunction;
@@ -585,5 +586,16 @@ public class IntStreamExTest {
         assertArrayEquals(new int[] {5,6,7,8,9,10,11,12,13,14}, IntStreamEx.range(100).dropWhile(i -> i % 10 < 5).limit(10).toArray());
         assertEquals(100, IntStreamEx.range(100).dropWhile(i -> i % 10 < 0).count());
         assertEquals(0, IntStreamEx.range(100).dropWhile(i -> i % 10 < 10).count());
+    }
+    
+    @Test
+    public void testFoldLeft() {
+        // non-associative
+        IntBinaryOperator accumulator = (x, y) -> (x + y) * (x + y);
+        assertEquals(2322576, IntStreamEx.constant(3, 4).foldLeft(accumulator).orElse(-1));
+        assertEquals(2322576, IntStreamEx.constant(3, 4).parallel().foldLeft(accumulator).orElse(-1));
+        assertFalse(IntStreamEx.empty().foldLeft(accumulator).isPresent());
+        assertEquals(144, IntStreamEx.rangeClosed(1, 3).foldLeft(0, accumulator));
+        assertEquals(144, IntStreamEx.rangeClosed(1, 3).parallel().foldLeft(0, accumulator));
     }
 }

@@ -43,6 +43,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.IntPredicate;
 import java.util.function.Predicate;
@@ -497,6 +498,52 @@ public class StreamExTest {
                             (Map<String, Object> acc, String v) -> Collections.singletonMap(v, acc)).toString());
         }
     }
+    
+    @Test
+    public void testFoldLeftOptional() {
+        // non-associative
+        BinaryOperator<Integer> accumulator = (x, y) -> (x + y) * (x + y);
+        for(StreamExSupplier<Integer> supplier : streamEx(() -> StreamEx.constant(3, 4))) {
+            assertEquals(supplier.toString(), 2322576, (int)supplier.get().foldLeft(accumulator).orElse(-1));
+        }
+        for(StreamExSupplier<Integer> supplier : streamEx(() -> StreamEx.of(1, 2, 3))) {
+            assertEquals(supplier.toString(), 144, (int)supplier.get().foldLeft(accumulator).orElse(-1));
+        }
+        for(StreamExSupplier<Integer> supplier : emptyStreamEx(Integer.class)) {
+            assertFalse(supplier.toString(), supplier.get().foldLeft(accumulator).isPresent());
+        }
+    }
+
+    @Test
+    public void testFoldRight() {
+        assertEquals(";c;b;a", StreamEx.of("a", "b", "c").parallel().foldRight("", (u, v) -> v + ";" + u));
+        assertEquals(
+            "{a={bb={ccc={}}}}",
+            StreamEx.of("a", "bb", "ccc")
+                    .foldRight(Collections.emptyMap(),
+                        (String v, Map<String, Object> acc) -> Collections.singletonMap(v, acc)).toString());
+        assertEquals(
+            "{a={bb={ccc={}}}}",
+            StreamEx.of("a", "bb", "ccc")
+                    .parallel()
+                    .foldRight(Collections.emptyMap(),
+                        (String v, Map<String, Object> acc) -> Collections.singletonMap(v, acc)).toString());
+    }
+
+    @Test
+    public void testFoldRightOptional() {
+        // non-associative
+        BinaryOperator<Integer> accumulator = (x, y) -> (x + y) * (x + y);
+        for(StreamExSupplier<Integer> supplier : streamEx(() -> StreamEx.constant(3, 4))) {
+            assertEquals(supplier.toString(), 2322576, (int)supplier.get().foldRight(accumulator).orElse(-1));
+        }
+        for(StreamExSupplier<Integer> supplier : streamEx(() -> StreamEx.of(1, 2, 3, 0))) {
+            assertEquals(supplier.toString(), 14884, (int)supplier.get().foldRight(accumulator).orElse(-1));
+        }
+        for(StreamExSupplier<Integer> supplier : emptyStreamEx(Integer.class)) {
+            assertFalse(supplier.toString(), supplier.get().foldRight(accumulator).isPresent());
+        }
+    }
 
     @Test
     public void testDistinctAtLeast() {
@@ -572,22 +619,6 @@ public class StreamExTest {
         for (StreamExSupplier<Integer> supplier : streamEx(() -> new Random(1).ints(1000, 0, 100).sorted().boxed())) {
             assertEquals(supplier.toString(), expected, supplier.get().distinct(15).pairMap((a, b) -> b - a).toList());
         }
-    }
-
-    @Test
-    public void testFoldRight() {
-        assertEquals(";c;b;a", StreamEx.of("a", "b", "c").parallel().foldRight("", (u, v) -> v + ";" + u));
-        assertEquals(
-            "{a={bb={ccc={}}}}",
-            StreamEx.of("a", "bb", "ccc")
-                    .foldRight(Collections.emptyMap(),
-                        (String v, Map<String, Object> acc) -> Collections.singletonMap(v, acc)).toString());
-        assertEquals(
-            "{a={bb={ccc={}}}}",
-            StreamEx.of("a", "bb", "ccc")
-                    .parallel()
-                    .foldRight(Collections.emptyMap(),
-                        (String v, Map<String, Object> acc) -> Collections.singletonMap(v, acc)).toString());
     }
 
     private <T extends Comparable<? super T>> boolean isSorted(Collection<T> c) {
@@ -752,18 +783,28 @@ public class StreamExTest {
 
     @Test
     public void testScanLeft() {
-        assertEquals(Arrays.asList(0, 1, 3, 6, 10), IntStreamEx.rangeClosed(1, 4).boxed().scanLeft(0, Integer::sum));
-        assertEquals(Arrays.asList(0, 1, 3, 6, 10),
-            IntStreamEx.rangeClosed(1, 4).boxed().parallel().scanLeft(0, Integer::sum));
+        for(StreamExSupplier<Integer> supplier : streamEx(() -> IntStreamEx.rangeClosed(1, 4).boxed())) {
+            assertEquals(supplier.toString(), Arrays.asList(0, 1, 3, 6, 10), supplier.get().scanLeft(0, Integer::sum));
+            assertEquals(supplier.toString(), Arrays.asList(1, 3, 6, 10), supplier.get().scanLeft(Integer::sum));
+        }
+        for(StreamExSupplier<Integer> supplier : emptyStreamEx(Integer.class)) {
+            assertTrue(supplier.toString(), supplier.get().scanLeft(Integer::sum).isEmpty());
+            assertEquals(supplier.toString(), Arrays.asList(0), supplier.get().scanLeft(0, Integer::sum));
+        }
         assertEquals(167167000, IntStreamEx.rangeClosed(1, 1000).boxed().parallel().scanLeft(0, Integer::sum).stream()
                 .mapToLong(x -> x).sum());
     }
 
     @Test
     public void testScanRight() {
-        assertEquals(Arrays.asList(10, 9, 7, 4, 0), IntStreamEx.rangeClosed(1, 4).boxed().scanRight(0, Integer::sum));
-        assertEquals(Arrays.asList(10, 9, 7, 4, 0),
-            IntStreamEx.rangeClosed(1, 4).boxed().parallel().scanRight(0, Integer::sum));
+        for(StreamExSupplier<Integer> supplier : streamEx(() -> IntStreamEx.rangeClosed(1, 4).boxed())) {
+            assertEquals(supplier.toString(), Arrays.asList(10, 9, 7, 4, 0), supplier.get().scanRight(0, Integer::sum));
+            assertEquals(supplier.toString(), Arrays.asList(10, 9, 7, 4), supplier.get().scanRight(Integer::sum));
+        }
+        for(StreamExSupplier<Integer> supplier : emptyStreamEx(Integer.class)) {
+            assertTrue(supplier.toString(), supplier.get().scanRight(Integer::sum).isEmpty());
+            assertEquals(supplier.toString(), Arrays.asList(0), supplier.get().scanRight(0, Integer::sum));
+        }
         assertEquals(333833500, IntStreamEx.rangeClosed(1, 1000).boxed().parallel().scanRight(0, Integer::sum).stream()
                 .mapToLong(x -> x).sum());
     }

@@ -1025,6 +1025,54 @@ import static javax.util.streamex.StreamExInternals.*;
     }
 
     /**
+     * Folds the elements of this stream using the provided accumulation
+     * function, going left to right. This is equivalent to:
+     * 
+     * <pre>{@code
+     *     boolean foundAny = false;
+     *     T result = null;
+     *     for (T element : this stream) {
+     *         if (!foundAny) {
+     *             foundAny = true;
+     *             result = element;
+     *         }
+     *         else
+     *             result = accumulator.apply(result, element);
+     *     }
+     *     return foundAny ? Optional.of(result) : Optional.empty();
+     * }</pre>
+
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * This method may work slowly on parallel streams as it must process
+     * elements strictly left to right. If your accumulator function is
+     * associative, consider using {@link #reduce(BinaryOperator)} method.
+     * 
+     * <p>
+     * For parallel stream it's not guaranteed that accumulator will always be
+     * executed in the same thread.
+     *
+     * @param accumulator
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function for incorporating an additional element into a result
+     * @return the result of the folding
+     * @see #foldLeft(Object, BiFunction)
+     * @see #foldRight(BinaryOperator)
+     * @see #reduce(BinaryOperator)
+     * @since 0.4.0
+     */
+    public Optional<T> foldLeft(BinaryOperator<T> accumulator) {
+        Box<T> result = new Box<>(none());
+        forEachOrdered(t -> result.a = result.a == NONE ? t : accumulator.apply(result.a, t));
+        return result.a == NONE ? Optional.empty() : Optional.of(result.a);
+    }
+
+    /**
      * Folds the elements of this stream using the provided identity object and
      * accumulation function, going right to left.
      * 
@@ -1069,6 +1117,48 @@ import static javax.util.streamex.StreamExInternals.*;
     }
 
     /**
+     * Folds the elements of this stream using the provided accumulation
+     * function, going right to left.
+     * 
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * As this method must process elements strictly right to left, it cannot
+     * start processing till all the previous stream stages complete. Also it
+     * requires intermediate memory to store the whole content of the stream as
+     * the stream natural order is left to right. If your accumulator function
+     * is associative, consider using {@link #reduce(BinaryOperator)} method.
+     * 
+     * <p>
+     * For parallel stream it's not guaranteed that accumulator will always be
+     * executed in the same thread.
+     *
+     * @param accumulator
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function for incorporating an additional element into a result
+     * @return the result of the folding
+     * @see #foldRight(Object, BiFunction)
+     * @see #foldLeft(BinaryOperator)
+     * @see #reduce(BinaryOperator)
+     * @since 0.4.0
+     */
+    public Optional<T> foldRight(BinaryOperator<T> accumulator) {
+        return this.<Optional<T>>toListAndThen(list -> {
+            if(list.isEmpty())
+                return Optional.empty();
+            int i = list.size() - 1;
+            T result = list.get(i--);
+            for (; i >= 0; i--)
+                result = accumulator.apply(list.get(i), result);
+            return Optional.of(result);
+        });
+    }
+
+    /**
      * Produces a collection containing cumulative results of applying the
      * accumulation function going left to right.
      * 
@@ -1109,6 +1199,50 @@ import static javax.util.streamex.StreamExInternals.*;
         List<U> result = new ArrayList<>();
         result.add(identity);
         forEachOrdered(t -> result.add(accumulator.apply(result.get(result.size() - 1), t)));
+        return result;
+    }
+
+    /**
+     * Produces a collection containing cumulative results of applying the
+     * accumulation function going left to right.
+     * 
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * The result {@link List} is guaranteed to be mutable.
+     * 
+     * <p>
+     * For parallel stream it's not guaranteed that accumulator will always be
+     * executed in the same thread.
+     * 
+     * <p>
+     * This method cannot take all the advantages of parallel streams as it must
+     * process elements strictly left to right.
+     *
+     * @param accumulator
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function for incorporating an additional element into a result
+     * @return the {@code List} where the first element is the first element of
+     *         this stream and every successor element is the result of applying
+     *         accumulator function to the previous list element and the
+     *         corresponding stream element. The resulting list has the same
+     *         size as this stream.
+     * @see #foldLeft(BinaryOperator)
+     * @see #scanRight(BinaryOperator)
+     * @since 0.4.0
+     */
+    public List<T> scanLeft(BinaryOperator<T> accumulator) {
+        List<T> result = new ArrayList<>();
+        forEachOrdered(t -> {
+            if(result.isEmpty())
+                result.add(t);
+            else
+                result.add(accumulator.apply(result.get(result.size() - 1), t));
+        });
         return result;
     }
 
@@ -1159,6 +1293,48 @@ import static javax.util.streamex.StreamExInternals.*;
                 result.set(i, accumulator.apply((T) result.get(i), result.get(i + 1)));
             }
             return result;
+        });
+    }
+
+    /**
+     * Produces a collection containing cumulative results of applying the
+     * accumulation function going right to left.
+     * 
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * The result {@link List} is guaranteed to be mutable.
+     * 
+     * <p>
+     * For parallel stream it's not guaranteed that accumulator will always be
+     * executed in the same thread.
+     * 
+     * <p>
+     * This method cannot take all the advantages of parallel streams as it must
+     * process elements strictly right to left.
+     *
+     * @param accumulator
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function for incorporating an additional element into a result
+     * @return the {@code List} where the last element is the last element of
+     *         this stream and every predecessor element is the result of
+     *         applying accumulator function to the corresponding stream element
+     *         and the next list element. The resulting list is one element
+     *         longer than this stream.
+     * @see #scanLeft(BinaryOperator)
+     * @see #foldRight(BinaryOperator)
+     * @since 0.4.0
+     */
+    public List<T> scanRight(BinaryOperator<T> accumulator) {
+        return toListAndThen(list -> {
+            for (int i = list.size() - 2; i >= 0; i--) {
+                list.set(i, accumulator.apply(list.get(i), list.get(i + 1)));
+            }
+            return list;
         });
     }
 

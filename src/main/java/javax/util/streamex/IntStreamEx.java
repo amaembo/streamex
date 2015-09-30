@@ -85,7 +85,7 @@ public class IntStreamEx implements IntStream {
             throw new InternalError(e);
         }
     }
-    
+
     <A> A collectSized(Supplier<A> supplier, ObjIntConsumer<A> accumulator, BiConsumer<A, A> combiner,
             IntFunction<A> sizedSupplier, ObjIntConsumer<A> sizedAccumulator) {
         if (isParallel())
@@ -631,6 +631,107 @@ public class IntStreamEx implements IntStream {
     @Override
     public OptionalInt reduce(IntBinaryOperator op) {
         return stream.reduce(op);
+    }
+
+    /**
+     * Folds the elements of this stream using the provided identity object and
+     * accumulation function, going left to right. This is equivalent to:
+     * 
+     * <pre>
+     * {@code
+     *     int result = identity;
+     *     for (int element : this stream)
+     *         result = accumulator.apply(result, element)
+     *     return result;
+     * }
+     * </pre>
+     *
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * This method may work slowly on parallel streams as it must process
+     * elements strictly left to right. If your accumulator function is
+     * associative, consider using {@link #reduce(int, IntBinaryOperator)}
+     * method.
+     * 
+     * <p>
+     * For parallel stream it's not guaranteed that accumulator will always be
+     * executed in the same thread.
+     *
+     * @param identity
+     *            the identity value
+     * @param accumulator
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function for incorporating an additional element into a result
+     * @return the result of the folding
+     * @see #reduce(int, IntBinaryOperator)
+     * @see #foldLeft(IntBinaryOperator)
+     * @since 0.4.0
+     */
+    public int foldLeft(int identity, IntBinaryOperator accumulator) {
+        int[] box = new int[] { identity };
+        stream.forEachOrdered(t -> box[0] = accumulator.applyAsInt(box[0], t));
+        return box[0];
+    }
+
+    /**
+     * Folds the elements of this stream using the provided accumulation
+     * function, going left to right. This is equivalent to:
+     * 
+     * <pre>
+     * {@code
+     *     boolean foundAny = false;
+     *     int result = 0;
+     *     for (int element : this stream) {
+     *         if (!foundAny) {
+     *             foundAny = true;
+     *             result = element;
+     *         }
+     *         else
+     *             result = accumulator.apply(result, element);
+     *     }
+     *     return foundAny ? OptionalInt.of(result) : OptionalInt.empty();
+     * }
+     * </pre>
+     * 
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * This method may work slowly on parallel streams as it must process
+     * elements strictly left to right. If your accumulator function is
+     * associative, consider using {@link #reduce(IntBinaryOperator)} method.
+     * 
+     * <p>
+     * For parallel stream it's not guaranteed that accumulator will always be
+     * executed in the same thread.
+     *
+     * @param accumulator
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function for incorporating an additional element into a result
+     * @return the result of the folding
+     * @see #foldLeft(int, IntBinaryOperator)
+     * @see #reduce(IntBinaryOperator)
+     * @since 0.4.0
+     */
+    public OptionalInt foldLeft(IntBinaryOperator accumulator) {
+        PrimitiveBox b = new PrimitiveBox();
+        stream.forEachOrdered(t -> {
+            if (b.b)
+                b.i = accumulator.applyAsInt(b.i, t);
+            else {
+                b.i = t;
+                b.b = true;
+            }
+        });
+        return b.asInt();
     }
 
     /**
@@ -1741,7 +1842,7 @@ public class IntStreamEx implements IntStream {
 
     /**
      * Returns a sequential ordered {@code DoubleStreamEx} whose elements are
-     * the unboxed elements of supplied collection. 
+     * the unboxed elements of supplied collection.
      *
      * @param collection
      *            the collection to create the stream from.
@@ -1908,11 +2009,31 @@ public class IntStreamEx implements IntStream {
     public static IntStreamEx range(int startInclusive, int endExclusive) {
         return new IntStreamEx(IntStream.range(startInclusive, endExclusive));
     }
-    
+
+    /**
+     * Returns a sequential ordered {@code IntStreamEx} from
+     * {@code startInclusive} (inclusive) to {@code endExclusive} (exclusive) by
+     * the specified incremental step. The negative step values are also
+     * supported. In this case the {@code startInclusive} should be greater than
+     * {@code endExclusive}.
+     *
+     * @param startInclusive
+     *            the (inclusive) initial value
+     * @param endExclusive
+     *            the exclusive upper bound
+     * @param step
+     *            the non-zero value which designates the difference between the
+     *            consecutive values of the resulting stream.
+     * @return a sequential {@code IntStreamEx} for the range of {@code int}
+     *         elements
+     * @throws IllegalArgumentException
+     *             if step is zero
+     * @see IntStreamEx#range(int, int)
+     * @since 0.4.0
+     */
     public static IntStreamEx range(int startInclusive, int endExclusive, int step) {
-        int endInclusive = endExclusive-Integer.signum(step);
-        if(endInclusive > endExclusive && step > 0 ||
-                endInclusive < endExclusive && step < 0)
+        int endInclusive = endExclusive - Integer.signum(step);
+        if (endInclusive > endExclusive && step > 0 || endInclusive < endExclusive && step < 0)
             return empty();
         return rangeClosed(startInclusive, endInclusive, step);
     }
@@ -1934,19 +2055,47 @@ public class IntStreamEx implements IntStream {
         return new IntStreamEx(IntStream.rangeClosed(startInclusive, endInclusive));
     }
 
-    public static IntStreamEx rangeClosed(int startInclusive, int endExclusive, int step) {
-        if(step == 0)
+    /**
+     * Returns a sequential ordered {@code IntStreamEx} from
+     * {@code startInclusive} (inclusive) to {@code endInclusive} (inclusive) by
+     * the specified incremental step. The negative step values are also
+     * supported. In this case the {@code startInclusive} should be greater than
+     * {@code endInclusive}.
+     * 
+     * <p>
+     * Note that depending on the step value the {@code endInclusive} bound may
+     * still not be reached. For example
+     * {@code IntStreamEx.rangeClosed(0, 5, 2)} will yield the stream of three
+     * numbers: 0, 2 and 4.
+     *
+     * @param startInclusive
+     *            the (inclusive) initial value
+     * @param endInclusive
+     *            the inclusive upper bound
+     * @param step
+     *            the non-zero value which designates the difference between the
+     *            consecutive values of the resulting stream.
+     * @return a sequential {@code IntStreamEx} for the range of {@code int}
+     *         elements
+     * @throws IllegalArgumentException
+     *             if step is zero
+     * @see IntStreamEx#rangeClosed(int, int)
+     * @since 0.4.0
+     */
+    public static IntStreamEx rangeClosed(int startInclusive, int endInclusive, int step) {
+        if (step == 0)
             throw new IllegalArgumentException("step = 0");
-        if(step == 1)
-            return of(IntStream.rangeClosed(startInclusive, endExclusive));
-        if(step == -1) {
-            // Handled specially as number of elements can exceed Integer.MAX_VALUE
-            int sum = endExclusive+startInclusive;
-            return of(IntStream.rangeClosed(endExclusive, startInclusive).map(x -> sum - x));
+        if (step == 1)
+            return of(IntStream.rangeClosed(startInclusive, endInclusive));
+        if (step == -1) {
+            // Handled specially as number of elements can exceed
+            // Integer.MAX_VALUE
+            int sum = endInclusive + startInclusive;
+            return of(IntStream.rangeClosed(endInclusive, startInclusive).map(x -> sum - x));
         }
-        if(endExclusive > startInclusive ^ step > 0)
+        if (endInclusive > startInclusive ^ step > 0)
             return empty();
-        int limit = (endExclusive-startInclusive)*Integer.signum(step);
+        int limit = (endInclusive - startInclusive) * Integer.signum(step);
         limit = Integer.divideUnsigned(limit, Math.abs(step));
         return of(IntStream.rangeClosed(0, limit).map(x -> x * step + startInclusive));
     }
