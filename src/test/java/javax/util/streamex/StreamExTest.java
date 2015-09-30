@@ -1383,6 +1383,26 @@ public class StreamExTest {
     }
 
     @Test
+    public void testCartesianReduce() {
+        List<String> expected = IntStreamEx.range(32)
+                .mapToObj(i -> IntStreamEx.range(5).mapToObj(n -> (i >> (4-n)) & 1).joining())
+                .toList();
+        for(StreamExSupplier<String> supplier : streamEx(() -> StreamEx.cartesianPower(5, Arrays.asList(0, 1), "", (a, b) -> a+b))) {
+            assertEquals(supplier.toString(), expected, supplier.get().toList());
+        }
+        List<List<Integer>> input2 = Arrays.asList(Arrays.asList(1, 2, 3), Arrays.asList(), Arrays.asList(4, 5, 6));
+        for(StreamExSupplier<String> supplier : streamEx(() -> StreamEx.cartesianProduct(input2, "", (a, b) -> a+b))) {
+            assertFalse(supplier.toString(), supplier.get().findAny().isPresent());
+        }
+        List<List<Integer>> input3 = Arrays.asList(Arrays.asList(1, 2), Arrays.asList(3), Arrays.asList(4, 5));
+        for(StreamExSupplier<String> supplier : streamEx(() -> StreamEx.cartesianProduct(input3, "", (a, b) -> a+b))) {
+            assertEquals(supplier.toString(), "134,135,234,235", supplier.get().joining(","));
+        }
+        assertEquals(Arrays.asList(""), StreamEx.cartesianProduct(Collections.emptyList(), "", (a, b) -> a+b).toList());
+        assertEquals(Arrays.asList(""), StreamEx.cartesianPower(0, Arrays.asList(1,2,3), "", (a, b) -> a+b).toList());
+    }
+
+    @Test
     public void testDistinct() {
         List<String> input = Arrays.asList("str", "a", "foo", "", "bbbb", null, "abcd", "s");
         for(StreamExSupplier<String> supplier : streamEx(input::stream)) {

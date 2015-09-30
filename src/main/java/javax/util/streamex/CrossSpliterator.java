@@ -63,20 +63,20 @@ import java.util.stream.StreamSupport;
     }
     
     static final class Reducing<T, A> extends CrossSpliterator<T, A> {
-        private List<A> elements;
+        private A[] elements;
         private final BiFunction<A, ? super T, A> accumulator;
 
         @SuppressWarnings("unchecked")
         Reducing(Collection<? extends Collection<T>> source, A identity, BiFunction<A, ? super T, A> accumulator) {
             super(source);
             this.accumulator = accumulator;
-            this.elements = (List<A>) Arrays.asList(new Object[collections.length+1]);
-            this.elements.set(0, identity);
+            this.elements = (A[])new Object[collections.length+1];
+            this.elements[0] = identity;
         }
 
         private Reducing(long est, int splitPos, BiFunction<A, ? super T, A> accumulator,
                 Spliterator<T>[] spliterators, Collection<T>[] collections,
-                List<A> elements) {
+                A[] elements) {
             super(est, splitPos, spliterators, collections);
             this.accumulator = accumulator;
             this.elements = elements;
@@ -88,26 +88,38 @@ import java.util.stream.StreamSupport;
                 return false;
             if (est < Long.MAX_VALUE && est > 0)
                 est--;
-            if (advance(collections.length - 1)) {
-                action.accept(elements.get(collections.length));
+            int l = collections.length;
+            if (advance(l - 1)) {
+                action.accept(elements[l]);
                 return true;
             }
             elements = null;
             est = 0;
             return false;
         }
+        
+        @Override
+        public void forEachRemaining(Consumer<? super A> action) {
+            if (elements == null)
+                return;
+            int l = collections.length;
+            A[] e = elements;
+            while (advance(l - 1)) {
+                action.accept(e[l]);
+            }
+            elements = null;
+            est = 0;
+        }
 
         @Override
         Spliterator<A> doSplit(long prefixEst, Spliterator<T>[] prefixSpliterators, Collection<T>[] prefixCollections) {
-            @SuppressWarnings("unchecked")
-            List<A> prefixElements = (List<A>) Arrays.asList(elements.toArray());
             return new Reducing<>(prefixEst, splitPos, accumulator, prefixSpliterators,
-                    prefixCollections, prefixElements);
+                    prefixCollections, elements.clone());
         }
 
         @Override
         void accumulate(int pos, T t) {
-            elements.set(pos+1, accumulator.apply(elements.get(pos), t));
+            elements[pos+1] = accumulator.apply(elements[pos], t);
         }
     }
 
@@ -140,6 +152,19 @@ import java.util.stream.StreamSupport;
 	        elements = null;
 	        est = 0;
 	        return false;
+	    }
+
+	    @Override
+	    public void forEachRemaining(Consumer<? super List<T>> action) {
+	        if (elements == null)
+	            return;
+	        List<T> e = elements;
+	        int l = collections.length - 1;
+	        while (advance(l)) {
+	            action.accept(new ArrayList<>(e));
+	        }
+	        elements = null;
+	        est = 0;
 	    }
 
 	    @Override

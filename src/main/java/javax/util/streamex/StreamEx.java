@@ -2102,15 +2102,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return of(new CrossSpliterator.Reducing<>(source, identity, accumulator));
     }
 
-    public static <T, U> StreamEx<U> cartesianProduct2(Collection<? extends Collection<T>> source, U identity,
-            BiFunction<U, ? super T, U> accumulator) {
-        return of(StreamEx
-                .of(source)
-                .<Supplier<Stream<T>>> map(c -> () -> c.stream())
-                .<Supplier<Stream<U>>> foldLeft(() -> Stream.of(identity),
-                    (s1, s2) -> () -> s1.get().flatMap(acc -> s2.get().map(t -> accumulator.apply(acc, t)))).get());
-    }
-
     /**
      * Returns a new {@code StreamEx} which elements are {@link List} objects
      * containing all possible n-tuples of the elements of supplied collection.
@@ -2151,9 +2142,5 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         if (n == 0)
             return of(identity);
         return of(new CrossSpliterator.Reducing<>(Collections.nCopies(n, source), identity, accumulator));
-    }
-    
-    public static <T, U> StreamEx<U> cartesianPower2(int n, Collection<T> source, U identity, BiFunction<U, ? super T, U> accumulator) {
-        return cartesianProduct2(Collections.nCopies(n, source), identity, accumulator);
     }
 }
