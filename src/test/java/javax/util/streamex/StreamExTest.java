@@ -1398,7 +1398,8 @@ public class StreamExTest {
         for(StreamExSupplier<String> supplier : streamEx(() -> StreamEx.cartesianProduct(input3, "", (a, b) -> a+b))) {
             assertEquals(supplier.toString(), "134,135,234,235", supplier.get().joining(","));
         }
-        assertEquals(Arrays.asList(""), StreamEx.cartesianProduct(Collections.emptyList(), "", (a, b) -> a+b).toList());
+        assertEquals(Arrays.asList(""),
+            StreamEx.cartesianProduct(Collections.<List<String>> emptyList(), "", String::concat).toList());
         assertEquals(Arrays.asList(""), StreamEx.cartesianPower(0, Arrays.asList(1,2,3), "", (a, b) -> a+b).toList());
     }
 
