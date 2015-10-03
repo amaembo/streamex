@@ -163,6 +163,19 @@ public class StreamExTest {
         assertTrue(StreamEx.of("a", "b", "c").spliterator().hasCharacteristics(Spliterator.ORDERED));
         assertFalse(StreamEx.of("a", "b", "c").unordered().spliterator().hasCharacteristics(Spliterator.ORDERED));
     }
+    
+    @Test
+    public void testFlatMap() {
+        assertArrayEquals(new int[] { 0, 0, 1, 0, 0, 1, 0, 0 },
+            StreamEx.of("111", "222", "333").flatMapToInt(s -> s.chars().map(ch -> ch - '0')).pairMap((a, b) -> b - a)
+                    .toArray());
+        assertArrayEquals(new long[] { 0, 0, 1, 0, 0, 1, 0, 0 },
+            StreamEx.of("111", "222", "333").flatMapToLong(s -> s.chars().mapToLong(ch -> ch - '0')).pairMap((a, b) -> b - a)
+            .toArray());
+        assertArrayEquals(new double[] { 0, 0, 1, 0, 0, 1, 0, 0 },
+            StreamEx.of("111", "222", "333").flatMapToDouble(s -> s.chars().mapToDouble(ch -> ch - '0')).pairMap((a, b) -> b - a)
+            .toArray(), 0.0);
+    }
 
     @Test
     public void testToMap() {
@@ -645,6 +658,7 @@ public class StreamExTest {
     @Test
     public void testPairMap() {
         assertEquals(0, StreamEx.<String> empty().pairMap(String::concat).count());
+        assertArrayEquals(new Object[0], StreamEx.<String> empty().pairMap(String::concat).toArray());
         assertEquals(0, StreamEx.of("a").pairMap(String::concat).count());
         assertEquals(Arrays.asList("aa", "aa", "aa"), StreamEx.generate(() -> "a").pairMap(String::concat).limit(3)
                 .toList());

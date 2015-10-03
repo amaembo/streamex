@@ -46,8 +46,6 @@ import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import javax.util.streamex.StreamExInternals.PrimitiveBox;
-
 import static javax.util.streamex.StreamExInternals.*;
 
 /**
@@ -1216,7 +1214,7 @@ public class DoubleStreamEx implements DoubleStream {
      */
     public DoubleStreamEx takeWhile(DoublePredicate predicate) {
         Objects.requireNonNull(predicate);
-        if (IS_JDK9 && JDK9_METHODS[IDX_DOUBLE_STREAM] != null) {
+        if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_TAKE_WHILE);
         }
         return delegate(new TDOfDouble(stream.spliterator(), false, predicate));
@@ -1245,7 +1243,7 @@ public class DoubleStreamEx implements DoubleStream {
      */
     public DoubleStreamEx dropWhile(DoublePredicate predicate) {
         Objects.requireNonNull(predicate);
-        if (IS_JDK9 && JDK9_METHODS[IDX_DOUBLE_STREAM] != null) {
+        if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_DROP_WHILE);
         }
         return delegate(new TDOfDouble(stream.spliterator(), true, predicate));

@@ -1397,7 +1397,7 @@ import static javax.util.streamex.StreamExInternals.*;
      */
     public S takeWhile(Predicate<? super T> predicate) {
         Objects.requireNonNull(predicate);
-        if (IS_JDK9 && JDK9_METHODS[IDX_STREAM] != null) {
+        if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_TAKE_WHILE);
         }
         return supply(delegate(new TDOfRef<>(stream.spliterator(), false, predicate)));
@@ -1426,7 +1426,7 @@ import static javax.util.streamex.StreamExInternals.*;
      */
     public S dropWhile(Predicate<? super T> predicate) {
         Objects.requireNonNull(predicate);
-        if (IS_JDK9 && JDK9_METHODS[IDX_STREAM] != null) {
+        if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_DROP_WHILE);
         }
         return supply(delegate(new TDOfRef<>(stream.spliterator(), true, predicate)));
