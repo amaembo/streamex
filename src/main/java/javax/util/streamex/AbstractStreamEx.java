@@ -1355,7 +1355,10 @@ import static javax.util.streamex.StreamExInternals.*;
      * {@code StreamEx.ofLines(br).skip(1).parallel().toSet()} will skip
      * arbitrary line, but
      * {@code StreamEx.ofLines(br).skipOrdered(1).parallel().toSet()} will skip
-     * the first one. Also it behaves much better with infinite streams
+     * the first one. This problem was fixed in OracleJDK 8u60. 
+     *
+     * <p>
+     * Also it behaves much better with infinite streams
      * processed in parallel.
      * 
      * <p>

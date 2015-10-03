@@ -504,8 +504,12 @@ public class LongStreamEx implements LongStream {
      * unordered. The main purpose of this method is to workaround the problem
      * of skipping the first elements from non-sized source with further
      * parallel processing and unordered terminal operation (such as
-     * {@link #forEach(LongConsumer)}). Also it behaves much better with
-     * infinite streams processed in parallel. For example,
+     * {@link #forEach(LongConsumer)}). This problem was fixed in OracleJDK
+     * 8u60.
+     * 
+     * <p>
+     * Also it behaves much better with infinite streams processed in parallel.
+     * For example,
      * {@code LongStreamEx.iterate(0L, i->i+1).skip(1).limit(100).parallel().toArray()}
      * will likely to fail with {@code OutOfMemoryError}, but will work nicely
      * if {@code skip} is replaced with {@code skipOrdered}.

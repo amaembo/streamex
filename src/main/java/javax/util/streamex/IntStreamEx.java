@@ -525,8 +525,11 @@ public class IntStreamEx implements IntStream {
      * unordered. The main purpose of this method is to workaround the problem
      * of skipping the first elements from non-sized source with further
      * parallel processing and unordered terminal operation (such as
-     * {@link #forEach(IntConsumer)}). Also it behaves much better with infinite
-     * streams processed in parallel. For example,
+     * {@link #forEach(IntConsumer)}). This problem was fixed in OracleJDK 8u60.
+     * 
+     * <p>
+     * Also it behaves much better with infinite streams processed in parallel.
+     * For example,
      * {@code IntStreamEx.iterate(0, i->i+1).skip(1).limit(100).parallel().toArray()}
      * will likely to fail with {@code OutOfMemoryError}, but will work nicely
      * if {@code skip} is replaced with {@code skipOrdered}.

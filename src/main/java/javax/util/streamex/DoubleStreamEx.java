@@ -79,7 +79,7 @@ public class DoubleStreamEx implements DoubleStream {
             throw new InternalError(e);
         }
     }
-    
+
     @Override
     public boolean isParallel() {
         return stream.isParallel();
@@ -473,8 +473,12 @@ public class DoubleStreamEx implements DoubleStream {
      * unordered. The main purpose of this method is to workaround the problem
      * of skipping the first elements from non-sized source with further
      * parallel processing and unordered terminal operation (such as
-     * {@link #forEach(DoubleConsumer)}). Also it behaves much better with
-     * infinite streams processed in parallel. For example,
+     * {@link #forEach(DoubleConsumer)}). This problem was fixed in OracleJDK
+     * 8u60.
+     * 
+     * <p>
+     * Also it behaves much better with infinite streams processed in parallel.
+     * For example,
      * {@code DoubleStreamEx.iterate(0.0, i->i+1).skip(1).limit(100).parallel().toArray()}
      * will likely to fail with {@code OutOfMemoryError}, but will work nicely
      * if {@code skip} is replaced with {@code skipOrdered}.
@@ -588,11 +592,11 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.4.0
      */
     public double foldLeft(double identity, DoubleBinaryOperator accumulator) {
-        double[] box = new double[] {identity};
+        double[] box = new double[] { identity };
         stream.forEachOrdered(t -> box[0] = accumulator.applyAsDouble(box[0], t));
         return box[0];
     }
-    
+
     /**
      * Folds the elements of this stream using the provided accumulation
      * function, going left to right. This is equivalent to:
@@ -639,7 +643,7 @@ public class DoubleStreamEx implements DoubleStream {
     public OptionalDouble foldLeft(DoubleBinaryOperator accumulator) {
         PrimitiveBox b = new PrimitiveBox();
         stream.forEachOrdered(t -> {
-            if(b.b)
+            if (b.b)
                 b.d = accumulator.applyAsDouble(b.d, t);
             else {
                 b.d = t;
@@ -1381,7 +1385,7 @@ public class DoubleStreamEx implements DoubleStream {
 
     /**
      * Returns a sequential ordered {@code DoubleStreamEx} whose elements are
-     * the unboxed elements of supplied collection. 
+     * the unboxed elements of supplied collection.
      *
      * @param collection
      *            the collection to create the stream from.
