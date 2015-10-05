@@ -2,11 +2,12 @@
 
 ### 0.4.0
 
-* Added `StreamEx/EntryStream.foldLeft/foldRight` methods without identity operator.
-* Added `StreamEx/EntryStream.scanLeft/scanRight` methods without identity operator.
+* Added `StreamEx/EntryStream.foldLeft/foldRight` methods without identity argument.
+* Added `StreamEx/EntryStream.scanLeft/scanRight` methods without identity argument.
 * Added `StreamEx.cartesianProduct/cartesianPower` methods with reduction operator.
 * Added `IntStreamEx/LongStreamEx.range/rangeClosed` methods with additional step parameter.
 * Added `IntStreamEx/LongStreamEx/DoubleStreamEx.foldLeft` methods.
+* Methods `StreamEx.ofEntries` are declared as deprecated and may be removed in future releases!
 * Deprecated methods `EntryStream.mapEntryKeys`/`mapEntryValues` are removed!
 
 ### 0.3.8
