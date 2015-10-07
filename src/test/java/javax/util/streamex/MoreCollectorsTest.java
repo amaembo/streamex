@@ -399,25 +399,29 @@ public class MoreCollectorsTest {
     
     @Test
     public void testIntersecting() {
-        List<List<String>> input = Arrays.asList(Arrays.asList("aa", "bb", "cc"), Arrays.asList("cc", "bb", "dd"),
-            Arrays.asList("ee", "dd"), Arrays.asList("aa", "bb", "dd"));
-        AtomicInteger counter = new AtomicInteger();
-        StreamEx.of(input).peek(t -> counter.incrementAndGet()).collect(MoreCollectors.intersecting());
-        assertEquals(3, counter.get());
-        for(StreamExSupplier<List<String>> supplier : streamEx(input::stream)) {
-            assertEquals(supplier.toString(), Collections.emptySet(),
-                supplier.get().collect(MoreCollectors.intersecting()));
+        for(int i=0; i<5; i++) {
+            List<List<String>> input = Arrays.asList(Arrays.asList("aa", "bb", "cc"), Arrays.asList("cc", "bb", "dd"),
+                Arrays.asList("ee", "dd"), Arrays.asList("aa", "bb", "dd"));
+            AtomicInteger counter = new AtomicInteger();
+            StreamEx.of(input).peek(t -> counter.incrementAndGet()).collect(MoreCollectors.intersecting());
+            assertEquals(3, counter.get());
+            for(StreamExSupplier<List<String>> supplier : streamEx(input::stream)) {
+                assertEquals(supplier.toString(), Collections.emptySet(),
+                    supplier.get().collect(MoreCollectors.intersecting()));
+            }
+            List<List<Integer>> copies = new ArrayList<>(Collections.nCopies(100, Arrays.asList(1, 2)));
+            for(StreamExSupplier<List<Integer>> supplier : streamEx(copies::stream)) {
+                assertEquals(supplier.toString(), StreamEx.of(1, 2).toSet(),
+                    supplier.get().collect(MoreCollectors.intersecting()));
+            }
+            copies.addAll(Collections.nCopies(100, Arrays.asList(3)));
+            for(StreamExSupplier<List<Integer>> supplier : streamEx(copies::stream)) {
+                assertEquals(supplier.toString(), Collections.emptySet(),
+                    supplier.get().collect(MoreCollectors.intersecting()));
+            }
+            assertEquals(Collections.emptySet(), StreamEx.<List<Integer>>empty().collect(MoreCollectors.intersecting()));
+            assertEquals(Collections.emptySet(), StreamEx.<List<Integer>>empty().parallel().collect(MoreCollectors.intersecting()));
         }
-        List<List<Integer>> copies = Collections.nCopies(100, Arrays.asList(1, 2));
-        for(StreamExSupplier<List<Integer>> supplier : streamEx(copies::stream)) {
-            assertEquals(supplier.toString(), StreamEx.of(1, 2).toSet(),
-                supplier.get().collect(MoreCollectors.intersecting()));
-        }
-        for(StreamExSupplier<List<Integer>> supplier : streamEx(() -> StreamEx.of(copies).prepend(Stream.of(Arrays.asList(3))))) {
-            assertEquals(supplier.toString(), Collections.emptySet(),
-                supplier.get().collect(MoreCollectors.intersecting()));
-        }
-        assertEquals(Collections.emptySet(), StreamEx.<List<Integer>>empty().collect(MoreCollectors.intersecting()));
     }
     
     @Test

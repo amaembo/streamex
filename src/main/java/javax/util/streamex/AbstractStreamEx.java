@@ -257,27 +257,27 @@ import static javax.util.streamex.StreamExInternals.*;
             CancellableCollector<? super T, A, R> c = (CancellableCollector<? super T, A, R>) collector;
             BiConsumer<A, ? super T> acc = c.accumulator();
             Predicate<A> finished = c.finished();
+            BinaryOperator<A> combiner = c.combiner();
+            Spliterator<T> spliterator = stream.spliterator();
             if(!isParallel()) {
                 A a = c.supplier().get();
-                Spliterator<T> spliterator = stream.spliterator();
                 while(!finished.test(a) && spliterator.tryAdvance(e -> acc.accept(a, e))) {
                     // nothing to do
                 }
                 return c.finisher().apply(a);
             }
-            Spliterator<T> spliterator = (c.characteristics().contains(Characteristics.UNORDERED) ? stream.unordered()
-                    : stream).spliterator();
-            BinaryOperator<A> combiner = c.combiner();
-            return c.finisher().apply(
-                strategy()
-                        .newStreamEx(
-                            StreamSupport.stream(
-                                new CancellableCollectSpliterator<>(spliterator, c.supplier(), acc,
-                                        finished), true)).reduce(combiner).get());
+            Spliterator<A> spltr;
+            if(!spliterator.hasCharacteristics(Spliterator.ORDERED) || c.characteristics().contains(Characteristics.UNORDERED)) {
+                spltr = new UnorderedCancellableSpliterator<>(spliterator, c.supplier(), acc, combiner, finished); 
+                return c.finisher().apply(strategy().newStreamEx(StreamSupport.stream(spltr, true)).findAny().get());
+            } else {
+                spltr = new CancellableCollectSpliterator<>(spliterator, c.supplier(), acc, finished);
+                return c.finisher().apply(strategy().newStreamEx(StreamSupport.stream(spltr, true)).reduce(combiner).get());
+            }
         }
         return stream.collect(collector);
     }
-
+    
     @Override
     public Optional<T> min(Comparator<? super T> comparator) {
         return reduce(BinaryOperator.minBy(comparator));

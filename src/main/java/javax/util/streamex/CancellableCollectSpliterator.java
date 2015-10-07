@@ -32,7 +32,6 @@ import java.util.function.Supplier;
     private final Supplier<A> supplier;
     private AtomicBoolean cancelled;
     private volatile boolean localCancelled;
-    private final boolean ordered;
     private CancellableCollectSpliterator<T, A> prefix;
     private volatile CancellableCollectSpliterator<T, A> suffix;
     private A acc;
@@ -43,7 +42,6 @@ import java.util.function.Supplier;
         this.supplier = supplier;
         this.accumulator = accumulator;
         this.cancelPredicate = cancelPredicate;
-        this.ordered = source.hasCharacteristics(ORDERED);
     }
 
     @Override
@@ -118,18 +116,16 @@ import java.util.function.Supplier;
             @SuppressWarnings("unchecked")
             CancellableCollectSpliterator<T, A> result = (CancellableCollectSpliterator<T, A>) this.clone();
             result.source = prefix;
-            if (ordered) {
-                this.prefix = result;
-                result.suffix = this;
-                CancellableCollectSpliterator<T, A> prefixPrefix = result.prefix;
-                if (prefixPrefix != null)
-                    prefixPrefix.suffix = result;
-                if (this.localCancelled || result.localCancelled) {
-                    // we can end up here due to the race with suffix updates in
-                    // tryAdvance
-                    this.localCancelled = result.localCancelled = true;
-                    return null;
-                }
+            this.prefix = result;
+            result.suffix = this;
+            CancellableCollectSpliterator<T, A> prefixPrefix = result.prefix;
+            if (prefixPrefix != null)
+                prefixPrefix.suffix = result;
+            if (this.localCancelled || result.localCancelled) {
+                // we can end up here due to the race with suffix updates in
+                // tryAdvance
+                this.localCancelled = result.localCancelled = true;
+                return null;
             }
             return cancelled.get() ? null : result;
         } catch (CloneNotSupportedException e) {
@@ -148,7 +144,7 @@ import java.util.function.Supplier;
 
     @Override
     public int characteristics() {
-        return source == null ? SIZED : ordered ? ORDERED : 0;
+        return source == null ? SIZED : ORDERED;
     }
 
     @Override
