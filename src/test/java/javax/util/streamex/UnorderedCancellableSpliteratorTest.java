@@ -17,7 +17,6 @@ package javax.util.streamex;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Predicate;
@@ -33,7 +32,7 @@ import org.junit.Test;
 public class UnorderedCancellableSpliteratorTest {
     private static class BoxedInteger {
         int value;
-        
+
         public BoxedInteger(int value) {
             this.value = value;
         }
@@ -47,19 +46,20 @@ public class UnorderedCancellableSpliteratorTest {
         public boolean equals(Object obj) {
             if (obj == null || getClass() != obj.getClass())
                 return false;
-            BoxedInteger other = (BoxedInteger) obj;
-            return value == other.value;
+            return value == ((BoxedInteger) obj).value;
         }
     }
 
     @Test
     public void testSpliterator() {
-        List<Integer> input = Arrays.asList(0b11100, 0b01110, 0b00011, 0b11010);
         Supplier<BoxedInteger> s = () -> new BoxedInteger(0xFFFFFFFF);
         BiConsumer<BoxedInteger, Integer> a = (acc, t) -> acc.value &= t;
         BinaryOperator<BoxedInteger> c = (a1, a2) -> new BoxedInteger(a1.value & a2.value);
         Predicate<BoxedInteger> p = acc -> acc.value == 0;
-        List<BoxedInteger> expected = Collections.singletonList(new BoxedInteger(0));
-        checkSpliterator("intersecting", expected, () -> new UnorderedCancellableSpliterator<>(input.spliterator(), s, a, c, p));
+        checkSpliterator("intersecting-short-circuit", Collections.singletonList(new BoxedInteger(0)),
+            () -> new UnorderedCancellableSpliterator<>(
+                    Arrays.asList(0b11100, 0b01110, 0b00011, 0b11010).spliterator(), s, a, c, p));
+        checkSpliterator("intersecting-ok", Collections.singletonList(new BoxedInteger(0b111)),
+            () -> new UnorderedCancellableSpliterator<>(Collections.nCopies(100, 0b111).spliterator(), s, a, c, p));
     }
 }
