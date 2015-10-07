@@ -17,6 +17,7 @@ package javax.util.streamex;
 
 import static org.junit.Assert.*;
 import static javax.util.streamex.TestHelpers.*;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.AbstractMap;
@@ -45,6 +46,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.Collector.Characteristics;
 
 import javax.util.streamex.StreamExInternals.BooleanMap;
 
@@ -433,6 +435,10 @@ public class MoreCollectorsTest {
         assertEquals(OptionalInt.of(0), IntStreamEx.iterate(16384, i -> i + 1).parallel().boxed().collect(collector));
         assertEquals(OptionalInt.of(16384), IntStreamEx.iterate(16384, i -> i + 1).parallel().limit(16383).boxed()
                 .collect(collector));
+        Collector<Integer, ?, Integer> unwrapped = MoreCollectors.collectingAndThen(MoreCollectors.andInt(Integer::intValue), OptionalInt::getAsInt);
+        assertTrue(unwrapped.characteristics().contains(Characteristics.UNORDERED));
+        checkShortCircuitCollector("andIntUnwrapped", 0, 4, ints::stream, unwrapped);
+        checkShortCircuitCollector("andIntUnwrapped", 0, 2, Arrays.asList(0x1, 0x10, 0x100)::stream, unwrapped);
     }
 
     @Test

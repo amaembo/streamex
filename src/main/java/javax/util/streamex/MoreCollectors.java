@@ -860,7 +860,8 @@ public final class MoreCollectors {
         if (downstream instanceof CancellableCollector) {
             return new CancellableCollectorImpl<>(downstream.supplier(), downstream.accumulator(),
                     downstream.combiner(), downstream.finisher().andThen(finisher),
-                    ((CancellableCollector<T, A, R>) downstream).finished(), NO_CHARACTERISTICS);
+                    ((CancellableCollector<T, A, R>) downstream).finished(), downstream.characteristics().contains(
+                        Characteristics.UNORDERED) ? UNORDERED_CHARACTERISTICS : NO_CHARACTERISTICS);
         }
         return Collectors.collectingAndThen(downstream, finisher);
     }
