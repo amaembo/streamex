@@ -255,16 +255,25 @@ import static javax.util.streamex.StreamExInternals.*;
     public <R, A> R collect(Collector<? super T, A, R> collector) {
         if (collector instanceof CancellableCollector) {
             CancellableCollector<? super T, A, R> c = (CancellableCollector<? super T, A, R>) collector;
+            BiConsumer<A, ? super T> acc = c.accumulator();
+            Predicate<A> finished = c.finished();
+            if(!isParallel()) {
+                A a = c.supplier().get();
+                Spliterator<T> spliterator = stream.spliterator();
+                while(!finished.test(a) && spliterator.tryAdvance(e -> acc.accept(a, e))) {
+                    // nothing to do
+                }
+                return c.finisher().apply(a);
+            }
             Spliterator<T> spliterator = (c.characteristics().contains(Characteristics.UNORDERED) ? stream.unordered()
                     : stream).spliterator();
-            Predicate<A> finished = c.finished();
             BinaryOperator<A> combiner = c.combiner();
             return c.finisher().apply(
                 strategy()
                         .newStreamEx(
                             StreamSupport.stream(
-                                new CancellableCollectSpliterator<>(spliterator, c.supplier(), c.accumulator(),
-                                        finished), stream.isParallel())).reduce(combiner).get());
+                                new CancellableCollectSpliterator<>(spliterator, c.supplier(), acc,
+                                        finished), true)).reduce(combiner).get());
         }
         return stream.collect(collector);
     }
