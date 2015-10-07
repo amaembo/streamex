@@ -15,9 +15,7 @@
  */
 package javax.util.streamex;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,9 +24,12 @@ import java.util.List;
 import java.util.Random;
 import java.util.Spliterator;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.BaseStream;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -97,6 +98,26 @@ public class TestHelpers {
         return StreamEx.of(Boolean.FALSE, Boolean.TRUE)
                 .cross(Mode.values()).mapKeyValue((parallel, mode) -> new StreamExSupplier<>(base, parallel, mode))
                 .toList();
+    }
+    
+    static <T, R> void checkCollectorEmpty(String message, R expected, Collector<T, ?, R> collector) {
+        checkCollector(message, expected, Stream::empty, collector);
+    }
+    
+    static <T, R> void checkShortCircuitCollector(String message, R expected, int expectedConsumedElements, StreamEx<T> stream, Collector<T, ?, R> collector) {
+        assertTrue(message, collector instanceof CancellableCollector);
+        AtomicInteger counter = new AtomicInteger();
+        assertEquals(message, expected, stream.peek(t -> counter.incrementAndGet()).collect(collector));
+        assertEquals(message, expectedConsumedElements, counter.get());
+    }
+    
+    static <T, R> void checkCollector(String message, R expected, Supplier<Stream<T>> base, Collector<T, ?, R> collector) {
+        Collector<T, ?, R> withIdentity = Collectors.collectingAndThen(collector, Function.identity());
+        for(StreamExSupplier<T> supplier : streamEx(base)) {
+            assertEquals(message + ": " + supplier, expected, supplier.get().collect(collector));
+            if(collector instanceof CancellableCollector)
+                assertEquals(message + ": " + supplier, expected, supplier.get().collect(withIdentity));
+        }
     }
     
     static <T> List<StreamExSupplier<T>> emptyStreamEx(Class<T> clazz) {

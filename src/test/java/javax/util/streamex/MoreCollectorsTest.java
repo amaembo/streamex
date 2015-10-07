@@ -27,11 +27,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Random;
@@ -39,6 +42,7 @@ import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -84,10 +88,11 @@ public class MoreCollectorsTest {
             assertEquals(1, (int) result.get("e"));
         }
     }
-    
+
     @Test
     public void testDistinctBy() {
-        List<String> input = Arrays.asList("a", "bb", "c", "cc", "eee", "bb", "bc", "ddd", "ca", "ce", "cf", "ded", "dump");
+        List<String> input = Arrays.asList("a", "bb", "c", "cc", "eee", "bb", "bc", "ddd", "ca", "ce", "cf", "ded",
+            "dump");
         for (StreamExSupplier<String> supplier : streamEx(input::stream)) {
             Map<String, List<String>> result = supplier.get().groupingBy(s -> s.substring(0, 1), HashMap::new,
                 MoreCollectors.distinctBy(String::length));
@@ -159,7 +164,7 @@ public class MoreCollectorsTest {
             assertEquals(supplier.toString(), expectedMin.size(), (long) entry.getValue());
             assertEquals(supplier.toString(), expectedMin.get(0), entry.getKey());
         }
-        
+
         Integer a = new Integer(1), b = new Integer(1), c = new Integer(1000), d = new Integer(1000);
         ints = IntStreamEx.range(10, 100).boxed().append(a, c).prepend(b, d).toList();
         for (StreamExSupplier<Integer> supplier : streamEx(ints::stream)) {
@@ -167,7 +172,7 @@ public class MoreCollectorsTest {
             assertEquals(2, list.size());
             assertSame(d, list.get(0));
             assertSame(c, list.get(1));
-            
+
             list = supplier.get().collect(MoreCollectors.minAll());
             assertEquals(2, list.size());
             assertSame(b, list.get(0));
@@ -185,15 +190,16 @@ public class MoreCollectorsTest {
             assertFalse(supplier.toString(), supplier.get().collect(MoreCollectors.first()).isPresent());
             assertFalse(supplier.toString(), supplier.get().collect(MoreCollectors.last()).isPresent());
         }
-        assertEquals(1, (int)StreamEx.iterate(1, x -> x+1).parallel().collect(MoreCollectors.first()).get());
+        assertEquals(1, (int) StreamEx.iterate(1, x -> x + 1).parallel().collect(MoreCollectors.first()).get());
     }
-    
+
     @Test
     public void testHeadTailParallel() {
-        for(int i=0; i<100; i++) {
-            assertEquals("#"+i, Arrays.asList(0, 1), IntStreamEx.range(1000).boxed().parallel().collect(MoreCollectors.head(2)));
+        for (int i = 0; i < 100; i++) {
+            assertEquals("#" + i, Arrays.asList(0, 1),
+                IntStreamEx.range(1000).boxed().parallel().collect(MoreCollectors.head(2)));
         }
-        assertEquals(Arrays.asList(0, 1), StreamEx.iterate(0, x -> x+1).parallel().collect(MoreCollectors.head(2)));
+        assertEquals(Arrays.asList(0, 1), StreamEx.iterate(0, x -> x + 1).parallel().collect(MoreCollectors.head(2)));
     }
 
     @Test
@@ -248,25 +254,18 @@ public class MoreCollectorsTest {
                 supplier.get().collect(MoreCollectors.greatest(Integer.MAX_VALUE)));
         }
 
-        for (StreamExSupplier<Integer> supplier : streamEx(() -> IntStreamEx.range(100).boxed())) {
-            assertEquals(supplier.toString(), IntStreamEx.range(1).boxed().toList(),
-                supplier.get().collect(MoreCollectors.least(1)));
-            assertEquals(supplier.toString(), IntStreamEx.range(2).boxed().toList(),
-                supplier.get().collect(MoreCollectors.least(2)));
-            assertEquals(supplier.toString(), IntStreamEx.range(10).boxed().toList(),
-                supplier.get().collect(MoreCollectors.least(10)));
-            assertEquals(supplier.toString(), IntStreamEx.range(100).boxed().toList(),
-                supplier.get().collect(MoreCollectors.least(100)));
-            assertEquals(supplier.toString(), IntStreamEx.range(100).boxed().toList(),
-                supplier.get().collect(MoreCollectors.least(200)));
-        }
+        Supplier<Stream<Integer>> s = () -> IntStreamEx.range(100).boxed();
+        checkCollector("1", IntStreamEx.range(1).boxed().toList(), s, MoreCollectors.least(1));
+        checkCollector("2", IntStreamEx.range(2).boxed().toList(), s, MoreCollectors.least(2));
+        checkCollector("10", IntStreamEx.range(10).boxed().toList(), s, MoreCollectors.least(10));
+        checkCollector("100", IntStreamEx.range(100).boxed().toList(), s, MoreCollectors.least(100));
+        checkCollector("200", IntStreamEx.range(100).boxed().toList(), s, MoreCollectors.least(200));
     }
 
     @Test
     public void testCountingInt() {
-        for (StreamExSupplier<Integer> supplier : streamEx(() -> IntStreamEx.range(1000).boxed())) {
-            assertEquals(supplier.toString(), 1000, (int) supplier.get().collect(MoreCollectors.countingInt()));
-        }
+        checkCollector("counting", 1000, () -> IntStreamEx.range(1000).boxed(), MoreCollectors.countingInt());
+        checkCollectorEmpty("counting", 0, MoreCollectors.countingInt());
     }
 
     @Test
@@ -295,30 +294,30 @@ public class MoreCollectorsTest {
             assertFalse(supplier.toString(), supplier.get().collect(MoreCollectors.maxIndex()).isPresent());
         }
     }
-    
+
     @Test
     public void testGroupingByEnum() {
-        for(StreamExSupplier<TimeUnit> supplier:streamEx(() -> Stream.of(TimeUnit.SECONDS, TimeUnit.DAYS, TimeUnit.DAYS, TimeUnit.NANOSECONDS))) {
-            EnumMap<TimeUnit, Long> map = supplier.get().collect(
-                MoreCollectors.groupingByEnum(TimeUnit.class, Function.identity(), Collectors.counting()));
-            assertEquals(supplier.toString(), 1L, (long)map.get(TimeUnit.SECONDS));
-            assertEquals(supplier.toString(), 2L, (long)map.get(TimeUnit.DAYS));
-            assertEquals(supplier.toString(), 1L, (long)map.get(TimeUnit.NANOSECONDS));
-            assertEquals(supplier.toString(), 0L, (long)map.get(TimeUnit.MICROSECONDS));
-        }
+        EnumMap<TimeUnit, Long> expected = new EnumMap<>(TimeUnit.class);
+        EnumSet.allOf(TimeUnit.class).forEach(tu -> expected.put(tu, 0L));
+        expected.put(TimeUnit.SECONDS, 1L);
+        expected.put(TimeUnit.DAYS, 2L);
+        expected.put(TimeUnit.NANOSECONDS, 1L);
+        checkCollector("groupingByEnum", expected,
+            () -> Stream.of(TimeUnit.SECONDS, TimeUnit.DAYS, TimeUnit.DAYS, TimeUnit.NANOSECONDS),
+            MoreCollectors.groupingByEnum(TimeUnit.class, Function.identity(), Collectors.counting()));
     }
-    
+
     @Test
     public void testGroupingByWithDomain() {
         List<String> data = Arrays.asList("a", "foo", "test", "ququq", "bar", "blahblah");
-        Collector<String, ?, Map<Integer, Optional<String>>> collector = MoreCollectors.groupingBy(String::length,
-            IntStreamEx.range(10).boxed().toSet(), TreeMap::new, MoreCollectors.first());
-        for(StreamExSupplier<String> supplier : streamEx(data::stream)) {
-            Map<Integer, Optional<String>> map = supplier.get().collect(collector);
-            assertEquals(supplier.toString(), "{0=Optional.empty, 1=Optional[a], 2=Optional.empty, 3=Optional[foo], 4=Optional[test], 5=Optional[ququq], "
-                + "6=Optional.empty, 7=Optional.empty, 8=Optional[blahblah], 9=Optional.empty}", map.toString());
-        }
-        
+        Collector<String, ?, String> collector = 
+                MoreCollectors.collectingAndThen(MoreCollectors.groupingBy(String::length,
+            IntStreamEx.range(10).boxed().toSet(), TreeMap::new, MoreCollectors.first()), Object::toString);
+        checkCollector("groupingWithDomain",
+            "{0=Optional.empty, 1=Optional[a], 2=Optional.empty, 3=Optional[foo], 4=Optional[test], 5=Optional[ququq], "
+                + "6=Optional.empty, 7=Optional.empty, 8=Optional[blahblah], 9=Optional.empty}", data::stream,
+            collector);
+
         Map<String, String> name2sex = new LinkedHashMap<>();
         name2sex.put("Mary", "Girl");
         name2sex.put("John", "Boy");
@@ -333,43 +332,41 @@ public class MoreCollectorsTest {
             Entry::getValue, StreamEx.of("Girl", "Boy").toSet(),
             MoreCollectors.mapping(Entry::getKey, MoreCollectors.joining(", ", "...", 16, false)));
         AtomicInteger counter = new AtomicInteger();
-        Map<String,String> map = EntryStream.of(name2sex).peek(c -> counter.incrementAndGet()).collect(groupingBy);
+        Map<String, String> map = EntryStream.of(name2sex).peek(c -> counter.incrementAndGet()).collect(groupingBy);
         assertEquals("Mary, Lucie, ...", map.get("Girl"));
         assertEquals("John, James, ...", map.get("Boy"));
         assertEquals(7, counter.get());
     }
-    
+
     @Test
     public void testToBooleanArray() {
         List<Integer> input = IntStreamEx.of(new Random(1), 1000, 1, 100).boxed().toList();
         boolean[] expected = new boolean[input.size()];
-        for(int i=0; i<expected.length; i++)
+        for (int i = 0; i < expected.length; i++)
             expected[i] = input.get(i) > 50;
-        for(StreamExSupplier<Integer> supplier : streamEx(input::stream)) {
+        for (StreamExSupplier<Integer> supplier : streamEx(input::stream)) {
             assertArrayEquals(supplier.toString(), expected,
                 supplier.get().collect(MoreCollectors.toBooleanArray(x -> x > 50)));
         }
     }
-    
+
     @Test
     public void testPartitioningBy() {
         AtomicInteger counter = new AtomicInteger();
-        Map<Boolean, Optional<Integer>> map = IntStreamEx.range(1, 100).boxed()
-                .peek(x -> counter.incrementAndGet())
+        Map<Boolean, Optional<Integer>> map = IntStreamEx.range(1, 100).boxed().peek(x -> counter.incrementAndGet())
                 .collect(MoreCollectors.partitioningBy(x -> x % 20 == 0, MoreCollectors.first()));
-        assertEquals(20, (int)map.get(true).get());
-        assertEquals(1, (int)map.get(false).get());
+        assertEquals(20, (int) map.get(true).get());
+        assertEquals(1, (int) map.get(false).get());
         assertEquals(20, counter.get()); // short-circuit
 
         counter.set(0);
-        map = IntStreamEx.range(1, 100).boxed()
-                .peek(x -> counter.incrementAndGet())
+        map = IntStreamEx.range(1, 100).boxed().peek(x -> counter.incrementAndGet())
                 .collect(MoreCollectors.partitioningBy(x -> x % 200 == 0, MoreCollectors.first()));
         assertFalse(map.get(true).isPresent());
-        assertEquals(1, (int)map.get(false).get());
+        assertEquals(1, (int) map.get(false).get());
         assertEquals(99, counter.get());
     }
-    
+
     @Test
     public void testMapping() {
         List<String> input = Arrays.asList("Capital", "lower", "Foo", "bar");
@@ -387,69 +384,96 @@ public class MoreCollectorsTest {
             assertEquals(7, (int) map.get(true).get());
             assertEquals(5, (int) map.get(false).get());
         }
-        Collector<String, ?, Map<Boolean, Optional<Integer>>> collectorLast = MoreCollectors
-                .partitioningBy(str -> Character.isUpperCase(str.charAt(0)),
-                    MoreCollectors.mapping(String::length, MoreCollectors.last()));
+        Collector<String, ?, Map<Boolean, Optional<Integer>>> collectorLast = MoreCollectors.partitioningBy(
+            str -> Character.isUpperCase(str.charAt(0)), MoreCollectors.mapping(String::length, MoreCollectors.last()));
         for (StreamExSupplier<String> supplier : streamEx(input::stream)) {
             Map<Boolean, Optional<Integer>> map = supplier.get().collect(collectorLast);
             assertEquals(3, (int) map.get(true).get());
             assertEquals(3, (int) map.get(false).get());
         }
     }
-    
+
     @Test
     public void testIntersecting() {
-        for(int i=0; i<5; i++) {
+        for (int i = 0; i < 5; i++) {
             List<List<String>> input = Arrays.asList(Arrays.asList("aa", "bb", "cc"), Arrays.asList("cc", "bb", "dd"),
                 Arrays.asList("ee", "dd"), Arrays.asList("aa", "bb", "dd"));
-            AtomicInteger counter = new AtomicInteger();
-            StreamEx.of(input).peek(t -> counter.incrementAndGet()).collect(MoreCollectors.intersecting());
-            assertEquals(3, counter.get());
-            for(StreamExSupplier<List<String>> supplier : streamEx(input::stream)) {
-                assertEquals(supplier.toString(), Collections.emptySet(),
-                    supplier.get().collect(MoreCollectors.intersecting()));
-            }
+            checkShortCircuitCollector("#" + i, Collections.emptySet(), 3, StreamEx.of(input),
+                MoreCollectors.intersecting());
+            checkCollector("#"+i, Collections.emptySet(), input::stream, MoreCollectors.intersecting());
             List<List<Integer>> copies = new ArrayList<>(Collections.nCopies(100, Arrays.asList(1, 2)));
-            for(StreamExSupplier<List<Integer>> supplier : streamEx(copies::stream)) {
-                assertEquals(supplier.toString(), StreamEx.of(1, 2).toSet(),
-                    supplier.get().collect(MoreCollectors.intersecting()));
-            }
+            checkCollector("#"+i, StreamEx.of(1, 2).toSet(), copies::stream, MoreCollectors.intersecting());
             copies.addAll(Collections.nCopies(100, Arrays.asList(3)));
-            for(StreamExSupplier<List<Integer>> supplier : streamEx(copies::stream)) {
-                assertEquals(supplier.toString(), Collections.emptySet(),
-                    supplier.get().collect(MoreCollectors.intersecting()));
-            }
-            assertEquals(Collections.emptySet(), StreamEx.<List<Integer>>empty().collect(MoreCollectors.intersecting()));
-            assertEquals(Collections.emptySet(), StreamEx.<List<Integer>>empty().parallel().collect(MoreCollectors.intersecting()));
+            checkCollector("#"+i, Collections.emptySet(), copies::stream, MoreCollectors.intersecting());
+            checkCollectorEmpty("#"+i, Collections.emptySet(), MoreCollectors.intersecting());
         }
     }
-    
+
     @Test
     public void testJoining() {
-        List<String> input = Arrays.asList("one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten");
+        List<String> input = Arrays.asList("one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
+            "ten");
         assertEquals("", StreamEx.of(input).peek(Assert::fail).collect(MoreCollectors.joining(", ", "...", 0, true)));
-        assertEquals("", StreamEx.of(input).parallel().peek(Assert::fail).collect(MoreCollectors.joining(", ", "...", 0, true)));
+        assertEquals("",
+            StreamEx.of(input).parallel().peek(Assert::fail).collect(MoreCollectors.joining(", ", "...", 0, true)));
         String expected = "one, two, three, four, five, six, seven, eight, nine, ten";
-        for(int i=3; i<expected.length()+5; i++) {
+        for (int i = 3; i < expected.length() + 5; i++) {
             String exp = expected;
-            if(exp.length() > i) {
-                exp = exp.substring(0, i-3)+"...";
+            if (exp.length() > i) {
+                exp = exp.substring(0, i - 3) + "...";
             }
             String exp2 = expected;
             while (exp2.length() > i) {
-                int pos = exp2.lastIndexOf(", ", exp2.endsWith(", ...") ? exp2.length()-6 : exp2.length());
+                int pos = exp2.lastIndexOf(", ", exp2.endsWith(", ...") ? exp2.length() - 6 : exp2.length());
                 exp2 = pos >= 0 ? exp2.substring(0, pos + 2) + "..." : "...";
             }
-            for(StreamExSupplier<String> supplier : streamEx(input::stream)) {
-                assertEquals(supplier+"/#"+i, exp, supplier.get().collect(MoreCollectors.joining(", ", "...", i, true)));
+            for (StreamExSupplier<String> supplier : streamEx(input::stream)) {
+                assertEquals(supplier + "/#" + i, exp,
+                    supplier.get().collect(MoreCollectors.joining(", ", "...", i, true)));
                 assertEquals(supplier + "/#" + i, expected.substring(0, Math.min(i, expected.length())), supplier.get()
                         .collect(MoreCollectors.joining(", ", "", i, true)));
-                assertEquals(supplier+"/#"+i, exp2, supplier.get().collect(MoreCollectors.joining(", ", "...", i, false)));
+                assertEquals(supplier + "/#" + i, exp2,
+                    supplier.get().collect(MoreCollectors.joining(", ", "...", i, false)));
             }
         }
-        
-        byte[] data = {(byte) 0xFF, 0x30, 0x40, 0x50, 0x70, 0x12, (byte) 0xF0};
-        assertEquals("FF 30 40 50 ...", IntStreamEx.of(data).mapToObj(b -> String.format(Locale.ENGLISH, "%02X", b & 0xFF))
-                .collect(MoreCollectors.joining(" ", "...", 15, false)));
+
+        byte[] data = { (byte) 0xFF, 0x30, 0x40, 0x50, 0x70, 0x12, (byte) 0xF0 };
+        assertEquals(
+            "FF 30 40 50 ...",
+            IntStreamEx.of(data).mapToObj(b -> String.format(Locale.ENGLISH, "%02X", b & 0xFF))
+                    .collect(MoreCollectors.joining(" ", "...", 15, false)));
+    }
+
+    @Test
+    public void testAndInt() {
+        List<Integer> ints = Arrays.asList(0b1100, 0b0110, 0b101110, 0b11110011);
+        Collector<Integer, ?, OptionalInt> collector = MoreCollectors.andInt(Integer::intValue);
+        checkCollector("andInt", OptionalInt.of(0), ints::stream, collector);
+        checkCollectorEmpty("andIntEmpty", OptionalInt.empty(), collector);
+        assertEquals(OptionalInt.of(0), IntStreamEx.iterate(16384, i -> i + 1).parallel().boxed().collect(collector));
+        assertEquals(OptionalInt.of(16384), IntStreamEx.iterate(16384, i -> i + 1).parallel().limit(16383).boxed()
+                .collect(collector));
+    }
+
+    @Test
+    public void testAndLong() {
+        List<Long> longs = Arrays.asList(0xFFFFFFFFFFFFFFFFL, 0xFFFFFFFF00000000L, 0xFFFFFFFF0000L);
+        checkCollector("andLong", OptionalLong.of(0xFFFF00000000L), longs::stream,
+            MoreCollectors.andLong(Long::longValue));
+        checkCollectorEmpty("andLongEmpty", OptionalLong.empty(), MoreCollectors.andLong(Long::longValue));
+    }
+    
+    @Test
+    public void testFiltering() {
+        Collector<Integer, ?, Optional<Integer>> firstEven = MoreCollectors.filtering(x -> x % 2 == 0,
+            MoreCollectors.first());
+        Collector<Integer, ?, Optional<Integer>> firstOdd = MoreCollectors.filtering(x -> x % 2 != 0,
+                MoreCollectors.first());
+        Collector<Integer, ?, Integer> sumOddEven = MoreCollectors.pairing(firstEven, firstOdd, (e, o) -> e.get()+o.get());
+        List<Integer> ints = Arrays.asList(1, 3, 5, 7, 9, 10, 8, 6, 4, 2, 3, 7, 11);
+        checkShortCircuitCollector("sumOddEven", 11, 6, StreamEx.of(ints), sumOddEven);
+        checkCollector("sumOddEven", 11, ints::stream, sumOddEven);
+        Collector<Integer, ?, Long> countEven = MoreCollectors.filtering(x -> x % 2 == 0, Collectors.counting());
+        checkCollector("filtering", 5L, ints::stream, countEven);
     }
 }
