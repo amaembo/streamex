@@ -17,7 +17,6 @@ package javax.util.streamex;
 
 import static org.junit.Assert.*;
 import static javax.util.streamex.TestHelpers.*;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.AbstractMap;
@@ -46,6 +45,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import javax.util.streamex.StreamExInternals.BooleanMap;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -313,10 +314,10 @@ public class MoreCollectorsTest {
         Collector<String, ?, String> collector = 
                 MoreCollectors.collectingAndThen(MoreCollectors.groupingBy(String::length,
             IntStreamEx.range(10).boxed().toSet(), TreeMap::new, MoreCollectors.first()), Object::toString);
-        checkCollector("groupingWithDomain",
+        checkShortCircuitCollector("groupingWithDomain",
             "{0=Optional.empty, 1=Optional[a], 2=Optional.empty, 3=Optional[foo], 4=Optional[test], 5=Optional[ququq], "
-                + "6=Optional.empty, 7=Optional.empty, 8=Optional[blahblah], 9=Optional.empty}", data::stream,
-            collector);
+                + "6=Optional.empty, 7=Optional.empty, 8=Optional[blahblah], 9=Optional.empty}", data.size(),
+            data::stream, collector);
 
         Map<String, String> name2sex = new LinkedHashMap<>();
         name2sex.put("Mary", "Girl");
@@ -352,19 +353,13 @@ public class MoreCollectorsTest {
 
     @Test
     public void testPartitioningBy() {
-        AtomicInteger counter = new AtomicInteger();
-        Map<Boolean, Optional<Integer>> map = IntStreamEx.range(1, 100).boxed().peek(x -> counter.incrementAndGet())
-                .collect(MoreCollectors.partitioningBy(x -> x % 20 == 0, MoreCollectors.first()));
-        assertEquals(20, (int) map.get(true).get());
-        assertEquals(1, (int) map.get(false).get());
-        assertEquals(20, counter.get()); // short-circuit
-
-        counter.set(0);
-        map = IntStreamEx.range(1, 100).boxed().peek(x -> counter.incrementAndGet())
-                .collect(MoreCollectors.partitioningBy(x -> x % 200 == 0, MoreCollectors.first()));
-        assertFalse(map.get(true).isPresent());
-        assertEquals(1, (int) map.get(false).get());
-        assertEquals(99, counter.get());
+        Collector<Integer, ?, Map<Boolean, Optional<Integer>>> by20 = MoreCollectors.partitioningBy(x -> x % 20 == 0,
+            MoreCollectors.first());
+        Collector<Integer, ?, Map<Boolean, Optional<Integer>>> by200 = MoreCollectors.partitioningBy(x -> x % 200 == 0,
+            MoreCollectors.first());
+        Supplier<Stream<Integer>> supplier = () -> IntStreamEx.range(1, 100).boxed();
+        checkShortCircuitCollector("by20", new BooleanMap<>(Optional.of(20), Optional.of(1)), 20, supplier, by20);
+        checkShortCircuitCollector("by200", new BooleanMap<>(Optional.empty(), Optional.of(1)), 99, supplier, by200);
     }
 
     @Test
@@ -373,24 +368,10 @@ public class MoreCollectorsTest {
         Collector<String, ?, Map<Boolean, Optional<Integer>>> collector = MoreCollectors
                 .partitioningBy(str -> Character.isUpperCase(str.charAt(0)),
                     MoreCollectors.mapping(String::length, MoreCollectors.first()));
-        AtomicInteger counter = new AtomicInteger();
-        StreamEx.of(input).peek(x -> counter.incrementAndGet()).collect(collector);
-        assertEquals(2, counter.get());
-        for (StreamExSupplier<String> supplier : streamEx(input::stream)) {
-            Map<Boolean, Optional<Integer>> map = supplier.get().collect(collector);
-            assertEquals(7, (int) map.get(true).get());
-            assertEquals(5, (int) map.get(false).get());
-            map = supplier.get().collect(Collectors.collectingAndThen(collector, Function.identity()));
-            assertEquals(7, (int) map.get(true).get());
-            assertEquals(5, (int) map.get(false).get());
-        }
+        checkShortCircuitCollector("mapping", new BooleanMap<>(Optional.of(7), Optional.of(5)), 2, input::stream, collector);
         Collector<String, ?, Map<Boolean, Optional<Integer>>> collectorLast = MoreCollectors.partitioningBy(
             str -> Character.isUpperCase(str.charAt(0)), MoreCollectors.mapping(String::length, MoreCollectors.last()));
-        for (StreamExSupplier<String> supplier : streamEx(input::stream)) {
-            Map<Boolean, Optional<Integer>> map = supplier.get().collect(collectorLast);
-            assertEquals(3, (int) map.get(true).get());
-            assertEquals(3, (int) map.get(false).get());
-        }
+        checkCollector("last", new BooleanMap<>(Optional.of(3), Optional.of(3)), input::stream, collectorLast);
     }
 
     @Test
@@ -398,13 +379,12 @@ public class MoreCollectorsTest {
         for (int i = 0; i < 5; i++) {
             List<List<String>> input = Arrays.asList(Arrays.asList("aa", "bb", "cc"), Arrays.asList("cc", "bb", "dd"),
                 Arrays.asList("ee", "dd"), Arrays.asList("aa", "bb", "dd"));
-            checkShortCircuitCollector("#" + i, Collections.emptySet(), 3, StreamEx.of(input),
+            checkShortCircuitCollector("#" + i, Collections.emptySet(), 3, input::stream,
                 MoreCollectors.intersecting());
-            checkCollector("#"+i, Collections.emptySet(), input::stream, MoreCollectors.intersecting());
             List<List<Integer>> copies = new ArrayList<>(Collections.nCopies(100, Arrays.asList(1, 2)));
-            checkCollector("#"+i, StreamEx.of(1, 2).toSet(), copies::stream, MoreCollectors.intersecting());
+            checkShortCircuitCollector("#"+i, StreamEx.of(1, 2).toSet(), 100, copies::stream, MoreCollectors.intersecting());
             copies.addAll(Collections.nCopies(100, Arrays.asList(3)));
-            checkCollector("#"+i, Collections.emptySet(), copies::stream, MoreCollectors.intersecting());
+            checkShortCircuitCollector("#"+i, Collections.emptySet(), 101, copies::stream, MoreCollectors.intersecting());
             checkCollectorEmpty("#"+i, Collections.emptySet(), MoreCollectors.intersecting());
         }
     }
@@ -448,7 +428,7 @@ public class MoreCollectorsTest {
     public void testAndInt() {
         List<Integer> ints = Arrays.asList(0b1100, 0b0110, 0b101110, 0b11110011);
         Collector<Integer, ?, OptionalInt> collector = MoreCollectors.andInt(Integer::intValue);
-        checkCollector("andInt", OptionalInt.of(0), ints::stream, collector);
+        checkShortCircuitCollector("andInt", OptionalInt.of(0), 4, ints::stream, collector);
         checkCollectorEmpty("andIntEmpty", OptionalInt.empty(), collector);
         assertEquals(OptionalInt.of(0), IntStreamEx.iterate(16384, i -> i + 1).parallel().boxed().collect(collector));
         assertEquals(OptionalInt.of(16384), IntStreamEx.iterate(16384, i -> i + 1).parallel().limit(16383).boxed()
@@ -458,7 +438,7 @@ public class MoreCollectorsTest {
     @Test
     public void testAndLong() {
         List<Long> longs = Arrays.asList(0xFFFFFFFFFFFFFFFFL, 0xFFFFFFFF00000000L, 0xFFFFFFFF0000L);
-        checkCollector("andLong", OptionalLong.of(0xFFFF00000000L), longs::stream,
+        checkShortCircuitCollector("andLong", OptionalLong.of(0xFFFF00000000L), 3, longs::stream,
             MoreCollectors.andLong(Long::longValue));
         checkCollectorEmpty("andLongEmpty", OptionalLong.empty(), MoreCollectors.andLong(Long::longValue));
     }
@@ -471,8 +451,7 @@ public class MoreCollectorsTest {
                 MoreCollectors.first());
         Collector<Integer, ?, Integer> sumOddEven = MoreCollectors.pairing(firstEven, firstOdd, (e, o) -> e.get()+o.get());
         List<Integer> ints = Arrays.asList(1, 3, 5, 7, 9, 10, 8, 6, 4, 2, 3, 7, 11);
-        checkShortCircuitCollector("sumOddEven", 11, 6, StreamEx.of(ints), sumOddEven);
-        checkCollector("sumOddEven", 11, ints::stream, sumOddEven);
+        checkShortCircuitCollector("sumOddEven", 11, 6, ints::stream, sumOddEven);
         Collector<Integer, ?, Long> countEven = MoreCollectors.filtering(x -> x % 2 == 0, Collectors.counting());
         checkCollector("filtering", 5L, ints::stream, countEven);
     }

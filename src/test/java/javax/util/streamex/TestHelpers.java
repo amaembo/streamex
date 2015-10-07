@@ -101,22 +101,30 @@ public class TestHelpers {
     }
     
     static <T, R> void checkCollectorEmpty(String message, R expected, Collector<T, ?, R> collector) {
-        checkCollector(message, expected, Stream::empty, collector);
+        if(collector instanceof CancellableCollector)
+            checkShortCircuitCollector(message, expected, 0, Stream::empty, collector);
+        else
+            checkCollector(message, expected, Stream::empty, collector);
     }
     
-    static <T, R> void checkShortCircuitCollector(String message, R expected, int expectedConsumedElements, StreamEx<T> stream, Collector<T, ?, R> collector) {
+    static <T, R> void checkShortCircuitCollector(String message, R expected, int expectedConsumedElements, Supplier<Stream<T>> base, Collector<T, ?, R> collector) {
         assertTrue(message, collector instanceof CancellableCollector);
-        AtomicInteger counter = new AtomicInteger();
-        assertEquals(message, expected, stream.peek(t -> counter.incrementAndGet()).collect(collector));
-        assertEquals(message, expectedConsumedElements, counter.get());
+        Collector<T, ?, R> withIdentity = Collectors.collectingAndThen(collector, Function.identity());
+        for(StreamExSupplier<T> supplier : streamEx(base)) {
+            AtomicInteger counter = new AtomicInteger();
+            assertEquals(message + ": " + supplier, expected, supplier.get().peek(t -> counter.incrementAndGet())
+                    .collect(collector));
+            if (!supplier.get().isParallel())
+                assertEquals(message + ": " + supplier, expectedConsumedElements, counter.get());
+            assertEquals(message + ": " + supplier, expected, supplier.get().collect(withIdentity));
+        }
     }
     
     static <T, R> void checkCollector(String message, R expected, Supplier<Stream<T>> base, Collector<T, ?, R> collector) {
-        Collector<T, ?, R> withIdentity = Collectors.collectingAndThen(collector, Function.identity());
+        // use checkShortCircuitCollector for CancellableCollector
+        assertFalse(message, collector instanceof CancellableCollector);
         for(StreamExSupplier<T> supplier : streamEx(base)) {
             assertEquals(message + ": " + supplier, expected, supplier.get().collect(collector));
-            if(collector instanceof CancellableCollector)
-                assertEquals(message + ": " + supplier, expected, supplier.get().collect(withIdentity));
         }
     }
     
