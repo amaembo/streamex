@@ -29,6 +29,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.OptionalInt;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.OptionalLong;
@@ -41,6 +42,8 @@ import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.function.ToIntFunction;
+import java.util.function.ToLongFunction;
 import java.util.stream.Collector;
 import java.util.stream.Collector.Characteristics;
 import java.util.stream.Collectors;
@@ -75,10 +78,9 @@ public final class MoreCollectors {
      *         provided supplier once to return the output.
      */
     private static <T, U> Collector<T, ?, U> empty(Supplier<U> supplier) {
-        return new CancellableCollectorImpl<>(() -> NONE,
-            (acc, t) -> {
-                // empty
-        }, selectFirst(), acc -> supplier.get(), acc -> true, EnumSet.allOf(Characteristics.class));
+        return new CancellableCollectorImpl<>(() -> NONE, (acc, t) -> {
+            // empty
+            }, selectFirst(), acc -> supplier.get(), acc -> true, EnumSet.allOf(Characteristics.class));
     }
 
     private static <T> Collector<T, ?, List<T>> empty() {
@@ -1041,5 +1043,41 @@ public final class MoreCollectors {
         };
         return new CancellableCollectorImpl<>(() -> new ObjIntBox<>(new ArrayList<String>(), 0), accumulator, combiner,
                 finisher, acc -> acc.b > limit, NO_CHARACTERISTICS);
+    }
+
+    public static <T> Collector<T, ?, OptionalInt> andInt(ToIntFunction<T> mapper) {
+        return new CancellableCollectorImpl<T, PrimitiveBox, OptionalInt>(PrimitiveBox::new, (acc, t) -> {
+            if (!acc.b) {
+                acc.i = mapper.applyAsInt(t);
+                acc.b = true;
+            } else {
+                acc.i &= mapper.applyAsInt(t);
+            }
+        }, (acc1, acc2) -> {
+            if (!acc1.b)
+                return acc2;
+            if (!acc2.b)
+                return acc1;
+            acc1.i &= acc2.i;
+            return acc1;
+        }, PrimitiveBox::asInt, acc -> acc.b && acc.i == 0, UNORDERED_CHARACTERISTICS);
+    }
+
+    public static <T> Collector<T, ?, OptionalLong> andLong(ToLongFunction<T> mapper) {
+        return new CancellableCollectorImpl<T, PrimitiveBox, OptionalLong>(PrimitiveBox::new, (acc, t) -> {
+            if (!acc.b) {
+                acc.l = mapper.applyAsLong(t);
+                acc.b = true;
+            } else {
+                acc.l &= mapper.applyAsLong(t);
+            }
+        }, (acc1, acc2) -> {
+            if (!acc1.b)
+                return acc2;
+            if (!acc2.b)
+                return acc1;
+            acc1.l &= acc2.l;
+            return acc1;
+        }, PrimitiveBox::asLong, acc -> acc.b && acc.l == 0, UNORDERED_CHARACTERISTICS);
     }
 }
