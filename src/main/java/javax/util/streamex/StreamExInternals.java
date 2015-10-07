@@ -97,7 +97,7 @@ import java.util.stream.Stream;
                         lookup.findVirtual(type.returnType(), "dropWhile", type) };
             }
         } catch (NoSuchMethodException | IllegalAccessException e) {
-            // ignore
+            return null;
         }
         return methods;
     }

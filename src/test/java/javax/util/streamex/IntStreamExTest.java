@@ -31,6 +31,7 @@ import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.function.IntBinaryOperator;
 import java.util.function.IntFunction;
 import java.util.function.IntToDoubleFunction;
 import java.util.function.IntToLongFunction;
@@ -92,6 +93,107 @@ public class IntStreamExTest {
         bs.set(3);
         bs.set(5);
 		assertArrayEquals(new int[] { 1, 3, 5 }, IntStreamEx.of(bs).toArray());
+    }
+    
+    @Test
+    public void testRangeStep() {
+        assertArrayEquals(new int[] { 0 }, IntStreamEx.range(0, 1000, 100000).toArray());
+        assertArrayEquals(new int[] { 0 }, IntStreamEx.range(0, 1000, 1000).toArray());
+        assertArrayEquals(new int[] { 0, Integer.MAX_VALUE - 1 },
+            IntStreamEx.range(0, Integer.MAX_VALUE, Integer.MAX_VALUE - 1).toArray());
+        assertArrayEquals(new int[] { Integer.MIN_VALUE, -1, Integer.MAX_VALUE - 1 },
+            IntStreamEx.range(Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE).toArray());
+        assertArrayEquals(new int[] { Integer.MIN_VALUE, -1 },
+            IntStreamEx.range(Integer.MIN_VALUE, Integer.MAX_VALUE - 1, Integer.MAX_VALUE).toArray());
+        assertArrayEquals(new int[] { Integer.MAX_VALUE, -1 },
+            IntStreamEx.range(Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE).toArray());
+        assertArrayEquals(new int[] { Integer.MAX_VALUE }, IntStreamEx.range(Integer.MAX_VALUE, 0, Integer.MIN_VALUE)
+                .toArray());
+        assertArrayEquals(new int[] { 1, Integer.MIN_VALUE + 1 },
+            IntStreamEx.range(1, Integer.MIN_VALUE, Integer.MIN_VALUE).toArray());
+        assertArrayEquals(new int[] { 0 }, IntStreamEx.range(0, Integer.MIN_VALUE, Integer.MIN_VALUE).toArray());
+        assertArrayEquals(new int[] { 0, 2, 4, 6, 8 }, IntStreamEx.range(0, 9, 2).toArray());
+        assertArrayEquals(new int[] { 0, 2, 4, 6 }, IntStreamEx.range(0, 8, 2).toArray());
+        assertArrayEquals(new int[] { 0, -2, -4, -6, -8 }, IntStreamEx.range(0, -9, -2).toArray());
+        assertArrayEquals(new int[] { 0, -2, -4, -6 }, IntStreamEx.range(0, -8, -2).toArray());
+        assertArrayEquals(new int[] { 5, 4, 3, 2, 1, 0 }, IntStreamEx.range(5, -1, -1).toArray());
+        assertEquals(Integer.MAX_VALUE + 1L, IntStreamEx.range(Integer.MIN_VALUE, Integer.MAX_VALUE, 2).spliterator()
+                .getExactSizeIfKnown());
+        assertEquals(Integer.MAX_VALUE, IntStreamEx.range(Integer.MIN_VALUE, Integer.MAX_VALUE - 1, 2).spliterator()
+                .getExactSizeIfKnown());
+        assertEquals(Integer.MAX_VALUE + 1L, IntStreamEx.range(Integer.MAX_VALUE, Integer.MIN_VALUE, -2).spliterator()
+                .getExactSizeIfKnown());
+        assertEquals(Integer.MAX_VALUE, IntStreamEx.range(Integer.MAX_VALUE, Integer.MIN_VALUE + 1, -2).spliterator()
+                .getExactSizeIfKnown());
+        assertEquals(Integer.MAX_VALUE * 2L + 1L, IntStreamEx.range(Integer.MIN_VALUE, Integer.MAX_VALUE, 1)
+                .spliterator().getExactSizeIfKnown());
+        assertEquals(Integer.MAX_VALUE * 2L + 1L, IntStreamEx.range(Integer.MAX_VALUE, Integer.MIN_VALUE, -1)
+                .spliterator().getExactSizeIfKnown());
+        assertEquals(0, IntStreamEx.range(0, -1000, 1).count());
+        assertEquals(0, IntStreamEx.range(0, 1000, -1).count());
+        assertEquals(0, IntStreamEx.range(0, 0, -1).count());
+        assertEquals(0, IntStreamEx.range(0, 0, 1).count());
+        assertEquals(0, IntStreamEx.range(0, -1000, 2).count());
+        assertEquals(0, IntStreamEx.range(0, 1000, -2).count());
+        assertEquals(0, IntStreamEx.range(0, 0, -2).count());
+        assertEquals(0, IntStreamEx.range(0, 0, 2).count());
+        
+        assertEquals(0, IntStreamEx.range(0, Integer.MIN_VALUE, 2).spliterator().getExactSizeIfKnown());
+        assertEquals(0, IntStreamEx.range(0, Integer.MAX_VALUE, -2).spliterator().getExactSizeIfKnown());
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testRangeIllegalStep() {
+        IntStreamEx.range(0, 1000, 0);
+    }
+    
+    @Test
+    public void testRangeClosedStep() {
+        assertArrayEquals(new int[] { 0 }, IntStreamEx.rangeClosed(0, 1000, 100000).toArray());
+        assertArrayEquals(new int[] { 0, 1000 }, IntStreamEx.rangeClosed(0, 1000, 1000).toArray());
+        assertArrayEquals(new int[] { 0, Integer.MAX_VALUE - 1 },
+            IntStreamEx.rangeClosed(0, Integer.MAX_VALUE, Integer.MAX_VALUE - 1).toArray());
+        assertArrayEquals(new int[] { 0, Integer.MAX_VALUE },
+            IntStreamEx.rangeClosed(0, Integer.MAX_VALUE, Integer.MAX_VALUE).toArray());
+        assertArrayEquals(new int[] { Integer.MIN_VALUE, -1, Integer.MAX_VALUE - 1 },
+            IntStreamEx.rangeClosed(Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE).toArray());
+        assertArrayEquals(new int[] { Integer.MIN_VALUE, -1, Integer.MAX_VALUE - 1 },
+            IntStreamEx.rangeClosed(Integer.MIN_VALUE, Integer.MAX_VALUE - 1, Integer.MAX_VALUE).toArray());
+        assertArrayEquals(new int[] { Integer.MAX_VALUE, -1 },
+            IntStreamEx.rangeClosed(Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE).toArray());
+        assertArrayEquals(new int[] { Integer.MAX_VALUE },
+            IntStreamEx.rangeClosed(Integer.MAX_VALUE, 0, Integer.MIN_VALUE).toArray());
+        assertArrayEquals(new int[] { 0, Integer.MIN_VALUE },
+            IntStreamEx.rangeClosed(0, Integer.MIN_VALUE, Integer.MIN_VALUE).toArray());
+        assertArrayEquals(new int[] { 0, 2, 4, 6, 8 }, IntStreamEx.rangeClosed(0, 9, 2).toArray());
+        assertArrayEquals(new int[] { 0, 2, 4, 6, 8 }, IntStreamEx.rangeClosed(0, 8, 2).toArray());
+        assertArrayEquals(new int[] { 0, 2, 4, 6 }, IntStreamEx.rangeClosed(0, 7, 2).toArray());
+        assertArrayEquals(new int[] { 0, -2, -4, -6, -8 }, IntStreamEx.rangeClosed(0, -9, -2).toArray());
+        assertArrayEquals(new int[] { 0, -2, -4, -6, -8 }, IntStreamEx.rangeClosed(0, -8, -2).toArray());
+        assertArrayEquals(new int[] { 0, -2, -4, -6 }, IntStreamEx.rangeClosed(0, -7, -2).toArray());
+        assertArrayEquals(new int[] { 5, 4, 3, 2, 1, 0 }, IntStreamEx.rangeClosed(5, 0, -1).toArray());
+        assertEquals(Integer.MAX_VALUE + 1L, IntStreamEx.rangeClosed(Integer.MIN_VALUE, Integer.MAX_VALUE, 2)
+                .spliterator().getExactSizeIfKnown());
+        assertEquals(Integer.MAX_VALUE + 1L, IntStreamEx.rangeClosed(Integer.MIN_VALUE, Integer.MAX_VALUE - 1, 2)
+                .spliterator().getExactSizeIfKnown());
+        assertEquals(Integer.MAX_VALUE, IntStreamEx.rangeClosed(Integer.MIN_VALUE, Integer.MAX_VALUE - 2, 2)
+                .spliterator().getExactSizeIfKnown());
+        assertEquals(Integer.MAX_VALUE + 1L, IntStreamEx.rangeClosed(Integer.MAX_VALUE, Integer.MIN_VALUE, -2)
+                .spliterator().getExactSizeIfKnown());
+        assertEquals(Integer.MAX_VALUE + 1L, IntStreamEx.rangeClosed(Integer.MAX_VALUE, Integer.MIN_VALUE + 1, -2)
+                .spliterator().getExactSizeIfKnown());
+        assertEquals(Integer.MAX_VALUE * 2L + 2L, IntStreamEx.rangeClosed(Integer.MIN_VALUE, Integer.MAX_VALUE, 1)
+                .spliterator().getExactSizeIfKnown());
+        assertEquals(Integer.MAX_VALUE * 2L + 2L, IntStreamEx.rangeClosed(Integer.MAX_VALUE, Integer.MIN_VALUE, -1)
+                .spliterator().getExactSizeIfKnown());
+        assertEquals(0, IntStreamEx.rangeClosed(0, -1000, 1).count());
+        assertEquals(0, IntStreamEx.rangeClosed(0, 1000, -1).count());
+        assertEquals(0, IntStreamEx.rangeClosed(0, 1, -1).count());
+        assertEquals(0, IntStreamEx.rangeClosed(0, -1, 1).count());
+        assertEquals(0, IntStreamEx.rangeClosed(0, -1000, 2).count());
+        assertEquals(0, IntStreamEx.rangeClosed(0, 1000, -2).count());
+        assertEquals(0, IntStreamEx.rangeClosed(0, 1, -2).count());
+        assertEquals(0, IntStreamEx.rangeClosed(0, -1, 2).count());
     }
 
     @Test(expected = ArrayIndexOutOfBoundsException.class)
@@ -497,5 +599,16 @@ public class IntStreamExTest {
         assertFalse(IntStreamEx.range(50, 100).indexOf(x -> x < 0).isPresent());
         assertEquals(11, IntStreamEx.range(50, 100).parallel().indexOf(x -> x > 60).getAsLong());
         assertFalse(IntStreamEx.range(50, 100).parallel().indexOf(x -> x < 0).isPresent());
+    }
+    
+    @Test
+    public void testFoldLeft() {
+        // non-associative
+        IntBinaryOperator accumulator = (x, y) -> (x + y) * (x + y);
+        assertEquals(2322576, IntStreamEx.constant(3, 4).foldLeft(accumulator).orElse(-1));
+        assertEquals(2322576, IntStreamEx.constant(3, 4).parallel().foldLeft(accumulator).orElse(-1));
+        assertFalse(IntStreamEx.empty().foldLeft(accumulator).isPresent());
+        assertEquals(144, IntStreamEx.rangeClosed(1, 3).foldLeft(0, accumulator));
+        assertEquals(144, IntStreamEx.rangeClosed(1, 3).parallel().foldLeft(0, accumulator));
     }
 }

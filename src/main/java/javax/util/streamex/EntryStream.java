@@ -503,48 +503,6 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @param <KK>
      *            The type of the keys of the new stream
      * @param keyMapper
-     *            a non-interfering, stateless function to apply to each entry
-     *            which returns the updated key
-     * @return the new stream
-     * @deprecated use {@link #mapToKey(BiFunction)}
-     */
-    @Deprecated
-    public <KK> EntryStream<KK, V> mapEntryKeys(Function<? super Entry<K, V>, ? extends KK> keyMapper) {
-        return strategy().newEntryStream(stream.map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e), e.getValue())));
-    }
-
-    /**
-     * Returns an {@code EntryStream} consisting of the entries whose keys are
-     * left unchanged and values are modified by applying the given function.
-     *
-     * <p>
-     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
-     * operation.
-     *
-     * @param <VV>
-     *            The type of the values of the new stream
-     * @param valueMapper
-     *            a non-interfering, stateless function to apply to each entry
-     *            which returns the updated value
-     * @return the new stream
-     * @deprecated use {@link #mapToValue(BiFunction)}
-     */
-    @Deprecated
-    public <VV> EntryStream<K, VV> mapEntryValues(Function<? super Entry<K, V>, ? extends VV> valueMapper) {
-        return strategy().newEntryStream(stream.map(e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e))));
-    }
-
-    /**
-     * Returns an {@code EntryStream} consisting of the entries whose keys are
-     * modified by applying the given function and values are left unchanged.
-     *
-     * <p>
-     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
-     * operation.
-     *
-     * @param <KK>
-     *            The type of the keys of the new stream
-     * @param keyMapper
      *            a non-interfering, stateless function to apply to each
      *            key-value pair which returns the updated key
      * @return the new stream

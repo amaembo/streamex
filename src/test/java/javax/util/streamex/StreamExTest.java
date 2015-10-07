@@ -43,6 +43,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.IntPredicate;
 import java.util.function.Predicate;
@@ -163,6 +164,19 @@ public class StreamExTest {
 
         assertTrue(StreamEx.of("a", "b", "c").spliterator().hasCharacteristics(Spliterator.ORDERED));
         assertFalse(StreamEx.of("a", "b", "c").unordered().spliterator().hasCharacteristics(Spliterator.ORDERED));
+    }
+    
+    @Test
+    public void testFlatMap() {
+        assertArrayEquals(new int[] { 0, 0, 1, 0, 0, 1, 0, 0 },
+            StreamEx.of("111", "222", "333").flatMapToInt(s -> s.chars().map(ch -> ch - '0')).pairMap((a, b) -> b - a)
+                    .toArray());
+        assertArrayEquals(new long[] { 0, 0, 1, 0, 0, 1, 0, 0 },
+            StreamEx.of("111", "222", "333").flatMapToLong(s -> s.chars().mapToLong(ch -> ch - '0')).pairMap((a, b) -> b - a)
+            .toArray());
+        assertArrayEquals(new double[] { 0, 0, 1, 0, 0, 1, 0, 0 },
+            StreamEx.of("111", "222", "333").flatMapToDouble(s -> s.chars().mapToDouble(ch -> ch - '0')).pairMap((a, b) -> b - a)
+            .toArray(), 0.0);
     }
 
     @Test
@@ -499,6 +513,52 @@ public class StreamExTest {
                             (Map<String, Object> acc, String v) -> Collections.singletonMap(v, acc)).toString());
         }
     }
+    
+    @Test
+    public void testFoldLeftOptional() {
+        // non-associative
+        BinaryOperator<Integer> accumulator = (x, y) -> (x + y) * (x + y);
+        for(StreamExSupplier<Integer> supplier : streamEx(() -> StreamEx.constant(3, 4))) {
+            assertEquals(supplier.toString(), 2322576, (int)supplier.get().foldLeft(accumulator).orElse(-1));
+        }
+        for(StreamExSupplier<Integer> supplier : streamEx(() -> StreamEx.of(1, 2, 3))) {
+            assertEquals(supplier.toString(), 144, (int)supplier.get().foldLeft(accumulator).orElse(-1));
+        }
+        for(StreamExSupplier<Integer> supplier : emptyStreamEx(Integer.class)) {
+            assertFalse(supplier.toString(), supplier.get().foldLeft(accumulator).isPresent());
+        }
+    }
+
+    @Test
+    public void testFoldRight() {
+        assertEquals(";c;b;a", StreamEx.of("a", "b", "c").parallel().foldRight("", (u, v) -> v + ";" + u));
+        assertEquals(
+            "{a={bb={ccc={}}}}",
+            StreamEx.of("a", "bb", "ccc")
+                    .foldRight(Collections.emptyMap(),
+                        (String v, Map<String, Object> acc) -> Collections.singletonMap(v, acc)).toString());
+        assertEquals(
+            "{a={bb={ccc={}}}}",
+            StreamEx.of("a", "bb", "ccc")
+                    .parallel()
+                    .foldRight(Collections.emptyMap(),
+                        (String v, Map<String, Object> acc) -> Collections.singletonMap(v, acc)).toString());
+    }
+
+    @Test
+    public void testFoldRightOptional() {
+        // non-associative
+        BinaryOperator<Integer> accumulator = (x, y) -> (x + y) * (x + y);
+        for(StreamExSupplier<Integer> supplier : streamEx(() -> StreamEx.constant(3, 4))) {
+            assertEquals(supplier.toString(), 2322576, (int)supplier.get().foldRight(accumulator).orElse(-1));
+        }
+        for(StreamExSupplier<Integer> supplier : streamEx(() -> StreamEx.of(1, 2, 3, 0))) {
+            assertEquals(supplier.toString(), 14884, (int)supplier.get().foldRight(accumulator).orElse(-1));
+        }
+        for(StreamExSupplier<Integer> supplier : emptyStreamEx(Integer.class)) {
+            assertFalse(supplier.toString(), supplier.get().foldRight(accumulator).isPresent());
+        }
+    }
 
     @Test
     public void testDistinctAtLeast() {
@@ -576,22 +636,6 @@ public class StreamExTest {
         }
     }
 
-    @Test
-    public void testFoldRight() {
-        assertEquals(";c;b;a", StreamEx.of("a", "b", "c").parallel().foldRight("", (u, v) -> v + ";" + u));
-        assertEquals(
-            "{a={bb={ccc={}}}}",
-            StreamEx.of("a", "bb", "ccc")
-                    .foldRight(Collections.emptyMap(),
-                        (String v, Map<String, Object> acc) -> Collections.singletonMap(v, acc)).toString());
-        assertEquals(
-            "{a={bb={ccc={}}}}",
-            StreamEx.of("a", "bb", "ccc")
-                    .parallel()
-                    .foldRight(Collections.emptyMap(),
-                        (String v, Map<String, Object> acc) -> Collections.singletonMap(v, acc)).toString());
-    }
-
     private <T extends Comparable<? super T>> boolean isSorted(Collection<T> c) {
         return StreamEx.of(c).parallel().pairMap(Comparable::compareTo).allMatch(r -> r <= 0);
     }
@@ -616,6 +660,7 @@ public class StreamExTest {
     @Test
     public void testPairMap() {
         assertEquals(0, StreamEx.<String> empty().pairMap(String::concat).count());
+        assertArrayEquals(new Object[0], StreamEx.<String> empty().pairMap(String::concat).toArray());
         assertEquals(0, StreamEx.of("a").pairMap(String::concat).count());
         assertEquals(Arrays.asList("aa", "aa", "aa"), StreamEx.generate(() -> "a").pairMap(String::concat).limit(3)
                 .toList());
@@ -633,10 +678,10 @@ public class StreamExTest {
         Integer[] data = new Random(1).ints(1000, 1, 1000).boxed().toArray(Integer[]::new);
         Double[] expected = new Double[data.length - 1];
         for (int i = 0; i < expected.length; i++)
-            expected[i] = (data[i + 1] - data[i]) * 3.14;
-        Double[] result = StreamEx.of(data).parallel().pairMap((a, b) -> (b - a) * 3.14).toArray(Double[]::new);
+            expected[i] = (data[i + 1] - data[i]) * 1.23;
+        Double[] result = StreamEx.of(data).parallel().pairMap((a, b) -> (b - a) * 1.23).toArray(Double[]::new);
         assertArrayEquals(expected, result);
-        result = StreamEx.of(data).pairMap((a, b) -> (b - a) * 3.14).toArray(Double[]::new);
+        result = StreamEx.of(data).pairMap((a, b) -> (b - a) * 1.23).toArray(Double[]::new);
         assertArrayEquals(expected, result);
 
         // Find all numbers where the integer preceded a larger value.
@@ -754,18 +799,28 @@ public class StreamExTest {
 
     @Test
     public void testScanLeft() {
-        assertEquals(Arrays.asList(0, 1, 3, 6, 10), IntStreamEx.rangeClosed(1, 4).boxed().scanLeft(0, Integer::sum));
-        assertEquals(Arrays.asList(0, 1, 3, 6, 10),
-            IntStreamEx.rangeClosed(1, 4).boxed().parallel().scanLeft(0, Integer::sum));
+        for(StreamExSupplier<Integer> supplier : streamEx(() -> IntStreamEx.rangeClosed(1, 4).boxed())) {
+            assertEquals(supplier.toString(), Arrays.asList(0, 1, 3, 6, 10), supplier.get().scanLeft(0, Integer::sum));
+            assertEquals(supplier.toString(), Arrays.asList(1, 3, 6, 10), supplier.get().scanLeft(Integer::sum));
+        }
+        for(StreamExSupplier<Integer> supplier : emptyStreamEx(Integer.class)) {
+            assertTrue(supplier.toString(), supplier.get().scanLeft(Integer::sum).isEmpty());
+            assertEquals(supplier.toString(), Arrays.asList(0), supplier.get().scanLeft(0, Integer::sum));
+        }
         assertEquals(167167000, IntStreamEx.rangeClosed(1, 1000).boxed().parallel().scanLeft(0, Integer::sum).stream()
                 .mapToLong(x -> x).sum());
     }
 
     @Test
     public void testScanRight() {
-        assertEquals(Arrays.asList(10, 9, 7, 4, 0), IntStreamEx.rangeClosed(1, 4).boxed().scanRight(0, Integer::sum));
-        assertEquals(Arrays.asList(10, 9, 7, 4, 0),
-            IntStreamEx.rangeClosed(1, 4).boxed().parallel().scanRight(0, Integer::sum));
+        for(StreamExSupplier<Integer> supplier : streamEx(() -> IntStreamEx.rangeClosed(1, 4).boxed())) {
+            assertEquals(supplier.toString(), Arrays.asList(10, 9, 7, 4, 0), supplier.get().scanRight(0, Integer::sum));
+            assertEquals(supplier.toString(), Arrays.asList(10, 9, 7, 4), supplier.get().scanRight(Integer::sum));
+        }
+        for(StreamExSupplier<Integer> supplier : emptyStreamEx(Integer.class)) {
+            assertTrue(supplier.toString(), supplier.get().scanRight(Integer::sum).isEmpty());
+            assertEquals(supplier.toString(), Arrays.asList(0), supplier.get().scanRight(0, Integer::sum));
+        }
         assertEquals(333833500, IntStreamEx.rangeClosed(1, 1000).boxed().parallel().scanRight(0, Integer::sum).stream()
                 .mapToLong(x -> x).sum());
     }
@@ -1088,7 +1143,7 @@ public class StreamExTest {
                 .distinct()
                 .sorted()
                 .<String> intervalMap((i, j) -> j == i + 1,
-                    (i, j) -> j == i ? i.toString() : j == i + 1 ? i + "," + j : i + ".." + j).joining(",");
+                    (i, j) -> j.equals(i) ? i.toString() : j == i + 1 ? i + "," + j : i + ".." + j).joining(",");
     }
 
     private String formatNaive(int[] input) {
@@ -1341,6 +1396,27 @@ public class StreamExTest {
         }
         assertEquals(Arrays.asList(Collections.emptyList()), StreamEx.cartesianProduct(Collections.emptyList()).toList());
         assertEquals(Arrays.asList(Collections.emptyList()), StreamEx.cartesianPower(0, Arrays.asList(1,2,3)).toList());
+    }
+
+    @Test
+    public void testCartesianReduce() {
+        List<String> expected = IntStreamEx.range(32)
+                .mapToObj(i -> IntStreamEx.range(5).mapToObj(n -> (i >> (4-n)) & 1).joining())
+                .toList();
+        for(StreamExSupplier<String> supplier : streamEx(() -> StreamEx.cartesianPower(5, Arrays.asList(0, 1), "", (a, b) -> a+b))) {
+            assertEquals(supplier.toString(), expected, supplier.get().toList());
+        }
+        List<List<Integer>> input2 = Arrays.asList(Arrays.asList(1, 2, 3), Arrays.asList(), Arrays.asList(4, 5, 6));
+        for(StreamExSupplier<String> supplier : streamEx(() -> StreamEx.cartesianProduct(input2, "", (a, b) -> a+b))) {
+            assertFalse(supplier.toString(), supplier.get().findAny().isPresent());
+        }
+        List<List<Integer>> input3 = Arrays.asList(Arrays.asList(1, 2), Arrays.asList(3), Arrays.asList(4, 5));
+        for(StreamExSupplier<String> supplier : streamEx(() -> StreamEx.cartesianProduct(input3, "", (a, b) -> a+b))) {
+            assertEquals(supplier.toString(), "134,135,234,235", supplier.get().joining(","));
+        }
+        assertEquals(Arrays.asList(""),
+            StreamEx.cartesianProduct(Collections.<List<String>> emptyList(), "", String::concat).toList());
+        assertEquals(Arrays.asList(""), StreamEx.cartesianPower(0, Arrays.asList(1,2,3), "", (a, b) -> a+b).toList());
     }
 
     @Test

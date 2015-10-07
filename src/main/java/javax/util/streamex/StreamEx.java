@@ -1672,7 +1672,9 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return an ordered {@code StreamEx} of entries in given zip file
      * @throws IllegalStateException
      *             if the zip file has been closed
+     * @deprecated Use {@code StreamEx.of(file.stream())}
      */
+    @Deprecated
     public static StreamEx<? extends ZipEntry> ofEntries(ZipFile file) {
         return new StreamEx<>(file.stream());
     }
@@ -1687,7 +1689,9 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return an ordered {@code StreamEx} of entries in given jar file
      * @throws IllegalStateException
      *             if the jar file has been closed
+     * @deprecated Use {@code StreamEx.of(file.stream())}
      */
+    @Deprecated
     public static StreamEx<JarEntry> ofEntries(JarFile file) {
         return new StreamEx<>(file.stream());
     }
@@ -2092,7 +2096,62 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public static <T> StreamEx<List<T>> cartesianProduct(Collection<? extends Collection<T>> source) {
         if (source.isEmpty())
             return of(Stream.of(Collections.emptyList()));
-        return of(new CrossSpliterator<>(source));
+        return of(new CrossSpliterator.ToList<>(source));
+    }
+
+    /**
+     * Returns a new {@code StreamEx} which elements are results of reduction of
+     * all possible tuples composed from the elements of supplied collection of
+     * collections. The whole stream forms an n-fold Cartesian product (or
+     * cross-product) of the input collections.
+     * 
+     * <p>
+     * The reduction is performed using the provided identity object and the
+     * accumulator function which is capable to accumulate new element. The
+     * accumulator function must not modify the previous accumulated value, but
+     * must produce new value instead. That's because partially accumulated
+     * values are reused for subsequent elements.
+     * 
+     * <p>
+     * This method is equivalent to the following:
+     *
+     * <pre>
+     * {@code StreamEx.cartesianProduct(source).map(list -> StreamEx.of(list).foldLeft(identity, accumulator))}
+     * </pre>
+     * 
+     * <p>
+     * However it may perform much faster as partial reduction results are
+     * reused.
+     * 
+     * <p>
+     * The supplied collection is assumed to be unchanged during the operation.
+     *
+     * @param <T>
+     *            the type of the input elements
+     * @param <U>
+     *            the type of the elements of the resulting stream
+     * @param source
+     *            the input collection of collections which is used to generate
+     *            the cross-product.
+     * @param identity
+     *            the identity value
+     * @param accumulator
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function for incorporating an additional element from source
+     *            collection into a stream element.
+     * @return the new stream.
+     * @see #cartesianProduct(Collection)
+     * @see #cartesianPower(int, Collection, Object, BiFunction)
+     * @since 0.4.0
+     */
+    public static <T, U> StreamEx<U> cartesianProduct(Collection<? extends Collection<T>> source, U identity,
+            BiFunction<U, ? super T, U> accumulator) {
+        if (source.isEmpty())
+            return of(identity);
+        return of(new CrossSpliterator.Reducing<>(source, identity, accumulator));
     }
 
     /**
@@ -2128,6 +2187,64 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public static <T> StreamEx<List<T>> cartesianPower(int n, Collection<T> source) {
         if (n == 0)
             return of(Stream.of(Collections.emptyList()));
-        return of(new CrossSpliterator<>(Collections.nCopies(n, source)));
+        return of(new CrossSpliterator.ToList<>(Collections.nCopies(n, source)));
+    }
+
+    /**
+     * Returns a new {@code StreamEx} which elements are results of reduction of
+     * all possible n-tuples composed from the elements of supplied collections.
+     * The whole stream forms an n-fold Cartesian product of input collection
+     * with itself or n-ary Cartesian power of the input collection.
+     * 
+     * <p>
+     * The reduction is performed using the provided identity object and the
+     * accumulator function which is capable to accumulate new element. The
+     * accumulator function must not modify the previous accumulated value, but
+     * must produce new value instead. That's because partially accumulated
+     * values are reused for subsequent elements.
+     * 
+     * <p>
+     * This method is equivalent to the following:
+     *
+     * <pre>
+     * {@code StreamEx.cartesianPower(n, source).map(list -> StreamEx.of(list).foldLeft(identity, accumulator))}
+     * </pre>
+     * 
+     * <p>
+     * However it may perform much faster as partial reduction results are
+     * reused.
+     * 
+     * <p>
+     * The supplied collection is assumed to be unchanged during the operation.
+     *
+     * @param <T>
+     *            the type of the input elements
+     * @param <U>
+     *            the type of the elements of the resulting stream
+     * @param n
+     *            the number of elements to incorporate into single element of
+     *            the resulting stream.
+     * @param source
+     *            the input collection of collections which is used to generate
+     *            the Cartesian power.
+     * @param identity
+     *            the identity value
+     * @param accumulator
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function for incorporating an additional element from source
+     *            collection into a stream element.
+     * @return the new stream.
+     * @see #cartesianProduct(Collection, Object, BiFunction)
+     * @see #cartesianPower(int, Collection)
+     * @since 0.4.0
+     */
+    public static <T, U> StreamEx<U> cartesianPower(int n, Collection<T> source, U identity,
+            BiFunction<U, ? super T, U> accumulator) {
+        if (n == 0)
+            return of(identity);
+        return of(new CrossSpliterator.Reducing<>(Collections.nCopies(n, source), identity, accumulator));
     }
 }

@@ -80,7 +80,7 @@ public class DoubleStreamEx implements DoubleStream {
             throw new InternalError(e);
         }
     }
-    
+
     @Override
     public boolean isParallel() {
         return stream.isParallel();
@@ -474,8 +474,12 @@ public class DoubleStreamEx implements DoubleStream {
      * unordered. The main purpose of this method is to workaround the problem
      * of skipping the first elements from non-sized source with further
      * parallel processing and unordered terminal operation (such as
-     * {@link #forEach(DoubleConsumer)}). Also it behaves much better with
-     * infinite streams processed in parallel. For example,
+     * {@link #forEach(DoubleConsumer)}). This problem was fixed in OracleJDK
+     * 8u60.
+     * 
+     * <p>
+     * Also it behaves much better with infinite streams processed in parallel.
+     * For example,
      * {@code DoubleStreamEx.iterate(0.0, i->i+1).skip(1).limit(100).parallel().toArray()}
      * will likely to fail with {@code OutOfMemoryError}, but will work nicely
      * if {@code skip} is replaced with {@code skipOrdered}.
@@ -547,6 +551,107 @@ public class DoubleStreamEx implements DoubleStream {
     @Override
     public OptionalDouble reduce(DoubleBinaryOperator op) {
         return stream.reduce(op);
+    }
+
+    /**
+     * Folds the elements of this stream using the provided identity object and
+     * accumulation function, going left to right. This is equivalent to:
+     * 
+     * <pre>
+     * {@code
+     *     double result = identity;
+     *     for (double element : this stream)
+     *         result = accumulator.apply(result, element)
+     *     return result;
+     * }
+     * </pre>
+     *
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * This method may work slowly on parallel streams as it must process
+     * elements strictly left to right. If your accumulator function is
+     * associative, consider using {@link #reduce(double, DoubleBinaryOperator)}
+     * method.
+     * 
+     * <p>
+     * For parallel stream it's not guaranteed that accumulator will always be
+     * executed in the same thread.
+     *
+     * @param identity
+     *            the identity value
+     * @param accumulator
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function for incorporating an additional element into a result
+     * @return the result of the folding
+     * @see #reduce(double, DoubleBinaryOperator)
+     * @see #foldLeft(DoubleBinaryOperator)
+     * @since 0.4.0
+     */
+    public double foldLeft(double identity, DoubleBinaryOperator accumulator) {
+        double[] box = new double[] { identity };
+        stream.forEachOrdered(t -> box[0] = accumulator.applyAsDouble(box[0], t));
+        return box[0];
+    }
+
+    /**
+     * Folds the elements of this stream using the provided accumulation
+     * function, going left to right. This is equivalent to:
+     * 
+     * <pre>
+     * {@code
+     *     boolean foundAny = false;
+     *     double result = 0;
+     *     for (double element : this stream) {
+     *         if (!foundAny) {
+     *             foundAny = true;
+     *             result = element;
+     *         }
+     *         else
+     *             result = accumulator.apply(result, element);
+     *     }
+     *     return foundAny ? OptionalDouble.of(result) : OptionalDouble.empty();
+     * }
+     * </pre>
+     * 
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * This method may work slowly on parallel streams as it must process
+     * elements strictly left to right. If your accumulator function is
+     * associative, consider using {@link #reduce(DoubleBinaryOperator)} method.
+     * 
+     * <p>
+     * For parallel stream it's not guaranteed that accumulator will always be
+     * executed in the same thread.
+     *
+     * @param accumulator
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function for incorporating an additional element into a result
+     * @return the result of the folding
+     * @see #foldLeft(double, DoubleBinaryOperator)
+     * @see #reduce(DoubleBinaryOperator)
+     * @since 0.4.0
+     */
+    public OptionalDouble foldLeft(DoubleBinaryOperator accumulator) {
+        PrimitiveBox b = new PrimitiveBox();
+        stream.forEachOrdered(t -> {
+            if (b.b)
+                b.d = accumulator.applyAsDouble(b.d, t);
+            else {
+                b.d = t;
+                b.b = true;
+            }
+        });
+        return b.asDouble();
     }
 
     /**
@@ -1138,7 +1243,7 @@ public class DoubleStreamEx implements DoubleStream {
      */
     public DoubleStreamEx takeWhile(DoublePredicate predicate) {
         Objects.requireNonNull(predicate);
-        if (IS_JDK9 && JDK9_METHODS[IDX_DOUBLE_STREAM] != null) {
+        if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_TAKE_WHILE);
         }
         return delegate(new TDOfDouble(stream.spliterator(), false, predicate));
@@ -1167,7 +1272,7 @@ public class DoubleStreamEx implements DoubleStream {
      */
     public DoubleStreamEx dropWhile(DoublePredicate predicate) {
         Objects.requireNonNull(predicate);
-        if (IS_JDK9 && JDK9_METHODS[IDX_DOUBLE_STREAM] != null) {
+        if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_DROP_WHILE);
         }
         return delegate(new TDOfDouble(stream.spliterator(), true, predicate));
@@ -1305,7 +1410,7 @@ public class DoubleStreamEx implements DoubleStream {
 
     /**
      * Returns a sequential ordered {@code DoubleStreamEx} whose elements are
-     * the unboxed elements of supplied collection. 
+     * the unboxed elements of supplied collection.
      *
      * @param collection
      *            the collection to create the stream from.
