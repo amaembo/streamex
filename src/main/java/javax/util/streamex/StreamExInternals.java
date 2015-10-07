@@ -663,11 +663,6 @@ import java.util.stream.Stream;
         static <A> Optional<A> asOptional(Box<A> box) {
             return box == null ? Optional.empty() : Optional.of(box.a);
         }
-        
-        @Override
-        public String toString() {
-            return "Box["+a+"]";
-        }
     }
 
     static final class PairBox<A, B> extends Box<A> {
