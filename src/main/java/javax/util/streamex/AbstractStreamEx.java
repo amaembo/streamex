@@ -271,7 +271,7 @@ import static javax.util.streamex.StreamExInternals.*;
                 spltr = new UnorderedCancellableSpliterator<>(spliterator, c.supplier(), acc, combiner, finished); 
                 return c.finisher().apply(strategy().newStreamEx(StreamSupport.stream(spltr, true)).findAny().get());
             } else {
-                spltr = new CancellableCollectSpliterator<>(spliterator, c.supplier(), acc, finished);
+                spltr = new OrderedCancellableSpliterator<>(spliterator, c.supplier(), acc, finished);
                 return c.finisher().apply(strategy().newStreamEx(StreamSupport.stream(spltr, true)).reduce(combiner).get());
             }
         }

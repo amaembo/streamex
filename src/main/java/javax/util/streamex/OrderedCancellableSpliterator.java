@@ -25,18 +25,18 @@ import java.util.function.Supplier;
 /**
  * @author Tagir Valeev
  */
-/* package */final class CancellableCollectSpliterator<T, A> implements Spliterator<A>, Consumer<T>, Cloneable {
+/* package */final class OrderedCancellableSpliterator<T, A> implements Spliterator<A>, Consumer<T>, Cloneable {
     private volatile Spliterator<T> source;
     private final BiConsumer<A, ? super T> accumulator;
     private final Predicate<A> cancelPredicate;
     private final Supplier<A> supplier;
     private AtomicBoolean cancelled;
     private volatile boolean localCancelled;
-    private CancellableCollectSpliterator<T, A> prefix;
-    private volatile CancellableCollectSpliterator<T, A> suffix;
+    private OrderedCancellableSpliterator<T, A> prefix;
+    private volatile OrderedCancellableSpliterator<T, A> suffix;
     private A acc;
 
-    CancellableCollectSpliterator(Spliterator<T> source, Supplier<A> supplier, BiConsumer<A, ? super T> accumulator,
+    OrderedCancellableSpliterator(Spliterator<T> source, Supplier<A> supplier, BiConsumer<A, ? super T> accumulator,
             Predicate<A> cancelPredicate) {
         this.source = source;
         this.supplier = supplier;
@@ -69,7 +69,7 @@ import java.util.function.Supplier;
             if (cancelPredicate.test(acc)) {
                 this.source = null;
                 this.localCancelled = true;
-                CancellableCollectSpliterator<T, A> suffix = this.suffix;
+                OrderedCancellableSpliterator<T, A> suffix = this.suffix;
                 if (isFinished()) {
                     cancelled.set(true);
                 } else {
@@ -114,11 +114,11 @@ import java.util.function.Supplier;
             cancelled = new AtomicBoolean();
         try {
             @SuppressWarnings("unchecked")
-            CancellableCollectSpliterator<T, A> result = (CancellableCollectSpliterator<T, A>) this.clone();
+            OrderedCancellableSpliterator<T, A> result = (OrderedCancellableSpliterator<T, A>) this.clone();
             result.source = prefix;
             this.prefix = result;
             result.suffix = this;
-            CancellableCollectSpliterator<T, A> prefixPrefix = result.prefix;
+            OrderedCancellableSpliterator<T, A> prefixPrefix = result.prefix;
             if (prefixPrefix != null)
                 prefixPrefix.suffix = result;
             if (this.localCancelled || result.localCancelled) {
