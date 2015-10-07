@@ -16,7 +16,6 @@
 package javax.util.streamex;
 
 import java.util.Spliterator;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -25,16 +24,14 @@ import java.util.function.Supplier;
 /**
  * @author Tagir Valeev
  */
-/* package */final class OrderedCancellableSpliterator<T, A> implements Spliterator<A>, Consumer<T>, Cloneable {
+/* package */final class OrderedCancellableSpliterator<T, A> implements Spliterator<A>, Cloneable {
     private volatile Spliterator<T> source;
     private final BiConsumer<A, ? super T> accumulator;
     private final Predicate<A> cancelPredicate;
     private final Supplier<A> supplier;
-    private AtomicBoolean cancelled;
     private volatile boolean localCancelled;
     private OrderedCancellableSpliterator<T, A> prefix;
     private volatile OrderedCancellableSpliterator<T, A> suffix;
-    private A acc;
 
     OrderedCancellableSpliterator(Spliterator<T> source, Supplier<A> supplier, BiConsumer<A, ? super T> accumulator,
             Predicate<A> cancelPredicate) {
@@ -47,47 +44,30 @@ import java.util.function.Supplier;
     @Override
     public boolean tryAdvance(Consumer<? super A> action) {
         Spliterator<T> source = this.source;
-        if (source == null)
-            return false;
-        if (cancelled == null) {
-            this.source = null;
-            acc = supplier.get();
-            // sequential mode
-            while (!cancelPredicate.test(acc) && source.tryAdvance(this)) {
-                // empty
-            }
-            action.accept(acc);
-            return true;
-        }
-        // parallel mode
-        if (localCancelled || cancelled.get()) {
+        if (source == null || localCancelled) {
             this.source = null;
             return false;
         }
-        acc = supplier.get();
+        A acc = supplier.get();
         do {
             if (cancelPredicate.test(acc)) {
                 this.source = null;
                 this.localCancelled = true;
                 OrderedCancellableSpliterator<T, A> suffix = this.suffix;
-                if (isFinished()) {
-                    cancelled.set(true);
-                } else {
-                    // Due to possible race with trySplit some spliterators can
-                    // be skipped. This is handled in trySplit
-                    while (suffix != null && !suffix.localCancelled && !cancelled.get()) {
-                        suffix.localCancelled = true;
-                        suffix = suffix.suffix;
-                    }
+                // Due to possible race with trySplit some spliterators can
+                // be skipped. This is handled in trySplit
+                while (suffix != null && !suffix.localCancelled) {
+                    suffix.localCancelled = true;
+                    suffix = suffix.suffix;
                 }
                 action.accept(acc);
                 return true;
             }
-            if (localCancelled || cancelled.get()) {
+            if (localCancelled) {
                 this.source = null;
                 return false;
             }
-        } while (source.tryAdvance(this));
+        } while (source.tryAdvance(t -> accumulator.accept(acc, t)));
         this.source = null;
         action.accept(acc);
         return true;
@@ -100,18 +80,14 @@ import java.util.function.Supplier;
 
     @Override
     public Spliterator<A> trySplit() {
-        if (source == null || (cancelled != null && (cancelled.get() || localCancelled))) {
+        if (source == null || localCancelled) {
             source = null;
             return null;
         }
         Spliterator<T> prefix = source.trySplit();
         if (prefix == null) {
-            // if parallel processing was requested, but source refuses to split
-            // this spliterator stays in sequential mode for better performance
             return null;
         }
-        if (cancelled == null)
-            cancelled = new AtomicBoolean();
         try {
             @SuppressWarnings("unchecked")
             OrderedCancellableSpliterator<T, A> result = (OrderedCancellableSpliterator<T, A>) this.clone();
@@ -127,14 +103,10 @@ import java.util.function.Supplier;
                 this.localCancelled = result.localCancelled = true;
                 return null;
             }
-            return cancelled.get() ? null : result;
+            return result;
         } catch (CloneNotSupportedException e) {
             throw new InternalError();
         }
-    }
-
-    private boolean isFinished() {
-        return source == null && (prefix == null || prefix.isFinished());
     }
 
     @Override
@@ -145,10 +117,5 @@ import java.util.function.Supplier;
     @Override
     public int characteristics() {
         return source == null ? SIZED : ORDERED;
-    }
-
-    @Override
-    public void accept(T t) {
-        accumulator.accept(this.acc, t);
     }
 }
