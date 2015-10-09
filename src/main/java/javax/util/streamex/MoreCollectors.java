@@ -1137,25 +1137,25 @@ public final class MoreCollectors {
             downstream.characteristics().toArray(new Characteristics[downstream.characteristics().size()]));
     }
 
-    public static Collector<CharSequence, ?, String> joining(CharSequence delimiter, CharSequence ellipsis, int limit,
+    public static Collector<CharSequence, ?, String> joining(CharSequence delimiter, CharSequence ellipsis, int maxChars,
             boolean partial) {
-        if (limit <= 0)
+        if (maxChars <= 0)
             return empty(() -> "");
         int delimLength = delimiter.length();
         BiConsumer<ObjIntBox<ArrayList<String>>, CharSequence> accumulator = (acc, str) -> {
-            if (acc.b <= limit) {
+            if (acc.b <= maxChars) {
                 acc.b += str.length() + (acc.a.isEmpty() ? 0 : delimLength);
                 acc.a.add(str.toString());
             }
         };
         BinaryOperator<ObjIntBox<ArrayList<String>>> combiner = (acc1, acc2) -> {
             int len = acc1.b + acc2.b + ((acc1.a.isEmpty() || acc2.a.isEmpty()) ? 0 : delimLength);
-            if (len <= limit) {
+            if (len <= maxChars) {
                 acc1.b = len;
                 acc1.a.addAll(acc2.a);
             } else {
                 for (CharSequence s : acc2.a) {
-                    if (acc1.b > limit)
+                    if (acc1.b > maxChars)
                         break;
                     accumulator.accept(acc1, s);
                 }
@@ -1163,9 +1163,9 @@ public final class MoreCollectors {
             return acc1;
         };
         Function<ObjIntBox<ArrayList<String>>, String> finisher = acc -> {
-            char[] result = new char[Math.min(limit, acc.b)];
+            char[] result = new char[Math.min(maxChars, acc.b)];
             char[] delimArray = delimiter.toString().toCharArray();
-            int ellipsisLength = Math.min(ellipsis.length(), limit);
+            int ellipsisLength = Math.min(ellipsis.length(), maxChars);
             int pos = 0;
             boolean overflow = false;
             int prevPos = 0;
@@ -1174,19 +1174,19 @@ public final class MoreCollectors {
                 int nextPos;
                 if (i > 0) {
                     nextPos = pos + delimArray.length;
-                    System.arraycopy(delimArray, 0, result, pos, Math.min(nextPos, limit) - pos);
-                    if (nextPos > limit) {
+                    System.arraycopy(delimArray, 0, result, pos, Math.min(nextPos, maxChars) - pos);
+                    if (nextPos > maxChars) {
                         overflow = true;
                         break;
                     }
                     pos = nextPos;
-                    if (!partial && pos <= limit - ellipsisLength) {
+                    if (!partial && pos <= maxChars - ellipsisLength) {
                         prevPos = pos;
                     }
                 }
                 nextPos = pos + s.length();
-                s.getChars(0, Math.min(nextPos, limit) - pos, result, pos);
-                if (nextPos > limit) {
+                s.getChars(0, Math.min(nextPos, maxChars) - pos, result, pos);
+                if (nextPos > maxChars) {
                     overflow = true;
                     break;
                 }
@@ -1197,12 +1197,12 @@ public final class MoreCollectors {
                     ellipsis.toString().getChars(0, ellipsisLength, result, prevPos);
                     return new String(result, 0, prevPos + ellipsisLength);
                 }
-                ellipsis.toString().getChars(0, ellipsisLength, result, limit - ellipsisLength);
+                ellipsis.toString().getChars(0, ellipsisLength, result, maxChars - ellipsisLength);
             }
             return new String(result);
         };
         return new CancellableCollectorImpl<>(() -> new ObjIntBox<>(new ArrayList<String>(), 0), accumulator, combiner,
-                finisher, acc -> acc.b > limit, NO_CHARACTERISTICS);
+                finisher, acc -> acc.b > maxChars, NO_CHARACTERISTICS);
     }
 
     /**
