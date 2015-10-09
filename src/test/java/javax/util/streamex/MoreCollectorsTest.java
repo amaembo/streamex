@@ -45,6 +45,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.Collector.Characteristics;
 
@@ -425,6 +426,14 @@ public class MoreCollectorsTest {
         checkShortCircuitCollector("andLong", OptionalLong.of(0), 2, longs::stream,
             MoreCollectors.andingLong(Long::longValue));
         checkCollectorEmpty("andLongEmpty", OptionalLong.empty(), MoreCollectors.andingLong(Long::longValue));
+    }
+    
+    @Test
+    public void testAndLongFlatMap() {
+        assertEquals(
+            OptionalLong.of(0),
+            LongStreamEx.of(0).flatMap(x -> LongStream.range(1, 100000000)).boxed()
+                    .collect(MoreCollectors.andingLong(Long::longValue)));
     }
 
     @Test

@@ -261,8 +261,19 @@ import static javax.util.streamex.StreamExInternals.*;
             Spliterator<T> spliterator = stream.spliterator();
             if(!isParallel()) {
                 A a = c.supplier().get();
-                while(!finished.test(a) && spliterator.tryAdvance(e -> acc.accept(a, e))) {
-                    // nothing to do
+                if(!finished.test(a)) {
+                    try {
+                        // forEachRemaining can be much faster
+                        // and take much less memory than tryAdvance for certain
+                        // spliterators
+                        spliterator.forEachRemaining(e -> {
+                            acc.accept(a, e);
+                            if(finished.test(a))
+                                throw new CancelException();
+                        });
+                    } catch (CancelException ex) {
+                        // ignore
+                    }
                 }
                 return c.finisher().apply(a);
             }

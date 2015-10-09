@@ -84,7 +84,7 @@ import java.util.stream.Stream;
     static final int IDX_DOUBLE_STREAM = 3;
     static final int IDX_TAKE_WHILE = 0;
     static final int IDX_DROP_WHILE = 1;
-    
+
     static MethodHandle[][] initJdk9Methods() {
         Lookup lookup = MethodHandles.publicLookup();
         MethodType[] types = { MethodType.methodType(Stream.class, Predicate.class),
@@ -404,8 +404,7 @@ import java.util.stream.Stream;
         }
 
         @SuppressWarnings({ "unchecked", "rawtypes" })
-        static <A, R> PartialCollector<BooleanMap<A>, Map<Boolean, R>> partialCollector(
-                Collector<?, A, R> downstream) {
+        static <A, R> PartialCollector<BooleanMap<A>, Map<Boolean, R>> partialCollector(Collector<?, A, R> downstream) {
             Supplier<A> downstreamSupplier = downstream.supplier();
             Supplier<BooleanMap<A>> supplier = () -> new BooleanMap<>(downstreamSupplier.get(),
                     downstreamSupplier.get());
@@ -489,20 +488,22 @@ import java.util.stream.Stream;
             return Collector.of(supplier, accumulator, combiner(), finisher,
                 characteristics.toArray(new Characteristics[characteristics.size()]));
         }
-        
+
         <T> CancellableCollector<T, A, R> asCancellable(BiConsumer<A, T> accumulator, Predicate<A> finished) {
             return new CancellableCollectorImpl<>(supplier, accumulator, combiner(), finisher, finished,
                     characteristics);
         }
-        
+
         static PartialCollector<int[], Integer> intSum() {
-            return new PartialCollector<>(() -> new int[1], (box1, box2) -> box1[0] += box2[0], UNBOX_INT, NO_CHARACTERISTICS);
+            return new PartialCollector<>(() -> new int[1], (box1, box2) -> box1[0] += box2[0], UNBOX_INT,
+                    NO_CHARACTERISTICS);
         }
 
         static PartialCollector<long[], Long> longSum() {
-            return new PartialCollector<>(() -> new long[1], (box1, box2) -> box1[0] += box2[0], UNBOX_LONG, NO_CHARACTERISTICS);
+            return new PartialCollector<>(() -> new long[1], (box1, box2) -> box1[0] += box2[0], UNBOX_LONG,
+                    NO_CHARACTERISTICS);
         }
-        
+
         static PartialCollector<ObjIntBox<BitSet>, boolean[]> booleanArray() {
             return new PartialCollector<>(() -> new ObjIntBox<>(new BitSet(), 0), (box1, box2) -> {
                 box2.a.stream().forEach(i -> box1.a.set(i + box1.b));
@@ -515,8 +516,8 @@ import java.util.stream.Stream;
         }
 
         @SuppressWarnings("unchecked")
-        static <K, D, A, M extends Map<K, D>> PartialCollector<Map<K, A>, M> grouping(
-                Supplier<M> mapFactory, Collector<?, A, D> downstream) {
+        static <K, D, A, M extends Map<K, D>> PartialCollector<Map<K, A>, M> grouping(Supplier<M> mapFactory,
+                Collector<?, A, D> downstream) {
             BinaryOperator<A> downstreamMerger = downstream.combiner();
             BiConsumer<Map<K, A>, Map<K, A>> merger = (map1, map2) -> {
                 for (Map.Entry<K, A> e : map2.entrySet())
@@ -524,9 +525,8 @@ import java.util.stream.Stream;
             };
 
             if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
-                return (PartialCollector<Map<K, A>, M>) new PartialCollector<>(
-                        (Supplier<Map<K, A>>) mapFactory, merger, Function.identity(),
-                        ID_CHARACTERISTICS);
+                return (PartialCollector<Map<K, A>, M>) new PartialCollector<>((Supplier<Map<K, A>>) mapFactory,
+                        merger, Function.identity(), ID_CHARACTERISTICS);
             } else {
                 Function<A, D> downstreamFinisher = downstream.finisher();
                 return new PartialCollector<>((Supplier<Map<K, A>>) mapFactory, merger, map -> {
@@ -535,23 +535,24 @@ import java.util.stream.Stream;
                 }, NO_CHARACTERISTICS);
             }
         }
-        
-        static PartialCollector<StringBuilder, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix, boolean hasPS) {
+
+        static PartialCollector<StringBuilder, String> joining(CharSequence delimiter, CharSequence prefix,
+                CharSequence suffix, boolean hasPS) {
             BiConsumer<StringBuilder, StringBuilder> merger = (sb1, sb2) -> {
-                    if (sb2.length() > 0) {
-                        if (sb1.length() > 0)
-                            sb1.append(delimiter);
-                        sb1.append(sb2);
-                    }
-                };
+                if (sb2.length() > 0) {
+                    if (sb1.length() > 0)
+                        sb1.append(delimiter);
+                    sb1.append(sb2);
+                }
+            };
             Supplier<StringBuilder> supplier = StringBuilder::new;
-            if(hasPS)
+            if (hasPS)
                 return new PartialCollector<>(supplier, merger, sb -> new StringBuilder().append(prefix).append(sb)
                         .append(suffix).toString(), NO_CHARACTERISTICS);
             return new PartialCollector<>(supplier, merger, StringBuilder::toString, NO_CHARACTERISTICS);
         }
     }
-    
+
     static final class CancellableCollectorImpl<T, A, R> implements CancellableCollector<T, A, R> {
         private final Supplier<A> supplier;
         private final BiConsumer<A, T> accumulator;
@@ -559,7 +560,7 @@ import java.util.stream.Stream;
         private final Function<A, R> finisher;
         private final Predicate<A> finished;
         private final Set<Characteristics> characteristics;
-        
+
         public CancellableCollectorImpl(Supplier<A> supplier, BiConsumer<A, T> accumulator, BinaryOperator<A> combiner,
                 Function<A, R> finisher, Predicate<A> finished,
                 Set<java.util.stream.Collector.Characteristics> characteristics) {
@@ -688,7 +689,7 @@ import java.util.stream.Stream;
         public boolean equals(Object obj) {
             if (obj == null || obj.getClass() != PairBox.class)
                 return false;
-            return Objects.equals(b, ((PairBox<?, ?>)obj).b);
+            return Objects.equals(b, ((PairBox<?, ?>) obj).b);
         }
     }
 
@@ -820,25 +821,25 @@ import java.util.stream.Stream;
                 box1.from(box2);
             }
         };
-        
+
         static final BiConsumer<PrimitiveBox, PrimitiveBox> MIN_INT = (box1, box2) -> {
             if (box2.b && (!box1.b || box1.i > box2.i)) {
                 box1.from(box2);
             }
         };
-        
+
         static final BiConsumer<PrimitiveBox, PrimitiveBox> MAX_DOUBLE = (box1, box2) -> {
             if (box2.b && (!box1.b || Double.compare(box1.d, box2.d) < 0)) {
                 box1.from(box2);
             }
         };
-        
+
         static final BiConsumer<PrimitiveBox, PrimitiveBox> MIN_DOUBLE = (box1, box2) -> {
             if (box2.b && (!box1.b || Double.compare(box1.d, box2.d) > 0)) {
                 box1.from(box2);
             }
         };
-        
+
         public void from(PrimitiveBox box) {
             b = box.b;
             i = box.i;
@@ -1070,6 +1071,15 @@ import java.util.stream.Stream;
             return OptionalDouble.of(new BigDecimal(new BigInteger(java.nio.ByteBuffer.allocate(16)
                     .order(ByteOrder.BIG_ENDIAN).putLong(hi).putLong(lo).array())).divide(BigDecimal.valueOf(cnt),
                 MathContext.DECIMAL64).doubleValue());
+        }
+    }
+
+    @SuppressWarnings("serial")
+    static class CancelException extends Error {
+        CancelException() {
+            // Calling this constructor makes the Exception construction much
+            // faster (like 0.3us vs 1.7us)
+            super(null, null, false, false);
         }
     }
 
