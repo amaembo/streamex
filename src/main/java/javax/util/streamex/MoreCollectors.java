@@ -205,6 +205,13 @@ public final class MoreCollectors {
      * Returns a {@code Collector} which aggregates the results of two supplied
      * collectors using the supplied finisher function.
      * 
+     * <p>
+     * This method returns a <a
+     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * collector</a> if both downstream collectors are short-circuiting. The
+     * collection might stop when both downstream collectors report that the
+     * collection is complete.
+     *
      * @param <T>
      *            the type of the input elements
      * @param <A1>
@@ -481,9 +488,10 @@ public final class MoreCollectors {
      * @return a collector which returns an {@link Optional} which describes the
      *         only element of the stream. For empty stream or stream containing
      *         more than one element an empty {@code Optional} is returned.
+     * @since 0.4.0
      */
     public static <T> Collector<T, ?, Optional<T>> onlyOne() {
-        return new CancellableCollectorImpl<T, Box<Optional<T>>, Optional<T>>(() -> new Box<>(null),
+        return new CancellableCollectorImpl<>(() -> new Box<Optional<T>>(null),
                 (box, t) -> box.a = box.a == null ? Optional.of(t) : Optional.empty(),
                 (box1, box2) -> box1.a == null ? box2 : box2.a == null ? box1 : new Box<>(Optional.empty()),
                 box -> box.a == null ? Optional.empty() : box.a, box -> box.a != null && !box.a.isPresent(),
@@ -511,7 +519,7 @@ public final class MoreCollectors {
      *         {@code Optional} is returned.
      */
     public static <T> Collector<T, ?, Optional<T>> first() {
-        return new CancellableCollectorImpl<T, Box<T>, Optional<T>>(() -> new Box<>(none()), (box, t) -> {
+        return new CancellableCollectorImpl<>(() -> new Box<T>(none()), (box, t) -> {
             if (box.a == NONE)
                 box.a = t;
         }, (box1, box2) -> box1.a == NONE ? box2 : box1, box -> box.a == NONE ? Optional.empty() : Optional.of(box.a),
@@ -603,6 +611,11 @@ public final class MoreCollectors {
      * , but can be performed much faster if the input is not sorted and
      * {@code n} is much less than the stream size.
      * 
+     * <p>
+     * When supplied {@code n} is less or equal to zero, this method returns a
+     * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * collector</a> which ignores the input and produces an empty list.
+     * 
      * @param <T>
      *            the type of the input elements
      * @param comparator
@@ -647,6 +660,11 @@ public final class MoreCollectors {
      * , but can be performed much faster if the input is not sorted and
      * {@code n} is much less than the stream size.
      * 
+     * <p>
+     * When supplied {@code n} is less or equal to zero, this method returns a
+     * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * collector</a> which ignores the input and produces an empty list.
+     * 
      * @param <T>
      *            the type of the input elements
      * @param n
@@ -669,6 +687,11 @@ public final class MoreCollectors {
      * {@code stream.sorted(comparator).limit(n).collect(Collectors.toList())},
      * but can be performed much faster if the input is not sorted and {@code n}
      * is much less than the stream size.
+     * 
+     * <p>
+     * When supplied {@code n} is less or equal to zero, this method returns a
+     * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * collector</a> which ignores the input and produces an empty list.
      * 
      * @param <T>
      *            the type of the input elements
@@ -694,6 +717,11 @@ public final class MoreCollectors {
      * {@code stream.sorted().limit(n).collect(Collectors.toList())}, but can be
      * performed much faster if the input is not sorted and {@code n} is much
      * less than the stream size.
+     * 
+     * <p>
+     * When supplied {@code n} is less or equal to zero, this method returns a
+     * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * collector</a> which ignores the input and produces an empty list.
      * 
      * @param <T>
      *            the type of the input elements
@@ -880,19 +908,34 @@ public final class MoreCollectors {
         });
     }
 
-    public static <T, A, R, RR> Collector<T, A, RR> collectingAndThen(Collector<T, A, R> downstream,
-            Function<R, RR> finisher) {
-        if (downstream instanceof CancellableCollector) {
-            return new CancellableCollectorImpl<>(downstream.supplier(), downstream.accumulator(),
-                    downstream.combiner(), downstream.finisher().andThen(finisher),
-                    ((CancellableCollector<T, A, R>) downstream).finished(), downstream.characteristics().contains(
-                        Characteristics.UNORDERED) ? UNORDERED_CHARACTERISTICS : NO_CHARACTERISTICS);
-        }
-        return Collectors.collectingAndThen(downstream, finisher);
-    }
-
+    /**
+     * Returns a {@code Collector} which collects the intersection of the input
+     * collections into the newly-created {@link Set}.
+     *
+     * <p>
+     * The returned collector produces an empty set if the input is empty or
+     * intersection of the input collections is empty.
+     * 
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code Set} returned.
+     *
+     * <p>
+     * This method returns a <a
+     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * collector</a>: it may not process all the elements if the resulting
+     * intersection is empty.
+     * 
+     * @param <T>
+     *            the type of the elements in the input collections
+     * @param <S>
+     *            the type of the input collections
+     * @return a {@code Collector} which finds all the minimal elements and
+     *         collects them to the {@code List}.
+     * @since 0.4.0
+     */
     public static <T, S extends Collection<T>> Collector<S, ?, Set<T>> intersecting() {
-        return new CancellableCollectorImpl<S, Box<Set<T>>, Set<T>>(() -> new Box<>(null), (b, t) -> {
+        return new CancellableCollectorImpl<>(() -> new Box<Set<T>>(null), (b, t) -> {
             if (b.a == null) {
                 b.a = new HashSet<>(t);
             } else {
@@ -906,6 +949,45 @@ public final class MoreCollectors {
             return b1;
         }, b -> b.a == null ? Collections.emptySet() : b.a, b -> b.a != null && b.a.isEmpty(),
                 UNORDERED_CHARACTERISTICS);
+    }
+
+    /**
+     * Adapts a {@code Collector} to perform an additional finishing
+     * transformation.
+     * 
+     * <p>
+     * Unlike {@link Collectors#collectingAndThen(Collector, Function)} this
+     * method returns a <a
+     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * collector</a> if the downstream collector is short-circuiting.
+     *
+     * @param <T>
+     *            the type of the input elements
+     * @param <A>
+     *            intermediate accumulation type of the downstream collector
+     * @param <R>
+     *            result type of the downstream collector
+     * @param <RR>
+     *            result type of the resulting collector
+     * @param downstream
+     *            a collector
+     * @param finisher
+     *            a function to be applied to the final result of the downstream
+     *            collector
+     * @return a collector which performs the action of the downstream
+     *         collector, followed by an additional finishing step
+     * @see Collectors#collectingAndThen(Collector, Function)
+     * @since 0.4.0
+     */
+    public static <T, A, R, RR> Collector<T, A, RR> collectingAndThen(Collector<T, A, R> downstream,
+            Function<R, RR> finisher) {
+        if (downstream instanceof CancellableCollector) {
+            return new CancellableCollectorImpl<>(downstream.supplier(), downstream.accumulator(),
+                    downstream.combiner(), downstream.finisher().andThen(finisher),
+                    ((CancellableCollector<T, A, R>) downstream).finished(), downstream.characteristics().contains(
+                        Characteristics.UNORDERED) ? UNORDERED_CHARACTERISTICS : NO_CHARACTERISTICS);
+        }
+        return Collectors.collectingAndThen(downstream, finisher);
     }
 
     /**
@@ -974,8 +1056,8 @@ public final class MoreCollectors {
      * @return a collector which applies the mapping function to the input
      *         elements and provides the mapped results to the downstream
      *         collector
-     * @since 0.4.0
      * @see Collectors#mapping(Function, Collector)
+     * @since 0.4.0
      */
     public static <T, U, A, R> Collector<T, ?, R> mapping(Function<? super T, ? extends U> mapper,
             Collector<? super U, A, R> downstream) {
@@ -988,6 +1070,37 @@ public final class MoreCollectors {
         return Collectors.mapping(mapper, downstream);
     }
 
+    /**
+     * Returns a {@code Collector} which passes only those elements to the
+     * specified downstream collector which match given predicate.
+     *
+     * <p>
+     * This method returns a <a
+     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * collector</a> if downstream collector is short-circuiting.
+     * 
+     * <p>
+     * The operation performed by the returned collector is equivalent to
+     * {@code stream.filter(predicate).collect(downstream)}. This collector is
+     * mostly useful as a downstream collector in cascaded operation involving
+     * {@link #pairing(Collector, Collector, BiFunction)} collector.
+     *
+     * @param <T>
+     *            the type of the input elements
+     * @param <A>
+     *            intermediate accumulation type of the downstream collector
+     * @param <R>
+     *            result type of collector
+     * @param predicate
+     *            a filter function to be applied to the input elements
+     * @param downstream
+     *            a collector which will accept filtered values
+     * @return a collector which applies the predicate to the input elements and
+     *         provides the elements for which predicate returned true to the
+     *         downstream collector
+     * @see #pairing(Collector, Collector, BiFunction)
+     * @since 0.4.0
+     */
     public static <T, A, R> Collector<T, ?, R> filtering(Predicate<? super T> filter, Collector<T, A, R> downstream) {
         BiConsumer<A, T> downstreamAccumulator = downstream.accumulator();
         BiConsumer<A, T> accumulator = (acc, t) -> {
@@ -995,7 +1108,7 @@ public final class MoreCollectors {
                 downstreamAccumulator.accept(acc, t);
         };
         if (downstream instanceof CancellableCollector) {
-            return new CancellableCollectorImpl<T, A, R>(downstream.supplier(), accumulator, downstream.combiner(),
+            return new CancellableCollectorImpl<>(downstream.supplier(), accumulator, downstream.combiner(),
                     downstream.finisher(), ((CancellableCollector<T, A, R>) downstream).finished(),
                     downstream.characteristics());
         }
@@ -1071,8 +1184,26 @@ public final class MoreCollectors {
                 finisher, acc -> acc.b > limit, NO_CHARACTERISTICS);
     }
 
+    /**
+     * Returns a {@code Collector} that produces the bitwise-and operation of a
+     * integer-valued function applied to the input elements. If no elements are
+     * present, the result is empty {@link OptionalInt}.
+     *
+     * <p>
+     * This method returns a <a
+     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * collector</a>: it may not process all the elements if the result is zero.
+     * 
+     * @param <T>
+     *            the type of the input elements
+     * @param mapper
+     *            a function extracting the property to be processed
+     * @return a {@code Collector} that produces the bitwise-and operation of a
+     *         derived property
+     * @since 0.4.0
+     */
     public static <T> Collector<T, ?, OptionalInt> andingInt(ToIntFunction<T> mapper) {
-        return new CancellableCollectorImpl<T, PrimitiveBox, OptionalInt>(PrimitiveBox::new, (acc, t) -> {
+        return new CancellableCollectorImpl<>(PrimitiveBox::new, (acc, t) -> {
             if (!acc.b) {
                 acc.i = mapper.applyAsInt(t);
                 acc.b = true;
@@ -1089,8 +1220,26 @@ public final class MoreCollectors {
         }, PrimitiveBox::asInt, acc -> acc.b && acc.i == 0, UNORDERED_CHARACTERISTICS);
     }
 
+    /**
+     * Returns a {@code Collector} that produces the bitwise-and operation of a
+     * long-valued function applied to the input elements. If no elements are
+     * present, the result is empty {@link OptionalLong}.
+     *
+     * <p>
+     * This method returns a <a
+     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * collector</a>: it may not process all the elements if the result is zero.
+     * 
+     * @param <T>
+     *            the type of the input elements
+     * @param mapper
+     *            a function extracting the property to be processed
+     * @return a {@code Collector} that produces the bitwise-and operation of a
+     *         derived property
+     * @since 0.4.0
+     */
     public static <T> Collector<T, ?, OptionalLong> andingLong(ToLongFunction<T> mapper) {
-        return new CancellableCollectorImpl<T, PrimitiveBox, OptionalLong>(PrimitiveBox::new, (acc, t) -> {
+        return new CancellableCollectorImpl<>(PrimitiveBox::new, (acc, t) -> {
             if (!acc.b) {
                 acc.l = mapper.applyAsLong(t);
                 acc.b = true;
