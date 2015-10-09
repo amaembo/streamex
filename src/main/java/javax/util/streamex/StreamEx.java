@@ -516,7 +516,9 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
-     * operation.
+     * operation. The operation may short-circuit if the downstream collector is
+     * <a
+     * href="package-summary.html#ShortCircuitReduction">short-circuiting</a>.
      *
      * <p>
      * There are no guarantees on the type, mutability, serializability, or
@@ -539,7 +541,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.2.2
      */
     public <D> Map<Boolean, D> partitioningBy(Predicate<? super T> predicate, Collector<? super T, ?, D> downstream) {
-        return collect(Collectors.partitioningBy(predicate, downstream));
+        return collect(MoreCollectors.partitioningBy(predicate, downstream));
     }
 
     /**
