@@ -48,6 +48,8 @@ import java.util.stream.Collector;
 import java.util.stream.Collector.Characteristics;
 import java.util.stream.Collectors;
 
+import javax.util.streamex.StreamExInternals.Box;
+import javax.util.streamex.StreamExInternals.CancellableCollectorImpl;
 import javax.util.streamex.StreamExInternals.ObjIntBox;
 
 import static javax.util.streamex.StreamExInternals.*;
@@ -463,6 +465,29 @@ public final class MoreCollectors {
      */
     public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> minAll() {
         return maxAll(Comparator.<T> reverseOrder(), Collectors.toList());
+    }
+
+    /**
+     * Returns a {@code Collector} which collects the stream element if stream
+     * contains exactly one element.
+     * 
+     * <p>
+     * This method returns a <a
+     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * collector</a>.
+     * 
+     * @param <T>
+     *            the type of the input elements
+     * @return a collector which returns an {@link Optional} which describes the
+     *         only element of the stream. For empty stream or stream containing
+     *         more than one element an empty {@code Optional} is returned.
+     */
+    public static <T> Collector<T, ?, Optional<T>> onlyOne() {
+        return new CancellableCollectorImpl<T, Box<Optional<T>>, Optional<T>>(() -> new Box<>(null),
+                (box, t) -> box.a = box.a == null ? Optional.of(t) : Optional.empty(),
+                (box1, box2) -> box1.a == null ? box2 : box2.a == null ? box1 : new Box<>(Optional.empty()),
+                box -> box.a == null ? Optional.empty() : box.a, box -> box.a != null && !box.a.isPresent(),
+                UNORDERED_CHARACTERISTICS);
     }
 
     /**
@@ -1046,7 +1071,7 @@ public final class MoreCollectors {
                 finisher, acc -> acc.b > limit, NO_CHARACTERISTICS);
     }
 
-    public static <T> Collector<T, ?, OptionalInt> andInt(ToIntFunction<T> mapper) {
+    public static <T> Collector<T, ?, OptionalInt> andingInt(ToIntFunction<T> mapper) {
         return new CancellableCollectorImpl<T, PrimitiveBox, OptionalInt>(PrimitiveBox::new, (acc, t) -> {
             if (!acc.b) {
                 acc.i = mapper.applyAsInt(t);
@@ -1064,7 +1089,7 @@ public final class MoreCollectors {
         }, PrimitiveBox::asInt, acc -> acc.b && acc.i == 0, UNORDERED_CHARACTERISTICS);
     }
 
-    public static <T> Collector<T, ?, OptionalLong> andLong(ToLongFunction<T> mapper) {
+    public static <T> Collector<T, ?, OptionalLong> andingLong(ToLongFunction<T> mapper) {
         return new CancellableCollectorImpl<T, PrimitiveBox, OptionalLong>(PrimitiveBox::new, (acc, t) -> {
             if (!acc.b) {
                 acc.l = mapper.applyAsLong(t);

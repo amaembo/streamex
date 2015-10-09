@@ -429,13 +429,13 @@ public class MoreCollectorsTest {
     @Test
     public void testAndInt() {
         List<Integer> ints = Arrays.asList(0b1100, 0b0110, 0b101110, 0b11110011);
-        Collector<Integer, ?, OptionalInt> collector = MoreCollectors.andInt(Integer::intValue);
+        Collector<Integer, ?, OptionalInt> collector = MoreCollectors.andingInt(Integer::intValue);
         checkShortCircuitCollector("andInt", OptionalInt.of(0), 4, ints::stream, collector);
         checkCollectorEmpty("andIntEmpty", OptionalInt.empty(), collector);
         assertEquals(OptionalInt.of(0), IntStreamEx.iterate(16384, i -> i + 1).parallel().boxed().collect(collector));
         assertEquals(OptionalInt.of(16384), IntStreamEx.iterate(16384, i -> i + 1).parallel().limit(16383).boxed()
                 .collect(collector));
-        Collector<Integer, ?, Integer> unwrapped = MoreCollectors.collectingAndThen(MoreCollectors.andInt(Integer::intValue), OptionalInt::getAsInt);
+        Collector<Integer, ?, Integer> unwrapped = MoreCollectors.collectingAndThen(MoreCollectors.andingInt(Integer::intValue), OptionalInt::getAsInt);
         assertTrue(unwrapped.characteristics().contains(Characteristics.UNORDERED));
         checkShortCircuitCollector("andIntUnwrapped", 0, 4, ints::stream, unwrapped);
         checkShortCircuitCollector("andIntUnwrapped", 0, 2, Arrays.asList(0x1, 0x10, 0x100)::stream, unwrapped);
@@ -445,8 +445,8 @@ public class MoreCollectorsTest {
     public void testAndLong() {
         List<Long> longs = Arrays.asList(0xFFFFFFFFFFFFFFFFL, 0xFFFFFFFF00000000L, 0xFFFFFFFF0000L);
         checkShortCircuitCollector("andLong", OptionalLong.of(0xFFFF00000000L), 3, longs::stream,
-            MoreCollectors.andLong(Long::longValue));
-        checkCollectorEmpty("andLongEmpty", OptionalLong.empty(), MoreCollectors.andLong(Long::longValue));
+            MoreCollectors.andingLong(Long::longValue));
+        checkCollectorEmpty("andLongEmpty", OptionalLong.empty(), MoreCollectors.andingLong(Long::longValue));
     }
     
     @Test
