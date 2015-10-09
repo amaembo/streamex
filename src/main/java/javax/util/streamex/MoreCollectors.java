@@ -1101,10 +1101,10 @@ public final class MoreCollectors {
      * @see #pairing(Collector, Collector, BiFunction)
      * @since 0.4.0
      */
-    public static <T, A, R> Collector<T, ?, R> filtering(Predicate<? super T> filter, Collector<T, A, R> downstream) {
+    public static <T, A, R> Collector<T, ?, R> filtering(Predicate<? super T> predicate, Collector<T, A, R> downstream) {
         BiConsumer<A, T> downstreamAccumulator = downstream.accumulator();
         BiConsumer<A, T> accumulator = (acc, t) -> {
-            if (filter.test(t))
+            if (predicate.test(t))
                 downstreamAccumulator.accept(acc, t);
         };
         if (downstream instanceof CancellableCollector) {
