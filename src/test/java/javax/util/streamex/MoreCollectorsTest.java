@@ -421,6 +421,9 @@ public class MoreCollectorsTest {
         List<Long> longs = Arrays.asList(0xFFFFFFFFFFFFFFFFL, 0xFFFFFFFF00000000L, 0xFFFFFFFF0000L);
         checkShortCircuitCollector("andLong", OptionalLong.of(0xFFFF00000000L), 3, longs::stream,
             MoreCollectors.andingLong(Long::longValue));
+        longs = Arrays.asList(1L, 2L, 3L, 4L);
+        checkShortCircuitCollector("andLong", OptionalLong.of(0), 2, longs::stream,
+            MoreCollectors.andingLong(Long::longValue));
         checkCollectorEmpty("andLongEmpty", OptionalLong.empty(), MoreCollectors.andingLong(Long::longValue));
     }
 
