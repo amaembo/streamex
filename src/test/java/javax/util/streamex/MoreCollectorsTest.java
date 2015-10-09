@@ -110,63 +110,31 @@ public class MoreCollectorsTest {
     @Test
     public void testMaxAll() {
         List<String> input = Arrays.asList("a", "bb", "c", "", "cc", "eee", "bb", "ddd");
-        for (StreamExSupplier<String> supplier : streamEx(input::stream)) {
-            assertEquals(supplier.toString(), Arrays.asList("eee", "ddd"),
-                supplier.get().collect(MoreCollectors.maxAll(Comparator.comparingInt(String::length))));
-            assertEquals(
-                supplier.toString(),
-                1L,
-                (long) supplier.get().collect(
-                    MoreCollectors.minAll(Comparator.comparingInt(String::length), Collectors.counting())));
-            assertEquals(
-                supplier.toString(),
-                "eee,ddd",
-                supplier.get().collect(
-                    MoreCollectors.maxAll(Comparator.comparingInt(String::length), Collectors.joining(","))));
-            assertEquals(supplier.toString(), Arrays.asList(""),
-                supplier.get().collect(MoreCollectors.minAll(Comparator.comparingInt(String::length))));
-        }
-        assertEquals(Collections.emptyList(),
-            StreamEx.<String> empty().collect(MoreCollectors.maxAll(Comparator.comparingInt(String::length))));
-        assertEquals(Collections.emptyList(),
-            StreamEx.<String> empty().parallel()
-                    .collect(MoreCollectors.maxAll(Comparator.comparingInt(String::length))));
+        checkCollector("maxAll", Arrays.asList("eee", "ddd"), input::stream,
+            MoreCollectors.maxAll(Comparator.comparingInt(String::length)));
+        Collector<String, ?, String> maxAllJoin = MoreCollectors.maxAll(Comparator.comparingInt(String::length),
+            Collectors.joining(","));
+        checkCollector("maxAllJoin", "eee,ddd", input::stream, maxAllJoin);
+        checkCollector("minAll", 1L, input::stream,
+            MoreCollectors.minAll(Comparator.comparingInt(String::length), Collectors.counting()));
+        checkCollector("minAllEmpty", Arrays.asList(""), input::stream,
+            MoreCollectors.minAll(Comparator.comparingInt(String::length)));
+        checkCollectorEmpty("maxAll", Collections.emptyList(),
+            MoreCollectors.maxAll(Comparator.comparingInt(String::length)));
+        checkCollectorEmpty("maxAllJoin", "", maxAllJoin);
 
         List<Integer> ints = IntStreamEx.of(new Random(1), 10000, 1, 1000).boxed().toList();
-        List<Integer> expectedMax = null;
-        List<Integer> expectedMin = null;
-        for (Integer i : ints) {
-            if (expectedMax == null || i > expectedMax.get(0)) {
-                expectedMax = new ArrayList<>();
-                expectedMax.add(i);
-            } else if (i.equals(expectedMax.get(0))) {
-                expectedMax.add(i);
-            }
-            if (expectedMin == null || i < expectedMin.get(0)) {
-                expectedMin = new ArrayList<>();
-                expectedMin.add(i);
-            } else if (i.equals(expectedMin.get(0))) {
-                expectedMin.add(i);
-            }
-        }
+        List<Integer> expectedMax = getMaxAll(ints, Comparator.naturalOrder());
+        List<Integer> expectedMin = getMaxAll(ints, Comparator.reverseOrder());
         Collector<Integer, ?, SimpleEntry<Integer, Long>> downstream = MoreCollectors.pairing(MoreCollectors.first(),
             Collectors.counting(), (opt, cnt) -> new AbstractMap.SimpleEntry<>(opt.get(), cnt));
 
-        for (StreamExSupplier<Integer> supplier : streamEx(ints::stream)) {
-            assertEquals(supplier.toString(), expectedMax,
-                supplier.get().collect(MoreCollectors.maxAll(Integer::compare)));
-
-            SimpleEntry<Integer, Long> entry = supplier.get().collect(MoreCollectors.maxAll(downstream));
-            assertEquals(supplier.toString(), expectedMax.size(), (long) entry.getValue());
-            assertEquals(supplier.toString(), expectedMax.get(0), entry.getKey());
-
-            assertEquals(supplier.toString(), expectedMin,
-                supplier.get().collect(MoreCollectors.minAll(Integer::compare)));
-
-            entry = supplier.get().collect(MoreCollectors.minAll(downstream));
-            assertEquals(supplier.toString(), expectedMin.size(), (long) entry.getValue());
-            assertEquals(supplier.toString(), expectedMin.get(0), entry.getKey());
-        }
+        checkCollector("maxAll", expectedMax, ints::stream, MoreCollectors.maxAll(Integer::compare));
+        checkCollector("minAll", expectedMin, ints::stream, MoreCollectors.minAll());
+        checkCollector("entry", new SimpleEntry<>(expectedMax.get(0), (long) expectedMax.size()), ints::stream,
+            MoreCollectors.maxAll(downstream));
+        checkCollector("entry", new SimpleEntry<>(expectedMin.get(0), (long) expectedMin.size()), ints::stream,
+            MoreCollectors.minAll(downstream));
 
         Integer a = new Integer(1), b = new Integer(1), c = new Integer(1000), d = new Integer(1000);
         ints = IntStreamEx.range(10, 100).boxed().append(a, c).prepend(b, d).toList();
@@ -183,17 +151,33 @@ public class MoreCollectorsTest {
         }
     }
 
+    private List<Integer> getMaxAll(List<Integer> ints, Comparator<Integer> c) {
+        List<Integer> expectedMax = null;
+        for (Integer i : ints) {
+            if (expectedMax == null || c.compare(i, expectedMax.get(0)) > 0) {
+                expectedMax = new ArrayList<>();
+                expectedMax.add(i);
+            } else if (i.equals(expectedMax.get(0))) {
+                expectedMax.add(i);
+            }
+        }
+        return expectedMax;
+    }
+
     @Test
     public void testFirstLast() {
-        for (StreamExSupplier<Integer> supplier : streamEx(() -> IntStreamEx.range(1000).boxed())) {
-            assertEquals(supplier.toString(), 999, (int) supplier.get().collect(MoreCollectors.last()).get());
-            assertEquals(supplier.toString(), 0, (int) supplier.get().collect(MoreCollectors.first()).orElse(-1));
-        }
-        for (StreamExSupplier<Integer> supplier : emptyStreamEx(Integer.class)) {
-            assertFalse(supplier.toString(), supplier.get().collect(MoreCollectors.first()).isPresent());
-            assertFalse(supplier.toString(), supplier.get().collect(MoreCollectors.last()).isPresent());
-        }
+        Supplier<Stream<Integer>> s = () -> IntStreamEx.range(1000).boxed();
+        checkShortCircuitCollector("first", Optional.of(0), 1, s, MoreCollectors.first());
+        // TODO: such test is failed now. Must be supported when
+        // OrderedCancellableSpliterator will be rewritten
+        // checkShortCircuitCollector("first", Optional.of(1), 1, () ->
+        // Stream.iterate(1, x -> x + 1),
+        // MoreCollectors.first());
         assertEquals(1, (int) StreamEx.iterate(1, x -> x + 1).parallel().collect(MoreCollectors.first()).get());
+
+        checkCollector("last", Optional.of(999), s, MoreCollectors.last());
+        checkCollectorEmpty("first", Optional.empty(), MoreCollectors.first());
+        checkCollectorEmpty("last", Optional.empty(), MoreCollectors.last());
     }
 
     @Test
@@ -233,29 +217,22 @@ public class MoreCollectorsTest {
     @Test
     public void testGreatest() {
         List<Integer> ints = IntStreamEx.of(new Random(1), 1000, 1, 1000).boxed().toList();
+        List<Integer> sorted = StreamEx.of(ints).sorted().toList();
+        List<Integer> revSorted = StreamEx.of(ints).reverseSorted().toList();
         Comparator<Integer> byString = Comparator.comparing(String::valueOf);
-        for (StreamExSupplier<Integer> supplier : streamEx(ints::stream)) {
-            assertEquals(supplier.toString(), Collections.emptyList(), supplier.get().collect(MoreCollectors.least(0)));
-            assertEquals(supplier.toString(), supplier.get().sorted().limit(5).toList(),
-                supplier.get().collect(MoreCollectors.least(5)));
-            assertEquals(supplier.toString(), supplier.get().sorted().limit(20).toList(),
-                supplier.get().collect(MoreCollectors.least(20)));
-            assertEquals(supplier.toString(), supplier.get().sorted(byString).limit(20).toList(), supplier.get()
-                    .collect(MoreCollectors.least(byString, 20)));
-            assertEquals(supplier.toString(), supplier.get().sorted().toList(),
-                supplier.get().collect(MoreCollectors.least(Integer.MAX_VALUE)));
+        checkShortCircuitCollector("least(0)", Collections.emptyList(), 0, ints::stream, MoreCollectors.least(0));
+        checkCollector("least(5)", sorted.subList(0, 5), ints::stream, MoreCollectors.least(5));
+        checkCollector("least(20)", sorted.subList(0, 20), ints::stream, MoreCollectors.least(20));
+        checkCollector("least(MAX)", sorted, ints::stream, MoreCollectors.least(Integer.MAX_VALUE));
+        checkCollector("least(byString, 20)", StreamEx.of(ints).sorted(byString).limit(20).toList(), ints::stream,
+            MoreCollectors.least(byString, 20));
 
-            assertEquals(supplier.toString(), Collections.emptyList(),
-                supplier.get().collect(MoreCollectors.greatest(0)));
-            assertEquals(supplier.toString(), supplier.get().reverseSorted().limit(5).toList(),
-                supplier.get().collect(MoreCollectors.greatest(5)));
-            assertEquals(supplier.toString(), supplier.get().reverseSorted().limit(20).toList(), supplier.get()
-                    .collect(MoreCollectors.greatest(20)));
-            assertEquals(supplier.toString(), supplier.get().reverseSorted(byString).limit(20).toList(), supplier.get()
-                    .collect(MoreCollectors.greatest(byString, 20)));
-            assertEquals(supplier.toString(), supplier.get().reverseSorted().toList(),
-                supplier.get().collect(MoreCollectors.greatest(Integer.MAX_VALUE)));
-        }
+        checkShortCircuitCollector("greatest(0)", Collections.emptyList(), 0, ints::stream, MoreCollectors.greatest(0));
+        checkCollector("greatest(5)", revSorted.subList(0, 5), ints::stream, MoreCollectors.greatest(5));
+        checkCollector("greatest(20)", revSorted.subList(0, 20), ints::stream, MoreCollectors.greatest(20));
+        checkCollector("greatest(MAX)", revSorted, ints::stream, MoreCollectors.greatest(Integer.MAX_VALUE));
+        checkCollector("greatest(byString, 20)", StreamEx.of(ints).reverseSorted(byString).limit(20).toList(),
+            ints::stream, MoreCollectors.greatest(byString, 20));
 
         Supplier<Stream<Integer>> s = () -> IntStreamEx.range(100).boxed();
         checkCollector("1", IntStreamEx.range(1).boxed().toList(), s, MoreCollectors.least(1));
@@ -273,29 +250,21 @@ public class MoreCollectorsTest {
 
     @Test
     public void testMinIndex() {
-        List<Integer> ints = IntStreamEx.of(new Random(1), 1000, 0, 100).boxed().toList();
+        List<Integer> ints = IntStreamEx.of(new Random(1), 1000, 5, 47).boxed().toList();
         long expectedMin = IntStreamEx.ofIndices(ints).minBy(ints::get).getAsInt();
         long expectedMax = IntStreamEx.ofIndices(ints).maxBy(ints::get).getAsInt();
         long expectedMinString = IntStreamEx.ofIndices(ints).minBy(i -> String.valueOf(ints.get(i))).getAsInt();
         long expectedMaxString = IntStreamEx.ofIndices(ints).maxBy(i -> String.valueOf(ints.get(i))).getAsInt();
-        for (StreamExSupplier<Integer> supplier : streamEx(ints::stream)) {
-            assertEquals(supplier.toString(), expectedMin, supplier.get().collect(MoreCollectors.minIndex())
-                    .getAsLong());
-            assertEquals(supplier.toString(), expectedMax, supplier.get().collect(MoreCollectors.maxIndex())
-                    .getAsLong());
-            assertEquals(supplier.toString(), expectedMinString,
-                supplier.get().collect(MoreCollectors.minIndex(Comparator.comparing(String::valueOf))).getAsLong());
-            assertEquals(supplier.toString(), expectedMaxString,
-                supplier.get().collect(MoreCollectors.maxIndex(Comparator.comparing(String::valueOf))).getAsLong());
-            assertEquals(supplier.toString(), expectedMinString,
-                supplier.get().map(String::valueOf).collect(MoreCollectors.minIndex()).getAsLong());
-            assertEquals(supplier.toString(), expectedMaxString,
-                supplier.get().map(String::valueOf).collect(MoreCollectors.maxIndex()).getAsLong());
-        }
-        for (StreamExSupplier<Integer> supplier : emptyStreamEx(Integer.class)) {
-            assertFalse(supplier.toString(), supplier.get().collect(MoreCollectors.minIndex()).isPresent());
-            assertFalse(supplier.toString(), supplier.get().collect(MoreCollectors.maxIndex()).isPresent());
-        }
+        Comparator<Integer> cmp = Comparator.comparing(String::valueOf);
+        checkCollector("minIndex", OptionalLong.of(expectedMin), ints::stream, MoreCollectors.minIndex());
+        checkCollector("maxIndex", OptionalLong.of(expectedMax), ints::stream, MoreCollectors.maxIndex());
+        checkCollector("minIndex", OptionalLong.of(expectedMinString), ints::stream, MoreCollectors.minIndex(cmp));
+        checkCollector("maxIndex", OptionalLong.of(expectedMaxString), ints::stream, MoreCollectors.maxIndex(cmp));
+        Supplier<Stream<String>> supplier = () -> ints.stream().map(Object::toString);
+        checkCollector("minIndex", OptionalLong.of(expectedMinString), supplier, MoreCollectors.minIndex());
+        checkCollector("maxIndex", OptionalLong.of(expectedMaxString), supplier, MoreCollectors.maxIndex());
+        checkCollectorEmpty("minIndex", OptionalLong.empty(), MoreCollectors.<String> minIndex());
+        checkCollectorEmpty("maxIndex", OptionalLong.empty(), MoreCollectors.<String> maxIndex());
     }
 
     @Test
@@ -313,9 +282,9 @@ public class MoreCollectorsTest {
     @Test
     public void testGroupingByWithDomain() {
         List<String> data = Arrays.asList("a", "foo", "test", "ququq", "bar", "blahblah");
-        Collector<String, ?, String> collector = 
-                MoreCollectors.collectingAndThen(MoreCollectors.groupingBy(String::length,
-            IntStreamEx.range(10).boxed().toSet(), TreeMap::new, MoreCollectors.first()), Object::toString);
+        Collector<String, ?, String> collector = MoreCollectors.collectingAndThen(MoreCollectors.groupingBy(
+            String::length, IntStreamEx.range(10).boxed().toSet(), TreeMap::new, MoreCollectors.first()),
+            Object::toString);
         checkShortCircuitCollector("groupingWithDomain",
             "{0=Optional.empty, 1=Optional[a], 2=Optional.empty, 3=Optional[foo], 4=Optional[test], 5=Optional[ququq], "
                 + "6=Optional.empty, 7=Optional.empty, 8=Optional[blahblah], 9=Optional.empty}", data.size(),
@@ -370,7 +339,8 @@ public class MoreCollectorsTest {
         Collector<String, ?, Map<Boolean, Optional<Integer>>> collector = MoreCollectors
                 .partitioningBy(str -> Character.isUpperCase(str.charAt(0)),
                     MoreCollectors.mapping(String::length, MoreCollectors.first()));
-        checkShortCircuitCollector("mapping", new BooleanMap<>(Optional.of(7), Optional.of(5)), 2, input::stream, collector);
+        checkShortCircuitCollector("mapping", new BooleanMap<>(Optional.of(7), Optional.of(5)), 2, input::stream,
+            collector);
         Collector<String, ?, Map<Boolean, Optional<Integer>>> collectorLast = MoreCollectors.partitioningBy(
             str -> Character.isUpperCase(str.charAt(0)), MoreCollectors.mapping(String::length, MoreCollectors.last()));
         checkCollector("last", new BooleanMap<>(Optional.of(3), Optional.of(3)), input::stream, collectorLast);
@@ -381,13 +351,14 @@ public class MoreCollectorsTest {
         for (int i = 0; i < 5; i++) {
             List<List<String>> input = Arrays.asList(Arrays.asList("aa", "bb", "cc"), Arrays.asList("cc", "bb", "dd"),
                 Arrays.asList("ee", "dd"), Arrays.asList("aa", "bb", "dd"));
-            checkShortCircuitCollector("#" + i, Collections.emptySet(), 3, input::stream,
-                MoreCollectors.intersecting());
+            checkShortCircuitCollector("#" + i, Collections.emptySet(), 3, input::stream, MoreCollectors.intersecting());
             List<List<Integer>> copies = new ArrayList<>(Collections.nCopies(100, Arrays.asList(1, 2)));
-            checkShortCircuitCollector("#"+i, StreamEx.of(1, 2).toSet(), 100, copies::stream, MoreCollectors.intersecting());
+            checkShortCircuitCollector("#" + i, StreamEx.of(1, 2).toSet(), 100, copies::stream,
+                MoreCollectors.intersecting());
             copies.addAll(Collections.nCopies(100, Arrays.asList(3)));
-            checkShortCircuitCollector("#"+i, Collections.emptySet(), 101, copies::stream, MoreCollectors.intersecting());
-            checkCollectorEmpty("#"+i, Collections.emptySet(), MoreCollectors.intersecting());
+            checkShortCircuitCollector("#" + i, Collections.emptySet(), 101, copies::stream,
+                MoreCollectors.intersecting());
+            checkCollectorEmpty("#" + i, Collections.emptySet(), MoreCollectors.intersecting());
         }
     }
 
@@ -435,7 +406,8 @@ public class MoreCollectorsTest {
         assertEquals(OptionalInt.of(0), IntStreamEx.iterate(16384, i -> i + 1).parallel().boxed().collect(collector));
         assertEquals(OptionalInt.of(16384), IntStreamEx.iterate(16384, i -> i + 1).parallel().limit(16383).boxed()
                 .collect(collector));
-        Collector<Integer, ?, Integer> unwrapped = MoreCollectors.collectingAndThen(MoreCollectors.andingInt(Integer::intValue), OptionalInt::getAsInt);
+        Collector<Integer, ?, Integer> unwrapped = MoreCollectors.collectingAndThen(
+            MoreCollectors.andingInt(Integer::intValue), OptionalInt::getAsInt);
         assertTrue(unwrapped.characteristics().contains(Characteristics.UNORDERED));
         checkShortCircuitCollector("andIntUnwrapped", 0, 4, ints::stream, unwrapped);
         checkShortCircuitCollector("andIntUnwrapped", 0, 2, Arrays.asList(0x1, 0x10, 0x100)::stream, unwrapped);
@@ -448,20 +420,21 @@ public class MoreCollectorsTest {
             MoreCollectors.andingLong(Long::longValue));
         checkCollectorEmpty("andLongEmpty", OptionalLong.empty(), MoreCollectors.andingLong(Long::longValue));
     }
-    
+
     @Test
     public void testFiltering() {
         Collector<Integer, ?, Optional<Integer>> firstEven = MoreCollectors.filtering(x -> x % 2 == 0,
             MoreCollectors.first());
         Collector<Integer, ?, Optional<Integer>> firstOdd = MoreCollectors.filtering(x -> x % 2 != 0,
-                MoreCollectors.first());
-        Collector<Integer, ?, Integer> sumOddEven = MoreCollectors.pairing(firstEven, firstOdd, (e, o) -> e.get()+o.get());
+            MoreCollectors.first());
+        Collector<Integer, ?, Integer> sumOddEven = MoreCollectors.pairing(firstEven, firstOdd,
+            (e, o) -> e.get() + o.get());
         List<Integer> ints = Arrays.asList(1, 3, 5, 7, 9, 10, 8, 6, 4, 2, 3, 7, 11);
         checkShortCircuitCollector("sumOddEven", 11, 6, ints::stream, sumOddEven);
         Collector<Integer, ?, Long> countEven = MoreCollectors.filtering(x -> x % 2 == 0, Collectors.counting());
         checkCollector("filtering", 5L, ints::stream, countEven);
     }
-    
+
     @Test
     public void testOnlyOne() {
         List<Integer> ints = IntStreamEx.rangeClosed(1, 100).boxed().toList();
@@ -475,16 +448,16 @@ public class MoreCollectorsTest {
         checkShortCircuitCollector("FilterNone", Optional.empty(), 0, () -> ints.stream().filter(x -> x % 110 == 0),
             MoreCollectors.onlyOne());
     }
-    
+
     @Test
     public void testToEnumSet() {
         TimeUnit[] vals = TimeUnit.values();
         List<TimeUnit> enumValues = IntStreamEx.range(100).map(x -> x % vals.length).elements(vals).toList();
         checkShortCircuitCollector("toEnumSet", EnumSet.allOf(TimeUnit.class), vals.length, enumValues::stream,
             MoreCollectors.toEnumSet(TimeUnit.class));
-        enumValues = IntStreamEx.range(100).map(x -> x % (vals.length-1)).elements(vals).toList();
+        enumValues = IntStreamEx.range(100).map(x -> x % (vals.length - 1)).elements(vals).toList();
         EnumSet<TimeUnit> expected = EnumSet.allOf(TimeUnit.class);
-        expected.remove(vals[vals.length-1]);
+        expected.remove(vals[vals.length - 1]);
         checkShortCircuitCollector("toEnumSet", expected, 100, enumValues::stream,
             MoreCollectors.toEnumSet(TimeUnit.class));
         checkCollectorEmpty("Empty", EnumSet.noneOf(TimeUnit.class), MoreCollectors.toEnumSet(TimeUnit.class));
