@@ -461,4 +461,18 @@ public class MoreCollectorsTest {
         Collector<Integer, ?, Long> countEven = MoreCollectors.filtering(x -> x % 2 == 0, Collectors.counting());
         checkCollector("filtering", 5L, ints::stream, countEven);
     }
+    
+    @Test
+    public void testOnlyOne() {
+        List<Integer> ints = IntStreamEx.rangeClosed(1, 100).boxed().toList();
+        checkShortCircuitCollector("One", Optional.empty(), 2, ints::stream, MoreCollectors.onlyOne());
+        checkShortCircuitCollector("FilterSeveral", Optional.empty(), 2, () -> ints.stream().filter(x -> x % 20 == 0),
+            MoreCollectors.onlyOne());
+        checkShortCircuitCollector("FilterSeveral2", Optional.empty(), 40, ints::stream,
+            MoreCollectors.filtering(x -> x % 20 == 0, MoreCollectors.onlyOne()));
+        checkShortCircuitCollector("FilterOne", Optional.of(60), 1, () -> ints.stream().filter(x -> x % 60 == 0),
+            MoreCollectors.onlyOne());
+        checkShortCircuitCollector("FilterNone", Optional.empty(), 0, () -> ints.stream().filter(x -> x % 110 == 0),
+            MoreCollectors.onlyOne());
+    }
 }
