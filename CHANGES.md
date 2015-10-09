@@ -2,6 +2,15 @@
 
 ### 0.4.0
 
+* Introduced the concept of short-circuiting collectors.
+* `StreamEx/EntryStream.collect(Collector)` method works as short-circuit operation if short-circuiting collector is passed.
+* `MoreCollectors.first/head` collectors are short-circuiting now.
+* `MoreCollectors.groupingByEnum` collector may short-circuit if downstream collector is short-circuiting.
+* `MoreCollectors.pairing` collector may short-circuit if both downstream collectors are short-circuiting.
+* Added new short-circuiting collectors: `onlyOne`, `intersecting`, `andingInt`, `andingLong`.
+* Added new collectors: `filtering`, `groupingBy` (with domain specification) which short-circuit when downstream collector is short-circuiting.
+* Added collectors `mapping`, `collectingAndThen`, `partitioningBy` which mimic standard JDK collectors, but short-circuit when downstream collector is short-circuiting.
+* Added `indexOf` methods for all stream types. 
 * Added `StreamEx/EntryStream.foldLeft/foldRight` methods without identity argument.
 * Added `StreamEx/EntryStream.scanLeft/scanRight` methods without identity argument.
 * Added `StreamEx.cartesianProduct/cartesianPower` methods with reduction operator.
