@@ -115,7 +115,7 @@ public class TestHelpers {
             assertEquals(message + ": " + supplier, expected, supplier.get().peek(t -> counter.incrementAndGet())
                     .collect(collector));
             if (!supplier.get().isParallel())
-                assertEquals(message + ": " + supplier, expectedConsumedElements, counter.get());
+                assertEquals(message + ": " + supplier + ": consumed: ", expectedConsumedElements, counter.get());
             assertEquals(message + ": " + supplier, expected, supplier.get().collect(withIdentity));
         }
     }

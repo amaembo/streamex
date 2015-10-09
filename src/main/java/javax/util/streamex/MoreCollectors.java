@@ -598,6 +598,11 @@ public final class MoreCollectors {
      * Returns a {@code Collector} which collects at most specified number of
      * the last stream elements into the {@link List}.
      * 
+     * <p>
+     * When supplied {@code n} is less or equal to zero, this method returns a
+     * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * collector</a> which ignores the input and produces an empty list.
+     * 
      * @param <T>
      *            the type of the input elements
      * @param n
@@ -896,21 +901,22 @@ public final class MoreCollectors {
             Collector<? super T, A, D> downstream) {
         Supplier<A> downstreamSupplier = downstream.supplier();
         Collector<T, ?, M> groupingBy;
+        Function<K, A> supplier = k -> {
+            if (!domain.contains(k))
+                throw new IllegalStateException("Classifier returned value '" + k + "' which is out of domain");
+            return downstreamSupplier.get();
+        };
+        BiConsumer<A, ? super T> downstreamAccumulator = downstream.accumulator();
+        BiConsumer<Map<K, A>, T> accumulator = (m, t) -> {
+            K key = Objects.requireNonNull(classifier.apply(t));
+            A container = m.computeIfAbsent(key, supplier);
+            downstreamAccumulator.accept(container, t);
+        };
+        PartialCollector<Map<K, A>, M> partial = PartialCollector.grouping(mapFactory, downstream);
         if (downstream instanceof CancellableCollectorImpl) {
-            Function<K, A> supplier = k -> {
-                if (!domain.contains(k))
-                    throw new IllegalStateException("Classifier returned value '" + k + "' which is out of domain");
-                return downstreamSupplier.get();
-            };
-            BiConsumer<A, ? super T> downstreamAccumulator = downstream.accumulator();
             Predicate<A> downstreamFinished = ((CancellableCollectorImpl<? super T, A, D>) downstream).finished();
-            BiConsumer<Map<K, A>, T> accumulator = (m, t) -> {
-                K key = Objects.requireNonNull(classifier.apply(t));
-                A container = m.computeIfAbsent(key, supplier);
-                downstreamAccumulator.accept(container, t);
-            };
             int size = domain.size();
-            groupingBy = PartialCollector.grouping(mapFactory, downstream).asCancellable(accumulator, map -> {
+            groupingBy = partial.asCancellable(accumulator, map -> {
                 if (map.size() < size)
                     return false;
                 for (A container : map.values()) {
@@ -920,7 +926,7 @@ public final class MoreCollectors {
                 return true;
             });
         } else {
-            groupingBy = Collectors.groupingBy(classifier, mapFactory, downstream);
+            groupingBy = partial.asRef(accumulator);
         }
         return collectingAndThen(groupingBy, map -> {
             Function<A, D> finisher = downstream.finisher();

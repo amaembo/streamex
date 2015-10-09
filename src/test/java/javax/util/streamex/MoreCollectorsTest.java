@@ -171,8 +171,7 @@ public class MoreCollectorsTest {
         // TODO: such test is failed now. Must be supported when
         // OrderedCancellableSpliterator will be rewritten
         // checkShortCircuitCollector("first", Optional.of(1), 1, () ->
-        // Stream.iterate(1, x -> x + 1),
-        // MoreCollectors.first());
+        // Stream.iterate(1, x -> x + 1), MoreCollectors.first());
         assertEquals(1, (int) StreamEx.iterate(1, x -> x + 1).parallel().collect(MoreCollectors.first()).get());
 
         checkCollector("last", Optional.of(999), s, MoreCollectors.last());
@@ -191,27 +190,22 @@ public class MoreCollectorsTest {
 
     @Test
     public void testHeadTail() {
-        for (StreamExSupplier<Integer> supplier : streamEx(() -> IntStreamEx.range(1000).boxed())) {
-            assertEquals(supplier.toString(), Arrays.asList(), supplier.get().collect(MoreCollectors.tail(0)));
-            assertEquals(supplier.toString(), Arrays.asList(999), supplier.get().collect(MoreCollectors.tail(1)));
-            assertEquals(supplier.toString(), Arrays.asList(998, 999), supplier.get().collect(MoreCollectors.tail(2)));
-            assertEquals(supplier.toString(), supplier.get().skip(1).toList(),
-                supplier.get().collect(MoreCollectors.tail(999)));
-            assertEquals(supplier.toString(), supplier.get().toList(), supplier.get()
-                    .collect(MoreCollectors.tail(1000)));
-            assertEquals(supplier.toString(), supplier.get().toList(),
-                supplier.get().collect(MoreCollectors.tail(Integer.MAX_VALUE)));
+        List<Integer> ints = IntStreamEx.range(1000).boxed().toList();
+        checkShortCircuitCollector("tail(0)", Arrays.asList(), 0, ints::stream, MoreCollectors.tail(0));
+        checkCollector("tail(1)", Arrays.asList(999), ints::stream, MoreCollectors.tail(1));
+        checkCollector("tail(2)", Arrays.asList(998, 999), ints::stream, MoreCollectors.tail(2));
+        checkCollector("tail(500)", ints.subList(500, 1000), ints::stream, MoreCollectors.tail(500));
+        checkCollector("tail(999)", ints.subList(1, 1000), ints::stream, MoreCollectors.tail(999));
+        checkCollector("tail(1000)", ints, ints::stream, MoreCollectors.tail(1000));
+        checkCollector("tail(MAX)", ints, ints::stream, MoreCollectors.tail(Integer.MAX_VALUE));
 
-            assertEquals(supplier.toString(), Arrays.asList(), supplier.get().collect(MoreCollectors.head(0)));
-            assertEquals(supplier.toString(), Arrays.asList(0), supplier.get().collect(MoreCollectors.head(1)));
-            assertEquals(supplier.toString(), Arrays.asList(0, 1), supplier.get().collect(MoreCollectors.head(2)));
-            assertEquals(supplier.toString(), supplier.get().limit(999).toList(),
-                supplier.get().collect(MoreCollectors.head(999)));
-            assertEquals(supplier.toString(), supplier.get().toList(), supplier.get()
-                    .collect(MoreCollectors.head(1000)));
-            assertEquals(supplier.toString(), supplier.get().toList(),
-                supplier.get().collect(MoreCollectors.head(Integer.MAX_VALUE)));
-        }
+        checkShortCircuitCollector("head(0)", Arrays.asList(), 0, ints::stream, MoreCollectors.head(0));
+        checkShortCircuitCollector("head(1)", Arrays.asList(0), 1, ints::stream, MoreCollectors.head(1));
+        checkShortCircuitCollector("head(2)", Arrays.asList(0, 1), 2, ints::stream, MoreCollectors.head(2));
+        checkShortCircuitCollector("head(500)", ints.subList(0, 500), 500, ints::stream, MoreCollectors.head(500));
+        checkShortCircuitCollector("head(999)", ints.subList(0, 999), 999, ints::stream, MoreCollectors.head(999));
+        checkShortCircuitCollector("head(1000)", ints, 1000, ints::stream, MoreCollectors.head(1000));
+        checkShortCircuitCollector("head(MAX)", ints, 1000, ints::stream, MoreCollectors.head(Integer.MAX_VALUE));
     }
 
     @Test
@@ -279,6 +273,15 @@ public class MoreCollectorsTest {
             MoreCollectors.groupingByEnum(TimeUnit.class, Function.identity(), Collectors.counting()));
     }
 
+    @Test(expected = IllegalStateException.class)
+    public void testGroupingByWithDomainException() {
+        List<Integer> list = Arrays.asList(1, 2, 20, 3, 31, 4);
+        Collector<Integer, ?, Map<Integer, List<Integer>>> c = MoreCollectors.groupingBy(i -> i % 10,
+            StreamEx.of(0, 1, 2, 3).toSet(), Collectors.toList());
+        Map<Integer, List<Integer>> map = list.stream().collect(c);
+        System.out.println(map);
+    }
+        
     @Test
     public void testGroupingByWithDomain() {
         List<String> data = Arrays.asList("a", "foo", "test", "ququq", "bar", "blahblah");
