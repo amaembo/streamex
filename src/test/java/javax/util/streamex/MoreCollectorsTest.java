@@ -475,4 +475,18 @@ public class MoreCollectorsTest {
         checkShortCircuitCollector("FilterNone", Optional.empty(), 0, () -> ints.stream().filter(x -> x % 110 == 0),
             MoreCollectors.onlyOne());
     }
+    
+    @Test
+    public void testToEnumSet() {
+        TimeUnit[] vals = TimeUnit.values();
+        List<TimeUnit> enumValues = IntStreamEx.range(100).map(x -> x % vals.length).elements(vals).toList();
+        checkShortCircuitCollector("toEnumSet", EnumSet.allOf(TimeUnit.class), vals.length, enumValues::stream,
+            MoreCollectors.toEnumSet(TimeUnit.class));
+        enumValues = IntStreamEx.range(100).map(x -> x % (vals.length-1)).elements(vals).toList();
+        EnumSet<TimeUnit> expected = EnumSet.allOf(TimeUnit.class);
+        expected.remove(vals[vals.length-1]);
+        checkShortCircuitCollector("toEnumSet", expected, 100, enumValues::stream,
+            MoreCollectors.toEnumSet(TimeUnit.class));
+        checkCollectorEmpty("Empty", EnumSet.noneOf(TimeUnit.class), MoreCollectors.toEnumSet(TimeUnit.class));
+    }
 }

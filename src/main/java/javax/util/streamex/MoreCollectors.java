@@ -48,10 +48,6 @@ import java.util.stream.Collector;
 import java.util.stream.Collector.Characteristics;
 import java.util.stream.Collectors;
 
-import javax.util.streamex.StreamExInternals.Box;
-import javax.util.streamex.StreamExInternals.CancellableCollectorImpl;
-import javax.util.streamex.StreamExInternals.ObjIntBox;
-
 import static javax.util.streamex.StreamExInternals.*;
 
 /**
@@ -130,6 +126,31 @@ public final class MoreCollectors {
                 box.a.set(box.b);
             box.b = StrictMath.addExact(box.b, 1);
         });
+    }
+
+    /**
+     * Returns a {@code Collector} that accumulates the input enum values into a
+     * new {@code EnumSet}.
+     *
+     * <p>
+     * This method returns a <a
+     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * collector</a>: it may not process all the elements if the resulting set
+     * contains all possible enum values.
+     * 
+     * @param <T>
+     *            the type of the input elements
+     * @param enumClass
+     *            the class of input enum values
+     * @return a {@code Collector} which collects all the input elements into a
+     *         {@code EnumSet}
+     */
+    public static <T extends Enum<T>> Collector<T, ?, EnumSet<T>> toEnumSet(Class<T> enumClass) {
+        int size = EnumSet.allOf(enumClass).size();
+        return new CancellableCollectorImpl<>(() -> EnumSet.noneOf(enumClass), EnumSet::add, (s1, s2) -> {
+            s1.addAll(s2);
+            return s1;
+        }, Function.identity(), set -> set.size() == size, UNORDERED_ID_CHARACTERISTICS);
     }
 
     /**

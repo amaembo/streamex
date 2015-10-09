@@ -75,6 +75,8 @@ import java.util.stream.Stream;
     static final Object NONE = new Object();
     static final Set<Characteristics> NO_CHARACTERISTICS = EnumSet.noneOf(Characteristics.class);
     static final Set<Characteristics> UNORDERED_CHARACTERISTICS = EnumSet.of(Characteristics.UNORDERED);
+    static final Set<Characteristics> UNORDERED_ID_CHARACTERISTICS = EnumSet.of(Characteristics.UNORDERED,
+        Characteristics.IDENTITY_FINISH);
     static final Set<Characteristics> ID_CHARACTERISTICS = EnumSet.of(Characteristics.IDENTITY_FINISH);
     static final int IDX_STREAM = 0;
     static final int IDX_INT_STREAM = 1;
