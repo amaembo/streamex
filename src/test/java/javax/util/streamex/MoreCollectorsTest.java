@@ -430,10 +430,9 @@ public class MoreCollectorsTest {
     
     @Test
     public void testAndLongFlatMap() {
-        assertEquals(
-            OptionalLong.of(0),
-            LongStreamEx.of(0).flatMap(x -> LongStream.range(1, 100000000)).boxed()
-                    .collect(MoreCollectors.andingLong(Long::longValue)));
+        checkShortCircuitCollector("andLongFlat", OptionalLong.of(0), 2,
+            () -> LongStreamEx.of(0).flatMap(x -> LongStream.range(1, 100000000)).boxed(),
+            MoreCollectors.andingLong(Long::longValue), true);
     }
 
     @Test

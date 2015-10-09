@@ -25,10 +25,12 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import static javax.util.streamex.StreamExInternals.*;
+
 /**
  * @author Tagir Valeev
  */
-/* package */ class UnorderedCancellableSpliterator<T, A> implements Spliterator<A>, Cloneable {
+/* package */class UnorderedCancellableSpliterator<T, A> implements Spliterator<A>, Cloneable {
     private volatile Spliterator<T> source;
     private final BiConsumer<A, ? super T> accumulator;
     private final Predicate<A> cancelPredicate;
@@ -37,14 +39,38 @@ import java.util.function.Supplier;
     private final AtomicBoolean cancelled = new AtomicBoolean(false);
     private final AtomicInteger nPeers = new AtomicInteger(1);
     private final BinaryOperator<A> combiner;
+    private boolean flag;
 
     UnorderedCancellableSpliterator(Spliterator<T> source, Supplier<A> supplier, BiConsumer<A, ? super T> accumulator,
-        BinaryOperator<A> combiner, Predicate<A> cancelPredicate) {
+            BinaryOperator<A> combiner, Predicate<A> cancelPredicate) {
         this.source = source;
         this.supplier = supplier;
         this.accumulator = accumulator;
         this.combiner = combiner;
         this.cancelPredicate = cancelPredicate;
+    }
+
+    private boolean checkCancel(A acc) {
+        if (cancelPredicate.test(acc)) {
+            if (cancelled.compareAndSet(false, true)) {
+                flag = true;
+                return true;
+            }
+        }
+        if (cancelled.get()) {
+            flag = false;
+            return true;
+        }
+        return false;
+    }
+
+    private boolean handleCancel(Consumer<? super A> action, A acc) {
+        source = null;
+        if (flag) {
+            action.accept(acc);
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -55,46 +81,38 @@ import java.util.function.Supplier;
             return false;
         }
         A acc = supplier.get();
-        do {
-            if (cancelPredicate.test(acc)) {
-                if(cancelled.compareAndSet(false, true)) {
-                    this.source = null;
-                    action.accept(acc);
-                    return true;
-                }
-            }
-            if (cancelled.get()) {
-                this.source = null;
-                return false;
-            }
-        } while (source.tryAdvance(t -> accumulator.accept(acc, t)));
+        if (checkCancel(acc))
+            return handleCancel(action, acc);
+        try {
+            source.forEachRemaining(t -> {
+                accumulator.accept(acc, t);
+                if (checkCancel(acc))
+                    throw new CancelException();
+            });
+        } catch (CancelException ex) {
+            return handleCancel(action, acc);
+        }
         A result = acc;
-        while(true) {
+        while (true) {
             A acc2 = partialResults.poll();
-            if(acc2 == null) break;
+            if (acc2 == null)
+                break;
             result = combiner.apply(result, acc2);
-            if (cancelPredicate.test(result)) {
-                if(cancelled.compareAndSet(false, true)) {
-                    this.source = null;
-                    action.accept(result);
-                    return true;
-                }
-            }
-            if (cancelled.get()) {
-                this.source = null;
-                return false;
-            }
+            if (checkCancel(result))
+                return handleCancel(action, result);
         }
         partialResults.offer(result);
         this.source = null;
-        if(nPeers.decrementAndGet() == 0) {
+        if (nPeers.decrementAndGet() == 0) {
             result = partialResults.poll();
             // non-cancelled finish
-            while(true) {
+            while (true) {
                 A acc2 = partialResults.poll();
-                if(acc2 == null) break;
+                if (acc2 == null)
+                    break;
                 result = combiner.apply(result, acc2);
-                if (cancelPredicate.test(result)) break;
+                if (cancelPredicate.test(result))
+                    break;
             }
             this.source = null;
             action.accept(result);
