@@ -45,6 +45,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.Collector.Characteristics;
@@ -169,6 +170,8 @@ public class MoreCollectorsTest {
     public void testFirstLast() {
         Supplier<Stream<Integer>> s = () -> IntStreamEx.range(1000).boxed();
         checkShortCircuitCollector("first", Optional.of(0), 1, s, MoreCollectors.first());
+        checkShortCircuitCollector("firstLong", Optional.of(0),
+            1, () -> Stream.of(1).flatMap(x -> IntStream.range(0, 1000000000).boxed()), MoreCollectors.first(), true);
         // TODO: such test is failed now. Must be supported when
         // OrderedCancellableSpliterator will be rewritten
         // checkShortCircuitCollector("first", Optional.of(1), 1, () ->

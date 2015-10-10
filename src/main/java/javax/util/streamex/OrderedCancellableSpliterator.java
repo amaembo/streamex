@@ -16,16 +16,19 @@
 package javax.util.streamex;
 
 import java.util.Spliterator;
+
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import static javax.util.streamex.StreamExInternals.*;
+
 /**
  * @author Tagir Valeev
  */
 /* package */final class OrderedCancellableSpliterator<T, A> implements Spliterator<A>, Cloneable {
-    private volatile Spliterator<T> source;
+    private Spliterator<T> source;
     private final BiConsumer<A, ? super T> accumulator;
     private final Predicate<A> cancelPredicate;
     private final Supplier<A> supplier;
@@ -49,28 +52,40 @@ import java.util.function.Supplier;
             return false;
         }
         A acc = supplier.get();
-        do {
-            if (cancelPredicate.test(acc)) {
-                this.source = null;
-                this.localCancelled = true;
-                OrderedCancellableSpliterator<T, A> suffix = this.suffix;
-                // Due to possible race with trySplit some spliterators can
-                // be skipped. This is handled in trySplit
-                while (suffix != null && !suffix.localCancelled) {
-                    suffix.localCancelled = true;
-                    suffix = suffix.suffix;
+        try {
+            source.forEachRemaining(t -> {
+                accumulator.accept(acc, t);
+                if (cancelPredicate.test(acc)) {
+                    this.source = null;
+                    cancel();
+                    throw new CancelException();
                 }
-                action.accept(acc);
-                return true;
-            }
-            if (localCancelled) {
-                this.source = null;
-                return false;
-            }
-        } while (source.tryAdvance(t -> accumulator.accept(acc, t)));
+                if (localCancelled) {
+                    throw new CancelException();
+                }
+            });
+            this.source = null;
+        }
+        catch(CancelException ex) {
+            // ignore
+        }
+        if(this.source == null) {
+            action.accept(acc);
+            return true;
+        }
         this.source = null;
-        action.accept(acc);
-        return true;
+        return false;
+    }
+
+    private void cancel() {
+        this.localCancelled = true;
+        OrderedCancellableSpliterator<T, A> suffix = this.suffix;
+        // Due to possible race with trySplit some spliterators can
+        // be skipped. This is handled in trySplit
+        while (suffix != null && !suffix.localCancelled) {
+            suffix.localCancelled = true;
+            suffix = suffix.suffix;
+        }
     }
 
     @Override
