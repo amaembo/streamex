@@ -146,7 +146,7 @@ import java.util.stream.Stream;
         }
 
         @Override
-        public <R, A> R collect(Collector<? super Entry<K, V>, A, R> collector) {
+        <R, A> R rawCollect(Collector<? super Entry<K, V>, A, R> collector) {
             return strategy.terminate(collector, stream::collect);
         }
 
@@ -231,7 +231,7 @@ import java.util.stream.Stream;
         }
 
         @Override
-        public <R, A> R collect(Collector<? super T, A, R> collector) {
+        <R, A> R rawCollect(Collector<? super T, A, R> collector) {
             return strategy.terminate(collector, stream::collect);
         }
 

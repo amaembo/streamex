@@ -86,6 +86,10 @@ import static javax.util.streamex.StreamExInternals.*;
                 + oldVal + "' and '" + val + "')");
         }
     }
+    
+    <R, A> R rawCollect(Collector<? super T, A, R> collector) {
+        return stream.collect(collector);
+    }
 
     abstract S supply(Stream<T> stream);
 
@@ -303,7 +307,7 @@ import static javax.util.streamex.StreamExInternals.*;
                     strategy().newStreamEx(StreamSupport.stream(spltr, true)).reduce(combiner).get());
             }
         }
-        return stream.collect(collector);
+        return rawCollect(collector);
     }
 
     @Override
