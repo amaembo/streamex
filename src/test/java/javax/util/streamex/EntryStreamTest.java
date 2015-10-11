@@ -40,6 +40,8 @@ import java.util.stream.Stream;
 
 import javax.util.streamex.StreamExTest.Point;
 
+import static javax.util.streamex.TestHelpers.*;
+
 import org.junit.Test;
 
 public class EntryStreamTest {
@@ -71,6 +73,16 @@ public class EntryStreamTest {
 
         assertEquals(Collections.singletonMap("aaa", 3),
             EntryStream.of(Collections.singletonMap("aaa", 3).entrySet().spliterator()).toMap());
+    }
+    
+    @Test
+    public void testSequential() {
+        EntryStream<String, Integer> stream = EntryStream.of(createMap());
+        assertFalse(stream.isParallel());
+        stream = stream.parallel();
+        assertTrue(stream.isParallel());
+        stream = stream.sequential();
+        assertFalse(stream.isParallel());
     }
 
     @Test
@@ -230,6 +242,8 @@ public class EntryStreamTest {
     public void testToMap() {
         TreeMap<String, Integer> result = EntryStream.of(createMap()).toCustomMap(TreeMap::new);
         assertEquals(createMap(), result);
+        result = EntryStream.of(createMap()).parallel().toCustomMap(TreeMap::new);
+        assertEquals(createMap(), result);
 
         Supplier<EntryStream<Integer, String>> s = () -> StreamEx.of("aaa", "bb", "dd").mapToEntry(String::length,
             Function.identity());
@@ -321,6 +335,14 @@ public class EntryStreamTest {
         assertEquals(expected, result);
         resultTree = s.get().parallel().grouping(TreeMap::new);
         assertEquals(expected, resultTree);
+
+        for (StreamExSupplier<Integer> supplier : streamEx(() -> IntStreamEx.range(1000).boxed())) {
+            assertEquals(supplier.toString(), EntryStream.of(0, 500, 1, 500).toMap(),
+                supplier.get().mapToEntry(i -> i / 500, i -> i).grouping(MoreCollectors.countingInt()));
+            ConcurrentSkipListMap<Integer, Integer> map = supplier.get().mapToEntry(i -> i / 500, i -> i)
+                    .grouping(ConcurrentSkipListMap::new, MoreCollectors.countingInt());
+            assertEquals(supplier.toString(), EntryStream.of(0, 500, 1, 500).toMap(), map);
+        }
     }
 
     @Test

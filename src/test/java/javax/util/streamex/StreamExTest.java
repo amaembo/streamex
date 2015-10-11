@@ -367,6 +367,12 @@ public class StreamExTest {
 
         List<Integer> list = Arrays.asList(1, 2, 3, 4);
         assertEquals(Arrays.asList(1.0, 2, 3L, 1, 2, 3, 4), StreamEx.of(1.0, 2, 3L).append(list).toList());
+        
+        StreamEx<Integer> s = StreamEx.of(1, 2, 3);
+        assertSame(s, s.append());
+        assertSame(s, s.append(Collections.emptyList()));
+        assertSame(s, s.prepend());
+        assertSame(s, s.prepend(Collections.emptyList()));
     }
 
     @Test
