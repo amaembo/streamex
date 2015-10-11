@@ -17,7 +17,8 @@
 * Added `IntStreamEx/LongStreamEx.range/rangeClosed` methods with additional step parameter.
 * Added `IntStreamEx/LongStreamEx/DoubleStreamEx.foldLeft` methods.
 * Methods `StreamEx/EntryStream.toMap/toSortedMap/toCustomMap` without merge function now produce better exception message in the case of duplicate keys.
-* Methods `StreamEx/EntryStream.toMap/toSortedMap/toCustomMap` accepting merge function do not return ConcurrentMap for parallel streams now (this caused incorrect merging for non-commutative merger functions).
+* Methods `StreamEx/EntryStream.toMap/toSortedMap/toCustomMap` accepting merge function are not guaranteed to return ConcurrentMap for parallel streams now. They however guarantee now the correct merging order for non-commutative merger functions.
+* Methods `StreamEx/EntryStream.grouping*` are not guaranteed to return the ConcurrentMap for parallel streams now. They however guarantee now the correct order of downstream collection.
 * Methods `StreamEx.ofEntries` are declared as deprecated and may be removed in future releases!
 * Deprecated methods `EntryStream.mapEntryKeys`/`mapEntryValues` are removed!
 * Updated documentation

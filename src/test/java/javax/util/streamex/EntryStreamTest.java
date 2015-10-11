@@ -24,11 +24,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentMap;
@@ -231,7 +231,8 @@ public class EntryStreamTest {
         TreeMap<String, Integer> result = EntryStream.of(createMap()).toCustomMap(TreeMap::new);
         assertEquals(createMap(), result);
 
-        Supplier<EntryStream<Integer, String>> s = () -> StreamEx.of("aaa", "bb", "dd").mapToEntry(String::length, Function.identity());
+        Supplier<EntryStream<Integer, String>> s = () -> StreamEx.of("aaa", "bb", "dd").mapToEntry(String::length,
+            Function.identity());
         Map<Integer, String> expected = new HashMap<>();
         expected.put(3, "aaa");
         expected.put(2, "bbdd");
@@ -311,10 +312,14 @@ public class EntryStreamTest {
         Map<String, List<Integer>> expected = new LinkedHashMap<>();
         expected.put("a", Arrays.asList(1, 2));
         expected.put("b", Arrays.asList(3, 4));
-        Map<String, List<Integer>> result = EntryStream.of(data).mapKeys(k -> k.substring(0, 1)).grouping();
+        Supplier<EntryStream<String, Integer>> s = () -> EntryStream.of(data).mapKeys(k -> k.substring(0, 1));
+        Map<String, List<Integer>> result = s.get().grouping();
         assertEquals(expected, result);
-        TreeMap<String, List<Integer>> resultTree = EntryStream.of(data).mapKeys(k -> k.substring(0, 1))
-                .grouping(TreeMap::new);
+        TreeMap<String, List<Integer>> resultTree = s.get().grouping(TreeMap::new);
+        assertEquals(expected, resultTree);
+        result = s.get().parallel().grouping();
+        assertEquals(expected, result);
+        resultTree = s.get().parallel().grouping(TreeMap::new);
         assertEquals(expected, resultTree);
     }
 
@@ -324,29 +329,26 @@ public class EntryStreamTest {
         data.put("ab", 1);
         data.put("ac", 2);
         data.put("ba", 3);
-        data.put("bc", 3);
-        Map<String, Set<Integer>> expected = new LinkedHashMap<>();
-        expected.put("a", new HashSet<>(Arrays.asList(1, 2)));
-        expected.put("b", Collections.singleton(3));
-        Map<String, Set<Integer>> result = EntryStream.of(data).mapKeys(k -> k.substring(0, 1))
-                .groupingTo(HashSet::new);
+        data.put("bc", 4);
+        Map<String, List<Integer>> expected = new LinkedHashMap<>();
+        expected.put("a", Arrays.asList(1, 2));
+        expected.put("b", Arrays.asList(3, 4));
+        Supplier<EntryStream<String, Integer>> s = () -> EntryStream.of(data).mapKeys(k -> k.substring(0, 1));
+        Map<String, List<Integer>> result = s.get().groupingTo(LinkedList::new);
         assertEquals(expected, result);
-        assertFalse(result instanceof ConcurrentMap);
-        result = EntryStream.of(data).mapKeys(k -> k.substring(0, 1)).parallel().groupingTo(HashSet::new);
+        assertTrue(result.get("a") instanceof LinkedList);
+        result = s.get().parallel().groupingTo(LinkedList::new);
         assertEquals(expected, result);
-        assertTrue(result instanceof ConcurrentMap);
-        SortedMap<String, Set<Integer>> resultTree = EntryStream.of(data).mapKeys(k -> k.substring(0, 1))
-                .groupingTo(TreeMap::new, HashSet::new);
+        assertTrue(result.get("a") instanceof LinkedList);
+        SortedMap<String, List<Integer>> resultTree = s.get().groupingTo(TreeMap::new, LinkedList::new);
+        assertTrue(result.get("a") instanceof LinkedList);
         assertEquals(expected, resultTree);
-        assertFalse(resultTree instanceof ConcurrentMap);
-        resultTree = EntryStream.of(data).mapKeys(k -> k.substring(0, 1)).parallel()
-                .groupingTo(TreeMap::new, HashSet::new);
+        resultTree = s.get().parallel().groupingTo(TreeMap::new, LinkedList::new);
+        assertTrue(result.get("a") instanceof LinkedList);
         assertEquals(expected, resultTree);
-        assertFalse(resultTree instanceof ConcurrentMap);
-        resultTree = EntryStream.of(data).mapKeys(k -> k.substring(0, 1)).parallel()
-                .groupingTo(ConcurrentSkipListMap::new, HashSet::new);
+        resultTree = s.get().parallel().groupingTo(ConcurrentSkipListMap::new, LinkedList::new);
+        assertTrue(result.get("a") instanceof LinkedList);
         assertEquals(expected, resultTree);
-        assertTrue(resultTree instanceof ConcurrentMap);
     }
 
     @Test
@@ -442,12 +444,17 @@ public class EntryStreamTest {
     @Test
     public void testOfPairs() {
         Random r = new Random(1);
-        Point[] pts = StreamEx.generate(() -> new Point(r.nextDouble(), r.nextDouble())).limit(100).toArray(Point[]::new);
-        double expected = StreamEx.of(pts).cross(pts).mapKeyValue(Point::distance).mapToDouble(Double::doubleValue).max().getAsDouble();
-        assertEquals(expected, EntryStream.ofPairs(pts).mapKeyValue(Point::distance).mapToDouble(Double::doubleValue).max().getAsDouble(), 0.0);
-        assertEquals(expected, EntryStream.ofPairs(pts).parallel().mapKeyValue(Point::distance).mapToDouble(Double::doubleValue).max().getAsDouble(), 0.0);
+        Point[] pts = StreamEx.generate(() -> new Point(r.nextDouble(), r.nextDouble())).limit(100)
+                .toArray(Point[]::new);
+        double expected = StreamEx.of(pts).cross(pts).mapKeyValue(Point::distance).mapToDouble(Double::doubleValue)
+                .max().getAsDouble();
+        assertEquals(expected, EntryStream.ofPairs(pts).mapKeyValue(Point::distance).mapToDouble(Double::doubleValue)
+                .max().getAsDouble(), 0.0);
+        assertEquals(expected,
+            EntryStream.ofPairs(pts).parallel().mapKeyValue(Point::distance).mapToDouble(Double::doubleValue).max()
+                    .getAsDouble(), 0.0);
     }
-    
+
     @Test
     public void testDistinctKeysValues() {
         Supplier<EntryStream<Integer, String>> s = () -> EntryStream.of(1, "a", 1, "b", 2, "b").append(2, "c", 1, "c",

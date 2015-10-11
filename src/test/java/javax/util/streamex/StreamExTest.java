@@ -279,50 +279,28 @@ public class StreamExTest {
     public void testGroupingBy() {
         Map<Integer, List<String>> expected = new HashMap<>();
         expected.put(1, Arrays.asList("a"));
-        expected.put(2, Arrays.asList("bb", "bb"));
+        expected.put(2, Arrays.asList("bb", "dd"));
         expected.put(3, Arrays.asList("ccc"));
-        Map<Integer, List<String>> seqMap = StreamEx.of("a", "bb", "bb", "ccc").groupingBy(String::length);
-        Map<Integer, List<String>> parallelMap = StreamEx.of("a", "bb", "bb", "ccc").parallel()
-                .groupingBy(String::length);
-        Map<Integer, List<String>> mapLinkedList = StreamEx.of("a", "bb", "bb", "ccc").parallel()
-                .groupingTo(String::length, LinkedList::new);
-        assertEquals(expected, seqMap);
-        assertEquals(expected, parallelMap);
-        assertEquals(expected, mapLinkedList);
-        assertFalse(seqMap instanceof ConcurrentMap);
-        assertTrue(parallelMap instanceof ConcurrentMap);
-        assertTrue(mapLinkedList instanceof ConcurrentMap);
-        assertTrue(mapLinkedList.get(1) instanceof LinkedList);
 
         Map<Integer, Set<String>> expectedMapSet = new HashMap<>();
         expectedMapSet.put(1, new HashSet<>(Arrays.asList("a")));
-        expectedMapSet.put(2, new HashSet<>(Arrays.asList("bb", "bb")));
+        expectedMapSet.put(2, new HashSet<>(Arrays.asList("bb", "dd")));
         expectedMapSet.put(3, new HashSet<>(Arrays.asList("ccc")));
-        Map<Integer, Set<String>> seqMapSet = StreamEx.of("a", "bb", "bb", "ccc").groupingBy(String::length,
-            Collectors.toSet());
-        Map<Integer, Set<String>> parallelMapSet = StreamEx.of("a", "bb", "bb", "ccc").parallel()
-                .groupingBy(String::length, Collectors.toSet());
-        assertEquals(expectedMapSet, seqMapSet);
-        assertEquals(expectedMapSet, parallelMapSet);
-        assertFalse(seqMapSet instanceof ConcurrentMap);
-        assertTrue(parallelMapSet instanceof ConcurrentMap);
-
-        seqMapSet = StreamEx.of("a", "bb", "bb", "ccc").groupingBy(String::length, HashMap::new, Collectors.toSet());
-        assertEquals(expectedMapSet, seqMapSet);
-        assertFalse(seqMapSet instanceof ConcurrentMap);
-        seqMapSet = StreamEx.of("a", "bb", "bb", "ccc").parallel()
-                .groupingBy(String::length, HashMap::new, Collectors.toSet());
-        assertEquals(expectedMapSet, seqMapSet);
-        assertFalse(seqMapSet instanceof ConcurrentMap);
-        parallelMapSet = StreamEx.of("a", "bb", "bb", "ccc").parallel()
-                .groupingBy(String::length, ConcurrentHashMap::new, Collectors.toSet());
-        assertEquals(expectedMapSet, parallelMapSet);
-        assertTrue(parallelMapSet instanceof ConcurrentMap);
-        parallelMapSet = StreamEx.of("a", "bb", "bb", "ccc").parallel()
-                .groupingTo(String::length, ConcurrentHashMap::new, TreeSet::new);
-        assertEquals(expectedMapSet, parallelMapSet);
-        assertTrue(parallelMapSet instanceof ConcurrentMap);
-        assertTrue(parallelMapSet.get(1) instanceof TreeSet);
+        
+        for(StreamExSupplier<String> supplier : streamEx(() -> StreamEx.of("a", "bb", "dd", "ccc"))) {
+            assertEquals(supplier.toString(), expected, supplier.get().groupingBy(String::length));
+            Map<Integer, List<String>> map = supplier.get().groupingTo(String::length, LinkedList::new);
+            assertEquals(supplier.toString(), expected, map);
+            assertTrue(map.get(1) instanceof LinkedList);
+            assertEquals(supplier.toString(), expectedMapSet, supplier.get().groupingBy(String::length, Collectors.toSet()));
+            assertEquals(supplier.toString(), expectedMapSet,
+                supplier.get().groupingBy(String::length, HashMap::new, Collectors.toSet()));
+            ConcurrentHashMap<Integer, Set<String>> chm = supplier.get().groupingBy(String::length,
+                ConcurrentHashMap::new, Collectors.toSet());
+            assertEquals(supplier.toString(), expectedMapSet, chm);
+            chm = supplier.get().groupingTo(String::length, ConcurrentHashMap::new, TreeSet::new);
+            assertTrue(chm.get(1) instanceof TreeSet);
+        }
     }
 
     @Test

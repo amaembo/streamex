@@ -39,6 +39,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
+import java.util.stream.Collector.Characteristics;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -1015,7 +1016,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     public <A, D> Map<K, D> grouping(Collector<? super V, A, D> downstream) {
         Function<Entry<K, V>, K> keyMapper = Entry::getKey;
         Collector<Entry<K, V>, ?, D> mapping = Collectors.mapping(Entry::getValue, downstream);
-        if (stream.isParallel()) {
+        if (stream.isParallel() && downstream.characteristics().contains(Characteristics.UNORDERED)) {
             return collect(Collectors.groupingByConcurrent(keyMapper, mapping));
         }
         return collect(Collectors.groupingBy(keyMapper, mapping));
@@ -1025,7 +1026,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     public <A, D, M extends Map<K, D>> M grouping(Supplier<M> mapSupplier, Collector<? super V, A, D> downstream) {
         Function<Entry<K, V>, K> keyMapper = Entry::getKey;
         Collector<Entry<K, V>, ?, D> mapping = Collectors.mapping(Entry::getValue, downstream);
-        if (stream.isParallel() && mapSupplier.get() instanceof ConcurrentMap) {
+        if (stream.isParallel() && downstream.characteristics().contains(Characteristics.UNORDERED)
+            && mapSupplier.get() instanceof ConcurrentMap) {
             return (M) collect(Collectors.groupingByConcurrent(keyMapper,
                 (Supplier<? extends ConcurrentMap<K, D>>) mapSupplier, mapping));
         }

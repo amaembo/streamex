@@ -54,6 +54,7 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import java.util.stream.Collector.Characteristics;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -293,10 +294,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * {@code Map} or {@code List} objects returned.
      * 
      * <p>
-     * For parallel stream concurrent collector is used and ConcurrentMap is
-     * returned.
-     *
-     * <p>
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
      * operation.
      * 
@@ -325,10 +322,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * {@code Map} objects returned.
      * 
      * <p>
-     * For parallel stream concurrent collector is used and ConcurrentMap is
-     * returned.
-     *
-     * <p>
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
      * operation.
      * 
@@ -348,7 +341,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public <K, D> Map<K, D> groupingBy(Function<? super T, ? extends K> classifier,
             Collector<? super T, ?, D> downstream) {
-        if (stream.isParallel())
+        if (stream.isParallel() && downstream.characteristics().contains(Characteristics.UNORDERED))
             return collect(Collectors.groupingByConcurrent(classifier, downstream));
         return collect(Collectors.groupingBy(classifier, downstream));
     }
@@ -362,10 +355,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * <p>
      * The {@code Map} will be created using the provided factory function.
      * 
-     * <p>
-     * If the stream is parallel and map factory produces a
-     * {@link ConcurrentMap} then concurrent collector is used.
-     *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
      * operation.
@@ -392,7 +381,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     @SuppressWarnings("unchecked")
     public <K, D, M extends Map<K, D>> M groupingBy(Function<? super T, ? extends K> classifier,
             Supplier<M> mapFactory, Collector<? super T, ?, D> downstream) {
-        if (stream.isParallel() && mapFactory.get() instanceof ConcurrentMap)
+        if (stream.isParallel() && downstream.characteristics().contains(Characteristics.UNORDERED)
+            && mapFactory.get() instanceof ConcurrentMap)
             return (M) collect(Collectors.groupingByConcurrent(classifier, (Supplier<ConcurrentMap<K, D>>) mapFactory,
                 downstream));
         return collect(Collectors.groupingBy(classifier, mapFactory, downstream));
@@ -408,10 +398,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * There are no guarantees on the type, mutability or serializability of the
      * {@code Map} objects returned.
      * 
-     * <p>
-     * For parallel stream concurrent collector is used and ConcurrentMap is
-     * returned.
-     *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
      * operation.
@@ -447,10 +433,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * <p>
      * The {@code Map} will be created using the provided factory function.
      * 
-     * <p>
-     * If the stream is parallel and map factory produces a
-     * {@link ConcurrentMap} then concurrent collector is used.
-     *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
      * operation.
