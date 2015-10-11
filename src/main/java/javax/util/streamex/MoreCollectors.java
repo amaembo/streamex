@@ -506,9 +506,9 @@ public final class MoreCollectors {
      * 
      * @param <T>
      *            the type of the input elements
-     * @return a collector which returns an {@link Optional} which describes the
-     *         only element of the stream. For empty stream or stream containing
-     *         more than one element an empty {@code Optional} is returned.
+     * @return a collector which returns an {@link Optional} describing the only
+     *         element of the stream. For empty stream or stream containing more
+     *         than one element an empty {@code Optional} is returned.
      * @since 0.4.0
      */
     public static <T> Collector<T, ?, Optional<T>> onlyOne() {
@@ -571,6 +571,10 @@ public final class MoreCollectors {
      * collector</a>.
      * 
      * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code List} returned.
+     * 
+     * <p>
      * The operation performed by the returned collector is equivalent to
      * {@code stream.limit(n).collect(Collectors.toList())}. This collector is
      * mostly useful as a downstream collector.
@@ -597,6 +601,10 @@ public final class MoreCollectors {
     /**
      * Returns a {@code Collector} which collects at most specified number of
      * the last stream elements into the {@link List}.
+     * 
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code List} returned.
      * 
      * <p>
      * When supplied {@code n} is less or equal to zero, this method returns a
@@ -636,6 +644,10 @@ public final class MoreCollectors {
      * {@code stream.sorted(comparator.reversed()).limit(n).collect(Collectors.toList())}
      * , but can be performed much faster if the input is not sorted and
      * {@code n} is much less than the stream size.
+     * 
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code List} returned.
      * 
      * <p>
      * When supplied {@code n} is less or equal to zero, this method returns a
@@ -687,6 +699,10 @@ public final class MoreCollectors {
      * {@code n} is much less than the stream size.
      * 
      * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code List} returned.
+     * 
+     * <p>
      * When supplied {@code n} is less or equal to zero, this method returns a
      * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a> which ignores the input and produces an empty list.
@@ -713,6 +729,10 @@ public final class MoreCollectors {
      * {@code stream.sorted(comparator).limit(n).collect(Collectors.toList())},
      * but can be performed much faster if the input is not sorted and {@code n}
      * is much less than the stream size.
+     * 
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code List} returned.
      * 
      * <p>
      * When supplied {@code n} is less or equal to zero, this method returns a
@@ -743,6 +763,10 @@ public final class MoreCollectors {
      * {@code stream.sorted().limit(n).collect(Collectors.toList())}, but can be
      * performed much faster if the input is not sorted and {@code n} is much
      * less than the stream size.
+     * 
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code List} returned.
      * 
      * <p>
      * When supplied {@code n} is less or equal to zero, this method returns a
@@ -899,18 +923,19 @@ public final class MoreCollectors {
      * values associated with a given key using the specified downstream
      * {@code Collector}.
      *
-     * <p>There are no guarantees on the type, mutability,
-     * serializability, or thread-safety of the {@code Map} returned.
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code Map} returned.
      *
      * <p>
      * The main difference of this collector from
-     * {@link Collectors#groupingBy(Function, Supplier, Collector)} is that it
-     * accepts additional domain parameter which is the {@code Set} of all
-     * possible map keys. If the mapper function produces the key out of domain,
-     * an {@code IllegalStateException} will occur. If the mapper function does
-     * not produce some of domain keys at all, they are also added to the
-     * result. These keys are mapped to the default collector value which is
-     * equivalent to collecting an empty stream with the same collector.
+     * {@link Collectors#groupingBy(Function, Collector)} is that it accepts
+     * additional domain parameter which is the {@code Set} of all possible map
+     * keys. If the mapper function produces the key out of domain, an
+     * {@code IllegalStateException} will occur. If the mapper function does not
+     * produce some of domain keys at all, they are also added to the result.
+     * These keys are mapped to the default collector value which is equivalent
+     * to collecting an empty stream with the same collector.
      * 
      * <p>
      * This method returns a <a
@@ -1244,7 +1269,7 @@ public final class MoreCollectors {
     }
 
     /**
-     * Returns a {@code Collector} that produces the bitwise-and operation of a
+     * Returns a {@code Collector} which performs the bitwise-and operation of a
      * integer-valued function applied to the input elements. If no elements are
      * present, the result is empty {@link OptionalInt}.
      *
@@ -1280,7 +1305,7 @@ public final class MoreCollectors {
     }
 
     /**
-     * Returns a {@code Collector} that produces the bitwise-and operation of a
+     * Returns a {@code Collector} which performs the bitwise-and operation of a
      * long-valued function applied to the input elements. If no elements are
      * present, the result is empty {@link OptionalLong}.
      *
