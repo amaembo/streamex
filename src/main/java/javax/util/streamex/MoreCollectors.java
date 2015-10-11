@@ -884,6 +884,7 @@ public final class MoreCollectors {
      *            a {@code Collector} implementing the downstream reduction
      * @return a {@code Collector} implementing the cascaded group-by operation
      * @see Collectors#groupingBy(Function, Collector)
+     * @see #groupingBy(Function, Set, Supplier, Collector)
      * @since 0.3.7
      */
     public static <T, K extends Enum<K>, A, D> Collector<T, ?, EnumMap<K, D>> groupingByEnum(Class<K> enumClass,
@@ -891,11 +892,110 @@ public final class MoreCollectors {
         return groupingBy(classifier, EnumSet.allOf(enumClass), () -> new EnumMap<>(enumClass), downstream);
     }
 
+    /**
+     * Returns a {@code Collector} implementing a cascaded "group by" operation
+     * on input elements of type {@code T}, grouping elements according to a
+     * classification function, and then performing a reduction operation on the
+     * values associated with a given key using the specified downstream
+     * {@code Collector}.
+     *
+     * <p>There are no guarantees on the type, mutability,
+     * serializability, or thread-safety of the {@code Map} returned.
+     *
+     * <p>
+     * The main difference of this collector from
+     * {@link Collectors#groupingBy(Function, Supplier, Collector)} is that it
+     * accepts additional domain parameter which is the {@code Set} of all
+     * possible map keys. If the mapper function produces the key out of domain,
+     * an {@code IllegalStateException} will occur. If the mapper function does
+     * not produce some of domain keys at all, they are also added to the
+     * result. These keys are mapped to the default collector value which is
+     * equivalent to collecting an empty stream with the same collector.
+     * 
+     * <p>
+     * This method returns a <a
+     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * collector</a> if the downstream collector is short-circuiting. The
+     * collection might stop when for every possible key from the domain the
+     * downstream collection is known to be finished.
+     *
+     * @param <T>
+     *            the type of the input elements
+     * @param <K>
+     *            the type of the keys
+     * @param <A>
+     *            the intermediate accumulation type of the downstream collector
+     * @param <D>
+     *            the result type of the downstream reduction
+     * @param classifier
+     *            a classifier function mapping input elements to keys
+     * @param domain
+     *            a domain of all possible key values
+     * @param downstream
+     *            a {@code Collector} implementing the downstream reduction
+     * @return a {@code Collector} implementing the cascaded group-by operation
+     *         with given domain
+     *
+     * @see #groupingBy(Function, Set, Supplier, Collector)
+     * @see #groupingByEnum(Class, Function, Collector)
+     * @since 0.4.0
+     */
     public static <T, K, D, A> Collector<T, ?, Map<K, D>> groupingBy(Function<? super T, ? extends K> classifier,
             Set<K> domain, Collector<? super T, A, D> downstream) {
         return groupingBy(classifier, domain, HashMap::new, downstream);
     }
 
+    /**
+     * Returns a {@code Collector} implementing a cascaded "group by" operation
+     * on input elements of type {@code T}, grouping elements according to a
+     * classification function, and then performing a reduction operation on the
+     * values associated with a given key using the specified downstream
+     * {@code Collector}. The {@code Map} produced by the Collector is created
+     * with the supplied factory function.
+     *
+     * <p>
+     * The main difference of this collector from
+     * {@link Collectors#groupingBy(Function, Supplier, Collector)} is that it
+     * accepts additional domain parameter which is the {@code Set} of all
+     * possible map keys. If the mapper function produces the key out of domain,
+     * an {@code IllegalStateException} will occur. If the mapper function does
+     * not produce some of domain keys at all, they are also added to the
+     * result. These keys are mapped to the default collector value which is
+     * equivalent to collecting an empty stream with the same collector.
+     * 
+     * <p>
+     * This method returns a <a
+     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * collector</a> if the downstream collector is short-circuiting. The
+     * collection might stop when for every possible key from the domain the
+     * downstream collection is known to be finished.
+     *
+     * @param <T>
+     *            the type of the input elements
+     * @param <K>
+     *            the type of the keys
+     * @param <A>
+     *            the intermediate accumulation type of the downstream collector
+     * @param <D>
+     *            the result type of the downstream reduction
+     * @param <M>
+     *            the type of the resulting {@code Map}
+     * @param classifier
+     *            a classifier function mapping input elements to keys
+     * @param domain
+     *            a domain of all possible key values
+     * @param downstream
+     *            a {@code Collector} implementing the downstream reduction
+     * @param mapFactory
+     *            a function which, when called, produces a new empty
+     *            {@code Map} of the desired type
+     * @return a {@code Collector} implementing the cascaded group-by operation
+     *         with given domain
+     *
+     * @see #groupingBy(Function, Set, Collector)
+     * @see #groupingByEnum(Class, Function, Collector)
+     * @since 0.4.0
+     */
     public static <T, K, D, A, M extends Map<K, D>> Collector<T, ?, M> groupingBy(
             Function<? super T, ? extends K> classifier, Set<K> domain, Supplier<M> mapFactory,
             Collector<? super T, A, D> downstream) {
