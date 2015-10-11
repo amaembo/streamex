@@ -307,13 +307,22 @@ public class MoreCollectorsTest {
         name2sex.put("Jane", "Girl");
         name2sex.put("Ruth", "Girl");
         name2sex.put("Melanie", "Girl");
-        Collector<Entry<String, String>, ?, Map<String, String>> groupingBy = MoreCollectors.groupingBy(
+        Collector<Entry<String, String>, ?, Map<String, List<String>>> groupingBy = MoreCollectors.groupingBy(
+            Entry::getValue, StreamEx.of("Girl", "Boy").toSet(),
+            MoreCollectors.mapping(Entry::getKey, MoreCollectors.head(2)));
+        AtomicInteger counter = new AtomicInteger();
+        Map<String, List<String>> map = EntryStream.of(name2sex).peek(c -> counter.incrementAndGet()).collect(groupingBy);
+        assertEquals(Arrays.asList("Mary", "Lucie"), map.get("Girl"));
+        assertEquals(Arrays.asList("John", "James"), map.get("Boy"));
+        assertEquals(4, counter.get());
+
+        Collector<Entry<String, String>, ?, Map<String, String>> groupingByJoin = MoreCollectors.groupingBy(
             Entry::getValue, StreamEx.of("Girl", "Boy").toSet(),
             MoreCollectors.mapping(Entry::getKey, MoreCollectors.joining(", ", "...", 16, false)));
-        AtomicInteger counter = new AtomicInteger();
-        Map<String, String> map = EntryStream.of(name2sex).peek(c -> counter.incrementAndGet()).collect(groupingBy);
-        assertEquals("Mary, Lucie, ...", map.get("Girl"));
-        assertEquals("John, James, ...", map.get("Boy"));
+        counter.set(0);
+        Map<String, String> mapJoin = EntryStream.of(name2sex).peek(c -> counter.incrementAndGet()).collect(groupingByJoin);
+        assertEquals("Mary, Lucie, ...", mapJoin.get("Girl"));
+        assertEquals("John, James, ...", mapJoin.get("Boy"));
         assertEquals(7, counter.get());
     }
 
