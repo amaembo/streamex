@@ -496,12 +496,12 @@ import java.util.stream.Stream;
 
         static PartialCollector<int[], Integer> intSum() {
             return new PartialCollector<>(() -> new int[1], (box1, box2) -> box1[0] += box2[0], UNBOX_INT,
-                    NO_CHARACTERISTICS);
+                    UNORDERED_CHARACTERISTICS);
         }
 
         static PartialCollector<long[], Long> longSum() {
             return new PartialCollector<>(() -> new long[1], (box1, box2) -> box1[0] += box2[0], UNBOX_LONG,
-                    NO_CHARACTERISTICS);
+                    UNORDERED_CHARACTERISTICS);
         }
 
         static PartialCollector<ObjIntBox<BitSet>, boolean[]> booleanArray() {
