@@ -1648,7 +1648,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return an ordered {@code StreamEx} of entries in given zip file
      * @throws IllegalStateException
      *             if the zip file has been closed
-     * @deprecated Use {@code StreamEx.of(file.stream())}
+     * @deprecated Use {@code StreamEx.of(file.entries())}
      */
     @Deprecated
     public static StreamEx<? extends ZipEntry> ofEntries(ZipFile file) {
@@ -1665,7 +1665,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return an ordered {@code StreamEx} of entries in given jar file
      * @throws IllegalStateException
      *             if the jar file has been closed
-     * @deprecated Use {@code StreamEx.of(file.stream())}
+     * @deprecated Use {@code StreamEx.of(file.entries())}
      */
     @Deprecated
     public static StreamEx<JarEntry> ofEntries(JarFile file) {
