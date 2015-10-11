@@ -1095,16 +1095,10 @@ import java.util.stream.Stream;
         return (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i);
     }
 
-    static <V> BinaryOperator<V> throwingMerger() {
-        return (u, v) -> {
-            throw new IllegalStateException(String.format("Duplicate key %s", u));
-        };
-    }
-
     static <T> BinaryOperator<T> selectFirst() {
         return (u, v) -> u;
     }
-
+    
     static int checkLength(int a, int b) {
         if (a != b)
             throw new IllegalArgumentException("Length differs: " + a + " != " + b);

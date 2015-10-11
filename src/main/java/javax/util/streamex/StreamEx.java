@@ -774,7 +774,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see #toMap(Function)
      */
     public <K, V> Map<K, V> toMap(Function<? super T, ? extends K> keyMapper, Function<? super T, ? extends V> valMapper) {
-        return toMap(keyMapper, valMapper, throwingMerger());
+        Map<K, V> map = stream.isParallel() ? new ConcurrentHashMap<>() : new HashMap<>();
+        return toMapThrowing(keyMapper, valMapper, map);
     }
 
     /**
@@ -790,9 +791,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * {@link Object#equals(Object)}), the value mapping function is applied to
      * each equal element, and the results are merged using the provided merging
      * function.
-     *
-     * <p>
-     * For parallel stream the concurrent {@code Map} is created.
      *
      * <p>
      * Returned {@code Map} is guaranteed to be modifiable.
@@ -821,8 +819,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public <K, V> Map<K, V> toMap(Function<? super T, ? extends K> keyMapper,
             Function<? super T, ? extends V> valMapper, BinaryOperator<V> mergeFunction) {
-        if (stream.isParallel())
-            return collect(Collectors.toConcurrentMap(keyMapper, valMapper, mergeFunction, ConcurrentHashMap::new));
         return collect(Collectors.toMap(keyMapper, valMapper, mergeFunction, HashMap::new));
     }
 
@@ -900,7 +896,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public <K, V> SortedMap<K, V> toSortedMap(Function<? super T, ? extends K> keyMapper,
             Function<? super T, ? extends V> valMapper) {
-        return toSortedMap(keyMapper, valMapper, throwingMerger());
+        SortedMap<K, V> map = stream.isParallel() ? new ConcurrentSkipListMap<>() : new TreeMap<>();
+        return toMapThrowing(keyMapper, valMapper, map);
     }
 
     /**
@@ -916,9 +913,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * {@link Object#equals(Object)}), the value mapping function is applied to
      * each equal element, and the results are merged using the provided merging
      * function.
-     *
-     * <p>
-     * For parallel stream the concurrent {@code SortedMap} is created.
      *
      * <p>
      * Returned {@code SortedMap} is guaranteed to be modifiable.
@@ -947,8 +941,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public <K, V> SortedMap<K, V> toSortedMap(Function<? super T, ? extends K> keyMapper,
             Function<? super T, ? extends V> valMapper, BinaryOperator<V> mergeFunction) {
-        if (stream.isParallel())
-            return collect(Collectors.toConcurrentMap(keyMapper, valMapper, mergeFunction, ConcurrentSkipListMap::new));
         return collect(Collectors.toMap(keyMapper, valMapper, mergeFunction, TreeMap::new));
     }
 

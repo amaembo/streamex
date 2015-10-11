@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalLong;
@@ -69,6 +70,20 @@ import static javax.util.streamex.StreamExInternals.*;
             throw e;
         } catch (Throwable e) {
             throw new InternalError(e);
+        }
+    }
+
+    final <K, V, M extends Map<K, V>> M toMapThrowing(Function<? super T, ? extends K> keyMapper,
+            Function<? super T, ? extends V> valMapper, M map) {
+        forEach(t -> addToMap(map, keyMapper.apply(t), Objects.requireNonNull(valMapper.apply(t))));
+        return map;
+    }
+
+    final <K, V, M extends Map<K, V>> void addToMap(M map, K key, V val) {
+        V oldVal = map.putIfAbsent(key, val);
+        if (oldVal != null) {
+            throw new IllegalStateException("Duplicate entry for key '" + key + "' (attempt to merge values '"
+                + oldVal + "' and '" + val + "')");
         }
     }
 
@@ -259,16 +274,16 @@ import static javax.util.streamex.StreamExInternals.*;
             Predicate<A> finished = c.finished();
             BinaryOperator<A> combiner = c.combiner();
             Spliterator<T> spliterator = stream.spliterator();
-            if(!isParallel()) {
+            if (!isParallel()) {
                 A a = c.supplier().get();
-                if(!finished.test(a)) {
+                if (!finished.test(a)) {
                     try {
                         // forEachRemaining can be much faster
                         // and take much less memory than tryAdvance for certain
                         // spliterators
                         spliterator.forEachRemaining(e -> {
                             acc.accept(a, e);
-                            if(finished.test(a))
+                            if (finished.test(a))
                                 throw new CancelException();
                         });
                     } catch (CancelException ex) {
@@ -278,17 +293,19 @@ import static javax.util.streamex.StreamExInternals.*;
                 return c.finisher().apply(a);
             }
             Spliterator<A> spltr;
-            if(!spliterator.hasCharacteristics(Spliterator.ORDERED) || c.characteristics().contains(Characteristics.UNORDERED)) {
-                spltr = new UnorderedCancellableSpliterator<>(spliterator, c.supplier(), acc, combiner, finished); 
+            if (!spliterator.hasCharacteristics(Spliterator.ORDERED)
+                || c.characteristics().contains(Characteristics.UNORDERED)) {
+                spltr = new UnorderedCancellableSpliterator<>(spliterator, c.supplier(), acc, combiner, finished);
                 return c.finisher().apply(strategy().newStreamEx(StreamSupport.stream(spltr, true)).findAny().get());
             } else {
                 spltr = new OrderedCancellableSpliterator<>(spliterator, c.supplier(), acc, finished);
-                return c.finisher().apply(strategy().newStreamEx(StreamSupport.stream(spltr, true)).reduce(combiner).get());
+                return c.finisher().apply(
+                    strategy().newStreamEx(StreamSupport.stream(spltr, true)).reduce(combiner).get());
             }
         }
         return stream.collect(collector);
     }
-    
+
     @Override
     public Optional<T> min(Comparator<? super T> comparator) {
         return reduce(BinaryOperator.minBy(comparator));
@@ -330,9 +347,9 @@ import static javax.util.streamex.StreamExInternals.*;
     }
 
     /**
-     * Returns an {@link OptionalLong} describing the zero-based index of the first element
-     * of this stream, which equals to the given element, or an empty
-     * {@code OptionalLong} if there's no matching element.
+     * Returns an {@link OptionalLong} describing the zero-based index of the
+     * first element of this stream, which equals to the given element, or an
+     * empty {@code OptionalLong} if there's no matching element.
      *
      * <p>
      * This is a short-circuiting terminal operation.
@@ -350,8 +367,8 @@ import static javax.util.streamex.StreamExInternals.*;
     }
 
     /**
-     * Returns an {@link OptionalLong} describing the zero-based index of the first element
-     * of this stream, which matches given predicate, or an empty
+     * Returns an {@link OptionalLong} describing the zero-based index of the
+     * first element of this stream, which matches given predicate, or an empty
      * {@code OptionalLong} if there's no matching element.
      *
      * <p>
@@ -1133,7 +1150,8 @@ import static javax.util.streamex.StreamExInternals.*;
      * Folds the elements of this stream using the provided accumulation
      * function, going left to right. This is equivalent to:
      * 
-     * <pre>{@code
+     * <pre>
+     * {@code
      *     boolean foundAny = false;
      *     T result = null;
      *     for (T element : this stream) {
@@ -1145,8 +1163,9 @@ import static javax.util.streamex.StreamExInternals.*;
      *             result = accumulator.apply(result, element);
      *     }
      *     return foundAny ? Optional.of(result) : Optional.empty();
-     * }</pre>
-
+     * }
+     * </pre>
+     * 
      * <p>
      * This is a terminal operation.
      * 
@@ -1252,8 +1271,8 @@ import static javax.util.streamex.StreamExInternals.*;
      * @since 0.4.0
      */
     public Optional<T> foldRight(BinaryOperator<T> accumulator) {
-        return this.<Optional<T>>toListAndThen(list -> {
-            if(list.isEmpty())
+        return this.<Optional<T>> toListAndThen(list -> {
+            if (list.isEmpty())
                 return Optional.empty();
             int i = list.size() - 1;
             T result = list.get(i--);
@@ -1343,7 +1362,7 @@ import static javax.util.streamex.StreamExInternals.*;
     public List<T> scanLeft(BinaryOperator<T> accumulator) {
         List<T> result = new ArrayList<>();
         forEachOrdered(t -> {
-            if(result.isEmpty())
+            if (result.isEmpty())
                 result.add(t);
             else
                 result.add(accumulator.apply(result.get(result.size() - 1), t));
@@ -1460,11 +1479,10 @@ import static javax.util.streamex.StreamExInternals.*;
      * {@code StreamEx.ofLines(br).skip(1).parallel().toSet()} will skip
      * arbitrary line, but
      * {@code StreamEx.ofLines(br).skipOrdered(1).parallel().toSet()} will skip
-     * the first one. This problem was fixed in OracleJDK 8u60. 
+     * the first one. This problem was fixed in OracleJDK 8u60.
      *
      * <p>
-     * Also it behaves much better with infinite streams
-     * processed in parallel.
+     * Also it behaves much better with infinite streams processed in parallel.
      * 
      * <p>
      * For sequential streams this method behaves exactly like

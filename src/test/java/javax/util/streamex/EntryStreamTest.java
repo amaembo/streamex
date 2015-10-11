@@ -33,6 +33,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -230,33 +231,29 @@ public class EntryStreamTest {
         TreeMap<String, Integer> result = EntryStream.of(createMap()).toCustomMap(TreeMap::new);
         assertEquals(createMap(), result);
 
-        Map<String, Integer> expected = new HashMap<>();
-        expected.put("aaa", 3);
-        expected.put("bb", 4);
-        assertEquals(expected,
-            StreamEx.of("aaa", "bb", "bb").mapToEntry(String::length).toCustomMap(Integer::sum, HashMap::new));
-        Map<String, Integer> map = StreamEx.of("aaa", "bb", "bb").mapToEntry(String::length).toMap(Integer::sum);
+        Supplier<EntryStream<Integer, String>> s = () -> StreamEx.of("aaa", "bb", "dd").mapToEntry(String::length, Function.identity());
+        Map<Integer, String> expected = new HashMap<>();
+        expected.put(3, "aaa");
+        expected.put(2, "bbdd");
+        HashMap<Integer, String> customMap = s.get().toCustomMap(String::concat, HashMap::new);
+        assertEquals(expected, customMap);
+        Map<Integer, String> map = s.get().toMap(String::concat);
         assertEquals(expected, map);
-        assertFalse(map instanceof ConcurrentMap);
-        map = StreamEx.of("aaa", "bb", "bb").mapToEntry(String::length).parallel().toMap(Integer::sum);
-        assertTrue(map instanceof ConcurrentMap);
+        map = s.get().parallel().toMap(String::concat);
         assertEquals(expected, map);
-        SortedMap<String, Integer> sortedMap = StreamEx.of("aaa", "bb", "bb").mapToEntry(String::length)
-                .toSortedMap(Integer::sum);
+        SortedMap<Integer, String> sortedMap = s.get().toSortedMap(String::concat);
         assertEquals(expected, sortedMap);
-        assertFalse(sortedMap instanceof ConcurrentMap);
-        sortedMap = StreamEx.of("aaa", "bb", "bb").mapToEntry(String::length).parallel().toSortedMap(Integer::sum);
+        sortedMap = s.get().parallel().toSortedMap(String::concat);
         assertEquals(expected, sortedMap);
-        assertTrue(sortedMap instanceof ConcurrentMap);
 
         assertEquals(createMap(), EntryStream.of(createMap()).parallel().toMap());
         assertTrue(EntryStream.of(createMap()).parallel().toMap() instanceof ConcurrentMap);
-        sortedMap = EntryStream.of(createMap()).toSortedMap();
-        assertEquals(createMap(), sortedMap);
-        assertFalse(sortedMap instanceof ConcurrentMap);
-        sortedMap = EntryStream.of(createMap()).parallel().toSortedMap();
-        assertEquals(createMap(), sortedMap);
-        assertTrue(sortedMap instanceof ConcurrentMap);
+        SortedMap<String, Integer> sortedMap2 = EntryStream.of(createMap()).toSortedMap();
+        assertEquals(createMap(), sortedMap2);
+        assertFalse(sortedMap2 instanceof ConcurrentMap);
+        sortedMap2 = EntryStream.of(createMap()).parallel().toSortedMap();
+        assertEquals(createMap(), sortedMap2);
+        assertTrue(sortedMap2 instanceof ConcurrentMap);
     }
 
     @Test

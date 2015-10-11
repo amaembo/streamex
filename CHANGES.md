@@ -16,8 +16,11 @@
 * Added `StreamEx.cartesianProduct/cartesianPower` methods with reduction operator.
 * Added `IntStreamEx/LongStreamEx.range/rangeClosed` methods with additional step parameter.
 * Added `IntStreamEx/LongStreamEx/DoubleStreamEx.foldLeft` methods.
+* Methods `StreamEx/EntryStream.toMap/toSortedMap/toCustomMap` without merge function now produce better exception message in the case of duplicate keys.
+* Methods `StreamEx/EntryStream.toMap/toSortedMap/toCustomMap` accepting merge function do not return ConcurrentMap for parallel streams now (this caused incorrect merging for non-commutative merger functions).
 * Methods `StreamEx.ofEntries` are declared as deprecated and may be removed in future releases!
 * Deprecated methods `EntryStream.mapEntryKeys`/`mapEntryValues` are removed!
+* Updated documentation
 
 ### 0.3.8
 

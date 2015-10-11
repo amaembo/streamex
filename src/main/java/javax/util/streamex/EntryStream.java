@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Spliterator;
 import java.util.Map.Entry;
 import java.util.SortedMap;
@@ -74,6 +75,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
 
     static <K, V> Consumer<? super Entry<K, V>> toConsumer(BiConsumer<? super K, ? super V> action) {
         return entry -> action.accept(entry.getKey(), entry.getValue());
+    }
+
+    <M extends Map<K, V>> Consumer<? super Entry<K, V>> toMapConsumer(M map) {
+        return entry -> addToMap(map, entry.getKey(), Objects.requireNonNull(entry.getValue()));
     }
 
     static <K, V, R> Function<? super Entry<K, V>, ? extends R> toFunction(
@@ -828,7 +833,9 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @see Collectors#toConcurrentMap(Function, Function)
      */
     public Map<K, V> toMap() {
-        return toMap(throwingMerger());
+        Map<K, V> map = stream.isParallel() ? new ConcurrentHashMap<>() : new HashMap<>();
+        forEach(toMapConsumer(map));
+        return map;
     }
 
     /**
@@ -850,9 +857,6 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * <p>
      * Returned {@code Map} is guaranteed to be modifiable.
      *
-     * <p>
-     * For parallel stream the concurrent {@code Map} is created.
-     *
      * @param mergeFunction
      *            a merge function, used to resolve collisions between values
      *            associated with the same key, as supplied to
@@ -867,22 +871,70 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     public Map<K, V> toMap(BinaryOperator<V> mergeFunction) {
         Function<Entry<K, V>, K> keyMapper = Entry::getKey;
         Function<Entry<K, V>, V> valueMapper = Entry::getValue;
-        if (stream.isParallel())
-            return collect(Collectors.toConcurrentMap(keyMapper, valueMapper, mergeFunction, ConcurrentHashMap::new));
         return collect(Collectors.toMap(keyMapper, valueMapper, mergeFunction, HashMap::new));
     }
 
+    /**
+     * Returns a {@link Map} containing the elements of this stream. The
+     * {@code Map} is created by a provided supplier function.
+     *
+     * <p>
+     * If the mapped keys contains duplicates (according to
+     * {@link Object#equals(Object)}), an {@code IllegalStateException} is
+     * thrown when the collection operation is performed.
+     * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
+     * 
+     * @param <M>
+     *            the type of the resulting map
+     * @param mapSupplier
+     *            a function which returns a new, empty {@code Map} into which
+     *            the results will be inserted
+     * @return a {@code Map} containing the elements of this stream
+     * @see Collectors#toMap(Function, Function)
+     * @see Collectors#toConcurrentMap(Function, Function)
+     */
     public <M extends Map<K, V>> M toCustomMap(Supplier<M> mapSupplier) {
-        return toCustomMap(throwingMerger(), mapSupplier);
+        M map = mapSupplier.get();
+        if (stream.isParallel() && !(map instanceof ConcurrentMap)) {
+            return collect(mapSupplier, (m, t) -> addToMap(m, t.getKey(), Objects.requireNonNull(t.getValue())), (m1,
+                    m2) -> m2.forEach((k, v) -> addToMap(m1, k, v)));
+        }
+        forEach(toMapConsumer(map));
+        return map;
     }
 
-    @SuppressWarnings("unchecked")
+    /**
+     * Returns a {@link Map} containing the elements of this stream. The
+     * {@code Map} is created by a provided supplier function.
+     *
+     * <p>
+     * If the mapped keys contains duplicates (according to
+     * {@link Object#equals(Object)}), the value mapping function is applied to
+     * each equal element, and the results are merged using the provided merging
+     * function.
+     * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
+     * 
+     * @param <M>
+     *            the type of the resulting map
+     * @param mergeFunction
+     *            a merge function, used to resolve collisions between values
+     *            associated with the same key.
+     * @param mapSupplier
+     *            a function which returns a new, empty {@code Map} into which
+     *            the results will be inserted
+     * @return a {@code Map} containing the elements of this stream
+     * @see Collectors#toMap(Function, Function)
+     * @see Collectors#toConcurrentMap(Function, Function)
+     */
     public <M extends Map<K, V>> M toCustomMap(BinaryOperator<V> mergeFunction, Supplier<M> mapSupplier) {
         Function<Entry<K, V>, K> keyMapper = Entry::getKey;
         Function<Entry<K, V>, V> valueMapper = Entry::getValue;
-        if (stream.isParallel() && mapSupplier.get() instanceof ConcurrentMap)
-            return (M) collect(Collectors.toConcurrentMap(keyMapper, valueMapper, mergeFunction,
-                (Supplier<? extends ConcurrentMap<K, V>>) mapSupplier));
         return collect(Collectors.toMap(keyMapper, valueMapper, mergeFunction, mapSupplier));
     }
 
@@ -913,7 +965,9 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.1.0
      */
     public SortedMap<K, V> toSortedMap() {
-        return toSortedMap(throwingMerger());
+        SortedMap<K, V> map = stream.isParallel() ? new ConcurrentSkipListMap<>() : new TreeMap<>();
+        forEach(toMapConsumer(map));
+        return map;
     }
 
     /**
@@ -935,9 +989,6 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * <p>
      * Returned {@code SortedMap} is guaranteed to be modifiable.
      *
-     * <p>
-     * For parallel stream the concurrent {@code SortedMap} is created.
-     *
      * @param mergeFunction
      *            a merge function, used to resolve collisions between values
      *            associated with the same key, as supplied to
@@ -950,12 +1001,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.1.0
      */
     public SortedMap<K, V> toSortedMap(BinaryOperator<V> mergeFunction) {
-        Function<Entry<K, V>, K> keyMapper = Entry::getKey;
-        Function<Entry<K, V>, V> valueMapper = Entry::getValue;
-        if (stream.isParallel())
-            return collect(Collectors
-                    .toConcurrentMap(keyMapper, valueMapper, mergeFunction, ConcurrentSkipListMap::new));
-        return collect(Collectors.toMap(keyMapper, valueMapper, mergeFunction, TreeMap::new));
+        return collect(Collectors.toMap(Entry::getKey, Entry::getValue, mergeFunction, TreeMap::new));
     }
 
     public Map<K, List<V>> grouping() {
