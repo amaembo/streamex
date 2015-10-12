@@ -39,7 +39,7 @@ import static javax.util.streamex.StreamExInternals.*;
     private OrderedCancellableSpliterator2<T, A> prefix;
     private OrderedCancellableSpliterator2<T, A> suffix;
     private A payload;
-    
+
     OrderedCancellableSpliterator2(Spliterator<T> source, Supplier<A> supplier, BiConsumer<A, ? super T> accumulator,
             BinaryOperator<A> combiner, Predicate<A> cancelPredicate) {
         this.source = source;
@@ -68,41 +68,47 @@ import static javax.util.streamex.StreamExInternals.*;
                     throw new CancelException();
                 }
             });
-        }
-        catch(CancelException ex) {
-            if(localCancelled) {
+        } catch (CancelException ex) {
+            if (localCancelled) {
                 return false;
             }
-            localCancelled = true;
         }
         this.source = null;
         A result = acc;
-        while(true) {
+        while (true) {
+            if (prefix == null && suffix == null) {
+                action.accept(result);
+                return true;
+            }
             ArrayDeque<A> res = new ArrayDeque<>();
             res.offer(result);
             synchronized (lock) {
+                if (localCancelled)
+                    return false;
                 OrderedCancellableSpliterator2<T, A> s = prefix;
-                while(s != null) {
-                    if(s.payload == null) break;
+                while (s != null) {
+                    if (s.payload == null)
+                        break;
                     res.offerFirst(s.payload);
                     s = s.prefix;
                 }
                 prefix = s;
-                if(s != null) {
+                if (s != null) {
                     s.suffix = this;
                 }
                 s = suffix;
-                while(s != null) {
-                    if(s.payload == null) break;
+                while (s != null) {
+                    if (s.payload == null)
+                        break;
                     res.offerLast(s.payload);
                     s = s.suffix;
                 }
                 suffix = s;
-                if(s != null) {
+                if (s != null) {
                     s.prefix = this;
                 }
-                if(res.size() == 1) {
-                    if(prefix == null && suffix == null) {
+                if (res.size() == 1) {
+                    if (prefix == null && suffix == null) {
                         action.accept(result);
                         return true;
                     }
@@ -111,11 +117,10 @@ import static javax.util.streamex.StreamExInternals.*;
                 }
             }
             result = res.pollFirst();
-            while(!res.isEmpty()) {
-                result = combiner.apply(result, res.pollFirst()); 
-                if(cancelPredicate.test(result)) {
+            while (!res.isEmpty()) {
+                result = combiner.apply(result, res.pollFirst());
+                if (cancelPredicate.test(result)) {
                     cancelSuffix();
-                    localCancelled = true;
                 }
             }
         }
@@ -123,7 +128,7 @@ import static javax.util.streamex.StreamExInternals.*;
     }
 
     private void cancelSuffix() {
-        if(this.suffix == null)
+        if (this.suffix == null)
             return;
         synchronized (lock) {
             OrderedCancellableSpliterator2<T, A> suffix = this.suffix;
@@ -152,7 +157,7 @@ import static javax.util.streamex.StreamExInternals.*;
             return null;
         }
         try {
-            synchronized(lock) {
+            synchronized (lock) {
                 @SuppressWarnings("unchecked")
                 OrderedCancellableSpliterator2<T, A> result = (OrderedCancellableSpliterator2<T, A>) this.clone();
                 result.source = prefix;
