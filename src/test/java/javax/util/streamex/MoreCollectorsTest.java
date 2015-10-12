@@ -170,10 +170,7 @@ public class MoreCollectorsTest {
         checkShortCircuitCollector("first", Optional.of(0), 1, s, MoreCollectors.first());
         checkShortCircuitCollector("firstLong", Optional.of(0),
             1, () -> Stream.of(1).flatMap(x -> IntStream.range(0, 1000000000).boxed()), MoreCollectors.first(), true);
-        // TODO: such test is failed now. Must be supported when
-        // OrderedCancellableSpliterator will be rewritten
-        // checkShortCircuitCollector("first", Optional.of(1), 1, () ->
-        // Stream.iterate(1, x -> x + 1), MoreCollectors.first());
+        checkShortCircuitCollector("first", Optional.of(1), 1, () -> Stream.iterate(1, x -> x + 1), MoreCollectors.first(), true);
         assertEquals(1, (int) StreamEx.iterate(1, x -> x + 1).parallel().collect(MoreCollectors.first()).get());
 
         checkCollector("last", Optional.of(999), s, MoreCollectors.last());
@@ -208,6 +205,9 @@ public class MoreCollectorsTest {
         checkShortCircuitCollector("head(999)", ints.subList(0, 999), 999, ints::stream, MoreCollectors.head(999));
         checkShortCircuitCollector("head(1000)", ints, 1000, ints::stream, MoreCollectors.head(1000));
         checkShortCircuitCollector("head(MAX)", ints, 1000, ints::stream, MoreCollectors.head(Integer.MAX_VALUE));
+        
+        checkShortCircuitCollector("head(10000)", IntStreamEx.rangeClosed(1, 10000).boxed().toList(), 10000,
+            () -> Stream.iterate(1, x -> x + 1), MoreCollectors.head(10000), true);
     }
 
     @Test
