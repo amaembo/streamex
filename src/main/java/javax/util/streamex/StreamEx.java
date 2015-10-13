@@ -195,6 +195,27 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             stream.map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e), valueMapper.apply(e))));
     }
 
+    /**
+     * Creates a new {@code EntryStream} populated from entries of maps produced
+     * by supplied mapper function which is applied to the every element of this
+     * stream.
+     * 
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
+     * operation.
+     * 
+     * @param <K>
+     *            the type of {@code Map} keys.
+     * @param <V>
+     *            the type of {@code Map} values.
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
+     *            which produces a {@link Map} of the entries corresponding to
+     *            the single element of the current stream. The mapper function
+     *            may return null or empty {@code Map} if no mapping should
+     *            correspond to some element.
+     * @return the new {@code EntryStream}
+     */
     public <K, V> EntryStream<K, V> flatMapToEntry(Function<? super T, ? extends Map<K, V>> mapper) {
         return strategy().newEntryStream(stream.flatMap(e -> {
             Map<K, V> s = mapper.apply(e);
@@ -221,6 +242,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @param other
      *            the array to perform a cross product with
      * @return the new {@code EntryStream}
+     * @throws NullPointerException
+     *             if other is null
      * @since 0.2.3
      */
     @SuppressWarnings("unchecked")
@@ -252,6 +275,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @param other
      *            the collection to perform a cross product with
      * @return the new {@code EntryStream}
+     * @throws NullPointerException
+     *             if other is null
      * @since 0.2.3
      */
     public <V> EntryStream<T, V> cross(Collection<? extends V> other) {
@@ -263,7 +288,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
 
     /**
      * Creates a new {@code EntryStream} whose keys are elements of current
-     * stream and corresponding values are supplied by given function.
+     * stream and corresponding values are supplied by given function. Each
+     * mapped stream is {@link java.util.stream.BaseStream#close() closed} after
+     * its contents have been placed into this stream. (If a mapped stream is
+     * {@code null} an empty stream is used, instead.)
      * 
      * <p>
      * This is an <a href="package-summary.html#StreamOps">intermediate</a>
@@ -279,8 +307,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.2.3
      */
     public <V> EntryStream<T, V> cross(Function<? super T, ? extends Stream<? extends V>> mapper) {
-        return strategy().newEntryStream(
-            stream.flatMap(a -> mapper.apply(a).map(b -> new SimpleImmutableEntry<>(a, b))));
+        return strategy().newEntryStream(stream.flatMap(a -> {
+            Stream<? extends V> s = mapper.apply(a);
+            return s == null ? null : s.map(b -> new SimpleImmutableEntry<>(a, b));
+        }));
     }
 
     /**

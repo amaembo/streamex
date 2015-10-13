@@ -890,6 +890,7 @@ public class StreamExTest {
                 .mapKeyValue((input, output) -> input + "->" + output).joining(", "));
         assertEquals("", StreamEx.of(inputs).cross(Collections.emptyList()).join("->").joining(", "));
         assertEquals("i-i, j-j, k-k", StreamEx.of(inputs).cross(Stream::of).join("-").joining(", "));
+        assertEquals("j-j, k-k", StreamEx.of(inputs).cross(x -> x.equals("i") ? null : Stream.of(x)).join("-").joining(", "));
     }
 
     @Test

@@ -1,5 +1,10 @@
 # StreamEx changes
 
+### 0.4.1
+
+* Fixed: `StreamEx.cross(mapper)` now correctly handles the case when mapper returns null instead of empty stream.
+* Updated documentation. 
+
 ### 0.4.0
 
 * Introduced the concept of short-circuiting collectors.
