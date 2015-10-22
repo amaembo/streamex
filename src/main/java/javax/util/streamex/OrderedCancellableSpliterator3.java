@@ -15,8 +15,6 @@
  */
 package javax.util.streamex;
 
-import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.util.Map.Entry;
 import java.util.Spliterator;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -60,11 +58,11 @@ import static javax.util.streamex.StreamExInternals.*;
                 b3 = parent.bits3;
                 if(!left) {
                     if(l < Long.SIZE) {
-                        b1 |= (1 << (Long.SIZE-l));
+                        b1 |= (1L << (Long.SIZE-l));
                     } else if(l < 2*Long.SIZE) {
-                        b2 |= (1 << (2*Long.SIZE-l));
+                        b2 |= (1L << (2*Long.SIZE-l));
                     } else {
-                        b3 |= (1 << (MAX_LENGTH-l));
+                        b3 |= (1L << (MAX_LENGTH-l));
                     }
                 }
             }
@@ -96,7 +94,7 @@ import static javax.util.streamex.StreamExInternals.*;
         
         @Override
         public String toString() {
-            return new BigInteger(ByteBuffer.allocate(25).put((byte) 0).putLong(bits1).putLong(bits2).putLong(bits3).array()).toString(16);
+            return String.format("%64s%64s%64s", Long.toBinaryString(bits1), Long.toBinaryString(bits2), Long.toBinaryString(bits3)).substring(0, length).replace(' ', '0');
         }
         
     }
@@ -118,6 +116,7 @@ import static javax.util.streamex.StreamExInternals.*;
             this.source = null;
             return false;
         }
+        System.out.println(key+": start");
         A acc = supplier.get();
         try {
             source.forEachRemaining(t -> {
@@ -131,6 +130,7 @@ import static javax.util.streamex.StreamExInternals.*;
                 }
             });
         } catch (CancelException ex) {
+            System.out.println(key+": cancelled");
             if (localCancelled) {
                 return false;
             }
@@ -139,6 +139,7 @@ import static javax.util.streamex.StreamExInternals.*;
         A result = acc;
         boolean changed = true;
         Entry<Key, A> lowerEntry, higherEntry;
+        System.out.println(key+": combining");
         do {
             changed = false;
             while(true) {
@@ -150,6 +151,7 @@ import static javax.util.streamex.StreamExInternals.*;
                 A prev = map.remove(lowerEntry.getKey());
                 if(prev == null) // other party removed this key during suffix traversal
                     break;
+                System.out.println(key+": combine with prefix "+lowerEntry.getKey());
                 result = combiner.apply(prev, result);
                 if(cancelPredicate.test(result)) {
                     cancelSuffix();
@@ -165,6 +167,7 @@ import static javax.util.streamex.StreamExInternals.*;
                 A next = map.remove(higherEntry.getKey());
                 if(next == null) // other party removed this key during prefix traversal
                     break;
+                System.out.println(key+": combine with suffix "+higherEntry.getKey());
                 result = combiner.apply(result, next);
                 if(cancelPredicate.test(result)) {
                     cancelSuffix();
@@ -173,9 +176,11 @@ import static javax.util.streamex.StreamExInternals.*;
             }
         } while(changed);
         if(lowerEntry == null && (higherEntry == null || suffix == null)) {
+            System.out.println(key+": consume!");
             action.accept(result);
             return true;
         }
+        System.out.println(key+": offer");
         A old = map.put(key, result);
         assert old == NONE;
         return false;

@@ -301,7 +301,7 @@ import static javax.util.streamex.StreamExInternals.*;
                 || c.characteristics().contains(Characteristics.UNORDERED)) {
                 spltr = new UnorderedCancellableSpliterator<>(spliterator, c.supplier(), acc, combiner, finished);
             } else {
-                spltr = new OrderedCancellableSpliterator2<>(spliterator, c.supplier(), acc, combiner, finished);
+                spltr = new OrderedCancellableSpliterator3<>(spliterator, c.supplier(), acc, combiner, finished);
             }
             return c.finisher().apply(strategy().newStreamEx(StreamSupport.stream(spltr, true)).findFirst().get());
         }

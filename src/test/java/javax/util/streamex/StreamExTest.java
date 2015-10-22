@@ -1451,4 +1451,13 @@ public class StreamExTest {
             assertFalse(supplier.toString(), supplier.get().indexOf(""::equals).isPresent());
         }
     }
+    
+    @Test
+    public void testIndexOfSimple() {
+        List<Integer> input = IntStreamEx.range(10).boxed().toList();
+        //input.addAll(input);
+        for (int i = 0; i < 100; i++) {
+            assertEquals(9, StreamEx.of(input).parallel().indexOf(9).getAsLong());
+        }
+    }
 }
