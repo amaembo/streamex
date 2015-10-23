@@ -116,7 +116,6 @@ import static javax.util.streamex.StreamExInternals.*;
             this.source = null;
             return false;
         }
-        System.out.println(key+": start");
         A acc = supplier.get();
         try {
             source.forEachRemaining(t -> {
@@ -130,60 +129,65 @@ import static javax.util.streamex.StreamExInternals.*;
                 }
             });
         } catch (CancelException ex) {
-            System.out.println(key+": cancelled");
             if (localCancelled) {
                 return false;
             }
         }
         this.source = null;
         A result = acc;
-        boolean changed = true;
-        Entry<Key, A> lowerEntry, higherEntry;
-        System.out.println(key+": combining");
-        do {
-            changed = false;
+        Entry<Key, A> lowerEntry, higherEntry = null;
+        while(true) {
             while(true) {
                 if(localCancelled)
                     return false;
                 lowerEntry = map.lowerEntry(key);
                 if(lowerEntry == null || lowerEntry.getValue() == NONE)
                     break;
-                A prev = map.remove(lowerEntry.getKey());
-                if(prev == null) // other party removed this key during suffix traversal
+                if(!map.remove(lowerEntry.getKey(), lowerEntry.getValue()))
                     break;
-                System.out.println(key+": combine with prefix "+lowerEntry.getKey());
-                result = combiner.apply(prev, result);
+                result = combiner.apply(lowerEntry.getValue(), result);
                 if(cancelPredicate.test(result)) {
                     cancelSuffix();
                 }
-                changed = true;
             }
-            while(true) {
+            while(suffix != null) {
                 if(localCancelled)
                     return false;
                 higherEntry = map.higherEntry(key);
                 if(higherEntry == null || higherEntry.getValue() == NONE)
                     break;
-                A next = map.remove(higherEntry.getKey());
-                if(next == null) // other party removed this key during prefix traversal
+                if(!map.remove(higherEntry.getKey(), higherEntry.getValue()))
                     break;
-                System.out.println(key+": combine with suffix "+higherEntry.getKey());
-                result = combiner.apply(result, next);
+                result = combiner.apply(result, higherEntry.getValue());
                 if(cancelPredicate.test(result)) {
                     cancelSuffix();
                 }
-                changed = true;
             }
-        } while(changed);
-        if(lowerEntry == null && (higherEntry == null || suffix == null)) {
-            System.out.println(key+": consume!");
-            action.accept(result);
-            return true;
+            if(lowerEntry == null && (higherEntry == null || suffix == null)) {
+                action.accept(result);
+                return true;
+            }
+            map.put(key, result);
+            if(lowerEntry != null) {
+                lowerEntry = map.lowerEntry(key);
+                if(lowerEntry != null && lowerEntry.getValue() != NONE) {
+                    if(!map.replace(key, result, none())) {
+                        return false;
+                    }
+                    continue;
+                }
+            }
+            if(higherEntry != null && suffix != null) {
+                higherEntry = map.higherEntry(key);
+                if(higherEntry != null && higherEntry.getValue() != NONE) {
+                    if(!map.replace(key, result, none())) {
+                        return false;
+                    }
+                    continue;
+                }
+            }
+            return false;
         }
-        System.out.println(key+": offer");
-        A old = map.put(key, result);
-        assert old == NONE;
-        return false;
     }
 
     private void cancelSuffix() {
