@@ -179,7 +179,7 @@ public class MoreCollectorsTest {
     }
 
     @Test
-    public void testHeadTailParallel() {
+    public void testHeadParallel() {
         for (int i = 0; i < 1000; i++) {
             assertEquals("#" + i, Arrays.asList(0, 1),
                 IntStreamEx.range(1000).boxed().parallel().collect(MoreCollectors.head(2)));
@@ -190,8 +190,8 @@ public class MoreCollectorsTest {
     }
 
     @Test
-    public void testHeadTailParallel2() {
-        for (int i = 0; i < 1000000; i++) {
+    public void testHeadParallel2() {
+        for (int i = 0; i < 10000; i++) {
             assertEquals("#" + i, IntStreamEx.range(0, 20, 2).boxed().toList(), IntStreamEx.range(100).boxed()
                 .parallel().filter(x -> x % 2 == 0).collect(MoreCollectors.head(10)));
         }

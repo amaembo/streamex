@@ -15,10 +15,8 @@
  */
 package javax.util.streamex;
 
-import java.util.Collection;
 import java.util.Map.Entry;
 import java.util.Spliterator;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import java.util.function.BiConsumer;
@@ -104,8 +102,6 @@ import static javax.util.streamex.StreamExInternals.*;
         }
     }
     
-    static Collection<String> log = new ConcurrentLinkedQueue<>();
-
     OrderedCancellableSpliterator3(Spliterator<T> source, Supplier<A> supplier, BiConsumer<A, ? super T> accumulator,
             BinaryOperator<A> combiner, Predicate<A> cancelPredicate) {
         this.source = source;
@@ -123,7 +119,6 @@ import static javax.util.streamex.StreamExInternals.*;
             this.source = null;
             return false;
         }
-        //log.add(key+": start");
         A acc = supplier.get();
         try {
             source.forEachRemaining(t -> {
@@ -137,14 +132,12 @@ import static javax.util.streamex.StreamExInternals.*;
                 }
             });
         } catch (CancelException ex) {
-            //log.add(key+"/"+acc+": cancelled");
             if (localCancelled) {
                 return false;
             }
         }
         this.source = null;
         A result = acc;
-        //log.add(key+"/"+acc+": combining start");
         Entry<Key, A> lowerEntry, higherEntry = null;
         while(true) {
             while(true) {
@@ -153,10 +146,8 @@ import static javax.util.streamex.StreamExInternals.*;
                     break;
                 if(!map.remove(lowerEntry.getKey(), lowerEntry.getValue()))
                     continue;
-                //log.add(key+"/"+result+" with prefix "+lowerEntry);
                 result = combiner.apply(lowerEntry.getValue(), result);
                 if(cancelPredicate.test(result)) {
-                    //log.add(key+"/"+result+": cancelsuffix1");
                     cancelSuffix();
                 }
             }
@@ -166,47 +157,31 @@ import static javax.util.streamex.StreamExInternals.*;
                     break;
                 if(!map.remove(higherEntry.getKey(), higherEntry.getValue()))
                     continue;
-                //log.add(key+"/"+result+" with suffix "+higherEntry);
                 result = combiner.apply(result, higherEntry.getValue());
                 if(cancelPredicate.test(result)) {
-                    //log.add(key+"/"+result+": cancelsuffix2");
                     cancelSuffix();
                 }
             }
             if(lowerEntry == null && (higherEntry == null || suffix == null)) {
-                //log.add(key+"/"+result+": accept!!!");
-                //log.add(map.toString());
                 action.accept(result);
                 return true;
             }
-//            if(lowerEntry == null)
-//            {
-//                log.add(key+"/"+result+": offer: "+suffix);
-//                //log.add(map.keySet().toString());
-//            }
-            //log.add(key+"/"+result+": offer");
             map.put(key, result);
             if(lowerEntry != null) {
                 lowerEntry = map.lowerEntry(key);
                 if(lowerEntry != null && lowerEntry.getValue() != NONE) {
-                    //log.add(key+": race on lower "+lowerEntry.getKey());
                     if(!map.replace(key, result, none())) {
-                        //log.add(key+": other party took the responsibility; exiting");
                         return false;
                     }
-                    //log.add(key+"/"+result+": continue");
                     continue;
                 }
             }
             if(higherEntry != null && suffix != null) {
                 higherEntry = map.higherEntry(key);
                 if(higherEntry != null && higherEntry.getValue() != NONE) {
-                    //log.add(key+": race on higher "+higherEntry.getKey());
                     if(!map.replace(key, result, none())) {
-                        //log.add(key+": other party took the responsibility; exiting");
                         return false;
                     }
-                    //log.add(key+"/"+result+": continue");
                     continue;
                 }
             }
@@ -215,7 +190,6 @@ import static javax.util.streamex.StreamExInternals.*;
     }
 
     private void cancelSuffix() {
-        //log.add(key+": cancelling suffix");
         if (this.suffix == null)
             return;
         OrderedCancellableSpliterator3<T, A> suffix = this.suffix;
