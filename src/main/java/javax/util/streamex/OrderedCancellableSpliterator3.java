@@ -15,9 +15,12 @@
  */
 package javax.util.streamex;
 
+import java.util.Collection;
 import java.util.Map.Entry;
 import java.util.Spliterator;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
@@ -30,6 +33,9 @@ import static javax.util.streamex.StreamExInternals.*;
  * @author Tagir Valeev
  */
 /* package */final class OrderedCancellableSpliterator3<T, A> implements Spliterator<A>, Cloneable {
+    @SuppressWarnings("rawtypes")
+    private static final AtomicReferenceFieldUpdater<OrderedCancellableSpliterator3, OrderedCancellableSpliterator3> updater
+         = AtomicReferenceFieldUpdater.newUpdater(OrderedCancellableSpliterator3.class, OrderedCancellableSpliterator3.class, "suffix");
     private Spliterator<T> source;
     private final ConcurrentSkipListMap<Key, A> map = new ConcurrentSkipListMap<>();
     private final BiConsumer<A, ? super T> accumulator;
@@ -96,8 +102,9 @@ import static javax.util.streamex.StreamExInternals.*;
         public String toString() {
             return String.format("%64s%64s%64s", Long.toBinaryString(bits1), Long.toBinaryString(bits2), Long.toBinaryString(bits3)).substring(0, length).replace(' ', '0');
         }
-        
     }
+    
+    static Collection<String> log = new ConcurrentLinkedQueue<>();
 
     OrderedCancellableSpliterator3(Spliterator<T> source, Supplier<A> supplier, BiConsumer<A, ? super T> accumulator,
             BinaryOperator<A> combiner, Predicate<A> cancelPredicate) {
@@ -116,6 +123,7 @@ import static javax.util.streamex.StreamExInternals.*;
             this.source = null;
             return false;
         }
+        //log.add(key+": start");
         A acc = supplier.get();
         try {
             source.forEachRemaining(t -> {
@@ -129,60 +137,76 @@ import static javax.util.streamex.StreamExInternals.*;
                 }
             });
         } catch (CancelException ex) {
+            //log.add(key+"/"+acc+": cancelled");
             if (localCancelled) {
                 return false;
             }
         }
         this.source = null;
         A result = acc;
+        //log.add(key+"/"+acc+": combining start");
         Entry<Key, A> lowerEntry, higherEntry = null;
         while(true) {
             while(true) {
-                if(localCancelled)
-                    return false;
                 lowerEntry = map.lowerEntry(key);
                 if(lowerEntry == null || lowerEntry.getValue() == NONE)
                     break;
                 if(!map.remove(lowerEntry.getKey(), lowerEntry.getValue()))
-                    break;
+                    continue;
+                //log.add(key+"/"+result+" with prefix "+lowerEntry);
                 result = combiner.apply(lowerEntry.getValue(), result);
                 if(cancelPredicate.test(result)) {
+                    //log.add(key+"/"+result+": cancelsuffix1");
                     cancelSuffix();
                 }
             }
             while(suffix != null) {
-                if(localCancelled)
-                    return false;
                 higherEntry = map.higherEntry(key);
                 if(higherEntry == null || higherEntry.getValue() == NONE)
                     break;
                 if(!map.remove(higherEntry.getKey(), higherEntry.getValue()))
-                    break;
+                    continue;
+                //log.add(key+"/"+result+" with suffix "+higherEntry);
                 result = combiner.apply(result, higherEntry.getValue());
                 if(cancelPredicate.test(result)) {
+                    //log.add(key+"/"+result+": cancelsuffix2");
                     cancelSuffix();
                 }
             }
             if(lowerEntry == null && (higherEntry == null || suffix == null)) {
+                //log.add(key+"/"+result+": accept!!!");
+                //log.add(map.toString());
                 action.accept(result);
                 return true;
             }
+//            if(lowerEntry == null)
+//            {
+//                log.add(key+"/"+result+": offer: "+suffix);
+//                //log.add(map.keySet().toString());
+//            }
+            //log.add(key+"/"+result+": offer");
             map.put(key, result);
             if(lowerEntry != null) {
                 lowerEntry = map.lowerEntry(key);
                 if(lowerEntry != null && lowerEntry.getValue() != NONE) {
+                    //log.add(key+": race on lower "+lowerEntry.getKey());
                     if(!map.replace(key, result, none())) {
+                        //log.add(key+": other party took the responsibility; exiting");
                         return false;
                     }
+                    //log.add(key+"/"+result+": continue");
                     continue;
                 }
             }
             if(higherEntry != null && suffix != null) {
                 higherEntry = map.higherEntry(key);
                 if(higherEntry != null && higherEntry.getValue() != NONE) {
+                    //log.add(key+": race on higher "+higherEntry.getKey());
                     if(!map.replace(key, result, none())) {
+                        //log.add(key+": other party took the responsibility; exiting");
                         return false;
                     }
+                    //log.add(key+"/"+result+": continue");
                     continue;
                 }
             }
@@ -191,12 +215,15 @@ import static javax.util.streamex.StreamExInternals.*;
     }
 
     private void cancelSuffix() {
+        //log.add(key+": cancelling suffix");
         if (this.suffix == null)
             return;
         OrderedCancellableSpliterator3<T, A> suffix = this.suffix;
         while (suffix != null && !suffix.localCancelled) {
             suffix.localCancelled = true;
-            suffix = suffix.suffix;
+            OrderedCancellableSpliterator3<T, A> next = suffix.suffix;
+            suffix.suffix = null;
+            suffix = next;
         }
         this.suffix = null;
     }
@@ -229,7 +256,7 @@ import static javax.util.streamex.StreamExInternals.*;
             result.suffix = this;
             OrderedCancellableSpliterator3<T, A> prefixPrefix = result.prefix;
             if (prefixPrefix != null)
-                prefixPrefix.suffix = result;
+                updater.compareAndSet(prefixPrefix, this, result);
             if (this.localCancelled || result.localCancelled) {
                 // we can end up here due to the race with suffix updates in
                 // tryAdvance

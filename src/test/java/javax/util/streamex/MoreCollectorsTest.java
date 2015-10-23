@@ -190,6 +190,14 @@ public class MoreCollectorsTest {
     }
 
     @Test
+    public void testHeadTailParallel2() {
+        for (int i = 0; i < 1000000; i++) {
+            assertEquals("#" + i, IntStreamEx.range(0, 20, 2).boxed().toList(), IntStreamEx.range(100).boxed()
+                .parallel().filter(x -> x % 2 == 0).collect(MoreCollectors.head(10)));
+        }
+    }
+    
+    @Test
     public void testHeadTail() {
         List<Integer> ints = IntStreamEx.range(1000).boxed().toList();
         checkShortCircuitCollector("tail(0)", Arrays.asList(), 0, ints::stream, MoreCollectors.tail(0));
