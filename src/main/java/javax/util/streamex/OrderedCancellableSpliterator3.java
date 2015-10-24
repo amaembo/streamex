@@ -46,7 +46,6 @@ import static javax.util.streamex.StreamExInternals.*;
     private volatile OrderedCancellableSpliterator3<T, A> suffix;
     
     private static class Key implements Comparable<Key> {
-        // TODO: support keys of arbitrary length
         final int length;
         final long bits1, bits2, bits3;
         
@@ -120,18 +119,7 @@ import static javax.util.streamex.StreamExInternals.*;
             this.source = null;
             return false;
         }
-        A result = null;
-        while(true) {
-            Entry<Key, A> lowerEntry = map.lowerEntry(key);
-            if(lowerEntry == null || lowerEntry.getValue() == NONE)
-                break;
-            if(!map.remove(lowerEntry.getKey(), lowerEntry.getValue()))
-                continue;
-            result = result == null ? lowerEntry.getValue() : combiner.apply(lowerEntry.getValue(), result);
-        }
-        if(result == null)
-            result = supplier.get();
-        A acc = result;
+        A acc = supplier.get();
         try {
             source.forEachRemaining(t -> {
                 accumulator.accept(acc, t);
@@ -144,8 +132,12 @@ import static javax.util.streamex.StreamExInternals.*;
                 }
             });
         } catch (CancelException ex) {
+            if (localCancelled) {
+                return false;
+            }
         }
         this.source = null;
+        A result = acc;
         Entry<Key, A> lowerEntry, higherEntry = null;
         while(true) {
             while(true) {
