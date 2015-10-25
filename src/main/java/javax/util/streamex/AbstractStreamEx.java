@@ -1025,8 +1025,9 @@ import static javax.util.streamex.StreamExInternals.*;
      * @return a {@code List} containing the elements of this stream
      * @see Collectors#toList()
      */
+    @SuppressWarnings("unchecked")
     public List<T> toList() {
-        return collect(Collectors.toList());
+        return new ArrayList<T>((Collection<T>)new ArrayCollection(toArray()));
     }
 
     /**
@@ -1045,7 +1046,7 @@ import static javax.util.streamex.StreamExInternals.*;
      * @since 0.2.3
      */
     public <R> R toListAndThen(Function<List<T>, R> finisher) {
-        return collect(Collectors.collectingAndThen(Collectors.toList(), finisher));
+        return finisher.apply(toList());
     }
 
     /**

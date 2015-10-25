@@ -100,6 +100,11 @@ public class CustomPoolTest {
                     .reduce(0, (x, s) -> x + s.length(), Integer::sum));
         assertEquals("aabbbcccc",
             StreamEx.of("aa", "bbb", "cccc").parallel(pool).peek(this::checkThread).foldLeft("", String::concat));
+        assertEquals(Arrays.asList(1, 2, 3),
+            StreamEx.of(1, 2, 3).parallel(pool).peek(this::checkThread).toListAndThen(list -> {
+                this.checkThread(list);
+                return list;
+            }));
     }
 
     @Test
@@ -143,6 +148,13 @@ public class CustomPoolTest {
         assertEquals(2, array.length);
         assertEquals(new SimpleEntry<>("b", 2), array[0]);
         assertEquals(new SimpleEntry<>("c", 3), array[1]);
+
+        List<Entry<String, Integer>> list = EntryStream.of("a", 1, "b", 2, "c", 3).parallel(pool).peek(this::checkThread)
+                .filterValues(v -> v > 1).toListAndThen(l -> {
+                    this.checkThread(l);
+                    return l;
+                });
+        assertEquals(Arrays.asList(array), list);
 
         assertEquals(
             new SimpleEntry<>("abc", 6),

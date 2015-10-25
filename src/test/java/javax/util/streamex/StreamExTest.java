@@ -166,6 +166,16 @@ public class StreamExTest {
     }
 
     @Test
+    public void testToList() {
+        List<Integer> list = StreamEx.of(1, 2, 3).toList();
+        // Test that returned list is mutable
+        List<Integer> list2 = StreamEx.of(4, 5, 6).parallel().toList();
+        list2.add(7);
+        list.addAll(list2);
+        assertEquals(Arrays.asList(1, 2, 3, 4, 5, 6, 7), list);
+    }
+
+    @Test
     public void testFlatMap() {
         assertArrayEquals(new int[] { 0, 0, 1, 0, 0, 1, 0, 0 },
             StreamEx.of("111", "222", "333").flatMapToInt(s -> s.chars().map(ch -> ch - '0')).pairMap((a, b) -> b - a)
@@ -185,7 +195,7 @@ public class StreamExTest {
         HashSet<String> set = StreamEx.of("a", "bb", "ccc").toListAndThen(HashSet<String>::new);
         assertEquals(3, set.size());
         assertTrue(set.contains("bb"));
-    
+
         ArrayList<String> list = StreamEx.of("a", "bb", "ccc").toSetAndThen(ArrayList<String>::new);
         assertEquals(3, list.size());
         assertTrue(list.contains("bb"));
@@ -220,16 +230,16 @@ public class StreamExTest {
         for (StreamExSupplier<String> supplier : streamEx(() -> Stream.of("a", "bb", "ccc", "dd"))) {
             Map<Integer, String> seqMap3 = supplier.get().toMap(String::length, Function.identity(), String::concat);
             assertEquals(supplier.toString(), expected3, seqMap3);
-            
+
             try {
                 supplier.get().toMap(String::length, Function.identity());
-            } catch(IllegalStateException ex) {
-                if(!ex.getMessage().equals("Duplicate entry for key '2' (attempt to merge values 'bb' and 'dd')")
-                        && !ex.getMessage().equals("Duplicate entry for key '2' (attempt to merge values 'dd' and 'bb')"))
-                    fail(supplier+": wrong exception message: "+ex.getMessage());
+            } catch (IllegalStateException ex) {
+                if (!ex.getMessage().equals("Duplicate entry for key '2' (attempt to merge values 'bb' and 'dd')")
+                    && !ex.getMessage().equals("Duplicate entry for key '2' (attempt to merge values 'dd' and 'bb')"))
+                    fail(supplier + ": wrong exception message: " + ex.getMessage());
                 continue;
             }
-            fail(supplier+": no exception");
+            fail(supplier + ": no exception");
         }
     }
 
@@ -260,18 +270,19 @@ public class StreamExTest {
         expected3.put(2, "bbdd");
         expected3.put(3, "ccc");
         for (StreamExSupplier<String> supplier : streamEx(() -> Stream.of("a", "bb", "ccc", "dd"))) {
-            SortedMap<Integer, String> seqMap3 = supplier.get().toSortedMap(String::length, Function.identity(), String::concat);
+            SortedMap<Integer, String> seqMap3 = supplier.get().toSortedMap(String::length, Function.identity(),
+                String::concat);
             assertEquals(supplier.toString(), expected3, seqMap3);
-            
+
             try {
                 supplier.get().toSortedMap(String::length, Function.identity());
-            } catch(IllegalStateException ex) {
-                if(!ex.getMessage().equals("Duplicate entry for key '2' (attempt to merge values 'bb' and 'dd')")
-                        && !ex.getMessage().equals("Duplicate entry for key '2' (attempt to merge values 'dd' and 'bb')"))
-                    fail(supplier+": wrong exception message: "+ex.getMessage());
+            } catch (IllegalStateException ex) {
+                if (!ex.getMessage().equals("Duplicate entry for key '2' (attempt to merge values 'bb' and 'dd')")
+                    && !ex.getMessage().equals("Duplicate entry for key '2' (attempt to merge values 'dd' and 'bb')"))
+                    fail(supplier + ": wrong exception message: " + ex.getMessage());
                 continue;
             }
-            fail(supplier+": no exception");
+            fail(supplier + ": no exception");
         }
     }
 
@@ -286,13 +297,14 @@ public class StreamExTest {
         expectedMapSet.put(1, new HashSet<>(Arrays.asList("a")));
         expectedMapSet.put(2, new HashSet<>(Arrays.asList("bb", "dd")));
         expectedMapSet.put(3, new HashSet<>(Arrays.asList("ccc")));
-        
-        for(StreamExSupplier<String> supplier : streamEx(() -> StreamEx.of("a", "bb", "dd", "ccc"))) {
+
+        for (StreamExSupplier<String> supplier : streamEx(() -> StreamEx.of("a", "bb", "dd", "ccc"))) {
             assertEquals(supplier.toString(), expected, supplier.get().groupingBy(String::length));
             Map<Integer, List<String>> map = supplier.get().groupingTo(String::length, LinkedList::new);
             assertEquals(supplier.toString(), expected, map);
             assertTrue(map.get(1) instanceof LinkedList);
-            assertEquals(supplier.toString(), expectedMapSet, supplier.get().groupingBy(String::length, Collectors.toSet()));
+            assertEquals(supplier.toString(), expectedMapSet,
+                supplier.get().groupingBy(String::length, Collectors.toSet()));
             assertEquals(supplier.toString(), expectedMapSet,
                 supplier.get().groupingBy(String::length, HashMap::new, Collectors.toSet()));
             ConcurrentHashMap<Integer, Set<String>> chm = supplier.get().groupingBy(String::length,
@@ -367,7 +379,7 @@ public class StreamExTest {
 
         List<Integer> list = Arrays.asList(1, 2, 3, 4);
         assertEquals(Arrays.asList(1.0, 2, 3L, 1, 2, 3, 4), StreamEx.of(1.0, 2, 3L).append(list).toList());
-        
+
         StreamEx<Integer> s = StreamEx.of(1, 2, 3);
         assertSame(s, s.append());
         assertSame(s, s.append(Collections.emptyList()));
@@ -890,7 +902,8 @@ public class StreamExTest {
                 .mapKeyValue((input, output) -> input + "->" + output).joining(", "));
         assertEquals("", StreamEx.of(inputs).cross(Collections.emptyList()).join("->").joining(", "));
         assertEquals("i-i, j-j, k-k", StreamEx.of(inputs).cross(Stream::of).join("-").joining(", "));
-        assertEquals("j-j, k-k", StreamEx.of(inputs).cross(x -> x.equals("i") ? null : Stream.of(x)).join("-").joining(", "));
+        assertEquals("j-j, k-k",
+            StreamEx.of(inputs).cross(x -> x.equals("i") ? null : Stream.of(x)).join("-").joining(", "));
     }
 
     @Test

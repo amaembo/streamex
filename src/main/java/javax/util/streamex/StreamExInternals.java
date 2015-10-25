@@ -23,6 +23,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
 import java.nio.ByteOrder;
+import java.util.AbstractCollection;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.Arrays;
@@ -1080,6 +1081,31 @@ import java.util.stream.Stream;
             // Calling this constructor makes the Exception construction much
             // faster (like 0.3us vs 1.7us)
             super(null, null, false, false);
+        }
+    }
+    
+    static class ArrayCollection extends AbstractCollection<Object> {
+        private final Object[] arr;
+
+        ArrayCollection(Object[] arr) {
+            this.arr = arr;
+        }
+
+        @Override
+        public Iterator<Object> iterator() {
+            return Arrays.asList(arr).iterator();
+        }
+
+        @Override
+        public int size() {
+            return arr.length;
+        }
+
+        @Override
+        public Object[] toArray() {
+            // intentional contract violation here:
+            // this way new ArrayList(new ArrayCollection(arr)) will not copy array at all
+            return arr;
         }
     }
 

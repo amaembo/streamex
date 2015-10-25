@@ -15,6 +15,7 @@
  */
 package javax.util.streamex;
 
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.OptionalDouble;
@@ -123,6 +124,11 @@ import java.util.stream.Stream;
         public <A> A[] toArray(IntFunction<A[]> generator) {
             return strategy.terminate(generator, stream::toArray);
         }
+        
+        @Override
+        public <R> R toListAndThen(Function<List<Entry<K, V>>, R> finisher) {
+            return strategy.terminate(finisher, super::toListAndThen);
+        }
 
         @Override
         public Entry<K, V> reduce(Entry<K, V> identity, BinaryOperator<Entry<K, V>> accumulator) {
@@ -208,6 +214,11 @@ import java.util.stream.Stream;
         @Override
         public <A> A[] toArray(IntFunction<A[]> generator) {
             return strategy.terminate(generator, stream::toArray);
+        }
+
+        @Override
+        public <R> R toListAndThen(Function<List<T>, R> finisher) {
+            return strategy.terminate(finisher, super::toListAndThen);
         }
 
         @Override

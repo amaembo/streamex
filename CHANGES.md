@@ -3,6 +3,7 @@
 ### 0.4.1
 
 * Fixed: `StreamEx.cross(mapper)` now correctly handles the case when mapper returns null instead of empty stream.
+* Optimized: `StreamEx/EntryStream.toList()/toListAndThen()/foldRight()/scanRight()` now faster, especially for sized stream.
 * Updated documentation. 
 
 ### 0.4.0
