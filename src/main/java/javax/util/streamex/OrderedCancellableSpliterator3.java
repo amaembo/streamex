@@ -138,50 +138,72 @@ import static javax.util.streamex.StreamExInternals.*;
         }
         this.source = null;
         A result = acc;
-        Entry<Key, A> lowerEntry, higherEntry = null;
+        Entry<Key, A> lowerEntry = null, higherEntry = null;
+        boolean prefixFinished = prefix == null;
+        boolean suffixFinished = false;
         while(true) {
-            while(true) {
-                lowerEntry = map.lowerEntry(key);
-                if(lowerEntry == null || lowerEntry.getValue() == NONE)
+            while(!prefixFinished) {
+                if(lowerEntry == null)
+                    lowerEntry = map.lowerEntry(key);
+                if(lowerEntry == null) {
+                    prefixFinished = true;
                     break;
-                if(!map.remove(lowerEntry.getKey(), lowerEntry.getValue()))
+                }
+                if(lowerEntry.getValue() == NONE) {
+                    break;
+                }
+                if(!map.remove(lowerEntry.getKey(), lowerEntry.getValue())) {
+                    lowerEntry = null;
                     continue;
+                }
                 result = combiner.apply(lowerEntry.getValue(), result);
                 if(cancelPredicate.test(result)) {
                     cancelSuffix();
                 }
+                lowerEntry = null;
             }
-            while(suffix != null) {
-                higherEntry = map.higherEntry(key);
-                if(higherEntry == null || higherEntry.getValue() == NONE)
+            while(!suffixFinished && suffix != null) {
+                if(higherEntry == null)
+                    higherEntry = map.higherEntry(key);
+                if(higherEntry == null) {
+                    suffixFinished = true;
                     break;
-                if(!map.remove(higherEntry.getKey(), higherEntry.getValue()))
+                }
+                if(higherEntry.getValue() == NONE) {
+                    break;
+                }
+                if(!map.remove(higherEntry.getKey(), higherEntry.getValue())) {
+                    higherEntry = null;
                     continue;
+                }
                 result = combiner.apply(result, higherEntry.getValue());
                 if(cancelPredicate.test(result)) {
                     cancelSuffix();
                 }
+                higherEntry = null;
             }
-            if(lowerEntry == null && (higherEntry == null || suffix == null)) {
+            if(prefixFinished && (suffixFinished || suffix == null)) {
                 action.accept(result);
                 return true;
             }
             map.put(key, result);
-            if(lowerEntry != null) {
+            if(!prefixFinished) {
                 lowerEntry = map.lowerEntry(key);
                 if(lowerEntry != null && lowerEntry.getValue() != NONE) {
                     if(!map.replace(key, result, none())) {
                         return false;
                     }
+                    higherEntry = null;
                     continue;
                 }
             }
-            if(higherEntry != null && suffix != null) {
+            if(!suffixFinished && suffix != null) {
                 higherEntry = map.higherEntry(key);
                 if(higherEntry != null && higherEntry.getValue() != NONE) {
                     if(!map.replace(key, result, none())) {
                         return false;
                     }
+                    lowerEntry = null;
                     continue;
                 }
             }
