@@ -195,6 +195,18 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             stream.map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e), valueMapper.apply(e))));
     }
 
+    public StreamEx<T> mapFirst(Function<? super T, ? extends T> mapper) {
+        return strategy().newStreamEx(
+            delegate(new PairSpliterator.PSOfRef<T, T>((a, b) -> (a == NONE ? mapper.apply(b) : b), Stream.concat(
+                Stream.of(none()), stream).spliterator())));
+    }
+
+    public StreamEx<T> mapLast(Function<? super T, ? extends T> mapper) {
+        return strategy().newStreamEx(
+            delegate(new PairSpliterator.PSOfRef<T, T>((a, b) -> (b == NONE ? mapper.apply(a) : a), Stream.concat(
+                stream, Stream.of(none())).spliterator())));
+    }
+    
     /**
      * Creates a new {@code EntryStream} populated from entries of maps produced
      * by supplied mapper function which is applied to the every element of this
@@ -1377,7 +1389,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             return left;
         }).map(pair -> mapper.apply(pair.a, pair.b));
     }
-
+    
     /**
      * Returns an empty sequential {@code StreamEx}.
      *

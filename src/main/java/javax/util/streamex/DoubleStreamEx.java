@@ -191,6 +191,14 @@ public class DoubleStreamEx implements DoubleStream {
         return strategy().newDoubleStreamEx(stream.map(mapper));
     }
 
+    public DoubleStreamEx mapFirst(DoubleUnaryOperator mapper) {
+        return boxed().mapFirst(mapper::applyAsDouble).mapToDouble(Double::doubleValue);
+    }
+
+    public DoubleStreamEx mapLast(DoubleUnaryOperator mapper) {
+        return boxed().mapLast(mapper::applyAsDouble).mapToDouble(Double::doubleValue);
+    }
+    
     @Override
     public <U> StreamEx<U> mapToObj(DoubleFunction<? extends U> mapper) {
         return strategy().newStreamEx(stream.mapToObj(mapper));

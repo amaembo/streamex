@@ -611,4 +611,11 @@ public class IntStreamExTest {
         assertEquals(144, IntStreamEx.rangeClosed(1, 3).foldLeft(0, accumulator));
         assertEquals(144, IntStreamEx.rangeClosed(1, 3).parallel().foldLeft(0, accumulator));
     }
+    
+    @Test
+    public void testMapFirst() {
+        // capitalize
+        String str = "testString";
+        assertEquals("TestString", IntStreamEx.ofCodePoints(str).mapFirst(Character::toUpperCase).codePointsToString());
+    }
 }

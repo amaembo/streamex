@@ -1509,7 +1509,15 @@ public class IntStreamEx implements IntStream {
         }
         return delegate(new TDOfInt(stream.spliterator(), true, predicate));
     }
+    
+    public IntStreamEx mapFirst(IntUnaryOperator mapper) {
+        return mapToObj(Integer::new).mapFirst(mapper::applyAsInt).mapToInt(Integer::intValue);
+    }
 
+    public IntStreamEx mapLast(IntUnaryOperator mapper) {
+        return mapToObj(Integer::new).mapLast(mapper::applyAsInt).mapToInt(Integer::intValue);
+    }
+    
     /**
      * Returns an empty sequential {@code IntStreamEx}.
      *

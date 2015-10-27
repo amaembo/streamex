@@ -222,6 +222,14 @@ public class LongStreamEx implements LongStream {
         return strategy().newLongStreamEx(stream.map(mapper));
     }
 
+    public LongStreamEx mapFirst(LongUnaryOperator mapper) {
+        return mapToObj(Long::new).mapFirst(mapper::applyAsLong).mapToLong(Long::longValue);
+    }
+
+    public LongStreamEx mapLast(LongUnaryOperator mapper) {
+        return mapToObj(Long::new).mapLast(mapper::applyAsLong).mapToLong(Long::longValue);
+    }
+    
     @Override
     public <U> StreamEx<U> mapToObj(LongFunction<? extends U> mapper) {
         return strategy().newStreamEx(stream.mapToObj(mapper));
