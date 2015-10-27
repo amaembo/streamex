@@ -191,10 +191,44 @@ public class DoubleStreamEx implements DoubleStream {
         return strategy().newDoubleStreamEx(stream.map(mapper));
     }
 
+    /**
+     * Returns a stream where the first element is the replaced with the result
+     * of applying the given function while the other elements are left intact.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     *
+     * @param mapper
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function to apply to the first element
+     * @return the new stream
+     * @since 0.4.1
+     */
     public DoubleStreamEx mapFirst(DoubleUnaryOperator mapper) {
         return boxed().mapFirst(mapper::applyAsDouble).mapToDouble(Double::doubleValue);
     }
 
+    /**
+     * Returns a stream where the last element is the replaced with the result
+     * of applying the given function while the other elements are left intact.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     *
+     * @param mapper
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function to apply to the first element
+     * @return the new stream
+     * @since 0.4.1
+     */
     public DoubleStreamEx mapLast(DoubleUnaryOperator mapper) {
         return boxed().mapLast(mapper::applyAsDouble).mapToDouble(Double::doubleValue);
     }

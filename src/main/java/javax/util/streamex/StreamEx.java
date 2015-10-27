@@ -195,6 +195,23 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             stream.map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e), valueMapper.apply(e))));
     }
 
+    /**
+     * Returns a stream where the first element is the replaced with the result
+     * of applying the given function while the other elements are left intact.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     *
+     * @param mapper
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function to apply to the first element
+     * @return the new stream
+     * @since 0.4.1
+     */
     public StreamEx<T> mapFirst(Function<? super T, ? extends T> mapper) {
         // Cannot reuse NONE object here as the object appears in the stream and
         // might become visible to other pipeline steps
@@ -207,6 +224,23 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
                 none, stream).spliterator())));
     }
 
+    /**
+     * Returns a stream where the last element is the replaced with the result
+     * of applying the given function while the other elements are left intact.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     *
+     * @param mapper
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function to apply to the first element
+     * @return the new stream
+     * @since 0.4.1
+     */
     public StreamEx<T> mapLast(Function<? super T, ? extends T> mapper) {
         // Cannot reuse NONE object here as the object appears in the stream and
         // might become visible to other pipeline steps
@@ -218,7 +252,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             delegate(new PairSpliterator.PSOfRef<T, T>((a, b) -> (b == last ? mapper.apply(a) : a), Stream.concat(
                 stream, none).spliterator())));
     }
-    
+
     /**
      * Creates a new {@code EntryStream} populated from entries of maps produced
      * by supplied mapper function which is applied to the every element of this
@@ -1401,7 +1435,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             return left;
         }).map(pair -> mapper.apply(pair.a, pair.b));
     }
-    
+
     /**
      * Returns an empty sequential {@code StreamEx}.
      *
