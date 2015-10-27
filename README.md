@@ -1,3 +1,7 @@
+## Note for the users
+
+I'm thinking about changing the package name for the library. If you like StreamEx, please take a minute to visit [this issue](https://github.com/amaembo/streamex/issues/8) and submit your thoughts. Thank you!
+
 # StreamEx 0.4.0
 Enhancing Java 8 Streams.
 
