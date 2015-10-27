@@ -196,15 +196,19 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     public StreamEx<T> mapFirst(Function<? super T, ? extends T> mapper) {
+        @SuppressWarnings("unchecked")
+        Stream<T> none = Stream.of((T)NONE);
         return strategy().newStreamEx(
             delegate(new PairSpliterator.PSOfRef<T, T>((a, b) -> (a == NONE ? mapper.apply(b) : b), Stream.concat(
-                Stream.of(none()), stream).spliterator())));
+                none, stream).spliterator())));
     }
 
     public StreamEx<T> mapLast(Function<? super T, ? extends T> mapper) {
+        @SuppressWarnings("unchecked")
+        Stream<T> none = Stream.of((T)NONE);
         return strategy().newStreamEx(
             delegate(new PairSpliterator.PSOfRef<T, T>((a, b) -> (b == NONE ? mapper.apply(a) : a), Stream.concat(
-                stream, Stream.of(none())).spliterator())));
+                stream, none).spliterator())));
     }
     
     /**
