@@ -300,12 +300,10 @@ import static javax.util.streamex.StreamExInternals.*;
             if (!spliterator.hasCharacteristics(Spliterator.ORDERED)
                 || c.characteristics().contains(Characteristics.UNORDERED)) {
                 spltr = new UnorderedCancellableSpliterator<>(spliterator, c.supplier(), acc, combiner, finished);
-                return c.finisher().apply(strategy().newStreamEx(StreamSupport.stream(spltr, true)).findAny().get());
             } else {
-                spltr = new OrderedCancellableSpliterator<>(spliterator, c.supplier(), acc, finished);
-                return c.finisher().apply(
-                    strategy().newStreamEx(StreamSupport.stream(spltr, true)).reduce(combiner).get());
+                spltr = new OrderedCancellableSpliterator<>(spliterator, c.supplier(), acc, combiner, finished);
             }
+            return c.finisher().apply(strategy().newStreamEx(StreamSupport.stream(spltr, true)).findFirst().get());
         }
         return rawCollect(collector);
     }

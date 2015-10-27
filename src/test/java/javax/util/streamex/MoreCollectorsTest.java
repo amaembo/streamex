@@ -170,10 +170,7 @@ public class MoreCollectorsTest {
         checkShortCircuitCollector("first", Optional.of(0), 1, s, MoreCollectors.first());
         checkShortCircuitCollector("firstLong", Optional.of(0),
             1, () -> Stream.of(1).flatMap(x -> IntStream.range(0, 1000000000).boxed()), MoreCollectors.first(), true);
-        // TODO: such test is failed now. Must be supported when
-        // OrderedCancellableSpliterator will be rewritten
-        // checkShortCircuitCollector("first", Optional.of(1), 1, () ->
-        // Stream.iterate(1, x -> x + 1), MoreCollectors.first());
+        checkShortCircuitCollector("first", Optional.of(1), 1, () -> Stream.iterate(1, x -> x + 1), MoreCollectors.first(), true);
         assertEquals(1, (int) StreamEx.iterate(1, x -> x + 1).parallel().collect(MoreCollectors.first()).get());
 
         checkCollector("last", Optional.of(999), s, MoreCollectors.last());
@@ -182,14 +179,24 @@ public class MoreCollectorsTest {
     }
 
     @Test
-    public void testHeadTailParallel() {
-        for (int i = 0; i < 100; i++) {
+    public void testHeadParallel() {
+        for (int i = 0; i < 1000; i++) {
             assertEquals("#" + i, Arrays.asList(0, 1),
                 IntStreamEx.range(1000).boxed().parallel().collect(MoreCollectors.head(2)));
+            assertEquals("#" + i, IntStreamEx.range(0, 2000, 2).boxed().toList(), IntStreamEx.range(10000).boxed()
+                    .parallel().filter(x -> x % 2 == 0).collect(MoreCollectors.head(1000)));
         }
         assertEquals(Arrays.asList(0, 1), StreamEx.iterate(0, x -> x + 1).parallel().collect(MoreCollectors.head(2)));
     }
 
+    @Test
+    public void testHeadParallel2() {
+        for (int i = 0; i < 10000; i++) {
+            assertEquals("#" + i, IntStreamEx.range(0, 20, 2).boxed().toList(), IntStreamEx.range(100).boxed()
+                .parallel().filter(x -> x % 2 == 0).collect(MoreCollectors.head(10)));
+        }
+    }
+    
     @Test
     public void testHeadTail() {
         List<Integer> ints = IntStreamEx.range(1000).boxed().toList();
@@ -208,6 +215,9 @@ public class MoreCollectorsTest {
         checkShortCircuitCollector("head(999)", ints.subList(0, 999), 999, ints::stream, MoreCollectors.head(999));
         checkShortCircuitCollector("head(1000)", ints, 1000, ints::stream, MoreCollectors.head(1000));
         checkShortCircuitCollector("head(MAX)", ints, 1000, ints::stream, MoreCollectors.head(Integer.MAX_VALUE));
+        
+        checkShortCircuitCollector("head(10000)", IntStreamEx.rangeClosed(1, 10000).boxed().toList(), 10000,
+            () -> Stream.iterate(1, x -> x + 1), MoreCollectors.head(10000), true);
     }
 
     @Test
