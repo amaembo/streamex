@@ -301,89 +301,13 @@ import static javax.util.streamex.StreamExInternals.*;
                 || c.characteristics().contains(Characteristics.UNORDERED)) {
                 spltr = new UnorderedCancellableSpliterator<>(spliterator, c.supplier(), acc, combiner, finished);
             } else {
-                spltr = new OrderedCancellableSpliterator3<>(spliterator, c.supplier(), acc, combiner, finished);
+                spltr = new OrderedCancellableSpliterator<>(spliterator, c.supplier(), acc, combiner, finished);
             }
             return c.finisher().apply(strategy().newStreamEx(StreamSupport.stream(spltr, true)).findFirst().get());
         }
         return rawCollect(collector);
     }
 
-    public <R, A> R collect2(Collector<? super T, A, R> collector) {
-        if (collector instanceof CancellableCollector) {
-            CancellableCollector<? super T, A, R> c = (CancellableCollector<? super T, A, R>) collector;
-            BiConsumer<A, ? super T> acc = c.accumulator();
-            Predicate<A> finished = c.finished();
-            BinaryOperator<A> combiner = c.combiner();
-            Spliterator<T> spliterator = stream.spliterator();
-            if (!isParallel()) {
-                A a = c.supplier().get();
-                if (!finished.test(a)) {
-                    try {
-                        // forEachRemaining can be much faster
-                        // and take much less memory than tryAdvance for certain
-                        // spliterators
-                        spliterator.forEachRemaining(e -> {
-                            acc.accept(a, e);
-                            if (finished.test(a))
-                                throw new CancelException();
-                        });
-                    } catch (CancelException ex) {
-                        // ignore
-                    }
-                }
-                return c.finisher().apply(a);
-            }
-            Spliterator<A> spltr;
-            if (!spliterator.hasCharacteristics(Spliterator.ORDERED)
-                    || c.characteristics().contains(Characteristics.UNORDERED)) {
-                spltr = new UnorderedCancellableSpliterator<>(spliterator, c.supplier(), acc, combiner, finished);
-            } else {
-                spltr = new OrderedCancellableSpliterator2<>(spliterator, c.supplier(), acc, combiner, finished);
-            }
-            return c.finisher().apply(strategy().newStreamEx(StreamSupport.stream(spltr, true)).findFirst().get());
-        }
-        return rawCollect(collector);
-    }
-
-    public <R, A> R collectOld(Collector<? super T, A, R> collector) {
-        if (collector instanceof CancellableCollector) {
-            CancellableCollector<? super T, A, R> c = (CancellableCollector<? super T, A, R>) collector;
-            BiConsumer<A, ? super T> acc = c.accumulator();
-            Predicate<A> finished = c.finished();
-            BinaryOperator<A> combiner = c.combiner();
-            Spliterator<T> spliterator = stream.spliterator();
-            if (!isParallel()) {
-                A a = c.supplier().get();
-                if (!finished.test(a)) {
-                    try {
-                        // forEachRemaining can be much faster
-                        // and take much less memory than tryAdvance for certain
-                        // spliterators
-                        spliterator.forEachRemaining(e -> {
-                            acc.accept(a, e);
-                            if (finished.test(a))
-                                throw new CancelException();
-                        });
-                    } catch (CancelException ex) {
-                        // ignore
-                    }
-                }
-                return c.finisher().apply(a);
-            }
-            Spliterator<A> spltr;
-            if (!spliterator.hasCharacteristics(Spliterator.ORDERED)
-                    || c.characteristics().contains(Characteristics.UNORDERED)) {
-                spltr = new UnorderedCancellableSpliterator<>(spliterator, c.supplier(), acc, combiner, finished);
-                return c.finisher().apply(strategy().newStreamEx(StreamSupport.stream(spltr, true)).findAny().get());
-            } else {
-                spltr = new OrderedCancellableSpliterator<>(spliterator, c.supplier(), acc, finished);
-                return c.finisher().apply(
-                    strategy().newStreamEx(StreamSupport.stream(spltr, true)).reduce(combiner).get());
-            }
-        }
-        return rawCollect(collector);
-    }
-    
     @Override
     public Optional<T> min(Comparator<? super T> comparator) {
         return reduce(BinaryOperator.minBy(comparator));

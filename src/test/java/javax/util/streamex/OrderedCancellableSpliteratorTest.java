@@ -46,26 +46,7 @@ public class OrderedCancellableSpliteratorTest {
         List<Integer> input = IntStreamEx.range(30).boxed().toList();
         List<Integer> expected = IntStreamEx.range(limit).boxed().toList();
         checkSpliterator("head-short-circuit", Collections.singletonList(expected),
-            () -> new OrderedCancellableSpliterator2<>(
-                    input.spliterator(), s, a, c, p));
-    }
-    
-    @Test
-    public void testSpliteratorMap() {
-        int limit = 10;
-        Supplier<List<Integer>> s = ArrayList::new;
-        BiConsumer<List<Integer>, Integer> a = (acc, t) -> {
-            if(acc.size() < limit) acc.add(t);
-        };
-        BinaryOperator<List<Integer>> c = (a1, a2) -> {
-            a2.forEach(t -> a.accept(a1, t));
-            return a1;
-        };
-        Predicate<List<Integer>> p = acc -> acc.size() >= limit;
-        List<Integer> input = IntStreamEx.range(30).boxed().toList();
-        List<Integer> expected = IntStreamEx.range(limit).boxed().toList();
-        checkSpliterator("head-short-circuit", Collections.singletonList(expected),
-            () -> new OrderedCancellableSpliterator3<>(
+            () -> new OrderedCancellableSpliterator<>(
                     input.spliterator(), s, a, c, p));
     }
 }
