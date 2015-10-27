@@ -180,23 +180,17 @@ public class MoreCollectorsTest {
 
     @Test
     public void testHeadParallel() {
+        List<Integer> expected = IntStreamEx.range(0, 2000, 2).boxed().toList();
+        List<Integer> expectedShort = Arrays.asList(0, 1);
         for (int i = 0; i < 1000; i++) {
-            assertEquals("#" + i, Arrays.asList(0, 1),
+            assertEquals("#" + i, expectedShort,
                 IntStreamEx.range(1000).boxed().parallel().collect(MoreCollectors.head(2)));
-            assertEquals("#" + i, IntStreamEx.range(0, 2000, 2).boxed().toList(), IntStreamEx.range(10000).boxed()
+            assertEquals("#" + i, expected, IntStreamEx.range(10000).boxed()
                     .parallel().filter(x -> x % 2 == 0).collect(MoreCollectors.head(1000)));
         }
-        assertEquals(Arrays.asList(0, 1), StreamEx.iterate(0, x -> x + 1).parallel().collect(MoreCollectors.head(2)));
+        assertEquals(expectedShort, StreamEx.iterate(0, x -> x + 1).parallel().collect(MoreCollectors.head(2)));
     }
 
-    @Test
-    public void testHeadParallel2() {
-        for (int i = 0; i < 10000; i++) {
-            assertEquals("#" + i, IntStreamEx.range(0, 20, 2).boxed().toList(), IntStreamEx.range(100).boxed()
-                .parallel().filter(x -> x % 2 == 0).collect(MoreCollectors.head(10)));
-        }
-    }
-    
     @Test
     public void testHeadTail() {
         List<Integer> ints = IntStreamEx.range(1000).boxed().toList();
