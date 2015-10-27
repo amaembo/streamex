@@ -82,11 +82,11 @@ import static javax.util.streamex.StreamExInternals.*;
     final <K, V, M extends Map<K, V>> void addToMap(M map, K key, V val) {
         V oldVal = map.putIfAbsent(key, val);
         if (oldVal != null) {
-            throw new IllegalStateException("Duplicate entry for key '" + key + "' (attempt to merge values '"
-                + oldVal + "' and '" + val + "')");
+            throw new IllegalStateException("Duplicate entry for key '" + key + "' (attempt to merge values '" + oldVal
+                + "' and '" + val + "')");
         }
     }
-    
+
     <R, A> R rawCollect(Collector<? super T, A, R> collector) {
         return stream.collect(collector);
     }
@@ -1012,10 +1012,11 @@ import static javax.util.streamex.StreamExInternals.*;
     }
 
     /**
-     * Returns a {@link List} containing the elements of this stream. There are
-     * no guarantees on the type, mutability, serializability, or thread-safety
-     * of the {@code List} returned; if more control over the returned
-     * {@code List} is required, use {@link #toCollection(Supplier)}.
+     * Returns a {@link List} containing the elements of this stream. The
+     * returned {@code List} is guaranteed to be mutable, but there are no
+     * guarantees on the type, serializability, or thread-safety; if more
+     * control over the returned {@code List} is required, use
+     * {@link #toCollection(Supplier)}.
      *
      * <p>
      * This is a terminal operation.
@@ -1025,7 +1026,7 @@ import static javax.util.streamex.StreamExInternals.*;
      */
     @SuppressWarnings("unchecked")
     public List<T> toList() {
-        return new ArrayList<T>((Collection<T>)new ArrayCollection(toArray()));
+        return new ArrayList<T>((Collection<T>) new ArrayCollection(toArray()));
     }
 
     /**
@@ -1042,16 +1043,18 @@ import static javax.util.streamex.StreamExInternals.*;
      * @return result of applying the finisher transformation to the list of the
      *         stream elements.
      * @since 0.2.3
+     * @see #toList()
      */
     public <R> R toListAndThen(Function<List<T>, R> finisher) {
         return finisher.apply(toList());
     }
 
     /**
-     * Returns a {@link Set} containing the elements of this stream. There are
-     * no guarantees on the type, mutability, serializability, or thread-safety
-     * of the {@code Set} returned; if more control over the returned
-     * {@code Set} is required, use {@link #toCollection(Supplier)}.
+     * Returns a {@link Set} containing the elements of this stream. The
+     * returned {@code Set} is guaranteed to be mutable, but there are no
+     * guarantees on the type, serializability, or thread-safety; if more
+     * control over the returned {@code Set} is required, use
+     * {@link #toCollection(Supplier)}.
      *
      * <p>
      * This is a terminal operation.
@@ -1077,6 +1080,7 @@ import static javax.util.streamex.StreamExInternals.*;
      * @return result of applying the finisher transformation to the set of the
      *         stream elements.
      * @since 0.2.3
+     * @see #toSet()
      */
     public <R> R toSetAndThen(Function<Set<T>, R> finisher) {
         return collect(Collectors.collectingAndThen(Collectors.toSet(), finisher));
