@@ -1473,4 +1473,20 @@ public class StreamExTest {
             assertEquals(9, StreamEx.of(input).parallel().indexOf(9).getAsLong());
         }
     }
+    
+    @Test
+    public void testMapFirstLast() {
+        for(StreamExSupplier<Integer> s : streamEx(() -> StreamEx.of(0, 343, 999))) {
+            assertEquals(s.toString(), Arrays.asList(2, 343, 997), s.get()
+                    .mapFirst(x -> x + 2).mapLast(x -> x - 2).toList());
+        }
+        for(StreamExSupplier<Integer> s : streamEx(() -> IntStreamEx.range(1000).boxed())) {
+            assertEquals(s.toString(), Arrays.asList(2, 343, 997), s.get().filter(x -> x == 0 || x == 343 || x == 999)
+                .mapFirst(x -> x + 2).mapLast(x -> x - 2).toList());
+        }
+        for (StreamExSupplier<Integer> s : streamEx(() -> IntStreamEx.range(50).boxed()
+                .foldLeft(StreamEx.of(0), (stream, i) -> stream.append(i).mapLast(x -> x + 2)))) {
+            assertEquals(s.toString(), IntStreamEx.range(2, 52).boxed().prepend(0).toList(), s.get().toList());
+        }
+    }
 }

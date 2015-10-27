@@ -87,14 +87,14 @@ public class IntStreamExTest {
 
         assertArrayEquals(new int[] { 1, 5, 3 }, IntStreamEx.of(Spliterators.spliterator(new int[] { 1, 5, 3 }, 0))
                 .toArray());
-        
+
         BitSet bs = new BitSet();
         bs.set(1);
         bs.set(3);
         bs.set(5);
-		assertArrayEquals(new int[] { 1, 3, 5 }, IntStreamEx.of(bs).toArray());
+        assertArrayEquals(new int[] { 1, 3, 5 }, IntStreamEx.of(bs).toArray());
     }
-    
+
     @Test
     public void testRangeStep() {
         assertArrayEquals(new int[] { 0 }, IntStreamEx.range(0, 1000, 100000).toArray());
@@ -137,16 +137,16 @@ public class IntStreamExTest {
         assertEquals(0, IntStreamEx.range(0, 1000, -2).count());
         assertEquals(0, IntStreamEx.range(0, 0, -2).count());
         assertEquals(0, IntStreamEx.range(0, 0, 2).count());
-        
+
         assertEquals(0, IntStreamEx.range(0, Integer.MIN_VALUE, 2).spliterator().getExactSizeIfKnown());
         assertEquals(0, IntStreamEx.range(0, Integer.MAX_VALUE, -2).spliterator().getExactSizeIfKnown());
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void testRangeIllegalStep() {
         IntStreamEx.range(0, 1000, 0);
     }
-    
+
     @Test
     public void testRangeClosedStep() {
         assertArrayEquals(new int[] { 0 }, IntStreamEx.rangeClosed(0, 1000, 100000).toArray());
@@ -267,14 +267,14 @@ public class IntStreamExTest {
         assertEquals(2, iterator.nextInt());
         assertEquals(3, iterator.nextInt());
         assertFalse(iterator.hasNext());
-        
-		List<Integer> list = new ArrayList<>();
-		IntStreamEx.range(10).parallel().forEachOrdered(x -> list.add(x));
-		assertEquals(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9), list);
-		
-		assertTrue(IntStreamEx.empty().noneMatch(x -> true));
-		assertFalse(IntStreamEx.of(1).noneMatch(x -> true));
-		assertTrue(IntStreamEx.of(1).noneMatch(x -> false));
+
+        List<Integer> list = new ArrayList<>();
+        IntStreamEx.range(10).parallel().forEachOrdered(x -> list.add(x));
+        assertEquals(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9), list);
+
+        assertTrue(IntStreamEx.empty().noneMatch(x -> true));
+        assertFalse(IntStreamEx.of(1).noneMatch(x -> true));
+        assertTrue(IntStreamEx.of(1).noneMatch(x -> false));
     }
 
     @Test
@@ -295,8 +295,8 @@ public class IntStreamExTest {
         double[] fractions = IntStreamEx.range(1, 5)
                 .flatMapToDouble(i -> IntStreamEx.range(1, i).mapToDouble(j -> ((double) j) / i)).toArray();
         assertArrayEquals(new double[] { 1 / 2.0, 1 / 3.0, 2 / 3.0, 1 / 4.0, 2 / 4.0, 3 / 4.0 }, fractions, 0.000001);
-        
-        assertArrayEquals(new int[] {0, 0, 1, 0, 1, 2}, IntStreamEx.of(1, 2, 3).flatMap(IntStreamEx::range).toArray());
+
+        assertArrayEquals(new int[] { 0, 0, 1, 0, 1, 2 }, IntStreamEx.of(1, 2, 3).flatMap(IntStreamEx::range).toArray());
     }
 
     @Test
@@ -419,16 +419,16 @@ public class IntStreamExTest {
         IntToLongFunction longKey = x -> String.valueOf(x).length();
         IntToDoubleFunction doubleKey = x -> String.valueOf(x).length();
         IntFunction<Integer> objKey = x -> String.valueOf(x).length();
-        List<Function<IntStreamEx, OptionalInt>> minFns = Arrays.asList(is -> is.minByInt(intKey), 
+        List<Function<IntStreamEx, OptionalInt>> minFns = Arrays.asList(is -> is.minByInt(intKey),
             is -> is.minByLong(longKey), is -> is.minByDouble(doubleKey), is -> is.minBy(objKey));
-        List<Function<IntStreamEx, OptionalInt>> maxFns = Arrays.asList(is -> is.maxByInt(intKey), 
+        List<Function<IntStreamEx, OptionalInt>> maxFns = Arrays.asList(is -> is.maxByInt(intKey),
             is -> is.maxByLong(longKey), is -> is.maxByDouble(doubleKey), is -> is.maxBy(objKey));
         minFns.forEach(fn -> assertEquals(1, fn.apply(s.get()).getAsInt()));
         minFns.forEach(fn -> assertEquals(1, fn.apply(s.get().parallel()).getAsInt()));
         maxFns.forEach(fn -> assertEquals(120, fn.apply(s.get()).getAsInt()));
         maxFns.forEach(fn -> assertEquals(120, fn.apply(s.get().parallel()).getAsInt()));
     }
-    
+
     private IntStreamEx dropLast(IntStreamEx s) {
         return s.pairMap((a, b) -> a);
     }
@@ -572,35 +572,37 @@ public class IntStreamExTest {
         assertEquals(expected, IntStreamEx.iterate(0, i -> i + 1).skipOrdered(1).greater(0).limit(99).boxed()
                 .parallel().toSet());
     }
-    
+
     @Test
     public void testTakeWhile() {
-        assertArrayEquals(IntStreamEx.range(100).toArray(), IntStreamEx.iterate(0, i -> i+1).takeWhile(i -> i<100).toArray());
-        assertEquals(0, IntStreamEx.iterate(0, i -> i+1).takeWhile(i -> i<0).count());
-        assertEquals(1, IntStreamEx.of(1, 3, 2).takeWhile(i -> i<3).count());
-        assertEquals(3, IntStreamEx.of(1, 2, 3).takeWhile(i -> i<100).count());
+        assertArrayEquals(IntStreamEx.range(100).toArray(), IntStreamEx.iterate(0, i -> i + 1).takeWhile(i -> i < 100)
+                .toArray());
+        assertEquals(0, IntStreamEx.iterate(0, i -> i + 1).takeWhile(i -> i < 0).count());
+        assertEquals(1, IntStreamEx.of(1, 3, 2).takeWhile(i -> i < 3).count());
+        assertEquals(3, IntStreamEx.of(1, 2, 3).takeWhile(i -> i < 100).count());
     }
-    
+
     @Test
     public void testDropWhile() {
-        assertArrayEquals(new int[] {5,6,7,8,9,10,11,12,13,14}, IntStreamEx.range(100).dropWhile(i -> i % 10 < 5).limit(10).toArray());
+        assertArrayEquals(new int[] { 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 },
+            IntStreamEx.range(100).dropWhile(i -> i % 10 < 5).limit(10).toArray());
         assertEquals(100, IntStreamEx.range(100).dropWhile(i -> i % 10 < 0).count());
         assertEquals(0, IntStreamEx.range(100).dropWhile(i -> i % 10 < 10).count());
     }
-    
+
     @Test
     public void testIndexOf() {
         assertEquals(5, IntStreamEx.range(50, 100).indexOf(55).getAsLong());
         assertFalse(IntStreamEx.range(50, 100).indexOf(200).isPresent());
         assertEquals(5, IntStreamEx.range(50, 100).parallel().indexOf(55).getAsLong());
         assertFalse(IntStreamEx.range(50, 100).parallel().indexOf(200).isPresent());
-        
+
         assertEquals(11, IntStreamEx.range(50, 100).indexOf(x -> x > 60).getAsLong());
         assertFalse(IntStreamEx.range(50, 100).indexOf(x -> x < 0).isPresent());
         assertEquals(11, IntStreamEx.range(50, 100).parallel().indexOf(x -> x > 60).getAsLong());
         assertFalse(IntStreamEx.range(50, 100).parallel().indexOf(x -> x < 0).isPresent());
     }
-    
+
     @Test
     public void testFoldLeft() {
         // non-associative
@@ -611,11 +613,14 @@ public class IntStreamExTest {
         assertEquals(144, IntStreamEx.rangeClosed(1, 3).foldLeft(0, accumulator));
         assertEquals(144, IntStreamEx.rangeClosed(1, 3).parallel().foldLeft(0, accumulator));
     }
-    
+
     @Test
-    public void testMapFirst() {
+    public void testMapFirstLast() {
         // capitalize
         String str = "testString";
         assertEquals("TestString", IntStreamEx.ofCodePoints(str).mapFirst(Character::toUpperCase).codePointsToString());
+
+        assertArrayEquals(new int[] { -1, 2, 3, 4, 7 },
+            IntStreamEx.of(1, 2, 3, 4, 5).mapFirst(x -> x - 2).mapLast(x -> x + 2).toArray());
     }
 }
