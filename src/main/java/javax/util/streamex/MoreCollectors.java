@@ -512,7 +512,7 @@ public final class MoreCollectors {
      * @since 0.4.0
      */
     public static <T> Collector<T, ?, Optional<T>> onlyOne() {
-        return new CancellableCollectorImpl<>(() -> new Box<Optional<T>>(null),
+        return new CancellableCollectorImpl<T, Box<Optional<T>>, Optional<T>>(() -> new Box<Optional<T>>(null),
                 (box, t) -> box.a = box.a == null ? Optional.of(t) : Optional.empty(),
                 (box1, box2) -> box1.a == null ? box2 : box2.a == null ? box1 : new Box<>(Optional.empty()),
                 box -> box.a == null ? Optional.empty() : box.a, box -> box.a != null && !box.a.isPresent(),
