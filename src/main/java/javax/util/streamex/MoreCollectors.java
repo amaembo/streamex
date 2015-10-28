@@ -47,6 +47,7 @@ import java.util.function.ToLongFunction;
 import java.util.stream.Collector;
 import java.util.stream.Collector.Characteristics;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static javax.util.streamex.StreamExInternals.*;
 
@@ -283,9 +284,9 @@ public final class MoreCollectors {
             R2 r2 = c2.finisher().apply(acc.b);
             return finisher.apply(r1, r2);
         };
-        if (c1 instanceof CancellableCollector && c2 instanceof CancellableCollector) {
-            Predicate<A1> c1Finished = ((CancellableCollector<? super T, A1, R1>) c1).finished();
-            Predicate<A2> c2Finished = ((CancellableCollector<? super T, A2, R2>) c2).finished();
+        Predicate<A1> c1Finished = finished(c1);
+        Predicate<A2> c2Finished = finished(c2);
+        if (c1Finished != null && c2Finished != null) {
             Predicate<PairBox<A1, A2>> finished = acc -> c1Finished.test(acc.a) && c2Finished.test(acc.b);
             return new CancellableCollectorImpl<>(supplier, accumulator, combiner, resFinisher, finished, c);
         }
@@ -1038,8 +1039,8 @@ public final class MoreCollectors {
             downstreamAccumulator.accept(container, t);
         };
         PartialCollector<Map<K, A>, M> partial = PartialCollector.grouping(mapFactory, downstream);
-        if (downstream instanceof CancellableCollectorImpl) {
-            Predicate<A> downstreamFinished = ((CancellableCollectorImpl<? super T, A, D>) downstream).finished();
+        Predicate<A> downstreamFinished = finished(downstream);
+        if (downstreamFinished != null) {
             int size = domain.size();
             groupingBy = partial.asCancellable(accumulator, map -> {
                 if (map.size() < size)
@@ -1133,11 +1134,12 @@ public final class MoreCollectors {
      */
     public static <T, A, R, RR> Collector<T, A, RR> collectingAndThen(Collector<T, A, R> downstream,
             Function<R, RR> finisher) {
-        if (downstream instanceof CancellableCollector) {
+        Predicate<A> finished = finished(downstream);
+        if (finished != null) {
             return new CancellableCollectorImpl<>(downstream.supplier(), downstream.accumulator(),
-                    downstream.combiner(), downstream.finisher().andThen(finisher),
-                    ((CancellableCollector<T, A, R>) downstream).finished(), downstream.characteristics().contains(
-                        Characteristics.UNORDERED) ? UNORDERED_CHARACTERISTICS : NO_CHARACTERISTICS);
+                    downstream.combiner(), downstream.finisher().andThen(finisher), finished, downstream
+                            .characteristics().contains(Characteristics.UNORDERED) ? UNORDERED_CHARACTERISTICS
+                            : NO_CHARACTERISTICS);
         }
         return Collectors.collectingAndThen(downstream, finisher);
     }
@@ -1172,9 +1174,9 @@ public final class MoreCollectors {
      */
     public static <T, D, A> Collector<T, ?, Map<Boolean, D>> partitioningBy(Predicate<? super T> predicate,
             Collector<? super T, A, D> downstream) {
-        if (downstream instanceof CancellableCollector) {
+        Predicate<A> finished = finished(downstream);
+        if (finished != null) {
             BiConsumer<A, ? super T> accumulator = downstream.accumulator();
-            Predicate<A> finished = ((CancellableCollector<? super T, A, D>) downstream).finished();
             return BooleanMap.partialCollector(downstream).asCancellable(
                 (map, t) -> accumulator.accept(predicate.test(t) ? map.trueValue : map.falseValue, t),
                 map -> finished.test(map.trueValue) && finished.test(map.falseValue));
@@ -1213,15 +1215,48 @@ public final class MoreCollectors {
      */
     public static <T, U, A, R> Collector<T, ?, R> mapping(Function<? super T, ? extends U> mapper,
             Collector<? super U, A, R> downstream) {
-        if (downstream instanceof CancellableCollector) {
+        Predicate<A> finished = finished(downstream);
+        if (finished != null) {
             BiConsumer<A, ? super U> downstreamAccumulator = downstream.accumulator();
-            Predicate<A> finished = ((CancellableCollector<? super U, A, R>) downstream).finished();
-            return new CancellableCollectorImpl<>(downstream.supplier(), (r, t) -> {
-                if (!finished.test(r))
-                    downstreamAccumulator.accept(r, mapper.apply(t));
+            return new CancellableCollectorImpl<>(downstream.supplier(), (acc, t) -> {
+                if (!finished.test(acc))
+                    downstreamAccumulator.accept(acc, mapper.apply(t));
             }, downstream.combiner(), downstream.finisher(), finished, downstream.characteristics());
         }
         return Collectors.mapping(mapper, downstream);
+    }
+
+    public static <T, U, A, R> Collector<T, ?, R> flatMapping(
+            Function<? super T, ? extends Stream<? extends U>> mapper, Collector<? super U, A, R> downstream) {
+        BiConsumer<A, ? super U> downstreamAccumulator = downstream.accumulator();
+        Predicate<A> finished = finished(downstream);
+        if (finished != null) {
+            return new CancellableCollectorImpl<>(downstream.supplier(), (acc, t) -> {
+                if(finished.test(acc))
+                    return;
+                try (Stream<? extends U> stream = mapper.apply(t)) {
+                    if (stream != null) {
+                        try {
+                            stream.spliterator().forEachRemaining(u -> {
+                                downstreamAccumulator.accept(acc, u);
+                                if(finished.test(acc))
+                                    throw new CancelException();
+                            });
+                        } catch (CancelException ex) {
+                            // ignore
+                        }
+                    }
+                }
+            }, downstream.combiner(), downstream.finisher(), finished, downstream.characteristics());
+        }
+        return Collector.of(downstream.supplier(), (acc, t) -> {
+            try (Stream<? extends U> stream = mapper.apply(t)) {
+                if (stream != null) {
+                    stream.spliterator().forEachRemaining(u -> downstreamAccumulator.accept(acc, u));
+                }
+            }
+        }, downstream.combiner(), downstream.finisher(),
+            downstream.characteristics().toArray(new Characteristics[downstream.characteristics().size()]));
     }
 
     /**
@@ -1261,10 +1296,10 @@ public final class MoreCollectors {
             if (predicate.test(t))
                 downstreamAccumulator.accept(acc, t);
         };
-        if (downstream instanceof CancellableCollector) {
+        Predicate<A> finished = finished(downstream);
+        if (finished != null) {
             return new CancellableCollectorImpl<>(downstream.supplier(), accumulator, downstream.combiner(),
-                    downstream.finisher(), ((CancellableCollector<T, A, R>) downstream).finished(),
-                    downstream.characteristics());
+                    downstream.finisher(), finished, downstream.characteristics());
         }
         return Collector.of(downstream.supplier(), accumulator, downstream.combiner(), downstream.finisher(),
             downstream.characteristics().toArray(new Characteristics[downstream.characteristics().size()]));
