@@ -1215,9 +1215,11 @@ public final class MoreCollectors {
             Collector<? super U, A, R> downstream) {
         if (downstream instanceof CancellableCollector) {
             BiConsumer<A, ? super U> downstreamAccumulator = downstream.accumulator();
-            return new CancellableCollectorImpl<>(downstream.supplier(), (r, t) -> downstreamAccumulator.accept(r,
-                mapper.apply(t)), downstream.combiner(), downstream.finisher(),
-                    ((CancellableCollector<? super U, A, R>) downstream).finished(), downstream.characteristics());
+            Predicate<A> finished = ((CancellableCollector<? super U, A, R>) downstream).finished();
+            return new CancellableCollectorImpl<>(downstream.supplier(), (r, t) -> {
+                if (!finished.test(r))
+                    downstreamAccumulator.accept(r, mapper.apply(t));
+            }, downstream.combiner(), downstream.finisher(), finished, downstream.characteristics());
         }
         return Collectors.mapping(mapper, downstream);
     }

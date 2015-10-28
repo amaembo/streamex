@@ -353,6 +353,19 @@ public class MoreCollectorsTest {
         Collector<String, ?, Map<Boolean, Optional<Integer>>> collectorLast = MoreCollectors.partitioningBy(
             str -> Character.isUpperCase(str.charAt(0)), MoreCollectors.mapping(String::length, MoreCollectors.last()));
         checkCollector("last", new BooleanMap<>(Optional.of(3), Optional.of(3)), input::stream, collectorLast);
+        
+        input = Arrays.asList("Abc", "Bac", "Aac", "Abv", "Bbc", "Bgd", "Atc", "Bpv");
+        Map<Character, List<String>> expected = EntryStream.of(
+            'A', Arrays.asList("Abc", "Aac"),
+            'B', Arrays.asList("Bac", "Bbc")
+            ).toMap();
+        AtomicInteger cnt = new AtomicInteger();
+        Collector<String, ?, Map<Character, List<String>>> groupMap = Collectors.groupingBy(s -> s.charAt(0), 
+            MoreCollectors.mapping(x -> {cnt.incrementAndGet(); return x;}, MoreCollectors.head(2)));
+        checkCollector("groupMap", expected, input::stream, groupMap);
+        cnt.set(0);
+        assertEquals(expected, input.stream().collect(groupMap));
+        assertEquals(4, cnt.get());
     }
 
     @Test
