@@ -1236,16 +1236,14 @@ public final class MoreCollectors {
                     return;
                 try (Stream<? extends U> stream = mapper.apply(t)) {
                     if (stream != null) {
-                        try {
-                            stream.spliterator().forEachRemaining(u -> {
-                                downstreamAccumulator.accept(acc, u);
-                                if(finished.test(acc))
-                                    throw new CancelException();
-                            });
-                        } catch (CancelException ex) {
-                            // ignore
-                        }
+                        stream.spliterator().forEachRemaining(u -> {
+                            downstreamAccumulator.accept(acc, u);
+                            if(finished.test(acc))
+                                throw new CancelException();
+                        });
                     }
+                } catch (CancelException ex) {
+                    // ignore
                 }
             }, downstream.combiner(), downstream.finisher(), finished, downstream.characteristics());
         }

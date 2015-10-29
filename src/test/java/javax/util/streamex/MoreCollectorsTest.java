@@ -538,5 +538,33 @@ public class MoreCollectorsTest {
                     MoreCollectors.groupingBy(Entry::getKey, StreamEx.of("a", "b", "c").toSet(), headPeek)));
             assertEquals(3, cnt.get());
         }
+        {
+            Map<String, List<String>> expected = EntryStream.of("a", Arrays.asList("bb", "cc"), "b", Arrays.asList("ee", "ff"),
+                "c", Arrays.asList("gg")).toMap();
+            Collector<Entry<String, List<String>>, ?, List<String>> headTwo = MoreCollectors.flatMapping(valuesStream,
+                MoreCollectors.head(2));
+            checkCollector("flatMappingSubShort", expected, list::stream, Collectors.groupingBy(Entry::getKey, headTwo));
+            AtomicInteger openClose = new AtomicInteger();
+            boolean catched = false;
+            try {
+                Collector<Entry<String, List<String>>, ?, Map<String, List<String>>> groupingByException = Collectors.groupingBy(Entry::getKey, MoreCollectors.flatMapping(valuesStream.andThen(s -> {
+                    if(s == null) return null;
+                    openClose.incrementAndGet();
+                    return s.onClose(openClose::decrementAndGet).peek(e -> {
+                        if(e.equals("gg"))
+                            throw new IllegalArgumentException(e);
+                    });
+                }), MoreCollectors.head(2)));
+                list.stream().collect(
+                    MoreCollectors.collectingAndThen(groupingByException, res -> {
+                        assertEquals(0, openClose.get());
+                        return res;
+                    }));
+            } catch (IllegalArgumentException e1) {
+                assertEquals("gg", e1.getMessage());
+                catched = true;
+            }
+            assertTrue(catched);
+        }
     }
 }
