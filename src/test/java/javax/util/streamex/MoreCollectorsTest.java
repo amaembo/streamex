@@ -487,26 +487,28 @@ public class MoreCollectorsTest {
             checkCollector("flatMappingCombine", expected, list::stream,
                 Collectors.groupingBy(Entry::getKey, MoreCollectors.flatMapping(valuesStream, Collectors.toList())));
             AtomicInteger openClose = new AtomicInteger();
+            Collector<Entry<String, List<String>>, ?, Map<String, List<String>>> groupingBy = Collectors.groupingBy(Entry::getKey, MoreCollectors.flatMapping(valuesStream.andThen(s -> {
+                if(s == null) return null;
+                openClose.incrementAndGet();
+                return s.onClose(openClose::decrementAndGet);
+            }), Collectors.toList()));
             checkCollector("flatMappingCombineClosed", expected, list::stream,
-                MoreCollectors.collectingAndThen(Collectors.groupingBy(Entry::getKey, MoreCollectors.flatMapping(valuesStream.andThen(s -> {
-                    if(s == null) return null;
-                    openClose.incrementAndGet();
-                    return s.onClose(openClose::decrementAndGet);
-                }), Collectors.toList())), res -> {
+                MoreCollectors.collectingAndThen(groupingBy, res -> {
                     assertEquals(0, openClose.get());
                     return res;
                 }));
             boolean catched = false;
             try {
+                Collector<Entry<String, List<String>>, ?, Map<String, List<String>>> groupingByException = Collectors.groupingBy(Entry::getKey, MoreCollectors.flatMapping(valuesStream.andThen(s -> {
+                    if(s == null) return null;
+                    openClose.incrementAndGet();
+                    return s.onClose(openClose::decrementAndGet).peek(e -> {
+                        if(e.equals("gg"))
+                            throw new IllegalArgumentException(e);
+                    });
+                }), Collectors.toList()));
                 list.stream().collect(
-                    MoreCollectors.collectingAndThen(Collectors.groupingBy(Entry::getKey, MoreCollectors.flatMapping(valuesStream.andThen(s -> {
-                        if(s == null) return null;
-                        openClose.incrementAndGet();
-                        return s.onClose(openClose::decrementAndGet).peek(e -> {
-                            if(e.equals("gg"))
-                                throw new IllegalArgumentException(e);
-                        });
-                    }), Collectors.toList())), res -> {
+                    MoreCollectors.collectingAndThen(groupingByException, res -> {
                         assertEquals(0, openClose.get());
                         return res;
                     }));
