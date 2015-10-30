@@ -1226,19 +1226,53 @@ public final class MoreCollectors {
         return Collectors.mapping(mapper, downstream);
     }
 
+    /**
+     * Adapts a {@code Collector} accepting elements of type {@code U} to one
+     * accepting elements of type {@code T} by applying a flat mapping function
+     * to each input element before accumulation. The flat mapping function maps
+     * an input element to a {@link Stream stream} covering zero or more output
+     * elements that are then accumulated downstream. Each mapped stream is
+     * {@link java.util.stream.BaseStream#close() closed} after its contents
+     * have been placed downstream. (If a mapped stream is {@code null} an empty
+     * stream is used, instead.)
+     * 
+     * This method is similar to {@code Collectors.flatMapping} method which
+     * appears in JDK 9. However when downstream collector is <a
+     * href="package-summary.html#ShortCircuitReduction">short-circuiting</a>,
+     * this method will also return a short-circuiting collector.
+     * 
+     * @param <T>
+     *            the type of the input elements
+     * @param <U>
+     *            type of elements accepted by downstream collector
+     * @param <A>
+     *            intermediate accumulation type of the downstream collector
+     * @param <R>
+     *            result type of collector
+     * @param mapper
+     *            a function to be applied to the input elements, which returns
+     *            a stream of results
+     * @param downstream
+     *            a collector which will receive the elements of the stream
+     *            returned by mapper
+     * @return a collector which applies the mapping function to the input
+     *         elements and provides the flat mapped results to the downstream
+     *         collector
+     * @since 0.4.1
+     */
     public static <T, U, A, R> Collector<T, ?, R> flatMapping(
             Function<? super T, ? extends Stream<? extends U>> mapper, Collector<? super U, A, R> downstream) {
         BiConsumer<A, ? super U> downstreamAccumulator = downstream.accumulator();
         Predicate<A> finished = finished(downstream);
         if (finished != null) {
             return new CancellableCollectorImpl<>(downstream.supplier(), (acc, t) -> {
-                if(finished.test(acc))
+                if (finished.test(acc))
                     return;
                 try (Stream<? extends U> stream = mapper.apply(t)) {
                     if (stream != null) {
                         stream.spliterator().forEachRemaining(u -> {
                             downstreamAccumulator.accept(acc, u);
-                            if(finished.test(acc))
+                            if (finished.test(acc))
                                 throw new CancelException();
                         });
                     }
