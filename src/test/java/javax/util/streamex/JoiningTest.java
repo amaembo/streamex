@@ -15,13 +15,12 @@
  */
 package javax.util.streamex;
 
+import static javax.util.streamex.TestHelpers.checkCollector;
+
 import java.util.function.Supplier;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
-import static javax.util.streamex.TestHelpers.*;
 
 import org.junit.Test;
 
@@ -31,8 +30,11 @@ import org.junit.Test;
 public class JoiningTest {
     @Test
     public void testSimple() {
-        Collector<CharSequence, ?, String> joining = Joining.with(", ");
         Supplier<Stream<String>> s = () -> IntStream.range(0, 100).mapToObj(String::valueOf);
-        checkCollector("joiningSimple", s.get().collect(Collectors.joining(", ")), s, joining);
+        checkCollector("joiningSimple", s.get().collect(Collectors.joining(", ")), s, Joining.on(", "));
+        checkCollector("joiningWrap", s.get().collect(Collectors.joining(", ", "[", "]")), s,
+            Joining.on(", ").wrap("[", "]"));
+        checkCollector("joiningWrap2", s.get().collect(Collectors.joining(", ", "[(", ")]")), s, Joining.on(", ")
+                .wrap("(", ")").wrap("[", "]"));
     }
 }
