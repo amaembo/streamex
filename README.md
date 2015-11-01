@@ -1,6 +1,6 @@
 ## Note for the users
 
-I'm thinking about changing the package name for the library. If you like StreamEx, please take a minute to visit [this issue](https://github.com/amaembo/streamex/issues/8) and submit your thoughts. Thank you!
+The package name will be changed in one of the following releases (likely in 0.5.0) from `javax.util.streamex` to `one.util.streamex`. This change is discussed [here](https://github.com/amaembo/streamex/issues/8). Sorry for possible inconvenience.
 
 # StreamEx 0.4.0
 Enhancing Java 8 Streams.
