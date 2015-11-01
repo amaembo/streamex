@@ -272,14 +272,13 @@ import static javax.util.streamex.StreamExInternals.*;
      */
     @Override
     public <R, A> R collect(Collector<? super T, A, R> collector) {
-        if (collector instanceof CancellableCollector) {
-            CancellableCollector<? super T, A, R> c = (CancellableCollector<? super T, A, R>) collector;
-            BiConsumer<A, ? super T> acc = c.accumulator();
-            Predicate<A> finished = c.finished();
-            BinaryOperator<A> combiner = c.combiner();
+        Predicate<A> finished = finished(collector);
+        if (finished != null) {
+            BiConsumer<A, ? super T> acc = collector.accumulator();
+            BinaryOperator<A> combiner = collector.combiner();
             Spliterator<T> spliterator = stream.spliterator();
             if (!isParallel()) {
-                A a = c.supplier().get();
+                A a = collector.supplier().get();
                 if (!finished.test(a)) {
                     try {
                         // forEachRemaining can be much faster
@@ -294,16 +293,16 @@ import static javax.util.streamex.StreamExInternals.*;
                         // ignore
                     }
                 }
-                return c.finisher().apply(a);
+                return collector.finisher().apply(a);
             }
             Spliterator<A> spltr;
             if (!spliterator.hasCharacteristics(Spliterator.ORDERED)
-                || c.characteristics().contains(Characteristics.UNORDERED)) {
-                spltr = new UnorderedCancellableSpliterator<>(spliterator, c.supplier(), acc, combiner, finished);
+                || collector.characteristics().contains(Characteristics.UNORDERED)) {
+                spltr = new UnorderedCancellableSpliterator<>(spliterator, collector.supplier(), acc, combiner, finished);
             } else {
-                spltr = new OrderedCancellableSpliterator<>(spliterator, c.supplier(), acc, combiner, finished);
+                spltr = new OrderedCancellableSpliterator<>(spliterator, collector.supplier(), acc, combiner, finished);
             }
-            return c.finisher().apply(strategy().newStreamEx(StreamSupport.stream(spltr, true)).findFirst().get());
+            return collector.finisher().apply(strategy().newStreamEx(StreamSupport.stream(spltr, true)).findFirst().get());
         }
         return rawCollect(collector);
     }

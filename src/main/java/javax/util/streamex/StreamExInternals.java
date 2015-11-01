@@ -490,7 +490,7 @@ import java.util.stream.Stream;
                 characteristics.toArray(new Characteristics[characteristics.size()]));
         }
 
-        <T> CancellableCollector<T, A, R> asCancellable(BiConsumer<A, T> accumulator, Predicate<A> finished) {
+        <T> Collector<T, A, R> asCancellable(BiConsumer<A, T> accumulator, Predicate<A> finished) {
             return new CancellableCollectorImpl<>(supplier, accumulator, combiner(), finisher, finished,
                     characteristics);
         }
@@ -553,8 +553,12 @@ import java.util.stream.Stream;
             return new PartialCollector<>(supplier, merger, StringBuilder::toString, NO_CHARACTERISTICS);
         }
     }
+    
+    static abstract class CancellableCollector<T, A, R> implements Collector<T, A, R> {
+        abstract Predicate<A> finished();
+    }
 
-    static final class CancellableCollectorImpl<T, A, R> implements CancellableCollector<T, A, R> {
+    static final class CancellableCollectorImpl<T, A, R> extends CancellableCollector<T, A, R> {
         private final Supplier<A> supplier;
         private final BiConsumer<A, T> accumulator;
         private final BinaryOperator<A> combiner;
@@ -599,7 +603,7 @@ import java.util.stream.Stream;
         }
 
         @Override
-        public Predicate<A> finished() {
+        Predicate<A> finished() {
             return finished;
         }
     }
