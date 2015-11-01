@@ -15,9 +15,10 @@
  */
 package javax.util.streamex;
 
+import java.util.ArrayDeque;
 import java.util.Spliterator;
-
 import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -29,18 +30,22 @@ import static javax.util.streamex.StreamExInternals.*;
  */
 /* package */final class OrderedCancellableSpliterator<T, A> implements Spliterator<A>, Cloneable {
     private Spliterator<T> source;
+    private final Object lock = new Object();
     private final BiConsumer<A, ? super T> accumulator;
     private final Predicate<A> cancelPredicate;
+    private final BinaryOperator<A> combiner;
     private final Supplier<A> supplier;
     private volatile boolean localCancelled;
     private OrderedCancellableSpliterator<T, A> prefix;
-    private volatile OrderedCancellableSpliterator<T, A> suffix;
+    private OrderedCancellableSpliterator<T, A> suffix;
+    private A payload;
 
     OrderedCancellableSpliterator(Spliterator<T> source, Supplier<A> supplier, BiConsumer<A, ? super T> accumulator,
-            Predicate<A> cancelPredicate) {
+            BinaryOperator<A> combiner, Predicate<A> cancelPredicate) {
         this.source = source;
         this.supplier = supplier;
         this.accumulator = accumulator;
+        this.combiner = combiner;
         this.cancelPredicate = cancelPredicate;
     }
 
@@ -56,35 +61,83 @@ import static javax.util.streamex.StreamExInternals.*;
             source.forEachRemaining(t -> {
                 accumulator.accept(acc, t);
                 if (cancelPredicate.test(acc)) {
-                    this.source = null;
-                    cancel();
+                    cancelSuffix();
                     throw new CancelException();
                 }
                 if (localCancelled) {
                     throw new CancelException();
                 }
             });
-            this.source = null;
-        }
-        catch(CancelException ex) {
-            // ignore
-        }
-        if(this.source == null) {
-            action.accept(acc);
-            return true;
+        } catch (CancelException ex) {
+            if (localCancelled) {
+                return false;
+            }
         }
         this.source = null;
+        A result = acc;
+        while (true) {
+            if (prefix == null && suffix == null) {
+                action.accept(result);
+                return true;
+            }
+            ArrayDeque<A> res = new ArrayDeque<>();
+            res.offer(result);
+            synchronized (lock) {
+                if (localCancelled)
+                    return false;
+                OrderedCancellableSpliterator<T, A> s = prefix;
+                while (s != null) {
+                    if (s.payload == null)
+                        break;
+                    res.offerFirst(s.payload);
+                    s = s.prefix;
+                }
+                prefix = s;
+                if (s != null) {
+                    s.suffix = this;
+                }
+                s = suffix;
+                while (s != null) {
+                    if (s.payload == null)
+                        break;
+                    res.offerLast(s.payload);
+                    s = s.suffix;
+                }
+                suffix = s;
+                if (s != null) {
+                    s.prefix = this;
+                }
+                if (res.size() == 1) {
+                    if (prefix == null && suffix == null) {
+                        action.accept(result);
+                        return true;
+                    }
+                    this.payload = result;
+                    break;
+                }
+            }
+            result = res.pollFirst();
+            while (!res.isEmpty()) {
+                result = combiner.apply(result, res.pollFirst());
+                if (cancelPredicate.test(result)) {
+                    cancelSuffix();
+                }
+            }
+        }
         return false;
     }
 
-    private void cancel() {
-        this.localCancelled = true;
-        OrderedCancellableSpliterator<T, A> suffix = this.suffix;
-        // Due to possible race with trySplit some spliterators can
-        // be skipped. This is handled in trySplit
-        while (suffix != null && !suffix.localCancelled) {
-            suffix.localCancelled = true;
-            suffix = suffix.suffix;
+    private void cancelSuffix() {
+        if (this.suffix == null)
+            return;
+        synchronized (lock) {
+            OrderedCancellableSpliterator<T, A> suffix = this.suffix;
+            while (suffix != null && !suffix.localCancelled) {
+                suffix.prefix = null;
+                suffix.localCancelled = true;
+                suffix = suffix.suffix;
+            }
+            this.suffix = null;
         }
     }
 
@@ -104,21 +157,17 @@ import static javax.util.streamex.StreamExInternals.*;
             return null;
         }
         try {
-            @SuppressWarnings("unchecked")
-            OrderedCancellableSpliterator<T, A> result = (OrderedCancellableSpliterator<T, A>) this.clone();
-            result.source = prefix;
-            this.prefix = result;
-            result.suffix = this;
-            OrderedCancellableSpliterator<T, A> prefixPrefix = result.prefix;
-            if (prefixPrefix != null)
-                prefixPrefix.suffix = result;
-            if (this.localCancelled || result.localCancelled) {
-                // we can end up here due to the race with suffix updates in
-                // tryAdvance
-                this.localCancelled = result.localCancelled = true;
-                return null;
+            synchronized (lock) {
+                @SuppressWarnings("unchecked")
+                OrderedCancellableSpliterator<T, A> result = (OrderedCancellableSpliterator<T, A>) this.clone();
+                result.source = prefix;
+                this.prefix = result;
+                result.suffix = this;
+                OrderedCancellableSpliterator<T, A> prefixPrefix = result.prefix;
+                if (prefixPrefix != null)
+                    prefixPrefix.suffix = result;
+                return result;
             }
-            return result;
         } catch (CloneNotSupportedException e) {
             throw new InternalError();
         }

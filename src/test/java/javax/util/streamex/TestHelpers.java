@@ -16,6 +16,7 @@
 package javax.util.streamex;
 
 import static org.junit.Assert.*;
+import static javax.util.streamex.StreamExInternals.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -101,7 +102,7 @@ public class TestHelpers {
     }
 
     static <T, R> void checkCollectorEmpty(String message, R expected, Collector<T, ?, R> collector) {
-        if (collector instanceof CancellableCollector)
+        if (finished(collector) != null)
             checkShortCircuitCollector(message, expected, 0, Stream::empty, collector);
         else
             checkCollector(message, expected, Stream::empty, collector);
@@ -114,7 +115,7 @@ public class TestHelpers {
 
     static <T, R> void checkShortCircuitCollector(String message, R expected, int expectedConsumedElements,
             Supplier<Stream<T>> base, Collector<T, ?, R> collector, boolean skipIdentity) {
-        assertTrue(message, collector instanceof CancellableCollector);
+        assertNotNull(message, finished(collector));
         Collector<T, ?, R> withIdentity = Collectors.collectingAndThen(collector, Function.identity());
         for (StreamExSupplier<T> supplier : streamEx(base)) {
             AtomicInteger counter = new AtomicInteger();
@@ -129,7 +130,7 @@ public class TestHelpers {
 
     static <T, R> void checkCollector(String message, R expected, Supplier<Stream<T>> base, Collector<T, ?, R> collector) {
         // use checkShortCircuitCollector for CancellableCollector
-        assertFalse(message, collector instanceof CancellableCollector);
+        assertNull(message, finished(collector));
         for (StreamExSupplier<T> supplier : streamEx(base)) {
             assertEquals(message + ": " + supplier, expected, supplier.get().collect(collector));
         }

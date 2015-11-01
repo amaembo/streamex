@@ -23,6 +23,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
 import java.nio.ByteOrder;
+import java.util.AbstractCollection;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.Arrays;
@@ -489,19 +490,19 @@ import java.util.stream.Stream;
                 characteristics.toArray(new Characteristics[characteristics.size()]));
         }
 
-        <T> CancellableCollector<T, A, R> asCancellable(BiConsumer<A, T> accumulator, Predicate<A> finished) {
+        <T> Collector<T, A, R> asCancellable(BiConsumer<A, T> accumulator, Predicate<A> finished) {
             return new CancellableCollectorImpl<>(supplier, accumulator, combiner(), finisher, finished,
                     characteristics);
         }
 
         static PartialCollector<int[], Integer> intSum() {
             return new PartialCollector<>(() -> new int[1], (box1, box2) -> box1[0] += box2[0], UNBOX_INT,
-                    NO_CHARACTERISTICS);
+                    UNORDERED_CHARACTERISTICS);
         }
 
         static PartialCollector<long[], Long> longSum() {
             return new PartialCollector<>(() -> new long[1], (box1, box2) -> box1[0] += box2[0], UNBOX_LONG,
-                    NO_CHARACTERISTICS);
+                    UNORDERED_CHARACTERISTICS);
         }
 
         static PartialCollector<ObjIntBox<BitSet>, boolean[]> booleanArray() {
@@ -552,8 +553,12 @@ import java.util.stream.Stream;
             return new PartialCollector<>(supplier, merger, StringBuilder::toString, NO_CHARACTERISTICS);
         }
     }
+    
+    static abstract class CancellableCollector<T, A, R> implements Collector<T, A, R> {
+        abstract Predicate<A> finished();
+    }
 
-    static final class CancellableCollectorImpl<T, A, R> implements CancellableCollector<T, A, R> {
+    static final class CancellableCollectorImpl<T, A, R> extends CancellableCollector<T, A, R> {
         private final Supplier<A> supplier;
         private final BiConsumer<A, T> accumulator;
         private final BinaryOperator<A> combiner;
@@ -598,7 +603,7 @@ import java.util.stream.Stream;
         }
 
         @Override
-        public Predicate<A> finished() {
+        Predicate<A> finished() {
             return finished;
         }
     }
@@ -1082,6 +1087,31 @@ import java.util.stream.Stream;
             super(null, null, false, false);
         }
     }
+    
+    static class ArrayCollection extends AbstractCollection<Object> {
+        private final Object[] arr;
+
+        ArrayCollection(Object[] arr) {
+            this.arr = arr;
+        }
+
+        @Override
+        public Iterator<Object> iterator() {
+            return Arrays.asList(arr).iterator();
+        }
+
+        @Override
+        public int size() {
+            return arr.length;
+        }
+
+        @Override
+        public Object[] toArray() {
+            // intentional contract violation here:
+            // this way new ArrayList(new ArrayCollection(arr)) will not copy array at all
+            return arr;
+        }
+    }
 
     static ObjIntConsumer<StringBuilder> joinAccumulatorInt(CharSequence delimiter) {
         return (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i);
@@ -1128,6 +1158,12 @@ import java.util.stream.Stream;
     @SuppressWarnings("unchecked")
     static <T> Stream<T> unwrap(Stream<T> stream) {
         return stream instanceof AbstractStreamEx ? ((AbstractStreamEx<T, ?>) stream).stream : stream;
+    }
+    
+    static <A> Predicate<A> finished(Collector<?, A, ?> collector) {
+        if(collector instanceof CancellableCollector)
+            return ((CancellableCollector<?, A, ?>)collector).finished();
+        return null;
     }
 
     @SuppressWarnings("unchecked")

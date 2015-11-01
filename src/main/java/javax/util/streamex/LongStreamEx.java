@@ -222,6 +222,48 @@ public class LongStreamEx implements LongStream {
         return strategy().newLongStreamEx(stream.map(mapper));
     }
 
+    /**
+     * Returns a stream where the first element is the replaced with the result
+     * of applying the given function while the other elements are left intact.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     *
+     * @param mapper
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function to apply to the first element
+     * @return the new stream
+     * @since 0.4.1
+     */
+    public LongStreamEx mapFirst(LongUnaryOperator mapper) {
+        return mapToObj(Long::new).mapFirst(mapper::applyAsLong).mapToLong(Long::longValue);
+    }
+
+    /**
+     * Returns a stream where the last element is the replaced with the result
+     * of applying the given function while the other elements are left intact.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     *
+     * @param mapper
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function to apply to the first element
+     * @return the new stream
+     * @since 0.4.1
+     */
+    public LongStreamEx mapLast(LongUnaryOperator mapper) {
+        return mapToObj(Long::new).mapLast(mapper::applyAsLong).mapToLong(Long::longValue);
+    }
+    
     @Override
     public <U> StreamEx<U> mapToObj(LongFunction<? extends U> mapper) {
         return strategy().newStreamEx(stream.mapToObj(mapper));

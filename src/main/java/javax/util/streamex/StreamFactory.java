@@ -15,6 +15,7 @@
  */
 package javax.util.streamex;
 
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.OptionalDouble;
@@ -123,6 +124,11 @@ import java.util.stream.Stream;
         public <A> A[] toArray(IntFunction<A[]> generator) {
             return strategy.terminate(generator, stream::toArray);
         }
+        
+        @Override
+        public <R> R toListAndThen(Function<List<Entry<K, V>>, R> finisher) {
+            return strategy.terminate(finisher, super::toListAndThen);
+        }
 
         @Override
         public Entry<K, V> reduce(Entry<K, V> identity, BinaryOperator<Entry<K, V>> accumulator) {
@@ -146,7 +152,7 @@ import java.util.stream.Stream;
         }
 
         @Override
-        public <R, A> R collect(Collector<? super Entry<K, V>, A, R> collector) {
+        <R, A> R rawCollect(Collector<? super Entry<K, V>, A, R> collector) {
             return strategy.terminate(collector, stream::collect);
         }
 
@@ -211,6 +217,11 @@ import java.util.stream.Stream;
         }
 
         @Override
+        public <R> R toListAndThen(Function<List<T>, R> finisher) {
+            return strategy.terminate(finisher, super::toListAndThen);
+        }
+
+        @Override
         public T reduce(T identity, BinaryOperator<T> accumulator) {
             return strategy.terminate(() -> stream.reduce(identity, accumulator));
         }
@@ -231,7 +242,7 @@ import java.util.stream.Stream;
         }
 
         @Override
-        public <R, A> R collect(Collector<? super T, A, R> collector) {
+        <R, A> R rawCollect(Collector<? super T, A, R> collector) {
             return strategy.terminate(collector, stream::collect);
         }
 

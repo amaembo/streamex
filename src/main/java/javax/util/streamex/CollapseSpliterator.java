@@ -100,7 +100,7 @@ import static javax.util.streamex.StreamExInternals.*;
                 return true;
             }
         }
-        if(cur == none()) {// start
+        if(cur == NONE) {// start
             if(!source.tryAdvance(this)) {
                 return accept(pushRight(none(), none()), action);
             }
@@ -124,15 +124,13 @@ import static javax.util.streamex.StreamExInternals.*;
         while (left != null) {
             accept(handleLeft(), action);
         }
-        if(cur == none()) {
-            if(!source.tryAdvance(this)) {
-                accept(pushRight(none(), none()), action);
-                return;
-            }
+        if(cur != NONE) {
+            acc = mapper.apply(cur);
         }
-        acc = mapper.apply(cur);
         source.forEachRemaining(next -> {
-            if(!this.mergeable.test(cur, next)) {
+            if(cur == NONE) {
+                acc = mapper.apply(next);
+            } else if(!this.mergeable.test(cur, next)) {
                 action.accept(acc);
                 acc = mapper.apply(next);
             } else {
@@ -140,7 +138,9 @@ import static javax.util.streamex.StreamExInternals.*;
             }
             cur = next;
         });
-        if(accept(pushRight(acc, cur), action)) {
+        if(cur == NONE) {
+            accept(pushRight(none(), none()), action);
+        } else if(accept(pushRight(acc, cur), action)) {
             if(right != null) {
                 action.accept(right.acc);
                 right = null;

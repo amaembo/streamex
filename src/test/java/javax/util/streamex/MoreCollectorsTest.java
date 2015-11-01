@@ -170,12 +170,10 @@ public class MoreCollectorsTest {
     public void testFirstLast() {
         Supplier<Stream<Integer>> s = () -> IntStreamEx.range(1000).boxed();
         checkShortCircuitCollector("first", Optional.of(0), 1, s, MoreCollectors.first());
-        checkShortCircuitCollector("firstLong", Optional.of(0),
-            1, () -> Stream.of(1).flatMap(x -> IntStream.range(0, 1000000000).boxed()), MoreCollectors.first(), true);
-        // TODO: such test is failed now. Must be supported when
-        // OrderedCancellableSpliterator will be rewritten
-        // checkShortCircuitCollector("first", Optional.of(1), 1, () ->
-        // Stream.iterate(1, x -> x + 1), MoreCollectors.first());
+        checkShortCircuitCollector("firstLong", Optional.of(0), 1,
+            () -> Stream.of(1).flatMap(x -> IntStream.range(0, 1000000000).boxed()), MoreCollectors.first(), true);
+        checkShortCircuitCollector("first", Optional.of(1), 1, () -> Stream.iterate(1, x -> x + 1),
+            MoreCollectors.first(), true);
         assertEquals(1, (int) StreamEx.iterate(1, x -> x + 1).parallel().collect(MoreCollectors.first()).get());
 
         checkCollector("last", Optional.of(999), s, MoreCollectors.last());
@@ -184,12 +182,16 @@ public class MoreCollectorsTest {
     }
 
     @Test
-    public void testHeadTailParallel() {
-        for (int i = 0; i < 100; i++) {
-            assertEquals("#" + i, Arrays.asList(0, 1),
+    public void testHeadParallel() {
+        List<Integer> expected = IntStreamEx.range(0, 2000, 2).boxed().toList();
+        List<Integer> expectedShort = Arrays.asList(0, 1);
+        for (int i = 0; i < 1000; i++) {
+            assertEquals("#" + i, expectedShort,
                 IntStreamEx.range(1000).boxed().parallel().collect(MoreCollectors.head(2)));
+            assertEquals("#" + i, expected, IntStreamEx.range(10000).boxed().parallel().filter(x -> x % 2 == 0)
+                    .collect(MoreCollectors.head(1000)));
         }
-        assertEquals(Arrays.asList(0, 1), StreamEx.iterate(0, x -> x + 1).parallel().collect(MoreCollectors.head(2)));
+        assertEquals(expectedShort, StreamEx.iterate(0, x -> x + 1).parallel().collect(MoreCollectors.head(2)));
     }
 
     @Test
@@ -210,6 +212,9 @@ public class MoreCollectorsTest {
         checkShortCircuitCollector("head(999)", ints.subList(0, 999), 999, ints::stream, MoreCollectors.head(999));
         checkShortCircuitCollector("head(1000)", ints, 1000, ints::stream, MoreCollectors.head(1000));
         checkShortCircuitCollector("head(MAX)", ints, 1000, ints::stream, MoreCollectors.head(Integer.MAX_VALUE));
+
+        checkShortCircuitCollector("head(10000)", IntStreamEx.rangeClosed(1, 10000).boxed().toList(), 10000,
+            () -> Stream.iterate(1, x -> x + 1), MoreCollectors.head(10000), true);
     }
 
     @Test
@@ -285,7 +290,7 @@ public class MoreCollectorsTest {
         Map<Integer, List<Integer>> map = list.stream().collect(c);
         System.out.println(map);
     }
-        
+
     @Test
     public void testGroupingByWithDomain() {
         List<String> data = Arrays.asList("a", "foo", "test", "ququq", "bar", "blahblah");
@@ -311,7 +316,8 @@ public class MoreCollectorsTest {
             Entry::getValue, StreamEx.of("Girl", "Boy").toSet(),
             MoreCollectors.mapping(Entry::getKey, MoreCollectors.head(2)));
         AtomicInteger counter = new AtomicInteger();
-        Map<String, List<String>> map = EntryStream.of(name2sex).peek(c -> counter.incrementAndGet()).collect(groupingBy);
+        Map<String, List<String>> map = EntryStream.of(name2sex).peek(c -> counter.incrementAndGet())
+                .collect(groupingBy);
         assertEquals(Arrays.asList("Mary", "Lucie"), map.get("Girl"));
         assertEquals(Arrays.asList("John", "James"), map.get("Boy"));
         assertEquals(4, counter.get());
@@ -360,6 +366,20 @@ public class MoreCollectorsTest {
         Collector<String, ?, Map<Boolean, Optional<Integer>>> collectorLast = MoreCollectors.partitioningBy(
             str -> Character.isUpperCase(str.charAt(0)), MoreCollectors.mapping(String::length, MoreCollectors.last()));
         checkCollector("last", new BooleanMap<>(Optional.of(3), Optional.of(3)), input::stream, collectorLast);
+
+        input = Arrays.asList("Abc", "Bac", "Aac", "Abv", "Bbc", "Bgd", "Atc", "Bpv");
+        Map<Character, List<String>> expected = EntryStream.of('A', Arrays.asList("Abc", "Aac"), 'B',
+            Arrays.asList("Bac", "Bbc")).toMap();
+        AtomicInteger cnt = new AtomicInteger();
+        Collector<String, ?, Map<Character, List<String>>> groupMap = Collectors.groupingBy(s -> s.charAt(0),
+            MoreCollectors.mapping(x -> {
+                cnt.incrementAndGet();
+                return x;
+            }, MoreCollectors.head(2)));
+        checkCollector("groupMap", expected, input::stream, groupMap);
+        cnt.set(0);
+        assertEquals(expected, input.stream().collect(groupMap));
+        assertEquals(4, cnt.get());
     }
 
     @Test
@@ -439,7 +459,7 @@ public class MoreCollectorsTest {
             MoreCollectors.andingLong(Long::longValue));
         checkCollectorEmpty("andLongEmpty", OptionalLong.empty(), MoreCollectors.andingLong(Long::longValue));
     }
-    
+
     @Test
     public void testAndLongFlatMap() {
         checkShortCircuitCollector("andLongFlat", OptionalLong.of(0), 2,
@@ -487,5 +507,110 @@ public class MoreCollectorsTest {
         checkShortCircuitCollector("toEnumSet", expected, 100, enumValues::stream,
             MoreCollectors.toEnumSet(TimeUnit.class));
         checkCollectorEmpty("Empty", EnumSet.noneOf(TimeUnit.class), MoreCollectors.toEnumSet(TimeUnit.class));
+    }
+
+    @Test
+    public void testFlatMapping() {
+        {
+            Map<Integer, List<Integer>> expected = IntStreamEx.rangeClosed(1, 100).boxed()
+                    .toMap(x -> IntStreamEx.rangeClosed(1, x).boxed().toList());
+            checkCollector(
+                "flatMappingSimple",
+                expected,
+                () -> IntStreamEx.rangeClosed(1, 100).boxed(),
+                Collectors.groupingBy(Function.identity(),
+                    MoreCollectors.flatMapping(x -> IntStream.rangeClosed(1, x).boxed(), Collectors.toList())));
+        }
+
+        Function<Entry<String, List<String>>, Stream<String>> valuesStream = e -> e.getValue() == null ? null : e
+                .getValue().stream();
+        List<Entry<String, List<String>>> list = EntryStream
+                .of("a", Arrays.asList("bb", "cc", "dd"), "b", Arrays.asList("ee", "ff"), "c", null)
+                .append("c", Arrays.asList("gg"), "b", null, "a", Arrays.asList("hh")).toList();
+        {
+            Map<String, List<String>> expected = EntryStream.of(list.stream())
+                    .flatMapValues(l -> l == null ? null : l.stream()).grouping();
+            checkCollector("flatMappingCombine", expected, list::stream,
+                Collectors.groupingBy(Entry::getKey, MoreCollectors.flatMapping(valuesStream, Collectors.toList())));
+            AtomicInteger openClose = new AtomicInteger();
+            Collector<Entry<String, List<String>>, ?, Map<String, List<String>>> groupingBy = Collectors.groupingBy(Entry::getKey, MoreCollectors.flatMapping(valuesStream.andThen(s -> {
+                if(s == null) return null;
+                openClose.incrementAndGet();
+                return s.onClose(openClose::decrementAndGet);
+            }), Collectors.toList()));
+            checkCollector("flatMappingCombineClosed", expected, list::stream,
+                MoreCollectors.collectingAndThen(groupingBy, res -> {
+                    assertEquals(0, openClose.get());
+                    return res;
+                }));
+            boolean catched = false;
+            try {
+                Collector<Entry<String, List<String>>, ?, Map<String, List<String>>> groupingByException = Collectors.groupingBy(Entry::getKey, MoreCollectors.flatMapping(valuesStream.andThen(s -> {
+                    if(s == null) return null;
+                    openClose.incrementAndGet();
+                    return s.onClose(openClose::decrementAndGet).peek(e -> {
+                        if(e.equals("gg"))
+                            throw new IllegalArgumentException(e);
+                    });
+                }), Collectors.toList()));
+                list.stream().collect(
+                    MoreCollectors.collectingAndThen(groupingByException, res -> {
+                        assertEquals(0, openClose.get());
+                        return res;
+                    }));
+            } catch (IllegalArgumentException e1) {
+                assertEquals("gg", e1.getMessage());
+                catched = true;
+            }
+            assertTrue(catched);
+        }
+        {
+            Map<String, List<String>> expected = EntryStream.of("a", Arrays.asList("bb"), "b", Arrays.asList("ee"),
+                "c", Arrays.asList("gg")).toMap();
+            Collector<Entry<String, List<String>>, ?, List<String>> headOne = MoreCollectors.flatMapping(valuesStream,
+                MoreCollectors.head(1));
+            checkCollector("flatMappingSubShort", expected, list::stream, Collectors.groupingBy(Entry::getKey, headOne));
+            checkShortCircuitCollector("flatMappingShort", expected, 4, list::stream,
+                MoreCollectors.groupingBy(Entry::getKey, StreamEx.of("a", "b", "c").toSet(), headOne));
+            AtomicInteger cnt = new AtomicInteger();
+            Collector<Entry<String, List<String>>, ?, List<String>> headPeek = MoreCollectors.flatMapping(
+                valuesStream.andThen(s -> s == null ? null : s.peek(x -> cnt.incrementAndGet())), MoreCollectors.head(1));
+            assertEquals(expected, StreamEx.of(list).collect(Collectors.groupingBy(Entry::getKey, headPeek)));
+            assertEquals(3, cnt.get());
+            cnt.set(0);
+            assertEquals(
+                expected,
+                StreamEx.of(list).collect(
+                    MoreCollectors.groupingBy(Entry::getKey, StreamEx.of("a", "b", "c").toSet(), headPeek)));
+            assertEquals(3, cnt.get());
+        }
+        {
+            Map<String, List<String>> expected = EntryStream.of("a", Arrays.asList("bb", "cc"), "b", Arrays.asList("ee", "ff"),
+                "c", Arrays.asList("gg")).toMap();
+            Collector<Entry<String, List<String>>, ?, List<String>> headTwo = MoreCollectors.flatMapping(valuesStream,
+                MoreCollectors.head(2));
+            checkCollector("flatMappingSubShort", expected, list::stream, Collectors.groupingBy(Entry::getKey, headTwo));
+            AtomicInteger openClose = new AtomicInteger();
+            boolean catched = false;
+            try {
+                Collector<Entry<String, List<String>>, ?, Map<String, List<String>>> groupingByException = Collectors.groupingBy(Entry::getKey, MoreCollectors.flatMapping(valuesStream.andThen(s -> {
+                    if(s == null) return null;
+                    openClose.incrementAndGet();
+                    return s.onClose(openClose::decrementAndGet).peek(e -> {
+                        if(e.equals("gg"))
+                            throw new IllegalArgumentException(e);
+                    });
+                }), MoreCollectors.head(2)));
+                list.stream().collect(
+                    MoreCollectors.collectingAndThen(groupingByException, res -> {
+                        assertEquals(0, openClose.get());
+                        return res;
+                    }));
+            } catch (IllegalArgumentException e1) {
+                assertEquals("gg", e1.getMessage());
+                catched = true;
+            }
+            assertTrue(catched);
+        }
     }
 }

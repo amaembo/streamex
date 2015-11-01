@@ -47,6 +47,7 @@ import java.util.function.ToLongFunction;
 import java.util.stream.Collector;
 import java.util.stream.Collector.Characteristics;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static javax.util.streamex.StreamExInternals.*;
 
@@ -283,9 +284,9 @@ public final class MoreCollectors {
             R2 r2 = c2.finisher().apply(acc.b);
             return finisher.apply(r1, r2);
         };
-        if (c1 instanceof CancellableCollector && c2 instanceof CancellableCollector) {
-            Predicate<A1> c1Finished = ((CancellableCollector<? super T, A1, R1>) c1).finished();
-            Predicate<A2> c2Finished = ((CancellableCollector<? super T, A2, R2>) c2).finished();
+        Predicate<A1> c1Finished = finished(c1);
+        Predicate<A2> c2Finished = finished(c2);
+        if (c1Finished != null && c2Finished != null) {
             Predicate<PairBox<A1, A2>> finished = acc -> c1Finished.test(acc.a) && c2Finished.test(acc.b);
             return new CancellableCollectorImpl<>(supplier, accumulator, combiner, resFinisher, finished, c);
         }
@@ -506,13 +507,13 @@ public final class MoreCollectors {
      * 
      * @param <T>
      *            the type of the input elements
-     * @return a collector which returns an {@link Optional} which describes the
-     *         only element of the stream. For empty stream or stream containing
-     *         more than one element an empty {@code Optional} is returned.
+     * @return a collector which returns an {@link Optional} describing the only
+     *         element of the stream. For empty stream or stream containing more
+     *         than one element an empty {@code Optional} is returned.
      * @since 0.4.0
      */
     public static <T> Collector<T, ?, Optional<T>> onlyOne() {
-        return new CancellableCollectorImpl<>(() -> new Box<Optional<T>>(null),
+        return new CancellableCollectorImpl<T, Box<Optional<T>>, Optional<T>>(() -> new Box<Optional<T>>(null),
                 (box, t) -> box.a = box.a == null ? Optional.of(t) : Optional.empty(),
                 (box1, box2) -> box1.a == null ? box2 : box2.a == null ? box1 : new Box<>(Optional.empty()),
                 box -> box.a == null ? Optional.empty() : box.a, box -> box.a != null && !box.a.isPresent(),
@@ -571,6 +572,10 @@ public final class MoreCollectors {
      * collector</a>.
      * 
      * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code List} returned.
+     * 
+     * <p>
      * The operation performed by the returned collector is equivalent to
      * {@code stream.limit(n).collect(Collectors.toList())}. This collector is
      * mostly useful as a downstream collector.
@@ -597,6 +602,10 @@ public final class MoreCollectors {
     /**
      * Returns a {@code Collector} which collects at most specified number of
      * the last stream elements into the {@link List}.
+     * 
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code List} returned.
      * 
      * <p>
      * When supplied {@code n} is less or equal to zero, this method returns a
@@ -636,6 +645,10 @@ public final class MoreCollectors {
      * {@code stream.sorted(comparator.reversed()).limit(n).collect(Collectors.toList())}
      * , but can be performed much faster if the input is not sorted and
      * {@code n} is much less than the stream size.
+     * 
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code List} returned.
      * 
      * <p>
      * When supplied {@code n} is less or equal to zero, this method returns a
@@ -687,6 +700,10 @@ public final class MoreCollectors {
      * {@code n} is much less than the stream size.
      * 
      * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code List} returned.
+     * 
+     * <p>
      * When supplied {@code n} is less or equal to zero, this method returns a
      * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a> which ignores the input and produces an empty list.
@@ -713,6 +730,10 @@ public final class MoreCollectors {
      * {@code stream.sorted(comparator).limit(n).collect(Collectors.toList())},
      * but can be performed much faster if the input is not sorted and {@code n}
      * is much less than the stream size.
+     * 
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code List} returned.
      * 
      * <p>
      * When supplied {@code n} is less or equal to zero, this method returns a
@@ -743,6 +764,10 @@ public final class MoreCollectors {
      * {@code stream.sorted().limit(n).collect(Collectors.toList())}, but can be
      * performed much faster if the input is not sorted and {@code n} is much
      * less than the stream size.
+     * 
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code List} returned.
      * 
      * <p>
      * When supplied {@code n} is less or equal to zero, this method returns a
@@ -884,6 +909,7 @@ public final class MoreCollectors {
      *            a {@code Collector} implementing the downstream reduction
      * @return a {@code Collector} implementing the cascaded group-by operation
      * @see Collectors#groupingBy(Function, Collector)
+     * @see #groupingBy(Function, Set, Supplier, Collector)
      * @since 0.3.7
      */
     public static <T, K extends Enum<K>, A, D> Collector<T, ?, EnumMap<K, D>> groupingByEnum(Class<K> enumClass,
@@ -891,11 +917,111 @@ public final class MoreCollectors {
         return groupingBy(classifier, EnumSet.allOf(enumClass), () -> new EnumMap<>(enumClass), downstream);
     }
 
+    /**
+     * Returns a {@code Collector} implementing a cascaded "group by" operation
+     * on input elements of type {@code T}, grouping elements according to a
+     * classification function, and then performing a reduction operation on the
+     * values associated with a given key using the specified downstream
+     * {@code Collector}.
+     *
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code Map} returned.
+     *
+     * <p>
+     * The main difference of this collector from
+     * {@link Collectors#groupingBy(Function, Collector)} is that it accepts
+     * additional domain parameter which is the {@code Set} of all possible map
+     * keys. If the mapper function produces the key out of domain, an
+     * {@code IllegalStateException} will occur. If the mapper function does not
+     * produce some of domain keys at all, they are also added to the result.
+     * These keys are mapped to the default collector value which is equivalent
+     * to collecting an empty stream with the same collector.
+     * 
+     * <p>
+     * This method returns a <a
+     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * collector</a> if the downstream collector is short-circuiting. The
+     * collection might stop when for every possible key from the domain the
+     * downstream collection is known to be finished.
+     *
+     * @param <T>
+     *            the type of the input elements
+     * @param <K>
+     *            the type of the keys
+     * @param <A>
+     *            the intermediate accumulation type of the downstream collector
+     * @param <D>
+     *            the result type of the downstream reduction
+     * @param classifier
+     *            a classifier function mapping input elements to keys
+     * @param domain
+     *            a domain of all possible key values
+     * @param downstream
+     *            a {@code Collector} implementing the downstream reduction
+     * @return a {@code Collector} implementing the cascaded group-by operation
+     *         with given domain
+     *
+     * @see #groupingBy(Function, Set, Supplier, Collector)
+     * @see #groupingByEnum(Class, Function, Collector)
+     * @since 0.4.0
+     */
     public static <T, K, D, A> Collector<T, ?, Map<K, D>> groupingBy(Function<? super T, ? extends K> classifier,
             Set<K> domain, Collector<? super T, A, D> downstream) {
         return groupingBy(classifier, domain, HashMap::new, downstream);
     }
 
+    /**
+     * Returns a {@code Collector} implementing a cascaded "group by" operation
+     * on input elements of type {@code T}, grouping elements according to a
+     * classification function, and then performing a reduction operation on the
+     * values associated with a given key using the specified downstream
+     * {@code Collector}. The {@code Map} produced by the Collector is created
+     * with the supplied factory function.
+     *
+     * <p>
+     * The main difference of this collector from
+     * {@link Collectors#groupingBy(Function, Supplier, Collector)} is that it
+     * accepts additional domain parameter which is the {@code Set} of all
+     * possible map keys. If the mapper function produces the key out of domain,
+     * an {@code IllegalStateException} will occur. If the mapper function does
+     * not produce some of domain keys at all, they are also added to the
+     * result. These keys are mapped to the default collector value which is
+     * equivalent to collecting an empty stream with the same collector.
+     * 
+     * <p>
+     * This method returns a <a
+     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * collector</a> if the downstream collector is short-circuiting. The
+     * collection might stop when for every possible key from the domain the
+     * downstream collection is known to be finished.
+     *
+     * @param <T>
+     *            the type of the input elements
+     * @param <K>
+     *            the type of the keys
+     * @param <A>
+     *            the intermediate accumulation type of the downstream collector
+     * @param <D>
+     *            the result type of the downstream reduction
+     * @param <M>
+     *            the type of the resulting {@code Map}
+     * @param classifier
+     *            a classifier function mapping input elements to keys
+     * @param domain
+     *            a domain of all possible key values
+     * @param downstream
+     *            a {@code Collector} implementing the downstream reduction
+     * @param mapFactory
+     *            a function which, when called, produces a new empty
+     *            {@code Map} of the desired type
+     * @return a {@code Collector} implementing the cascaded group-by operation
+     *         with given domain
+     *
+     * @see #groupingBy(Function, Set, Collector)
+     * @see #groupingByEnum(Class, Function, Collector)
+     * @since 0.4.0
+     */
     public static <T, K, D, A, M extends Map<K, D>> Collector<T, ?, M> groupingBy(
             Function<? super T, ? extends K> classifier, Set<K> domain, Supplier<M> mapFactory,
             Collector<? super T, A, D> downstream) {
@@ -913,8 +1039,8 @@ public final class MoreCollectors {
             downstreamAccumulator.accept(container, t);
         };
         PartialCollector<Map<K, A>, M> partial = PartialCollector.grouping(mapFactory, downstream);
-        if (downstream instanceof CancellableCollectorImpl) {
-            Predicate<A> downstreamFinished = ((CancellableCollectorImpl<? super T, A, D>) downstream).finished();
+        Predicate<A> downstreamFinished = finished(downstream);
+        if (downstreamFinished != null) {
             int size = domain.size();
             groupingBy = partial.asCancellable(accumulator, map -> {
                 if (map.size() < size)
@@ -1008,11 +1134,12 @@ public final class MoreCollectors {
      */
     public static <T, A, R, RR> Collector<T, A, RR> collectingAndThen(Collector<T, A, R> downstream,
             Function<R, RR> finisher) {
-        if (downstream instanceof CancellableCollector) {
+        Predicate<A> finished = finished(downstream);
+        if (finished != null) {
             return new CancellableCollectorImpl<>(downstream.supplier(), downstream.accumulator(),
-                    downstream.combiner(), downstream.finisher().andThen(finisher),
-                    ((CancellableCollector<T, A, R>) downstream).finished(), downstream.characteristics().contains(
-                        Characteristics.UNORDERED) ? UNORDERED_CHARACTERISTICS : NO_CHARACTERISTICS);
+                    downstream.combiner(), downstream.finisher().andThen(finisher), finished, downstream
+                            .characteristics().contains(Characteristics.UNORDERED) ? UNORDERED_CHARACTERISTICS
+                            : NO_CHARACTERISTICS);
         }
         return Collectors.collectingAndThen(downstream, finisher);
     }
@@ -1047,9 +1174,9 @@ public final class MoreCollectors {
      */
     public static <T, D, A> Collector<T, ?, Map<Boolean, D>> partitioningBy(Predicate<? super T> predicate,
             Collector<? super T, A, D> downstream) {
-        if (downstream instanceof CancellableCollector) {
+        Predicate<A> finished = finished(downstream);
+        if (finished != null) {
             BiConsumer<A, ? super T> accumulator = downstream.accumulator();
-            Predicate<A> finished = ((CancellableCollector<? super T, A, D>) downstream).finished();
             return BooleanMap.partialCollector(downstream).asCancellable(
                 (map, t) -> accumulator.accept(predicate.test(t) ? map.trueValue : map.falseValue, t),
                 map -> finished.test(map.trueValue) && finished.test(map.falseValue));
@@ -1088,13 +1215,80 @@ public final class MoreCollectors {
      */
     public static <T, U, A, R> Collector<T, ?, R> mapping(Function<? super T, ? extends U> mapper,
             Collector<? super U, A, R> downstream) {
-        if (downstream instanceof CancellableCollector) {
+        Predicate<A> finished = finished(downstream);
+        if (finished != null) {
             BiConsumer<A, ? super U> downstreamAccumulator = downstream.accumulator();
-            return new CancellableCollectorImpl<>(downstream.supplier(), (r, t) -> downstreamAccumulator.accept(r,
-                mapper.apply(t)), downstream.combiner(), downstream.finisher(),
-                    ((CancellableCollector<? super U, A, R>) downstream).finished(), downstream.characteristics());
+            return new CancellableCollectorImpl<>(downstream.supplier(), (acc, t) -> {
+                if (!finished.test(acc))
+                    downstreamAccumulator.accept(acc, mapper.apply(t));
+            }, downstream.combiner(), downstream.finisher(), finished, downstream.characteristics());
         }
         return Collectors.mapping(mapper, downstream);
+    }
+
+    /**
+     * Adapts a {@code Collector} accepting elements of type {@code U} to one
+     * accepting elements of type {@code T} by applying a flat mapping function
+     * to each input element before accumulation. The flat mapping function maps
+     * an input element to a {@link Stream stream} covering zero or more output
+     * elements that are then accumulated downstream. Each mapped stream is
+     * {@link java.util.stream.BaseStream#close() closed} after its contents
+     * have been placed downstream. (If a mapped stream is {@code null} an empty
+     * stream is used, instead.)
+     * 
+     * This method is similar to {@code Collectors.flatMapping} method which
+     * appears in JDK 9. However when downstream collector is <a
+     * href="package-summary.html#ShortCircuitReduction">short-circuiting</a>,
+     * this method will also return a short-circuiting collector.
+     * 
+     * @param <T>
+     *            the type of the input elements
+     * @param <U>
+     *            type of elements accepted by downstream collector
+     * @param <A>
+     *            intermediate accumulation type of the downstream collector
+     * @param <R>
+     *            result type of collector
+     * @param mapper
+     *            a function to be applied to the input elements, which returns
+     *            a stream of results
+     * @param downstream
+     *            a collector which will receive the elements of the stream
+     *            returned by mapper
+     * @return a collector which applies the mapping function to the input
+     *         elements and provides the flat mapped results to the downstream
+     *         collector
+     * @since 0.4.1
+     */
+    public static <T, U, A, R> Collector<T, ?, R> flatMapping(
+            Function<? super T, ? extends Stream<? extends U>> mapper, Collector<? super U, A, R> downstream) {
+        BiConsumer<A, ? super U> downstreamAccumulator = downstream.accumulator();
+        Predicate<A> finished = finished(downstream);
+        if (finished != null) {
+            return new CancellableCollectorImpl<>(downstream.supplier(), (acc, t) -> {
+                if (finished.test(acc))
+                    return;
+                try (Stream<? extends U> stream = mapper.apply(t)) {
+                    if (stream != null) {
+                        stream.spliterator().forEachRemaining(u -> {
+                            downstreamAccumulator.accept(acc, u);
+                            if (finished.test(acc))
+                                throw new CancelException();
+                        });
+                    }
+                } catch (CancelException ex) {
+                    // ignore
+                }
+            }, downstream.combiner(), downstream.finisher(), finished, downstream.characteristics());
+        }
+        return Collector.of(downstream.supplier(), (acc, t) -> {
+            try (Stream<? extends U> stream = mapper.apply(t)) {
+                if (stream != null) {
+                    stream.spliterator().forEachRemaining(u -> downstreamAccumulator.accept(acc, u));
+                }
+            }
+        }, downstream.combiner(), downstream.finisher(),
+            downstream.characteristics().toArray(new Characteristics[downstream.characteristics().size()]));
     }
 
     /**
@@ -1134,10 +1328,10 @@ public final class MoreCollectors {
             if (predicate.test(t))
                 downstreamAccumulator.accept(acc, t);
         };
-        if (downstream instanceof CancellableCollector) {
+        Predicate<A> finished = finished(downstream);
+        if (finished != null) {
             return new CancellableCollectorImpl<>(downstream.supplier(), accumulator, downstream.combiner(),
-                    downstream.finisher(), ((CancellableCollector<T, A, R>) downstream).finished(),
-                    downstream.characteristics());
+                    downstream.finisher(), finished, downstream.characteristics());
         }
         return Collector.of(downstream.supplier(), accumulator, downstream.combiner(), downstream.finisher(),
             downstream.characteristics().toArray(new Characteristics[downstream.characteristics().size()]));
@@ -1212,7 +1406,7 @@ public final class MoreCollectors {
     }
 
     /**
-     * Returns a {@code Collector} that produces the bitwise-and operation of a
+     * Returns a {@code Collector} which performs the bitwise-and operation of a
      * integer-valued function applied to the input elements. If no elements are
      * present, the result is empty {@link OptionalInt}.
      *
@@ -1248,7 +1442,7 @@ public final class MoreCollectors {
     }
 
     /**
-     * Returns a {@code Collector} that produces the bitwise-and operation of a
+     * Returns a {@code Collector} which performs the bitwise-and operation of a
      * long-valued function applied to the input elements. If no elements are
      * present, the result is empty {@link OptionalLong}.
      *

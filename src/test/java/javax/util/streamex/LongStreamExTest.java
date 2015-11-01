@@ -233,8 +233,7 @@ public class LongStreamExTest {
                     .toArray());
 
         String expected = LongStreamEx.range(200).boxed()
-                .flatMap(i -> LongStreamEx.range(0, i).<String> mapToObj(j -> i + ":" + j))
-                .joining("/");
+                .flatMap(i -> LongStreamEx.range(0, i).<String> mapToObj(j -> i + ":" + j)).joining("/");
         String res = LongStreamEx.range(200).flatMapToObj(i -> LongStreamEx.range(i).mapToObj(j -> i + ":" + j))
                 .joining("/");
         String parallel = LongStreamEx.range(200).parallel()
@@ -305,7 +304,7 @@ public class LongStreamExTest {
         assertArrayEquals(new long[] { 0, 3, 6, 1, 4, 7, 2, 5, 8 },
             LongStreamEx.range(0, 9).sortedByLong(i -> i % 3 * 3 + i / 3).toArray());
         assertArrayEquals(new long[] { 0, 4, 8, 1, 5, 9, 2, 6, 3, 7 },
-            LongStreamEx.range(0, 10).sortedByInt(i -> (int)i % 4).toArray());
+            LongStreamEx.range(0, 10).sortedByInt(i -> (int) i % 4).toArray());
         assertArrayEquals(new long[] { 10, 11, 5, 6, 7, 8, 9 }, LongStreamEx.range(5, 12).sortedBy(String::valueOf)
                 .toArray());
         assertArrayEquals(new long[] { Long.MAX_VALUE, 1000, 1, 0, -10, Long.MIN_VALUE },
@@ -402,20 +401,20 @@ public class LongStreamExTest {
         assertEquals(100, LongStreamEx.range(100).dropWhile(i -> i % 10 < 0).count());
         assertEquals(0, LongStreamEx.range(100).dropWhile(i -> i % 10 < 10).count());
     }
-    
+
     @Test
     public void testIndexOf() {
         assertEquals(5, LongStreamEx.range(50, 100).indexOf(55).getAsLong());
         assertFalse(LongStreamEx.range(50, 100).indexOf(200).isPresent());
         assertEquals(5, LongStreamEx.range(50, 100).parallel().indexOf(55).getAsLong());
         assertFalse(LongStreamEx.range(50, 100).parallel().indexOf(200).isPresent());
-        
+
         assertEquals(11, LongStreamEx.range(50, 100).indexOf(x -> x > 60).getAsLong());
         assertFalse(LongStreamEx.range(50, 100).indexOf(x -> x < 0).isPresent());
         assertEquals(11, LongStreamEx.range(50, 100).parallel().indexOf(x -> x > 60).getAsLong());
         assertFalse(LongStreamEx.range(50, 100).parallel().indexOf(x -> x < 0).isPresent());
     }
-    
+
     @Test
     public void testFoldLeft() {
         // non-associative
@@ -425,5 +424,11 @@ public class LongStreamExTest {
         assertFalse(LongStreamEx.empty().foldLeft(accumulator).isPresent());
         assertEquals(144, LongStreamEx.rangeClosed(1, 3).foldLeft(0L, accumulator));
         assertEquals(144, LongStreamEx.rangeClosed(1, 3).parallel().foldLeft(0L, accumulator));
+    }
+
+    @Test
+    public void testMapFirstLast() {
+        assertArrayEquals(new long[] { -1, 2, 3, 4, 7 },
+            LongStreamEx.of(1, 2, 3, 4, 5).mapFirst(x -> x - 2L).mapLast(x -> x + 2L).toArray());
     }
 }

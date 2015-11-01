@@ -22,9 +22,12 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Map.Entry;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinWorkerThread;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import org.junit.Test;
 
@@ -62,7 +65,7 @@ public class CustomPoolTest {
         assertFalse(StreamEx.of("a", "b").parallel(pool).peek(this::checkThread).allMatch("a"::equals));
         assertFalse(StreamEx.of("a", "b").parallel(pool).peek(this::checkThread).noneMatch("a"::equals));
         assertEquals(Arrays.asList("b", "c"), StreamEx.of("a", "b", "c").parallel(pool).peek(this::checkThread).skip(1)
-                .toList());
+                .collect(Collectors.toList()));
         assertEquals(
             6,
             StreamEx.of("a", "bb", "ccc").parallel(pool).peek(this::checkThread)
@@ -95,10 +98,13 @@ public class CustomPoolTest {
         assertEquals(7,
             (int) StreamEx.of("aa", "bbb", "cccc").parallel(pool).peek(this::checkThread).filter(x -> x.length() > 2)
                     .reduce(0, (x, s) -> x + s.length(), Integer::sum));
-		assertEquals(
-				"aabbbcccc",
-				StreamEx.of("aa", "bbb", "cccc").parallel(pool)
-						.peek(this::checkThread).foldLeft("", String::concat));
+        assertEquals("aabbbcccc",
+            StreamEx.of("aa", "bbb", "cccc").parallel(pool).peek(this::checkThread).foldLeft("", String::concat));
+        assertEquals(Arrays.asList(1, 2, 3),
+            StreamEx.of(1, 2, 3).parallel(pool).peek(this::checkThread).toListAndThen(list -> {
+                this.checkThread(list);
+                return list;
+            }));
     }
 
     @Test
@@ -120,24 +126,36 @@ public class CustomPoolTest {
                     .count());
         List<Integer> res = new ArrayList<>();
         EntryStream.of("a", 1, "b", 2, "c", 3).parallel(pool).peek(this::checkThread).filterValues(v -> v > 1)
-            .forEachOrdered(entry -> res.add(entry.getValue()));
+                .forEachOrdered(entry -> res.add(entry.getValue()));
         assertEquals(Arrays.asList(2, 3), res);
-		assertEquals(
-				6,
-				(int) EntryStream
-						.of("a", 1, "b", 2, "c", 3)
-						.parallel(pool)
-						.peek(this::checkThread)
-						.reduce(0, (sum, e) -> sum + e.getValue(), Integer::sum));
-		assertEquals(Arrays.asList(1, 2, 3), EntryStream.of("a", 1, "b", 2, "c", 3).parallel(pool).peek(this::checkThread)
-            .collect(ArrayList::new, (List<Integer> list, Entry<String, Integer> e) -> list.add(e.getValue()), List::addAll));
+        assertEquals(2L, (long) EntryStream.of("a", 1, "b", 2, "c", 3).parallel(pool).peek(this::checkThread)
+                .filterValues(v -> v > 1).collect(Collectors.counting()));
+        assertEquals(
+            6,
+            (int) EntryStream.of("a", 1, "b", 2, "c", 3).parallel(pool).peek(this::checkThread)
+                    .reduce(0, (sum, e) -> sum + e.getValue(), Integer::sum));
+        assertEquals(
+            Arrays.asList(1, 2, 3),
+            EntryStream
+                    .of("a", 1, "b", 2, "c", 3)
+                    .parallel(pool)
+                    .peek(this::checkThread)
+                    .collect(ArrayList::new, (List<Integer> list, Entry<String, Integer> e) -> list.add(e.getValue()),
+                        List::addAll));
         @SuppressWarnings("unchecked")
         Entry<String, Integer>[] array = EntryStream.of("a", 1, "b", 2, "c", 3).parallel(pool).peek(this::checkThread)
                 .filterValues(v -> v > 1).toArray(Entry[]::new);
         assertEquals(2, array.length);
         assertEquals(new SimpleEntry<>("b", 2), array[0]);
         assertEquals(new SimpleEntry<>("c", 3), array[1]);
-        
+
+        List<Entry<String, Integer>> list = EntryStream.of("a", 1, "b", 2, "c", 3).parallel(pool).peek(this::checkThread)
+                .filterValues(v -> v > 1).toListAndThen(l -> {
+                    this.checkThread(l);
+                    return l;
+                });
+        assertEquals(Arrays.asList(array), list);
+
         assertEquals(
             new SimpleEntry<>("abc", 6),
             EntryStream.of("a", 1, "b", 2, "c", 3).parallel(pool).peek(this::checkThread)
@@ -176,9 +194,9 @@ public class CustomPoolTest {
         assertEquals(2, IntStreamEx.of(1, 2, 3).parallel(pool).peek(this::checkThread).findFirst(x -> x % 2 == 0)
                 .getAsInt());
         List<Integer> res = new ArrayList<>();
-        IntStreamEx.of(1, 5, 10, Integer.MAX_VALUE).parallel(pool).peek(this::checkThread).map(x -> x*2)
-            .forEachOrdered(res::add);
-        assertEquals(Arrays.asList(2, 10, 20, Integer.MAX_VALUE*2), res);
+        IntStreamEx.of(1, 5, 10, Integer.MAX_VALUE).parallel(pool).peek(this::checkThread).map(x -> x * 2)
+                .forEachOrdered(res::add);
+        assertEquals(Arrays.asList(2, 10, 20, Integer.MAX_VALUE * 2), res);
     }
 
     @Test
@@ -206,9 +224,9 @@ public class CustomPoolTest {
         assertEquals(2, LongStreamEx.of(1, 2, 3).parallel(pool).peek(this::checkThread).findFirst(x -> x % 2 == 0)
                 .getAsLong());
         List<Long> res = new ArrayList<>();
-        LongStreamEx.of(1, 5, 10, Integer.MAX_VALUE).parallel(pool).peek(this::checkThread).map(x -> x*2)
-            .forEachOrdered(res::add);
-        assertEquals(Arrays.asList(2L, 10L, 20L, Integer.MAX_VALUE*2L), res);
+        LongStreamEx.of(1, 5, 10, Integer.MAX_VALUE).parallel(pool).peek(this::checkThread).map(x -> x * 2)
+                .forEachOrdered(res::add);
+        assertEquals(Arrays.asList(2L, 10L, 20L, Integer.MAX_VALUE * 2L), res);
     }
 
     @Test
@@ -239,8 +257,8 @@ public class CustomPoolTest {
         assertEquals(2.0, DoubleStreamEx.of(1, 2, 3).parallel(pool).peek(this::checkThread).findFirst(x -> x % 2 == 0)
                 .getAsDouble(), 0.0);
         List<Double> res = new ArrayList<>();
-        DoubleStreamEx.of(1.0, 2.0, 3.5, 4.5).parallel(pool).peek(this::checkThread).map(x -> x*2)
-            .forEachOrdered(res::add);
+        DoubleStreamEx.of(1.0, 2.0, 3.5, 4.5).parallel(pool).peek(this::checkThread).map(x -> x * 2)
+                .forEachOrdered(res::add);
         assertEquals(Arrays.asList(2.0, 4.0, 7.0, 9.0), res);
     }
 
@@ -256,5 +274,21 @@ public class CustomPoolTest {
             assertTrue(p.getKey().toString(), bits.get(p.getKey()));
             bits.clear(p.getKey());
         });
+    }
+
+    @Test
+    public void testShortCircuit() {
+        AtomicInteger counter = new AtomicInteger(0);
+        assertEquals(
+            Optional.empty(),
+            IntStreamEx.range(0, 10000).boxed().parallel(pool).peek(this::checkThread)
+                    .peek(t -> counter.incrementAndGet()).collect(MoreCollectors.onlyOne()));
+        assertTrue(counter.get() < 10000);
+        counter.set(0);
+        assertEquals(
+            Optional.empty(),
+            IntStreamEx.range(0, 10000).boxed().mapToEntry(x -> x).parallel(pool).peek(this::checkThread)
+                    .peek(t -> counter.incrementAndGet()).collect(MoreCollectors.onlyOne()));
+        assertTrue(counter.get() < 10000);
     }
 }

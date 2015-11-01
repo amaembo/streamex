@@ -1509,7 +1509,49 @@ public class IntStreamEx implements IntStream {
         }
         return delegate(new TDOfInt(stream.spliterator(), true, predicate));
     }
+    
+    /**
+     * Returns a stream where the first element is the replaced with the result
+     * of applying the given function while the other elements are left intact.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     *
+     * @param mapper
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function to apply to the first element
+     * @return the new stream
+     * @since 0.4.1
+     */
+    public IntStreamEx mapFirst(IntUnaryOperator mapper) {
+        return mapToObj(Integer::new).mapFirst(mapper::applyAsInt).mapToInt(Integer::intValue);
+    }
 
+    /**
+     * Returns a stream where the last element is the replaced with the result
+     * of applying the given function while the other elements are left intact.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     *
+     * @param mapper
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function to apply to the first element
+     * @return the new stream
+     * @since 0.4.1
+     */
+    public IntStreamEx mapLast(IntUnaryOperator mapper) {
+        return mapToObj(Integer::new).mapLast(mapper::applyAsInt).mapToInt(Integer::intValue);
+    }
+    
     /**
      * Returns an empty sequential {@code IntStreamEx}.
      *
