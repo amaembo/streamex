@@ -1248,7 +1248,7 @@ public class StreamExTest {
         assertEquals(expected, resParallel);
     }
 
-    private final class SeqList extends AbstractList<Integer> {
+    private static final class SeqList extends AbstractList<Integer> {
         final int size;
 
         SeqList(int size) {
