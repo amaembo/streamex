@@ -1488,5 +1488,8 @@ public class StreamExTest {
                 .foldLeft(StreamEx.of(0), (stream, i) -> stream.append(i).mapLast(x -> x + 2)))) {
             assertEquals(s.toString(), IntStreamEx.range(2, 52).boxed().prepend(0).toList(), s.get().toList());
         }
+        for (StreamExSupplier<String> s : streamEx(Arrays.asList("red", "green", "blue", "orange")::stream)) {
+            assertEquals(s.toString(), "red, green, blue, or orange", s.get().mapLast("or "::concat).joining(", "));
+        }
     }
 }
