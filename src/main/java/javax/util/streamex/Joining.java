@@ -83,6 +83,11 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
         }
     }
     
+    private static int copy(char[] buf, int pos, String str) {
+        str.getChars(0, str.length(), buf, pos);
+        return pos+str.length();
+    }
+    
     private int copyCut(char[] buf, int pos, String str, int limit, int cutStrategy) {
         int endPos = str.length();
         switch(lenStrategy) {
@@ -136,6 +141,7 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
             case CUT_CODEPOINT:
                 if(Character.isHighSurrogate(str.charAt(endPos)) && Character.isLowSurrogate(str.charAt(endPos+1)))
                     endPos--;
+                break;
             default:
                 throw new InternalError();
             }
@@ -150,7 +156,7 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
         return limit;
     }
 
-    public static Joining on(CharSequence delimiter) {
+    public static Joining with(CharSequence delimiter) {
         return new Joining(delimiter.toString(), "...", "", "", CUT_CODEPOINT, LENGTH_CHARS, -1);
     }
 
@@ -290,38 +296,65 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
         int delimCount = length(delimiter);
         int limit = maxLength - addCount;
         if(limit <= 0) {
-            // TODO: handle prefix/suffix here
-            return acc -> "";
+            char[] buf = new char[prefix.length()+suffix.length()];
+            int rest = maxLength;
+            int pos = copyCut(buf, 0, prefix, rest, cutStrategy);
+            rest -= length(prefix);
+            if(rest > 0)
+                pos = copyCut(buf, pos, suffix, rest, cutStrategy);
+            String result = new String(buf, 0, pos);
+            return acc -> result;
         }
         return acc -> {
             if(acc.count <= limit)
                 return noOverflow.apply(acc);
             char[] buf = new char[acc.chars+prefix.length()+suffix.length()];
             int size = acc.data.size();
-            prefix.getChars(0, prefix.length(), buf, 0);
-            int pos = prefix.length();
+            int pos = copy(buf, 0, prefix);
             int ellipsisCount = length(ellipsis);
             int rest = limit - ellipsisCount;
             if(rest < 0) {
                 pos = copyCut(buf, pos, ellipsis, limit, CUT_ANYWHERE);
             } else {
                 for (int i = 0; i < size; i++) {
-                    if(i > 0) {
-                        
-                    }
                     String s = acc.data.get(i).toString();
-                    
-                    // todo
+                    int count = length(s);
+                    if(i > 0) {
+                        if(cutStrategy == CUT_BEFORE_DELIMITER && delimCount+count > rest) {
+                            pos = copy(buf, pos, ellipsis);
+                            break;
+                        }
+                        if(delimCount > rest) {
+                            pos = copyCut(buf, pos, delimiter, rest, cutStrategy);
+                            pos = copy(buf, pos, ellipsis);
+                            break;
+                        }
+                        rest -= delimCount;
+                        pos = copy(buf, pos, delimiter);
+                    }
+                    if (cutStrategy == CUT_AFTER_DELIMITER && delimCount + count > rest) {
+                        pos = copy(buf, pos, ellipsis);
+                        break;
+                    }
+                    if(count > rest) {
+                        pos = copyCut(buf, pos, s, rest, cutStrategy);
+                        pos = copy(buf, pos, ellipsis);
+                        break;
+                    }
+                    pos = copy(buf, pos, s);
+                    rest -= count;
                 }
             }
-            suffix.getChars(0, suffix.length(), buf, pos);
-            pos += suffix.length();
+            pos = copy(buf, pos, suffix);
             return new String(buf, 0, pos);
         };
     }
 
     @Override
-    public Set<java.util.stream.Collector.Characteristics> characteristics() {
+    public Set<Characteristics> characteristics() {
+        int addCount = length(prefix)+length(suffix);
+        if(maxLength <= addCount)
+            return Collections.singleton(Characteristics.UNORDERED);
         return Collections.emptySet();
     }
 
