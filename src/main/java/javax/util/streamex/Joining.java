@@ -83,6 +83,67 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
         }
     }
     
+    private int copyCut(char[] buf, int pos, String str, int limit, int cutStrategy) {
+        int endPos = str.length();
+        switch(lenStrategy) {
+        case LENGTH_CHARS:
+            if(limit < str.length())
+                endPos = limit;
+            break;
+        case LENGTH_CODEPOINTS:
+            if(limit < str.codePointCount(0, str.length()))
+                endPos = str.offsetByCodePoints(0, limit);
+            break;
+        case LENGTH_SYMBOLS:
+            BreakIterator bi = BreakIterator.getCharacterInstance();
+            bi.setText(str);
+            int count = limit, end = 0;
+            while(true) {
+                end = bi.next();
+                if(end == BreakIterator.DONE) break;
+                if(--count == 0) {
+                    endPos = end;
+                    break;
+                }
+            }
+            break;
+        default:
+            throw new InternalError();
+        }
+        if(endPos > 0 && endPos < str.length()) {
+            BreakIterator bi;
+            switch(cutStrategy) {
+            case CUT_BEFORE_DELIMITER:
+            case CUT_AFTER_DELIMITER:
+                endPos = 0;
+                break;
+            case CUT_WORD:
+                bi = BreakIterator.getWordInstance();
+                bi.setText(str);
+                endPos = bi.preceding(endPos+1);
+                if(endPos == BreakIterator.DONE)
+                    endPos = 0;
+                break;
+            case CUT_SYMBOL:
+                bi = BreakIterator.getCharacterInstance();
+                bi.setText(str);
+                endPos = bi.preceding(endPos+1);
+                if(endPos == BreakIterator.DONE)
+                    endPos = 0;
+                break;
+            case CUT_ANYWHERE:
+                break;
+            case CUT_CODEPOINT:
+                if(Character.isHighSurrogate(str.charAt(endPos)) && Character.isLowSurrogate(str.charAt(endPos+1)))
+                    endPos--;
+            default:
+                throw new InternalError();
+            }
+        }
+        str.getChars(0, endPos, buf, pos);
+        return pos+endPos;
+    }
+
     private static int nonNegative(int limit) {
         if(limit < 0)
             throw new IllegalArgumentException(limit+": must be positive");
@@ -205,25 +266,58 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
 
     @Override
     public Function<Accumulator, String> finisher() {
-        if(maxLength == -1)
-            return acc -> {
-                char[] buf = new char[acc.chars+prefix.length()+suffix.length()];
-                int size = acc.data.size();
-                prefix.getChars(0, prefix.length(), buf, 0);
-                int pos = prefix.length();
-                for (int i = 0; i < size; i++) {
-                    if (i > 0) {
-                        delimiter.getChars(0, delimiter.length(), buf, pos);
-                        pos += delimiter.length();
-                    }
-                    String cs = acc.data.get(i).toString();
-                    cs.getChars(0, cs.length(), buf, pos);
-                    pos += cs.length();
+        Function<Accumulator, String> noOverflow = acc -> {
+            char[] buf = new char[acc.chars+prefix.length()+suffix.length()];
+            int size = acc.data.size();
+            prefix.getChars(0, prefix.length(), buf, 0);
+            int pos = prefix.length();
+            for (int i = 0; i < size; i++) {
+                if (i > 0) {
+                    delimiter.getChars(0, delimiter.length(), buf, pos);
+                    pos += delimiter.length();
                 }
-                suffix.getChars(0, suffix.length(), buf, pos);
-                return new String(buf);
-            };
-        throw new UnsupportedOperationException(); // TODO
+                String cs = acc.data.get(i).toString();
+                cs.getChars(0, cs.length(), buf, pos);
+                pos += cs.length();
+            }
+            suffix.getChars(0, suffix.length(), buf, pos);
+            return new String(buf);
+        };
+        if(maxLength == -1) {
+            return noOverflow;
+        }
+        int addCount = length(prefix)+length(suffix);
+        int delimCount = length(delimiter);
+        int limit = maxLength - addCount;
+        if(limit <= 0) {
+            // TODO: handle prefix/suffix here
+            return acc -> "";
+        }
+        return acc -> {
+            if(acc.count <= limit)
+                return noOverflow.apply(acc);
+            char[] buf = new char[acc.chars+prefix.length()+suffix.length()];
+            int size = acc.data.size();
+            prefix.getChars(0, prefix.length(), buf, 0);
+            int pos = prefix.length();
+            int ellipsisCount = length(ellipsis);
+            int rest = limit - ellipsisCount;
+            if(rest < 0) {
+                pos = copyCut(buf, pos, ellipsis, limit, CUT_ANYWHERE);
+            } else {
+                for (int i = 0; i < size; i++) {
+                    if(i > 0) {
+                        
+                    }
+                    String s = acc.data.get(i).toString();
+                    
+                    // todo
+                }
+            }
+            suffix.getChars(0, suffix.length(), buf, pos);
+            pos += suffix.length();
+            return new String(buf, 0, pos);
+        };
     }
 
     @Override
@@ -238,6 +332,6 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
         int addCount = length(prefix)+length(suffix);
         if(maxLength <= addCount)
             return acc -> true;
-        return acc -> acc.count > addCount;
+        return acc -> acc.count + addCount > maxLength;
     }
 }
