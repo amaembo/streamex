@@ -54,6 +54,7 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import java.util.stream.Collector.Characteristics;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -194,6 +195,85 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             stream.map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e), valueMapper.apply(e))));
     }
 
+    /**
+     * Returns a stream where the first element is the replaced with the result
+     * of applying the given function while the other elements are left intact.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     *
+     * @param mapper
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function to apply to the first element
+     * @return the new stream
+     * @since 0.4.1
+     */
+    public StreamEx<T> mapFirst(Function<? super T, ? extends T> mapper) {
+        // Cannot reuse NONE object here as the object appears in the stream and
+        // might become visible to other pipeline steps
+        // thus new Object is necessary every time
+        @SuppressWarnings("unchecked")
+        T first = (T) new Object();
+        Stream<T> none = Stream.of(first);
+        return strategy().newStreamEx(
+            delegate(new PairSpliterator.PSOfRef<T, T>((a, b) -> (a == first ? mapper.apply(b) : b), Stream.concat(
+                none, stream).spliterator())));
+    }
+
+    /**
+     * Returns a stream where the last element is the replaced with the result
+     * of applying the given function while the other elements are left intact.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     *
+     * @param mapper
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function to apply to the first element
+     * @return the new stream
+     * @since 0.4.1
+     */
+    public StreamEx<T> mapLast(Function<? super T, ? extends T> mapper) {
+        // Cannot reuse NONE object here as the object appears in the stream and
+        // might become visible to other pipeline steps
+        // thus new Object is necessary every time
+        @SuppressWarnings("unchecked")
+        T last = (T) new Object();
+        Stream<T> none = Stream.of(last);
+        return strategy().newStreamEx(
+            delegate(new PairSpliterator.PSOfRef<T, T>((a, b) -> (b == last ? mapper.apply(a) : a), Stream.concat(
+                stream, none).spliterator())));
+    }
+
+    /**
+     * Creates a new {@code EntryStream} populated from entries of maps produced
+     * by supplied mapper function which is applied to the every element of this
+     * stream.
+     * 
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
+     * operation.
+     * 
+     * @param <K>
+     *            the type of {@code Map} keys.
+     * @param <V>
+     *            the type of {@code Map} values.
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each element
+     *            which produces a {@link Map} of the entries corresponding to
+     *            the single element of the current stream. The mapper function
+     *            may return null or empty {@code Map} if no mapping should
+     *            correspond to some element.
+     * @return the new {@code EntryStream}
+     */
     public <K, V> EntryStream<K, V> flatMapToEntry(Function<? super T, ? extends Map<K, V>> mapper) {
         return strategy().newEntryStream(stream.flatMap(e -> {
             Map<K, V> s = mapper.apply(e);
@@ -220,6 +300,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @param other
      *            the array to perform a cross product with
      * @return the new {@code EntryStream}
+     * @throws NullPointerException
+     *             if other is null
      * @since 0.2.3
      */
     @SuppressWarnings("unchecked")
@@ -251,6 +333,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @param other
      *            the collection to perform a cross product with
      * @return the new {@code EntryStream}
+     * @throws NullPointerException
+     *             if other is null
      * @since 0.2.3
      */
     public <V> EntryStream<T, V> cross(Collection<? extends V> other) {
@@ -262,7 +346,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
 
     /**
      * Creates a new {@code EntryStream} whose keys are elements of current
-     * stream and corresponding values are supplied by given function.
+     * stream and corresponding values are supplied by given function. Each
+     * mapped stream is {@link java.util.stream.BaseStream#close() closed} after
+     * its contents have been placed into this stream. (If a mapped stream is
+     * {@code null} an empty stream is used, instead.)
      * 
      * <p>
      * This is an <a href="package-summary.html#StreamOps">intermediate</a>
@@ -278,8 +365,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.2.3
      */
     public <V> EntryStream<T, V> cross(Function<? super T, ? extends Stream<? extends V>> mapper) {
-        return strategy().newEntryStream(
-            stream.flatMap(a -> mapper.apply(a).map(b -> new SimpleImmutableEntry<>(a, b))));
+        return strategy().newEntryStream(stream.flatMap(a -> {
+            Stream<? extends V> s = mapper.apply(a);
+            return s == null ? null : s.map(b -> new SimpleImmutableEntry<>(a, b));
+        }));
     }
 
     /**
@@ -292,10 +381,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * There are no guarantees on the type, mutability or serializability of the
      * {@code Map} or {@code List} objects returned.
      * 
-     * <p>
-     * For parallel stream concurrent collector is used and ConcurrentMap is
-     * returned.
-     *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
      * operation.
@@ -325,10 +410,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * {@code Map} objects returned.
      * 
      * <p>
-     * For parallel stream concurrent collector is used and ConcurrentMap is
-     * returned.
-     *
-     * <p>
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
      * operation.
      * 
@@ -348,7 +429,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public <K, D> Map<K, D> groupingBy(Function<? super T, ? extends K> classifier,
             Collector<? super T, ?, D> downstream) {
-        if (stream.isParallel())
+        if (stream.isParallel() && downstream.characteristics().contains(Characteristics.UNORDERED))
             return collect(Collectors.groupingByConcurrent(classifier, downstream));
         return collect(Collectors.groupingBy(classifier, downstream));
     }
@@ -362,10 +443,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * <p>
      * The {@code Map} will be created using the provided factory function.
      * 
-     * <p>
-     * If the stream is parallel and map factory produces a
-     * {@link ConcurrentMap} then concurrent collector is used.
-     *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
      * operation.
@@ -392,7 +469,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     @SuppressWarnings("unchecked")
     public <K, D, M extends Map<K, D>> M groupingBy(Function<? super T, ? extends K> classifier,
             Supplier<M> mapFactory, Collector<? super T, ?, D> downstream) {
-        if (stream.isParallel() && mapFactory.get() instanceof ConcurrentMap)
+        if (stream.isParallel() && downstream.characteristics().contains(Characteristics.UNORDERED)
+            && mapFactory.get() instanceof ConcurrentMap)
             return (M) collect(Collectors.groupingByConcurrent(classifier, (Supplier<ConcurrentMap<K, D>>) mapFactory,
                 downstream));
         return collect(Collectors.groupingBy(classifier, mapFactory, downstream));
@@ -408,10 +486,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * There are no guarantees on the type, mutability or serializability of the
      * {@code Map} objects returned.
      * 
-     * <p>
-     * For parallel stream concurrent collector is used and ConcurrentMap is
-     * returned.
-     *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
      * operation.
@@ -447,10 +521,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * <p>
      * The {@code Map} will be created using the provided factory function.
      * 
-     * <p>
-     * If the stream is parallel and map factory produces a
-     * {@link ConcurrentMap} then concurrent collector is used.
-     *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
      * operation.
@@ -516,7 +586,9 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
-     * operation.
+     * operation. The operation may short-circuit if the downstream collector is
+     * <a
+     * href="package-summary.html#ShortCircuitReduction">short-circuiting</a>.
      *
      * <p>
      * There are no guarantees on the type, mutability, serializability, or
@@ -539,7 +611,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.2.2
      */
     public <D> Map<Boolean, D> partitioningBy(Predicate<? super T> predicate, Collector<? super T, ?, D> downstream) {
-        return collect(Collectors.partitioningBy(predicate, downstream));
+        return collect(MoreCollectors.partitioningBy(predicate, downstream));
     }
 
     /**
@@ -772,7 +844,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see #toMap(Function)
      */
     public <K, V> Map<K, V> toMap(Function<? super T, ? extends K> keyMapper, Function<? super T, ? extends V> valMapper) {
-        return toMap(keyMapper, valMapper, throwingMerger());
+        Map<K, V> map = stream.isParallel() ? new ConcurrentHashMap<>() : new HashMap<>();
+        return toMapThrowing(keyMapper, valMapper, map);
     }
 
     /**
@@ -788,9 +861,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * {@link Object#equals(Object)}), the value mapping function is applied to
      * each equal element, and the results are merged using the provided merging
      * function.
-     *
-     * <p>
-     * For parallel stream the concurrent {@code Map} is created.
      *
      * <p>
      * Returned {@code Map} is guaranteed to be modifiable.
@@ -819,8 +889,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public <K, V> Map<K, V> toMap(Function<? super T, ? extends K> keyMapper,
             Function<? super T, ? extends V> valMapper, BinaryOperator<V> mergeFunction) {
-        if (stream.isParallel())
-            return collect(Collectors.toConcurrentMap(keyMapper, valMapper, mergeFunction, ConcurrentHashMap::new));
         return collect(Collectors.toMap(keyMapper, valMapper, mergeFunction, HashMap::new));
     }
 
@@ -898,7 +966,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public <K, V> SortedMap<K, V> toSortedMap(Function<? super T, ? extends K> keyMapper,
             Function<? super T, ? extends V> valMapper) {
-        return toSortedMap(keyMapper, valMapper, throwingMerger());
+        SortedMap<K, V> map = stream.isParallel() ? new ConcurrentSkipListMap<>() : new TreeMap<>();
+        return toMapThrowing(keyMapper, valMapper, map);
     }
 
     /**
@@ -914,9 +983,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * {@link Object#equals(Object)}), the value mapping function is applied to
      * each equal element, and the results are merged using the provided merging
      * function.
-     *
-     * <p>
-     * For parallel stream the concurrent {@code SortedMap} is created.
      *
      * <p>
      * Returned {@code SortedMap} is guaranteed to be modifiable.
@@ -945,8 +1011,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public <K, V> SortedMap<K, V> toSortedMap(Function<? super T, ? extends K> keyMapper,
             Function<? super T, ? extends V> valMapper, BinaryOperator<V> mergeFunction) {
-        if (stream.isParallel())
-            return collect(Collectors.toConcurrentMap(keyMapper, valMapper, mergeFunction, ConcurrentSkipListMap::new));
         return collect(Collectors.toMap(keyMapper, valMapper, mergeFunction, TreeMap::new));
     }
 
@@ -1672,7 +1736,9 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return an ordered {@code StreamEx} of entries in given zip file
      * @throws IllegalStateException
      *             if the zip file has been closed
+     * @deprecated Use {@code StreamEx.of(file.entries())}
      */
+    @Deprecated
     public static StreamEx<? extends ZipEntry> ofEntries(ZipFile file) {
         return new StreamEx<>(file.stream());
     }
@@ -1687,7 +1753,9 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return an ordered {@code StreamEx} of entries in given jar file
      * @throws IllegalStateException
      *             if the jar file has been closed
+     * @deprecated Use {@code StreamEx.of(file.entries())}
      */
+    @Deprecated
     public static StreamEx<JarEntry> ofEntries(JarFile file) {
         return new StreamEx<>(file.stream());
     }

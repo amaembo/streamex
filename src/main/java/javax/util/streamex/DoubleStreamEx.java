@@ -22,6 +22,7 @@ import java.util.Comparator;
 import java.util.DoubleSummaryStatistics;
 import java.util.Objects;
 import java.util.OptionalDouble;
+import java.util.OptionalLong;
 import java.util.Random;
 import java.util.Spliterator;
 import java.util.Map.Entry;
@@ -45,8 +46,6 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-
-import javax.util.streamex.StreamExInternals.PrimitiveBox;
 
 import static javax.util.streamex.StreamExInternals.*;
 
@@ -81,7 +80,7 @@ public class DoubleStreamEx implements DoubleStream {
             throw new InternalError(e);
         }
     }
-    
+
     @Override
     public boolean isParallel() {
         return stream.isParallel();
@@ -192,6 +191,48 @@ public class DoubleStreamEx implements DoubleStream {
         return strategy().newDoubleStreamEx(stream.map(mapper));
     }
 
+    /**
+     * Returns a stream where the first element is the replaced with the result
+     * of applying the given function while the other elements are left intact.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     *
+     * @param mapper
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function to apply to the first element
+     * @return the new stream
+     * @since 0.4.1
+     */
+    public DoubleStreamEx mapFirst(DoubleUnaryOperator mapper) {
+        return boxed().mapFirst(mapper::applyAsDouble).mapToDouble(Double::doubleValue);
+    }
+
+    /**
+     * Returns a stream where the last element is the replaced with the result
+     * of applying the given function while the other elements are left intact.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     *
+     * @param mapper
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function to apply to the first element
+     * @return the new stream
+     * @since 0.4.1
+     */
+    public DoubleStreamEx mapLast(DoubleUnaryOperator mapper) {
+        return boxed().mapLast(mapper::applyAsDouble).mapToDouble(Double::doubleValue);
+    }
+    
     @Override
     public <U> StreamEx<U> mapToObj(DoubleFunction<? extends U> mapper) {
         return strategy().newStreamEx(stream.mapToObj(mapper));
@@ -475,8 +516,12 @@ public class DoubleStreamEx implements DoubleStream {
      * unordered. The main purpose of this method is to workaround the problem
      * of skipping the first elements from non-sized source with further
      * parallel processing and unordered terminal operation (such as
-     * {@link #forEach(DoubleConsumer)}). Also it behaves much better with
-     * infinite streams processed in parallel. For example,
+     * {@link #forEach(DoubleConsumer)}). This problem was fixed in OracleJDK
+     * 8u60.
+     * 
+     * <p>
+     * Also it behaves much better with infinite streams processed in parallel.
+     * For example,
      * {@code DoubleStreamEx.iterate(0.0, i->i+1).skip(1).limit(100).parallel().toArray()}
      * will likely to fail with {@code OutOfMemoryError}, but will work nicely
      * if {@code skip} is replaced with {@code skipOrdered}.
@@ -590,11 +635,11 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.4.0
      */
     public double foldLeft(double identity, DoubleBinaryOperator accumulator) {
-        double[] box = new double[] {identity};
+        double[] box = new double[] { identity };
         stream.forEachOrdered(t -> box[0] = accumulator.applyAsDouble(box[0], t));
         return box[0];
     }
-    
+
     /**
      * Folds the elements of this stream using the provided accumulation
      * function, going left to right. This is equivalent to:
@@ -641,7 +686,7 @@ public class DoubleStreamEx implements DoubleStream {
     public OptionalDouble foldLeft(DoubleBinaryOperator accumulator) {
         PrimitiveBox b = new PrimitiveBox();
         stream.forEachOrdered(t -> {
-            if(b.b)
+            if (b.b)
                 b.d = accumulator.applyAsDouble(b.d, t);
             else {
                 b.d = t;
@@ -1014,6 +1059,30 @@ public class DoubleStreamEx implements DoubleStream {
         return filter(predicate).findAny();
     }
 
+    /**
+     * Returns an {@link OptionalLong} describing the zero-based index of the first element
+     * of this stream, which matches given predicate, or an empty
+     * {@code OptionalLong} if there's no matching element.
+     *
+     * <p>
+     * This is a short-circuiting terminal operation.
+     *
+     * @param predicate
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            predicate which returned value should match
+     * @return an {@code OptionalLong} describing the index of the first
+     *         matching element of this stream, or an empty {@code OptionalLong}
+     *         if there's no matching element.
+     * @see #findFirst(DoublePredicate)
+     * @since 0.4.0
+     */
+    public OptionalLong indexOf(DoublePredicate predicate) {
+        return boxed().indexOf(predicate::test);
+    }
+
     @Override
     public StreamEx<Double> boxed() {
         return strategy().newStreamEx(stream.boxed());
@@ -1216,7 +1285,7 @@ public class DoubleStreamEx implements DoubleStream {
      */
     public DoubleStreamEx takeWhile(DoublePredicate predicate) {
         Objects.requireNonNull(predicate);
-        if (IS_JDK9 && JDK9_METHODS[IDX_DOUBLE_STREAM] != null) {
+        if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_TAKE_WHILE);
         }
         return delegate(new TDOfDouble(stream.spliterator(), false, predicate));
@@ -1245,7 +1314,7 @@ public class DoubleStreamEx implements DoubleStream {
      */
     public DoubleStreamEx dropWhile(DoublePredicate predicate) {
         Objects.requireNonNull(predicate);
-        if (IS_JDK9 && JDK9_METHODS[IDX_DOUBLE_STREAM] != null) {
+        if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_DROP_WHILE);
         }
         return delegate(new TDOfDouble(stream.spliterator(), true, predicate));
@@ -1383,7 +1452,7 @@ public class DoubleStreamEx implements DoubleStream {
 
     /**
      * Returns a sequential ordered {@code DoubleStreamEx} whose elements are
-     * the unboxed elements of supplied collection. 
+     * the unboxed elements of supplied collection.
      *
      * @param collection
      *            the collection to create the stream from.

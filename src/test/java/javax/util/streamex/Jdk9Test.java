@@ -17,6 +17,9 @@ package javax.util.streamex;
 
 import static org.junit.Assert.*;
 
+import java.lang.invoke.MethodHandle;
+import java.util.stream.Stream;
+
 import org.junit.Test;
 
 /**
@@ -25,6 +28,10 @@ import org.junit.Test;
 public class Jdk9Test {
     @Test
     public void testJdk9Basics() {
-        assertNotNull(StreamExInternals.initJdk9Methods());
+        MethodHandle[][] jdk9Methods = StreamExInternals.initJdk9Methods();
+        if(Stream.of(Stream.class.getMethods()).anyMatch(m -> m.getName().equals("takeWhile")))
+            assertNotNull(jdk9Methods);
+        else
+            assertNull(jdk9Methods);
     }
 }

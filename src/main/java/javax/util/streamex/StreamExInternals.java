@@ -23,6 +23,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
 import java.nio.ByteOrder;
+import java.util.AbstractCollection;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.Arrays;
@@ -74,6 +75,9 @@ import java.util.stream.Stream;
     static final Function<double[], Double> UNBOX_DOUBLE = box -> box[0];
     static final Object NONE = new Object();
     static final Set<Characteristics> NO_CHARACTERISTICS = EnumSet.noneOf(Characteristics.class);
+    static final Set<Characteristics> UNORDERED_CHARACTERISTICS = EnumSet.of(Characteristics.UNORDERED);
+    static final Set<Characteristics> UNORDERED_ID_CHARACTERISTICS = EnumSet.of(Characteristics.UNORDERED,
+        Characteristics.IDENTITY_FINISH);
     static final Set<Characteristics> ID_CHARACTERISTICS = EnumSet.of(Characteristics.IDENTITY_FINISH);
     static final int IDX_STREAM = 0;
     static final int IDX_INT_STREAM = 1;
@@ -81,7 +85,7 @@ import java.util.stream.Stream;
     static final int IDX_DOUBLE_STREAM = 3;
     static final int IDX_TAKE_WHILE = 0;
     static final int IDX_DROP_WHILE = 1;
-    
+
     static MethodHandle[][] initJdk9Methods() {
         Lookup lookup = MethodHandles.publicLookup();
         MethodType[] types = { MethodType.methodType(Stream.class, Predicate.class),
@@ -96,7 +100,7 @@ import java.util.stream.Stream;
                         lookup.findVirtual(type.returnType(), "dropWhile", type) };
             }
         } catch (NoSuchMethodException | IllegalAccessException e) {
-            // ignore
+            return null;
         }
         return methods;
     }
@@ -358,7 +362,7 @@ import java.util.stream.Stream;
     }
 
     static final class BooleanMap<T> extends AbstractMap<Boolean, T> {
-        final T trueValue, falseValue;
+        T trueValue, falseValue;
 
         BooleanMap(T trueValue, T falseValue) {
             this.trueValue = trueValue;
@@ -401,15 +405,14 @@ import java.util.stream.Stream;
         }
 
         @SuppressWarnings({ "unchecked", "rawtypes" })
-        static <A, R> PartialCollector<BooleanMap<A>, Map<Boolean, R>> partialCollector(
-                MergingCollector<?, A, R> downstream) {
+        static <A, R> PartialCollector<BooleanMap<A>, Map<Boolean, R>> partialCollector(Collector<?, A, R> downstream) {
             Supplier<A> downstreamSupplier = downstream.supplier();
             Supplier<BooleanMap<A>> supplier = () -> new BooleanMap<>(downstreamSupplier.get(),
                     downstreamSupplier.get());
-            BiConsumer<A, A> downstreamMerger = downstream.merger();
+            BinaryOperator<A> downstreamCombiner = downstream.combiner();
             BiConsumer<BooleanMap<A>, BooleanMap<A>> merger = (left, right) -> {
-                downstreamMerger.accept(left.trueValue, right.trueValue);
-                downstreamMerger.accept(left.falseValue, right.falseValue);
+                left.trueValue = downstreamCombiner.apply(left.trueValue, right.trueValue);
+                left.falseValue = downstreamCombiner.apply(left.falseValue, right.falseValue);
             };
             if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
                 return (PartialCollector) new PartialCollector<>(supplier, merger, Function.identity(),
@@ -486,15 +489,22 @@ import java.util.stream.Stream;
             return Collector.of(supplier, accumulator, combiner(), finisher,
                 characteristics.toArray(new Characteristics[characteristics.size()]));
         }
-        
+
+        <T> Collector<T, A, R> asCancellable(BiConsumer<A, T> accumulator, Predicate<A> finished) {
+            return new CancellableCollectorImpl<>(supplier, accumulator, combiner(), finisher, finished,
+                    characteristics);
+        }
+
         static PartialCollector<int[], Integer> intSum() {
-            return new PartialCollector<>(() -> new int[1], (box1, box2) -> box1[0] += box2[0], UNBOX_INT, NO_CHARACTERISTICS);
+            return new PartialCollector<>(() -> new int[1], (box1, box2) -> box1[0] += box2[0], UNBOX_INT,
+                    UNORDERED_CHARACTERISTICS);
         }
 
         static PartialCollector<long[], Long> longSum() {
-            return new PartialCollector<>(() -> new long[1], (box1, box2) -> box1[0] += box2[0], UNBOX_LONG, NO_CHARACTERISTICS);
+            return new PartialCollector<>(() -> new long[1], (box1, box2) -> box1[0] += box2[0], UNBOX_LONG,
+                    UNORDERED_CHARACTERISTICS);
         }
-        
+
         static PartialCollector<ObjIntBox<BitSet>, boolean[]> booleanArray() {
             return new PartialCollector<>(() -> new ObjIntBox<>(new BitSet(), 0), (box1, box2) -> {
                 box2.a.stream().forEach(i -> box1.a.set(i + box1.b));
@@ -507,21 +517,17 @@ import java.util.stream.Stream;
         }
 
         @SuppressWarnings("unchecked")
-        static <K, D, A, M extends Map<K, D>> PartialCollector<Map<K, A>, M> grouping(
-                Supplier<M> mapFactory, MergingCollector<?, A, D> downstream) {
-            BiConsumer<A, A> downstreamMerger = downstream.merger();
+        static <K, D, A, M extends Map<K, D>> PartialCollector<Map<K, A>, M> grouping(Supplier<M> mapFactory,
+                Collector<?, A, D> downstream) {
+            BinaryOperator<A> downstreamMerger = downstream.combiner();
             BiConsumer<Map<K, A>, Map<K, A>> merger = (map1, map2) -> {
                 for (Map.Entry<K, A> e : map2.entrySet())
-                    map1.merge(e.getKey(), e.getValue(), (a, b) -> {
-                        downstreamMerger.accept(a, b);
-                        return a;
-                    });
+                    map1.merge(e.getKey(), e.getValue(), downstreamMerger);
             };
 
             if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
-                return (PartialCollector<Map<K, A>, M>) new PartialCollector<>(
-                        (Supplier<Map<K, A>>) mapFactory, merger, Function.identity(),
-                        ID_CHARACTERISTICS);
+                return (PartialCollector<Map<K, A>, M>) new PartialCollector<>((Supplier<Map<K, A>>) mapFactory,
+                        merger, Function.identity(), ID_CHARACTERISTICS);
             } else {
                 Function<A, D> downstreamFinisher = downstream.finisher();
                 return new PartialCollector<>((Supplier<Map<K, A>>) mapFactory, merger, map -> {
@@ -530,20 +536,75 @@ import java.util.stream.Stream;
                 }, NO_CHARACTERISTICS);
             }
         }
-        
-        static PartialCollector<StringBuilder, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix, boolean hasPS) {
+
+        static PartialCollector<StringBuilder, String> joining(CharSequence delimiter, CharSequence prefix,
+                CharSequence suffix, boolean hasPS) {
             BiConsumer<StringBuilder, StringBuilder> merger = (sb1, sb2) -> {
-                    if (sb2.length() > 0) {
-                        if (sb1.length() > 0)
-                            sb1.append(delimiter);
-                        sb1.append(sb2);
-                    }
-                };
+                if (sb2.length() > 0) {
+                    if (sb1.length() > 0)
+                        sb1.append(delimiter);
+                    sb1.append(sb2);
+                }
+            };
             Supplier<StringBuilder> supplier = StringBuilder::new;
-            if(hasPS)
+            if (hasPS)
                 return new PartialCollector<>(supplier, merger, sb -> new StringBuilder().append(prefix).append(sb)
                         .append(suffix).toString(), NO_CHARACTERISTICS);
             return new PartialCollector<>(supplier, merger, StringBuilder::toString, NO_CHARACTERISTICS);
+        }
+    }
+    
+    static abstract class CancellableCollector<T, A, R> implements Collector<T, A, R> {
+        abstract Predicate<A> finished();
+    }
+
+    static final class CancellableCollectorImpl<T, A, R> extends CancellableCollector<T, A, R> {
+        private final Supplier<A> supplier;
+        private final BiConsumer<A, T> accumulator;
+        private final BinaryOperator<A> combiner;
+        private final Function<A, R> finisher;
+        private final Predicate<A> finished;
+        private final Set<Characteristics> characteristics;
+
+        public CancellableCollectorImpl(Supplier<A> supplier, BiConsumer<A, T> accumulator, BinaryOperator<A> combiner,
+                Function<A, R> finisher, Predicate<A> finished,
+                Set<java.util.stream.Collector.Characteristics> characteristics) {
+            this.supplier = supplier;
+            this.accumulator = accumulator;
+            this.combiner = combiner;
+            this.finisher = finisher;
+            this.finished = finished;
+            this.characteristics = characteristics;
+        }
+
+        @Override
+        public Supplier<A> supplier() {
+            return supplier;
+        }
+
+        @Override
+        public BiConsumer<A, T> accumulator() {
+            return accumulator;
+        }
+
+        @Override
+        public BinaryOperator<A> combiner() {
+            return combiner;
+        }
+
+        @Override
+        public Function<A, R> finisher() {
+            return finisher;
+        }
+
+        @Override
+        public Set<Characteristics> characteristics() {
+            return characteristics;
+        }
+
+        @Override
+        Predicate<A> finished() {
+            return finished;
         }
     }
 
@@ -633,7 +694,7 @@ import java.util.stream.Stream;
         public boolean equals(Object obj) {
             if (obj == null || obj.getClass() != PairBox.class)
                 return false;
-            return Objects.equals(b, ((PairBox<?, ?>)obj).b);
+            return Objects.equals(b, ((PairBox<?, ?>) obj).b);
         }
     }
 
@@ -765,25 +826,25 @@ import java.util.stream.Stream;
                 box1.from(box2);
             }
         };
-        
+
         static final BiConsumer<PrimitiveBox, PrimitiveBox> MIN_INT = (box1, box2) -> {
             if (box2.b && (!box1.b || box1.i > box2.i)) {
                 box1.from(box2);
             }
         };
-        
+
         static final BiConsumer<PrimitiveBox, PrimitiveBox> MAX_DOUBLE = (box1, box2) -> {
             if (box2.b && (!box1.b || Double.compare(box1.d, box2.d) < 0)) {
                 box1.from(box2);
             }
         };
-        
+
         static final BiConsumer<PrimitiveBox, PrimitiveBox> MIN_DOUBLE = (box1, box2) -> {
             if (box2.b && (!box1.b || Double.compare(box1.d, box2.d) > 0)) {
                 box1.from(box2);
             }
         };
-        
+
         public void from(PrimitiveBox box) {
             b = box.b;
             i = box.i;
@@ -1018,6 +1079,40 @@ import java.util.stream.Stream;
         }
     }
 
+    @SuppressWarnings("serial")
+    static class CancelException extends Error {
+        CancelException() {
+            // Calling this constructor makes the Exception construction much
+            // faster (like 0.3us vs 1.7us)
+            super(null, null, false, false);
+        }
+    }
+    
+    static class ArrayCollection extends AbstractCollection<Object> {
+        private final Object[] arr;
+
+        ArrayCollection(Object[] arr) {
+            this.arr = arr;
+        }
+
+        @Override
+        public Iterator<Object> iterator() {
+            return Arrays.asList(arr).iterator();
+        }
+
+        @Override
+        public int size() {
+            return arr.length;
+        }
+
+        @Override
+        public Object[] toArray() {
+            // intentional contract violation here:
+            // this way new ArrayList(new ArrayCollection(arr)) will not copy array at all
+            return arr;
+        }
+    }
+
     static ObjIntConsumer<StringBuilder> joinAccumulatorInt(CharSequence delimiter) {
         return (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i);
     }
@@ -1030,16 +1125,10 @@ import java.util.stream.Stream;
         return (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i);
     }
 
-    static <V> BinaryOperator<V> throwingMerger() {
-        return (u, v) -> {
-            throw new IllegalStateException(String.format("Duplicate key %s", u));
-        };
-    }
-
     static <T> BinaryOperator<T> selectFirst() {
         return (u, v) -> u;
     }
-
+    
     static int checkLength(int a, int b) {
         if (a != b)
             throw new IllegalArgumentException("Length differs: " + a + " != " + b);
@@ -1069,6 +1158,12 @@ import java.util.stream.Stream;
     @SuppressWarnings("unchecked")
     static <T> Stream<T> unwrap(Stream<T> stream) {
         return stream instanceof AbstractStreamEx ? ((AbstractStreamEx<T, ?>) stream).stream : stream;
+    }
+    
+    static <A> Predicate<A> finished(Collector<?, A, ?> collector) {
+        if(collector instanceof CancellableCollector)
+            return ((CancellableCollector<?, A, ?>)collector).finished();
+        return null;
     }
 
     @SuppressWarnings("unchecked")

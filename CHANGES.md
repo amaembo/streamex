@@ -1,13 +1,38 @@
 # StreamEx changes
 
+### 0.4.1
+
+* Added: `StreamEx/IntStreamEx/LongStreamEx/DoubleStreamEx.mapLast/mapFirst` methods.
+* Added: `MoreCollectors.flatMapping` collector.
+* Fixed: `StreamEx.cross(mapper)` now correctly handles the case when mapper returns null instead of empty stream.
+* Optimized: ordered stateful short-circuit collectors now may process less elements in parallel.
+* Optimized: `StreamEx/EntryStream.toList()/toListAndThen()/foldRight()/scanRight()` now faster, especially for sized stream.
+* Optimized: collapse-based operations like `StreamEx.collapse/groupRuns/runLengths/intervalMap` now may work faster,
+especially when stream has more intermediate operations before them.
+* Updated documentation. 
+
 ### 0.4.0
 
-* Added `StreamEx/EntryStream.foldLeft/foldRight` methods without identity operator.
-* Added `StreamEx/EntryStream.scanLeft/scanRight` methods without identity operator.
+* Introduced the concept of short-circuiting collectors.
+* `StreamEx/EntryStream.collect(Collector)` method works as short-circuit operation if short-circuiting collector is passed.
+* `MoreCollectors.first/head` collectors are short-circuiting now.
+* `MoreCollectors.groupingByEnum` collector may short-circuit if downstream collector is short-circuiting.
+* `MoreCollectors.pairing` collector may short-circuit if both downstream collectors are short-circuiting.
+* Added new short-circuiting collectors: `onlyOne`, `intersecting`, `toEnumSet`, `andingInt`, `andingLong`.
+* Added new collectors: `filtering`, `groupingBy` (with domain specification) which short-circuit when downstream collector is short-circuiting.
+* Added collectors `mapping`, `collectingAndThen`, `partitioningBy` which mimic standard JDK collectors, but short-circuit when downstream collector is short-circuiting.
+* Added `indexOf` methods for all stream types. 
+* Added `StreamEx/EntryStream.foldLeft/foldRight` methods without identity argument.
+* Added `StreamEx/EntryStream.scanLeft/scanRight` methods without identity argument.
 * Added `StreamEx.cartesianProduct/cartesianPower` methods with reduction operator.
 * Added `IntStreamEx/LongStreamEx.range/rangeClosed` methods with additional step parameter.
 * Added `IntStreamEx/LongStreamEx/DoubleStreamEx.foldLeft` methods.
+* Methods `StreamEx/EntryStream.toMap/toSortedMap/toCustomMap` without merge function now produce better exception message in the case of duplicate keys.
+* Methods `StreamEx/EntryStream.toMap/toSortedMap/toCustomMap` accepting merge function are not guaranteed to return ConcurrentMap for parallel streams now. They however guarantee now the correct merging order for non-commutative merger functions.
+* Methods `StreamEx/EntryStream.grouping*` are not guaranteed to return the ConcurrentMap for parallel streams now. They however guarantee now the correct order of downstream collection.
+* Methods `StreamEx.ofEntries` are declared as deprecated and may be removed in future releases!
 * Deprecated methods `EntryStream.mapEntryKeys`/`mapEntryValues` are removed!
+* Updated documentation
 
 ### 0.3.8
 

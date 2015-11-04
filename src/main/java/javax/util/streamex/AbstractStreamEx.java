@@ -20,8 +20,10 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.function.BiConsumer;
@@ -42,6 +44,7 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import java.util.stream.Collector.Characteristics;
 
 import static javax.util.streamex.StreamExInternals.*;
 
@@ -68,6 +71,24 @@ import static javax.util.streamex.StreamExInternals.*;
         } catch (Throwable e) {
             throw new InternalError(e);
         }
+    }
+
+    final <K, V, M extends Map<K, V>> M toMapThrowing(Function<? super T, ? extends K> keyMapper,
+            Function<? super T, ? extends V> valMapper, M map) {
+        forEach(t -> addToMap(map, keyMapper.apply(t), Objects.requireNonNull(valMapper.apply(t))));
+        return map;
+    }
+
+    final <K, V, M extends Map<K, V>> void addToMap(M map, K key, V val) {
+        V oldVal = map.putIfAbsent(key, val);
+        if (oldVal != null) {
+            throw new IllegalStateException("Duplicate entry for key '" + key + "' (attempt to merge values '" + oldVal
+                + "' and '" + val + "')");
+        }
+    }
+
+    <R, A> R rawCollect(Collector<? super T, A, R> collector) {
+        return stream.collect(collector);
     }
 
     abstract S supply(Stream<T> stream);
@@ -241,9 +262,49 @@ import static javax.util.streamex.StreamExInternals.*;
         return stream.collect(supplier, accumulator, combiner);
     }
 
+    /**
+     * {@inheritDoc}
+     * 
+     * <p>
+     * If special <a
+     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * collector</a> is passed, this operation becomes short-circuiting as well.
+     */
     @Override
     public <R, A> R collect(Collector<? super T, A, R> collector) {
-        return stream.collect(collector);
+        Predicate<A> finished = finished(collector);
+        if (finished != null) {
+            BiConsumer<A, ? super T> acc = collector.accumulator();
+            BinaryOperator<A> combiner = collector.combiner();
+            Spliterator<T> spliterator = stream.spliterator();
+            if (!isParallel()) {
+                A a = collector.supplier().get();
+                if (!finished.test(a)) {
+                    try {
+                        // forEachRemaining can be much faster
+                        // and take much less memory than tryAdvance for certain
+                        // spliterators
+                        spliterator.forEachRemaining(e -> {
+                            acc.accept(a, e);
+                            if (finished.test(a))
+                                throw new CancelException();
+                        });
+                    } catch (CancelException ex) {
+                        // ignore
+                    }
+                }
+                return collector.finisher().apply(a);
+            }
+            Spliterator<A> spltr;
+            if (!spliterator.hasCharacteristics(Spliterator.ORDERED)
+                || collector.characteristics().contains(Characteristics.UNORDERED)) {
+                spltr = new UnorderedCancellableSpliterator<>(spliterator, collector.supplier(), acc, combiner, finished);
+            } else {
+                spltr = new OrderedCancellableSpliterator<>(spliterator, collector.supplier(), acc, combiner, finished);
+            }
+            return collector.finisher().apply(strategy().newStreamEx(StreamSupport.stream(spltr, true)).findFirst().get());
+        }
+        return rawCollect(collector);
     }
 
     @Override
@@ -284,6 +345,68 @@ import static javax.util.streamex.StreamExInternals.*;
     @Override
     public Optional<T> findAny() {
         return stream.findAny();
+    }
+
+    /**
+     * Returns an {@link OptionalLong} describing the zero-based index of the
+     * first element of this stream, which equals to the given element, or an
+     * empty {@code OptionalLong} if there's no matching element.
+     *
+     * <p>
+     * This is a short-circuiting terminal operation.
+     *
+     * @param element
+     *            an element to look for
+     * @return an {@code OptionalLong} describing the index of the first
+     *         matching element of this stream, or an empty {@code OptionalLong}
+     *         if there's no matching element.
+     * @see #indexOf(Predicate)
+     * @since 0.4.0
+     */
+    public OptionalLong indexOf(T element) {
+        return indexOf(Predicate.isEqual(element));
+    }
+
+    /**
+     * Returns an {@link OptionalLong} describing the zero-based index of the
+     * first element of this stream, which matches given predicate, or an empty
+     * {@code OptionalLong} if there's no matching element.
+     *
+     * <p>
+     * This is a short-circuiting terminal operation.
+     *
+     * @param predicate
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            predicate which returned value should match
+     * @return an {@code OptionalLong} describing the index of the first
+     *         matching element of this stream, or an empty {@code OptionalLong}
+     *         if there's no matching element.
+     * @see #findFirst(Predicate)
+     * @see #indexOf(Object)
+     * @since 0.4.0
+     */
+    public OptionalLong indexOf(Predicate<? super T> predicate) {
+        return collect(new CancellableCollectorImpl<T, long[], OptionalLong>(() -> new long[] { -1 }, (acc, t) -> {
+            if (acc[0] < 0) {
+                if (predicate.test(t)) {
+                    acc[0] = -acc[0] - 1;
+                } else {
+                    acc[0]--;
+                }
+            }
+        }, (acc1, acc2) -> {
+            if (acc1[0] < 0) {
+                if (acc2[0] < 0) {
+                    acc1[0] = acc1[0] + acc2[0] + 1;
+                } else {
+                    acc1[0] = acc2[0] - acc1[0] - 1;
+                }
+            }
+            return acc1;
+        }, acc -> acc[0] < 0 ? OptionalLong.empty() : OptionalLong.of(acc[0]), acc -> acc[0] >= 0, NO_CHARACTERISTICS));
     }
 
     /**
@@ -888,10 +1011,11 @@ import static javax.util.streamex.StreamExInternals.*;
     }
 
     /**
-     * Returns a {@link List} containing the elements of this stream. There are
-     * no guarantees on the type, mutability, serializability, or thread-safety
-     * of the {@code List} returned; if more control over the returned
-     * {@code List} is required, use {@link #toCollection(Supplier)}.
+     * Returns a {@link List} containing the elements of this stream. The
+     * returned {@code List} is guaranteed to be mutable, but there are no
+     * guarantees on the type, serializability, or thread-safety; if more
+     * control over the returned {@code List} is required, use
+     * {@link #toCollection(Supplier)}.
      *
      * <p>
      * This is a terminal operation.
@@ -899,8 +1023,9 @@ import static javax.util.streamex.StreamExInternals.*;
      * @return a {@code List} containing the elements of this stream
      * @see Collectors#toList()
      */
+    @SuppressWarnings("unchecked")
     public List<T> toList() {
-        return collect(Collectors.toList());
+        return new ArrayList<T>((Collection<T>) new ArrayCollection(toArray()));
     }
 
     /**
@@ -917,16 +1042,18 @@ import static javax.util.streamex.StreamExInternals.*;
      * @return result of applying the finisher transformation to the list of the
      *         stream elements.
      * @since 0.2.3
+     * @see #toList()
      */
     public <R> R toListAndThen(Function<List<T>, R> finisher) {
-        return collect(Collectors.collectingAndThen(Collectors.toList(), finisher));
+        return finisher.apply(toList());
     }
 
     /**
-     * Returns a {@link Set} containing the elements of this stream. There are
-     * no guarantees on the type, mutability, serializability, or thread-safety
-     * of the {@code Set} returned; if more control over the returned
-     * {@code Set} is required, use {@link #toCollection(Supplier)}.
+     * Returns a {@link Set} containing the elements of this stream. The
+     * returned {@code Set} is guaranteed to be mutable, but there are no
+     * guarantees on the type, serializability, or thread-safety; if more
+     * control over the returned {@code Set} is required, use
+     * {@link #toCollection(Supplier)}.
      *
      * <p>
      * This is a terminal operation.
@@ -952,6 +1079,7 @@ import static javax.util.streamex.StreamExInternals.*;
      * @return result of applying the finisher transformation to the set of the
      *         stream elements.
      * @since 0.2.3
+     * @see #toSet()
      */
     public <R> R toSetAndThen(Function<Set<T>, R> finisher) {
         return collect(Collectors.collectingAndThen(Collectors.toSet(), finisher));
@@ -1028,7 +1156,8 @@ import static javax.util.streamex.StreamExInternals.*;
      * Folds the elements of this stream using the provided accumulation
      * function, going left to right. This is equivalent to:
      * 
-     * <pre>{@code
+     * <pre>
+     * {@code
      *     boolean foundAny = false;
      *     T result = null;
      *     for (T element : this stream) {
@@ -1040,8 +1169,9 @@ import static javax.util.streamex.StreamExInternals.*;
      *             result = accumulator.apply(result, element);
      *     }
      *     return foundAny ? Optional.of(result) : Optional.empty();
-     * }</pre>
-
+     * }
+     * </pre>
+     * 
      * <p>
      * This is a terminal operation.
      * 
@@ -1147,8 +1277,8 @@ import static javax.util.streamex.StreamExInternals.*;
      * @since 0.4.0
      */
     public Optional<T> foldRight(BinaryOperator<T> accumulator) {
-        return this.<Optional<T>>toListAndThen(list -> {
-            if(list.isEmpty())
+        return this.<Optional<T>> toListAndThen(list -> {
+            if (list.isEmpty())
                 return Optional.empty();
             int i = list.size() - 1;
             T result = list.get(i--);
@@ -1238,7 +1368,7 @@ import static javax.util.streamex.StreamExInternals.*;
     public List<T> scanLeft(BinaryOperator<T> accumulator) {
         List<T> result = new ArrayList<>();
         forEachOrdered(t -> {
-            if(result.isEmpty())
+            if (result.isEmpty())
                 result.add(t);
             else
                 result.add(accumulator.apply(result.get(result.size() - 1), t));
@@ -1355,8 +1485,10 @@ import static javax.util.streamex.StreamExInternals.*;
      * {@code StreamEx.ofLines(br).skip(1).parallel().toSet()} will skip
      * arbitrary line, but
      * {@code StreamEx.ofLines(br).skipOrdered(1).parallel().toSet()} will skip
-     * the first one. Also it behaves much better with infinite streams
-     * processed in parallel.
+     * the first one. This problem was fixed in OracleJDK 8u60.
+     *
+     * <p>
+     * Also it behaves much better with infinite streams processed in parallel.
      * 
      * <p>
      * For sequential streams this method behaves exactly like
@@ -1397,7 +1529,7 @@ import static javax.util.streamex.StreamExInternals.*;
      */
     public S takeWhile(Predicate<? super T> predicate) {
         Objects.requireNonNull(predicate);
-        if (IS_JDK9 && JDK9_METHODS[IDX_STREAM] != null) {
+        if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_TAKE_WHILE);
         }
         return supply(delegate(new TDOfRef<>(stream.spliterator(), false, predicate)));
@@ -1426,7 +1558,7 @@ import static javax.util.streamex.StreamExInternals.*;
      */
     public S dropWhile(Predicate<? super T> predicate) {
         Objects.requireNonNull(predicate);
-        if (IS_JDK9 && JDK9_METHODS[IDX_STREAM] != null) {
+        if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_DROP_WHILE);
         }
         return supply(delegate(new TDOfRef<>(stream.spliterator(), true, predicate)));

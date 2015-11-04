@@ -15,9 +15,8 @@
  */
 package javax.util.streamex;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
+import static javax.util.streamex.StreamExInternals.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,9 +25,12 @@ import java.util.List;
 import java.util.Random;
 import java.util.Spliterator;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.BaseStream;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -59,7 +61,7 @@ public class TestHelpers {
             return parallel ? "Parallel" : "Sequential";
         }
     }
-    
+
     static class StreamExSupplier<T> extends StreamSupplier<T, StreamEx<T>> {
         private final Mode mode;
 
@@ -71,13 +73,14 @@ public class TestHelpers {
         @Override
         public StreamEx<T> get() {
             StreamEx<T> res = super.get();
-            switch(mode) {
+            switch (mode) {
             case APPEND:
-                // using Stream.empty() here makes the resulting stream unordered
+                // using Stream.empty() here makes the resulting stream
+                // unordered
                 // which is undesired
-                return res.append(Arrays.<T>asList().stream());
+                return res.append(Arrays.<T> asList().stream());
             case PREPEND:
-                return res.prepend(Arrays.<T>asList().stream());
+                return res.prepend(Arrays.<T> asList().stream());
             default:
                 return res;
             }
@@ -85,7 +88,7 @@ public class TestHelpers {
 
         @Override
         public String toString() {
-            return super.toString()+"/"+mode;
+            return super.toString() + "/" + mode;
         }
     }
 
@@ -94,15 +97,49 @@ public class TestHelpers {
     }
 
     static <T> List<StreamExSupplier<T>> streamEx(Supplier<Stream<T>> base) {
-        return StreamEx.of(Boolean.FALSE, Boolean.TRUE)
-                .cross(Mode.values()).mapKeyValue((parallel, mode) -> new StreamExSupplier<>(base, parallel, mode))
-                .toList();
+        return StreamEx.of(Boolean.FALSE, Boolean.TRUE).cross(Mode.values())
+                .mapKeyValue((parallel, mode) -> new StreamExSupplier<>(base, parallel, mode)).toList();
     }
-    
+
+    static <T, R> void checkCollectorEmpty(String message, R expected, Collector<T, ?, R> collector) {
+        if (finished(collector) != null)
+            checkShortCircuitCollector(message, expected, 0, Stream::empty, collector);
+        else
+            checkCollector(message, expected, Stream::empty, collector);
+    }
+
+    static <T, R> void checkShortCircuitCollector(String message, R expected, int expectedConsumedElements,
+            Supplier<Stream<T>> base, Collector<T, ?, R> collector) {
+        checkShortCircuitCollector(message, expected, expectedConsumedElements, base, collector, false);
+    }
+
+    static <T, R> void checkShortCircuitCollector(String message, R expected, int expectedConsumedElements,
+            Supplier<Stream<T>> base, Collector<T, ?, R> collector, boolean skipIdentity) {
+        assertNotNull(message, finished(collector));
+        Collector<T, ?, R> withIdentity = Collectors.collectingAndThen(collector, Function.identity());
+        for (StreamExSupplier<T> supplier : streamEx(base)) {
+            AtomicInteger counter = new AtomicInteger();
+            assertEquals(message + ": " + supplier, expected, supplier.get().peek(t -> counter.incrementAndGet())
+                    .collect(collector));
+            if (!supplier.get().isParallel())
+                assertEquals(message + ": " + supplier + ": consumed: ", expectedConsumedElements, counter.get());
+            if (!skipIdentity)
+                assertEquals(message + ": " + supplier, expected, supplier.get().collect(withIdentity));
+        }
+    }
+
+    static <T, R> void checkCollector(String message, R expected, Supplier<Stream<T>> base, Collector<T, ?, R> collector) {
+        // use checkShortCircuitCollector for CancellableCollector
+        assertNull(message, finished(collector));
+        for (StreamExSupplier<T> supplier : streamEx(base)) {
+            assertEquals(message + ": " + supplier, expected, supplier.get().collect(collector));
+        }
+    }
+
     static <T> List<StreamExSupplier<T>> emptyStreamEx(Class<T> clazz) {
-        return streamEx(() -> Stream.<T>empty());
+        return streamEx(() -> Stream.<T> empty());
     }
-    
+
     static <T> void checkSpliterator(String msg, Supplier<Spliterator<T>> supplier) {
         List<T> expected = new ArrayList<>();
         supplier.get().forEachRemaining(expected::add);
@@ -110,8 +147,8 @@ public class TestHelpers {
     }
 
     /*
-     * Tests whether spliterators produced by given supplier
-     * produce the expected result under various splittings
+     * Tests whether spliterators produced by given supplier produce the
+     * expected result under various splittings
      * 
      * This test is single-threaded and its results are stable
      */
@@ -119,8 +156,8 @@ public class TestHelpers {
         List<T> seq = new ArrayList<>();
         Spliterator<T> sequential = supplier.get();
         sequential.forEachRemaining(seq::add);
-        assertFalse(msg, sequential.tryAdvance(t -> fail(msg+": Advance called with " + t)));
-        sequential.forEachRemaining(t -> fail(msg+": Advance called with " + t));
+        assertFalse(msg, sequential.tryAdvance(t -> fail(msg + ": Advance called with " + t)));
+        sequential.forEachRemaining(t -> fail(msg + ": Advance called with " + t));
         assertEquals(msg, expected, seq);
         Random r = new Random(1);
         for (int n = 1; n < 500; n++) {
@@ -140,11 +177,11 @@ public class TestHelpers {
                 Spliterator<T> s = spliterators.get(idx);
                 Stream.Builder<T> builder = Stream.builder();
                 s.forEachRemaining(builder);
-                assertFalse(msg, s.tryAdvance(t -> fail(msg+": Advance called with " + t)));
-                s.forEachRemaining(t -> fail(msg+": Advance called with " + t));
+                assertFalse(msg, s.tryAdvance(t -> fail(msg + ": Advance called with " + t)));
+                s.forEachRemaining(t -> fail(msg + ": Advance called with " + t));
                 return builder.build();
             }).sortedBy(Entry::getKey).values().flatMap(Function.identity()).toList();
-            assertEquals(msg+":#" + n, expected, list);
+            assertEquals(msg + ":#" + n, expected, list);
         }
         for (int n = 1; n < 500; n++) {
             Spliterator<T> spliterator = supplier.get();
@@ -172,7 +209,7 @@ public class TestHelpers {
                 }
             }
             List<T> list = StreamEx.of(results).flatMap(List::stream).toList();
-            assertEquals(msg+":#" + n, expected, list);
+            assertEquals(msg + ":#" + n, expected, list);
         }
     }
 }

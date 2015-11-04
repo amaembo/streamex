@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.Random;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator.OfInt;
@@ -525,8 +526,11 @@ public class IntStreamEx implements IntStream {
      * unordered. The main purpose of this method is to workaround the problem
      * of skipping the first elements from non-sized source with further
      * parallel processing and unordered terminal operation (such as
-     * {@link #forEach(IntConsumer)}). Also it behaves much better with infinite
-     * streams processed in parallel. For example,
+     * {@link #forEach(IntConsumer)}). This problem was fixed in OracleJDK 8u60.
+     * 
+     * <p>
+     * Also it behaves much better with infinite streams processed in parallel.
+     * For example,
      * {@code IntStreamEx.iterate(0, i->i+1).skip(1).limit(100).parallel().toArray()}
      * will likely to fail with {@code OutOfMemoryError}, but will work nicely
      * if {@code skip} is replaced with {@code skipOrdered}.
@@ -1095,6 +1099,50 @@ public class IntStreamEx implements IntStream {
         return filter(predicate).findAny();
     }
 
+    /**
+     * Returns an {@link OptionalLong} describing the zero-based index of the
+     * first element of this stream, which equals to the given value, or an
+     * empty {@code OptionalLong} if there's no matching element.
+     *
+     * <p>
+     * This is a short-circuiting terminal operation.
+     *
+     * @param value
+     *            a value to look for
+     * @return an {@code OptionalLong} describing the index of the first
+     *         matching element of this stream, or an empty {@code OptionalLong}
+     *         if there's no matching element.
+     * @see #indexOf(IntPredicate)
+     * @since 0.4.0
+     */
+    public OptionalLong indexOf(int value) {
+        return boxed().indexOf(i -> i == value);
+    }
+
+    /**
+     * Returns an {@link OptionalLong} describing the zero-based index of the first element
+     * of this stream, which matches given predicate, or an empty
+     * {@code OptionalLong} if there's no matching element.
+     *
+     * <p>
+     * This is a short-circuiting terminal operation.
+     *
+     * @param predicate
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            predicate which returned value should match
+     * @return an {@code OptionalLong} describing the index of the first
+     *         matching element of this stream, or an empty {@code OptionalLong}
+     *         if there's no matching element.
+     * @see #findFirst(IntPredicate)
+     * @since 0.4.0
+     */
+    public OptionalLong indexOf(IntPredicate predicate) {
+        return boxed().indexOf(predicate::test);
+    }
+
     @Override
     public LongStreamEx asLongStream() {
         return strategy().newLongStreamEx(stream.asLongStream());
@@ -1427,7 +1475,7 @@ public class IntStreamEx implements IntStream {
      */
     public IntStreamEx takeWhile(IntPredicate predicate) {
         Objects.requireNonNull(predicate);
-        if (IS_JDK9 && JDK9_METHODS[IDX_INT_STREAM] != null) {
+        if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_TAKE_WHILE);
         }
         return delegate(new TDOfInt(stream.spliterator(), false, predicate));
@@ -1456,12 +1504,54 @@ public class IntStreamEx implements IntStream {
      */
     public IntStreamEx dropWhile(IntPredicate predicate) {
         Objects.requireNonNull(predicate);
-        if (IS_JDK9 && JDK9_METHODS[IDX_INT_STREAM] != null) {
+        if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_DROP_WHILE);
         }
         return delegate(new TDOfInt(stream.spliterator(), true, predicate));
     }
+    
+    /**
+     * Returns a stream where the first element is the replaced with the result
+     * of applying the given function while the other elements are left intact.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     *
+     * @param mapper
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function to apply to the first element
+     * @return the new stream
+     * @since 0.4.1
+     */
+    public IntStreamEx mapFirst(IntUnaryOperator mapper) {
+        return mapToObj(Integer::new).mapFirst(mapper::applyAsInt).mapToInt(Integer::intValue);
+    }
 
+    /**
+     * Returns a stream where the last element is the replaced with the result
+     * of applying the given function while the other elements are left intact.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     *
+     * @param mapper
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function to apply to the first element
+     * @return the new stream
+     * @since 0.4.1
+     */
+    public IntStreamEx mapLast(IntUnaryOperator mapper) {
+        return mapToObj(Integer::new).mapLast(mapper::applyAsInt).mapToInt(Integer::intValue);
+    }
+    
     /**
      * Returns an empty sequential {@code IntStreamEx}.
      *

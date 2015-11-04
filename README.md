@@ -1,4 +1,8 @@
-# StreamEx
+## Note for the users
+
+The package name will be changed in one of the following releases (likely in 0.5.0) from `javax.util.streamex` to `one.util.streamex`. This change is discussed [here](https://github.com/amaembo/streamex/issues/8). Sorry for possible inconvenience.
+
+# StreamEx 0.4.0
 Enhancing Java 8 Streams.
 
 This library defines four classes: `StreamEx`, `IntStreamEx`, `LongStreamEx`, `DoubleStreamEx`
@@ -115,7 +119,7 @@ To use from maven add this snippet to the pom.xml `dependencies` section:
 <dependency>
   <groupId>io.github.amaembo</groupId>
   <artifactId>streamex</artifactId>
-  <version>0.3.8</version>
+  <version>0.4.0</version>
 </dependency>
 ```
 
