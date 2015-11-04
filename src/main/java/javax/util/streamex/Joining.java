@@ -89,6 +89,8 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
     }
     
     private int copyCut(char[] buf, int pos, String str, int limit, int cutStrategy) {
+        if(limit == 0)
+            return pos;
         int endPos = str.length();
         switch(lenStrategy) {
         case LENGTH_CHARS:
@@ -139,7 +141,7 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
             case CUT_ANYWHERE:
                 break;
             case CUT_CODEPOINT:
-                if(Character.isHighSurrogate(str.charAt(endPos)) && Character.isLowSurrogate(str.charAt(endPos+1)))
+                if(Character.isHighSurrogate(str.charAt(endPos-1)) && Character.isLowSurrogate(str.charAt(endPos)))
                     endPos--;
                 break;
             default:

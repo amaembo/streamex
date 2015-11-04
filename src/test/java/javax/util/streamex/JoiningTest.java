@@ -19,6 +19,7 @@ import static javax.util.streamex.TestHelpers.*;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Supplier;
@@ -120,21 +121,118 @@ public class JoiningTest {
     @Test
     public void testPrefixSuffix() {
         List<String> input = Arrays.asList("one two", "three four", "five", "six seven");
-        checkShortCircuitCollector("cutWord", "[one two, three four,...]", 3, input::stream, Joining.with(", ")
-                .wrap("[", "]").maxChars(25).cutAfterWord());
-        checkShortCircuitCollector("cutWord", "[one two...]", 2, input::stream, Joining.with(", ").maxChars(12)
-            .wrap("[", "]").cutAfterWord());
-        checkShortCircuitCollector("cutWord", "[one ...]", 2, input::stream, Joining.with(", ").maxChars(11)
-            .wrap("[", "]").cutAfterWord());
-        checkShortCircuitCollector("cutWord", "[one ...]", 2, input::stream, Joining.with(", ").maxChars(10)
-            .wrap("[", "]").cutAfterWord());
-        checkShortCircuitCollector("cutWord", "[one...]", 1, input::stream, Joining.with(", ").maxChars(8)
-            .wrap("[", "]").cutAfterWord());
-        checkShortCircuitCollector("cutWord", "[...]", 1, input::stream, Joining.with(", ").maxChars(6).wrap("[", "]").cutAfterWord());
-        checkShortCircuitCollector("cutWord", "[..]", 1, input::stream, Joining.with(", ").maxChars(4).wrap("[", "]").cutAfterWord());
-        checkShortCircuitCollector("cutWord", "[.]", 1, input::stream, Joining.with(", ").maxChars(3).wrap("[", "]").cutAfterWord());
-        checkShortCircuitCollector("cutWord", "[]", 0, input::stream, Joining.with(", ").maxChars(2).wrap("[", "]").cutAfterWord());
-        checkShortCircuitCollector("cutWord", "[", 0, input::stream, Joining.with(", ").maxChars(1).wrap("[", "]").cutAfterWord());
-        checkShortCircuitCollector("cutWord", "", 0, input::stream, Joining.with(", ").maxChars(0).wrap("[", "]").cutAfterWord());
+        checkShortCircuitCollector("cutWord", "[one two, three four,...]", 3, input::stream,
+            Joining.with(", ").wrap("[", "]").maxChars(25).cutAfterWord());
+        checkShortCircuitCollector("cutWord", "[one two...]", 2, input::stream,
+            Joining.with(", ").maxChars(12).wrap("[", "]").cutAfterWord());
+        checkShortCircuitCollector("cutWord", "[one ...]", 2, input::stream,
+            Joining.with(", ").maxChars(11).wrap("[", "]").cutAfterWord());
+        checkShortCircuitCollector("cutWord", "[one ...]", 2, input::stream,
+            Joining.with(", ").maxChars(10).wrap("[", "]").cutAfterWord());
+        checkShortCircuitCollector("cutWord", "[one...]", 1, input::stream,
+            Joining.with(", ").maxChars(8).wrap("[", "]").cutAfterWord());
+        checkShortCircuitCollector("cutWord", "[...]", 1, input::stream, Joining.with(", ").maxChars(6).wrap("[", "]")
+                .cutAfterWord());
+        checkShortCircuitCollector("cutWord", "[..]", 1, input::stream, Joining.with(", ").maxChars(4).wrap("[", "]")
+                .cutAfterWord());
+        checkShortCircuitCollector("cutWord", "[.]", 1, input::stream, Joining.with(", ").maxChars(3).wrap("[", "]")
+                .cutAfterWord());
+        checkShortCircuitCollector("cutWord", "[]", 0, input::stream, Joining.with(", ").maxChars(2).wrap("[", "]")
+                .cutAfterWord());
+        checkShortCircuitCollector("cutWord", "[", 0, input::stream, Joining.with(", ").maxChars(1).wrap("[", "]")
+                .cutAfterWord());
+        checkShortCircuitCollector("cutWord", "", 0, input::stream, Joining.with(", ").maxChars(0).wrap("[", "]")
+                .cutAfterWord());
+
+        checkShortCircuitCollector("cutWord", "a prefix  a ", 0, input::stream,
+            Joining.with(" ").maxChars(15).wrap("a prefix ", " a suffix").cutAfterWord());
+        checkShortCircuitCollector("cutWord", "a prefix  ", 0, input::stream,
+            Joining.with(" ").maxChars(10).wrap("a prefix ", " a suffix").cutAfterWord());
+        checkShortCircuitCollector("cutWord", "a ", 0, input::stream,
+            Joining.with(" ").maxChars(5).wrap("a prefix ", " a suffix").cutAfterWord());
+    }
+
+    @Test
+    public void testCodePoints() {
+        List<String> input = Collections.nCopies(3,
+            "\ud801\udc14\ud801\udc2f\ud801\udc45\ud801\udc28\ud801\udc49\ud801\udc2f\ud801\udc3b");
+        checkShortCircuitCollector("maxChars", "\ud801\udc14\ud801\udc2f\ud801", 1, input::stream, Joining.with(",")
+                .ellipsis("").maxChars(5).cutAnywhere());
+        checkShortCircuitCollector("maxChars", "\ud801\udc14\ud801\udc2f", 1, input::stream, Joining.with(",")
+                .ellipsis("").maxChars(5).cutAfterCodePoint());
+        checkShortCircuitCollector("maxChars", "\ud801\udc14\ud801\udc2f", 1, input::stream, Joining.with(",")
+                .ellipsis("").maxChars(4).cutAfterSymbol());
+        checkShortCircuitCollector("maxChars", "\ud801\udc14\ud801\udc2f", 1, input::stream, Joining.with(",")
+                .ellipsis("").maxChars(4).cutAnywhere());
+        checkShortCircuitCollector("maxChars", "\ud801\udc14\ud801\udc2f", 1, input::stream, Joining.with(",")
+                .ellipsis("").maxChars(4).cutAfterCodePoint());
+        checkShortCircuitCollector("maxChars", "\ud801\udc14\ud801\udc2f", 1, input::stream, Joining.with(",")
+                .ellipsis("").maxChars(4).cutAfterSymbol());
+        checkShortCircuitCollector("maxChars", "\ud801\udc14\ud801\udc2f\ud801\udc45\ud801\udc28", 1, input::stream,
+            Joining.with(",").ellipsis("").maxChars(9));
+
+        checkShortCircuitCollector("maxCodePoints", "\ud801\udc14\ud801\udc2f\ud801\udc45\ud801\udc28\ud801\udc49", 1,
+            input::stream, Joining.with(",").ellipsis("").maxCodePoints(5).cutAnywhere());
+        checkShortCircuitCollector("maxCodePoints", "\ud801\udc14\ud801\udc2f\ud801\udc45\ud801\udc28\ud801\udc49", 1,
+            input::stream, Joining.with(",").ellipsis("").maxCodePoints(5).cutAfterCodePoint());
+        checkShortCircuitCollector("maxCodePoints", "\ud801\udc14\ud801\udc2f\ud801\udc45\ud801\udc28\ud801\udc49", 1,
+            input::stream, Joining.with(",").ellipsis("").maxCodePoints(5).cutAfterSymbol());
+        checkShortCircuitCollector("maxCodePoints",
+            "\ud801\udc14\ud801\udc2f\ud801\udc45\ud801\udc28\ud801\udc49\ud801\udc2f\ud801\udc3b", 2, input::stream,
+            Joining.with(",").ellipsis("").maxCodePoints(7));
+        checkShortCircuitCollector("maxCodePoints",
+            "\ud801\udc14\ud801\udc2f\ud801\udc45\ud801\udc28\ud801\udc49\ud801\udc2f\ud801\udc3b,", 2, input::stream,
+            Joining.with(",").ellipsis("").maxCodePoints(8));
+        checkShortCircuitCollector("maxCodePoints",
+            "\ud801\udc14\ud801\udc2f\ud801\udc45\ud801\udc28\ud801\udc49\ud801\udc2f\ud801\udc3b,\ud801\udc14", 2,
+            input::stream, Joining.with(",").ellipsis("").maxCodePoints(9).cutAfterCodePoint());
+    }
+
+    @Test
+    public void testSymbols() {
+        List<String> input = Collections.nCopies(3, "aa\u0300\u0321e\u0300a\u0321a\u0300\u0321a");
+        checkShortCircuitCollector("maxChars", "aa\u0300\u0321e", 1, input::stream, Joining.with(",").ellipsis("")
+                .maxChars(5).cutAnywhere());
+        checkShortCircuitCollector("maxChars", "aa\u0300\u0321e", 1, input::stream, Joining.with(",").ellipsis("")
+                .maxChars(5).cutAfterCodePoint());
+        checkShortCircuitCollector("maxChars", "aa\u0300\u0321", 1, input::stream, Joining.with(",").ellipsis("")
+                .maxChars(5).cutAfterSymbol());
+        checkShortCircuitCollector("maxChars", "aa\u0300\u0321e\u0300", 1, input::stream, Joining.with(",")
+                .ellipsis("").maxChars(6).cutAfterSymbol());
+        checkShortCircuitCollector("maxChars", "aa\u0300\u0321", 1, input::stream, Joining.with(",").ellipsis("")
+                .maxChars(4).cutAfterSymbol());
+        checkShortCircuitCollector("maxChars", "a", 1, input::stream, Joining.with(",").ellipsis("").maxChars(3)
+                .cutAfterSymbol());
+
+        checkShortCircuitCollector("maxSymbols", "aa\u0300\u0321e\u0300", 1, input::stream,
+            Joining.with(",").ellipsis("").maxSymbols(3));
+        checkShortCircuitCollector("maxSymbols", "aa\u0300\u0321e\u0300a\u0321a\u0300\u0321", 1, input::stream, Joining
+                .with(",").ellipsis("").maxSymbols(5));
+        checkShortCircuitCollector("maxSymbols", "aa\u0300\u0321e\u0300a\u0321a\u0300\u0321a", 2, input::stream,
+            Joining.with(",").ellipsis("").maxSymbols(6));
+        checkShortCircuitCollector("maxSymbols", "aa\u0300\u0321e\u0300a\u0321a\u0300\u0321a,", 2, input::stream,
+            Joining.with(",").ellipsis("").maxSymbols(7));
+        checkShortCircuitCollector("maxSymbols", "aa\u0300\u0321e\u0300a\u0321a\u0300\u0321a,a", 2, input::stream,
+            Joining.with(",").ellipsis("").maxSymbols(8));
+        checkShortCircuitCollector("maxSymbols", "aa\u0300\u0321e\u0300a\u0321a\u0300\u0321a,aa\u0300\u0321", 2,
+            input::stream, Joining.with(",").ellipsis("").maxSymbols(9));
+
+        checkShortCircuitCollector("maxSymbolsBeforeDelimiter", "", 1, input::stream, Joining.with(",").ellipsis("")
+                .maxSymbols(5).cutBeforeDelimiter());
+        checkShortCircuitCollector("maxSymbolsBeforeDelimiter", "aa\u0300\u0321e\u0300a\u0321a\u0300\u0321a", 2,
+            input::stream, Joining.with(",").ellipsis("").maxSymbols(6).cutBeforeDelimiter());
+        checkShortCircuitCollector("maxSymbolsBeforeDelimiter", "aa\u0300\u0321e\u0300a\u0321a\u0300\u0321a", 2,
+            input::stream, Joining.with(",").ellipsis("").maxSymbols(7).cutBeforeDelimiter());
+        checkShortCircuitCollector("maxSymbolsBeforeDelimiter", "aa\u0300\u0321e\u0300a\u0321a\u0300\u0321a", 2,
+            input::stream, Joining.with(",").ellipsis("").maxSymbols(8).cutBeforeDelimiter());
+
+        checkShortCircuitCollector("maxSymbolsAfterDelimiter", "", 1, input::stream, Joining.with(",").ellipsis("")
+                .maxSymbols(5).cutAfterDelimiter());
+        checkShortCircuitCollector("maxSymbolsAfterDelimiter", "", 2, input::stream, Joining.with(",").ellipsis("")
+                .maxSymbols(6).cutAfterDelimiter());
+        checkShortCircuitCollector("maxSymbolsAfterDelimiter", "aa\u0300\u0321e\u0300a\u0321a\u0300\u0321a,", 2,
+            input::stream, Joining.with(",").ellipsis("").maxSymbols(7).cutAfterDelimiter());
+        checkShortCircuitCollector("maxSymbolsAfterDelimiter", "aa\u0300\u0321e\u0300a\u0321a\u0300\u0321a,", 2,
+            input::stream, Joining.with(",").ellipsis("").maxSymbols(8).cutAfterDelimiter());
     }
 }
