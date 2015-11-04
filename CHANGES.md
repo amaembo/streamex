@@ -7,6 +7,8 @@
 * Fixed: `StreamEx.cross(mapper)` now correctly handles the case when mapper returns null instead of empty stream.
 * Optimized: ordered stateful short-circuit collectors now may process less elements in parallel.
 * Optimized: `StreamEx/EntryStream.toList()/toListAndThen()/foldRight()/scanRight()` now faster, especially for sized stream.
+* Optimized: collapse-based operations like `StreamEx.collapse/groupRuns/runLengths/intervalMap` now may work faster,
+especially when stream has more intermediate operations before them.
 * Updated documentation. 
 
 ### 0.4.0
