@@ -27,6 +27,8 @@
 
  <properties>
   <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  <project.package>javax.util.streamex</project.package>
+  <project.package.path>javax/util/streamex</project.package.path>
  </properties>
 
  <dependencies>
@@ -120,14 +122,21 @@
       </goals>
      </execution>
      <execution>
+      <!-- Change the S generic type in StreamEx/EntryStream documentation 
+       to the appropriate type -->
       <id>fix</id>
       <phase>package</phase>
       <configuration>
        <target>
-        <replace file="${project.build.directory}/apidocs/javax/util/streamex/EntryStream.html"
-              token="&lt;code&gt;S&lt;/code&gt;" value="&lt;code&gt;&lt;a href=&quot;EntryStream.html&quot; title=&quot;class in javax.util.streamex&quot;&gt;EntryStream&lt;/a&gt;&amp;lt;K,V&amp;gt;&lt;/code&gt;"/>
-        <replace file="${project.build.directory}/apidocs/javax/util/streamex/StreamEx.html"
-              token="&lt;code&gt;S&lt;/code&gt;" value="&lt;code&gt;&lt;a href=&quot;StreamEx.html&quot; title=&quot;class in javax.util.streamex&quot;&gt;StreamEx&lt;/a&gt;&amp;lt;T&amp;gt;&lt;/code&gt;"/>
+        <property name="token.S"><![CDATA[<code>S</code>]]></property>
+        <property name="token.StreamEx"><![CDATA[<code><a href="StreamEx.html" title="class in ${project.package}">StreamEx</a>&lt;<a href="StreamEx.html" title="type parameter in StreamEx">T</a>&gt;</code>]]></property>
+        <property name="token.EntryStream"><![CDATA[<code><a href="EntryStream.html" title="class in ${project.package}">EntryStream</a>&lt;<a href="EntryStream.html" title="type parameter in EntryStream">K</a>,<a href="EntryStream.html" title="type parameter in EntryStream">V</a>&gt;</code>]]></property>
+        <replace file="${project.build.directory}/apidocs/${project.package.path}/EntryStream.html" token="${token.S}" value="${token.EntryStream}"/>
+        <replace file="${project.build.directory}/apidocs/${project.package.path}/StreamEx.html" token="${token.S}" value="${token.StreamEx}"/>
+        <jar destfile="${project.build.directory}/${project.build.finalName}-javadoc.jar" update="true">
+          <fileset dir="${project.build.directory}/apidocs" includes="${project.package.path}/EntryStream.html"/>
+          <fileset dir="${project.build.directory}/apidocs" includes="${project.package.path}/StreamEx.html"/>
+        </jar>
        </target>
       </configuration>
       <goals>
@@ -165,9 +174,9 @@
     </executions>
     <configuration>
      <instructions>
-      <Bundle-SymbolicName>javax.util.streamex</Bundle-SymbolicName>
+      <Bundle-SymbolicName>${project.package}</Bundle-SymbolicName>
       <Bundle-Name>${project.name}</Bundle-Name>
-      <Export-Package>javax.util.streamex</Export-Package>
+      <Export-Package>${project.package}</Export-Package>
      </instructions>
     </configuration>
    </plugin>
