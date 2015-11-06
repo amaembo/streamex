@@ -117,7 +117,7 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
         default:
             throw new InternalError();
         }
-        if(endPos > 0 && endPos < str.length()) {
+        if(endPos < str.length()) {
             BreakIterator bi;
             switch(cutStrategy) {
             case CUT_BEFORE_DELIMITER:
@@ -128,15 +128,11 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
                 bi = BreakIterator.getWordInstance();
                 bi.setText(str);
                 endPos = bi.preceding(endPos+1);
-                if(endPos == BreakIterator.DONE)
-                    endPos = 0;
                 break;
             case CUT_SYMBOL:
                 bi = BreakIterator.getCharacterInstance();
                 bi.setText(str);
                 endPos = bi.preceding(endPos+1);
-                if(endPos == BreakIterator.DONE)
-                    endPos = 0;
                 break;
             case CUT_ANYWHERE:
                 break;
