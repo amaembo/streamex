@@ -15,24 +15,26 @@
  */
 package javax.util.streamex;
 
+import java.lang.invoke.MethodHandle;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-
-import javax.util.streamex.StreamExInternals.ArrayCollection;
+import java.util.stream.Stream;
 
 import org.junit.Test;
 
+import static javax.util.streamex.StreamExInternals.*;
 import static org.junit.Assert.*;
 
 /**
+ * Tests for non-public APIs in StreamExInternals
+ * 
  * @author Tagir Valeev
- *
  */
-public class ArrayCollectionTest {
+public class InternalsTest {
     @Test
     public void testArrayCollection() {
         Collection<Object> collection = new ArrayCollection(new Object[] {"1", "2"});
@@ -47,5 +49,19 @@ public class ArrayCollectionTest {
         assertTrue(set.contains("1"));
         assertTrue(set.contains("2"));
         assertEquals(2, set.size());
+    }
+    
+    @Test(expected = UnsupportedOperationException.class)
+    public void testPartialCollector() {
+        PartialCollector.intSum().accumulator();
+    }
+
+    @Test
+    public void testJdk9Basics() {
+        MethodHandle[][] jdk9Methods = initJdk9Methods();
+        if(Stream.of(Stream.class.getMethods()).anyMatch(m -> m.getName().equals("takeWhile")))
+            assertNotNull(jdk9Methods);
+        else
+            assertNull(jdk9Methods);
     }
 }

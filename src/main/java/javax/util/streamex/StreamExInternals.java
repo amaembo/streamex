@@ -459,7 +459,6 @@ import java.util.stream.Stream;
         public BiConsumer<A, A> merger() {
             return merger;
         }
-
     }
 
     static final class PartialCollector<A, R> extends BaseCollector<Object, A, R> {
@@ -470,7 +469,7 @@ import java.util.stream.Stream;
 
         @Override
         public BiConsumer<A, Object> accumulator() {
-            throw new InternalError();
+            throw new UnsupportedOperationException();
         }
 
         IntCollector<A, R> asInt(ObjIntConsumer<A> intAccumulator) {

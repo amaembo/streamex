@@ -119,6 +119,8 @@ public class DoubleStreamExTest {
 
         assertFalse(DoubleStreamEx.of(1.0, 2.0, 2.5).anyMatch(x -> x < 0.0));
         assertTrue(DoubleStreamEx.of(1.0, 2.0, 2.5).anyMatch(x -> x >= 2.5));
+        assertTrue(DoubleStreamEx.of(1.0, 2.0, 2.5).noneMatch(x -> x < 0.0));
+        assertFalse(DoubleStreamEx.of(1.0, 2.0, 2.5).noneMatch(x -> x >= 2.5));
         assertEquals(5.0, DoubleStreamEx.of(1.0, 2.0, 2.5).reduce(1, (a, b) -> a * b), 0.0);
 
         assertTrue(DoubleStreamEx.of(1, 2, 3).spliterator().hasCharacteristics(Spliterator.ORDERED));
@@ -146,6 +148,10 @@ public class DoubleStreamExTest {
 
         assertArrayEquals(new double[] { 0.0, 0.0, 1.0, 0.0, 1.0, 2.0 },
             DoubleStreamEx.of(1, 2, 3).flatMap(x -> IntStreamEx.range((int) x).asDoubleStream()).toArray(), 0.0);
+        
+        assertArrayEquals(new long[] { 0x3FF0000000000000L, 0x3FF0000000000000L, 0x4000000000000000L,
+                0x4000000000000000L, 0x7FF8000000000000L, 0x7FF8000000000000L }, DoubleStreamEx.of(1, 2, Double.NaN)
+                .flatMapToLong(x -> LongStream.of(Double.doubleToLongBits(x), Double.doubleToRawLongBits(x))).toArray());
     }
 
     @Test
@@ -206,6 +212,12 @@ public class DoubleStreamExTest {
                         Double.MAX_VALUE, -0.0, Double.MIN_VALUE).reverseSorted().toArray(), 0.0);
         assertArrayEquals(new double[] { 1, 10, 2, 21, 9 }, DoubleStreamEx.of(1, 10, 2, 9, 21)
                 .sortedBy(String::valueOf).toArray(), 0.0);
+        
+        assertArrayEquals(new double[] {0.4, 1.5, 1.3, 2.3, 2.1, 2.0, 3.7}, DoubleStreamEx.of(1.5, 2.3, 1.3, 2.1, 3.7, 0.4, 2.0)
+            .sortedByInt(x -> (int)x).toArray(), 0.0);
+
+        assertArrayEquals(new double[] {0.4, 1.5, 1.3, 2.3, 2.1, 2.0, 3.7}, DoubleStreamEx.of(1.5, 2.3, 1.3, 2.1, 3.7, 0.4, 2.0)
+            .sortedByLong(x -> (long)x).toArray(), 0.0);
     }
 
     @Test
