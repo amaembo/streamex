@@ -447,6 +447,7 @@ public class StreamExTest {
             assertEquals(supplier.toString(), minStr, supplier.get().minByDouble(String::length).get());
             assertEquals(supplier.toString(), minStr, supplier.get().minBy(String::length).get());
         }
+        assertFalse(StreamEx.<String>empty().minByInt(String::length).isPresent());
     }
 
     @Test
@@ -611,6 +612,9 @@ public class StreamExTest {
 
         assertEquals(IntStreamEx.range(10).boxed().toList(), IntStreamEx.range(100).mapToObj(x -> x / 10).sorted()
                 .distinct(3).sorted().toList());
+        
+        assertEquals(Arrays.asList("a", "b"), StreamEx.split("a,b,a,c,d,b,a", ",").parallel().distinct(2).sorted()
+                .toList());
     }
 
     @Test
@@ -1198,6 +1202,11 @@ public class StreamExTest {
         assertEquals("1: 1, 2: 2, 4: 1, 2: 1, null: 2, 1: 3, null: 2", resParallel);
         assertEquals("1=1, 2=2, 4=1, 2=1, null=2, 1=3",
             StreamEx.of(input).parallel().runLengths().distinct().map(String::valueOf).joining(", "));
+    }
+    
+    @Test(expected=UnsupportedOperationException.class)
+    public void testRunLengthsModify() {
+        StreamEx.of("1", "1", "1").runLengths().forEach(e -> e.setValue(5L));
     }
 
     @Test

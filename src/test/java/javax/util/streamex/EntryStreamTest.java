@@ -116,6 +116,11 @@ public class EntryStreamTest {
         assertEquals("0=a,1=bbb,2=cc",
             EntryStream.of(new String[] { "a", "bbb", "cc" }).map(Object::toString).joining(","));
     }
+    
+    @Test(expected = UnsupportedOperationException.class)
+    public void testWithIndexModify() {
+        EntryStream.of(Collections.singletonList("1")).forEach(entry -> entry.setValue("2"));
+    }
 
     @Test
     public void testMap() {
@@ -293,6 +298,7 @@ public class EntryStreamTest {
         expected.put(3, Arrays.asList("aaa", "bb"));
         expected.put(4, Arrays.asList("bb"));
         assertEquals(expected, result);
+        assertEquals(0, EntryStream.<Stream<String>, String>of(null, "a").flatMapKeys(Function.identity()).count());
     }
 
     @Test
