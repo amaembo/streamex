@@ -40,6 +40,9 @@
  * {@link javax.util.streamex.MoreCollectors}: utility class which provides a number of useful collectors 
  * which are absent in JDK {@link java.util.stream.Collectors} class.
  * 
+ * <p>
+ * {@link javax.util.streamex.Joining}: an advanced implementation of joining collector.
+ *
  * <h2><a name="StreamOps">Stream operations and pipelines</a></h2>
  * <p>StreamEx operations are divided into <em>intermediate</em>, <em>quasi-intermediate</em> and
  * <em>terminal</em> operations, and are combined to form <em>stream
