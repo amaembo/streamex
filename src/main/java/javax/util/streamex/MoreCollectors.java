@@ -56,6 +56,7 @@ import static javax.util.streamex.StreamExInternals.*;
  * 
  * @author Tagir Valeev
  * @see Collectors
+ * @see Joining
  * @since 0.3.2
  */
 public final class MoreCollectors {

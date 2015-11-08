@@ -109,14 +109,14 @@ public class TestHelpers {
     }
 
     static <T, R> void checkShortCircuitCollector(String message, R expected, int expectedConsumedElements,
-            Supplier<Stream<T>> base, Collector<T, ?, R> collector) {
+            Supplier<Stream<T>> base, Collector<? super T, ?, R> collector) {
         checkShortCircuitCollector(message, expected, expectedConsumedElements, base, collector, false);
     }
 
     static <T, R> void checkShortCircuitCollector(String message, R expected, int expectedConsumedElements,
-            Supplier<Stream<T>> base, Collector<T, ?, R> collector, boolean skipIdentity) {
+            Supplier<Stream<T>> base, Collector<? super T, ?, R> collector, boolean skipIdentity) {
         assertNotNull(message, finished(collector));
-        Collector<T, ?, R> withIdentity = Collectors.collectingAndThen(collector, Function.identity());
+        Collector<? super T, ?, R> withIdentity = Collectors.collectingAndThen(collector, Function.identity());
         for (StreamExSupplier<T> supplier : streamEx(base)) {
             AtomicInteger counter = new AtomicInteger();
             assertEquals(message + ": " + supplier, expected, supplier.get().peek(t -> counter.incrementAndGet())
@@ -128,7 +128,7 @@ public class TestHelpers {
         }
     }
 
-    static <T, R> void checkCollector(String message, R expected, Supplier<Stream<T>> base, Collector<T, ?, R> collector) {
+    static <T, R> void checkCollector(String message, R expected, Supplier<Stream<T>> base, Collector<? super T, ?, R> collector) {
         // use checkShortCircuitCollector for CancellableCollector
         assertNull(message, finished(collector));
         for (StreamExSupplier<T> supplier : streamEx(base)) {

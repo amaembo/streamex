@@ -319,6 +319,15 @@ public class MoreCollectorsTest {
         assertEquals(Arrays.asList("Mary", "Lucie"), map.get("Girl"));
         assertEquals(Arrays.asList("John", "James"), map.get("Boy"));
         assertEquals(4, counter.get());
+
+        Collector<Entry<String, String>, ?, Map<String, String>> groupingByJoin = MoreCollectors.groupingBy(
+            Entry::getValue, StreamEx.of("Girl", "Boy").toSet(),
+            MoreCollectors.mapping(Entry::getKey, Joining.with(", ").maxChars(16).cutAfterDelimiter()));
+        counter.set(0);
+        Map<String, String> mapJoin = EntryStream.of(name2sex).peek(c -> counter.incrementAndGet()).collect(groupingByJoin);
+        assertEquals("Mary, Lucie, ...", mapJoin.get("Girl"));
+        assertEquals("John, James, ...", mapJoin.get("Boy"));
+        assertEquals(7, counter.get());
     }
 
     @Test
