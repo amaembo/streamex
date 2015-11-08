@@ -58,7 +58,7 @@ import static javax.util.streamex.StreamExInternals.*;
  * 
  * <pre>{@code
  * StreamEx.of(source).collect(Joining.with(", ").wrap("[", "]")
- *         .maxCodePoints(100).cutAfterWord());
+ *         .maxCodePoints(100).cutAtWord());
  * }</pre>
  * 
  * <p>
@@ -360,15 +360,15 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
      * {@link #maxCodePoints(int)} or {@link #maxGraphemes(int)} call.
      * 
      * <p>
-     * The grapheme cluster is defined in {@linkplain http 
-     * ://www.unicode.org/reports/tr29/#Grapheme_Cluster_Boundaries Unicode Text
-     * Segmentation} technical report. Basically, it counts base character and
-     * the following combining characters as single object. The {@code String}
-     * produced by the resulting collector is guaranteed to have no more
-     * grapheme clusters than the specified limit. An ellipsis sequence (by
-     * default {@code "..."}) is used to designate whether the limit was
-     * reached. Use {@link #ellipsis(CharSequence)} to set custom ellipsis
-     * sequence.
+     * The grapheme cluster is defined in <a
+     * href="http://www.unicode.org/reports/tr29/#Grapheme_Cluster_Boundaries"
+     * >Unicode Text Segmentation</a> technical report. Basically, it counts
+     * base character and the following combining characters as single object.
+     * The {@code String} produced by the resulting collector is guaranteed to
+     * have no more grapheme clusters than the specified limit. An ellipsis
+     * sequence (by default {@code "..."}) is used to designate whether the
+     * limit was reached. Use {@link #ellipsis(CharSequence)} to set custom
+     * ellipsis sequence.
      * 
      * <p>
      * The collector returned by this method is <a
@@ -425,11 +425,11 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
      * This is the default behavior.
      * 
      * <p>
-     * The grapheme cluster is defined in {@linkplain http 
-     * ://www.unicode.org/reports/tr29/#Grapheme_Cluster_Boundaries Unicode Text
-     * Segmentation} technical report. Thus the resulting collector will not
-     * split the surrogate pair and will preserve any combining characters or
-     * remove them with the base character.
+     * The grapheme cluster is defined in <a
+     * href="http://www.unicode.org/reports/tr29/#Grapheme_Cluster_Boundaries"
+     * >Unicode Text Segmentation</a> technical report. Thus the resulting
+     * collector will not split the surrogate pair and will preserve any
+     * combining characters or remove them with the base character.
      * 
      * @return a new {@code Collector} which cuts the resulting string at
      *         grapheme cluster boundary.
@@ -446,7 +446,7 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
      * The beginning and end of every input stream element or delimiter is
      * always considered as word boundary, so the stream of
      * {@code "one", "two three"} collected with
-     * {@code Joining.with("").maxChars(n).ellipsis("").cutAfterWord()} may
+     * {@code Joining.with("").maxChars(n).ellipsis("").cutAtWord()} may
      * produce the following strings depending on {@code n}:
      * 
      * <pre>{@code
