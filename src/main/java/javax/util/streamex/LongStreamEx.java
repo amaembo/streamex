@@ -29,7 +29,6 @@ import java.util.Map.Entry;
 import java.util.PrimitiveIterator.OfLong;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
-import java.util.function.DoublePredicate;
 import java.util.function.Function;
 import java.util.function.LongBinaryOperator;
 import java.util.function.LongConsumer;
@@ -1093,7 +1092,7 @@ public class LongStreamEx implements LongStream {
      * to select any element in the stream. This is to allow for maximal
      * performance in parallel operations; the cost is that multiple invocations
      * on the same source may not return the same result. (If a stable result is
-     * desired, use {@link #findFirst(DoublePredicate)} instead.)
+     * desired, use {@link #findFirst(LongPredicate)} instead.)
      *
      * @param predicate
      *            a <a

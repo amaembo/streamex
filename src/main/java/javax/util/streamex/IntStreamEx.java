@@ -1127,7 +1127,7 @@ public class IntStreamEx implements IntStream {
      * to select any element in the stream. This is to allow for maximal
      * performance in parallel operations; the cost is that multiple invocations
      * on the same source may not return the same result. (If a stable result is
-     * desired, use {@link #findFirst(DoublePredicate)} instead.)
+     * desired, use {@link #findFirst(IntPredicate)} instead.)
      *
      * @param predicate
      *            a <a
