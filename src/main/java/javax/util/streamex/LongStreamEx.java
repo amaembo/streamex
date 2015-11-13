@@ -29,6 +29,7 @@ import java.util.Map.Entry;
 import java.util.PrimitiveIterator.OfLong;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
+import java.util.function.DoublePredicate;
 import java.util.function.Function;
 import java.util.function.LongBinaryOperator;
 import java.util.function.LongConsumer;
@@ -263,7 +264,7 @@ public class LongStreamEx implements LongStream {
     public LongStreamEx mapLast(LongUnaryOperator mapper) {
         return mapToObj(Long::new).mapLast(mapper::applyAsLong).mapToLong(Long::longValue);
     }
-    
+
     @Override
     public <U> StreamEx<U> mapToObj(LongFunction<? extends U> mapper) {
         return strategy().newStreamEx(stream.mapToObj(mapper));
@@ -1051,6 +1052,25 @@ public class LongStreamEx implements LongStream {
         return stream.findFirst();
     }
 
+    /**
+     * Returns an {@link OptionalLong} describing the first element of this
+     * stream, which matches given predicate, or an empty {@code OptionalLong}
+     * if there's no matching element.
+     *
+     * <p>
+     * This is a short-circuiting terminal operation.
+     *
+     * @param predicate
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            predicate which returned value should match
+     * @return an {@code OptionalLong} describing the first matching element of
+     *         this stream, or an empty {@code OptionalLong} if there's no
+     *         matching element
+     * @see #findFirst()
+     */
     public OptionalLong findFirst(LongPredicate predicate) {
         return filter(predicate).findFirst();
     }
@@ -1060,14 +1080,41 @@ public class LongStreamEx implements LongStream {
         return stream.findAny();
     }
 
+    /**
+     * Returns an {@link OptionalLong} describing some element of the stream,
+     * which matches given predicate, or an empty {@code OptionalLong} if
+     * there's no matching element.
+     *
+     * <p>
+     * This is a short-circuiting terminal operation.
+     *
+     * <p>
+     * The behavior of this operation is explicitly nondeterministic; it is free
+     * to select any element in the stream. This is to allow for maximal
+     * performance in parallel operations; the cost is that multiple invocations
+     * on the same source may not return the same result. (If a stable result is
+     * desired, use {@link #findFirst(DoublePredicate)} instead.)
+     *
+     * @param predicate
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            predicate which returned value should match
+     * @return an {@code OptionalLong} describing some matching element of
+     *         this stream, or an empty {@code OptionalLong} if there's no
+     *         matching element
+     * @see #findAny()
+     * @see #findFirst(LongPredicate)
+     */
     public OptionalLong findAny(LongPredicate predicate) {
         return filter(predicate).findAny();
     }
 
     /**
-     * Returns an {@link OptionalLong} describing the zero-based index of the first element
-     * of this stream, which equals to the given value, or an empty
-     * {@code OptionalLong} if there's no matching element.
+     * Returns an {@link OptionalLong} describing the zero-based index of the
+     * first element of this stream, which equals to the given value, or an
+     * empty {@code OptionalLong} if there's no matching element.
      *
      * <p>
      * This is a short-circuiting terminal operation.
@@ -1083,10 +1130,10 @@ public class LongStreamEx implements LongStream {
     public OptionalLong indexOf(long value) {
         return boxed().indexOf(i -> i == value);
     }
-    
+
     /**
-     * Returns an {@link OptionalLong} describing the zero-based index of the first element
-     * of this stream, which matches given predicate, or an empty
+     * Returns an {@link OptionalLong} describing the zero-based index of the
+     * first element of this stream, which matches given predicate, or an empty
      * {@code OptionalLong} if there's no matching element.
      *
      * <p>

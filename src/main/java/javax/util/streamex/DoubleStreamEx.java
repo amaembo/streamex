@@ -232,7 +232,7 @@ public class DoubleStreamEx implements DoubleStream {
     public DoubleStreamEx mapLast(DoubleUnaryOperator mapper) {
         return boxed().mapLast(mapper::applyAsDouble).mapToDouble(Double::doubleValue);
     }
-    
+
     @Override
     public <U> StreamEx<U> mapToObj(DoubleFunction<? extends U> mapper) {
         return strategy().newStreamEx(stream.mapToObj(mapper));
@@ -1046,6 +1046,25 @@ public class DoubleStreamEx implements DoubleStream {
         return stream.findFirst();
     }
 
+    /**
+     * Returns an {@link OptionalDouble} describing the first element of this
+     * stream, which matches given predicate, or an empty {@code OptionalDouble}
+     * if there's no matching element.
+     *
+     * <p>
+     * This is a short-circuiting terminal operation.
+     *
+     * @param predicate
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            predicate which returned value should match
+     * @return an {@code OptionalDouble} describing the first matching element
+     *         of this stream, or an empty {@code OptionalDouble} if there's no
+     *         matching element
+     * @see #findFirst()
+     */
     public OptionalDouble findFirst(DoublePredicate predicate) {
         return filter(predicate).findFirst();
     }
@@ -1055,13 +1074,40 @@ public class DoubleStreamEx implements DoubleStream {
         return stream.findAny();
     }
 
+    /**
+     * Returns an {@link OptionalDouble} describing some element of the stream,
+     * which matches given predicate, or an empty {@code OptionalDouble} if
+     * there's no matching element.
+     *
+     * <p>
+     * This is a short-circuiting terminal operation.
+     *
+     * <p>
+     * The behavior of this operation is explicitly nondeterministic; it is free
+     * to select any element in the stream. This is to allow for maximal
+     * performance in parallel operations; the cost is that multiple invocations
+     * on the same source may not return the same result. (If a stable result is
+     * desired, use {@link #findFirst(DoublePredicate)} instead.)
+     *
+     * @param predicate
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            predicate which returned value should match
+     * @return an {@code OptionalDouble} describing some matching element of
+     *         this stream, or an empty {@code OptionalDouble} if there's no
+     *         matching element
+     * @see #findAny()
+     * @see #findFirst(DoublePredicate)
+     */
     public OptionalDouble findAny(DoublePredicate predicate) {
         return filter(predicate).findAny();
     }
 
     /**
-     * Returns an {@link OptionalLong} describing the zero-based index of the first element
-     * of this stream, which matches given predicate, or an empty
+     * Returns an {@link OptionalLong} describing the zero-based index of the
+     * first element of this stream, which matches given predicate, or an empty
      * {@code OptionalLong} if there's no matching element.
      *
      * <p>

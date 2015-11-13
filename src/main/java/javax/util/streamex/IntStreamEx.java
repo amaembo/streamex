@@ -1086,6 +1086,25 @@ public class IntStreamEx implements IntStream {
         return stream.findFirst();
     }
 
+    /**
+     * Returns an {@link OptionalInt} describing the first element of this
+     * stream, which matches given predicate, or an empty {@code OptionalInt} if
+     * there's no matching element.
+     *
+     * <p>
+     * This is a short-circuiting terminal operation.
+     *
+     * @param predicate
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            predicate which returned value should match
+     * @return an {@code OptionalInt} describing the first matching element of
+     *         this stream, or an empty {@code OptionalInt} if there's no
+     *         matching element
+     * @see #findFirst()
+     */
     public OptionalInt findFirst(IntPredicate predicate) {
         return filter(predicate).findFirst();
     }
@@ -1095,6 +1114,33 @@ public class IntStreamEx implements IntStream {
         return stream.findAny();
     }
 
+    /**
+     * Returns an {@link OptionalInt} describing some element of the stream,
+     * which matches given predicate, or an empty {@code OptionalInt} if there's
+     * no matching element.
+     *
+     * <p>
+     * This is a short-circuiting terminal operation.
+     *
+     * <p>
+     * The behavior of this operation is explicitly nondeterministic; it is free
+     * to select any element in the stream. This is to allow for maximal
+     * performance in parallel operations; the cost is that multiple invocations
+     * on the same source may not return the same result. (If a stable result is
+     * desired, use {@link #findFirst(DoublePredicate)} instead.)
+     *
+     * @param predicate
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            predicate which returned value should match
+     * @return an {@code OptionalInt} describing some matching element of this
+     *         stream, or an empty {@code OptionalInt} if there's no matching
+     *         element
+     * @see #findAny()
+     * @see #findFirst(IntPredicate)
+     */
     public OptionalInt findAny(IntPredicate predicate) {
         return filter(predicate).findAny();
     }
@@ -1120,8 +1166,8 @@ public class IntStreamEx implements IntStream {
     }
 
     /**
-     * Returns an {@link OptionalLong} describing the zero-based index of the first element
-     * of this stream, which matches given predicate, or an empty
+     * Returns an {@link OptionalLong} describing the zero-based index of the
+     * first element of this stream, which matches given predicate, or an empty
      * {@code OptionalLong} if there's no matching element.
      *
      * <p>
@@ -1509,7 +1555,7 @@ public class IntStreamEx implements IntStream {
         }
         return delegate(new TDOfInt(stream.spliterator(), true, predicate));
     }
-    
+
     /**
      * Returns a stream where the first element is the replaced with the result
      * of applying the given function while the other elements are left intact.
@@ -1551,7 +1597,7 @@ public class IntStreamEx implements IntStream {
     public IntStreamEx mapLast(IntUnaryOperator mapper) {
         return mapToObj(Integer::new).mapLast(mapper::applyAsInt).mapToInt(Integer::intValue);
     }
-    
+
     /**
      * Returns an empty sequential {@code IntStreamEx}.
      *
