@@ -27,6 +27,7 @@ import java.util.Random;
 import java.util.Spliterator;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator.OfLong;
+import java.util.Spliterators.AbstractLongSpliterator;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -55,6 +56,54 @@ import static javax.util.streamex.StreamExInternals.*;
  * @author Tagir Valeev
  */
 public class LongStreamEx implements LongStream {
+    private static final class TDOfLong extends AbstractLongSpliterator implements LongConsumer {
+        private final LongPredicate predicate;
+        private final boolean drop;
+        private boolean checked;
+        private final Spliterator.OfLong source;
+        private long cur;
+    
+        TDOfLong(Spliterator.OfLong source, boolean drop, LongPredicate predicate) {
+            super(source.estimateSize(), source.characteristics()
+                & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL | DISTINCT));
+            this.drop = drop;
+            this.predicate = predicate;
+            this.source = source;
+        }
+    
+        @Override
+        public Comparator<? super Long> getComparator() {
+            return source.getComparator();
+        }
+    
+        @Override
+        public boolean tryAdvance(LongConsumer action) {
+            if (drop) {
+                if (checked)
+                    return source.tryAdvance(action);
+                while (source.tryAdvance(this)) {
+                    if (!predicate.test(cur)) {
+                        checked = true;
+                        action.accept(cur);
+                        return true;
+                    }
+                }
+                return false;
+            }
+            if (!checked && source.tryAdvance(this) && predicate.test(cur)) {
+                action.accept(cur);
+                return true;
+            }
+            checked = true;
+            return false;
+        }
+    
+        @Override
+        public void accept(long t) {
+            this.cur = t;
+        }
+    }
+
     final LongStream stream;
 
     LongStreamEx(LongStream stream) {
@@ -1364,7 +1413,7 @@ public class LongStreamEx implements LongStream {
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_TAKE_WHILE);
         }
-        return delegate(new TDOfLong(stream.spliterator(), false, predicate));
+        return delegate(new LongStreamEx.TDOfLong(stream.spliterator(), false, predicate));
     }
 
     /**
@@ -1393,7 +1442,7 @@ public class LongStreamEx implements LongStream {
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_DROP_WHILE);
         }
-        return delegate(new TDOfLong(stream.spliterator(), true, predicate));
+        return delegate(new LongStreamEx.TDOfLong(stream.spliterator(), true, predicate));
     }
 
     /**

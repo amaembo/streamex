@@ -27,6 +27,7 @@ import java.util.Random;
 import java.util.Spliterator;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator.OfDouble;
+import java.util.Spliterators.AbstractDoubleSpliterator;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
 import java.util.function.DoubleBinaryOperator;
@@ -55,6 +56,54 @@ import static javax.util.streamex.StreamExInternals.*;
  * @author Tagir Valeev
  */
 public class DoubleStreamEx implements DoubleStream {
+    private static final class TDOfDouble extends AbstractDoubleSpliterator implements DoubleConsumer {
+        private final DoublePredicate predicate;
+        private final boolean drop;
+        private boolean checked;
+        private final Spliterator.OfDouble source;
+        private double cur;
+    
+        TDOfDouble(Spliterator.OfDouble source, boolean drop, DoublePredicate predicate) {
+            super(source.estimateSize(), source.characteristics()
+                & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL | DISTINCT));
+            this.drop = drop;
+            this.predicate = predicate;
+            this.source = source;
+        }
+    
+        @Override
+        public Comparator<? super Double> getComparator() {
+            return source.getComparator();
+        }
+    
+        @Override
+        public boolean tryAdvance(DoubleConsumer action) {
+            if (drop) {
+                if (checked)
+                    return source.tryAdvance(action);
+                while (source.tryAdvance(this)) {
+                    if (!predicate.test(cur)) {
+                        checked = true;
+                        action.accept(cur);
+                        return true;
+                    }
+                }
+                return false;
+            }
+            if (!checked && source.tryAdvance(this) && predicate.test(cur)) {
+                action.accept(cur);
+                return true;
+            }
+            checked = true;
+            return false;
+        }
+    
+        @Override
+        public void accept(double t) {
+            this.cur = t;
+        }
+    }
+
     final DoubleStream stream;
 
     DoubleStreamEx(DoubleStream stream) {
@@ -1334,7 +1383,7 @@ public class DoubleStreamEx implements DoubleStream {
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_TAKE_WHILE);
         }
-        return delegate(new TDOfDouble(stream.spliterator(), false, predicate));
+        return delegate(new DoubleStreamEx.TDOfDouble(stream.spliterator(), false, predicate));
     }
 
     /**
@@ -1363,7 +1412,7 @@ public class DoubleStreamEx implements DoubleStream {
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_DROP_WHILE);
         }
-        return delegate(new TDOfDouble(stream.spliterator(), true, predicate));
+        return delegate(new DoubleStreamEx.TDOfDouble(stream.spliterator(), true, predicate));
     }
 
     /**

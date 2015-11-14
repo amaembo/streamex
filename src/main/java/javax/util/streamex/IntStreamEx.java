@@ -30,6 +30,7 @@ import java.util.Random;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator.OfInt;
 import java.util.Spliterator;
+import java.util.Spliterators.AbstractIntSpliterator;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
 import java.util.function.DoublePredicate;
@@ -61,6 +62,54 @@ import static javax.util.streamex.StreamExInternals.*;
  * @author Tagir Valeev
  */
 public class IntStreamEx implements IntStream {
+    private static final class TDOfInt extends AbstractIntSpliterator implements IntConsumer {
+        private final IntPredicate predicate;
+        private final boolean drop;
+        private boolean checked;
+        private final Spliterator.OfInt source;
+        private int cur;
+    
+        TDOfInt(Spliterator.OfInt source, boolean drop, IntPredicate predicate) {
+            super(source.estimateSize(), source.characteristics()
+                & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL | DISTINCT));
+            this.drop = drop;
+            this.predicate = predicate;
+            this.source = source;
+        }
+    
+        @Override
+        public Comparator<? super Integer> getComparator() {
+            return source.getComparator();
+        }
+    
+        @Override
+        public boolean tryAdvance(IntConsumer action) {
+            if (drop) {
+                if (checked)
+                    return source.tryAdvance(action);
+                while (source.tryAdvance(this)) {
+                    if (!predicate.test(cur)) {
+                        checked = true;
+                        action.accept(cur);
+                        return true;
+                    }
+                }
+                return false;
+            }
+            if (!checked && source.tryAdvance(this) && predicate.test(cur)) {
+                action.accept(cur);
+                return true;
+            }
+            checked = true;
+            return false;
+        }
+    
+        @Override
+        public void accept(int t) {
+            this.cur = t;
+        }
+    }
+
     final IntStream stream;
 
     IntStreamEx(IntStream stream) {
@@ -1524,7 +1573,7 @@ public class IntStreamEx implements IntStream {
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_TAKE_WHILE);
         }
-        return delegate(new TDOfInt(stream.spliterator(), false, predicate));
+        return delegate(new IntStreamEx.TDOfInt(stream.spliterator(), false, predicate));
     }
 
     /**
@@ -1553,7 +1602,7 @@ public class IntStreamEx implements IntStream {
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_DROP_WHILE);
         }
-        return delegate(new TDOfInt(stream.spliterator(), true, predicate));
+        return delegate(new IntStreamEx.TDOfInt(stream.spliterator(), true, predicate));
     }
 
     /**

@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Set;
 import java.util.Spliterator;
+import java.util.Spliterators.AbstractSpliterator;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
@@ -49,6 +50,54 @@ import java.util.stream.Collector.Characteristics;
 import static javax.util.streamex.StreamExInternals.*;
 
 /* package */abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> implements Stream<T>, Iterable<T> {
+    private static final class TDOfRef<T> extends AbstractSpliterator<T> implements Consumer<T> {
+        private final Predicate<? super T> predicate;
+        private final boolean drop;
+        private boolean checked;
+        private final Spliterator<T> source;
+        private T cur;
+    
+        TDOfRef(Spliterator<T> source, boolean drop, Predicate<? super T> predicate) {
+            super(source.estimateSize(), source.characteristics()
+                & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL | DISTINCT));
+            this.drop = drop;
+            this.predicate = predicate;
+            this.source = source;
+        }
+    
+        @Override
+        public Comparator<? super T> getComparator() {
+            return source.getComparator();
+        }
+    
+        @Override
+        public boolean tryAdvance(Consumer<? super T> action) {
+            if (drop) {
+                if (checked)
+                    return source.tryAdvance(action);
+                while (source.tryAdvance(this)) {
+                    if (!predicate.test(cur)) {
+                        checked = true;
+                        action.accept(cur);
+                        return true;
+                    }
+                }
+                return false;
+            }
+            if (!checked && source.tryAdvance(this) && predicate.test(cur)) {
+                action.accept(cur);
+                return true;
+            }
+            checked = true;
+            return false;
+        }
+    
+        @Override
+        public void accept(T t) {
+            this.cur = t;
+        }
+    }
+
     final Stream<T> stream;
 
     AbstractStreamEx(Stream<T> stream) {
@@ -1532,7 +1581,7 @@ import static javax.util.streamex.StreamExInternals.*;
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_TAKE_WHILE);
         }
-        return supply(delegate(new TDOfRef<>(stream.spliterator(), false, predicate)));
+        return supply(delegate(new AbstractStreamEx.TDOfRef<>(stream.spliterator(), false, predicate)));
     }
 
     /**
@@ -1561,6 +1610,6 @@ import static javax.util.streamex.StreamExInternals.*;
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_DROP_WHILE);
         }
-        return supply(delegate(new TDOfRef<>(stream.spliterator(), true, predicate)));
+        return supply(delegate(new AbstractStreamEx.TDOfRef<>(stream.spliterator(), true, predicate)));
     }
 }

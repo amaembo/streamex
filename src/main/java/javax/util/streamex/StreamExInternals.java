@@ -28,7 +28,6 @@ import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.Arrays;
 import java.util.BitSet;
-import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -39,20 +38,11 @@ import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.Set;
-import java.util.Spliterator;
-import java.util.Spliterators.AbstractDoubleSpliterator;
-import java.util.Spliterators.AbstractIntSpliterator;
-import java.util.Spliterators.AbstractLongSpliterator;
-import java.util.Spliterators.AbstractSpliterator;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
-import java.util.function.Consumer;
-import java.util.function.DoubleConsumer;
 import java.util.function.DoublePredicate;
 import java.util.function.Function;
-import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
-import java.util.function.LongConsumer;
 import java.util.function.LongPredicate;
 import java.util.function.ObjDoubleConsumer;
 import java.util.function.ObjIntConsumer;
@@ -849,198 +839,6 @@ import java.util.stream.Stream;
             i = box.i;
             d = box.d;
             l = box.l;
-        }
-    }
-
-    static final class TDOfRef<T> extends AbstractSpliterator<T> implements Consumer<T> {
-        private final Predicate<? super T> predicate;
-        private final boolean drop;
-        private boolean checked;
-        private final Spliterator<T> source;
-        private T cur;
-
-        TDOfRef(Spliterator<T> source, boolean drop, Predicate<? super T> predicate) {
-            super(source.estimateSize(), source.characteristics()
-                & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL | DISTINCT));
-            this.drop = drop;
-            this.predicate = predicate;
-            this.source = source;
-        }
-
-        @Override
-        public Comparator<? super T> getComparator() {
-            return source.getComparator();
-        }
-
-        @Override
-        public boolean tryAdvance(Consumer<? super T> action) {
-            if (drop) {
-                if (checked)
-                    return source.tryAdvance(action);
-                while (source.tryAdvance(this)) {
-                    if (!predicate.test(cur)) {
-                        checked = true;
-                        action.accept(cur);
-                        return true;
-                    }
-                }
-                return false;
-            }
-            if (!checked && source.tryAdvance(this) && predicate.test(cur)) {
-                action.accept(cur);
-                return true;
-            }
-            checked = true;
-            return false;
-        }
-
-        @Override
-        public void accept(T t) {
-            this.cur = t;
-        }
-    }
-
-    static final class TDOfInt extends AbstractIntSpliterator implements IntConsumer {
-        private final IntPredicate predicate;
-        private final boolean drop;
-        private boolean checked;
-        private final Spliterator.OfInt source;
-        private int cur;
-
-        TDOfInt(Spliterator.OfInt source, boolean drop, IntPredicate predicate) {
-            super(source.estimateSize(), source.characteristics()
-                & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL | DISTINCT));
-            this.drop = drop;
-            this.predicate = predicate;
-            this.source = source;
-        }
-
-        @Override
-        public Comparator<? super Integer> getComparator() {
-            return source.getComparator();
-        }
-
-        @Override
-        public boolean tryAdvance(IntConsumer action) {
-            if (drop) {
-                if (checked)
-                    return source.tryAdvance(action);
-                while (source.tryAdvance(this)) {
-                    if (!predicate.test(cur)) {
-                        checked = true;
-                        action.accept(cur);
-                        return true;
-                    }
-                }
-                return false;
-            }
-            if (!checked && source.tryAdvance(this) && predicate.test(cur)) {
-                action.accept(cur);
-                return true;
-            }
-            checked = true;
-            return false;
-        }
-
-        @Override
-        public void accept(int t) {
-            this.cur = t;
-        }
-    }
-
-    static final class TDOfLong extends AbstractLongSpliterator implements LongConsumer {
-        private final LongPredicate predicate;
-        private final boolean drop;
-        private boolean checked;
-        private final Spliterator.OfLong source;
-        private long cur;
-
-        TDOfLong(Spliterator.OfLong source, boolean drop, LongPredicate predicate) {
-            super(source.estimateSize(), source.characteristics()
-                & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL | DISTINCT));
-            this.drop = drop;
-            this.predicate = predicate;
-            this.source = source;
-        }
-
-        @Override
-        public Comparator<? super Long> getComparator() {
-            return source.getComparator();
-        }
-
-        @Override
-        public boolean tryAdvance(LongConsumer action) {
-            if (drop) {
-                if (checked)
-                    return source.tryAdvance(action);
-                while (source.tryAdvance(this)) {
-                    if (!predicate.test(cur)) {
-                        checked = true;
-                        action.accept(cur);
-                        return true;
-                    }
-                }
-                return false;
-            }
-            if (!checked && source.tryAdvance(this) && predicate.test(cur)) {
-                action.accept(cur);
-                return true;
-            }
-            checked = true;
-            return false;
-        }
-
-        @Override
-        public void accept(long t) {
-            this.cur = t;
-        }
-    }
-
-    static final class TDOfDouble extends AbstractDoubleSpliterator implements DoubleConsumer {
-        private final DoublePredicate predicate;
-        private final boolean drop;
-        private boolean checked;
-        private final Spliterator.OfDouble source;
-        private double cur;
-
-        TDOfDouble(Spliterator.OfDouble source, boolean drop, DoublePredicate predicate) {
-            super(source.estimateSize(), source.characteristics()
-                & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL | DISTINCT));
-            this.drop = drop;
-            this.predicate = predicate;
-            this.source = source;
-        }
-
-        @Override
-        public Comparator<? super Double> getComparator() {
-            return source.getComparator();
-        }
-
-        @Override
-        public boolean tryAdvance(DoubleConsumer action) {
-            if (drop) {
-                if (checked)
-                    return source.tryAdvance(action);
-                while (source.tryAdvance(this)) {
-                    if (!predicate.test(cur)) {
-                        checked = true;
-                        action.accept(cur);
-                        return true;
-                    }
-                }
-                return false;
-            }
-            if (!checked && source.tryAdvance(this) && predicate.test(cur)) {
-                action.accept(cur);
-                return true;
-            }
-            checked = true;
-            return false;
-        }
-
-        @Override
-        public void accept(double t) {
-            this.cur = t;
         }
     }
 
