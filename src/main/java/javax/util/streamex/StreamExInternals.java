@@ -109,9 +109,7 @@ import java.util.stream.Stream;
 
         void add(int n) {
             if (data.length == size) {
-                byte[] newData = new byte[data.length * 2];
-                System.arraycopy(data, 0, newData, 0, size);
-                data = newData;
+                data = copy(data, new byte[data.length * 2], size);
             }
             data[size++] = (byte) n;
         }
@@ -122,9 +120,7 @@ import java.util.stream.Stream;
 
         void addAll(ByteBuffer buf) {
             if (data.length < buf.size + size) {
-                byte[] newData = new byte[buf.size + size];
-                System.arraycopy(data, 0, newData, 0, size);
-                data = newData;
+                data = copy(data, new byte[buf.size + size], size);
             }
             System.arraycopy(buf.data, 0, data, size, buf.size);
             size += buf.size;
@@ -149,9 +145,7 @@ import java.util.stream.Stream;
 
         void add(int n) {
             if (data.length == size) {
-                char[] newData = new char[data.length * 2];
-                System.arraycopy(data, 0, newData, 0, size);
-                data = newData;
+                data = copy(data, new char[data.length * 2], size);
             }
             data[size++] = (char) n;
         }
@@ -162,9 +156,7 @@ import java.util.stream.Stream;
 
         void addAll(CharBuffer buf) {
             if (data.length < buf.size + size) {
-                char[] newData = new char[buf.size + size];
-                System.arraycopy(data, 0, newData, 0, size);
-                data = newData;
+                data = copy(data, new char[buf.size + size], size);
             }
             System.arraycopy(buf.data, 0, data, size, buf.size);
             size += buf.size;
@@ -189,9 +181,7 @@ import java.util.stream.Stream;
 
         void add(int n) {
             if (data.length == size) {
-                short[] newData = new short[data.length * 2];
-                System.arraycopy(data, 0, newData, 0, size);
-                data = newData;
+                data = copy(data, new short[data.length * 2], size);
             }
             data[size++] = (short) n;
         }
@@ -202,9 +192,7 @@ import java.util.stream.Stream;
 
         void addAll(ShortBuffer buf) {
             if (data.length < buf.size + size) {
-                short[] newData = new short[buf.size + size];
-                System.arraycopy(data, 0, newData, 0, size);
-                data = newData;
+                data = copy(data, new short[buf.size + size], size);
             }
             System.arraycopy(buf.data, 0, data, size, buf.size);
             size += buf.size;
@@ -229,9 +217,7 @@ import java.util.stream.Stream;
 
         void add(double n) {
             if (data.length == size) {
-                float[] newData = new float[data.length * 2];
-                System.arraycopy(data, 0, newData, 0, size);
-                data = newData;
+                data = copy(data, new float[data.length * 2], size);
             }
             data[size++] = (float) n;
         }
@@ -242,9 +228,7 @@ import java.util.stream.Stream;
 
         void addAll(FloatBuffer buf) {
             if (data.length < buf.size + size) {
-                float[] newData = new float[buf.size + size];
-                System.arraycopy(data, 0, newData, 0, size);
-                data = newData;
+                data = copy(data, new float[buf.size + size], size);
             }
             System.arraycopy(buf.data, 0, data, size, buf.size);
             size += buf.size;
@@ -265,18 +249,14 @@ import java.util.stream.Stream;
 
         void add(int n) {
             if (data.length == size) {
-                int[] newData = new int[data.length * 2];
-                System.arraycopy(data, 0, newData, 0, size);
-                data = newData;
+                data = copy(data, new int[data.length * 2], size);
             }
             data[size++] = n;
         }
 
         void addAll(IntBuffer buf) {
             if (data.length < buf.size + size) {
-                int[] newData = new int[buf.size + size];
-                System.arraycopy(data, 0, newData, 0, size);
-                data = newData;
+                data = copy(data, new int[buf.size + size], size);
             }
             System.arraycopy(buf.data, 0, data, size, buf.size);
             size += buf.size;
@@ -297,18 +277,14 @@ import java.util.stream.Stream;
 
         void add(long n) {
             if (data.length == size) {
-                long[] newData = new long[data.length * 2];
-                System.arraycopy(data, 0, newData, 0, size);
-                data = newData;
+                data = copy(data, new long[data.length * 2], size);
             }
             data[size++] = n;
         }
 
         void addAll(LongBuffer buf) {
             if (data.length < buf.size + size) {
-                long[] newData = new long[buf.size + size];
-                System.arraycopy(data, 0, newData, 0, size);
-                data = newData;
+                data = copy(data, new long[buf.size + size], size);
             }
             System.arraycopy(buf.data, 0, data, size, buf.size);
             size += buf.size;
@@ -329,18 +305,14 @@ import java.util.stream.Stream;
 
         void add(double n) {
             if (data.length == size) {
-                double[] newData = new double[data.length * 2];
-                System.arraycopy(data, 0, newData, 0, size);
-                data = newData;
+                data = copy(data, new double[data.length * 2], size);
             }
             data[size++] = n;
         }
 
         void addAll(DoubleBuffer buf) {
             if (data.length < buf.size + size) {
-                double[] newData = new double[buf.size + size];
-                System.arraycopy(data, 0, newData, 0, size);
-                data = newData;
+                data = copy(data, new double[buf.size + size], size);
             }
             System.arraycopy(buf.data, 0, data, size, buf.size);
             size += buf.size;
@@ -908,6 +880,11 @@ import java.util.stream.Stream;
             // this way new ArrayList(new ArrayCollection(arr)) will not copy array at all
             return arr;
         }
+    }
+
+    static <T> T copy(T src, T dest, int size) {
+        System.arraycopy(src, 0, dest, 0, size);
+        return dest;
     }
 
     static ObjIntConsumer<StringBuilder> joinAccumulatorInt(CharSequence delimiter) {
