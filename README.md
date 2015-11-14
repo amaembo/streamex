@@ -1,8 +1,8 @@
 ## Note for the users
 
-The package name will be changed in one of the following releases (likely in 0.5.0) from `javax.util.streamex` to `one.util.streamex`. This change is discussed [here](https://github.com/amaembo/streamex/issues/8). Sorry for possible inconvenience.
+The package name will be changed in the following release (0.5.0) from `javax.util.streamex` to `one.util.streamex`. This change is discussed [here](https://github.com/amaembo/streamex/issues/8). Sorry for possible inconvenience.
 
-# StreamEx 0.4.0
+# StreamEx 0.4.1
 Enhancing Java 8 Streams.
 
 This library defines four classes: `StreamEx`, `IntStreamEx`, `LongStreamEx`, `DoubleStreamEx`
