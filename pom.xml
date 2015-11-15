@@ -27,8 +27,8 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.package>javax.util.streamex</project.package>
-    <project.package.path>javax/util/streamex</project.package.path>
+    <project.package>one.util.streamex</project.package>
+    <project.package.path>one/util/streamex</project.package.path>
   </properties>
 
   <dependencies>
