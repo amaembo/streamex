@@ -1381,9 +1381,13 @@ public class StreamExTest {
                 .toArray(Point[]::new);
         double expected = StreamEx.of(pts).cross(pts).mapKeyValue(Point::distance).mapToDouble(Double::doubleValue)
                 .max().getAsDouble();
+        double[] allDist = IntStreamEx.ofIndices(pts)
+                .flatMapToDouble(i1 -> StreamEx.of(pts, i1 + 1, pts.length).mapToDouble(pt -> pt.distance(pts[i1])))
+                .toArray();
         for (StreamExSupplier<Double> supplier : streamEx(() -> StreamEx.ofPairs(pts, Point::distance))) {
             assertEquals(supplier.toString(), expected, supplier.get().mapToDouble(Double::doubleValue).max()
                     .getAsDouble(), 0.0);
+            assertArrayEquals(supplier.toString(), allDist, supplier.get().mapToDouble(Double::doubleValue).toArray(), 0.0);
         }
     }
 

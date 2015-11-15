@@ -16,8 +16,10 @@
 package one.util.streamex;
 
 import java.util.AbstractMap;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Spliterator;
 
 import one.util.streamex.IntStreamEx;
 import one.util.streamex.PairPermutationSpliterator;
@@ -42,6 +44,16 @@ public class PairPermutationSpliteratorTest {
             assertEquals(row, PairPermutationSpliterator.isqrt(row * (row + 1L) / 2));
             assertEquals(row - 1, PairPermutationSpliterator.isqrt(row * (row + 1L) / 2 - 1));
         }
+    }
+
+    @Test
+    public void testCharacteristics() {
+        PairPermutationSpliterator<Integer, Integer> spltr = new PairPermutationSpliterator<Integer, Integer>(
+                Arrays.asList(1, 2, 3), Integer::sum);
+        assertTrue(spltr.hasCharacteristics(Spliterator.ORDERED));
+        assertTrue(spltr.hasCharacteristics(Spliterator.SIZED));
+        assertTrue(spltr.hasCharacteristics(Spliterator.SUBSIZED));
+        assertEquals(3, spltr.getExactSizeIfKnown());
     }
 
     @Test

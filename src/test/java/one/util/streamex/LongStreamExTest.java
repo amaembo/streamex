@@ -224,6 +224,10 @@ public class LongStreamExTest {
         long[] result = new long[500];
         LongStreamEx.range(1000).atLeast(500).parallel().forEachOrdered(val -> result[idx.getAndIncrement()] = val);
         assertArrayEquals(LongStreamEx.range(500, 1000).toArray(), result);
+        
+        assertTrue(LongStreamEx.empty().noneMatch(x -> true));
+        assertFalse(LongStreamEx.of(1).noneMatch(x -> true));
+        assertTrue(LongStreamEx.of(1).noneMatch(x -> false));
     }
 
     @Test
@@ -311,14 +315,27 @@ public class LongStreamExTest {
                 .toArray());
         assertArrayEquals(new long[] { Long.MAX_VALUE, 1000, 1, 0, -10, Long.MIN_VALUE },
             LongStreamEx.of(0, 1, 1000, -10, Long.MIN_VALUE, Long.MAX_VALUE).reverseSorted().toArray());
+        assertArrayEquals(new long[] { Long.MAX_VALUE, Long.MIN_VALUE, Long.MIN_VALUE+1, Long.MAX_VALUE-1 },
+            LongStreamEx.of(Long.MIN_VALUE, Long.MIN_VALUE+1, Long.MAX_VALUE-1, Long.MAX_VALUE).sortedByLong(l -> l+1).toArray());
         assertArrayEquals(new long[] { -10, Long.MIN_VALUE, Long.MAX_VALUE, 1000, 1, 0 },
             LongStreamEx.of(0, 1, 1000, -10, Long.MIN_VALUE, Long.MAX_VALUE).sortedByDouble(x -> 1.0 / x).toArray());
+    }
+    
+    @SafeVarargs
+    private final void checkEmpty(Function<LongStreamEx, OptionalLong>... fns) {
+        int i=0;
+        for(Function<LongStreamEx, OptionalLong> fn : fns) {
+            assertFalse("#"+i, fn.apply(LongStreamEx.empty()).isPresent());
+            assertFalse("#"+i, fn.apply(LongStreamEx.of(1, 2, 3, 4).greater(5).parallel()).isPresent());
+            assertEquals("#" + i, 10, fn.apply(LongStreamEx.of(1, 1, 1, 1, 10, 10, 10, 10).greater(5).parallel()).getAsLong());
+            i++;
+        }
     }
 
     @Test
     public void testMinMax() {
-        assertFalse(LongStreamEx.empty().maxBy(Long::valueOf).isPresent());
-        assertFalse(LongStreamEx.empty().maxByInt(x -> (int) x).isPresent());
+        checkEmpty(s -> s.maxBy(Long::valueOf), s -> s.maxByInt(x -> (int)x), s -> s.maxByLong(x -> x), s -> s.maxByDouble(x -> x),
+            s -> s.minBy(Long::valueOf), s -> s.minByInt(x -> (int)x), s -> s.minByLong(x -> x), s -> s.minByDouble(x -> x));
         assertEquals(9, LongStreamEx.range(5, 12).max((a, b) -> String.valueOf(a).compareTo(String.valueOf(b)))
                 .getAsLong());
         assertEquals(10, LongStreamEx.range(5, 12).min((a, b) -> String.valueOf(a).compareTo(String.valueOf(b)))

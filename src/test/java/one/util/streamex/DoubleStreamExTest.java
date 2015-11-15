@@ -153,7 +153,7 @@ public class DoubleStreamExTest {
 
         assertArrayEquals(new double[] { 0.0, 0.0, 1.0, 0.0, 1.0, 2.0 },
             DoubleStreamEx.of(1, 2, 3).flatMap(x -> IntStreamEx.range((int) x).asDoubleStream()).toArray(), 0.0);
-        
+
         assertArrayEquals(new long[] { 0x3FF0000000000000L, 0x3FF0000000000000L, 0x4000000000000000L,
                 0x4000000000000000L, 0x7FF8000000000000L, 0x7FF8000000000000L }, DoubleStreamEx.of(1, 2, Double.NaN)
                 .flatMapToLong(x -> LongStream.of(Double.doubleToLongBits(x), Double.doubleToRawLongBits(x))).toArray());
@@ -217,18 +217,31 @@ public class DoubleStreamExTest {
                         Double.MAX_VALUE, -0.0, Double.MIN_VALUE).reverseSorted().toArray(), 0.0);
         assertArrayEquals(new double[] { 1, 10, 2, 21, 9 }, DoubleStreamEx.of(1, 10, 2, 9, 21)
                 .sortedBy(String::valueOf).toArray(), 0.0);
-        
-        assertArrayEquals(new double[] {0.4, 1.5, 1.3, 2.3, 2.1, 2.0, 3.7}, DoubleStreamEx.of(1.5, 2.3, 1.3, 2.1, 3.7, 0.4, 2.0)
-            .sortedByInt(x -> (int)x).toArray(), 0.0);
 
-        assertArrayEquals(new double[] {0.4, 1.5, 1.3, 2.3, 2.1, 2.0, 3.7}, DoubleStreamEx.of(1.5, 2.3, 1.3, 2.1, 3.7, 0.4, 2.0)
-            .sortedByLong(x -> (long)x).toArray(), 0.0);
+        assertArrayEquals(new double[] { 0.4, 1.5, 1.3, 2.3, 2.1, 2.0, 3.7 },
+            DoubleStreamEx.of(1.5, 2.3, 1.3, 2.1, 3.7, 0.4, 2.0).sortedByInt(x -> (int) x).toArray(), 0.0);
+
+        assertArrayEquals(new double[] { 0.4, 1.5, 1.3, 2.3, 2.1, 2.0, 3.7 },
+            DoubleStreamEx.of(1.5, 2.3, 1.3, 2.1, 3.7, 0.4, 2.0).sortedByLong(x -> (long) x).toArray(), 0.0);
+    }
+
+    @SafeVarargs
+    private final void checkEmpty(Function<DoubleStreamEx, OptionalDouble>... fns) {
+        int i = 0;
+        for (Function<DoubleStreamEx, OptionalDouble> fn : fns) {
+            assertFalse("#" + i, fn.apply(DoubleStreamEx.empty()).isPresent());
+            assertFalse("#" + i, fn.apply(DoubleStreamEx.of(1, 2, 3, 4).greater(5).parallel()).isPresent());
+            assertEquals("#" + i, 10, fn.apply(DoubleStreamEx.of(1, 1, 1, 1, 10, 10, 10, 10).greater(5).parallel())
+                    .getAsDouble(), 0.0);
+            i++;
+        }
     }
 
     @Test
     public void testMinMax() {
-        assertFalse(DoubleStreamEx.empty().maxBy(Double::valueOf).isPresent());
-        assertFalse(DoubleStreamEx.empty().maxByLong(x -> (long) x).isPresent());
+        checkEmpty(s -> s.maxBy(Double::valueOf), s -> s.maxByInt(x -> (int) x), s -> s.maxByLong(x -> (long) x),
+            s -> s.maxByDouble(x -> x), s -> s.minBy(Double::valueOf), s -> s.minByInt(x -> (int) x),
+            s -> s.minByLong(x -> (long) x), s -> s.minByDouble(x -> x));
         assertEquals(9,
             IntStreamEx.range(5, 12).asDoubleStream().max((a, b) -> String.valueOf(a).compareTo(String.valueOf(b)))
                     .getAsDouble(), 0.0);

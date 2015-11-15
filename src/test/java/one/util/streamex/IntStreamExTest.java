@@ -397,10 +397,22 @@ public class IntStreamExTest {
                 .codePointsToString());
     }
 
+    @SafeVarargs
+    private final void checkEmpty(Function<IntStreamEx, OptionalInt>... fns) {
+        int i = 0;
+        for (Function<IntStreamEx, OptionalInt> fn : fns) {
+            assertFalse("#" + i, fn.apply(IntStreamEx.empty()).isPresent());
+            assertFalse("#" + i, fn.apply(IntStreamEx.of(1, 2, 3, 4).greater(5).parallel()).isPresent());
+            assertEquals("#" + i, 10, fn.apply(IntStreamEx.of(1, 1, 1, 1, 10, 10, 10, 10).greater(5).parallel()).getAsInt());
+            i++;
+        }
+    }
+
     @Test
     public void testMinMax() {
-        assertFalse(IntStreamEx.empty().maxBy(Integer::valueOf).isPresent());
-        assertFalse(IntStreamEx.empty().maxByLong(x -> x).isPresent());
+        checkEmpty(s -> s.maxBy(Integer::valueOf), s -> s.maxByInt(x -> x), s -> s.maxByLong(x -> x),
+            s -> s.maxByDouble(x -> x), s -> s.minBy(Integer::valueOf), s -> s.minByInt(x -> x),
+            s -> s.minByLong(x -> x), s -> s.minByDouble(x -> x));
         assertEquals(9, IntStreamEx.range(5, 12).max((a, b) -> String.valueOf(a).compareTo(String.valueOf(b)))
                 .getAsInt());
         assertEquals(10, IntStreamEx.range(5, 12).min((a, b) -> String.valueOf(a).compareTo(String.valueOf(b)))
