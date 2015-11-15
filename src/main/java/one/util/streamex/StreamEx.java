@@ -47,17 +47,12 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import java.util.stream.Collector.Characteristics;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-
 import static one.util.streamex.StreamExInternals.*;
 
 /**
@@ -1724,40 +1719,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public static <K, T> StreamEx<T> ofValues(Map<K, T> map, Predicate<K> keyFilter) {
         return EntryStream.of(map).filterKeys(keyFilter).values();
-    }
-
-    /**
-     * Return an ordered {@code StreamEx} over the zip file entries of given
-     * {@link ZipFile}. Entries appear in the {@code StreamEx} in the order they
-     * appear in the central directory of the zip file.
-     *
-     * @param file
-     *            a {@code ZipFile} object to read the entries from.
-     * @return an ordered {@code StreamEx} of entries in given zip file
-     * @throws IllegalStateException
-     *             if the zip file has been closed
-     * @deprecated Use {@code StreamEx.of(file.entries())}
-     */
-    @Deprecated
-    public static StreamEx<? extends ZipEntry> ofEntries(ZipFile file) {
-        return new StreamEx<>(file.stream());
-    }
-
-    /**
-     * Return an ordered {@code StreamEx} over the jar file entries of given
-     * {@link JarFile}. Entries appear in the {@code StreamEx} in the order they
-     * appear in the central directory of the jar file.
-     *
-     * @param file
-     *            a {@code JarFile} object to read the entries from.
-     * @return an ordered {@code StreamEx} of entries in given jar file
-     * @throws IllegalStateException
-     *             if the jar file has been closed
-     * @deprecated Use {@code StreamEx.of(file.entries())}
-     */
-    @Deprecated
-    public static StreamEx<JarEntry> ofEntries(JarFile file) {
-        return new StreamEx<>(file.stream());
     }
 
     /**
