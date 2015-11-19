@@ -111,16 +111,16 @@ public class TestHelpers {
             checkCollector(message, expected, Stream::empty, collector);
     }
 
-    static <T, R> void checkShortCircuitCollector(String message, R expected, int expectedConsumedElements,
-            Supplier<Stream<T>> base, Collector<? super T, ?, R> collector) {
+    static <T, TT extends T, R> void checkShortCircuitCollector(String message, R expected,
+            int expectedConsumedElements, Supplier<Stream<TT>> base, Collector<T, ?, R> collector) {
         checkShortCircuitCollector(message, expected, expectedConsumedElements, base, collector, false);
     }
 
-    static <T, R> void checkShortCircuitCollector(String message, R expected, int expectedConsumedElements,
-            Supplier<Stream<T>> base, Collector<? super T, ?, R> collector, boolean skipIdentity) {
+    static <T, TT extends T, R> void checkShortCircuitCollector(String message, R expected,
+            int expectedConsumedElements, Supplier<Stream<TT>> base, Collector<T, ?, R> collector, boolean skipIdentity) {
         assertNotNull(message, finished(collector));
-        Collector<? super T, ?, R> withIdentity = Collectors.collectingAndThen(collector, Function.identity());
-        for (StreamExSupplier<T> supplier : streamEx(base)) {
+        Collector<T, ?, R> withIdentity = Collectors.collectingAndThen(collector, Function.identity());
+        for (StreamExSupplier<TT> supplier : streamEx(base)) {
             AtomicInteger counter = new AtomicInteger();
             assertEquals(message + ": " + supplier, expected, supplier.get().peek(t -> counter.incrementAndGet())
                     .collect(collector));
@@ -131,10 +131,11 @@ public class TestHelpers {
         }
     }
 
-    static <T, R> void checkCollector(String message, R expected, Supplier<Stream<T>> base, Collector<? super T, ?, R> collector) {
+    static <T, TT extends T, R> void checkCollector(String message, R expected, Supplier<Stream<TT>> base,
+            Collector<T, ?, R> collector) {
         // use checkShortCircuitCollector for CancellableCollector
         assertNull(message, finished(collector));
-        for (StreamExSupplier<T> supplier : streamEx(base)) {
+        for (StreamExSupplier<TT> supplier : streamEx(base)) {
             assertEquals(message + ": " + supplier, expected, supplier.get().collect(collector));
         }
     }
