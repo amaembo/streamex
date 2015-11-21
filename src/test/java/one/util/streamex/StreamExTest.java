@@ -237,8 +237,10 @@ public class StreamExTest {
             try {
                 supplier.get().toMap(String::length, Function.identity());
             } catch (IllegalStateException ex) {
-                if (!ex.getMessage().equals("Duplicate entry for key '2' (attempt to merge values 'bb' and 'dd')")
-                    && !ex.getMessage().equals("Duplicate entry for key '2' (attempt to merge values 'dd' and 'bb')"))
+                if ((!ex.getMessage().equals("java.lang.IllegalStateException: Duplicate entry for key '2' (attempt to merge values 'bb' and 'dd')")
+                        && !ex.getMessage().equals("java.lang.IllegalStateException: Duplicate entry for key '2' (attempt to merge values 'dd' and 'bb')"))
+                        && (!ex.getMessage().equals("Duplicate entry for key '2' (attempt to merge values 'bb' and 'dd')")
+                        && !ex.getMessage().equals("Duplicate entry for key '2' (attempt to merge values 'dd' and 'bb')")))
                     fail(supplier + ": wrong exception message: " + ex.getMessage());
                 continue;
             }
@@ -280,8 +282,10 @@ public class StreamExTest {
             try {
                 supplier.get().toSortedMap(String::length, Function.identity());
             } catch (IllegalStateException ex) {
-                if (!ex.getMessage().equals("Duplicate entry for key '2' (attempt to merge values 'bb' and 'dd')")
-                    && !ex.getMessage().equals("Duplicate entry for key '2' (attempt to merge values 'dd' and 'bb')"))
+                if ((!ex.getMessage().equals("java.lang.IllegalStateException: Duplicate entry for key '2' (attempt to merge values 'bb' and 'dd')")
+                        && !ex.getMessage().equals("java.lang.IllegalStateException: Duplicate entry for key '2' (attempt to merge values 'dd' and 'bb')"))
+                        && (!ex.getMessage().equals("Duplicate entry for key '2' (attempt to merge values 'bb' and 'dd')")
+                        && !ex.getMessage().equals("Duplicate entry for key '2' (attempt to merge values 'dd' and 'bb')")))
                     fail(supplier + ": wrong exception message: " + ex.getMessage());
                 continue;
             }
