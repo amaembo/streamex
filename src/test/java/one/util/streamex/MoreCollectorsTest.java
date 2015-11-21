@@ -483,12 +483,9 @@ public class MoreCollectorsTest {
         {
             Map<Integer, List<Integer>> expected = IntStreamEx.rangeClosed(1, 100).boxed()
                     .toMap(x -> IntStreamEx.rangeClosed(1, x).boxed().toList());
-            checkCollector(
-                "flatMappingSimple",
-                expected,
-                () -> IntStreamEx.rangeClosed(1, 100).boxed(),
-                Collectors.groupingBy(Function.identity(),
-                    MoreCollectors.flatMapping(x -> IntStream.rangeClosed(1, x).boxed(), Collectors.toList())));
+            Collector<Integer, ?, Map<Integer, List<Integer>>> groupingBy = Collectors.groupingBy(Function.identity(),
+                MoreCollectors.flatMapping(x -> IntStream.rangeClosed(1, x).boxed(), Collectors.toList()));
+            checkCollector("flatMappingSimple", expected, () -> IntStreamEx.rangeClosed(1, 100).boxed(), groupingBy);
         }
 
         Function<Entry<String, List<String>>, Stream<String>> valuesStream = e -> e.getValue() == null ? null : e
