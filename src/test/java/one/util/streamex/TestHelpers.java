@@ -216,4 +216,19 @@ public class TestHelpers {
             assertEquals(msg + ":#" + n, expected, list);
         }
     }
+
+    static void checkIllegalStateException(String message, Runnable r, String key, String value1, String value2) {
+        try {
+            r.run();
+            fail(message+": no exception");
+        }
+        catch(IllegalStateException ex) {
+            String exmsg = ex.getMessage();
+            if (!exmsg.equals("Duplicate entry for key '" + key + "' (attempt to merge values '" + value1 + "' and '"
+                + value2 + "')")
+                && !exmsg.equals("Duplicate entry for key '" + key + "' (attempt to merge values '" + value2 + "' and '"
+                    + value1 + "')"))
+                fail(message + ": wrong exception message: " + exmsg);
+        }
+    }
 }

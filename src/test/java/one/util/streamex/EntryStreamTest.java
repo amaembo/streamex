@@ -253,21 +253,23 @@ public class EntryStreamTest {
         result = EntryStream.of(createMap()).parallel().toCustomMap(TreeMap::new);
         assertEquals(createMap(), result);
 
-        Supplier<EntryStream<Integer, String>> s = () -> StreamEx.of("aaa", "bb", "dd").mapToEntry(String::length,
-            Function.identity());
         Map<Integer, String> expected = new HashMap<>();
         expected.put(3, "aaa");
         expected.put(2, "bbdd");
-        HashMap<Integer, String> customMap = s.get().toCustomMap(String::concat, HashMap::new);
-        assertEquals(expected, customMap);
-        Map<Integer, String> map = s.get().toMap(String::concat);
-        assertEquals(expected, map);
-        map = s.get().parallel().toMap(String::concat);
-        assertEquals(expected, map);
-        SortedMap<Integer, String> sortedMap = s.get().toSortedMap(String::concat);
-        assertEquals(expected, sortedMap);
-        sortedMap = s.get().parallel().toSortedMap(String::concat);
-        assertEquals(expected, sortedMap);
+        Function<StreamExSupplier<String>, EntryStream<Integer, String>> fn = supplier -> supplier.get().mapToEntry(
+            String::length, Function.identity());
+        for(StreamExSupplier<String> supplier : streamEx(() -> StreamEx.of("aaa", "bb", "dd"))) {
+            HashMap<Integer, String> customMap = fn.apply(supplier).toCustomMap(String::concat, HashMap::new);
+            assertEquals(supplier.toString(), expected, customMap);
+            Map<Integer, String> map = fn.apply(supplier).toMap(String::concat);
+            assertEquals(supplier.toString(), expected, map);
+            SortedMap<Integer, String> sortedMap = fn.apply(supplier).toSortedMap(String::concat);
+            assertEquals(supplier.toString(), expected, sortedMap);
+            
+            checkIllegalStateException(supplier.toString(), () -> fn.apply(supplier).toMap(), "2", "dd", "bb");
+            checkIllegalStateException(supplier.toString(), () -> fn.apply(supplier).toSortedMap(), "2", "dd", "bb");
+            checkIllegalStateException(supplier.toString(), () -> fn.apply(supplier).toCustomMap(HashMap::new), "2", "dd", "bb");
+        }
 
         assertEquals(createMap(), EntryStream.of(createMap()).parallel().toMap());
         assertTrue(EntryStream.of(createMap()).parallel().toMap() instanceof ConcurrentMap);

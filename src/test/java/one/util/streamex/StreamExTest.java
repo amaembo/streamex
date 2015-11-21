@@ -234,15 +234,8 @@ public class StreamExTest {
             Map<Integer, String> seqMap3 = supplier.get().toMap(String::length, Function.identity(), String::concat);
             assertEquals(supplier.toString(), expected3, seqMap3);
 
-            try {
-                supplier.get().toMap(String::length, Function.identity());
-            } catch (IllegalStateException ex) {
-                if (!ex.getMessage().equals("Duplicate entry for key '2' (attempt to merge values 'bb' and 'dd')")
-                    && !ex.getMessage().equals("Duplicate entry for key '2' (attempt to merge values 'dd' and 'bb')"))
-                    fail(supplier + ": wrong exception message: " + ex.getMessage());
-                continue;
-            }
-            fail(supplier + ": no exception");
+            checkIllegalStateException(supplier.toString(),
+                () -> supplier.get().toMap(String::length, Function.identity()), "2", "dd", "bb");
         }
     }
 
@@ -277,15 +270,8 @@ public class StreamExTest {
                 String::concat);
             assertEquals(supplier.toString(), expected3, seqMap3);
 
-            try {
-                supplier.get().toSortedMap(String::length, Function.identity());
-            } catch (IllegalStateException ex) {
-                if (!ex.getMessage().equals("Duplicate entry for key '2' (attempt to merge values 'bb' and 'dd')")
-                    && !ex.getMessage().equals("Duplicate entry for key '2' (attempt to merge values 'dd' and 'bb')"))
-                    fail(supplier + ": wrong exception message: " + ex.getMessage());
-                continue;
-            }
-            fail(supplier + ": no exception");
+            checkIllegalStateException(supplier.toString(),
+                () -> supplier.get().toSortedMap(String::length, Function.identity()), "2", "dd", "bb");
         }
     }
 
