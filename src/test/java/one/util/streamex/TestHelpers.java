@@ -226,8 +226,12 @@ public class TestHelpers {
             String exmsg = ex.getMessage();
             if (!exmsg.equals("Duplicate entry for key '" + key + "' (attempt to merge values '" + value1 + "' and '"
                 + value2 + "')")
-                && !exmsg.equals("Duplicate entry for key '" + key + "' (attempt to merge values '" + value2 + "' and '"
-                    + value1 + "')"))
+                    && !exmsg.equals("Duplicate entry for key '" + key + "' (attempt to merge values '" + value2 + "' and '"
+                    + value1 + "')")
+                    && !exmsg.equals("java.lang.IllegalStateException: Duplicate entry for key '" + key + "' (attempt to merge values '"
+                    + value1 + "' and '" + value2 + "')")
+                    && !exmsg.equals("java.lang.IllegalStateException: Duplicate entry for key '" + key + "' (attempt to merge values '"
+                    + value2 + "' and '" + value1 + "')"))
                 fail(message + ": wrong exception message: " + exmsg);
         }
     }
