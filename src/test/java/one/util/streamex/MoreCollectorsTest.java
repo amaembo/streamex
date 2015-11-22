@@ -601,4 +601,26 @@ public class MoreCollectorsTest {
         checkShortCircuitCollector("prefix", "abc", inputSurrogateMix.size(), inputSurrogateMix::stream,
             MoreCollectors.commonPrefix());
     }
+    
+    @Test
+    public void testCommonSuffix() {
+        checkCollectorEmpty("suffix", "", MoreCollectors.commonSuffix());
+        List<String> input = Arrays.asList("defabc", "degfabc", "dfgfgabc", "efghabc", "dfgabc");
+        checkShortCircuitCollector("suffix", "abc", input.size(), input::stream, MoreCollectors.commonSuffix());
+        List<String> input2 = Arrays.asList("defabc", "defgabc", "dabcdfgfg", "efghabc", "dfgabc");
+        checkShortCircuitCollector("suffix", "", 3, input2::stream, MoreCollectors.commonSuffix());
+        List<String> inputHalf = new ArrayList<>();
+        inputHalf.addAll(Collections.nCopies(1000, "abc"));
+        inputHalf.addAll(Collections.nCopies(1000, "def"));
+        checkShortCircuitCollector("suffix", "", 1001, inputHalf::stream, MoreCollectors.commonSuffix());
+        List<String> inputSurrogate = Arrays.asList("\ud801\udc2fabc", "\ud802\udc2fabc", "\ud803\udc2fabc");
+        checkShortCircuitCollector("suffix", "abc", inputSurrogate.size(), inputSurrogate::stream,
+            MoreCollectors.commonSuffix());
+        List<String> inputSurrogateBad = Arrays.asList("x\udc2fabc", "y\udc2fabc", "z\udc2fabc");
+        checkShortCircuitCollector("suffix", "\udc2fabc", inputSurrogateBad.size(), inputSurrogateBad::stream,
+            MoreCollectors.commonSuffix());
+        List<String> inputSurrogateMix = Arrays.asList("\ud801\udc2fabc", "x\udc2fabc", "\ud801\udc14abc");
+        checkShortCircuitCollector("suffix", "abc", inputSurrogateMix.size(), inputSurrogateMix::stream,
+            MoreCollectors.commonSuffix());
+    }
 }
