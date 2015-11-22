@@ -13,6 +13,8 @@ class as well as primitive collectors concept.
 
 Full API documentation is available [here](http://amaembo.github.io/streamex/javadoc/).
 
+Take a look at the [Cheatsheet](CHEATSHEET.md) for brief introduction to the StreamEx!
+
 StreamEx library main points are following:
 
 * Shorter and convenient ways to do the common tasks.
