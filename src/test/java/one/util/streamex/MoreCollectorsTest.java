@@ -579,4 +579,26 @@ public class MoreCollectorsTest {
             assertTrue(catched);
         }
     }
+    
+    @Test
+    public void testCommonPrefix() {
+        checkCollectorEmpty("prefix", "", MoreCollectors.commonPrefix());
+        List<String> input = Arrays.asList("abcdef", "abcdefg", "abcdfgfg", "abcefgh", "abcdfg");
+        checkShortCircuitCollector("prefix", "abc", input.size(), input::stream, MoreCollectors.commonPrefix());
+        List<String> input2 = Arrays.asList("abcdef", "abcdefg", "dabcdfgfg", "abcefgh", "abcdfg");
+        checkShortCircuitCollector("prefix", "", 3, input2::stream, MoreCollectors.commonPrefix());
+        List<String> inputHalf = new ArrayList<>();
+        inputHalf.addAll(Collections.nCopies(1000, "abc"));
+        inputHalf.addAll(Collections.nCopies(1000, "def"));
+        checkShortCircuitCollector("prefix", "", 1001, inputHalf::stream, MoreCollectors.commonPrefix());
+        List<String> inputSurrogate = Arrays.asList("abc\ud801\udc2f", "abc\ud801\udc2f", "abc\ud801\udc14");
+        checkShortCircuitCollector("prefix", "abc", inputSurrogate.size(), inputSurrogate::stream,
+            MoreCollectors.commonPrefix());
+        List<String> inputSurrogateBad = Arrays.asList("abc\ud801x", "abc\ud801y", "abc\ud801z");
+        checkShortCircuitCollector("prefix", "abc\ud801", inputSurrogateBad.size(), inputSurrogateBad::stream,
+            MoreCollectors.commonPrefix());
+        List<String> inputSurrogateMix = Arrays.asList("abc\ud801\udc2f", "abc\ud801x", "abc\ud801\udc14");
+        checkShortCircuitCollector("prefix", "abc", inputSurrogateMix.size(), inputSurrogateMix::stream,
+            MoreCollectors.commonPrefix());
+    }
 }

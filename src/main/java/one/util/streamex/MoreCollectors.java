@@ -49,6 +49,7 @@ import java.util.stream.Collector.Characteristics;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import one.util.streamex.StreamExInternals.ObjIntBox;
 import static one.util.streamex.StreamExInternals.*;
 
 /**
@@ -1408,5 +1409,39 @@ public final class MoreCollectors {
             acc1.l &= acc2.l;
             return acc1;
         }, PrimitiveBox::asLong, acc -> acc.b && acc.l == 0, UNORDERED_CHARACTERISTICS);
+    }
+    
+    public static Collector<CharSequence, ?, String> commonPrefix() {
+        BiConsumer<ObjIntBox<CharSequence>, CharSequence> accumulator = (acc, t) -> {
+            if(acc.b == -1) {
+                acc.a = t;
+                acc.b = t.length();
+            } else if(acc.b > 0) {
+                if(t.length() < acc.b)
+                    acc.b = t.length();
+                for(int i=0; i<acc.b; i++) {
+                    if(acc.a.charAt(i) != t.charAt(i)) {
+                        if(i > 0 && Character.isHighSurrogate(t.charAt(i-1))
+                                && (Character.isLowSurrogate(t.charAt(i)) || Character.isLowSurrogate(acc.a.charAt(i))))
+                                i--;
+                        acc.b = i;
+                        break;
+                    }
+                }
+            }
+        };
+        return new CancellableCollectorImpl<CharSequence, ObjIntBox<CharSequence>, String>(
+                () -> new ObjIntBox<>(null, -1), 
+                accumulator, 
+                (acc1, acc2) -> {
+                    if (acc1.b == -1)
+                        return acc2;
+                    if (acc2.b != -1)
+                        accumulator.accept(acc1, acc2.a.subSequence(0, acc2.b));
+                    return acc1;
+                }, 
+                acc -> acc.a == null ? "" : acc.a.subSequence(0, acc.b).toString(), 
+                acc -> acc.b == 0,
+                UNORDERED_CHARACTERISTICS);
     }
 }
