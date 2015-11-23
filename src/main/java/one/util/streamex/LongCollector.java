@@ -78,7 +78,6 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      *            a function to be applied to the final result of this collector
      * @return a collector which performs the action of this collector, followed
      *         by an additional finishing step
-     * @see #collectingAndThen(LongCollector, Function)
      * @since 0.3.7
      */
     default <RR> LongCollector<A, RR> andThen(Function<R, RR> finisher) {

@@ -75,7 +75,6 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
      *            a function to be applied to the final result of this collector
      * @return a collector which performs the action of this collector, followed
      *         by an additional finishing step
-     * @see #collectingAndThen(DoubleCollector, Function)
      * @since 0.3.7
      */
     default <RR> DoubleCollector<A, RR> andThen(Function<R, RR> finisher) {
