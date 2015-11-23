@@ -1,5 +1,29 @@
 # StreamEx Cheatsheet
 
+## Contents
+
+* [Glossary](#glossary)
+* [Stream sources](#stream-sources)
+* [New intermediate operations](#new-intermediate-operations)
+** [filtering](#filtering)
+** [mapping](#mapping)
+** [flat-mapping](#flat-mapping)
+** [distinct](#distinct)
+** [sorting](#sorting)
+** [partial reduction](#partial-reduction)
+** [concatenate](#concatenate)
+** [peek](#peek)
+** [misc](#misc)
+* [New terminal operations](#new-terminal-operations)
+** [Collector shortcuts](#collector-shortcuts)
+** [Search](#search)
+** [Folding](#folding)
+** [Primitive operations](#primitive-operations)
+** [forEach-like operations](#foreach-like-operations)
+* [Collectors](#collectors)
+** [Basic collectors](#basic-collectors)
+** [Adaptor collectors](#adaptor-collectors)
+
 ## Glossary
 
 * *any*: either of `StreamEx`, `IntStreamEx`, `LongStreamEx`, `DoubleStreamEx`, `EntryStream`, sometimes without `EntryStream`.
@@ -51,7 +75,7 @@ Filter entries which keys or values satisfy the predicate | `EntryStream.filterK
 Filter entries applying the `BiPredicate` to key and value | `EntryStream.filterKeyValue()`
 Remove entries which keys or values satisfy the predicate | `EntryStream.removeKeys()/removeValues()`
 Remove entries applying the `BiPredicate` to key and value | `EntryStream.removeKeyValue()`
-Select elements which are instances of given class | `StreamEx.select`
+Select elements which are instances of given class | `StreamEx.select()`
 Select entries which keys or values are instances of given class | `EntryStream.selectKeys()/selectValues()`
 
 ### mapping
@@ -66,7 +90,7 @@ Map entry key and value using `BiFunction` | `EntryStream.mapKeyValue()`
 Swap entry key and value (so entry value becomes key and vice versa) | `EntryStream.invert()`
 Drop entry values leaving only keys | `EntryStream.keys()`
 Drop entry keys leaving only values | `EntryStream.values()`
-Convert every entry to String | `EntryStream.join()`
+Convert every entry to `String` | `EntryStream.join()`
 Map pair of adjacent elements to the single element | `any.pairMap()`
 Map only first or last element, leaving others as is | `any.mapFirst()/mapLast()`
 
@@ -82,7 +106,7 @@ Flat-map entry keys leaving values unchanged | `EntryStream.flatMapKeys()`
 Flat-map entry values leaving keys unchanged | `EntryStream.flatMapValues()`
 Flat-map entry key and value using `BiFunction` | `EntryStream.flatMapKeyValue()`
 
-### getting distinct elements
+### distinct
 
 What I want | How to get it
 --- | ---
@@ -175,7 +199,7 @@ What I want | How to get it
 Collect `IntStreamEx` to `byte[]`, `char[]` or `short[]` | `IntStreamEx.toByteArray()/toCharArray()/toShortArray()`
 Collect `IntStreamEx` to `BitSet` | `IntStreamEx.toBitSet()`
 Collect `DoubleStreamEx` to `float[]` | `DoubleStreamEx.toFloatArray()`
-Collect stream of chars or codepoints to String | `IntStreamEx.charsToString()/codePointsToString()`
+Collect stream of chars or codepoints to `String` | `IntStreamEx.charsToString()/codePointsToString()`
 
 ### forEach-like operations
 
@@ -183,3 +207,38 @@ What I want | How to get it
 --- | ---
 Perform operation on every adjacent pair of elements | `StreamEx.forPairs()`
 Perform operation on entry key and value using `BiConsumer` | `EntryStream.forKeyValue()`
+
+## Collectors
+
+### Basic collectors
+
+What I want | How to get it
+--- | ---
+Collect to array | `MoreCollectors.toArray()`
+Collect to boolean array using the `Predicate` applied to each element | `MoreCollectors.toBooleanArray()`
+Collect to `EnumSet` | `MoreCollectors.toEnumSet()`
+Count number of distinct elements using custom key extractor | `MoreCollectors.distinctCount()`
+Get the `List` of distinct elements using custom key extractor | `MoreCollectors.distinctBy()`
+Simply counting, but get the result as `Integer` | `MoreCollectors.countingInt()`
+Get the first or last element only | `MoreCollectors.first()/last()`
+Get the element only if there's exactly one element | `MoreCollectors.onlyOne()`
+Get the given number of first or last elements in the `List` | `MoreCollectors.head()/tail()`
+Get the given number of greatest/least elements according to the given `Comparator` or natural order | `MoreCollectors.greatest()/least()`
+Get all the maximal or minimal elements according to the given `Comparator` or natural order | `MoreCollectors.maxAll()/minAll()`
+Get the index of maximal or minimal element according to the given `Comparator` or natural order | `MoreCollectors.minIndex()/maxIndex()`
+Get the intersection of input collections | `MoreCollectors.intersecting()`
+Get the result bitwise-and operation | `MoreCollectors.andingInt()/andingLong()`
+Join the elements into string with possible limit to the string length (adding ellipsis if necessary) | `Joining.with()`
+Perform a group-by with the specified keys domain, so every key is initialized even if absent in the input | `MoreCollectors.groupingBy()/groupingByEnum()`
+Partition input according to the `Predicate` | `MoreCollectors.partitioningBy()`
+Get the common prefix or common suffix `String` of input elements | `MoreCollectors.commonPrefix()/commonSuffix()`
+
+### Adaptor collectors
+
+What I want | How to get it
+--- | ---
+Collect using two independent collectors | `MoreCollectors.pairing()`
+Filter the input before passing to the collector | `MoreCollectors.filtering()`
+Map the input before passing to the collector | `MoreCollectors.mapping()`
+Flat-map the input before passing to the collector | `MoreCollectors.flatMapping()`
+Perform a custom final operation after the collection finishes | `MoreCollectors.collectingAndThen()`
