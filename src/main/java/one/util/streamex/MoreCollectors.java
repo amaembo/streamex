@@ -1410,7 +1410,30 @@ public final class MoreCollectors {
             return acc1;
         }, PrimitiveBox::asLong, acc -> acc.b && acc.l == 0, UNORDERED_CHARACTERISTICS);
     }
-    
+
+    /**
+     * Returns a {@code Collector} which computes a common prefix of input
+     * {@code CharSequence} objects returning the result as {@code String}. For
+     * empty input the empty {@code String} is returned.
+     *
+     * <p>
+     * The returned {@code Collector} handles specially Unicode surrogate pairs:
+     * the returned prefix may end with <a
+     * href="http://www.unicode.org/glossary/#high_surrogate_code_unit"> Unicode
+     * high-surrogate code unit</a> only if it's not succeeded by <a
+     * href="http://www.unicode.org/glossary/#low_surrogate_code_unit"> Unicode
+     * low-surrogate code unit</a> in any of input sequences. Normally the
+     * ending high-surrogate code unit is removed from prefix.
+     * 
+     * <p>
+     * This method returns a <a
+     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * collector</a>: it may not process all the elements if the common prefix
+     * is empty.
+     * 
+     * @return a {@code Collector} which computes a common prefix.
+     * @since 0.5.0
+     */
     public static Collector<CharSequence, ?, String> commonPrefix() {
         BiConsumer<ObjIntBox<CharSequence>, CharSequence> accumulator = (acc, t) -> {
             if (acc.b == -1) {
@@ -1430,8 +1453,7 @@ public final class MoreCollectors {
                 }
             }
         };
-        return new CancellableCollectorImpl<CharSequence, ObjIntBox<CharSequence>, String>(() -> new ObjIntBox<>(null,
-                -1), accumulator, (acc1, acc2) -> {
+        return new CancellableCollectorImpl<>(() -> new ObjIntBox<>(null, -1), accumulator, (acc1, acc2) -> {
             if (acc1.b == -1)
                 return acc2;
             if (acc2.b != -1)
@@ -1441,6 +1463,29 @@ public final class MoreCollectors {
                 UNORDERED_CHARACTERISTICS);
     }
 
+    /**
+     * Returns a {@code Collector} which computes a common suffix of input
+     * {@code CharSequence} objects returning the result as {@code String}. For
+     * empty input the empty {@code String} is returned.
+     *
+     * <p>
+     * The returned {@code Collector} handles specially Unicode surrogate pairs:
+     * the returned suffix may start with <a
+     * href="http://www.unicode.org/glossary/#low_surrogate_code_unit"> Unicode
+     * low-surrogate code unit</a> only if it's not preceded by <a
+     * href="http://www.unicode.org/glossary/#high_surrogate_code_unit"> Unicode
+     * high-surrogate code unit</a> in any of input sequences. Normally the
+     * starting low-surrogate code unit is removed from suffix.
+     * 
+     * <p>
+     * This method returns a <a
+     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * collector</a>: it may not process all the elements if the common suffix
+     * is empty.
+     * 
+     * @return a {@code Collector} which computes a common suffix.
+     * @since 0.5.0
+     */
     public static Collector<CharSequence, ?, String> commonSuffix() {
         BiConsumer<ObjIntBox<CharSequence>, CharSequence> accumulator = (acc, t) -> {
             if (acc.b == -1) {
@@ -1464,8 +1509,7 @@ public final class MoreCollectors {
                 }
             }
         };
-        return new CancellableCollectorImpl<CharSequence, ObjIntBox<CharSequence>, String>(() -> new ObjIntBox<>(null,
-                -1), accumulator, (acc1, acc2) -> {
+        return new CancellableCollectorImpl<>(() -> new ObjIntBox<>(null, -1), accumulator, (acc1, acc2) -> {
             if (acc1.b == -1)
                 return acc2;
             if (acc2.b != -1)
