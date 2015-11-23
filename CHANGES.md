@@ -6,6 +6,7 @@ Warning: this release introduces some changes which break the backward compatibi
 
 * The package `javax.util.streamex` is renamed to `one.util.streamex`. Every occurrence of `javax.util.streamex` in source files must be replaced with `one.util.streamex`.
 * The OSGi Bundle-SymbolicName changed from `javax.util.streamex` to `one.util.streamex`.
+* Added: `MoreCollectors.commonPrefix()/commonSuffix()` short-circuiting collectors. 
 * Deprecated methods `StreamEx.ofEntries()` removed.
 
 ### 0.4.1
