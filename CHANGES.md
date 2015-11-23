@@ -5,9 +5,11 @@
 Warning: this release introduces some changes which break the backward compatibility and will require the changes in source code if you used the previous StreamEx versions.
 
 * The package `javax.util.streamex` is renamed to `one.util.streamex`. Every occurrence of `javax.util.streamex` in source files must be replaced with `one.util.streamex`.
-* The OSGi Bundle-SymbolicName changed from `javax.util.streamex` to `one.util.streamex`.
+* The OSGi Bundle-SymbolicName is changed from `javax.util.streamex` to `one.util.streamex`.
+* The Maven groupID is changed from `io.github.amaembo` to `one.util`. Dependencies in pom.xml files should be updated accordingly.
 * Added: `MoreCollectors.commonPrefix()/commonSuffix()` short-circuiting collectors. 
 * Deprecated methods `StreamEx.ofEntries()` removed.
+* Deprecated methods `collectingAndThen` in primitive collectors removed (use `andThen()` instead).
 
 ### 0.4.1
 

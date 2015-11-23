@@ -59,10 +59,6 @@ public class IntCollectorTest {
 
     @Test
     public void testCollectingAndThen() {
-        assertEquals(
-            9,
-            (int) IntStreamEx.rangeClosed(1, 5).collect(
-                IntCollector.collectingAndThen(IntCollector.joining(","), String::length)));
         assertEquals(9, (int) IntStreamEx.rangeClosed(1, 5).collect(IntCollector.joining(",").andThen(String::length)));
     }
 

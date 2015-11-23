@@ -306,31 +306,6 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
     }
 
     /**
-     * Adapts a {@code DoubleCollector} to perform an additional finishing
-     * transformation.
-     *
-     * @param <A>
-     *            intermediate accumulation type of the downstream collector
-     * @param <R>
-     *            result type of the downstream collector
-     * @param <RR>
-     *            result type of the resulting collector
-     * @param downstream
-     *            a collector
-     * @param finisher
-     *            a function to be applied to the final result of the downstream
-     *            collector
-     * @return a collector which performs the action of the downstream
-     *         collector, followed by an additional finishing step
-     * @deprecated use {@link #andThen(Function)}.
-     */
-    @Deprecated
-    static <A, R, RR> DoubleCollector<A, RR> collectingAndThen(DoubleCollector<A, R> downstream,
-            Function<R, RR> finisher) {
-        return downstream.andThen(finisher);
-    }
-
-    /**
      * Returns a {@code DoubleCollector} which performs a reduction of its input
      * numbers under a specified {@link DoubleBinaryOperator}. The result is
      * described as an {@link OptionalDouble}.

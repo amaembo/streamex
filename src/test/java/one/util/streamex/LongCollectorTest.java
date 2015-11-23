@@ -98,10 +98,6 @@ public class LongCollectorTest {
         assertEquals(
             24L,
             (long) LongStreamEx.of(1, 2, 3, 4).collect(
-                LongCollector.collectingAndThen(LongCollector.reducing((a, b) -> a * b), OptionalLong::getAsLong)));
-        assertEquals(
-            24L,
-            (long) LongStreamEx.of(1, 2, 3, 4).collect(
                 LongCollector.reducing((a, b) -> a * b).andThen(OptionalLong::getAsLong)));
     }
 

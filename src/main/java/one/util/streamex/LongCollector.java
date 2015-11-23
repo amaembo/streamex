@@ -311,30 +311,6 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
     }
 
     /**
-     * Adapts a {@code LongCollector} to perform an additional finishing
-     * transformation.
-     *
-     * @param <A>
-     *            intermediate accumulation type of the downstream collector
-     * @param <R>
-     *            result type of the downstream collector
-     * @param <RR>
-     *            result type of the resulting collector
-     * @param downstream
-     *            a collector
-     * @param finisher
-     *            a function to be applied to the final result of the downstream
-     *            collector
-     * @return a collector which performs the action of the downstream
-     *         collector, followed by an additional finishing step
-     * @deprecated use {@link #andThen(Function)}.
-     */
-    @Deprecated
-    static <A, R, RR> LongCollector<A, RR> collectingAndThen(LongCollector<A, R> downstream, Function<R, RR> finisher) {
-        return downstream.andThen(finisher);
-    }
-
-    /**
      * Returns a {@code LongCollector} which performs a reduction of its input
      * numbers under a specified {@link LongBinaryOperator}. The result is
      * described as an {@link OptionalLong}.

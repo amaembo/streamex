@@ -312,30 +312,6 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
     }
 
     /**
-     * Adapts an {@code IntCollector} to perform an additional finishing
-     * transformation.
-     *
-     * @param <A>
-     *            intermediate accumulation type of the downstream collector
-     * @param <R>
-     *            result type of the downstream collector
-     * @param <RR>
-     *            result type of the resulting collector
-     * @param downstream
-     *            a collector
-     * @param finisher
-     *            a function to be applied to the final result of the downstream
-     *            collector
-     * @return a collector which performs the action of the downstream
-     *         collector, followed by an additional finishing step
-     * @deprecated use {@link #andThen(Function)}.
-     */
-    @Deprecated
-    static <A, R, RR> IntCollector<A, RR> collectingAndThen(IntCollector<A, R> downstream, Function<R, RR> finisher) {
-        return downstream.andThen(finisher);
-    }
-
-    /**
      * Returns an {@code IntCollector} which performs a reduction of its input
      * numbers under a specified {@link IntBinaryOperator}. The result is
      * described as an {@link OptionalInt}.
