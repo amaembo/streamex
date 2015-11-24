@@ -19,6 +19,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.UncheckedIOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -53,6 +57,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import java.util.stream.Collector.Characteristics;
+
 import static one.util.streamex.StreamExInternals.*;
 
 /**
@@ -1640,6 +1645,74 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         if (reader instanceof BufferedReader)
             return new StreamEx<>(((BufferedReader) reader).lines());
         return new StreamEx<>(new BufferedReader(reader).lines());
+    }
+
+    /**
+     * Read all lines from a file as a {@code StreamEx}. Bytes from the file are
+     * decoded into characters using the {@link StandardCharsets#UTF_8 UTF-8}
+     * {@link Charset charset} and the same line terminators as specified by
+     * {@link Files#readAllLines(Path, Charset)} are supported.
+     *
+     * <p>
+     * After this method returns, then any subsequent I/O exception that occurs
+     * while reading from the file or when a malformed or unmappable byte
+     * sequence is read, is wrapped in an {@link UncheckedIOException} that will
+     * be thrown from the {@code StreamEx} method that caused the read to take
+     * place. In case an {@code IOException} is thrown when closing the file, it
+     * is also wrapped as an {@code UncheckedIOException}.
+     *
+     * <p>
+     * The returned stream encapsulates a {@link Reader}. If timely disposal of
+     * file system resources is required, the try-with-resources construct
+     * should be used to ensure that the stream's {@link #close close} method is
+     * invoked after the stream operations are completed.
+     *
+     * @param path
+     *            the path to the file
+     * @return the lines from the file as a {@code StreamEx}
+     * @throws IOException
+     *             if an I/O error occurs opening the file
+     * @since 0.5.0
+     * @see Files#lines(Path)
+     */
+    public static StreamEx<String> ofLines(Path path) throws IOException {
+        return new StreamEx<>(Files.lines(path));
+    }
+
+    /**
+     * Read all lines from a file as a {@code StreamEx}.
+     *
+     * <p>
+     * Bytes from the file are decoded into characters using the specified
+     * charset and the same line terminators as specified by
+     * {@link Files#readAllLines(Path, Charset)} are supported.
+     *
+     * <p>
+     * After this method returns, then any subsequent I/O exception that occurs
+     * while reading from the file or when a malformed or unmappable byte
+     * sequence is read, is wrapped in an {@link UncheckedIOException} that will
+     * be thrown from the {@code StreamEx} method that caused the read to take
+     * place. In case an {@code IOException} is thrown when closing the file, it
+     * is also wrapped as an {@code UncheckedIOException}.
+     *
+     * <p>
+     * The returned stream encapsulates a {@link Reader}. If timely disposal of
+     * file system resources is required, the try-with-resources construct
+     * should be used to ensure that the stream's {@link #close close} method is
+     * invoked after the stream operations are completed.
+     *
+     * @param path
+     *            the path to the file
+     * @param charset
+     *            the charset to use for decoding
+     * @return the lines from the file as a {@code StreamEx}
+     * @throws IOException
+     *             if an I/O error occurs opening the file
+     * @see Files#lines(Path, Charset)
+     * @since 0.5.0
+     */
+    public static StreamEx<String> ofLines(Path path, Charset charset) throws IOException {
+        return new StreamEx<>(Files.lines(path, charset));
     }
 
     /**
