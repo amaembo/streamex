@@ -1074,7 +1074,7 @@ import static one.util.streamex.StreamExInternals.*;
      */
     @SuppressWarnings("unchecked")
     public List<T> toList() {
-        return new ArrayList<T>((Collection<T>) new ArrayCollection(toArray()));
+        return new ArrayList<>((Collection<T>) new ArrayCollection(toArray(Object[]::new)));
     }
 
     /**
