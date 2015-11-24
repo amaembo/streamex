@@ -585,6 +585,8 @@ public class MoreCollectorsTest {
         checkCollectorEmpty("prefix", "", MoreCollectors.commonPrefix());
         List<String> input = Arrays.asList("abcdef", "abcdefg", "abcdfgfg", "abcefgh", "abcdfg");
         checkShortCircuitCollector("prefix", "abc", input.size(), input::stream, MoreCollectors.commonPrefix());
+        List<CharSequence> inputSeq = Arrays.asList(new StringBuffer("abcdef"), "abcdefg", "abcdfgfg", "abcefgh", new StringBuilder("abcdfg"));
+        checkShortCircuitCollector("prefix", "abc", inputSeq.size(), inputSeq::stream, MoreCollectors.commonPrefix());
         List<String> input2 = Arrays.asList("abcdef", "abcdefg", "dabcdfgfg", "abcefgh", "abcdfg");
         checkShortCircuitCollector("prefix", "", 3, input2::stream, MoreCollectors.commonPrefix());
         List<String> inputHalf = new ArrayList<>();
@@ -607,6 +609,8 @@ public class MoreCollectorsTest {
         checkCollectorEmpty("suffix", "", MoreCollectors.commonSuffix());
         List<String> input = Arrays.asList("defabc", "degfabc", "dfgfgabc", "efghabc", "dfgabc");
         checkShortCircuitCollector("suffix", "abc", input.size(), input::stream, MoreCollectors.commonSuffix());
+        List<CharSequence> inputSeq = Arrays.asList(new StringBuffer("degfabc"), "dfgfgabc", new StringBuilder("efghabc"), "defabc", "dfgabc");
+        checkShortCircuitCollector("suffix", "abc", inputSeq.size(), inputSeq::stream, MoreCollectors.commonSuffix());
         List<String> input2 = Arrays.asList("defabc", "defgabc", "dabcdfgfg", "efghabc", "dfgabc");
         checkShortCircuitCollector("suffix", "", 3, input2::stream, MoreCollectors.commonSuffix());
         List<String> inputHalf = new ArrayList<>();
