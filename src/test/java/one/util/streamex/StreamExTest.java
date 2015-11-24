@@ -16,8 +16,12 @@
 package one.util.streamex;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,12 +59,17 @@ import one.util.streamex.MoreCollectors;
 import one.util.streamex.StreamEx;
 import one.util.streamex.TestHelpers.StreamExSupplier;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import static one.util.streamex.TestHelpers.*;
 import static org.junit.Assert.*;
 
 public class StreamExTest {
+    @Rule
+    public TemporaryFolder tmp = new TemporaryFolder();
+    
     @Test
     public void testCreate() {
         assertEquals(Arrays.asList(), StreamEx.empty().toList());
@@ -95,6 +104,16 @@ public class StreamExTest {
             StreamEx.zip(new String[] { "a", "b", "c" }, new Integer[] { 1, 2, 3 }, (s, i) -> s + i).toList());
 
         assertEquals(Arrays.asList("a", "b"), StreamEx.of(Arrays.asList("a", "b").spliterator()).toList());
+    }
+    
+    @Test
+    public void testCreateFromFile() throws IOException {
+        File f = tmp.newFile();
+        List<String> input = Arrays.asList("Some", "Test", "Lines");
+        Files.write(f.toPath(), input);
+        assertEquals(input, StreamEx.ofLines(f.toPath()).toList());
+        Files.write(f.toPath(), input, StandardCharsets.UTF_16);
+        assertEquals(input, StreamEx.ofLines(f.toPath(), StandardCharsets.UTF_16).toList());
     }
 
     private Reader getReader() {

@@ -59,6 +59,7 @@ Stream of range of integral values (with optional step parameter) | `IntStreamEx
 Stream of random numbers | `IntStreamEx/LongStreamEx/DoubleStreamEx.of(Random, ...)`
 Stream of `CharSequence` symbols | `IntStreamEx.ofChars()/ofCodePoints()`
 Stream of `BitSet` true bits | `IntStreamEx.of(BitSet)`
+Stream of lines from file or `Reader` | `StreamEx.ofLines()`
 
 ## New intermediate operations
 
