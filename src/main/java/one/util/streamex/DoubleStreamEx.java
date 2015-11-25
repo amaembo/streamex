@@ -1421,7 +1421,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @return an empty sequential stream
      */
     public static DoubleStreamEx empty() {
-        return new DoubleStreamEx(DoubleStream.empty());
+        return of(DoubleStream.empty());
     }
 
     /**
@@ -1432,7 +1432,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @return a singleton sequential stream
      */
     public static DoubleStreamEx of(double element) {
-        return new DoubleStreamEx(DoubleStream.of(element));
+        return of(DoubleStream.of(element));
     }
 
     /**
@@ -1444,7 +1444,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @return the new stream
      */
     public static DoubleStreamEx of(double... elements) {
-        return new DoubleStreamEx(DoubleStream.of(elements));
+        return of(DoubleStream.of(elements));
     }
 
     /**
@@ -1466,7 +1466,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @see Arrays#stream(double[], int, int)
      */
     public static DoubleStreamEx of(double[] array, int startInclusive, int endExclusive) {
-        return new DoubleStreamEx(Arrays.stream(array, startInclusive, endExclusive));
+        return of(Arrays.stream(array, startInclusive, endExclusive));
     }
 
     /**
@@ -1541,7 +1541,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.3.4
      */
     public static DoubleStreamEx of(Spliterator.OfDouble spliterator) {
-        return new DoubleStreamEx(StreamSupport.doubleStream(spliterator, false));
+        return of(StreamSupport.doubleStream(spliterator, false));
     }
 
     /**
@@ -1569,7 +1569,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @see Collection#stream()
      */
     public static DoubleStreamEx of(Collection<Double> collection) {
-        return new DoubleStreamEx(collection.stream().mapToDouble(Double::doubleValue));
+        return of(collection.stream().mapToDouble(Double::doubleValue));
     }
 
     /**
@@ -1587,19 +1587,19 @@ public class DoubleStreamEx implements DoubleStream {
      * @see Random#doubles()
      */
     public static DoubleStreamEx of(Random random) {
-        return new DoubleStreamEx(random.doubles());
+        return of(random.doubles());
     }
 
     public static DoubleStreamEx of(Random random, long streamSize) {
-        return new DoubleStreamEx(random.doubles(streamSize));
+        return of(random.doubles(streamSize));
     }
 
     public static DoubleStreamEx of(Random random, double randomNumberOrigin, double randomNumberBound) {
-        return new DoubleStreamEx(random.doubles(randomNumberOrigin, randomNumberBound));
+        return of(random.doubles(randomNumberOrigin, randomNumberBound));
     }
 
     public static DoubleStreamEx of(Random random, long streamSize, double randomNumberOrigin, double randomNumberBound) {
-        return new DoubleStreamEx(random.doubles(streamSize, randomNumberOrigin, randomNumberBound));
+        return of(random.doubles(streamSize, randomNumberOrigin, randomNumberBound));
     }
 
     /**
@@ -1623,7 +1623,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @see DoubleStream#iterate(double, DoubleUnaryOperator)
      */
     public static DoubleStreamEx iterate(final double seed, final DoubleUnaryOperator f) {
-        return new DoubleStreamEx(DoubleStream.iterate(seed, f));
+        return of(DoubleStream.iterate(seed, f));
     }
 
     /**
@@ -1637,7 +1637,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @see DoubleStream#generate(DoubleSupplier)
      */
     public static DoubleStreamEx generate(DoubleSupplier s) {
-        return new DoubleStreamEx(DoubleStream.generate(s));
+        return of(DoubleStream.generate(s));
     }
 
     /**

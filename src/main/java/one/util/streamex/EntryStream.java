@@ -1078,7 +1078,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.0.8
      */
     public static <K, V> EntryStream<K, V> empty() {
-        return new EntryStream<>(Stream.empty());
+        return of(Stream.empty());
     }
 
     /**
@@ -1111,7 +1111,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.3.4
      */
     public static <K, V> EntryStream<K, V> of(Spliterator<? extends Entry<K, V>> spliterator) {
-        return new EntryStream<>(StreamSupport.stream(spliterator, false));
+        return of(StreamSupport.stream(spliterator, false));
     }
 
     /**
@@ -1127,7 +1127,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return a new {@code EntryStream}
      */
     public static <K, V> EntryStream<K, V> of(Map<K, V> map) {
-        return new EntryStream<>(map.entrySet().stream());
+        return of(map.entrySet().stream());
     }
 
     /**
@@ -1180,7 +1180,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return a singleton sequential stream
      */
     public static <K, V> EntryStream<K, V> of(K key, V value) {
-        return new EntryStream<>(Stream.of(new SimpleImmutableEntry<>(key, value)));
+        return of(Stream.of(new SimpleImmutableEntry<>(key, value)));
     }
 
     /**
@@ -1202,7 +1202,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.3
      */
     public static <K, V> EntryStream<K, V> of(K k1, V v1, K k2, V v2) {
-        return new EntryStream<>(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2)));
+        return of(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2)));
     }
 
     /**
@@ -1228,7 +1228,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.3
      */
     public static <K, V> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3) {
-        return new EntryStream<>(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
+        return of(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
             new SimpleImmutableEntry<>(k3, v3)));
     }
 

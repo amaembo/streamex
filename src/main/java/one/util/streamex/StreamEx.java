@@ -1444,7 +1444,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return an empty sequential stream
      */
     public static <T> StreamEx<T> empty() {
-        return new StreamEx<>(Stream.empty());
+        return of(Stream.empty());
     }
 
     /**
@@ -1458,7 +1458,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Stream#of(Object)
      */
     public static <T> StreamEx<T> of(T element) {
-        return new StreamEx<>(Stream.of(element));
+        return of(Stream.of(element));
     }
 
     /**
@@ -1474,7 +1474,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     @SafeVarargs
     public static <T> StreamEx<T> of(T... elements) {
-        return new StreamEx<>(Stream.of(elements));
+        return of(Stream.of(elements));
     }
 
     /**
@@ -1498,7 +1498,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Arrays#stream(Object[], int, int)
      */
     public static <T> StreamEx<T> of(T[] array, int startInclusive, int endExclusive) {
-        return new StreamEx<>(Arrays.stream(array, startInclusive, endExclusive));
+        return of(Arrays.stream(array, startInclusive, endExclusive));
     }
 
     /**
@@ -1514,7 +1514,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Collection#stream()
      */
     public static <T> StreamEx<T> of(Collection<T> collection) {
-        return new StreamEx<>(collection.stream());
+        return of(collection.stream());
     }
 
     /**
@@ -1542,7 +1542,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.3.4
      */
     public static <T> StreamEx<T> of(Spliterator<T> spliterator) {
-        return new StreamEx<>(StreamSupport.stream(spliterator, false));
+        return of(StreamSupport.stream(spliterator, false));
     }
 
     /**
@@ -1608,7 +1608,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see BufferedReader#lines()
      */
     public static StreamEx<String> ofLines(BufferedReader reader) {
-        return new StreamEx<>(reader.lines());
+        return of(reader.lines());
     }
 
     /**
@@ -1643,8 +1643,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public static StreamEx<String> ofLines(Reader reader) {
         if (reader instanceof BufferedReader)
-            return new StreamEx<>(((BufferedReader) reader).lines());
-        return new StreamEx<>(new BufferedReader(reader).lines());
+            return of(((BufferedReader) reader).lines());
+        return of(new BufferedReader(reader).lines());
     }
 
     /**
@@ -1676,7 +1676,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Files#lines(Path)
      */
     public static StreamEx<String> ofLines(Path path) throws IOException {
-        return new StreamEx<>(Files.lines(path));
+        return of(Files.lines(path));
     }
 
     /**
@@ -1712,7 +1712,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.5.0
      */
     public static StreamEx<String> ofLines(Path path, Charset charset) throws IOException {
-        return new StreamEx<>(Files.lines(path, charset));
+        return of(Files.lines(path, charset));
     }
 
     /**
@@ -1729,7 +1729,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Map#keySet()
      */
     public static <T> StreamEx<T> ofKeys(Map<T, ?> map) {
-        return new StreamEx<>(map.keySet().stream());
+        return of(map.keySet().stream());
     }
 
     /**
@@ -1769,7 +1769,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Map#values()
      */
     public static <T> StreamEx<T> ofValues(Map<?, T> map) {
-        return new StreamEx<>(map.values().stream());
+        return of(map.values().stream());
     }
 
     /**
@@ -1846,11 +1846,11 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Pattern#splitAsStream(CharSequence)
      */
     public static StreamEx<String> split(CharSequence str, Pattern pattern) {
-        return new StreamEx<>(pattern.splitAsStream(str));
+        return of(pattern.splitAsStream(str));
     }
 
     public static StreamEx<String> split(CharSequence str, String regex) {
-        return new StreamEx<>(Pattern.compile(regex).splitAsStream(str));
+        return of(Pattern.compile(regex).splitAsStream(str));
     }
 
     /**
@@ -1876,7 +1876,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Stream#iterate(Object, UnaryOperator)
      */
     public static <T> StreamEx<T> iterate(final T seed, final UnaryOperator<T> f) {
-        return new StreamEx<>(Stream.iterate(seed, f));
+        return of(Stream.iterate(seed, f));
     }
 
     /**
@@ -1892,7 +1892,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Stream#generate(Supplier)
      */
     public static <T> StreamEx<T> generate(Supplier<T> s) {
-        return new StreamEx<>(Stream.generate(s));
+        return of(Stream.generate(s));
     }
 
     /**

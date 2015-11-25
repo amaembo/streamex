@@ -1451,7 +1451,7 @@ public class LongStreamEx implements LongStream {
      * @return an empty sequential stream
      */
     public static LongStreamEx empty() {
-        return new LongStreamEx(LongStream.empty());
+        return of(LongStream.empty());
     }
 
     /**
@@ -1462,7 +1462,7 @@ public class LongStreamEx implements LongStream {
      * @return a singleton sequential stream
      */
     public static LongStreamEx of(long element) {
-        return new LongStreamEx(LongStream.of(element));
+        return of(LongStream.of(element));
     }
 
     /**
@@ -1474,7 +1474,7 @@ public class LongStreamEx implements LongStream {
      * @return the new stream
      */
     public static LongStreamEx of(long... elements) {
-        return new LongStreamEx(LongStream.of(elements));
+        return of(LongStream.of(elements));
     }
 
     /**
@@ -1496,7 +1496,7 @@ public class LongStreamEx implements LongStream {
      * @see Arrays#stream(long[], int, int)
      */
     public static LongStreamEx of(long[] array, int startInclusive, int endExclusive) {
-        return new LongStreamEx(Arrays.stream(array, startInclusive, endExclusive));
+        return of(Arrays.stream(array, startInclusive, endExclusive));
     }
 
     /**
@@ -1536,7 +1536,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.3.4
      */
     public static LongStreamEx of(Spliterator.OfLong spliterator) {
-        return new LongStreamEx(StreamSupport.longStream(spliterator, false));
+        return of(StreamSupport.longStream(spliterator, false));
     }
 
     /**
@@ -1564,7 +1564,7 @@ public class LongStreamEx implements LongStream {
      * @see Collection#stream()
      */
     public static LongStreamEx of(Collection<Long> collection) {
-        return new LongStreamEx(collection.stream().mapToLong(Long::longValue));
+        return of(collection.stream().mapToLong(Long::longValue));
     }
 
     /**
@@ -1581,19 +1581,19 @@ public class LongStreamEx implements LongStream {
      * @see Random#longs()
      */
     public static LongStreamEx of(Random random) {
-        return new LongStreamEx(random.longs());
+        return of(random.longs());
     }
 
     public static LongStreamEx of(Random random, long streamSize) {
-        return new LongStreamEx(random.longs(streamSize));
+        return of(random.longs(streamSize));
     }
 
     public static LongStreamEx of(Random random, long randomNumberOrigin, long randomNumberBound) {
-        return new LongStreamEx(random.longs(randomNumberOrigin, randomNumberBound));
+        return of(random.longs(randomNumberOrigin, randomNumberBound));
     }
 
     public static LongStreamEx of(Random random, long streamSize, long randomNumberOrigin, long randomNumberBound) {
-        return new LongStreamEx(random.longs(streamSize, randomNumberOrigin, randomNumberBound));
+        return of(random.longs(streamSize, randomNumberOrigin, randomNumberBound));
     }
 
     /**
@@ -1617,7 +1617,7 @@ public class LongStreamEx implements LongStream {
      * @see LongStream#iterate(long, LongUnaryOperator)
      */
     public static LongStreamEx iterate(final long seed, final LongUnaryOperator f) {
-        return new LongStreamEx(LongStream.iterate(seed, f));
+        return of(LongStream.iterate(seed, f));
     }
 
     /**
@@ -1631,7 +1631,7 @@ public class LongStreamEx implements LongStream {
      * @see LongStream#generate(LongSupplier)
      */
     public static LongStreamEx generate(LongSupplier s) {
-        return new LongStreamEx(LongStream.generate(s));
+        return of(LongStream.generate(s));
     }
 
     /**
@@ -1646,7 +1646,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.1.1
      */
     public static LongStreamEx range(long endExclusive) {
-        return new LongStreamEx(LongStream.range(0, endExclusive));
+        return of(LongStream.range(0, endExclusive));
     }
 
     /**
@@ -1663,7 +1663,7 @@ public class LongStreamEx implements LongStream {
      * @see LongStream#range(long, long)
      */
     public static LongStreamEx range(long startInclusive, long endExclusive) {
-        return new LongStreamEx(LongStream.range(startInclusive, endExclusive));
+        return of(LongStream.range(startInclusive, endExclusive));
     }
 
     /**
@@ -1708,7 +1708,7 @@ public class LongStreamEx implements LongStream {
      * @see LongStream#rangeClosed(long, long)
      */
     public static LongStreamEx rangeClosed(long startInclusive, long endInclusive) {
-        return new LongStreamEx(LongStream.rangeClosed(startInclusive, endInclusive));
+        return of(LongStream.rangeClosed(startInclusive, endInclusive));
     }
 
     /**
