@@ -1653,7 +1653,7 @@ public class IntStreamEx implements IntStream {
      * @return an empty sequential stream
      */
     public static IntStreamEx empty() {
-        return new IntStreamEx(IntStream.empty());
+        return of(IntStream.empty());
     }
 
     /**
@@ -1664,7 +1664,7 @@ public class IntStreamEx implements IntStream {
      * @return a singleton sequential stream
      */
     public static IntStreamEx of(int element) {
-        return new IntStreamEx(IntStream.of(element));
+        return of(IntStream.of(element));
     }
 
     /**
@@ -1676,7 +1676,7 @@ public class IntStreamEx implements IntStream {
      * @return the new stream
      */
     public static IntStreamEx of(int... elements) {
-        return new IntStreamEx(IntStream.of(elements));
+        return of(IntStream.of(elements));
     }
 
     /**
@@ -1698,7 +1698,7 @@ public class IntStreamEx implements IntStream {
      * @see Arrays#stream(int[], int, int)
      */
     public static IntStreamEx of(int[] array, int startInclusive, int endExclusive) {
-        return new IntStreamEx(Arrays.stream(array, startInclusive, endExclusive));
+        return of(Arrays.stream(array, startInclusive, endExclusive));
     }
 
     /**
@@ -1807,6 +1807,20 @@ public class IntStreamEx implements IntStream {
     }
 
     /**
+     * Returns a sequential ordered {@code IntStreamEx} whose elements are
+     * the unboxed elements of supplied array.
+     *
+     * @param array
+     *            the array to create the stream from.
+     * @return the new stream
+     * @see Arrays#stream(Object[])
+     * @since 0.5.0
+     */
+    public static IntStreamEx of(Integer[] array) {
+        return of(Arrays.stream(array).mapToInt(Integer::intValue));
+    }
+
+    /**
      * Returns a sequential ordered {@code IntStreamEx} containing all the
      * indices of the supplied list.
      *
@@ -1841,7 +1855,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.1
      */
     public static <T> IntStreamEx ofIndices(List<T> list, Predicate<T> predicate) {
-        return new IntStreamEx(IntStream.range(0, list.size()).filter(i -> predicate.test(list.get(i))));
+        return of(IntStream.range(0, list.size()).filter(i -> predicate.test(list.get(i))));
     }
 
     /**
@@ -1874,7 +1888,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.1
      */
     public static <T> IntStreamEx ofIndices(T[] array, Predicate<T> predicate) {
-        return new IntStreamEx(IntStream.range(0, array.length).filter(i -> predicate.test(array[i])));
+        return of(IntStream.range(0, array.length).filter(i -> predicate.test(array[i])));
     }
 
     /**
@@ -1903,7 +1917,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.1
      */
     public static IntStreamEx ofIndices(int[] array, IntPredicate predicate) {
-        return new IntStreamEx(IntStream.range(0, array.length).filter(i -> predicate.test(array[i])));
+        return of(IntStream.range(0, array.length).filter(i -> predicate.test(array[i])));
     }
 
     /**
@@ -1932,7 +1946,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.1
      */
     public static IntStreamEx ofIndices(long[] array, LongPredicate predicate) {
-        return new IntStreamEx(IntStream.range(0, array.length).filter(i -> predicate.test(array[i])));
+        return of(IntStream.range(0, array.length).filter(i -> predicate.test(array[i])));
     }
 
     /**
@@ -1961,7 +1975,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.1
      */
     public static IntStreamEx ofIndices(double[] array, DoublePredicate predicate) {
-        return new IntStreamEx(IntStream.range(0, array.length).filter(i -> predicate.test(array[i])));
+        return of(IntStream.range(0, array.length).filter(i -> predicate.test(array[i])));
     }
 
     /**
@@ -1986,7 +2000,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.3.4
      */
     public static IntStreamEx of(Spliterator.OfInt spliterator) {
-        return new IntStreamEx(StreamSupport.intStream(spliterator, false));
+        return of(StreamSupport.intStream(spliterator, false));
     }
 
     /**
@@ -2022,11 +2036,11 @@ public class IntStreamEx implements IntStream {
      * @see BitSet#stream()
      */
     public static IntStreamEx of(BitSet bitSet) {
-        return new IntStreamEx(bitSet.stream());
+        return of(bitSet.stream());
     }
 
     /**
-     * Returns a sequential ordered {@code DoubleStreamEx} whose elements are
+     * Returns a sequential ordered {@code IntStreamEx} whose elements are
      * the unboxed elements of supplied collection.
      *
      * @param collection
@@ -2035,7 +2049,7 @@ public class IntStreamEx implements IntStream {
      * @see Collection#stream()
      */
     public static IntStreamEx of(Collection<Integer> collection) {
-        return new IntStreamEx(collection.stream().mapToInt(Integer::intValue));
+        return of(collection.stream().mapToInt(Integer::intValue));
     }
 
     /**
@@ -2052,7 +2066,7 @@ public class IntStreamEx implements IntStream {
      * @see Random#ints()
      */
     public static IntStreamEx of(Random random) {
-        return new IntStreamEx(random.ints());
+        return of(random.ints());
     }
 
     /**
@@ -2071,15 +2085,15 @@ public class IntStreamEx implements IntStream {
      * @see Random#ints(long)
      */
     public static IntStreamEx of(Random random, long streamSize) {
-        return new IntStreamEx(random.ints(streamSize));
+        return of(random.ints(streamSize));
     }
 
     public static IntStreamEx of(Random random, int randomNumberOrigin, int randomNumberBound) {
-        return new IntStreamEx(random.ints(randomNumberOrigin, randomNumberBound));
+        return of(random.ints(randomNumberOrigin, randomNumberBound));
     }
 
     public static IntStreamEx of(Random random, long streamSize, int randomNumberOrigin, int randomNumberBound) {
-        return new IntStreamEx(random.ints(streamSize, randomNumberOrigin, randomNumberBound));
+        return of(random.ints(streamSize, randomNumberOrigin, randomNumberBound));
     }
 
     /**
@@ -2122,7 +2136,7 @@ public class IntStreamEx implements IntStream {
      * @see CharSequence#codePoints()
      */
     public static IntStreamEx ofCodePoints(CharSequence seq) {
-        return new IntStreamEx(seq.codePoints());
+        return of(seq.codePoints());
     }
 
     /**
@@ -2146,7 +2160,7 @@ public class IntStreamEx implements IntStream {
      * @see IntStream#iterate(int, IntUnaryOperator)
      */
     public static IntStreamEx iterate(final int seed, final IntUnaryOperator f) {
-        return new IntStreamEx(IntStream.iterate(seed, f));
+        return of(IntStream.iterate(seed, f));
     }
 
     /**
@@ -2160,7 +2174,7 @@ public class IntStreamEx implements IntStream {
      * @see IntStream#generate(IntSupplier)
      */
     public static IntStreamEx generate(IntSupplier s) {
-        return new IntStreamEx(IntStream.generate(s));
+        return of(IntStream.generate(s));
     }
 
     /**
@@ -2175,7 +2189,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.1.1
      */
     public static IntStreamEx range(int endExclusive) {
-        return new IntStreamEx(IntStream.range(0, endExclusive));
+        return of(IntStream.range(0, endExclusive));
     }
 
     /**
@@ -2192,7 +2206,7 @@ public class IntStreamEx implements IntStream {
      * @see IntStream#range(int, int)
      */
     public static IntStreamEx range(int startInclusive, int endExclusive) {
-        return new IntStreamEx(IntStream.range(startInclusive, endExclusive));
+        return of(IntStream.range(startInclusive, endExclusive));
     }
 
     /**
@@ -2237,7 +2251,7 @@ public class IntStreamEx implements IntStream {
      * @see IntStream#rangeClosed(int, int)
      */
     public static IntStreamEx rangeClosed(int startInclusive, int endInclusive) {
-        return new IntStreamEx(IntStream.rangeClosed(startInclusive, endInclusive));
+        return of(IntStream.rangeClosed(startInclusive, endInclusive));
     }
 
     /**

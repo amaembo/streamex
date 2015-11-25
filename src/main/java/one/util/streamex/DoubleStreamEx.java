@@ -62,7 +62,7 @@ public class DoubleStreamEx implements DoubleStream {
         private boolean checked;
         private final Spliterator.OfDouble source;
         private double cur;
-    
+
         TDOfDouble(Spliterator.OfDouble source, boolean drop, DoublePredicate predicate) {
             super(source.estimateSize(), source.characteristics()
                 & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL | DISTINCT));
@@ -70,12 +70,12 @@ public class DoubleStreamEx implements DoubleStream {
             this.predicate = predicate;
             this.source = source;
         }
-    
+
         @Override
         public Comparator<? super Double> getComparator() {
             return source.getComparator();
         }
-    
+
         @Override
         public boolean tryAdvance(DoubleConsumer action) {
             if (drop) {
@@ -97,7 +97,7 @@ public class DoubleStreamEx implements DoubleStream {
             checked = true;
             return false;
         }
-    
+
         @Override
         public void accept(double t) {
             this.cur = t;
@@ -1467,6 +1467,20 @@ public class DoubleStreamEx implements DoubleStream {
      */
     public static DoubleStreamEx of(double[] array, int startInclusive, int endExclusive) {
         return new DoubleStreamEx(Arrays.stream(array, startInclusive, endExclusive));
+    }
+
+    /**
+     * Returns a sequential ordered {@code DoubleStreamEx} whose elements are
+     * the unboxed elements of supplied array.
+     *
+     * @param array
+     *            the array to create the stream from.
+     * @return the new stream
+     * @see Arrays#stream(Object[])
+     * @since 0.5.0
+     */
+    public static DoubleStreamEx of(Double[] array) {
+        return of(Arrays.stream(array).mapToDouble(Double::doubleValue));
     }
 
     /**

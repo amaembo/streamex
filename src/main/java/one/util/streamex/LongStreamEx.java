@@ -1500,6 +1500,20 @@ public class LongStreamEx implements LongStream {
     }
 
     /**
+     * Returns a sequential ordered {@code LongStreamEx} whose elements are
+     * the unboxed elements of supplied array.
+     *
+     * @param array
+     *            the array to create the stream from.
+     * @return the new stream
+     * @see Arrays#stream(Object[])
+     * @since 0.5.0
+     */
+    public static LongStreamEx of(Long[] array) {
+        return of(Arrays.stream(array).mapToLong(Long::longValue));
+    }
+
+    /**
      * Returns a {@code LongStreamEx} object which wraps given
      * {@link LongStream}
      * 

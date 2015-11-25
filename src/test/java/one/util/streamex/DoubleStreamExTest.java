@@ -35,11 +35,6 @@ import java.util.function.Supplier;
 import java.util.stream.DoubleStream;
 import java.util.stream.LongStream;
 
-import one.util.streamex.DoubleStreamEx;
-import one.util.streamex.IntStreamEx;
-import one.util.streamex.LongStreamEx;
-import one.util.streamex.StreamEx;
-
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -77,6 +72,8 @@ public class DoubleStreamExTest {
 
         assertArrayEquals(new double[] { 1, 5, 3 },
             DoubleStreamEx.of(Spliterators.spliterator(new double[] { 1, 5, 3 }, 0)).toArray(), 0.0);
+        
+        assertArrayEquals(new double[] { 2, 4, 6 }, DoubleStreamEx.of(new Double[] { 2.0, 4.0, 6.0 }).toArray(), 0.0);
     }
 
     @Test

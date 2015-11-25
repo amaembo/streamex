@@ -41,8 +41,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
 
-import one.util.streamex.IntStreamEx;
-
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -95,6 +93,8 @@ public class IntStreamExTest {
         bs.set(3);
         bs.set(5);
         assertArrayEquals(new int[] { 1, 3, 5 }, IntStreamEx.of(bs).toArray());
+        
+        assertArrayEquals(new int[] { 2, 4, 6 }, IntStreamEx.of(new Integer[] { 2, 4, 6 }).toArray());
     }
 
     @Test
