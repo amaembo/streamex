@@ -1652,7 +1652,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.1.2
      */
     public static DoubleStreamEx constant(double value, long length) {
-        return of(new ConstantSpliterator.ConstDouble(value, length));
+        return of(new ConstSpliterator.OfDouble(value, length));
     }
 
     /**

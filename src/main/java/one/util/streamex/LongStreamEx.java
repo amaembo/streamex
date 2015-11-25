@@ -1768,7 +1768,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.1.2
      */
     public static LongStreamEx constant(long value, long length) {
-        return of(new ConstantSpliterator.ConstLong(value, length));
+        return of(new ConstSpliterator.OfLong(value, length));
     }
 
     /**

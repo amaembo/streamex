@@ -25,10 +25,10 @@ import java.util.function.LongConsumer;
  * @author Tagir Valeev
  *
  */
-/* package */ abstract class ConstantSpliterator<T, S extends ConstantSpliterator<T, ?>> implements Spliterator<T>, Cloneable {
+/* package */ abstract class ConstSpliterator<T, S extends ConstSpliterator<T, ?>> implements Spliterator<T>, Cloneable {
     long remaining;
     
-    public ConstantSpliterator(long remaining) {
+    public ConstSpliterator(long remaining) {
         this.remaining = remaining;
     }
 
@@ -61,10 +61,10 @@ import java.util.function.LongConsumer;
         return SIZED | SUBSIZED | IMMUTABLE;
     }
     
-    static final class ConstRef<T> extends ConstantSpliterator<T, ConstRef<T>> {
+    static final class OfRef<T> extends ConstSpliterator<T, OfRef<T>> {
         private final T value;
         
-        ConstRef(T value, long count) {
+        OfRef(T value, long count) {
             super(count);
             this.value = value;
         }
@@ -87,10 +87,10 @@ import java.util.function.LongConsumer;
         }
     }
     
-    static final class ConstInt extends ConstantSpliterator<Integer, ConstInt> implements Spliterator.OfInt {
+    static final class OfInt extends ConstSpliterator<Integer, OfInt> implements Spliterator.OfInt {
         private final int value;
         
-        ConstInt(int value, long count) {
+        OfInt(int value, long count) {
             super(count);
             this.value = value;
         }
@@ -113,10 +113,10 @@ import java.util.function.LongConsumer;
         }
     }
 
-    static final class ConstLong extends ConstantSpliterator<Long, ConstLong> implements Spliterator.OfLong {
+    static final class OfLong extends ConstSpliterator<Long, OfLong> implements Spliterator.OfLong {
         private final long value;
         
-        ConstLong(long value, long count) {
+        OfLong(long value, long count) {
             super(count);
             this.value = value;
         }
@@ -139,10 +139,10 @@ import java.util.function.LongConsumer;
         }
     }
 
-    static final class ConstDouble extends ConstantSpliterator<Double, ConstDouble> implements Spliterator.OfDouble {
+    static final class OfDouble extends ConstSpliterator<Double, OfDouble> implements Spliterator.OfDouble {
         private final double value;
         
-        ConstDouble(double value, long count) {
+        OfDouble(double value, long count) {
             super(count);
             this.value = value;
         }

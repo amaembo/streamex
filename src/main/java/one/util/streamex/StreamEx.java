@@ -1909,7 +1909,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.1.2
      */
     public static <T> StreamEx<T> constant(T value, long length) {
-        return of(new ConstantSpliterator.ConstRef<>(value, length));
+        return of(new ConstSpliterator.OfRef<>(value, length));
     }
 
     /**

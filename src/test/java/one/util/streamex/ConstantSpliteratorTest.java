@@ -19,7 +19,7 @@ import static one.util.streamex.TestHelpers.*;
 
 import java.util.Collections;
 
-import one.util.streamex.ConstantSpliterator;
+import one.util.streamex.ConstSpliterator;
 
 import org.junit.Test;
 
@@ -29,12 +29,12 @@ import org.junit.Test;
 public class ConstantSpliteratorTest {
     @Test
     public void testConstant() {
-        checkSpliterator("ref", Collections.nCopies(100, "val"), () -> new ConstantSpliterator.ConstRef<>("val", 100));
-        checkSpliterator("ref", Collections.nCopies(100, Integer.MIN_VALUE), () -> new ConstantSpliterator.ConstInt(
+        checkSpliterator("ref", Collections.nCopies(100, "val"), () -> new ConstSpliterator.OfRef<>("val", 100));
+        checkSpliterator("ref", Collections.nCopies(100, Integer.MIN_VALUE), () -> new ConstSpliterator.OfInt(
                 Integer.MIN_VALUE, 100));
-        checkSpliterator("ref", Collections.nCopies(100, Long.MIN_VALUE), () -> new ConstantSpliterator.ConstLong(
+        checkSpliterator("ref", Collections.nCopies(100, Long.MIN_VALUE), () -> new ConstSpliterator.OfLong(
                 Long.MIN_VALUE, 100));
-        checkSpliterator("ref", Collections.nCopies(100, Double.MIN_VALUE), () -> new ConstantSpliterator.ConstDouble(
+        checkSpliterator("ref", Collections.nCopies(100, Double.MIN_VALUE), () -> new ConstSpliterator.OfDouble(
                 Double.MIN_VALUE, 100));
     }
 }
