@@ -1,8 +1,14 @@
-## Note for the users
+## StreamEx changes the package name
 
-The package name will be changed in the following release (0.5.0) from `javax.util.streamex` to `one.util.streamex`. This change is discussed [here](https://github.com/amaembo/streamex/issues/8). Sorry for possible inconvenience.
+Since version 0.5.0 the package name is changed in from `javax.util.streamex` to `one.util.streamex`. 
+The OSGi bundle name and Maven groupId are changed correspondingly. To migrate to StreamEx 0.5.0 you should:
 
-# StreamEx 0.4.1
+* Replace every occurrence of `javax.util.streamex` to `one.util.streamex` in your Java files and OSGi manifests.
+* Replace `io.github.amaembo` groupID with `one.util` in your build files (pom.xml, ivy.xml, build.gradle, etc.)
+ 
+This change is discussed [here](https://github.com/amaembo/streamex/issues/8). Sorry for possible inconvenience.
+
+# StreamEx 0.5.0
 Enhancing Java 8 Streams.
 
 This library defines four classes: `StreamEx`, `IntStreamEx`, `LongStreamEx`, `DoubleStreamEx`
@@ -119,9 +125,9 @@ To use from maven add this snippet to the pom.xml `dependencies` section:
 
 ```xml
 <dependency>
-  <groupId>io.github.amaembo</groupId>
+  <groupId>one.util</groupId>
   <artifactId>streamex</artifactId>
-  <version>0.4.1</version>
+  <version>0.5.0</version>
 </dependency>
 ```
 
