@@ -119,7 +119,7 @@ This project is licensed under [Apache License, version 2.0](https://www.apache.
 
 ### Installation
 
-Releases are available in [Maven Central](https://repo1.maven.org/maven2/io/github/amaembo/streamex/)
+Releases are available in [Maven Central](https://repo1.maven.org/maven2/one/util/streamex/)
 
 To use from maven add this snippet to the pom.xml `dependencies` section:
 
