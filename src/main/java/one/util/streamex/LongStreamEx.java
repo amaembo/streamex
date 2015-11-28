@@ -1584,14 +1584,59 @@ public class LongStreamEx implements LongStream {
         return of(random.longs());
     }
 
+    /**
+     * Returns a stream producing the given {@code streamSize} number of
+     * pseudorandom {@code long} values.
+     *
+     * <p>
+     * A pseudorandom {@code long} value is generated as if it's the result of
+     * calling the method {@link Random#nextLong()}
+     *
+     * @param random
+     *            a {@link Random} object to produce the stream from
+     * @param streamSize
+     *            the number of values to generate
+     * @return a stream of pseudorandom {@code long} values
+     * @see Random#longs(long)
+     */
     public static LongStreamEx of(Random random, long streamSize) {
         return of(random.longs(streamSize));
     }
 
+    /**
+     * Returns an effectively unlimited stream of pseudorandom {@code long}
+     * values, each conforming to the given origin (inclusive) and bound
+     * (exclusive).
+     *
+     * @param random
+     *            a {@link Random} object to produce the stream from
+     * @param randomNumberOrigin
+     *            the origin (inclusive) of each random value
+     * @param randomNumberBound
+     *            the bound (exclusive) of each random value
+     * @return a stream of pseudorandom {@code long} values
+     * @see Random#longs(long, long, long)
+     */
     public static LongStreamEx of(Random random, long randomNumberOrigin, long randomNumberBound) {
         return of(random.longs(randomNumberOrigin, randomNumberBound));
     }
 
+    /**
+     * Returns a stream producing the given {@code streamSize} number of
+     * pseudorandom {@code long} values, each conforming to the given origin
+     * (inclusive) and bound (exclusive).
+     *
+     * @param random
+     *            a {@link Random} object to produce the stream from
+     * @param streamSize
+     *            the number of values to generate
+     * @param randomNumberOrigin
+     *            the origin (inclusive) of each random value
+     * @param randomNumberBound
+     *            the bound (exclusive) of each random value
+     * @return a stream of pseudorandom {@code long} values
+     * @see Random#longs(long, long, long)
+     */
     public static LongStreamEx of(Random random, long streamSize, long randomNumberOrigin, long randomNumberBound) {
         return of(random.longs(streamSize, randomNumberOrigin, randomNumberBound));
     }

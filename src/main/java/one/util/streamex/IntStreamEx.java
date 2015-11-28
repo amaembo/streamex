@@ -68,7 +68,7 @@ public class IntStreamEx implements IntStream {
         private boolean checked;
         private final Spliterator.OfInt source;
         private int cur;
-    
+
         TDOfInt(Spliterator.OfInt source, boolean drop, IntPredicate predicate) {
             super(source.estimateSize(), source.characteristics()
                 & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL | DISTINCT));
@@ -76,12 +76,12 @@ public class IntStreamEx implements IntStream {
             this.predicate = predicate;
             this.source = source;
         }
-    
+
         @Override
         public Comparator<? super Integer> getComparator() {
             return source.getComparator();
         }
-    
+
         @Override
         public boolean tryAdvance(IntConsumer action) {
             if (drop) {
@@ -103,7 +103,7 @@ public class IntStreamEx implements IntStream {
             checked = true;
             return false;
         }
-    
+
         @Override
         public void accept(int t) {
             this.cur = t;
@@ -1807,8 +1807,8 @@ public class IntStreamEx implements IntStream {
     }
 
     /**
-     * Returns a sequential ordered {@code IntStreamEx} whose elements are
-     * the unboxed elements of supplied array.
+     * Returns a sequential ordered {@code IntStreamEx} whose elements are the
+     * unboxed elements of supplied array.
      *
      * @param array
      *            the array to create the stream from.
@@ -2040,8 +2040,8 @@ public class IntStreamEx implements IntStream {
     }
 
     /**
-     * Returns a sequential ordered {@code IntStreamEx} whose elements are
-     * the unboxed elements of supplied collection.
+     * Returns a sequential ordered {@code IntStreamEx} whose elements are the
+     * unboxed elements of supplied collection.
      *
      * @param collection
      *            the collection to create the stream from.
@@ -2088,10 +2088,40 @@ public class IntStreamEx implements IntStream {
         return of(random.ints(streamSize));
     }
 
+    /**
+     * Returns an effectively unlimited stream of pseudorandom {@code int}
+     * values, each conforming to the given origin (inclusive) and bound
+     * (exclusive).
+     *
+     * @param random
+     *            a {@link Random} object to produce the stream from
+     * @param randomNumberOrigin
+     *            the origin (inclusive) of each random value
+     * @param randomNumberBound
+     *            the bound (exclusive) of each random value
+     * @return a stream of pseudorandom {@code int} values
+     * @see Random#ints(long, int, int)
+     */
     public static IntStreamEx of(Random random, int randomNumberOrigin, int randomNumberBound) {
         return of(random.ints(randomNumberOrigin, randomNumberBound));
     }
 
+    /**
+     * Returns a stream producing the given {@code streamSize} number of
+     * pseudorandom {@code int} values, each conforming to the given origin
+     * (inclusive) and bound (exclusive).
+     *
+     * @param random
+     *            a {@link Random} object to produce the stream from
+     * @param streamSize
+     *            the number of values to generate
+     * @param randomNumberOrigin
+     *            the origin (inclusive) of each random value
+     * @param randomNumberBound
+     *            the bound (exclusive) of each random value
+     * @return a stream of pseudorandom {@code int} values
+     * @see Random#ints(long, int, int)
+     */
     public static IntStreamEx of(Random random, long streamSize, int randomNumberOrigin, int randomNumberBound) {
         return of(random.ints(streamSize, randomNumberOrigin, randomNumberBound));
     }

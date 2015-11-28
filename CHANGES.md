@@ -12,6 +12,7 @@ Warning: this release introduces some changes which break the backward compatibi
 * Added: `IntStreamEx.of(Integer[])`, `LongStreamEx.of(Long[])`, `DoubleStreamEx.of(Double[])` static methods.   
 * Deprecated methods `StreamEx.ofEntries()` removed.
 * Deprecated methods `collectingAndThen` in primitive collectors removed (use `andThen()` instead).
+* Updated documentation. 
 
 ### 0.4.1
 
