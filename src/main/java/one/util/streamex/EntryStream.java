@@ -684,7 +684,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     @SuppressWarnings({ "unchecked" })
-    public <KK extends K> EntryStream<KK, V> selectKeys(Class<KK> clazz) {
+    public <KK> EntryStream<KK, V> selectKeys(Class<KK> clazz) {
         return (EntryStream<KK, V>) filter(e -> clazz.isInstance(e.getKey()));
     }
 
@@ -703,7 +703,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     @SuppressWarnings({ "unchecked" })
-    public <VV extends V> EntryStream<K, VV> selectValues(Class<VV> clazz) {
+    public <VV> EntryStream<K, VV> selectValues(Class<VV> clazz) {
         return (EntryStream<K, VV>) filter(e -> clazz.isInstance(e.getValue()));
     }
 

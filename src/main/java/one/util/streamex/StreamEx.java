@@ -147,7 +147,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return the new stream
      */
     @SuppressWarnings("unchecked")
-    public <TT extends T> StreamEx<TT> select(Class<TT> clazz) {
+    public <TT> StreamEx<TT> select(Class<TT> clazz) {
         return (StreamEx<TT>) filter(clazz::isInstance);
     }
 

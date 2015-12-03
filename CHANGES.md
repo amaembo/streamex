@@ -1,5 +1,9 @@
 # StreamEx changes
 
+### 0.5.1
+
+* Updated: now `StreamEx.select`, `EntryStream.selectKeys` and `EntryStream.selectValues` accept any type (not necessarily the subtype of current element).
+
 ### 0.5.0
 
 Warning: this release introduces some changes which break the backward compatibility and will require the changes in source code if you used the previous StreamEx versions.
