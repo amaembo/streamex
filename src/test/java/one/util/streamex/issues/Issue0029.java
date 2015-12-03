@@ -15,87 +15,110 @@
  */
 package one.util.streamex.issues;
 
-import static org.junit.Assert.*;
+import static java.lang.Integer.parseInt;
+import static org.junit.Assert.assertEquals;
 
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
+import org.apache.commons.net.util.SubnetUtils;
+import org.apache.commons.net.util.SubnetUtils.SubnetInfo;
+import org.junit.Test;
 
 import one.util.streamex.StreamEx;
 
-import org.junit.Test;
-
 /**
  * https://github.com/amaembo/streamex/issues/29
+ * 
  * @author Tagir Valeev
  */
 public class Issue0029 {
-    static class T implements Comparable<T> {
-        private final String name;
-        private final T parent;
+	private static final String _192_168_0_0_16 = "192.168.0.0/16";
+	private static final String EXPECTED = "[T[" + _192_168_0_0_16 + "]]";
 
-        public T(String name, T parent) {
-            this.name = name;
-            this.parent = parent;
-        }
+	static class T implements Comparable<T> {
+		SubnetInfo info;
 
-        public boolean isParent(T parent) {
-            return this.parent == parent;
-        }
+		public T(String cidr) {
+			SubnetUtils tmp = new SubnetUtils(cidr);
+			tmp.setInclusiveHostCount(true);
+			this.info = tmp.getInfo();
+		}
 
-        @Override
-        public String toString() {
-            return "T["+name+"]";
-        }
+		public boolean isParent(T child) {
+			return this.info.isInRange(child.info.getNetworkAddress()) && rPrefix() <= child.rPrefix();
+		}
 
-        @Override
-        public int compareTo(T o) {
-            return name.compareTo(o.name);
-        }
-    }
-    
-    static class C {
-        public static final boolean isNested(T a, T b) {
-            return a.isParent(b) || b.isParent(a);
-        }
+		private int rPrefix() {
+			String cidrSignature = info.getCidrSignature();
+			String iPrefix = cidrSignature.substring(cidrSignature.lastIndexOf('/') + 1);
+			return Integer.parseInt(iPrefix);
+		}
 
-        public static final T merge(T a, T b) {
-            return a.isParent(b) ? a : b;
-        }
-    }
-    
-    private List<T> getTestData() {
-        T t1 = new T("t1.1", null);
-        T t11 = new T("t1", t1);
-        T t2 = new T("t2.1", null);
-        T t21 = new T("t2", t2);
-        return Arrays.asList(t1, t2, t21, t11);
-    }
-    
-    @Test
-    public void testCollapse() {
-        List<T> result = StreamEx.of(getTestData()).sorted().collapse(C::isNested, C::merge).toList();
-        assertEquals("[T[t1], T[t2]]", result.toString());
-    }
-    
-    @Test
-    public void testPlain() {
-        List<T> tmp = getTestData().stream().sorted().collect(Collectors.toList());
-        Iterator<T> it = tmp.iterator();
-        T curr, last;
-        curr = last = null;
-        while (it.hasNext()) {
-            T oldLast = last;
-            last = curr;
-            curr = it.next();
-            if (last != null && last.isParent(curr)) {
-                it.remove();
-                curr = last;
-                last = oldLast;
-            }
-        }
-        List<T> result = tmp.stream().collect(Collectors.toList());
-        assertEquals("[T[t1], T[t2]]", result.toString());
-    }
+		@Override
+		public String toString() {
+			return "T[" + info.getCidrSignature() + "]";
+		}
+
+		@Override
+		public int compareTo(T o) {
+			String[] b1 = info.getNetworkAddress().split("\\.");
+			String[] b2 = o.info.getNetworkAddress().split("\\.");
+			int res;
+			for (int i = 0; i < 4; i++) {
+				res = parseInt(b1[0]) - parseInt(b2[0]);
+				if (res != 0)
+					return res;
+			}
+			return rPrefix() - o.rPrefix();
+		}
+	}
+
+	static class C {
+		public static final boolean isNested(T a, T b) {
+			return a.isParent(b) || b.isParent(a);
+		}
+
+		public static final T merge(T a, T b) {
+			return a.isParent(b) ? a : b;
+		}
+	}
+
+	private Stream<T> getTestData() {
+		// Stream of parent net 192.168.0.0/16 follow by the 50 first childs
+		// 192.168.X.0/24
+		return Stream
+				.concat(Stream.of(_192_168_0_0_16),
+						IntStream.range(0, 50).mapToObj(String::valueOf).map(i -> "192.168." + i + ".0/24"))
+				.map(T::new);
+	}
+
+	@Test
+	public void testCollapse() {
+		List<T> result = StreamEx.of(getTestData()).sorted().collapse(C::isNested, C::merge).toList();
+		assertEquals(EXPECTED, result.toString());
+	}
+
+	@Test
+	public void testPlain() {
+		List<T> tmp = getTestData().sorted().collect(Collectors.toList());
+		Iterator<T> it = tmp.iterator();
+		T curr, last;
+		curr = last = null;
+		while (it.hasNext()) {
+			T oldLast = last;
+			last = curr;
+			curr = it.next();
+			if (last != null && last.isParent(curr)) {
+				it.remove();
+				curr = last;
+				last = oldLast;
+			}
+		}
+		List<T> result = tmp.stream().collect(Collectors.toList());
+		assertEquals(EXPECTED, result.toString());
+	}
 }
