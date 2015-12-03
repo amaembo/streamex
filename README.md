@@ -1,6 +1,6 @@
 ## StreamEx changes the package name
 
-Since version 0.5.0 the package name is changed in from `javax.util.streamex` to `one.util.streamex`. 
+Since version 0.5.0 the package name is changed from `javax.util.streamex` to `one.util.streamex`. 
 The OSGi bundle name and Maven groupId are changed correspondingly. To migrate to StreamEx 0.5.0 you should:
 
 * Replace every occurrence of `javax.util.streamex` to `one.util.streamex` in your Java files and OSGi manifests.
