@@ -49,10 +49,10 @@
  * pipelines</em>.  For more information about <em>intermediate</em> and <em>terminal</em> see the {@linkplain java.util.stream Stream API} documentation.
  * 
  * <p>
- * In addition due to the API limitations new operation type is defined in StreamEx library which called "quasi-intermediate". 
- * In the most of the cases they behave as intermediate operations: for sequential stream there 
+ * In addition, due to the API limitations, a new operation type is defined in StreamEx library which is called "quasi-intermediate". 
+ * In most of the cases they behave as intermediate operations: for sequential stream there 
  * should be no visible difference between intermediate and quasi-intermediate operation. The only known difference
- * is handling a parallel and unordered stream status. For intermediate operation there's no difference on calling {@code parallel()} 
+ * is when handling a parallel and unordered stream status. For intermediate operation there's no difference on calling {@code parallel()} 
  * before or after any intermediate operation. For quasi-intermediate operations if you call {@code parallel()} after the operation, then previous
  * steps will remain sequential. Similarly if you create a parallel stream, perform some intermediate operations, use quasi-intermediate operation,
  * then call {@code sequential()}, the steps before quasi-intermediate operation may still be executed in parallel.
