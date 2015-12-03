@@ -38,6 +38,12 @@
       <version>4.12</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>commons-net</groupId>
+      <artifactId>commons-net</artifactId>
+      <version>3.3</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <developers>
