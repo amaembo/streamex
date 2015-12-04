@@ -627,4 +627,15 @@ public class MoreCollectorsTest {
         checkShortCircuitCollector("suffix", "abc", inputSurrogateMix.size(), inputSurrogateMix::stream,
             MoreCollectors.commonSuffix());
     }
+    
+    @Test
+    public void testCollapseNested() {
+        List<String> input = Arrays.asList("a/", "a/b/c/", "b/c/", "b/d/", "c/a/", "d/a/b/", "c/a/b/", "c/b/", "b/c/d/");
+        List<String> expected = Arrays.asList("a/", "b/c/", "b/d/", "c/a/", "c/b/", "d/a/b/");
+        Random r = new Random(1);
+        for(int i=0; i<10; i++) {
+            Collections.shuffle(input, r);
+            checkCollector("#"+i, expected, input::stream, MoreCollectors.collapseNested(String::startsWith));
+        }
+    }
 }

@@ -25,11 +25,14 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableSet;
 import java.util.Objects;
 import java.util.OptionalInt;
+import java.util.TreeSet;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.OptionalLong;
@@ -37,6 +40,7 @@ import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.IntFunction;
@@ -1517,5 +1521,39 @@ public final class MoreCollectors {
             return acc1;
         }, acc -> acc.a == null ? "" : acc.a.subSequence(acc.a.length() - acc.b, acc.a.length()).toString(),
                 acc -> acc.b == 0, UNORDERED_CHARACTERISTICS);
+    }
+
+    public static <E> Collector<E, ?, List<E>> collapseNested(Comparator<? super E> comparator,
+            BiPredicate<? super E, ? super E> isPartOf) {
+        BiConsumer<NavigableSet<E>, E> accumulator = (set, e) -> {
+            E left = set.floor(Objects.requireNonNull(e));
+            if (left != null && isPartOf.test(e, left)) {
+                return;
+            }
+            Iterator<E> iterator = set.tailSet(e).iterator();
+            while (iterator.hasNext()) {
+                E right = iterator.next();
+                if (!isPartOf.test(right, e))
+                    break;
+                iterator.remove();
+            }
+            set.add(e);
+        };
+        Supplier<NavigableSet<E>> supplier = () -> new TreeSet<>(comparator);
+        BinaryOperator<NavigableSet<E>> combiner = (set1, set2) -> {
+            if(set1.size() < set2.size()) {
+                set1.forEach(e -> accumulator.accept(set2, e));
+                return set2;
+            }
+            set2.forEach(e -> accumulator.accept(set1, e));
+            return set1;
+        };
+        return Collector.<E, NavigableSet<E>, List<E>> of(supplier, accumulator, combiner,
+            (NavigableSet<E> set) -> new ArrayList<>(set), Characteristics.UNORDERED);
+    }
+
+    public static <E extends Comparable<? super E>> Collector<E, ?, List<E>> collapseNested(
+            BiPredicate<? super E, ? super E> isPartOf) {
+        return collapseNested(Comparator.naturalOrder(), isPartOf);
     }
 }
