@@ -74,7 +74,7 @@ public class MoreCollectorsTest {
     @Test
     public void testToArray() {
         List<String> input = Arrays.asList("a", "bb", "c", "", "cc", "eee", "bb", "ddd");
-        for (StreamSupplier<String, StreamEx<String>> supplier : suppliers(() -> StreamEx.of(input))) {
+        for (StreamExSupplier<String> supplier : streamEx(input::stream)) {
             Map<Integer, String[]> result = supplier.get().groupingBy(String::length, HashMap::new,
                 MoreCollectors.toArray(String[]::new));
             assertArrayEquals(supplier.toString(), new String[] { "" }, result.get(0));

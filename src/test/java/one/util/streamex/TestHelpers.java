@@ -21,14 +21,18 @@ import static org.junit.Assert.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Spliterator;
 import java.util.Map.Entry;
+import java.util.Spliterators;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.BaseStream;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -41,51 +45,35 @@ import one.util.streamex.StreamEx;
  */
 public class TestHelpers {
     static enum Mode {
-        NORMAL, APPEND, PREPEND
+        NORMAL, PARALLEL, APPEND, PREPEND, RANDOM
     }
 
-    static class StreamSupplier<T, S extends BaseStream<T, ? super S>> implements Supplier<S> {
-        private final Supplier<S> base;
-        private final boolean parallel;
-
-        public StreamSupplier(Supplier<S> base, boolean parallel) {
-            this.base = base;
-            this.parallel = parallel;
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public S get() {
-            return (S) (parallel ? base.get().parallel() : base.get().sequential());
-        }
-
-        @Override
-        public String toString() {
-            return parallel ? "Parallel" : "Sequential";
-        }
-    }
-
-    static class StreamExSupplier<T> extends StreamSupplier<T, StreamEx<T>> {
+    static class StreamExSupplier<T> {
         private final Mode mode;
+        private final Supplier<Stream<T>> base;
 
-        public StreamExSupplier(Supplier<Stream<T>> base, boolean parallel, Mode mode) {
-            super(() -> StreamEx.of(base.get()), parallel);
+        public StreamExSupplier(Supplier<Stream<T>> base, Mode mode) {
+            this.base = base;
             this.mode = mode;
         }
 
-        @Override
         public StreamEx<T> get() {
-            StreamEx<T> res = super.get();
+            Stream<T> res = base.get();
             switch (mode) {
+            case NORMAL:
+                return StreamEx.of(res.sequential());
+            case PARALLEL:
+                return StreamEx.of(res.parallel());
             case APPEND:
                 // using Stream.empty() here makes the resulting stream
-                // unordered
-                // which is undesired
-                return res.append(Arrays.<T> asList().stream());
+                // unordered which is undesired
+                return StreamEx.of(res.parallel()).append(Arrays.<T> asList().stream());
             case PREPEND:
-                return res.prepend(Arrays.<T> asList().stream());
+                return StreamEx.of(res.parallel()).prepend(Arrays.<T> asList().stream());
+            case RANDOM:
+                return StreamEx.of(new EmptyingSpliterator<>(res.parallel().spliterator()));
             default:
-                return res;
+                throw new InternalError("Unsupported mode: "+mode);
             }
         }
 
@@ -95,13 +83,64 @@ public class TestHelpers {
         }
     }
 
-    static <T, S extends BaseStream<T, ? super S>> List<StreamSupplier<T, S>> suppliers(Supplier<S> base) {
-        return Arrays.asList(new StreamSupplier<>(base, false), new StreamSupplier<>(base, true));
-    }
-
     static <T> List<StreamExSupplier<T>> streamEx(Supplier<Stream<T>> base) {
-        return StreamEx.of(Boolean.FALSE, Boolean.TRUE).cross(Mode.values())
-                .mapKeyValue((parallel, mode) -> new StreamExSupplier<>(base, parallel, mode)).toList();
+        return StreamEx.of(Mode.values())
+                .map(mode -> new StreamExSupplier<>(base, mode)).toList();
+    }
+    
+    /**
+     * Spliterator which randomly inserts empty spliterators on splitting
+     * 
+     * @author Tagir Valeev
+     *
+     * @param <T> type of the elements
+     */
+    private static class EmptyingSpliterator<T> implements Spliterator<T> {
+        private Spliterator<T> source;
+
+        public EmptyingSpliterator(Spliterator<T> source) {
+            this.source = Objects.requireNonNull(source);
+        }
+
+        @Override
+        public boolean tryAdvance(Consumer<? super T> action) {
+            return source.tryAdvance(action);
+        }
+
+        @Override
+        public void forEachRemaining(Consumer<? super T> action) {
+            source.forEachRemaining(action);
+        }
+        
+        @Override
+        public Comparator<? super T> getComparator() {
+            return source.getComparator();
+        }
+
+        @Override
+        public Spliterator<T> trySplit() {
+            Spliterator<T> source = this.source;
+            switch(ThreadLocalRandom.current().nextInt(3)) {
+            case 0:
+                return Spliterators.emptySpliterator();
+            case 1:
+                this.source = Spliterators.emptySpliterator();
+                return source;
+            default:
+                Spliterator<T> split = source.trySplit();
+                return split == null ? null : new EmptyingSpliterator<>(split);
+            }
+        }
+
+        @Override
+        public long estimateSize() {
+            return source.estimateSize();
+        }
+
+        @Override
+        public int characteristics() {
+            return source.characteristics();
+        }
     }
 
     static <T, R> void checkCollectorEmpty(String message, R expected, Collector<T, ?, R> collector) {
