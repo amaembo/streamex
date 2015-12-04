@@ -71,7 +71,7 @@ public class TestHelpers {
             case PREPEND:
                 return StreamEx.of(res.parallel()).prepend(Arrays.<T> asList().stream());
             case RANDOM:
-                return StreamEx.of(new EmptyingSpliterator<>(res.parallel().spliterator()));
+                return StreamEx.of(new EmptyingSpliterator<>(res.parallel().spliterator())).parallel();
             default:
                 throw new InternalError("Unsupported mode: "+mode);
             }
