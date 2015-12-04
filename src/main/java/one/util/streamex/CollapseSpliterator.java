@@ -29,8 +29,8 @@ import static one.util.streamex.StreamExInternals.*;
     private final CollapseSpliterator<T, R> root; // used as lock
     private T cur = none();
     private R acc;
-    private volatile Connector<T, R> left;
-    private volatile Connector<T, R> right;
+    volatile Connector<T, R> left;
+    volatile Connector<T, R> right;
     private final Function<T, R> mapper;
     private final BiFunction<R, T, R> accumulator;
     private final BinaryOperator<R> combiner;
