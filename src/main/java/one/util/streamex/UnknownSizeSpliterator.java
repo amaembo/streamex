@@ -11,6 +11,7 @@ import java.util.function.LongConsumer;
 /* package */abstract class UnknownSizeSpliterator<T, I extends Iterator<? extends T>> implements Spliterator<T> {
     static final int BATCH_UNIT = 1 << 10; // batch array size increment
     static final int MAX_BATCH = 1 << 25; // max batch array size;
+
     I it;
     int index, fence;
 
@@ -21,6 +22,11 @@ import java.util.function.LongConsumer;
     UnknownSizeSpliterator(int index, int fence) {
         this.index = index;
         this.fence = fence;
+    }
+
+    int getN() {
+        int n = fence + BATCH_UNIT;
+        return n > MAX_BATCH ? MAX_BATCH : n;
     }
 
     @Override
@@ -49,9 +55,7 @@ import java.util.function.LongConsumer;
         public Spliterator<T> trySplit() {
             Iterator<? extends T> i = it;
             if (i != null) {
-                int n = fence + BATCH_UNIT;
-                if (n > MAX_BATCH)
-                    n = MAX_BATCH;
+                int n = getN();
                 Object[] a = new Object[n];
                 int j = 0;
                 do {
@@ -121,9 +125,7 @@ import java.util.function.LongConsumer;
         public Spliterator.OfInt trySplit() {
             PrimitiveIterator.OfInt i = it;
             if (i != null) {
-                int n = fence + BATCH_UNIT;
-                if (n > MAX_BATCH)
-                    n = MAX_BATCH;
+                int n = getN();
                 int[] a = new int[n];
                 int j = 0;
                 do {
@@ -189,9 +191,7 @@ import java.util.function.LongConsumer;
         public Spliterator.OfLong trySplit() {
             PrimitiveIterator.OfLong i = it;
             if (i != null) {
-                int n = fence + BATCH_UNIT;
-                if (n > MAX_BATCH)
-                    n = MAX_BATCH;
+                int n = getN();
                 long[] a = new long[n];
                 int j = 0;
                 do {
@@ -257,9 +257,7 @@ import java.util.function.LongConsumer;
         public Spliterator.OfDouble trySplit() {
             PrimitiveIterator.OfDouble i = it;
             if (i != null) {
-                int n = fence + BATCH_UNIT;
-                if (n > MAX_BATCH)
-                    n = MAX_BATCH;
+                int n = getN();
                 double[] a = new double[n];
                 int j = 0;
                 do {
