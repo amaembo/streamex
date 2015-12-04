@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.AbstractList;
@@ -69,7 +70,7 @@ import static org.junit.Assert.*;
 public class StreamExTest {
     @Rule
     public TemporaryFolder tmp = new TemporaryFolder();
-    
+
     @Test
     public void testCreate() {
         assertEquals(Arrays.asList(), StreamEx.empty().toList());
@@ -105,7 +106,7 @@ public class StreamExTest {
 
         assertEquals(Arrays.asList("a", "b"), StreamEx.of(Arrays.asList("a", "b").spliterator()).toList());
     }
-    
+
     @Test
     public void testCreateFromFile() throws IOException {
         File f = tmp.newFile();
@@ -364,6 +365,17 @@ public class StreamExTest {
     public void testSelect() {
         assertEquals(Arrays.asList("a", "b"),
             StreamEx.of(1, "a", 2, "b", 3, "cc").select(String.class).filter(s -> s.length() == 1).toList());
+        StringBuilder sb = new StringBuilder();
+        StringBuffer sbb = new StringBuffer();
+        StreamEx.<CharSequence> of("test", sb, sbb).select(Appendable.class).forEach(a -> {
+            try {
+                a.append("b");
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        });
+        assertEquals("b", sb.toString());
+        assertEquals("b", sbb.toString());
     }
 
     @Test
@@ -455,7 +467,7 @@ public class StreamExTest {
             assertEquals(supplier.toString(), minStr, supplier.get().minByDouble(String::length).get());
             assertEquals(supplier.toString(), minStr, supplier.get().minBy(String::length).get());
         }
-        assertFalse(StreamEx.<String>empty().minByInt(String::length).isPresent());
+        assertFalse(StreamEx.<String> empty().minByInt(String::length).isPresent());
     }
 
     @Test
@@ -620,7 +632,7 @@ public class StreamExTest {
 
         assertEquals(IntStreamEx.range(10).boxed().toList(), IntStreamEx.range(100).mapToObj(x -> x / 10).sorted()
                 .distinct(3).sorted().toList());
-        
+
         assertEquals(Arrays.asList("a", "b"), StreamEx.split("a,b,a,c,d,b,a", ",").parallel().distinct(2).sorted()
                 .toList());
     }
@@ -1211,8 +1223,8 @@ public class StreamExTest {
         assertEquals("1=1, 2=2, 4=1, 2=1, null=2, 1=3",
             StreamEx.of(input).parallel().runLengths().distinct().map(String::valueOf).joining(", "));
     }
-    
-    @Test(expected=UnsupportedOperationException.class)
+
+    @Test(expected = UnsupportedOperationException.class)
     public void testRunLengthsModify() {
         StreamEx.of("1", "1", "1").runLengths().forEach(e -> e.setValue(5L));
     }
@@ -1392,7 +1404,8 @@ public class StreamExTest {
         for (StreamExSupplier<Double> supplier : streamEx(() -> StreamEx.ofPairs(pts, Point::distance))) {
             assertEquals(supplier.toString(), expected, supplier.get().mapToDouble(Double::doubleValue).max()
                     .getAsDouble(), 0.0);
-            assertArrayEquals(supplier.toString(), allDist, supplier.get().mapToDouble(Double::doubleValue).toArray(), 0.0);
+            assertArrayEquals(supplier.toString(), allDist, supplier.get().mapToDouble(Double::doubleValue).toArray(),
+                0.0);
         }
     }
 
@@ -1486,7 +1499,7 @@ public class StreamExTest {
             assertFalse(supplier.toString(), supplier.get().indexOf(""::equals).isPresent());
         }
     }
-    
+
     @Test
     public void testIndexOfSimple() {
         List<Integer> input = IntStreamEx.range(10).boxed().toList();
@@ -1494,16 +1507,16 @@ public class StreamExTest {
             assertEquals(9, StreamEx.of(input).parallel().indexOf(9).getAsLong());
         }
     }
-    
+
     @Test
     public void testMapFirstLast() {
-        for(StreamExSupplier<Integer> s : streamEx(() -> StreamEx.of(0, 343, 999))) {
-            assertEquals(s.toString(), Arrays.asList(2, 343, 997), s.get()
-                    .mapFirst(x -> x + 2).mapLast(x -> x - 2).toList());
+        for (StreamExSupplier<Integer> s : streamEx(() -> StreamEx.of(0, 343, 999))) {
+            assertEquals(s.toString(), Arrays.asList(2, 343, 997), s.get().mapFirst(x -> x + 2).mapLast(x -> x - 2)
+                    .toList());
         }
-        for(StreamExSupplier<Integer> s : streamEx(() -> IntStreamEx.range(1000).boxed())) {
+        for (StreamExSupplier<Integer> s : streamEx(() -> IntStreamEx.range(1000).boxed())) {
             assertEquals(s.toString(), Arrays.asList(2, 343, 997), s.get().filter(x -> x == 0 || x == 343 || x == 999)
-                .mapFirst(x -> x + 2).mapLast(x -> x - 2).toList());
+                    .mapFirst(x -> x + 2).mapLast(x -> x - 2).toList());
         }
         for (StreamExSupplier<Integer> s : streamEx(() -> IntStreamEx.range(50).boxed()
                 .foldLeft(StreamEx.of(0), (stream, i) -> stream.append(i).mapLast(x -> x + 2)))) {
