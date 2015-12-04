@@ -26,6 +26,7 @@ import java.util.Objects;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
+import java.util.PrimitiveIterator;
 import java.util.Random;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator.OfInt;
@@ -2001,6 +2002,23 @@ public class IntStreamEx implements IntStream {
      */
     public static IntStreamEx of(Spliterator.OfInt spliterator) {
         return of(StreamSupport.intStream(spliterator, false));
+    }
+
+    /**
+     * Returns a sequential, ordered {@link IntStreamEx} created from given
+     * {@link java.util.PrimitiveIterator.OfInt}.
+     * 
+     * This method is roughly equivalent to
+     * {@code IntStreamEx.of(Spliterators.spliteratorUnknownSize(iterator, ORDERED))}
+     * , but may show better performance for parallel processing.
+     * 
+     * @param iterator
+     *            an iterator to create the stream from.
+     * @return the new stream
+     * @since 0.5.1
+     */
+    public static IntStreamEx of(PrimitiveIterator.OfInt iterator) {
+        return of(new UnknownSizeSpliterator.USOfInt(iterator));
     }
 
     /**

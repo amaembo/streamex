@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.AbstractMap.SimpleImmutableEntry;
@@ -1543,6 +1544,25 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public static <T> StreamEx<T> of(Spliterator<T> spliterator) {
         return of(StreamSupport.stream(spliterator, false));
+    }
+
+    /**
+     * Returns a sequential, ordered {@link StreamEx} created from given
+     * {@link Iterator}.
+     * 
+     * This method is roughly equivalent to
+     * {@code StreamEx.of(Spliterators.spliteratorUnknownSize(iterator, ORDERED))}
+     * , but may show better performance for parallel processing.
+     *
+     * @param <T>
+     *            the type of iterator elements
+     * @param iterator
+     *            an iterator to create the stream from.
+     * @return the new stream
+     * @since 0.5.1
+     */
+    public static <T> StreamEx<T> of(Iterator<T> iterator) {
+        return of(new UnknownSizeSpliterator.USOfRef<>(iterator));
     }
 
     /**

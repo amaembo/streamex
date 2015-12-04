@@ -19,6 +19,7 @@ import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -1112,6 +1113,27 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     public static <K, V> EntryStream<K, V> of(Spliterator<? extends Entry<K, V>> spliterator) {
         return of(StreamSupport.stream(spliterator, false));
+    }
+
+    /**
+     * Returns a sequential, ordered {@link EntryStream} created from given
+     * {@link Iterator}.
+     * 
+     * This method is roughly equivalent to
+     * {@code EntryStream.of(Spliterators.spliteratorUnknownSize(iterator, ORDERED))}
+     * , but may show better performance for parallel processing.
+     *
+     * @param <K>
+     *            the type of stream keys
+     * @param <V>
+     *            the type of stream values
+     * @param iterator
+     *            an iterator to create the stream from.
+     * @return the new stream
+     * @since 0.5.1
+     */
+    public static <K, V> EntryStream<K, V> of(Iterator<? extends Entry<K, V>> iterator) {
+        return of(new UnknownSizeSpliterator.USOfRef<>(iterator));
     }
 
     /**
