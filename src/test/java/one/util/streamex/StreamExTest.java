@@ -1535,5 +1535,14 @@ public class StreamExTest {
         for(StreamExSupplier<String> s : streamEx(() -> StreamEx.split("abcd,e,f,gh,,,i,j,kl,,,,,,x", ','))) {
             assertEquals(s.toString(), "abcd|e|f|gh|||i|j|kl||||||x", s.get().joining("|"));
         }
+        for(StreamExSupplier<String> s : streamEx(() -> StreamEx.split("abcd", ','))) {
+            assertEquals(s.toString(), "abcd", s.get().joining("|"));
+        }
+        for(StreamExSupplier<String> s : streamEx(() -> StreamEx.split("", ','))) {
+            assertEquals(s.toString(), 0, s.get().count());
+        }
+        for(StreamExSupplier<String> s : streamEx(() -> StreamEx.split(",,,,,,,,,", ','))) {
+            assertEquals(s.toString(), 0, s.get().count());
+        }
     }
 }
