@@ -1526,4 +1526,14 @@ public class StreamExTest {
             assertEquals(s.toString(), "red, green, blue, or orange", s.get().mapLast("or "::concat).joining(", "));
         }
     }
+    
+    @Test
+    public void testSplit() {
+        for(StreamExSupplier<String> s : streamEx(() -> StreamEx.split("abcd,e,f,gh,,,i,j,kl,,,,,,", ','))) {
+            assertEquals(s.toString(), "abcd|e|f|gh|||i|j|kl", s.get().joining("|"));
+        }
+        for(StreamExSupplier<String> s : streamEx(() -> StreamEx.split("abcd,e,f,gh,,,i,j,kl,,,,,,x", ','))) {
+            assertEquals(s.toString(), "abcd|e|f|gh|||i|j|kl||||||x", s.get().joining("|"));
+        }
+    }
 }
