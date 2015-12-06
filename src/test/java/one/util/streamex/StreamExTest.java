@@ -1535,6 +1535,27 @@ public class StreamExTest {
         for(StreamExSupplier<String> s : streamEx(() -> StreamEx.split("", Pattern.compile("abcd")))) {
             assertEquals(s.toString(), 1, s.get().count());
         }
+        for(StreamExSupplier<String> s : streamEx(() -> StreamEx.split("ab.cd...", '.'))) {
+            assertEquals(s.toString(), "ab|cd", s.get().joining("|"));
+        }
+        for(StreamExSupplier<String> s : streamEx(() -> StreamEx.split("ab.cd...", "."))) {
+            assertEquals(s.toString(), 0, s.get().count());
+        }
+        for(StreamExSupplier<String> s : streamEx(() -> StreamEx.split("ab.cd...", "\\."))) {
+            assertEquals(s.toString(), "ab|cd", s.get().joining("|"));
+        }
+        for(StreamExSupplier<String> s : streamEx(() -> StreamEx.split("ab.cd...", "cd"))) {
+            assertEquals(s.toString(), "ab.|...", s.get().joining("|"));
+        }
+        for(StreamExSupplier<String> s : streamEx(() -> StreamEx.split("ab.cd...", "\\w"))) {
+            assertEquals(s.toString(), "||.||...", s.get().joining("|"));
+        }
+        for(StreamExSupplier<String> s : streamEx(() -> StreamEx.split("ab.cd...", "\\W"))) {
+            assertEquals(s.toString(), "ab|cd", s.get().joining("|"));
+        }
+        for(StreamExSupplier<String> s : streamEx(() -> StreamEx.split("ab|cd|e", "\\|"))) {
+            assertEquals(s.toString(), "ab,cd,e", s.get().joining(","));
+        }
     }
     
     @Test
