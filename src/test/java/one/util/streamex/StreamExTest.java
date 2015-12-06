@@ -1529,6 +1529,16 @@ public class StreamExTest {
     
     @Test
     public void testSplit() {
+        for(StreamExSupplier<String> s : streamEx(() -> StreamEx.split("", "abcd"))) {
+            assertEquals(s.toString(), 1, s.get().count());
+        }
+        for(StreamExSupplier<String> s : streamEx(() -> StreamEx.split("", Pattern.compile("abcd")))) {
+            assertEquals(s.toString(), 1, s.get().count());
+        }
+    }
+    
+    @Test
+    public void testSplitChar() {
         for(StreamExSupplier<String> s : streamEx(() -> StreamEx.split("abcd,e,f,gh,,,i,j,kl,,,,,,", ','))) {
             assertEquals(s.toString(), "abcd|e|f|gh|||i|j|kl", s.get().joining("|"));
         }

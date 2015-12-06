@@ -2,7 +2,9 @@
 
 ### 0.5.1
 
-* Updated: now `StreamEx.select`, `EntryStream.selectKeys` and `EntryStream.selectValues` accept any type (not necessarily the subtype of current element).
+* [#28] Updated: now `StreamEx.select`, `EntryStream.selectKeys` and `EntryStream.selectValues` accept any type (not necessarily the subtype of current element).
+* [#33] Updated: `StreamEx.split("", pattern)` now returns stream of single `""` string instead of empty stream.
+* Updated documentation. 
 
 ### 0.5.0
 
