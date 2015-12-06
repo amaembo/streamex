@@ -1854,9 +1854,15 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     public static StreamEx<String> split(CharSequence str, char delimiter) {
-        return of(new CharSpliterator(str, delimiter));
+        return split(str, delimiter, true);
     }
 
+    public static StreamEx<String> split(CharSequence str, char delimiter, boolean trimEmpty) {
+        if(str.length() == 0)
+            return of("");
+        return of(new CharSpliterator(str, delimiter, trimEmpty));
+    }
+    
     /**
      * Returns an infinite sequential ordered {@code StreamEx} produced by
      * iterative application of a function {@code f} to an initial element

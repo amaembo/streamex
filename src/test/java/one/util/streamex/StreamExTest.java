@@ -1539,10 +1539,23 @@ public class StreamExTest {
             assertEquals(s.toString(), "abcd", s.get().joining("|"));
         }
         for(StreamExSupplier<String> s : streamEx(() -> StreamEx.split("", ','))) {
-            assertEquals(s.toString(), 0, s.get().count());
+            assertEquals(s.toString(), Arrays.asList(""), s.get().toList());
         }
         for(StreamExSupplier<String> s : streamEx(() -> StreamEx.split(",,,,,,,,,", ','))) {
             assertEquals(s.toString(), 0, s.get().count());
+        }
+        Random r = new Random(1);
+        for(int i=0; i<10; i++) {
+            StringBuilder source = new StringBuilder(IntStreamEx.of(r, 0, 3).limit(r.nextInt(10000))
+                    .elements(new int[] { ',', 'a', 'b' }).charsToString());
+            String[] expected = source.toString().split(",");
+            for (StreamExSupplier<String> s : streamEx(() -> StreamEx.split(source, ','))) {
+                assertArrayEquals(s.toString(), expected, s.get().toArray(String[]::new));
+            }
+            expected = source.toString().split(",", -1);
+            for (StreamExSupplier<String> s : streamEx(() -> StreamEx.split(source, ',', false))) {
+                assertArrayEquals(s.toString(), expected, s.get().toArray(String[]::new));
+            }
         }
     }
 }
