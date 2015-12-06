@@ -1832,9 +1832,9 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * such empty leading substring.
      *
      * <p>
-     * If the input sequence is mutable, it must remain constant during the
-     * execution of the terminal stream operation. Otherwise, the result of the
-     * terminal stream operation is undefined.
+     * If the input sequence is mutable, it must remain constant from the stream
+     * creation until the execution of the terminal stream operation. Otherwise,
+     * the result of the terminal stream operation is undefined.
      *
      * @param str
      *            The character sequence to be split
@@ -1851,16 +1851,97 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return of(pattern.splitAsStream(str));
     }
 
+    /**
+     * Creates a stream from the given input sequence around matches of the
+     * given pattern represented as String.
+     *
+     * <p>
+     * This method is equivalent to {@code StreamEx.split(str, Pattern.compile(regex))}.
+     *
+     * @param str
+     *            The character sequence to be split
+     * @param regex
+     *            The regular expression String to use for splitting
+     *
+     * @return The stream of strings computed by splitting the input around
+     *         matches of this pattern
+     * @see Pattern#splitAsStream(CharSequence)
+     * @see #split(CharSequence, char)
+     */
     public static StreamEx<String> split(CharSequence str, String regex) {
         if (str.length() == 0)
             return of("");
+        if (regex.isEmpty()) {
+            return IntStreamEx.ofChars(str).mapToObj(ch -> new String(new char[] { (char) ch }));
+        }
+        char ch = regex.charAt(0);
+        if (regex.length() == 1 && ".$|()[{^?*+\\".indexOf(ch) == -1) {
+            return split(str, ch);
+        } else if (regex.length() == 2 && ch == '\\') {
+            ch = regex.charAt(1);
+            if ((ch < '0' || ch > '9') && (ch < 'A' || ch > 'Z') && (ch < 'a' || ch > 'z')
+                && (ch < Character.MIN_HIGH_SURROGATE || ch > Character.MAX_LOW_SURROGATE)) {
+                return split(str, ch);
+            }
+        }
         return of(Pattern.compile(regex).splitAsStream(str));
     }
 
+    /**
+     * Creates a stream from the given input sequence around matches of the
+     * given character.
+     *
+     * <p>
+     * This method is equivalent to {@code StreamEx.split(str, delimiter, true)}.
+     *
+     * @param str
+     *            The character sequence to be split
+     * @param delimiter
+     *            The delimiter character to use for splitting
+     *
+     * @return The stream of strings computed by splitting the input around
+     *         the delimiters
+     * @see Pattern#splitAsStream(CharSequence)
+     * @since 0.5.1
+     */
     public static StreamEx<String> split(CharSequence str, char delimiter) {
         return split(str, delimiter, true);
     }
 
+    /**
+     * Creates a stream from the given input sequence around matches of the
+     * given character.
+     *
+     * <p>
+     * The stream returned by this method contains each substring of the input
+     * sequence that is terminated by supplied delimiter character or is
+     * terminated by the end of the input sequence. The substrings in the stream
+     * are in the order in which they occur in the input. If the trimEmpty
+     * parameter is true, trailing empty strings will be discarded and not
+     * encountered in the stream.
+     *
+     * <p>
+     * If the given delimiter character does not appear in the input then the
+     * resulting stream has just one element, namely the input sequence in
+     * string form.
+     *
+     * <p>
+     * If the input sequence is mutable, it must remain constant from the stream
+     * creation until the execution of the terminal stream operation. Otherwise,
+     * the result of the terminal stream operation is undefined.
+     *
+     * @param str
+     *            The character sequence to be split
+     * @param delimiter
+     *            The delimiter character to use for splitting
+     * @param trimEmpty
+     *            If true, trailing empty strings will be discarded
+     *
+     * @return The stream of strings computed by splitting the input around the
+     *         delimiters
+     * @see Pattern#splitAsStream(CharSequence)
+     * @since 0.5.1
+     */
     public static StreamEx<String> split(CharSequence str, char delimiter, boolean trimEmpty) {
         if(str.length() == 0)
             return of("");
