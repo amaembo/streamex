@@ -1846,10 +1846,14 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Pattern#splitAsStream(CharSequence)
      */
     public static StreamEx<String> split(CharSequence str, Pattern pattern) {
+        if(str.length() == 0)
+            return of("");
         return of(pattern.splitAsStream(str));
     }
 
     public static StreamEx<String> split(CharSequence str, String regex) {
+        if (str.length() == 0)
+            return of("");
         return of(Pattern.compile(regex).splitAsStream(str));
     }
 
