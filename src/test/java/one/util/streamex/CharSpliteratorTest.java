@@ -16,9 +16,11 @@
 package one.util.streamex;
 
 import static one.util.streamex.TestHelpers.*;
+import static org.junit.Assert.*;
 
 import java.util.Arrays;
 import java.util.Random;
+import java.util.Spliterator;
 
 import org.junit.Test;
 
@@ -26,6 +28,20 @@ import org.junit.Test;
  * @author Tagir Valeev
  */
 public class CharSpliteratorTest {
+    @Test
+    public void testBasics() {
+        CharSpliterator spliterator = new CharSpliterator("abcd,efgh", ',', false);
+        assertTrue(spliterator.hasCharacteristics(Spliterator.ORDERED));
+        assertTrue(spliterator.hasCharacteristics(Spliterator.NONNULL));
+        assertFalse(spliterator.hasCharacteristics(Spliterator.SORTED));
+        assertFalse(spliterator.hasCharacteristics(Spliterator.SIZED));
+        assertEquals(9, spliterator.estimateSize());
+        assertTrue(spliterator.tryAdvance(a -> {}));
+        assertEquals(4, spliterator.estimateSize());
+        assertTrue(spliterator.tryAdvance(a -> {}));
+        assertEquals(0, spliterator.estimateSize());
+    }
+    
     @Test
     public void testSpliterator() {
         // Empty string is processed differently by CharSpliterator, but this is fixed in StreamEx.split

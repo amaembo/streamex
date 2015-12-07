@@ -126,7 +126,7 @@ import java.util.function.Consumer;
 
     @Override
     public long estimateSize() {
-        return fence-pos;
+        return pos > fence ? 0 : fence - pos;
     }
 
     @Override
