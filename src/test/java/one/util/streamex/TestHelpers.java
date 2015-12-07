@@ -29,6 +29,7 @@ import java.util.Spliterator;
 import java.util.Map.Entry;
 import java.util.Spliterators;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -197,11 +198,32 @@ public class TestHelpers {
      */
     static <T> void checkSpliterator(String msg, List<T> expected, Supplier<Spliterator<T>> supplier) {
         List<T> seq = new ArrayList<>();
+        // Test forEachRemaining
         Spliterator<T> sequential = supplier.get();
         sequential.forEachRemaining(seq::add);
         assertFalse(msg, sequential.tryAdvance(t -> fail(msg + ": Advance called with " + t)));
         sequential.forEachRemaining(t -> fail(msg + ": Advance called with " + t));
         assertEquals(msg, expected, seq);
+        
+        // Test tryAdvance
+        seq.clear();
+        sequential = supplier.get();
+        while(true) {
+            AtomicBoolean called = new AtomicBoolean();
+            boolean res = sequential.tryAdvance(t -> {
+                seq.add(t);
+                called.set(true);
+            });
+            if(res != called.get()) {
+                fail(msg+ (res ? ": Consumer not called, but spliterator returned true" : ": Consumer called, but spliterator returned false"));
+            }
+            if(!res)
+                break;
+        }
+        assertFalse(msg, sequential.tryAdvance(t -> fail(msg + ": Advance called with " + t)));
+        assertEquals(msg, expected, seq);
+        
+        // Test trySplit
         Random r = new Random(1);
         for (int n = 1; n < 500; n++) {
             Spliterator<T> spliterator = supplier.get();

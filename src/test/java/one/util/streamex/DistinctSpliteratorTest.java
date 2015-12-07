@@ -43,5 +43,6 @@ public class DistinctSpliteratorTest {
                     .characteristics());
         assertEquals(Spliterator.DISTINCT | Spliterator.ORDERED | Spliterator.IMMUTABLE | Spliterator.SORTED | Spliterator.NONNULL,
             new DistinctSpliterator<>(IntStream.range(0, 100).spliterator(), 3).characteristics());
+        assertEquals(100, new DistinctSpliterator<>(IntStream.range(0, 100).spliterator(), 3).estimateSize());
     }
 }
