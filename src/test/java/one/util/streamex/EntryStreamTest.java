@@ -248,10 +248,11 @@ public class EntryStreamTest {
 
     @Test
     public void testToMap() {
-        TreeMap<String, Integer> result = EntryStream.of(createMap()).toCustomMap(TreeMap::new);
-        assertEquals(createMap(), result);
-        result = EntryStream.of(createMap()).parallel().toCustomMap(TreeMap::new);
-        assertEquals(createMap(), result);
+        Map<String, Integer> base = IntStreamEx.range(100).mapToEntry(String::valueOf, Integer::valueOf).toMap();
+        TreeMap<String, Integer> result = EntryStream.of(base).toCustomMap(TreeMap::new);
+        assertEquals(base, result);
+        result = EntryStream.of(base).parallel().toCustomMap(TreeMap::new);
+        assertEquals(base, result);
 
         Map<Integer, String> expected = new HashMap<>();
         expected.put(3, "aaa");
