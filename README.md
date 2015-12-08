@@ -11,6 +11,10 @@ This change is discussed [here](https://github.com/amaembo/streamex/issues/8). S
 # StreamEx 0.5.0
 Enhancing Java 8 Streams.
 
+[![Maven Central](https://img.shields.io/maven-central/v/one.util/streamex.svg)](https://maven-badges.herokuapp.com/maven-central/one.util/streamex/)
+[![Build Status](https://travis-ci.org/amaembo/streamex.png?branch=master)](https://travis-ci.org/amaembo/streamex)
+[![Coverage Status](https://coveralls.io/repos/amaembo/streamex/badge.svg?branch=master&service=github)](https://coveralls.io/github/amaembo/streamex?branch=master)
+
 This library defines four classes: `StreamEx`, `IntStreamEx`, `LongStreamEx`, `DoubleStreamEx`
 which are fully compatible with Java 8 stream classes and provide many additional useful methods.
 Also `EntryStream` class is provided which represents the stream of map entries and provides
@@ -29,10 +33,6 @@ StreamEx library main points are following:
 * Friendliness for parallel processing: any new feature takes the advantage on parallel streams as much as possible.
 * Performance and minimal overhead. If StreamEx allows to solve the task using less code compared to standard Stream, it
 should not be significantly slower than the standard way (and sometimes it's even faster).
-
-[![Build Status](https://travis-ci.org/amaembo/streamex.png?branch=master)](https://travis-ci.org/amaembo/streamex)
-[![Coverage Status](https://coveralls.io/repos/amaembo/streamex/badge.png?branch=master&service=github)](https://coveralls.io/github/amaembo/streamex?branch=master)
-[![Maven Central](https://img.shields.io/maven-central/v/one.util/streamex.svg)](https://maven-badges.herokuapp.com/maven-central/one.util/streamex/)
 
 ### Examples
 
