@@ -32,6 +32,7 @@ should not be significantly slower than the standard way (and sometimes it's eve
 
 [![Build Status](https://travis-ci.org/amaembo/streamex.png?branch=master)](https://travis-ci.org/amaembo/streamex)
 [![Coverage Status](https://coveralls.io/repos/amaembo/streamex/badge.png?branch=master&service=github)](https://coveralls.io/github/amaembo/streamex?branch=master)
+[![Maven Central](https://img.shields.io/maven-central/v/one.util/streamex.svg)](https://maven-badges.herokuapp.com/maven-central/one.util/streamex/)
 
 ### Examples
 
