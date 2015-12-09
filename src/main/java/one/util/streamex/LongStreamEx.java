@@ -23,6 +23,7 @@ import java.util.LongSummaryStatistics;
 import java.util.Objects;
 import java.util.OptionalDouble;
 import java.util.OptionalLong;
+import java.util.PrimitiveIterator;
 import java.util.Random;
 import java.util.Spliterator;
 import java.util.Map.Entry;
@@ -1537,6 +1538,23 @@ public class LongStreamEx implements LongStream {
      */
     public static LongStreamEx of(Spliterator.OfLong spliterator) {
         return of(StreamSupport.longStream(spliterator, false));
+    }
+
+    /**
+     * Returns a sequential, ordered {@link LongStreamEx} created from given
+     * {@link java.util.PrimitiveIterator.OfLong}.
+     * 
+     * This method is roughly equivalent to
+     * {@code LongStreamEx.of(Spliterators.spliteratorUnknownSize(iterator, ORDERED))}
+     * , but may show better performance for parallel processing.
+     * 
+     * @param iterator
+     *            an iterator to create the stream from.
+     * @return the new stream
+     * @since 0.5.1
+     */
+    public static LongStreamEx of(PrimitiveIterator.OfLong iterator) {
+        return of(new UnknownSizeSpliterator.USOfLong(iterator));
     }
 
     /**
