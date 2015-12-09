@@ -1118,10 +1118,15 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns a sequential, ordered {@link EntryStream} created from given
      * {@link Iterator}.
-     * 
+     *
+     * <p>
      * This method is roughly equivalent to
      * {@code EntryStream.of(Spliterators.spliteratorUnknownSize(iterator, ORDERED))}
      * , but may show better performance for parallel processing.
+     * 
+     * <p>
+     * Use this method only if you cannot provide better Stream source (like
+     * {@code Collection} or {@code Spliterator}).
      *
      * @param <K>
      *            the type of stream keys

@@ -2007,11 +2007,15 @@ public class IntStreamEx implements IntStream {
     /**
      * Returns a sequential, ordered {@link IntStreamEx} created from given
      * {@link java.util.PrimitiveIterator.OfInt}.
-     * 
+     *
+     * <p>
      * This method is roughly equivalent to
      * {@code IntStreamEx.of(Spliterators.spliteratorUnknownSize(iterator, ORDERED))}
      * , but may show better performance for parallel processing.
      * 
+     * <p>
+     * Use this method only if you cannot provide better Stream source.
+     *
      * @param iterator
      *            an iterator to create the stream from.
      * @return the new stream

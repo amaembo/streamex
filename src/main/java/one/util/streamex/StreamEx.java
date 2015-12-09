@@ -1549,10 +1549,15 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     /**
      * Returns a sequential, ordered {@link StreamEx} created from given
      * {@link Iterator}.
-     * 
+     *
+     * <p>
      * This method is roughly equivalent to
      * {@code StreamEx.of(Spliterators.spliteratorUnknownSize(iterator, ORDERED))}
      * , but may show better performance for parallel processing.
+     *
+     * <p>
+     * Use this method only if you cannot provide better Stream source (like
+     * {@code Collection} or {@code Spliterator}).
      *
      * @param <T>
      *            the type of iterator elements

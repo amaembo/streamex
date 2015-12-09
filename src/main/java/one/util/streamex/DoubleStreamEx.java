@@ -1548,11 +1548,15 @@ public class DoubleStreamEx implements DoubleStream {
     /**
      * Returns a sequential, ordered {@link DoubleStreamEx} created from given
      * {@link java.util.PrimitiveIterator.OfDouble}.
-     * 
+     *
+     * <p>
      * This method is roughly equivalent to
      * {@code DoubleStreamEx.of(Spliterators.spliteratorUnknownSize(iterator, ORDERED))}
      * , but may show better performance for parallel processing.
      * 
+     * <p>
+     * Use this method only if you cannot provide better Stream source.
+     *
      * @param iterator
      *            an iterator to create the stream from.
      * @return the new stream
