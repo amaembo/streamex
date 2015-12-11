@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -1568,6 +1569,35 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public static <T> StreamEx<T> of(Iterator<T> iterator) {
         return of(new UnknownSizeSpliterator.USOfRef<>(iterator));
+    }
+    
+    /**
+     * Returns a sequential, ordered {@link StreamEx} created from given
+     * {@link Enumeration}.
+     *
+     * <p>
+     * Use this method only if you cannot provide better Stream source (like
+     * {@code Collection} or {@code Spliterator}).
+     *
+     * @param <T>
+     *            the type of enumeration elements
+     * @param enumeration
+     *            an enumeration to create the stream from.
+     * @return the new stream
+     * @since 0.5.1
+     */
+    public static <T> StreamEx<T> of(Enumeration<T> enumeration) {
+        return of(new Iterator<T>() {
+            @Override
+            public boolean hasNext() {
+                return enumeration.hasMoreElements();
+            }
+
+            @Override
+            public T next() {
+                return enumeration.nextElement();
+            }
+        });
     }
 
     /**

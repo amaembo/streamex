@@ -43,6 +43,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.Spliterator;
 import java.util.TreeSet;
+import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -106,6 +107,7 @@ public class StreamExTest {
 
         assertEquals(Arrays.asList("a", "b"), StreamEx.of(Arrays.asList("a", "b").spliterator()).toList());
         assertEquals(Arrays.asList("a", "b"), StreamEx.of(Arrays.asList("a", "b").iterator()).toList());
+        assertEquals(Arrays.asList("a", "b"), StreamEx.of(new Vector<>(Arrays.asList("a", "b")).elements()).toList());
     }
 
     @Test

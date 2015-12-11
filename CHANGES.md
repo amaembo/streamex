@@ -6,6 +6,7 @@
 * [#33] Updated: `StreamEx.split("", pattern)` now returns stream of single `""` string instead of empty stream.
 * [#13] Added: `StreamEx.split` to split with single character delimiter.
 * [#35] Added: construction of all stream types from the `Iterator`.   
+* [#36] Added: `StreamEx.of(Enumeration)` static method.   
 * Updated documentation. 
 
 ### 0.5.0
