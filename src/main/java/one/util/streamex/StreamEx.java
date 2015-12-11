@@ -432,8 +432,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public <K, D> Map<K, D> groupingBy(Function<? super T, ? extends K> classifier,
             Collector<? super T, ?, D> downstream) {
         if (stream.isParallel() && downstream.characteristics().contains(Characteristics.UNORDERED))
-            return collect(Collectors.groupingByConcurrent(classifier, downstream));
-        return collect(Collectors.groupingBy(classifier, downstream));
+            return rawCollect(Collectors.groupingByConcurrent(classifier, downstream));
+        return rawCollect(Collectors.groupingBy(classifier, downstream));
     }
 
     /**
@@ -473,9 +473,9 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             Supplier<M> mapFactory, Collector<? super T, ?, D> downstream) {
         if (stream.isParallel() && downstream.characteristics().contains(Characteristics.UNORDERED)
             && mapFactory.get() instanceof ConcurrentMap)
-            return (M) collect(Collectors.groupingByConcurrent(classifier, (Supplier<ConcurrentMap<K, D>>) mapFactory,
-                downstream));
-        return collect(Collectors.groupingBy(classifier, mapFactory, downstream));
+            return (M) rawCollect(Collectors.groupingByConcurrent(classifier,
+                (Supplier<ConcurrentMap<K, D>>) mapFactory, downstream));
+        return rawCollect(Collectors.groupingBy(classifier, mapFactory, downstream));
     }
 
     /**
@@ -663,7 +663,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *         returned.
      */
     public String joining() {
-        return map(String::valueOf).collect(Collectors.joining());
+        return map(String::valueOf).rawCollect(Collectors.joining());
     }
 
     /**
@@ -681,7 +681,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *         returned.
      */
     public String joining(CharSequence delimiter) {
-        return map(String::valueOf).collect(Collectors.joining(delimiter));
+        return map(String::valueOf).rawCollect(Collectors.joining(delimiter));
     }
 
     /**
@@ -706,7 +706,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *         returned.
      */
     public String joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
-        return map(String::valueOf).collect(Collectors.joining(delimiter, prefix, suffix));
+        return map(String::valueOf).rawCollect(Collectors.joining(delimiter, prefix, suffix));
     }
 
     /**
@@ -891,7 +891,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public <K, V> Map<K, V> toMap(Function<? super T, ? extends K> keyMapper,
             Function<? super T, ? extends V> valMapper, BinaryOperator<V> mergeFunction) {
-        return collect(Collectors.toMap(keyMapper, valMapper, mergeFunction, HashMap::new));
+        return rawCollect(Collectors.toMap(keyMapper, valMapper, mergeFunction, HashMap::new));
     }
 
     /**
@@ -1013,7 +1013,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public <K, V> SortedMap<K, V> toSortedMap(Function<? super T, ? extends K> keyMapper,
             Function<? super T, ? extends V> valMapper, BinaryOperator<V> mergeFunction) {
-        return collect(Collectors.toMap(keyMapper, valMapper, mergeFunction, TreeMap::new));
+        return rawCollect(Collectors.toMap(keyMapper, valMapper, mergeFunction, TreeMap::new));
     }
 
     /**
@@ -1570,7 +1570,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public static <T> StreamEx<T> of(Iterator<T> iterator) {
         return of(new UnknownSizeSpliterator.USOfRef<>(iterator));
     }
-    
+
     /**
      * Returns a sequential, ordered {@link StreamEx} created from given
      * {@link Enumeration}.
@@ -1901,7 +1901,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Pattern#splitAsStream(CharSequence)
      */
     public static StreamEx<String> split(CharSequence str, Pattern pattern) {
-        if(str.length() == 0)
+        if (str.length() == 0)
             return of("");
         return of(pattern.splitAsStream(str));
     }
@@ -1911,7 +1911,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * given pattern represented as String.
      *
      * <p>
-     * This method is equivalent to {@code StreamEx.split(str, Pattern.compile(regex))}.
+     * This method is equivalent to
+     * {@code StreamEx.split(str, Pattern.compile(regex))}.
      *
      * @param str
      *            The character sequence to be split
@@ -1954,8 +1955,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @param delimiter
      *            The delimiter character to use for splitting
      *
-     * @return The stream of strings computed by splitting the input around
-     *         the delimiters
+     * @return The stream of strings computed by splitting the input around the
+     *         delimiters
      * @see Pattern#splitAsStream(CharSequence)
      * @since 0.5.1
      */
@@ -1998,11 +1999,11 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.5.1
      */
     public static StreamEx<String> split(CharSequence str, char delimiter, boolean trimEmpty) {
-        if(str.length() == 0)
+        if (str.length() == 0)
             return of("");
         return of(new CharSpliterator(str, delimiter, trimEmpty));
     }
-    
+
     /**
      * Returns an infinite sequential ordered {@code StreamEx} produced by
      * iterative application of a function {@code f} to an initial element

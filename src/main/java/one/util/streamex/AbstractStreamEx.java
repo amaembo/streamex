@@ -1111,7 +1111,7 @@ import static one.util.streamex.StreamExInternals.*;
      * @see Collectors#toSet()
      */
     public Set<T> toSet() {
-        return collect(Collectors.toSet());
+        return rawCollect(Collectors.toSet());
     }
 
     /**
@@ -1131,7 +1131,7 @@ import static one.util.streamex.StreamExInternals.*;
      * @see #toSet()
      */
     public <R> R toSetAndThen(Function<Set<T>, R> finisher) {
-        return collect(Collectors.collectingAndThen(Collectors.toSet(), finisher));
+        return rawCollect(Collectors.collectingAndThen(Collectors.toSet(), finisher));
     }
 
     /**
@@ -1150,7 +1150,7 @@ import static one.util.streamex.StreamExInternals.*;
      * @see Collectors#toCollection(Supplier)
      */
     public <C extends Collection<T>> C toCollection(Supplier<C> collectionFactory) {
-        return collect(Collectors.toCollection(collectionFactory));
+        return rawCollect(Collectors.toCollection(collectionFactory));
     }
 
     /**
