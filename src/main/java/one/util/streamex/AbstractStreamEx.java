@@ -18,6 +18,7 @@ package one.util.streamex;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,8 @@ import java.util.OptionalLong;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators.AbstractSpliterator;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
@@ -1111,7 +1114,27 @@ import static one.util.streamex.StreamExInternals.*;
      * @see Collectors#toSet()
      */
     public Set<T> toSet() {
-        return rawCollect(Collectors.toSet());
+        if(isParallel()) {
+            AtomicBoolean hasNull = new AtomicBoolean();
+            Set<T> set = ConcurrentHashMap.newKeySet();
+            forEach(val -> {
+                if(val == null)
+                    hasNull.set(true);
+                else
+                    set.add(val);
+            });
+            if(hasNull.get()) {
+                Set<T> result = new HashSet<>(set);
+                result.add(null);
+                return result;
+            } else {
+                return set;
+            }
+        } else {
+            Set<T> result = new HashSet<>();
+            forEach(result::add);
+            return result;
+        }
     }
 
     /**
