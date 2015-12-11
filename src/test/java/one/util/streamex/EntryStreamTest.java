@@ -76,6 +76,8 @@ public class EntryStreamTest {
 
         assertEquals(Collections.singletonMap("aaa", 3),
             EntryStream.of(Collections.singletonMap("aaa", 3).entrySet().spliterator()).toMap());
+        assertEquals(Collections.singletonMap("aaa", 3),
+            EntryStream.of(Collections.singletonMap("aaa", 3).entrySet().iterator()).toMap());
     }
     
     @Test

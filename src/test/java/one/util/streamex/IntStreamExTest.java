@@ -87,6 +87,8 @@ public class IntStreamExTest {
 
         assertArrayEquals(new int[] { 1, 5, 3 }, IntStreamEx.of(Spliterators.spliterator(new int[] { 1, 5, 3 }, 0))
                 .toArray());
+        assertArrayEquals(new int[] { 1, 5, 3 },
+            IntStreamEx.of(Spliterators.iterator(Spliterators.spliterator(new int[] { 1, 5, 3 }, 0))).toArray());
 
         BitSet bs = new BitSet();
         bs.set(1);

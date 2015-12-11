@@ -105,6 +105,7 @@ public class StreamExTest {
             StreamEx.zip(new String[] { "a", "b", "c" }, new Integer[] { 1, 2, 3 }, (s, i) -> s + i).toList());
 
         assertEquals(Arrays.asList("a", "b"), StreamEx.of(Arrays.asList("a", "b").spliterator()).toList());
+        assertEquals(Arrays.asList("a", "b"), StreamEx.of(Arrays.asList("a", "b").iterator()).toList());
     }
 
     @Test

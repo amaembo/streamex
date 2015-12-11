@@ -35,7 +35,7 @@
 What I want | How to get it
 --- | ---
 Empty Stream | `any.empty()`
-Stream of array, varargs, `Collection`, `Spliterator`, `Stream` | `any.of()`
+Stream of array, varargs, `Collection`, `Spliterator`, `Iterator`, `Stream` | `any.of()`
 Stream of boxed `Collection<Integer>`, etc. with unboxing | `IntStreamEx/LongStreamEx/DoubleStreamEx.of()` 
 Stream of boxed array `Integer[]`, etc. with unboxing | `IntStreamEx/LongStreamEx/DoubleStreamEx.of()` 
 Stream of `byte[]`, `char[]`, `short[]` array | `IntStreamEx.of()`

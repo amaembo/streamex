@@ -4,7 +4,8 @@
 
 * [#28] Updated: now `StreamEx.select`, `EntryStream.selectKeys` and `EntryStream.selectValues` accept any type (not necessarily the subtype of current element).
 * [#33] Updated: `StreamEx.split("", pattern)` now returns stream of single `""` string instead of empty stream.
-* [#13] Added: `StreamEx.split` to split with single character delimiter.   
+* [#13] Added: `StreamEx.split` to split with single character delimiter.
+* [#35] Added: construction of all stream types from the `Iterator`.   
 * Updated documentation. 
 
 ### 0.5.0
