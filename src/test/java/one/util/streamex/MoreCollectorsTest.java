@@ -635,7 +635,7 @@ public class MoreCollectorsTest {
         Random r = new Random(1);
         for(int i=0; i<10; i++) {
             Collections.shuffle(input, r);
-            checkCollector("#"+i, expected, input::stream, MoreCollectors.collapseNested(String::startsWith));
+            checkCollector("#"+i, expected, input::stream, MoreCollectors.collapsingNested(String::startsWith));
         }
     }
 }

@@ -1523,7 +1523,31 @@ public final class MoreCollectors {
                 acc -> acc.b == 0, UNORDERED_CHARACTERISTICS);
     }
 
-    public static <E> Collector<E, ?, List<E>> collapseNested(Comparator<? super E> comparator,
+    /**
+     * Returns a collector which collects input elements into {@code List}
+     * removing each element which is a part of another element according to the
+     * given {@code BiPredicate}.
+     * 
+     * <p>
+     * For efficient implementation a {@code Comparator} must also be supplied
+     * which defines element order. The isPartOf relation must be consistent
+     * with the order defined by comparator: for any element {@code A} all the
+     * elements which are parts of {@code A} must immediately follow the
+     * {@code A} element.
+     * 
+     * @param <E>
+     *            type of the input elements.
+     * @param comparator
+     *            a comparator which defines the order of the elements.
+     * @param isPartOf
+     *            a {@code BiPredicate} which takes two elements and returns
+     *            true if the first of input elements is the part of the second
+     *            element.
+     * @return a collector which collects input element into {@code List}
+     *         removing nested elements.
+     * @since 0.5.1
+     */
+    public static <E> Collector<E, ?, List<E>> collapsingNested(Comparator<? super E> comparator,
             BiPredicate<? super E, ? super E> isPartOf) {
         BiConsumer<NavigableSet<E>, E> accumulator = (set, e) -> {
             E left = set.floor(Objects.requireNonNull(e));
@@ -1541,7 +1565,7 @@ public final class MoreCollectors {
         };
         Supplier<NavigableSet<E>> supplier = () -> new TreeSet<>(comparator);
         BinaryOperator<NavigableSet<E>> combiner = (set1, set2) -> {
-            if(set1.size() < set2.size()) {
+            if (set1.size() < set2.size()) {
                 set1.forEach(e -> accumulator.accept(set2, e));
                 return set2;
             }
@@ -1552,8 +1576,30 @@ public final class MoreCollectors {
             (NavigableSet<E> set) -> new ArrayList<>(set), Characteristics.UNORDERED);
     }
 
-    public static <E extends Comparable<? super E>> Collector<E, ?, List<E>> collapseNested(
+    /**
+     * Returns a collector which collects input elements into {@code List}
+     * removing each element which is a part of another element according to the
+     * given {@code BiPredicate}.
+     * 
+     * <p>
+     * For efficient implementation the elements must be {@link Comparable} and
+     * the isPartOf relation should be consistent with the elements natural
+     * order defined by comparator: for any element {@code A} all the elements
+     * which are parts of {@code A} must immediately follow the {@code A}
+     * element.
+     * 
+     * @param <E>
+     *            type of the input elements.
+     * @param isPartOf
+     *            a {@code BiPredicate} which takes two elements and returns
+     *            true if the first of input elements is the part of the second
+     *            element.
+     * @return a collector which collects input element into {@code List}
+     *         removing nested elements.
+     * @since 0.5.1
+     */
+    public static <E extends Comparable<? super E>> Collector<E, ?, List<E>> collapsingNested(
             BiPredicate<? super E, ? super E> isPartOf) {
-        return collapseNested(Comparator.naturalOrder(), isPartOf);
+        return collapsingNested(Comparator.naturalOrder(), isPartOf);
     }
 }
