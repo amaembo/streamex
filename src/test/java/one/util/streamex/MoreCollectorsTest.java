@@ -29,6 +29,7 @@ import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -636,6 +637,28 @@ public class MoreCollectorsTest {
         for(int i=0; i<10; i++) {
             Collections.shuffle(input, r);
             checkCollector("#"+i, expected, input::stream, MoreCollectors.collapsingNested(String::startsWith));
+        }
+        
+        List<String> longInput = StreamEx.generate(() -> IntStreamEx.of(r, r.nextInt(10)+2, 'a', 'h').mapToObj(ch -> (char)ch).joining("/", "", "/"))
+                .limit(1000).toList();
+        
+        List<String> result = StreamEx.of(longInput).sorted().toList();
+        Iterator<String> it = result.iterator();
+        String curr, last;
+        curr = last = null;
+        while (it.hasNext()) {
+            String oldLast = last;
+            last = curr;
+            curr = it.next();
+            if (last != null && curr.startsWith(last)) {
+                it.remove();
+                curr = last;
+                last = oldLast;
+            }
+        }
+        for(int i=0; i<10; i++) {
+            Collections.shuffle(longInput, r);
+            checkCollector("#"+i, result, longInput::stream, MoreCollectors.collapsingNested(String::startsWith));
         }
     }
 }
