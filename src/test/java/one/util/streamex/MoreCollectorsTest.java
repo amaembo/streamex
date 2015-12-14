@@ -639,26 +639,54 @@ public class MoreCollectorsTest {
             checkCollector("#"+i, expected, input::stream, MoreCollectors.collapsingNested(String::startsWith));
         }
         
-        List<String> longInput = StreamEx.generate(() -> IntStreamEx.of(r, r.nextInt(10)+2, 'a', 'h').mapToObj(ch -> (char)ch).joining("/", "", "/"))
+        List<String> longInput = StreamEx.generate(() -> IntStreamEx.of(r, r.nextInt(10)+3, 'a', 'z').mapToObj(ch -> (char)ch).joining("/", "", "/"))
                 .limit(1000).toList();
-        
-        List<String> result = StreamEx.of(longInput).sorted().toList();
-        Iterator<String> it = result.iterator();
+
+        List<String> tmp = StreamEx.of(longInput).sorted().toList();
+        List<String> result = new ArrayList<>();
         String curr, last;
         curr = last = null;
+        Iterator<String> it = tmp.iterator();
         while (it.hasNext()) {
             String oldLast = last;
             last = curr;
             curr = it.next();
             if (last != null && curr.startsWith(last)) {
-                it.remove();
                 curr = last;
                 last = oldLast;
-            }
+            } else result.add(curr);
         }
         for(int i=0; i<10; i++) {
             Collections.shuffle(longInput, r);
             checkCollector("#"+i, result, longInput::stream, MoreCollectors.collapsingNested(String::startsWith));
         }
+    }
+    
+    @Test
+    public void testMerging() {
+        List<String> input = Arrays.asList("a/", "a/b/c/", "b/c/", "b/d/", "c/a/", "d/a/b/", "c/a/b/", "c/b/", "b/c/d/");
+        List<String> expected = Arrays.asList("a/", "b/c/", "b/d/", "c/a/", "c/b/", "d/a/b/");
+        checkCollector("merging", expected, () -> input.stream().sorted(), MoreCollectors.merging((a, b) -> b.startsWith(a)));
+        
+        Random r = new Random(1);
+        
+        List<String> longInput = StreamEx.generate(() -> IntStreamEx.of(r, r.nextInt(10)+3, 'a', 'z').mapToObj(ch -> (char)ch).joining("/", "", "/"))
+                .limit(1000).toList();
+
+        List<String> tmp = StreamEx.of(longInput).sorted().toList();
+        List<String> result = new ArrayList<>();
+        String curr, last;
+        curr = last = null;
+        Iterator<String> it = tmp.iterator();
+        while (it.hasNext()) {
+            String oldLast = last;
+            last = curr;
+            curr = it.next();
+            if (last != null && curr.startsWith(last)) {
+                curr = last;
+                last = oldLast;
+            } else result.add(curr);
+        }
+        checkCollector("merginglong", result, () -> longInput.stream().sorted(), MoreCollectors.merging((a, b) -> b.startsWith(a)));
     }
 }

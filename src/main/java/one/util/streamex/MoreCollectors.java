@@ -1602,4 +1602,46 @@ public final class MoreCollectors {
             BiPredicate<? super E, ? super E> isPartOf) {
         return collapsingNested(Comparator.naturalOrder(), isPartOf);
     }
+
+    /**
+     * Returns a collector which collects input elements into {@code List}
+     * replacing the series of adjacent elements which satisfy given
+     * {@code BiPredicate} with the leftmost element.
+     * 
+     * <p>
+     * This operation is similar to
+     * {@code streamEx.collapse(mergeable).toList()}. The important difference
+     * is that in this method {@code BiPredicate} accepts not the adjacent
+     * stream elements, but the leftmost element of the series and the current
+     * element. This collector is useful to remove elements which are considered
+     * to be the part of some parent element assuming the input is pre-sorted so
+     * all child elements immediately follow their parent.
+     * 
+     * @param <T>
+     *            type of the input elements.
+     * @param mergeable
+     *            a {@code BiPredicate} which takes the leftmost element of the
+     *            series and the current element and returns true if the current
+     *            element belongs to the same series.
+     * @return a collector which collects input element into {@code List}
+     *         leaving only leftmost element of every series.
+     * @see StreamEx#collapse(BiPredicate)
+     * @since 0.5.1
+     */
+    public static <T> Collector<T, ?, List<T>> merging(BiPredicate<? super T, ? super T> mergeable) {
+        return Collector.of(ArrayList::new, (acc, t) -> {
+            if (acc.isEmpty() || !mergeable.test(acc.get(acc.size() - 1), t))
+                acc.add(t);
+        }, (acc1, acc2) -> {
+            if (acc1.isEmpty())
+                return acc2;
+            int i = 0, l = acc2.size();
+            T last = acc1.get(acc1.size() - 1);
+            while (i < l && mergeable.test(last, acc2.get(i)))
+                i++;
+            if (i < l)
+                acc1.addAll(acc2.subList(i, l));
+            return acc1;
+        });
+    }
 }
