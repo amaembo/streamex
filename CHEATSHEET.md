@@ -236,7 +236,7 @@ Join the elements into string with possible limit to the string length (adding e
 Perform a group-by with the specified keys domain, so every key is initialized even if absent in the input | `MoreCollectors.groupingBy()/groupingByEnum()`
 Partition input according to the `Predicate` | `MoreCollectors.partitioningBy()`
 Get the common prefix or common suffix `String` of input elements | `MoreCollectors.commonPrefix()/commonSuffix()`
-Get the list of input elements removing the nested ones (I define by myself which elements are part of other elements) | `MoreCollectors.collapsingNested()`
+Get the list of input elements removing the children elements which follow their parent | `MoreCollectors.merging()`
 
 ### Adaptor collectors
 
