@@ -25,14 +25,11 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NavigableSet;
 import java.util.Objects;
 import java.util.OptionalInt;
-import java.util.TreeSet;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.OptionalLong;
@@ -1525,86 +1522,6 @@ public final class MoreCollectors {
 
     /**
      * Returns a collector which collects input elements into {@code List}
-     * removing each element which is a part of another element according to the
-     * given {@code BiPredicate}.
-     * 
-     * <p>
-     * For efficient implementation a {@code Comparator} must also be supplied
-     * which defines element order. The isPartOf relation must be consistent
-     * with the order defined by comparator: for any element {@code A} all the
-     * elements which are parts of {@code A} must immediately follow the
-     * {@code A} element.
-     * 
-     * @param <E>
-     *            type of the input elements.
-     * @param comparator
-     *            a comparator which defines the order of the elements.
-     * @param isPartOf
-     *            a {@code BiPredicate} which takes two elements and returns
-     *            true if the first of input elements is the part of the second
-     *            element.
-     * @return a collector which collects input element into {@code List}
-     *         removing nested elements.
-     * @since 0.5.1
-     */
-    public static <E> Collector<E, ?, List<E>> collapsingNested(Comparator<? super E> comparator,
-            BiPredicate<? super E, ? super E> isPartOf) {
-        BiConsumer<NavigableSet<E>, E> accumulator = (set, e) -> {
-            E left = set.floor(Objects.requireNonNull(e));
-            if (left != null && isPartOf.test(e, left)) {
-                return;
-            }
-            Iterator<E> iterator = set.tailSet(e).iterator();
-            while (iterator.hasNext()) {
-                E right = iterator.next();
-                if (!isPartOf.test(right, e))
-                    break;
-                iterator.remove();
-            }
-            set.add(e);
-        };
-        Supplier<NavigableSet<E>> supplier = () -> new TreeSet<>(comparator);
-        BinaryOperator<NavigableSet<E>> combiner = (set1, set2) -> {
-            if (set1.size() < set2.size()) {
-                set1.forEach(e -> accumulator.accept(set2, e));
-                return set2;
-            }
-            set2.forEach(e -> accumulator.accept(set1, e));
-            return set1;
-        };
-        return Collector.<E, NavigableSet<E>, List<E>> of(supplier, accumulator, combiner,
-            (NavigableSet<E> set) -> new ArrayList<>(set), Characteristics.UNORDERED);
-    }
-
-    /**
-     * Returns a collector which collects input elements into {@code List}
-     * removing each element which is a part of another element according to the
-     * given {@code BiPredicate}.
-     * 
-     * <p>
-     * For efficient implementation the elements must be {@link Comparable} and
-     * the isPartOf relation should be consistent with the elements natural
-     * order defined by comparator: for any element {@code A} all the elements
-     * which are parts of {@code A} must immediately follow the {@code A}
-     * element.
-     * 
-     * @param <E>
-     *            type of the input elements.
-     * @param isPartOf
-     *            a {@code BiPredicate} which takes two elements and returns
-     *            true if the first of input elements is the part of the second
-     *            element.
-     * @return a collector which collects input element into {@code List}
-     *         removing nested elements.
-     * @since 0.5.1
-     */
-    public static <E extends Comparable<? super E>> Collector<E, ?, List<E>> collapsingNested(
-            BiPredicate<? super E, ? super E> isPartOf) {
-        return collapsingNested(Comparator.naturalOrder(), isPartOf);
-    }
-
-    /**
-     * Returns a collector which collects input elements into {@code List}
      * replacing the series of adjacent elements which satisfy given
      * {@code BiPredicate} with the leftmost element.
      * 
@@ -1615,7 +1532,15 @@ public final class MoreCollectors {
      * stream elements, but the leftmost element of the series and the current
      * element. This collector is useful to remove elements which are considered
      * to be the part of some parent element assuming the input is pre-sorted so
-     * all child elements immediately follow their parent.
+     * all children elements immediately follow their parent.
+     * 
+     * <p>
+     * Note that for correct parallel processing the {@code BiPredicate} must
+     * respect the following rules:
+     * <pre>{@code
+     *   mergeable(A, B) && mergeable(B, C) => mergeable(A, C); // transitivity
+     *   mergeable(A, B) && mergeable(A, C) => !mergeable(B, C);
+     * }</pre>
      * 
      * @param <T>
      *            type of the input elements.

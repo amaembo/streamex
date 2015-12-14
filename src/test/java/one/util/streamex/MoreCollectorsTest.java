@@ -630,39 +630,6 @@ public class MoreCollectorsTest {
     }
     
     @Test
-    public void testCollapseNested() {
-        List<String> input = Arrays.asList("a/", "a/b/c/", "b/c/", "b/d/", "c/a/", "d/a/b/", "c/a/b/", "c/b/", "b/c/d/");
-        List<String> expected = Arrays.asList("a/", "b/c/", "b/d/", "c/a/", "c/b/", "d/a/b/");
-        Random r = new Random(1);
-        for(int i=0; i<10; i++) {
-            Collections.shuffle(input, r);
-            checkCollector("#"+i, expected, input::stream, MoreCollectors.collapsingNested(String::startsWith));
-        }
-        
-        List<String> longInput = StreamEx.generate(() -> IntStreamEx.of(r, r.nextInt(10)+3, 'a', 'z').mapToObj(ch -> (char)ch).joining("/", "", "/"))
-                .limit(1000).toList();
-
-        List<String> tmp = StreamEx.of(longInput).sorted().toList();
-        List<String> result = new ArrayList<>();
-        String curr, last;
-        curr = last = null;
-        Iterator<String> it = tmp.iterator();
-        while (it.hasNext()) {
-            String oldLast = last;
-            last = curr;
-            curr = it.next();
-            if (last != null && curr.startsWith(last)) {
-                curr = last;
-                last = oldLast;
-            } else result.add(curr);
-        }
-        for(int i=0; i<10; i++) {
-            Collections.shuffle(longInput, r);
-            checkCollector("#"+i, result, longInput::stream, MoreCollectors.collapsingNested(String::startsWith));
-        }
-    }
-    
-    @Test
     public void testMerging() {
         List<String> input = Arrays.asList("a/", "a/b/c/", "b/c/", "b/d/", "c/a/", "d/a/b/", "c/a/b/", "c/b/", "b/c/d/");
         List<String> expected = Arrays.asList("a/", "b/c/", "b/d/", "c/a/", "c/b/", "d/a/b/");
