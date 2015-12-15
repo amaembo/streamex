@@ -247,6 +247,10 @@ import java.util.stream.Stream;
             data = new int[INITIAL_SIZE];
         }
 
+        IntBuffer(int size) {
+            data = new int[size];
+        }
+        
         void add(int n) {
             if (data.length == size) {
                 data = copy(data, new int[data.length * 2], size);

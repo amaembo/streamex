@@ -639,4 +639,20 @@ public class IntStreamExTest {
         assertArrayEquals(new int[] { -1, 2, 3, 4, 7 },
             IntStreamEx.of(1, 2, 3, 4, 5).mapFirst(x -> x - 2).mapLast(x -> x + 2).toArray());
     }
+    
+    @Test
+    public void testScanLeft() {
+        assertArrayEquals(new int[] { 0, 1, 3, 6, 10, 15, 21, 28, 36, 45 }, IntStreamEx.range(10)
+                .scanLeft(Integer::sum));
+        assertArrayEquals(new int[] { 0, 1, 3, 6, 10, 15, 21, 28, 36, 45 }, IntStreamEx.range(10).parallel()
+                .scanLeft(Integer::sum));
+        assertArrayEquals(new int[] { 0, 1, 3, 6, 10, 15, 21, 28, 36, 45 }, IntStreamEx.range(10).filter(x -> true)
+            .scanLeft(Integer::sum));
+        assertArrayEquals(new int[] { 0, 1, 3, 6, 10, 15, 21, 28, 36, 45 }, IntStreamEx.range(10).filter(x -> true).parallel()
+            .scanLeft(Integer::sum));
+        assertArrayEquals(new int[] { 1, 1, 2, 6, 24, 120 }, IntStreamEx.rangeClosed(1, 5)
+            .scanLeft(1, (a, b) -> a*b));
+        assertArrayEquals(new int[] { 1, 1, 2, 6, 24, 120 }, IntStreamEx.rangeClosed(1, 5).parallel()
+            .scanLeft(1, (a, b) -> a*b));
+    }
 }

@@ -731,6 +731,19 @@ public class IntStreamEx implements IntStream {
         stream.forEachOrdered(t -> box[0] = accumulator.applyAsInt(box[0], t));
         return box[0];
     }
+    
+    public int[] scanLeft(IntBinaryOperator accumulator) {
+        Spliterator.OfInt spliterator = stream.spliterator();
+        long size = spliterator.getExactSizeIfKnown();
+        IntBuffer buf = new IntBuffer(size >= 0 && size <= Integer.MAX_VALUE ? (int)size : INITIAL_SIZE); 
+        delegate(spliterator).forEachOrdered(
+            i -> buf.add(buf.size == 0 ? i : accumulator.applyAsInt(buf.data[buf.size-1], i)));
+        return buf.toArray();
+    }
+    
+    public int[] scanLeft(int seed, IntBinaryOperator accumulator) {
+        return prepend(seed).scanLeft(accumulator);
+    }
 
     /**
      * Folds the elements of this stream using the provided accumulation
