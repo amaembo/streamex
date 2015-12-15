@@ -746,6 +746,19 @@ public class DoubleStreamEx implements DoubleStream {
         return b.asDouble();
     }
 
+    public double[] scanLeft(DoubleBinaryOperator accumulator) {
+        Spliterator.OfDouble spliterator = stream.spliterator();
+        double size = spliterator.getExactSizeIfKnown();
+        DoubleBuffer buf = new DoubleBuffer(size >= 0 && size <= Integer.MAX_VALUE ? (int)size : INITIAL_SIZE); 
+        delegate(spliterator).forEachOrdered(
+            i -> buf.add(buf.size == 0 ? i : accumulator.applyAsDouble(buf.data[buf.size-1], i)));
+        return buf.toArray();
+    }
+    
+    public double[] scanLeft(double seed, DoubleBinaryOperator accumulator) {
+        return prepend(seed).scanLeft(accumulator);
+    }
+
     /**
      * {@inheritDoc}
      * 

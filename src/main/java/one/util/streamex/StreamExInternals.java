@@ -279,6 +279,10 @@ import java.util.stream.Stream;
             data = new long[INITIAL_SIZE];
         }
 
+        LongBuffer(int size) {
+            data = new long[size];
+        }
+        
         void add(long n) {
             if (data.length == size) {
                 data = copy(data, new long[data.length * 2], size);
@@ -307,6 +311,10 @@ import java.util.stream.Stream;
             data = new double[INITIAL_SIZE];
         }
 
+        DoubleBuffer(int size) {
+            data = new double[size];
+        }
+        
         void add(double n) {
             if (data.length == size) {
                 data = copy(data, new double[data.length * 2], size);

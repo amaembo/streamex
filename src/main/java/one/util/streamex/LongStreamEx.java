@@ -750,6 +750,19 @@ public class LongStreamEx implements LongStream {
         return b.asLong();
     }
 
+    public long[] scanLeft(LongBinaryOperator accumulator) {
+        Spliterator.OfLong spliterator = stream.spliterator();
+        long size = spliterator.getExactSizeIfKnown();
+        LongBuffer buf = new LongBuffer(size >= 0 && size <= Integer.MAX_VALUE ? (int)size : INITIAL_SIZE); 
+        delegate(spliterator).forEachOrdered(
+            i -> buf.add(buf.size == 0 ? i : accumulator.applyAsLong(buf.data[buf.size-1], i)));
+        return buf.toArray();
+    }
+    
+    public long[] scanLeft(long seed, LongBinaryOperator accumulator) {
+        return prepend(seed).scanLeft(accumulator);
+    }
+
     /**
      * {@inheritDoc}
      *

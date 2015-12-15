@@ -384,4 +384,20 @@ public class DoubleStreamExTest {
         assertArrayEquals(new double[] { -1, 2, 3, 4, 7 }, DoubleStreamEx.of(1, 2, 3, 4, 5).mapFirst(x -> x - 2.0)
                 .mapLast(x -> x + 2.0).toArray(), 0.0);
     }
+    
+    @Test
+    public void testScanLeft() {
+        assertArrayEquals(new double[] { 0, 1, 3, 6, 10, 15, 21, 28, 36, 45 }, LongStreamEx.range(10).asDoubleStream()
+                .scanLeft(Double::sum), 0.0);
+        assertArrayEquals(new double[] { 0, 1, 3, 6, 10, 15, 21, 28, 36, 45 }, LongStreamEx.range(10).asDoubleStream()
+                .parallel().scanLeft(Double::sum), 0.0);
+        assertArrayEquals(new double[] { 0, 1, 3, 6, 10, 15, 21, 28, 36, 45 }, LongStreamEx.range(10).asDoubleStream()
+                .filter(x -> true).scanLeft(Double::sum), 0.0);
+        assertArrayEquals(new double[] { 0, 1, 3, 6, 10, 15, 21, 28, 36, 45 }, LongStreamEx.range(10).asDoubleStream()
+                .filter(x -> true).parallel().scanLeft(Double::sum), 0.0);
+        assertArrayEquals(new double[] { 1, 1, 2, 6, 24, 120 }, LongStreamEx.rangeClosed(1, 5).asDoubleStream()
+                .scanLeft(1, (a, b) -> a * b), 0.0);
+        assertArrayEquals(new double[] { 1, 1, 2, 6, 24, 120 }, LongStreamEx.rangeClosed(1, 5).asDoubleStream()
+                .parallel().scanLeft(1, (a, b) -> a * b), 0.0);
+    }
 }

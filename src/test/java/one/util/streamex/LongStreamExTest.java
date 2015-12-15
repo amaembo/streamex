@@ -452,4 +452,19 @@ public class LongStreamExTest {
         assertArrayEquals(new long[] { -1, 2, 3, 4, 7 },
             LongStreamEx.of(1, 2, 3, 4, 5).mapFirst(x -> x - 2L).mapLast(x -> x + 2L).toArray());
     }
+
+    @Test
+    public void testScanLeft() {
+        assertArrayEquals(new long[] { 0, 1, 3, 6, 10, 15, 21, 28, 36, 45 }, LongStreamEx.range(10).scanLeft(Long::sum));
+        assertArrayEquals(new long[] { 0, 1, 3, 6, 10, 15, 21, 28, 36, 45 }, LongStreamEx.range(10).parallel()
+                .scanLeft(Long::sum));
+        assertArrayEquals(new long[] { 0, 1, 3, 6, 10, 15, 21, 28, 36, 45 }, LongStreamEx.range(10).filter(x -> true)
+                .scanLeft(Long::sum));
+        assertArrayEquals(new long[] { 0, 1, 3, 6, 10, 15, 21, 28, 36, 45 }, LongStreamEx.range(10).filter(x -> true)
+                .parallel().scanLeft(Long::sum));
+        assertArrayEquals(new long[] { 1, 1, 2, 6, 24, 120 },
+            LongStreamEx.rangeClosed(1, 5).scanLeft(1, (a, b) -> a * b));
+        assertArrayEquals(new long[] { 1, 1, 2, 6, 24, 120 },
+            LongStreamEx.rangeClosed(1, 5).parallel().scanLeft(1, (a, b) -> a * b));
+    }
 }
