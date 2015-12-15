@@ -1522,47 +1522,52 @@ public final class MoreCollectors {
 
     /**
      * Returns a collector which collects input elements into {@code List}
-     * replacing the series of adjacent elements which satisfy given
-     * {@code BiPredicate} with the leftmost element.
+     * removing the elements following their dominator element. The dominator
+     * elements are defined according to given isDominator {@code BiPredicate}.
      * 
      * <p>
      * This operation is similar to
-     * {@code streamEx.collapse(mergeable).toList()}. The important difference
+     * {@code streamEx.collapse(isDominator).toList()}. The important difference
      * is that in this method {@code BiPredicate} accepts not the adjacent
-     * stream elements, but the leftmost element of the series and the current
-     * element. This collector is useful to remove elements which are considered
-     * to be the part of some parent element assuming the input is pre-sorted so
-     * all children elements immediately follow their parent.
+     * stream elements, but the leftmost element of the series (current
+     * dominator) and the current element.
      * 
      * <p>
-     * Note that for correct parallel processing the {@code BiPredicate} must
-     * respect the following rules:
+     * For example, consider the stream of numbers:
+     * 
      * <pre>{@code
-     *   mergeable(A, B) && mergeable(B, C) => mergeable(A, C); // transitivity
-     *   mergeable(A, B) && mergeable(A, C) => !mergeable(B, C);
+     * StreamEx<Integer> stream = StreamEx.of(1, 5, 3, 4, 2, 7);
      * }</pre>
+     * 
+     * <p>
+     * Using {@code stream.collapse((a, b) -> a >= b).toList()} you will get the
+     * numbers which are bigger than their immediate predecessor (
+     * {@code [1, 5, 4, 7]}). However using
+     * {@code stream.collect(dominators((a, b) -> a >= b))} you will get the
+     * numbers which are bigger than any predecessor ({@code [1, 5, 7]}).
      * 
      * @param <T>
      *            type of the input elements.
-     * @param mergeable
-     *            a {@code BiPredicate} which takes the leftmost element of the
-     *            series and the current element and returns true if the current
-     *            element belongs to the same series.
+     * @param isDominator
+     *            a non-interfering, stateless, transitive {@code BiPredicate}
+     *            which takes the leftmost element of the series and the current
+     *            element and returns true if the current element belongs to the
+     *            same series.
      * @return a collector which collects input element into {@code List}
-     *         leaving only leftmost element of every series.
+     *         leaving only dominator elements.
      * @see StreamEx#collapse(BiPredicate)
      * @since 0.5.1
      */
-    public static <T> Collector<T, ?, List<T>> merging(BiPredicate<? super T, ? super T> mergeable) {
+    public static <T> Collector<T, ?, List<T>> dominators(BiPredicate<? super T, ? super T> isDominator) {
         return Collector.of(ArrayList::new, (acc, t) -> {
-            if (acc.isEmpty() || !mergeable.test(acc.get(acc.size() - 1), t))
+            if (acc.isEmpty() || !isDominator.test(acc.get(acc.size() - 1), t))
                 acc.add(t);
         }, (acc1, acc2) -> {
             if (acc1.isEmpty())
                 return acc2;
             int i = 0, l = acc2.size();
             T last = acc1.get(acc1.size() - 1);
-            while (i < l && mergeable.test(last, acc2.get(i)))
+            while (i < l && isDominator.test(last, acc2.get(i)))
                 i++;
             if (i < l)
                 acc1.addAll(acc2.subList(i, l));

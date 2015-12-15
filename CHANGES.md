@@ -7,7 +7,7 @@
 * [#13] Added: `StreamEx.split` to split with single character delimiter.
 * [#35] Added: construction of all stream types from the `Iterator`.   
 * [#36] Added: `StreamEx.of(Enumeration)` static method.
-* [#32] Added: `MoreCollectors.merging` collector which collects elements to the list removing the adjacent elements by `BiPredicate`.   
+* [#32] Added: `MoreCollectors.dominators` collector which collects the elements to the list leaving only "dominators".   
 * Updated documentation. 
 
 ### 0.5.0

@@ -1231,7 +1231,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * 
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate</a>
-     * operation.
+     * partial reduction operation.
      * 
      * <p>
      * This operation is equivalent to
@@ -1260,7 +1260,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * 
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate</a>
-     * operation.
+     * partial reduction operation.
      * 
      * @param <R>
      *            the type of the elements in the resulting stream
@@ -1303,12 +1303,18 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * 
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate</a>
-     * operation.
+     * partial reduction operation.
      * 
      * <p>
      * This operation is equivalent to
      * {@code collapse(collapsible, MoreCollectors.first()).map(Optional::get)}
      * , but more efficient.
+     * 
+     * <p>
+     * Note that this operation always tests the adjacent pairs of input
+     * elements. In some scenarios it's desired to test every element with the
+     * first element of the current series. In this case consider using
+     * {@link MoreCollectors#dominators(BiPredicate)} collector instead.
      * 
      * <p>
      * For sorted stream {@code collapse(Objects::equals)} is equivalent to
@@ -1319,6 +1325,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *            adjacent input elements which returns true for elements which
      *            are collapsible.
      * @return the new stream
+     * @see MoreCollectors#dominators(BiPredicate)
      * @since 0.3.1
      */
     public StreamEx<T> collapse(BiPredicate<? super T, ? super T> collapsible) {
@@ -1332,7 +1339,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * 
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate</a>
-     * operation.
+     * partial reduction operation.
      * 
      * <p>
      * For sorted input {@code runLengths().toMap()} is the same as
@@ -1359,7 +1366,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * 
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate</a>
-     * operation.
+     * partial reduction operation.
      * 
      * <p>
      * There are no guarantees on the type, mutability, serializability, or
@@ -1402,7 +1409,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * 
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate</a>
-     * operation. This operation is the same as
+     * partial reduction operation. This operation is the same as
      * {@code groupRuns(sameInterval).map(list -> mapper.apply(list.get(0), list.get(list.size()-1)))}
      * , but has less overhead as only first and last elements of each interval
      * are tracked.

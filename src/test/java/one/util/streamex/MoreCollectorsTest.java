@@ -630,15 +630,19 @@ public class MoreCollectorsTest {
     }
     
     @Test
-    public void testMerging() {
-        List<String> input = Arrays.asList("a/", "a/b/c/", "b/c/", "b/d/", "c/a/", "d/a/b/", "c/a/b/", "c/b/", "b/c/d/");
+    public void testDominators() {
+        List<String> input = Arrays
+                .asList("a/", "a/b/c/", "b/c/", "b/d/", "c/a/", "d/a/b/", "c/a/b/", "c/b/", "b/c/d/");
         List<String> expected = Arrays.asList("a/", "b/c/", "b/d/", "c/a/", "c/b/", "d/a/b/");
-        checkCollector("merging", expected, () -> input.stream().sorted(), MoreCollectors.merging((a, b) -> b.startsWith(a)));
-        
+        checkCollector("dominators", expected, () -> input.stream().sorted(),
+            MoreCollectors.dominators((a, b) -> b.startsWith(a)));
+
         Random r = new Random(1);
-        
-        List<String> longInput = StreamEx.generate(() -> IntStreamEx.of(r, r.nextInt(10)+3, 'a', 'z').mapToObj(ch -> (char)ch).joining("/", "", "/"))
-                .limit(1000).toList();
+
+        List<String> longInput = StreamEx
+                .generate(
+                    () -> IntStreamEx.of(r, r.nextInt(10) + 3, 'a', 'z').mapToObj(ch -> (char) ch)
+                            .joining("/", "", "/")).limit(1000).toList();
 
         List<String> tmp = StreamEx.of(longInput).sorted().toList();
         List<String> result = new ArrayList<>();
@@ -652,8 +656,28 @@ public class MoreCollectorsTest {
             if (last != null && curr.startsWith(last)) {
                 curr = last;
                 last = oldLast;
-            } else result.add(curr);
+            } else
+                result.add(curr);
         }
-        checkCollector("merginglong", result, () -> longInput.stream().sorted(), MoreCollectors.merging((a, b) -> b.startsWith(a)));
+        checkCollector("dominatorsLong", result, () -> longInput.stream().sorted(),
+            MoreCollectors.dominators((a, b) -> b.startsWith(a)));
+    }
+    
+    @Test
+    public void testIncreasingDominators() {
+        int[] input = { 1, 3, 4, 2, 1, 7, 5, 3, 4, 0, 4, 6, 7, 10, 4, 3, 2, 1 };
+        List<Integer> result = Arrays.asList(1, 3, 4, 7, 10);
+        checkCollector("increasing", result, () -> IntStreamEx.of(input).boxed(), MoreCollectors.dominators((a, b) -> a >= b));
+        int[] longInput = new Random(1).ints(10000, 0, 1000000).toArray();
+        List<Integer> longResult = new ArrayList<>();
+        int curMax = -1;
+        for(int val : longInput) {
+            if(val > curMax) {
+                curMax = val;
+                longResult.add(curMax);
+            }
+        }
+        checkCollector("increasingLong", longResult, () -> IntStreamEx.of(longInput).boxed(),
+            MoreCollectors.dominators((a, b) -> a >= b));
     }
 }
