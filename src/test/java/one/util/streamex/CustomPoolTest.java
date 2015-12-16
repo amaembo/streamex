@@ -204,6 +204,10 @@ public class CustomPoolTest {
         IntStreamEx.of(1, 5, 10, Integer.MAX_VALUE).parallel(pool).peek(this::checkThread).map(x -> x * 2)
                 .forEachOrdered(res::add);
         assertEquals(Arrays.asList(2, 10, 20, Integer.MAX_VALUE * 2), res);
+        assertArrayEquals(new int[] {1,3,6,10}, IntStreamEx.of(1,2,3,4).parallel(pool).peek(this::checkThread).scanLeft((a, b) -> {
+            checkThread(b);
+            return a+b;
+        }));
     }
 
     @Test
@@ -234,6 +238,10 @@ public class CustomPoolTest {
         LongStreamEx.of(1, 5, 10, Integer.MAX_VALUE).parallel(pool).peek(this::checkThread).map(x -> x * 2)
                 .forEachOrdered(res::add);
         assertEquals(Arrays.asList(2L, 10L, 20L, Integer.MAX_VALUE * 2L), res);
+        assertArrayEquals(new long[] {1,3,6,10}, LongStreamEx.of(1,2,3,4).parallel(pool).peek(this::checkThread).scanLeft((a, b) -> {
+            checkThread(b);
+            return a+b;
+        }));
     }
 
     @Test
@@ -267,6 +275,10 @@ public class CustomPoolTest {
         DoubleStreamEx.of(1.0, 2.0, 3.5, 4.5).parallel(pool).peek(this::checkThread).map(x -> x * 2)
                 .forEachOrdered(res::add);
         assertEquals(Arrays.asList(2.0, 4.0, 7.0, 9.0), res);
+        assertArrayEquals(new double[] {1,3,6,10}, DoubleStreamEx.of(1,2,3,4).parallel(pool).peek(this::checkThread).scanLeft((a, b) -> {
+            checkThread(b);
+            return a+b;
+        }), 0.0);
     }
 
     @Test
