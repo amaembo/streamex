@@ -778,12 +778,12 @@ public class DoubleStreamEx implements DoubleStream {
     public double[] scanLeft(DoubleBinaryOperator accumulator) {
         Spliterator.OfDouble spliterator = stream.spliterator();
         double size = spliterator.getExactSizeIfKnown();
-        DoubleBuffer buf = new DoubleBuffer(size >= 0 && size <= Integer.MAX_VALUE ? (int)size : INITIAL_SIZE); 
+        DoubleBuffer buf = new DoubleBuffer(size >= 0 && size <= Integer.MAX_VALUE ? (int) size : INITIAL_SIZE);
         delegate(spliterator).forEachOrdered(
-            i -> buf.add(buf.size == 0 ? i : accumulator.applyAsDouble(buf.data[buf.size-1], i)));
+            i -> buf.add(buf.size == 0 ? i : accumulator.applyAsDouble(buf.data[buf.size - 1], i)));
         return buf.toArray();
     }
-    
+
     /**
      * Produces an array containing cumulative results of applying the
      * accumulation function going left to right using given seed value.
@@ -1684,14 +1684,59 @@ public class DoubleStreamEx implements DoubleStream {
         return of(random.doubles());
     }
 
+    /**
+     * Returns a stream producing the given {@code streamSize} number of
+     * pseudorandom {@code double} values, each between zero (inclusive) and one
+     * (exclusive) produced by given {@link Random} object.
+     *
+     * <p>
+     * A pseudorandom {@code double} value is generated as if it's the result of
+     * calling the method {@link Random#nextDouble()}.
+     *
+     * @param random
+     *            a {@link Random} object to produce the stream from
+     * @param streamSize
+     *            the number of values to generate
+     * @return a stream of pseudorandom {@code double} values
+     * @see Random#doubles(long)
+     */
     public static DoubleStreamEx of(Random random, long streamSize) {
         return of(random.doubles(streamSize));
     }
 
+    /**
+     * Returns an effectively unlimited stream of pseudorandom {@code double}
+     * values, each conforming to the given origin (inclusive) and bound
+     * (exclusive) produced by given {@link Random} object.
+     *
+     * @param randomNumberOrigin
+     *            the origin (inclusive) of each random value
+     * @param randomNumberBound
+     *            the bound (exclusive) of each random value
+     * @return a stream of pseudorandom {@code double} values, each with the
+     *         given origin (inclusive) and bound (exclusive)
+     * @see Random#doubles(double, double)
+     */
     public static DoubleStreamEx of(Random random, double randomNumberOrigin, double randomNumberBound) {
         return of(random.doubles(randomNumberOrigin, randomNumberBound));
     }
 
+    /**
+     * Returns a stream producing the given {@code streamSize} number of
+     * pseudorandom {@code double} values, each conforming to the given origin
+     * (inclusive) and bound (exclusive) produced by given {@link Random}
+     * object.
+     *
+     * @param randomNumberOrigin
+     *            the origin (inclusive) of each random value
+     * @param randomNumberBound
+     *            the bound (exclusive) of each random value
+     * @param streamSize
+     *            the number of values to generate
+     * @return a stream of pseudorandom {@code double} values, each with the
+     *         given origin (inclusive) and bound (exclusive)
+     * @see Random#doubles(long, double, double)
+     */
     public static DoubleStreamEx of(Random random, long streamSize, double randomNumberOrigin, double randomNumberBound) {
         return of(random.doubles(streamSize, randomNumberOrigin, randomNumberBound));
     }
