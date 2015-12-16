@@ -490,9 +490,19 @@ public class StreamExTest {
     @Test
     public void testWithout() {
         assertEquals(Arrays.asList("a", "bb", null), StreamEx.of("a", "bb", null, "c").without("c").toList());
-        assertEquals(Arrays.asList("a", "bb", "c"), StreamEx.of("a", "bb", null, "c", null).without(null).toList());
+        assertEquals(Arrays.asList("a", "bb", "c"), StreamEx.of("a", "bb", null, "c", null).without((String) null).toList());
         assertTrue(StreamEx.of("bb", "bb", "bb").without("bb").toList().isEmpty());
-        assertEquals(Arrays.asList("bb", "bb", "bb"), StreamEx.of("bb", "bb", "bb").without(null).toList());
+        assertEquals(Arrays.asList("bb", "bb", "bb"), StreamEx.of("bb", "bb", "bb").without((String) null).toList());
+    }
+
+    @Test
+    public void testWithoutCollection() {
+        assertEquals(Arrays.asList("a", "bb", null, "c", null), StreamEx.of("a", "bb", null, "c", null).without((Collection<String>) null).toList());
+        assertEquals(Arrays.asList("a", "bb", null, "c", null), StreamEx.of("a", "bb", null, "c", null).without(Collections.emptyList()).toList());
+        assertEquals(Arrays.asList("a", "bb", null), StreamEx.of("a", "bb", null, "c").without(Arrays.asList("c", "d")).toList());
+        assertEquals(Arrays.asList("a", "bb"), StreamEx.of("a", "bb", null, "c").without(Arrays.asList("c", null)).toList());
+        assertTrue(StreamEx.of("bb", "bb", "bb").without(Collections.singletonList("bb")).toList().isEmpty());
+        assertTrue(StreamEx.of("aa", "bb", "cc").without(Arrays.asList("aa", "bb", "cc")).toList().isEmpty());
     }
 
     @Test
