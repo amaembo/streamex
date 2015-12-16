@@ -1118,6 +1118,28 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
+     * Returns a stream consisting of the elements of this stream that don't
+     * contains in the the given collection.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
+     * operation.
+     *
+     * @param collection
+     *            collection of the values to remove from the stream.
+     *            If the collection is null or empty then stream is untouched.
+     *            Otherwise {@code collection.contains()} will be used to test
+     *            stream values and matching elements will be removed.
+     * @return the new stream
+     * @since 0.5.1
+     */
+    public StreamEx<T> without(Collection<? extends T> collection) {
+        if (collection == null || collection.isEmpty())
+            return this;
+        return remove(collection::contains);
+    }
+
+    /**
      * Returns a {@code StreamEx} consisting of the elements of this stream,
      * sorted according to reverse natural order. If the elements of this stream
      * are not {@code Comparable}, a {@link java.lang.ClassCastException} may be
