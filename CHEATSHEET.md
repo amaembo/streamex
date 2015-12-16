@@ -195,6 +195,7 @@ What I want | How to get it
 Fold elements left-to-right | `any.foldLeft()`
 Fold elements right-to-left | `StreamEx/EntryStream.foldRight()`
 Get `List` of cumulative prefixes or suffixes | `StreamEx/EntryStream.scanLeft()/scanRight()`
+Get primitive array of cumulative prefixes | `IntStreamEx/LongStreamEx/DoubleStreamEx.scanLeft()`
 
 ### Primitive operations
 
