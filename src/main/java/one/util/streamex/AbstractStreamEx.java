@@ -56,7 +56,7 @@ import static one.util.streamex.StreamExInternals.*;
         private boolean checked;
         private final Spliterator<T> source;
         private T cur;
-    
+
         TDOfRef(Spliterator<T> source, boolean drop, Predicate<? super T> predicate) {
             super(source.estimateSize(), source.characteristics()
                 & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL | DISTINCT));
@@ -64,12 +64,12 @@ import static one.util.streamex.StreamExInternals.*;
             this.predicate = predicate;
             this.source = source;
         }
-    
+
         @Override
         public Comparator<? super T> getComparator() {
             return source.getComparator();
         }
-    
+
         @Override
         public boolean tryAdvance(Consumer<? super T> action) {
             if (drop) {
@@ -91,7 +91,7 @@ import static one.util.streamex.StreamExInternals.*;
             checked = true;
             return false;
         }
-    
+
         @Override
         public void accept(T t) {
             this.cur = t;
@@ -347,11 +347,13 @@ import static one.util.streamex.StreamExInternals.*;
             Spliterator<A> spltr;
             if (!spliterator.hasCharacteristics(Spliterator.ORDERED)
                 || collector.characteristics().contains(Characteristics.UNORDERED)) {
-                spltr = new UnorderedCancellableSpliterator<>(spliterator, collector.supplier(), acc, combiner, finished);
+                spltr = new UnorderedCancellableSpliterator<>(spliterator, collector.supplier(), acc, combiner,
+                        finished);
             } else {
                 spltr = new OrderedCancellableSpliterator<>(spliterator, collector.supplier(), acc, combiner, finished);
             }
-            return collector.finisher().apply(strategy().newStreamEx(StreamSupport.stream(spltr, true)).findFirst().get());
+            return collector.finisher().apply(
+                strategy().newStreamEx(StreamSupport.stream(spltr, true)).findFirst().get());
         }
         return rawCollect(collector);
     }
@@ -1154,12 +1156,12 @@ import static one.util.streamex.StreamExInternals.*;
     }
 
     /**
-     * Folds the elements of this stream using the provided identity object and
+     * Folds the elements of this stream using the provided seed object and
      * accumulation function, going left to right. This is equivalent to:
      * 
      * <pre>
      * {@code
-     *     U result = identity;
+     *     U result = seed;
      *     for (T element : this stream)
      *         result = accumulator.apply(result, element)
      *     return result;
@@ -1181,8 +1183,8 @@ import static one.util.streamex.StreamExInternals.*;
      *
      * @param <U>
      *            The type of the result
-     * @param identity
-     *            the identity value
+     * @param seed
+     *            the starting value
      * @param accumulator
      *            a <a
      *            href="package-summary.html#NonInterference">non-interfering
@@ -1195,8 +1197,8 @@ import static one.util.streamex.StreamExInternals.*;
      * @see #reduce(Object, BiFunction, BinaryOperator)
      * @since 0.2.0
      */
-    public <U> U foldLeft(U identity, BiFunction<U, ? super T, U> accumulator) {
-        Box<U> result = new Box<>(identity);
+    public <U> U foldLeft(U seed, BiFunction<U, ? super T, U> accumulator) {
+        Box<U> result = new Box<>(seed);
         forEachOrdered(t -> result.a = accumulator.apply(result.a, t));
         return result.a;
     }
@@ -1252,7 +1254,7 @@ import static one.util.streamex.StreamExInternals.*;
     }
 
     /**
-     * Folds the elements of this stream using the provided identity object and
+     * Folds the elements of this stream using the provided seed object and
      * accumulation function, going right to left.
      * 
      * <p>
@@ -1272,8 +1274,8 @@ import static one.util.streamex.StreamExInternals.*;
      *
      * @param <U>
      *            The type of the result
-     * @param identity
-     *            the identity value
+     * @param seed
+     *            the starting value
      * @param accumulator
      *            a <a
      *            href="package-summary.html#NonInterference">non-interfering
@@ -1286,9 +1288,9 @@ import static one.util.streamex.StreamExInternals.*;
      * @see #reduce(Object, BiFunction, BinaryOperator)
      * @since 0.2.2
      */
-    public <U> U foldRight(U identity, BiFunction<? super T, U, U> accumulator) {
+    public <U> U foldRight(U seed, BiFunction<? super T, U, U> accumulator) {
         return toListAndThen(list -> {
-            U result = identity;
+            U result = seed;
             for (int i = list.size() - 1; i >= 0; i--)
                 result = accumulator.apply(list.get(i), result);
             return result;
@@ -1339,7 +1341,7 @@ import static one.util.streamex.StreamExInternals.*;
 
     /**
      * Produces a collection containing cumulative results of applying the
-     * accumulation function going left to right.
+     * accumulation function going left to right using given seed value.
      * 
      * <p>
      * This is a terminal operation.
@@ -1357,26 +1359,26 @@ import static one.util.streamex.StreamExInternals.*;
      *
      * @param <U>
      *            The type of the result
-     * @param identity
-     *            the identity value
+     * @param seed
+     *            the starting value
      * @param accumulator
      *            a <a
      *            href="package-summary.html#NonInterference">non-interfering
      *            </a>, <a
      *            href="package-summary.html#Statelessness">stateless</a>
      *            function for incorporating an additional element into a result
-     * @return the {@code List} where the first element is the identity and
-     *         every successor element is the result of applying accumulator
-     *         function to the previous list element and the corresponding
-     *         stream element. The resulting list is one element longer than
-     *         this stream.
+     * @return the {@code List} where the first element is the seed and every
+     *         successor element is the result of applying accumulator function
+     *         to the previous list element and the corresponding stream
+     *         element. The resulting list is one element longer than this
+     *         stream.
      * @see #foldLeft(Object, BiFunction)
      * @see #scanRight(Object, BiFunction)
      * @since 0.2.1
      */
-    public <U> List<U> scanLeft(U identity, BiFunction<U, ? super T, U> accumulator) {
+    public <U> List<U> scanLeft(U seed, BiFunction<U, ? super T, U> accumulator) {
         List<U> result = new ArrayList<>();
-        result.add(identity);
+        result.add(seed);
         forEachOrdered(t -> result.add(accumulator.apply(result.get(result.size() - 1), t)));
         return result;
     }
@@ -1427,7 +1429,7 @@ import static one.util.streamex.StreamExInternals.*;
 
     /**
      * Produces a collection containing cumulative results of applying the
-     * accumulation function going right to left.
+     * accumulation function going right to left using given seed value.
      * 
      * <p>
      * This is a terminal operation.
@@ -1445,15 +1447,15 @@ import static one.util.streamex.StreamExInternals.*;
      *
      * @param <U>
      *            The type of the result
-     * @param identity
-     *            the identity value
+     * @param seed
+     *            the starting value
      * @param accumulator
      *            a <a
      *            href="package-summary.html#NonInterference">non-interfering
      *            </a>, <a
      *            href="package-summary.html#Statelessness">stateless</a>
      *            function for incorporating an additional element into a result
-     * @return the {@code List} where the last element is the identity and every
+     * @return the {@code List} where the last element is the seed and every
      *         predecessor element is the result of applying accumulator
      *         function to the corresponding stream element and the next list
      *         element. The resulting list is one element longer than this
@@ -1463,11 +1465,11 @@ import static one.util.streamex.StreamExInternals.*;
      * @since 0.2.2
      */
     @SuppressWarnings("unchecked")
-    public <U> List<U> scanRight(U identity, BiFunction<? super T, U, U> accumulator) {
+    public <U> List<U> scanRight(U seed, BiFunction<? super T, U, U> accumulator) {
         return toListAndThen(list -> {
             // Reusing the list for different object type as it will save memory
             List<U> result = (List<U>) list;
-            result.add(identity);
+            result.add(seed);
             for (int i = result.size() - 2; i >= 0; i--) {
                 result.set(i, accumulator.apply((T) result.get(i), result.get(i + 1)));
             }

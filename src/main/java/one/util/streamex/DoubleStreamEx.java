@@ -646,7 +646,7 @@ public class DoubleStreamEx implements DoubleStream {
     }
 
     /**
-     * Folds the elements of this stream using the provided identity object and
+     * Folds the elements of this stream using the provided seed object and
      * accumulation function, going left to right. This is equivalent to:
      * 
      * <pre>
@@ -671,8 +671,8 @@ public class DoubleStreamEx implements DoubleStream {
      * For parallel stream it's not guaranteed that accumulator will always be
      * executed in the same thread.
      *
-     * @param identity
-     *            the identity value
+     * @param seed
+     *            the starting value
      * @param accumulator
      *            a <a
      *            href="package-summary.html#NonInterference">non-interfering
@@ -684,8 +684,8 @@ public class DoubleStreamEx implements DoubleStream {
      * @see #foldLeft(DoubleBinaryOperator)
      * @since 0.4.0
      */
-    public double foldLeft(double identity, DoubleBinaryOperator accumulator) {
-        double[] box = new double[] { identity };
+    public double foldLeft(double seed, DoubleBinaryOperator accumulator) {
+        double[] box = new double[] { seed };
         stream.forEachOrdered(t -> box[0] = accumulator.applyAsDouble(box[0], t));
         return box[0];
     }
@@ -746,6 +746,35 @@ public class DoubleStreamEx implements DoubleStream {
         return b.asDouble();
     }
 
+    /**
+     * Produces an array containing cumulative results of applying the
+     * accumulation function going left to right.
+     * 
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * For parallel stream it's not guaranteed that accumulator will always be
+     * executed in the same thread.
+     * 
+     * <p>
+     * This method cannot take all the advantages of parallel streams as it must
+     * process elements strictly left to right.
+     *
+     * @param accumulator
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function for incorporating an additional element into a result
+     * @return the array where the first element is the first element of this
+     *         stream and every successor element is the result of applying
+     *         accumulator function to the previous array element and the
+     *         corresponding stream element. The resulting array has the same
+     *         size as this stream.
+     * @see #foldLeft(DoubleBinaryOperator)
+     * @since 0.5.1
+     */
     public double[] scanLeft(DoubleBinaryOperator accumulator) {
         Spliterator.OfDouble spliterator = stream.spliterator();
         double size = spliterator.getExactSizeIfKnown();
@@ -755,6 +784,36 @@ public class DoubleStreamEx implements DoubleStream {
         return buf.toArray();
     }
     
+    /**
+     * Produces an array containing cumulative results of applying the
+     * accumulation function going left to right using given seed value.
+     * 
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * For parallel stream it's not guaranteed that accumulator will always be
+     * executed in the same thread.
+     * 
+     * <p>
+     * This method cannot take all the advantages of parallel streams as it must
+     * process elements strictly left to right.
+     *
+     * @param seed
+     *            the starting value
+     * @param accumulator
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function for incorporating an additional element into a result
+     * @return the array where the first element is the seed and every successor
+     *         element is the result of applying accumulator function to the
+     *         previous array element and the corresponding stream element. The
+     *         resulting array is one element longer than this stream.
+     * @see #foldLeft(double, DoubleBinaryOperator)
+     * @since 0.5.1
+     */
     public double[] scanLeft(double seed, DoubleBinaryOperator accumulator) {
         return prepend(seed).scanLeft(accumulator);
     }

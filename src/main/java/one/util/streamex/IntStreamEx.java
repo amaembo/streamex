@@ -688,12 +688,12 @@ public class IntStreamEx implements IntStream {
     }
 
     /**
-     * Folds the elements of this stream using the provided identity object and
+     * Folds the elements of this stream using the provided seed object and
      * accumulation function, going left to right. This is equivalent to:
      * 
      * <pre>
      * {@code
-     *     int result = identity;
+     *     int result = seed;
      *     for (int element : this stream)
      *         result = accumulator.apply(result, element)
      *     return result;
@@ -713,8 +713,8 @@ public class IntStreamEx implements IntStream {
      * For parallel stream it's not guaranteed that accumulator will always be
      * executed in the same thread.
      *
-     * @param identity
-     *            the identity value
+     * @param seed
+     *            the starting value
      * @param accumulator
      *            a <a
      *            href="package-summary.html#NonInterference">non-interfering
@@ -726,21 +726,80 @@ public class IntStreamEx implements IntStream {
      * @see #foldLeft(IntBinaryOperator)
      * @since 0.4.0
      */
-    public int foldLeft(int identity, IntBinaryOperator accumulator) {
-        int[] box = new int[] { identity };
+    public int foldLeft(int seed, IntBinaryOperator accumulator) {
+        int[] box = new int[] { seed };
         stream.forEachOrdered(t -> box[0] = accumulator.applyAsInt(box[0], t));
         return box[0];
     }
-    
+
+    /**
+     * Produces an array containing cumulative results of applying the
+     * accumulation function going left to right.
+     * 
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * For parallel stream it's not guaranteed that accumulator will always be
+     * executed in the same thread.
+     * 
+     * <p>
+     * This method cannot take all the advantages of parallel streams as it must
+     * process elements strictly left to right.
+     *
+     * @param accumulator
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function for incorporating an additional element into a result
+     * @return the array where the first element is the first element of this
+     *         stream and every successor element is the result of applying
+     *         accumulator function to the previous array element and the
+     *         corresponding stream element. The resulting array has the same
+     *         size as this stream.
+     * @see #foldLeft(IntBinaryOperator)
+     * @since 0.5.1
+     */
     public int[] scanLeft(IntBinaryOperator accumulator) {
         Spliterator.OfInt spliterator = stream.spliterator();
         long size = spliterator.getExactSizeIfKnown();
-        IntBuffer buf = new IntBuffer(size >= 0 && size <= Integer.MAX_VALUE ? (int)size : INITIAL_SIZE); 
+        IntBuffer buf = new IntBuffer(size >= 0 && size <= Integer.MAX_VALUE ? (int) size : INITIAL_SIZE);
         delegate(spliterator).forEachOrdered(
-            i -> buf.add(buf.size == 0 ? i : accumulator.applyAsInt(buf.data[buf.size-1], i)));
+            i -> buf.add(buf.size == 0 ? i : accumulator.applyAsInt(buf.data[buf.size - 1], i)));
         return buf.toArray();
     }
-    
+
+    /**
+     * Produces an array containing cumulative results of applying the
+     * accumulation function going left to right using given seed value.
+     * 
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * For parallel stream it's not guaranteed that accumulator will always be
+     * executed in the same thread.
+     * 
+     * <p>
+     * This method cannot take all the advantages of parallel streams as it must
+     * process elements strictly left to right.
+     *
+     * @param seed
+     *            the starting value
+     * @param accumulator
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function for incorporating an additional element into a result
+     * @return the array where the first element is the seed and every successor
+     *         element is the result of applying accumulator function to the
+     *         previous array element and the corresponding stream element. The
+     *         resulting array is one element longer than this stream.
+     * @see #foldLeft(int, IntBinaryOperator)
+     * @since 0.5.1
+     */
     public int[] scanLeft(int seed, IntBinaryOperator accumulator) {
         return prepend(seed).scanLeft(accumulator);
     }
