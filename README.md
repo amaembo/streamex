@@ -8,7 +8,7 @@ The OSGi bundle name and Maven groupId are changed correspondingly. To migrate t
  
 This change is discussed [here](https://github.com/amaembo/streamex/issues/8). Sorry for possible inconvenience.
 
-# StreamEx 0.5.0
+# StreamEx 0.5.1
 Enhancing Java 8 Streams.
 
 [![Maven Central](https://img.shields.io/maven-central/v/one.util/streamex.svg)](https://maven-badges.herokuapp.com/maven-central/one.util/streamex/)
@@ -128,7 +128,7 @@ To use from maven add this snippet to the pom.xml `dependencies` section:
 <dependency>
   <groupId>one.util</groupId>
   <artifactId>streamex</artifactId>
-  <version>0.5.0</version>
+  <version>0.5.1</version>
 </dependency>
 ```
 
