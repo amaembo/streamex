@@ -500,4 +500,16 @@ public class EntryStreamTest {
         assertEquals("1=a,1=b,2=c", s.get().distinctValues().join("=").joining(","));
         assertEquals("1=a,1=b,2=c", s.get().parallel().distinctValues().join("=").joining(","));
     }
+    
+    @Test
+    public void testOfTree() {
+        List<Object> input = Arrays.asList(
+            "aa",
+            null,
+            Arrays.asList(Arrays.asList("bbbb", "cc", null, Arrays.asList()), "ddd", Arrays.asList("e"),
+                Arrays.asList("fff")), "ggg");
+        EntryStream<Integer, Object> ofTree = EntryStream.ofTree(input, List.class, (depth, l) -> l.stream());
+        assertEquals("{1=[aa, ggg], 2=[ddd], 3=[bbbb, cc, e, fff]}",
+            ofTree.selectValues(String.class).grouping(TreeMap::new).toString());
+    }
 }

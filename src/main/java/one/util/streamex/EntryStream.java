@@ -1365,4 +1365,27 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     public static <T> EntryStream<T, T> ofPairs(T[] array) {
         return ofPairs(Arrays.asList(array));
     }
+    
+    static <T> Stream<Entry<Integer, T>> flatTraverse(Stream<Entry<Integer, T>> src, BiFunction<Integer, T, Stream<T>> streamProvider) {
+        return src.flatMap(entry -> {
+            Integer depth = entry.getKey();
+            Stream<T> result = streamProvider.apply(depth, entry.getValue());
+            return result == null ? Stream.of(entry) : Stream.concat(Stream.of(entry),
+                flatTraverse(result.map(t -> new ObjIntBox<>(t, depth + 1)), streamProvider));
+        });
+    }
+
+    public static <T> EntryStream<Integer, T> ofTree(T root, BiFunction<Integer, T, Stream<T>> mapper) {
+        Stream<T> rootStream = mapper.apply(0, root);
+        Stream<Entry<Integer, T>> base = Stream.of(new ObjIntBox<>(root, 0));
+        return rootStream == null ? of(base) : of(flatTraverse(rootStream.map(t -> new ObjIntBox<>(t, 1)), mapper))
+                .prepend(base);
+    }
+    
+    @SuppressWarnings("unchecked")
+    public static <T, TT extends T> EntryStream<Integer, T> ofTree(T root, Class<TT> collectionClass,
+            BiFunction<Integer, TT, Stream<T>> mapper) {
+        return ofTree(root, (d, t) -> collectionClass.isInstance(t) ? mapper.apply(d, (TT) t) : null);
+    }
+
 }
