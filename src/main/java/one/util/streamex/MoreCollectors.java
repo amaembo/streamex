@@ -50,7 +50,6 @@ import java.util.stream.Collector.Characteristics;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import one.util.streamex.StreamExInternals.ObjIntBox;
 import static one.util.streamex.StreamExInternals.*;
 
 /**
@@ -807,14 +806,13 @@ public final class MoreCollectors {
             long count = 0;
             long index = -1;
         }
-        BiConsumer<Container, T> accumulator = (c, t) -> {
+        return Collector.of(Container::new, (c, t) -> {
             if (c.index == -1 || comparator.compare(c.value, t) > 0) {
                 c.value = t;
                 c.index = c.count;
             }
             c.count++;
-        };
-        BinaryOperator<Container> combiner = (c1, c2) -> {
+        }, (c1, c2) -> {
             if (c1.index == -1 || (c2.index != -1 && comparator.compare(c1.value, c2.value) > 0)) {
                 c2.index += c1.count;
                 c2.count += c1.count;
@@ -822,10 +820,7 @@ public final class MoreCollectors {
             }
             c1.count += c2.count;
             return c1;
-        };
-        Function<Container, OptionalLong> finisher = c -> c.index == -1 ? OptionalLong.empty() : OptionalLong
-                .of(c.index);
-        return Collector.of(Container::new, accumulator, combiner, finisher);
+        }, c -> c.index == -1 ? OptionalLong.empty() : OptionalLong.of(c.index));
     }
 
     /**
