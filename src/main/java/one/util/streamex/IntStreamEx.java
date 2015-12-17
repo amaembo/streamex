@@ -55,6 +55,7 @@ import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import one.util.streamex.StreamExInternals.PrimitiveBox;
 import static one.util.streamex.StreamExInternals.*;
 
 /**
@@ -688,6 +689,62 @@ public class IntStreamEx implements IntStream {
     }
 
     /**
+     * Folds the elements of this stream using the provided accumulation
+     * function, going left to right. This is equivalent to:
+     * 
+     * <pre>
+     * {@code
+     *     boolean foundAny = false;
+     *     int result = 0;
+     *     for (int element : this stream) {
+     *         if (!foundAny) {
+     *             foundAny = true;
+     *             result = element;
+     *         }
+     *         else
+     *             result = accumulator.apply(result, element);
+     *     }
+     *     return foundAny ? OptionalInt.of(result) : OptionalInt.empty();
+     * }
+     * </pre>
+     * 
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * This method cannot take all the advantages of parallel streams as it must
+     * process elements strictly left to right. If your accumulator function is
+     * associative, consider using {@link #reduce(IntBinaryOperator)} method.
+     * 
+     * <p>
+     * For parallel stream it's not guaranteed that accumulator will always be
+     * executed in the same thread.
+     *
+     * @param accumulator
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function for incorporating an additional element into a result
+     * @return the result of the folding
+     * @see #foldLeft(int, IntBinaryOperator)
+     * @see #reduce(IntBinaryOperator)
+     * @since 0.4.0
+     */
+    public OptionalInt foldLeft(IntBinaryOperator accumulator) {
+        PrimitiveBox b = new PrimitiveBox();
+        stream.forEachOrdered(t -> {
+            if (b.b)
+                b.i = accumulator.applyAsInt(b.i, t);
+            else {
+                b.i = t;
+                b.b = true;
+            }
+        });
+        return b.asInt();
+    }
+
+    /**
      * Folds the elements of this stream using the provided seed object and
      * accumulation function, going left to right. This is equivalent to:
      * 
@@ -704,8 +761,8 @@ public class IntStreamEx implements IntStream {
      * This is a terminal operation.
      * 
      * <p>
-     * This method may work slowly on parallel streams as it must process
-     * elements strictly left to right. If your accumulator function is
+     * This method cannot take all the advantages of parallel streams as it must
+     * process elements strictly left to right. If your accumulator function is
      * associative, consider using {@link #reduce(int, IntBinaryOperator)}
      * method.
      * 
@@ -757,7 +814,7 @@ public class IntStreamEx implements IntStream {
      *         stream and every successor element is the result of applying
      *         accumulator function to the previous array element and the
      *         corresponding stream element. The resulting array has the same
-     *         size as this stream.
+     *         length as this stream.
      * @see #foldLeft(IntBinaryOperator)
      * @since 0.5.1
      */
@@ -802,62 +859,6 @@ public class IntStreamEx implements IntStream {
      */
     public int[] scanLeft(int seed, IntBinaryOperator accumulator) {
         return prepend(seed).scanLeft(accumulator);
-    }
-
-    /**
-     * Folds the elements of this stream using the provided accumulation
-     * function, going left to right. This is equivalent to:
-     * 
-     * <pre>
-     * {@code
-     *     boolean foundAny = false;
-     *     int result = 0;
-     *     for (int element : this stream) {
-     *         if (!foundAny) {
-     *             foundAny = true;
-     *             result = element;
-     *         }
-     *         else
-     *             result = accumulator.apply(result, element);
-     *     }
-     *     return foundAny ? OptionalInt.of(result) : OptionalInt.empty();
-     * }
-     * </pre>
-     * 
-     * <p>
-     * This is a terminal operation.
-     * 
-     * <p>
-     * This method may work slowly on parallel streams as it must process
-     * elements strictly left to right. If your accumulator function is
-     * associative, consider using {@link #reduce(IntBinaryOperator)} method.
-     * 
-     * <p>
-     * For parallel stream it's not guaranteed that accumulator will always be
-     * executed in the same thread.
-     *
-     * @param accumulator
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function for incorporating an additional element into a result
-     * @return the result of the folding
-     * @see #foldLeft(int, IntBinaryOperator)
-     * @see #reduce(IntBinaryOperator)
-     * @since 0.4.0
-     */
-    public OptionalInt foldLeft(IntBinaryOperator accumulator) {
-        PrimitiveBox b = new PrimitiveBox();
-        stream.forEachOrdered(t -> {
-            if (b.b)
-                b.i = accumulator.applyAsInt(b.i, t);
-            else {
-                b.i = t;
-                b.b = true;
-            }
-        });
-        return b.asInt();
     }
 
     /**

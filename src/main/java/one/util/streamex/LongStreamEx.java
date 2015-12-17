@@ -63,7 +63,7 @@ public class LongStreamEx implements LongStream {
         private boolean checked;
         private final Spliterator.OfLong source;
         private long cur;
-    
+
         TDOfLong(Spliterator.OfLong source, boolean drop, LongPredicate predicate) {
             super(source.estimateSize(), source.characteristics()
                 & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL | DISTINCT));
@@ -71,12 +71,12 @@ public class LongStreamEx implements LongStream {
             this.predicate = predicate;
             this.source = source;
         }
-    
+
         @Override
         public Comparator<? super Long> getComparator() {
             return source.getComparator();
         }
-    
+
         @Override
         public boolean tryAdvance(LongConsumer action) {
             if (drop) {
@@ -98,7 +98,7 @@ public class LongStreamEx implements LongStream {
             checked = true;
             return false;
         }
-    
+
         @Override
         public void accept(long t) {
             this.cur = t;
@@ -650,51 +650,6 @@ public class LongStreamEx implements LongStream {
     }
 
     /**
-     * Folds the elements of this stream using the provided seed object and
-     * accumulation function, going left to right. This is equivalent to:
-     * 
-     * <pre>
-     * {@code
-     *     long result = seed;
-     *     for (long element : this stream)
-     *         result = accumulator.apply(result, element)
-     *     return result;
-     * }
-     * </pre>
-     *
-     * <p>
-     * This is a terminal operation.
-     * 
-     * <p>
-     * This method may work slowly on parallel streams as it must process
-     * elements strictly left to right. If your accumulator function is
-     * associative, consider using {@link #reduce(long, LongBinaryOperator)}
-     * method.
-     * 
-     * <p>
-     * For parallel stream it's not guaranteed that accumulator will always be
-     * executed in the same thread.
-     *
-     * @param seed
-     *            the starting value
-     * @param accumulator
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function for incorporating an additional element into a result
-     * @return the result of the folding
-     * @see #reduce(long, LongBinaryOperator)
-     * @see #foldLeft(LongBinaryOperator)
-     * @since 0.4.0
-     */
-    public long foldLeft(long seed, LongBinaryOperator accumulator) {
-        long[] box = new long[] { seed };
-        stream.forEachOrdered(t -> box[0] = accumulator.applyAsLong(box[0], t));
-        return box[0];
-    }
-
-    /**
      * Folds the elements of this stream using the provided accumulation
      * function, going left to right. This is equivalent to:
      * 
@@ -718,8 +673,8 @@ public class LongStreamEx implements LongStream {
      * This is a terminal operation.
      * 
      * <p>
-     * This method may work slowly on parallel streams as it must process
-     * elements strictly left to right. If your accumulator function is
+     * This method cannot take all the advantages of parallel streams as it must
+     * process elements strictly left to right. If your accumulator function is
      * associative, consider using {@link #reduce(LongBinaryOperator)} method.
      * 
      * <p>
@@ -751,6 +706,51 @@ public class LongStreamEx implements LongStream {
     }
 
     /**
+     * Folds the elements of this stream using the provided seed object and
+     * accumulation function, going left to right. This is equivalent to:
+     * 
+     * <pre>
+     * {@code
+     *     long result = seed;
+     *     for (long element : this stream)
+     *         result = accumulator.apply(result, element)
+     *     return result;
+     * }
+     * </pre>
+     *
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * This method cannot take all the advantages of parallel streams as it must
+     * process elements strictly left to right. If your accumulator function is
+     * associative, consider using {@link #reduce(long, LongBinaryOperator)}
+     * method.
+     * 
+     * <p>
+     * For parallel stream it's not guaranteed that accumulator will always be
+     * executed in the same thread.
+     *
+     * @param seed
+     *            the starting value
+     * @param accumulator
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function for incorporating an additional element into a result
+     * @return the result of the folding
+     * @see #reduce(long, LongBinaryOperator)
+     * @see #foldLeft(LongBinaryOperator)
+     * @since 0.4.0
+     */
+    public long foldLeft(long seed, LongBinaryOperator accumulator) {
+        long[] box = new long[] { seed };
+        stream.forEachOrdered(t -> box[0] = accumulator.applyAsLong(box[0], t));
+        return box[0];
+    }
+
+    /**
      * Produces an array containing cumulative results of applying the
      * accumulation function going left to right.
      * 
@@ -775,19 +775,19 @@ public class LongStreamEx implements LongStream {
      *         stream and every successor element is the result of applying
      *         accumulator function to the previous array element and the
      *         corresponding stream element. The resulting array has the same
-     *         size as this stream.
+     *         length as this stream.
      * @see #foldLeft(LongBinaryOperator)
      * @since 0.5.1
      */
     public long[] scanLeft(LongBinaryOperator accumulator) {
         Spliterator.OfLong spliterator = stream.spliterator();
         long size = spliterator.getExactSizeIfKnown();
-        LongBuffer buf = new LongBuffer(size >= 0 && size <= Integer.MAX_VALUE ? (int)size : INITIAL_SIZE); 
+        LongBuffer buf = new LongBuffer(size >= 0 && size <= Integer.MAX_VALUE ? (int) size : INITIAL_SIZE);
         delegate(spliterator).forEachOrdered(
-            i -> buf.add(buf.size == 0 ? i : accumulator.applyAsLong(buf.data[buf.size-1], i)));
+            i -> buf.add(buf.size == 0 ? i : accumulator.applyAsLong(buf.data[buf.size - 1], i)));
         return buf.toArray();
     }
-    
+
     /**
      * Produces an array containing cumulative results of applying the
      * accumulation function going left to right using given seed value.
@@ -1222,9 +1222,9 @@ public class LongStreamEx implements LongStream {
      *            </a>, <a
      *            href="package-summary.html#Statelessness">stateless</a>
      *            predicate which returned value should match
-     * @return an {@code OptionalLong} describing some matching element of
-     *         this stream, or an empty {@code OptionalLong} if there's no
-     *         matching element
+     * @return an {@code OptionalLong} describing some matching element of this
+     *         stream, or an empty {@code OptionalLong} if there's no matching
+     *         element
      * @see #findAny()
      * @see #findFirst(LongPredicate)
      */
@@ -1573,8 +1573,8 @@ public class LongStreamEx implements LongStream {
     }
 
     /**
-     * Returns a sequential ordered {@code LongStreamEx} whose elements are
-     * the unboxed elements of supplied array.
+     * Returns a sequential ordered {@code LongStreamEx} whose elements are the
+     * unboxed elements of supplied array.
      *
      * @param array
      *            the array to create the stream from.
