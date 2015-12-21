@@ -78,7 +78,7 @@ public class TestHelpers {
             case RANDOM:
                 return StreamEx.of(new EmptyingSpliterator<>(res.parallel().spliterator())).parallel();
             default:
-                throw new InternalError("Unsupported mode: "+mode);
+                throw new InternalError("Unsupported mode: " + mode);
             }
         }
 
@@ -89,82 +89,81 @@ public class TestHelpers {
     }
 
     static class StreamExSupplier<T> extends StreamSupplier<T> {
-        
+
         public StreamExSupplier(Supplier<Stream<T>> base, Mode mode) {
             super(base, mode);
         }
-        
+
         @Override
         public StreamEx<T> get() {
             return StreamEx.of(super.get());
         }
     }
-    
+
     static class EntryStreamSupplier<K, V> extends StreamSupplier<Map.Entry<K, V>> {
-        
+
         public EntryStreamSupplier(Supplier<Stream<Map.Entry<K, V>>> base, Mode mode) {
             super(base, mode);
         }
-        
+
         @Override
         public EntryStream<K, V> get() {
             return EntryStream.of(super.get());
         }
     }
-    
+
     static <T> List<StreamExSupplier<T>> streamEx(Supplier<Stream<T>> base) {
-        return StreamEx.of(Mode.values())
-                .map(mode -> new StreamExSupplier<>(base, mode)).toList();
+        return StreamEx.of(Mode.values()).map(mode -> new StreamExSupplier<>(base, mode)).toList();
     }
-    
+
     static void withMessage(String message, Runnable r) {
         try {
             r.run();
-        }
-        catch(ComparisonFailure cmp) {
+        } catch (ComparisonFailure cmp) {
             ComparisonFailure ex = new ComparisonFailure(message + ": " + cmp.getMessage(), cmp.getExpected(),
                     cmp.getActual());
             ex.setStackTrace(cmp.getStackTrace());
             throw ex;
-        }
-        catch(AssertionError err) {
+        } catch (AssertionError err) {
             AssertionError ex = new AssertionError(message + ": " + err.getMessage(), err.getCause());
             ex.setStackTrace(err.getStackTrace());
             throw ex;
-        }
-        catch(RuntimeException | Error err) {
+        } catch (RuntimeException | Error err) {
             throw new RuntimeException(message + ": " + err.getMessage(), err);
         }
     }
-    
+
     static void repeat(int times, IntConsumer consumer) {
         for (int i = 1; i <= times; i++) {
             int finalI = i;
             withMessage("#" + i, () -> consumer.accept(finalI));
         }
     }
-    
+
     static <T> void streamEx(Supplier<Stream<T>> base, Consumer<StreamExSupplier<T>> consumer) {
-        for(StreamExSupplier<T> supplier : streamEx(base)) {
+        for (StreamExSupplier<T> supplier : StreamEx.of(Mode.values()).map(mode -> new StreamExSupplier<>(base, mode))) {
             withMessage(supplier.toString(), () -> consumer.accept(supplier));
         }
     }
-    
+
     static <T> void emptyStreamEx(Class<T> clazz, Consumer<StreamExSupplier<T>> consumer) {
         streamEx(() -> Stream.<T> empty(), consumer);
     }
 
-    static <K, V> List<EntryStreamSupplier<K, V>> entryStream(Supplier<Stream<Map.Entry<K, V>>> base) {
-        return StreamEx.of(Mode.values())
-                .map(mode -> new EntryStreamSupplier<>(base, mode)).toList();
+    static <K, V> void entryStream(Supplier<Stream<Map.Entry<K, V>>> base, Consumer<EntryStreamSupplier<K, V>> consumer) {
+        for (EntryStreamSupplier<K, V> supplier : StreamEx.of(Mode.values()).map(
+            mode -> new EntryStreamSupplier<>(base, mode))) {
+            withMessage(supplier.toString(), () -> consumer.accept(supplier));
+        }
     }
-    
+
     /**
      * Spliterator which randomly inserts empty spliterators on splitting
      * 
      * @author Tagir Valeev
      *
-     * @param <T> type of the elements
+     * @param <T>
+     *            type of the elements
      */
     private static class EmptyingSpliterator<T> implements Spliterator<T> {
         private Spliterator<T> source;
@@ -182,7 +181,7 @@ public class TestHelpers {
         public void forEachRemaining(Consumer<? super T> action) {
             source.forEachRemaining(action);
         }
-        
+
         @Override
         public Comparator<? super T> getComparator() {
             return source.getComparator();
@@ -191,7 +190,7 @@ public class TestHelpers {
         @Override
         public Spliterator<T> trySplit() {
             Spliterator<T> source = this.source;
-            switch(ThreadLocalRandom.current().nextInt(3)) {
+            switch (ThreadLocalRandom.current().nextInt(3)) {
             case 0:
                 return Spliterators.emptySpliterator();
             case 1:
@@ -270,25 +269,27 @@ public class TestHelpers {
         assertFalse(msg, sequential.tryAdvance(t -> fail(msg + ": Advance called with " + t)));
         sequential.forEachRemaining(t -> fail(msg + ": Advance called with " + t));
         assertEquals(msg, expected, seq);
-        
+
         // Test tryAdvance
         seq.clear();
         sequential = supplier.get();
-        while(true) {
+        while (true) {
             AtomicBoolean called = new AtomicBoolean();
             boolean res = sequential.tryAdvance(t -> {
                 seq.add(t);
                 called.set(true);
             });
-            if(res != called.get()) {
-                fail(msg+ (res ? ": Consumer not called, but spliterator returned true" : ": Consumer called, but spliterator returned false"));
+            if (res != called.get()) {
+                fail(msg
+                    + (res ? ": Consumer not called, but spliterator returned true"
+                            : ": Consumer called, but spliterator returned false"));
             }
-            if(!res)
+            if (!res)
                 break;
         }
         assertFalse(msg, sequential.tryAdvance(t -> fail(msg + ": Advance called with " + t)));
         assertEquals(msg, expected, seq);
-        
+
         // Test trySplit
         Random r = new Random(1);
         for (int n = 1; n < 500; n++) {
@@ -348,17 +349,16 @@ public class TestHelpers {
         try {
             r.run();
             fail("no exception");
-        }
-        catch(IllegalStateException ex) {
+        } catch (IllegalStateException ex) {
             String exmsg = ex.getMessage();
             if (!exmsg.equals("Duplicate entry for key '" + key + "' (attempt to merge values '" + value1 + "' and '"
                 + value2 + "')")
-                    && !exmsg.equals("Duplicate entry for key '" + key + "' (attempt to merge values '" + value2 + "' and '"
-                    + value1 + "')")
-                    && !exmsg.equals("java.lang.IllegalStateException: Duplicate entry for key '" + key + "' (attempt to merge values '"
-                    + value1 + "' and '" + value2 + "')")
-                    && !exmsg.equals("java.lang.IllegalStateException: Duplicate entry for key '" + key + "' (attempt to merge values '"
-                    + value2 + "' and '" + value1 + "')"))
+                && !exmsg.equals("Duplicate entry for key '" + key + "' (attempt to merge values '" + value2
+                    + "' and '" + value1 + "')")
+                && !exmsg.equals("java.lang.IllegalStateException: Duplicate entry for key '" + key
+                    + "' (attempt to merge values '" + value1 + "' and '" + value2 + "')")
+                && !exmsg.equals("java.lang.IllegalStateException: Duplicate entry for key '" + key
+                    + "' (attempt to merge values '" + value2 + "' and '" + value1 + "')"))
                 fail("wrong exception message: " + exmsg);
         }
     }
