@@ -508,8 +508,19 @@ public class EntryStreamTest {
             null,
             Arrays.asList(Arrays.asList("bbbb", "cc", null, Arrays.asList()), "ddd", Arrays.asList("e"),
                 Arrays.asList("fff")), "ggg");
-        EntryStream<Integer, Object> ofTree = EntryStream.ofTree(input, List.class, (depth, l) -> l.stream());
-        assertEquals("{1=[aa, ggg], 2=[ddd], 3=[bbbb, cc, e, fff]}",
-            ofTree.selectValues(String.class).grouping(TreeMap::new).toString());
+        Supplier<Stream<Entry<Integer, Object>>> base = () -> EntryStream.ofTree(input, List.class, (depth, l) -> l.stream());
+        for(EntryStreamSupplier<Integer, Object> supplier : entryStream(base)) {
+            assertEquals("{1=[aa, ggg], 2=[ddd], 3=[bbbb, cc, e, fff]}", supplier.get().selectValues(String.class)
+                    .grouping(TreeMap::new).toString());
+        }
+        
+        for (EntryStreamSupplier<Integer, String> supplier : entryStream(() -> EntryStream.ofTree("",
+            (depth, str) -> depth >= 3 ? null : Stream.of("a", "b").map(str::concat)))) {
+            assertEquals(Arrays.asList("", "a", "aa", "aaa", "aab", "ab", "aba", "abb", "b", "ba", "baa", "bab", "bb",
+                "bba", "bbb"), supplier.get().values().toList());
+            assertEquals(
+                Arrays.asList("a", "b", "aa", "ab", "ba", "bb", "aaa", "aab", "aba", "abb", "baa", "bab", "bba", "bbb"),
+                supplier.get().sorted(Entry.comparingByKey()).values().without("").toList());
+        }
     }
 }

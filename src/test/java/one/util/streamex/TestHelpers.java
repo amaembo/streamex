@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Spliterator;
@@ -49,22 +50,22 @@ public class TestHelpers {
         NORMAL, PARALLEL, APPEND, PREPEND, RANDOM
     }
 
-    static class StreamExSupplier<T> {
+    static class StreamSupplier<T> {
         private final Mode mode;
         private final Supplier<Stream<T>> base;
 
-        public StreamExSupplier(Supplier<Stream<T>> base, Mode mode) {
+        public StreamSupplier(Supplier<Stream<T>> base, Mode mode) {
             this.base = base;
             this.mode = mode;
         }
 
-        public StreamEx<T> get() {
+        public Stream<T> get() {
             Stream<T> res = base.get();
             switch (mode) {
             case NORMAL:
-                return StreamEx.of(res.sequential());
+                return res.sequential();
             case PARALLEL:
-                return StreamEx.of(res.parallel());
+                return res.parallel();
             case APPEND:
                 // using Stream.empty() here makes the resulting stream
                 // unordered which is undesired
@@ -84,9 +85,38 @@ public class TestHelpers {
         }
     }
 
+    static class StreamExSupplier<T> extends StreamSupplier<T> {
+        
+        public StreamExSupplier(Supplier<Stream<T>> base, Mode mode) {
+            super(base, mode);
+        }
+        
+        @Override
+        public StreamEx<T> get() {
+            return StreamEx.of(super.get());
+        }
+    }
+    
+    static class EntryStreamSupplier<K, V> extends StreamSupplier<Map.Entry<K, V>> {
+        
+        public EntryStreamSupplier(Supplier<Stream<Map.Entry<K, V>>> base, Mode mode) {
+            super(base, mode);
+        }
+        
+        @Override
+        public EntryStream<K, V> get() {
+            return EntryStream.of(super.get());
+        }
+    }
+    
     static <T> List<StreamExSupplier<T>> streamEx(Supplier<Stream<T>> base) {
         return StreamEx.of(Mode.values())
                 .map(mode -> new StreamExSupplier<>(base, mode)).toList();
+    }
+    
+    static <K, V> List<EntryStreamSupplier<K, V>> entryStream(Supplier<Stream<Map.Entry<K, V>>> base) {
+        return StreamEx.of(Mode.values())
+                .map(mode -> new EntryStreamSupplier<>(base, mode)).toList();
     }
     
     /**
