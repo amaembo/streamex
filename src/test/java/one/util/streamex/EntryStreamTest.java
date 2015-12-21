@@ -251,10 +251,10 @@ public class EntryStreamTest {
     @Test
     public void testToMap() {
         Map<String, Integer> base = IntStreamEx.range(100).mapToEntry(String::valueOf, Integer::valueOf).toMap();
-        TreeMap<String, Integer> result = EntryStream.of(base).toCustomMap(TreeMap::new);
-        assertEquals(base, result);
-        result = EntryStream.of(base).parallel().toCustomMap(TreeMap::new);
-        assertEquals(base, result);
+        for(EntryStreamSupplier<String, Integer> supplier : entryStream(() -> EntryStream.of(base))) {
+            TreeMap<String, Integer> result = supplier.get().toCustomMap(TreeMap::new);
+            assertEquals(base, result);
+        }
 
         Map<Integer, String> expected = new HashMap<>();
         expected.put(3, "aaa");
@@ -484,13 +484,12 @@ public class EntryStreamTest {
                 .toArray(Point[]::new);
         double expected = StreamEx.of(pts).cross(pts).mapKeyValue(Point::distance).mapToDouble(Double::doubleValue)
                 .max().getAsDouble();
-        assertEquals(expected, EntryStream.ofPairs(pts).mapKeyValue(Point::distance).mapToDouble(Double::doubleValue)
-                .max().getAsDouble(), 0.0);
-        assertEquals(expected,
-            EntryStream.ofPairs(pts).parallel().mapKeyValue(Point::distance).mapToDouble(Double::doubleValue).max()
+        for(EntryStreamSupplier<Point, Point> supplier: entryStream(() -> EntryStream.ofPairs(pts))) {
+            assertEquals(expected, supplier.get().mapKeyValue(Point::distance).mapToDouble(Double::doubleValue).max()
                     .getAsDouble(), 0.0);
+        }
     }
-
+    
     @Test
     public void testDistinctKeysValues() {
         Supplier<EntryStream<Integer, String>> s = () -> EntryStream.of(1, "a", 1, "b", 2, "b").append(2, "c", 1, "c",
