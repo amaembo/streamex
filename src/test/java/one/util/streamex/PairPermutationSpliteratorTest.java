@@ -48,8 +48,8 @@ public class PairPermutationSpliteratorTest {
 
     @Test
     public void testCharacteristics() {
-        PairPermutationSpliterator<Integer, Integer> spltr = new PairPermutationSpliterator<Integer, Integer>(
-                Arrays.asList(1, 2, 3), Integer::sum);
+        PairPermutationSpliterator<Integer, Integer> spltr = new PairPermutationSpliterator<>(Arrays.asList(1, 2, 3),
+                Integer::sum);
         assertTrue(spltr.hasCharacteristics(Spliterator.ORDERED));
         assertTrue(spltr.hasCharacteristics(Spliterator.SIZED));
         assertTrue(spltr.hasCharacteristics(Spliterator.SUBSIZED));

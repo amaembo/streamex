@@ -75,20 +75,20 @@ public class MoreCollectorsTest {
     @Test
     public void testToArray() {
         List<String> input = Arrays.asList("a", "bb", "c", "", "cc", "eee", "bb", "ddd");
-        for (StreamExSupplier<String> supplier : streamEx(input::stream)) {
+        streamEx(input::stream, supplier -> {
             Map<Integer, String[]> result = supplier.get().groupingBy(String::length, HashMap::new,
                 MoreCollectors.toArray(String[]::new));
-            assertArrayEquals(supplier.toString(), new String[] { "" }, result.get(0));
-            assertArrayEquals(supplier.toString(), new String[] { "a", "c" }, result.get(1));
-            assertArrayEquals(supplier.toString(), new String[] { "bb", "cc", "bb" }, result.get(2));
-            assertArrayEquals(supplier.toString(), new String[] { "eee", "ddd" }, result.get(3));
-        }
+            assertArrayEquals(new String[] { "" }, result.get(0));
+            assertArrayEquals(new String[] { "a", "c" }, result.get(1));
+            assertArrayEquals(new String[] { "bb", "cc", "bb" }, result.get(2));
+            assertArrayEquals(new String[] { "eee", "ddd" }, result.get(3));
+        });
     }
 
     @Test
     public void testDistinctCount() {
         List<String> input = Arrays.asList("a", "bb", "c", "cc", "eee", "bb", "bc", "ddd");
-        for (StreamExSupplier<String> supplier : streamEx(input::stream)) {
+        streamEx(input::stream, supplier -> {
             Map<String, Integer> result = supplier.get().groupingBy(s -> s.substring(0, 1), HashMap::new,
                 MoreCollectors.distinctCount(String::length));
             assertEquals(1, (int) result.get("a"));
@@ -96,22 +96,22 @@ public class MoreCollectorsTest {
             assertEquals(2, (int) result.get("c"));
             assertEquals(1, (int) result.get("d"));
             assertEquals(1, (int) result.get("e"));
-        }
+        });
     }
 
     @Test
     public void testDistinctBy() {
         List<String> input = Arrays.asList("a", "bb", "c", "cc", "eee", "bb", "bc", "ddd", "ca", "ce", "cf", "ded",
             "dump");
-        for (StreamExSupplier<String> supplier : streamEx(input::stream)) {
+        streamEx(input::stream, supplier -> {
             Map<String, List<String>> result = supplier.get().groupingBy(s -> s.substring(0, 1), HashMap::new,
                 MoreCollectors.distinctBy(String::length));
-            assertEquals(supplier.toString(), Arrays.asList("a"), result.get("a"));
-            assertEquals(supplier.toString(), Arrays.asList("bb"), result.get("b"));
-            assertEquals(supplier.toString(), Arrays.asList("c", "cc"), result.get("c"));
-            assertEquals(supplier.toString(), Arrays.asList("ddd", "dump"), result.get("d"));
-            assertEquals(supplier.toString(), Arrays.asList("eee"), result.get("e"));
-        }
+            assertEquals(Arrays.asList("a"), result.get("a"));
+            assertEquals(Arrays.asList("bb"), result.get("b"));
+            assertEquals(Arrays.asList("c", "cc"), result.get("c"));
+            assertEquals(Arrays.asList("ddd", "dump"), result.get("d"));
+            assertEquals(Arrays.asList("eee"), result.get("e"));
+        });
     }
 
     @Test
@@ -145,7 +145,7 @@ public class MoreCollectorsTest {
 
         Integer a = new Integer(1), b = new Integer(1), c = new Integer(1000), d = new Integer(1000);
         ints = IntStreamEx.range(10, 100).boxed().append(a, c).prepend(b, d).toList();
-        for (StreamExSupplier<Integer> supplier : streamEx(ints::stream)) {
+        streamEx(ints::stream, supplier -> {
             List<Integer> list = supplier.get().collect(MoreCollectors.maxAll());
             assertEquals(2, list.size());
             assertSame(d, list.get(0));
@@ -155,7 +155,7 @@ public class MoreCollectorsTest {
             assertEquals(2, list.size());
             assertSame(b, list.get(0));
             assertSame(a, list.get(1));
-        }
+        });
     }
 
     private List<Integer> getMaxAll(List<Integer> ints, Comparator<Integer> c) {
@@ -343,10 +343,8 @@ public class MoreCollectorsTest {
         boolean[] expected = new boolean[input.size()];
         for (int i = 0; i < expected.length; i++)
             expected[i] = input.get(i) > 50;
-        for (StreamExSupplier<Integer> supplier : streamEx(input::stream)) {
-            assertArrayEquals(supplier.toString(), expected,
-                supplier.get().collect(MoreCollectors.toBooleanArray(x -> x > 50)));
-        }
+        streamEx(input::stream,
+            supplier -> assertArrayEquals(expected, supplier.get().collect(MoreCollectors.toBooleanArray(x -> x > 50))));
     }
 
     @Test

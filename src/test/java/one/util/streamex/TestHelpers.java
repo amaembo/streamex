@@ -34,10 +34,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.IntConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.junit.ComparisonFailure;
 
 import one.util.streamex.IntStreamEx;
 import one.util.streamex.StreamEx;
@@ -81,7 +84,7 @@ public class TestHelpers {
 
         @Override
         public String toString() {
-            return super.toString() + "/" + mode;
+            return mode.toString();
         }
     }
 
@@ -114,6 +117,43 @@ public class TestHelpers {
                 .map(mode -> new StreamExSupplier<>(base, mode)).toList();
     }
     
+    static void withMessage(String message, Runnable r) {
+        try {
+            r.run();
+        }
+        catch(ComparisonFailure cmp) {
+            ComparisonFailure ex = new ComparisonFailure(message + ": " + cmp.getMessage(), cmp.getExpected(),
+                    cmp.getActual());
+            ex.setStackTrace(cmp.getStackTrace());
+            throw ex;
+        }
+        catch(AssertionError err) {
+            AssertionError ex = new AssertionError(message + ": " + err.getMessage(), err.getCause());
+            ex.setStackTrace(err.getStackTrace());
+            throw ex;
+        }
+        catch(RuntimeException | Error err) {
+            throw new RuntimeException(message + ": " + err.getMessage(), err);
+        }
+    }
+    
+    static void repeat(int times, IntConsumer consumer) {
+        for (int i = 1; i <= times; i++) {
+            int finalI = i;
+            withMessage("#" + i, () -> consumer.accept(finalI));
+        }
+    }
+    
+    static <T> void streamEx(Supplier<Stream<T>> base, Consumer<StreamExSupplier<T>> consumer) {
+        for(StreamExSupplier<T> supplier : streamEx(base)) {
+            withMessage(supplier.toString(), () -> consumer.accept(supplier));
+        }
+    }
+    
+    static <T> void emptyStreamEx(Class<T> clazz, Consumer<StreamExSupplier<T>> consumer) {
+        streamEx(() -> Stream.<T> empty(), consumer);
+    }
+
     static <K, V> List<EntryStreamSupplier<K, V>> entryStream(Supplier<Stream<Map.Entry<K, V>>> base) {
         return StreamEx.of(Mode.values())
                 .map(mode -> new EntryStreamSupplier<>(base, mode)).toList();
@@ -210,10 +250,6 @@ public class TestHelpers {
         }
     }
 
-    static <T> List<StreamExSupplier<T>> emptyStreamEx(Class<T> clazz) {
-        return streamEx(() -> Stream.<T> empty());
-    }
-
     static <T> void checkSpliterator(String msg, Supplier<Spliterator<T>> supplier) {
         List<T> expected = new ArrayList<>();
         supplier.get().forEachRemaining(expected::add);
@@ -308,10 +344,10 @@ public class TestHelpers {
         }
     }
 
-    static void checkIllegalStateException(String message, Runnable r, String key, String value1, String value2) {
+    static void checkIllegalStateException(Runnable r, String key, String value1, String value2) {
         try {
             r.run();
-            fail(message+": no exception");
+            fail("no exception");
         }
         catch(IllegalStateException ex) {
             String exmsg = ex.getMessage();
@@ -323,7 +359,7 @@ public class TestHelpers {
                     + value1 + "' and '" + value2 + "')")
                     && !exmsg.equals("java.lang.IllegalStateException: Duplicate entry for key '" + key + "' (attempt to merge values '"
                     + value2 + "' and '" + value1 + "')"))
-                fail(message + ": wrong exception message: " + exmsg);
+                fail("wrong exception message: " + exmsg);
         }
     }
 }

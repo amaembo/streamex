@@ -261,18 +261,18 @@ public class EntryStreamTest {
         expected.put(2, "bbdd");
         Function<StreamExSupplier<String>, EntryStream<Integer, String>> fn = supplier -> supplier.get().mapToEntry(
             String::length, Function.identity());
-        for(StreamExSupplier<String> supplier : streamEx(() -> StreamEx.of("aaa", "bb", "dd"))) {
+        streamEx(() -> StreamEx.of("aaa", "bb", "dd"), supplier -> {
             HashMap<Integer, String> customMap = fn.apply(supplier).toCustomMap(String::concat, HashMap::new);
-            assertEquals(supplier.toString(), expected, customMap);
+            assertEquals(expected, customMap);
             Map<Integer, String> map = fn.apply(supplier).toMap(String::concat);
-            assertEquals(supplier.toString(), expected, map);
+            assertEquals(expected, map);
             SortedMap<Integer, String> sortedMap = fn.apply(supplier).toSortedMap(String::concat);
-            assertEquals(supplier.toString(), expected, sortedMap);
+            assertEquals(expected, sortedMap);
             
-            checkIllegalStateException(supplier.toString(), () -> fn.apply(supplier).toMap(), "2", "dd", "bb");
-            checkIllegalStateException(supplier.toString(), () -> fn.apply(supplier).toSortedMap(), "2", "dd", "bb");
-            checkIllegalStateException(supplier.toString(), () -> fn.apply(supplier).toCustomMap(HashMap::new), "2", "dd", "bb");
-        }
+            checkIllegalStateException(() -> fn.apply(supplier).toMap(), "2", "dd", "bb");
+            checkIllegalStateException(() -> fn.apply(supplier).toSortedMap(), "2", "dd", "bb");
+            checkIllegalStateException(() -> fn.apply(supplier).toCustomMap(HashMap::new), "2", "dd", "bb");
+        });
 
         assertEquals(createMap(), EntryStream.of(createMap()).parallel().toMap());
         assertTrue(EntryStream.of(createMap()).parallel().toMap() instanceof ConcurrentMap);
@@ -350,13 +350,13 @@ public class EntryStreamTest {
         resultTree = s.get().parallel().grouping(TreeMap::new);
         assertEquals(expected, resultTree);
 
-        for (StreamExSupplier<Integer> supplier : streamEx(() -> IntStreamEx.range(1000).boxed())) {
-            assertEquals(supplier.toString(), EntryStream.of(0, 500, 1, 500).toMap(),
+        streamEx(() -> IntStreamEx.range(1000).boxed(), supplier -> {
+            assertEquals(EntryStream.of(0, 500, 1, 500).toMap(),
                 supplier.get().mapToEntry(i -> i / 500, i -> i).grouping(MoreCollectors.countingInt()));
             ConcurrentSkipListMap<Integer, Integer> map = supplier.get().mapToEntry(i -> i / 500, i -> i)
                     .grouping(ConcurrentSkipListMap::new, MoreCollectors.countingInt());
-            assertEquals(supplier.toString(), EntryStream.of(0, 500, 1, 500).toMap(), map);
-        }
+            assertEquals(EntryStream.of(0, 500, 1, 500).toMap(), map);
+        });
     }
 
     @Test
