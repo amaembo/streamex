@@ -52,6 +52,7 @@ import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.IntPredicate;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -1494,10 +1495,9 @@ public class StreamExTest {
             () -> IntStreamEx.range(1000).boxed(),
             s -> assertEquals(asList(2, 343, 997),
                 s.get().filter(x -> x == 0 || x == 343 || x == 999).mapFirst(x -> x + 2).mapLast(x -> x - 2).toList()));
-        streamEx(
-            () -> IntStreamEx.range(50).boxed()
-                    .foldLeft(StreamEx.of(0), (stream, i) -> stream.append(i).mapLast(x -> x + 2)),
-            s -> assertEquals(IntStreamEx.range(2, 52).boxed().prepend(0).toList(), s.get().toList()));
+        Supplier<Stream<Integer>> base = () -> IntStreamEx.range(50).boxed()
+                .foldLeft(StreamEx.of(0), (stream, i) -> stream.append(i).mapLast(x -> x + 2));
+        streamEx(base, s -> assertEquals(IntStreamEx.range(2, 52).boxed().prepend(0).toList(), s.get().toList()));
         streamEx(asList("red", "green", "blue", "orange")::stream,
             s -> assertEquals("red, green, blue, or orange", s.get().mapLast("or "::concat).joining(", ")));
     }
