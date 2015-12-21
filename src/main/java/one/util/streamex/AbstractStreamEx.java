@@ -1172,8 +1172,8 @@ import static one.util.streamex.StreamExInternals.*;
      * This is a terminal operation.
      * 
      * <p>
-     * This method may work slowly on parallel streams as it must process
-     * elements strictly left to right. If your accumulator function is
+     * This method cannot take all the advantages of parallel streams as it must
+     * process elements strictly left to right. If your accumulator function is
      * associative and you can provide a combiner function, consider using
      * {@link #reduce(Object, BiFunction, BinaryOperator)} method.
      * 
@@ -1227,8 +1227,8 @@ import static one.util.streamex.StreamExInternals.*;
      * This is a terminal operation.
      * 
      * <p>
-     * This method may work slowly on parallel streams as it must process
-     * elements strictly left to right. If your accumulator function is
+     * This method cannot take all the advantages of parallel streams as it must
+     * process elements strictly left to right. If your accumulator function is
      * associative, consider using {@link #reduce(BinaryOperator)} method.
      * 
      * <p>

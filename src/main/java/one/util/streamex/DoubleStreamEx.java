@@ -646,51 +646,6 @@ public class DoubleStreamEx implements DoubleStream {
     }
 
     /**
-     * Folds the elements of this stream using the provided seed object and
-     * accumulation function, going left to right. This is equivalent to:
-     * 
-     * <pre>
-     * {@code
-     *     double result = identity;
-     *     for (double element : this stream)
-     *         result = accumulator.apply(result, element)
-     *     return result;
-     * }
-     * </pre>
-     *
-     * <p>
-     * This is a terminal operation.
-     * 
-     * <p>
-     * This method may work slowly on parallel streams as it must process
-     * elements strictly left to right. If your accumulator function is
-     * associative, consider using {@link #reduce(double, DoubleBinaryOperator)}
-     * method.
-     * 
-     * <p>
-     * For parallel stream it's not guaranteed that accumulator will always be
-     * executed in the same thread.
-     *
-     * @param seed
-     *            the starting value
-     * @param accumulator
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function for incorporating an additional element into a result
-     * @return the result of the folding
-     * @see #reduce(double, DoubleBinaryOperator)
-     * @see #foldLeft(DoubleBinaryOperator)
-     * @since 0.4.0
-     */
-    public double foldLeft(double seed, DoubleBinaryOperator accumulator) {
-        double[] box = new double[] { seed };
-        stream.forEachOrdered(t -> box[0] = accumulator.applyAsDouble(box[0], t));
-        return box[0];
-    }
-
-    /**
      * Folds the elements of this stream using the provided accumulation
      * function, going left to right. This is equivalent to:
      * 
@@ -714,8 +669,8 @@ public class DoubleStreamEx implements DoubleStream {
      * This is a terminal operation.
      * 
      * <p>
-     * This method may work slowly on parallel streams as it must process
-     * elements strictly left to right. If your accumulator function is
+     * This method cannot take all the advantages of parallel streams as it must
+     * process elements strictly left to right. If your accumulator function is
      * associative, consider using {@link #reduce(DoubleBinaryOperator)} method.
      * 
      * <p>
@@ -747,6 +702,51 @@ public class DoubleStreamEx implements DoubleStream {
     }
 
     /**
+     * Folds the elements of this stream using the provided seed object and
+     * accumulation function, going left to right. This is equivalent to:
+     * 
+     * <pre>
+     * {@code
+     *     double result = identity;
+     *     for (double element : this stream)
+     *         result = accumulator.apply(result, element)
+     *     return result;
+     * }
+     * </pre>
+     *
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * This method cannot take all the advantages of parallel streams as it must
+     * process elements strictly left to right. If your accumulator function is
+     * associative, consider using {@link #reduce(double, DoubleBinaryOperator)}
+     * method.
+     * 
+     * <p>
+     * For parallel stream it's not guaranteed that accumulator will always be
+     * executed in the same thread.
+     *
+     * @param seed
+     *            the starting value
+     * @param accumulator
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function for incorporating an additional element into a result
+     * @return the result of the folding
+     * @see #reduce(double, DoubleBinaryOperator)
+     * @see #foldLeft(DoubleBinaryOperator)
+     * @since 0.4.0
+     */
+    public double foldLeft(double seed, DoubleBinaryOperator accumulator) {
+        double[] box = new double[] { seed };
+        stream.forEachOrdered(t -> box[0] = accumulator.applyAsDouble(box[0], t));
+        return box[0];
+    }
+
+    /**
      * Produces an array containing cumulative results of applying the
      * accumulation function going left to right.
      * 
@@ -771,7 +771,7 @@ public class DoubleStreamEx implements DoubleStream {
      *         stream and every successor element is the result of applying
      *         accumulator function to the previous array element and the
      *         corresponding stream element. The resulting array has the same
-     *         size as this stream.
+     *         length as this stream.
      * @see #foldLeft(DoubleBinaryOperator)
      * @since 0.5.1
      */
@@ -1709,6 +1709,8 @@ public class DoubleStreamEx implements DoubleStream {
      * values, each conforming to the given origin (inclusive) and bound
      * (exclusive) produced by given {@link Random} object.
      *
+     * @param random
+     *            a {@link Random} object to produce the stream from
      * @param randomNumberOrigin
      *            the origin (inclusive) of each random value
      * @param randomNumberBound
@@ -1727,6 +1729,8 @@ public class DoubleStreamEx implements DoubleStream {
      * (inclusive) and bound (exclusive) produced by given {@link Random}
      * object.
      *
+     * @param random
+     *            a {@link Random} object to produce the stream from
      * @param randomNumberOrigin
      *            the origin (inclusive) of each random value
      * @param randomNumberBound

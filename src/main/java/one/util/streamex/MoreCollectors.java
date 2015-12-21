@@ -50,7 +50,6 @@ import java.util.stream.Collector.Characteristics;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import one.util.streamex.StreamExInternals.ObjIntBox;
 import static one.util.streamex.StreamExInternals.*;
 
 /**
@@ -807,14 +806,13 @@ public final class MoreCollectors {
             long count = 0;
             long index = -1;
         }
-        BiConsumer<Container, T> accumulator = (c, t) -> {
+        return Collector.of(Container::new, (c, t) -> {
             if (c.index == -1 || comparator.compare(c.value, t) > 0) {
                 c.value = t;
                 c.index = c.count;
             }
             c.count++;
-        };
-        BinaryOperator<Container> combiner = (c1, c2) -> {
+        }, (c1, c2) -> {
             if (c1.index == -1 || (c2.index != -1 && comparator.compare(c1.value, c2.value) > 0)) {
                 c2.index += c1.count;
                 c2.count += c1.count;
@@ -822,10 +820,7 @@ public final class MoreCollectors {
             }
             c1.count += c2.count;
             return c1;
-        };
-        Function<Container, OptionalLong> finisher = c -> c.index == -1 ? OptionalLong.empty() : OptionalLong
-                .of(c.index);
-        return Collector.of(Container::new, accumulator, combiner, finisher);
+        }, c -> c.index == -1 ? OptionalLong.empty() : OptionalLong.of(c.index));
     }
 
     /**
@@ -1423,8 +1418,8 @@ public final class MoreCollectors {
      * href="http://www.unicode.org/glossary/#high_surrogate_code_unit"> Unicode
      * high-surrogate code unit</a> only if it's not succeeded by <a
      * href="http://www.unicode.org/glossary/#low_surrogate_code_unit"> Unicode
-     * low-surrogate code unit</a> in any of input sequences. Normally the
-     * ending high-surrogate code unit is removed from prefix.
+     * low-surrogate code unit</a> in any of the input sequences. Normally the
+     * ending high-surrogate code unit is removed from the prefix.
      * 
      * <p>
      * This method returns a <a
@@ -1475,8 +1470,8 @@ public final class MoreCollectors {
      * href="http://www.unicode.org/glossary/#low_surrogate_code_unit"> Unicode
      * low-surrogate code unit</a> only if it's not preceded by <a
      * href="http://www.unicode.org/glossary/#high_surrogate_code_unit"> Unicode
-     * high-surrogate code unit</a> in any of input sequences. Normally the
-     * starting low-surrogate code unit is removed from suffix.
+     * high-surrogate code unit</a> in any of the input sequences. Normally the
+     * starting low-surrogate code unit is removed from the suffix.
      * 
      * <p>
      * This method returns a <a
@@ -1524,6 +1519,8 @@ public final class MoreCollectors {
      * Returns a collector which collects input elements into {@code List}
      * removing the elements following their dominator element. The dominator
      * elements are defined according to given isDominator {@code BiPredicate}.
+     * The isDominator relation must be transitive (if A dominates over B and B
+     * dominates over C, then A also dominates over C).
      * 
      * <p>
      * This operation is similar to
@@ -1542,17 +1539,17 @@ public final class MoreCollectors {
      * <p>
      * Using {@code stream.collapse((a, b) -> a >= b).toList()} you will get the
      * numbers which are bigger than their immediate predecessor (
-     * {@code [1, 5, 4, 7]}). However using
-     * {@code stream.collect(dominators((a, b) -> a >= b))} you will get the
-     * numbers which are bigger than any predecessor ({@code [1, 5, 7]}).
+     * {@code [1, 5, 4, 7]}), because (3, 4) pair is not collapsed. However
+     * using {@code stream.collect(dominators((a, b) -> a >= b))} you will get
+     * the numbers which are bigger than any predecessor ({@code [1, 5, 7]}) as
+     * 5 is the dominator element for the subsequent 3, 4 and 2.
      * 
      * @param <T>
      *            type of the input elements.
      * @param isDominator
      *            a non-interfering, stateless, transitive {@code BiPredicate}
-     *            which takes the leftmost element of the series and the current
-     *            element and returns true if the current element belongs to the
-     *            same series.
+     *            which returns true if the first argument is the dominator for
+     *            the second argument.
      * @return a collector which collects input element into {@code List}
      *         leaving only dominator elements.
      * @see StreamEx#collapse(BiPredicate)
