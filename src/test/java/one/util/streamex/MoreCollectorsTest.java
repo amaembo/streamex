@@ -220,6 +220,11 @@ public class MoreCollectorsTest {
 
         checkShortCircuitCollector("head(10000)", IntStreamEx.rangeClosed(1, 10000).boxed().toList(), 10000,
             () -> Stream.iterate(1, x -> x + 1), MoreCollectors.head(10000), true);
+        
+        for (int size : new int[] { 1, 10, 20, 40, 60, 80, 90, 98, 99, 100 }) {
+            checkShortCircuitCollector("head-unordered-" + size, Collections.nCopies(size, "test"), size,
+                () -> StreamEx.constant("test", 100), MoreCollectors.head(size));
+        }
     }
 
     @Test
