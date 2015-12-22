@@ -1374,7 +1374,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * 
      * <p>
      * This operation is equivalent to
-     * {@code collapse(collapsible, Collectors.toList())}, but more efficient.
+     * {@code collapse(sameGroup, Collectors.toList())}, but more efficient.
      * 
      * @param sameGroup
      *            a non-interfering, stateless predicate to apply to the pair of
