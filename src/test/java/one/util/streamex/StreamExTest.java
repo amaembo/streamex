@@ -901,6 +901,15 @@ public class StreamExTest {
         r.add(new TreeNode("childC"));
         assertEquals("root,childA,grandA1,grandA2,childB,grandB1,childC", r.flatStream().joining(","));
         assertEquals("root,childA,grandA1,grandA2,childB,grandB1,childC", r.flatStream().parallel().joining(","));
+        
+        streamEx(
+            () -> StreamEx.ofTree("", str -> str.length() >= 3 ? null : Stream.of("a", "b").map(str::concat)),
+            supplier -> {
+                assertEquals(Arrays.asList("", "a", "aa", "aaa", "aab", "ab", "aba", "abb", "b", "ba", "baa", "bab",
+                    "bb", "bba", "bbb"), supplier.get().toList());
+                assertEquals(Arrays.asList("a", "b", "aa", "ab", "ba", "bb", "aaa", "aab", "aba", "abb", "baa", "bab",
+                    "bba", "bbb"), supplier.get().sortedByInt(String::length).without("").toList());
+            });
     }
 
     @Test
