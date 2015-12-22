@@ -53,6 +53,7 @@ Zip two arrays or lists | `any.zip()`
 Split `CharSequence` with regexp | `StreamEx.split()`
 Stream of `List` subLists of fixed length | `StreamEx.ofSubLists()`
 Stream of all elements of tree-like structure | `StreamEx.ofTree()`
+Stream of all elements of tree-like structure tracking the elements depth | `EntryStream.ofTree()`
 Stream of all possible pairs of array or `List` elements | `StreamEx/EntryStream.ofPairs()`
 Stream of all possible tuples of given length of `Collection` elements | `StreamEx.cartesianPower()`
 Stream of all possible tuples of given `Collection` of collections | `StreamEx.cartesianProduct()`

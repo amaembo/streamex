@@ -1365,8 +1365,9 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     public static <T> EntryStream<T, T> ofPairs(T[] array) {
         return ofPairs(Arrays.asList(array));
     }
-    
-    static <T> Stream<Entry<Integer, T>> flatTraverse(Stream<Entry<Integer, T>> src, BiFunction<Integer, T, Stream<T>> streamProvider) {
+
+    static <T> Stream<Entry<Integer, T>> flatTraverse(Stream<Entry<Integer, T>> src,
+            BiFunction<Integer, T, Stream<T>> streamProvider) {
         return src.flatMap(entry -> {
             Integer depth = entry.getKey();
             Stream<T> result = streamProvider.apply(depth, entry.getValue());
@@ -1375,13 +1376,64 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         });
     }
 
+    /**
+     * Return a new {@link EntryStream} containing all the nodes of tree-like
+     * data structure in entry values along with the corresponding tree depths
+     * in entry keys, in depth-first order.
+     * 
+     * <p>
+     * The keys of the returned stream are non-negative integer numbers. 0 is
+     * used for the root node only, 1 is for root immediate children, 2 is for
+     * their children and so on.
+     * 
+     * @param <T>
+     *            the type of tree nodes
+     * @param root
+     *            root node of the tree
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each tree
+     *            node and its depth which returns null for leaf nodes or stream
+     *            of direct children for non-leaf nodes.
+     * @return the new sequential ordered {@code EntryStream}
+     * @since 0.5.2
+     * @see StreamEx#ofTree(Object, Function)
+     * @see #ofTree(Object, Class, BiFunction)
+     */
     public static <T> EntryStream<Integer, T> ofTree(T root, BiFunction<Integer, T, Stream<T>> mapper) {
         Stream<T> rootStream = mapper.apply(0, root);
         Stream<Entry<Integer, T>> base = Stream.of(new ObjIntBox<>(root, 0));
         return rootStream == null ? of(base) : of(flatTraverse(rootStream.map(t -> new ObjIntBox<>(t, 1)), mapper))
                 .prepend(base);
     }
-    
+
+    /**
+     * Return a new {@link EntryStream} containing all the nodes of tree-like
+     * data structure in entry values along with the corresponding tree depths
+     * in entry keys, in depth-first order.
+     * 
+     * <p>
+     * The keys of the returned stream are non-negative integer numbers. 0 is
+     * used for the root node only, 1 is for root immediate children, 2 is for
+     * their children and so on.
+     * 
+     * @param <T>
+     *            the base type of tree nodes
+     * @param <TT>
+     *            the sub-type of composite tree nodes which may have children
+     * @param root
+     *            root node of the tree
+     * @param collectionClass
+     *            a class representing the composite tree node
+     * @param mapper
+     *            a non-interfering, stateless function to apply to each
+     *            composite tree node and its depth which returns stream of
+     *            direct children. May return null if the given node has no
+     *            children.
+     * @return the new sequential ordered stream
+     * @since 0.5.2
+     * @see StreamEx#ofTree(Object, Class, Function)
+     * @see #ofTree(Object, BiFunction)
+     */
     @SuppressWarnings("unchecked")
     public static <T, TT extends T> EntryStream<Integer, T> ofTree(T root, Class<TT> collectionClass,
             BiFunction<Integer, TT, Stream<T>> mapper) {

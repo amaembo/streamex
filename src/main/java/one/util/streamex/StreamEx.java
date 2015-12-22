@@ -2215,6 +2215,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *            children for non-leaf nodes.
      * @return the new sequential ordered stream
      * @since 0.2.2
+     * @see EntryStream#ofTree(Object, BiFunction)
+     * @see #ofTree(Object, Class, Function)
      */
     public static <T> StreamEx<T> ofTree(T root, Function<T, Stream<T>> mapper) {
         Stream<T> rootStream = mapper.apply(root);
@@ -2239,6 +2241,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *            May return null if the given node has no children.
      * @return the new sequential ordered stream
      * @since 0.2.2
+     * @see EntryStream#ofTree(Object, Class, BiFunction)
+     * @see #ofTree(Object, Function)
      */
     @SuppressWarnings("unchecked")
     public static <T, TT extends T> StreamEx<T> ofTree(T root, Class<TT> collectionClass, Function<TT, Stream<T>> mapper) {
