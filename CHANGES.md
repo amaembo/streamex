@@ -1,6 +1,7 @@
 # StreamEx changes
 
 ### 0.5.2
+* [#19] Optimized: pairMap and forPairs may work faster now, especially in the presence of upstream intermediate operations.
 * [#42] Added: `EntryStream.ofTree` methods to stream the tree-like structure tracking nodes depth.
 
 ### 0.5.1
