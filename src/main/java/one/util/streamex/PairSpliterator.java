@@ -31,8 +31,8 @@ import static one.util.streamex.StreamExInternals.*;
 /**
  * @author Tagir Valeev
  */
-/* package */ abstract class PairSpliterator<T, S extends Spliterator<T>, R, SS extends PairSpliterator<T, S, R, SS>> implements
-        Spliterator<R>, Cloneable {
+/* package */abstract class PairSpliterator<T, S extends Spliterator<T>, R, SS extends PairSpliterator<T, S, R, SS>>
+        implements Spliterator<R>, Cloneable {
     private static Sink<?> EMPTY = new Sink<>(null);
     // Common lock for all the derived spliterators
     private final Object lock = new Object();
@@ -52,10 +52,10 @@ import static one.util.streamex.StreamExInternals.*;
         }
 
         boolean push(T payload, BiConsumer<T, T> fn, boolean isLeft) {
-            if(lock == null)
+            if (lock == null)
                 return false;
             T otherPayload;
-            synchronized(lock) {
+            synchronized (lock) {
                 Sink<T> that = other;
                 if (that == null)
                     return false;
@@ -67,7 +67,7 @@ import static one.util.streamex.StreamExInternals.*;
                 other = null;
                 that.clear();
             }
-            if(isLeft)
+            if (isLeft)
                 fn.accept(payload, otherPayload);
             else
                 fn.accept(otherPayload, payload);
@@ -75,16 +75,16 @@ import static one.util.streamex.StreamExInternals.*;
         }
 
         boolean connect(Sink<T> right, BiConsumer<T, T> fn) {
-            if(lock == null)
+            if (lock == null)
                 return false;
             T a, b;
-            synchronized(lock) {
-                Sink<T> leftLeft = this.other; 
+            synchronized (lock) {
+                Sink<T> leftLeft = this.other;
                 Sink<T> rightRight = right.other;
-                if(leftLeft == null || rightRight == null) {
-                    if(rightRight != null)
+                if (leftLeft == null || rightRight == null) {
+                    if (rightRight != null)
                         rightRight.clear();
-                    if(leftLeft != null)
+                    if (leftLeft != null)
                         leftLeft.clear();
                     return false;
                 }
@@ -144,7 +144,18 @@ import static one.util.streamex.StreamExInternals.*;
         }
     }
 
-    static final class PSOfRef<T, R> extends PairSpliterator<T, Spliterator<T>, R, PSOfRef<T, R>> implements Consumer<T> {
+    void finish(BiConsumer<T, T> fn, T cur) {
+        Sink<T> r = right, l = left;
+        right = left = null;
+        if (l != null) {
+            l.connect(r, fn);
+        } else if (r != null) {
+            r.push(cur, fn, true);
+        }
+    }
+
+    static final class PSOfRef<T, R> extends PairSpliterator<T, Spliterator<T>, R, PSOfRef<T, R>> implements
+            Consumer<T> {
         private final BiFunction<? super T, ? super T, ? extends R> mapper;
         private T cur;
 
@@ -185,19 +196,16 @@ import static one.util.streamex.StreamExInternals.*;
 
         @Override
         public void forEachRemaining(Consumer<? super R> action) {
-            Sink<T> l = left, r = right;
-            left = right = null;
-            if (l != null) {
-                if (!source.tryAdvance(this)) {
-                    l.connect(r, fn(action));
-                    return;
+            BiConsumer<T, T> fn = fn(action);
+            source.forEachRemaining(next -> {
+                if (left != null) {
+                    left.push(cur = next, fn, false);
+                    left = null;
+                } else {
+                    action.accept(mapper.apply(cur, cur = next));
                 }
-                l.push(cur, fn(action), false);
-            }
-            source.forEachRemaining(next -> action.accept(mapper.apply(cur, cur = next)));
-            if (r != null) {
-                r.push(cur, fn(action), true);
-            }
+            });
+            finish(fn, cur);
         }
     }
 
@@ -243,19 +251,16 @@ import static one.util.streamex.StreamExInternals.*;
 
         @Override
         public void forEachRemaining(IntConsumer action) {
-            Sink<Integer> l = left, r = right;
-            left = right = null;
-            if (l != null) {
-                if (!source.tryAdvance(this)) {
-                    l.connect(r, fn(action));
-                    return;
+            BiConsumer<Integer, Integer> fn = fn(action);
+            source.forEachRemaining((int next) -> {
+                if (left != null) {
+                    left.push(cur = next, fn, false);
+                    left = null;
+                } else {
+                    action.accept(mapper.applyAsInt(cur, cur = next));
                 }
-                l.push(cur, fn(action), false);
-            }
-            source.forEachRemaining((IntConsumer) next -> action.accept(mapper.applyAsInt(cur, cur = next)));
-            if (r != null) {
-                r.push(cur, fn(action), true);
-            }
+            });
+            finish(fn, cur);
         }
     }
 
@@ -301,19 +306,16 @@ import static one.util.streamex.StreamExInternals.*;
 
         @Override
         public void forEachRemaining(LongConsumer action) {
-            Sink<Long> l = left, r = right;
-            left = right = null;
-            if (l != null) {
-                if (!source.tryAdvance(this)) {
-                    l.connect(r, fn(action));
-                    return;
+            BiConsumer<Long, Long> fn = fn(action);
+            source.forEachRemaining((long next) -> {
+                if (left != null) {
+                    left.push(cur = next, fn, false);
+                    left = null;
+                } else {
+                    action.accept(mapper.applyAsLong(cur, cur = next));
                 }
-                l.push(cur, fn(action), false);
-            }
-            source.forEachRemaining((LongConsumer) next -> action.accept(mapper.applyAsLong(cur, cur = next)));
-            if (r != null) {
-                r.push(cur, fn(action), true);
-            }
+            });
+            finish(fn, cur);
         }
     }
 
@@ -359,19 +361,16 @@ import static one.util.streamex.StreamExInternals.*;
 
         @Override
         public void forEachRemaining(DoubleConsumer action) {
-            Sink<Double> l = left, r = right;
-            left = right = null;
-            if (l != null) {
-                if (!source.tryAdvance(this)) {
-                    l.connect(r, fn(action));
-                    return;
+            BiConsumer<Double, Double> fn = fn(action);
+            source.forEachRemaining((double next) -> {
+                if (left != null) {
+                    left.push(cur = next, fn, false);
+                    left = null;
+                } else {
+                    action.accept(mapper.applyAsDouble(cur, cur = next));
                 }
-                l.push(cur, fn(action), false);
-            }
-            source.forEachRemaining((DoubleConsumer) next -> action.accept(mapper.applyAsDouble(cur, cur = next)));
-            if (r != null) {
-                r.push(cur, fn(action), true);
-            }
+            });
+            finish(fn, cur);
         }
     }
 }
