@@ -903,7 +903,7 @@ public class StreamExTest {
         assertEquals("root,childA,grandA1,grandA2,childB,grandB1,childC", r.flatStream().parallel().joining(","));
         
         streamEx(
-            () -> StreamEx.ofTree("", str -> str.length() >= 3 ? null : Stream.of("a", "b").map(str::concat)),
+            () -> StreamEx.ofTree("", (String str) -> str.length() >= 3 ? null : Stream.of("a", "b").map(str::concat)),
             supplier -> {
                 assertEquals(Arrays.asList("", "a", "aa", "aaa", "aab", "ab", "aba", "abb", "b", "ba", "baa", "bab",
                     "bb", "bba", "bbb"), supplier.get().toList());
