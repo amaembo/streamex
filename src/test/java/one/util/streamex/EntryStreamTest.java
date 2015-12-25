@@ -517,7 +517,7 @@ public class EntryStreamTest {
                 supplier.get().selectValues(String.class).grouping(TreeMap::new).toString()));
 
         entryStream(
-            () -> EntryStream.ofTree("", (depth, str) -> depth >= 3 ? null : Stream.of("a", "b").map(str::concat)),
+            () -> EntryStream.ofTree("", (Integer depth, String str) -> depth >= 3 ? null : Stream.of("a", "b").map(str::concat)),
             supplier -> {
                 assertEquals(Arrays.asList("", "a", "aa", "aaa", "aab", "ab", "aba", "abb", "b", "ba", "baa", "bab",
                     "bb", "bba", "bbb"), supplier.get().values().toList());
