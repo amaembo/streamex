@@ -23,12 +23,8 @@ public class UnknownSizeSpliteratorTest {
         assertEquals(1, count.get());
         assertEquals(Long.MAX_VALUE, spliterator.estimateSize());
         Spliterator<Integer> spliterator2 = spliterator.trySplit();
-        assertEquals(49, spliterator.estimateSize());
-        assertEquals(49, spliterator2.estimateSize());
         assertTrue(spliterator.tryAdvance(count::addAndGet));
         assertTrue(spliterator2.tryAdvance(count::addAndGet));
-        assertEquals(48, spliterator.estimateSize());
-        assertEquals(48, spliterator2.estimateSize());
         assertEquals(54, count.get());
     }
 

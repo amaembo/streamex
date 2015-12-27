@@ -8,12 +8,14 @@ import java.util.function.DoubleConsumer;
 import java.util.function.IntConsumer;
 import java.util.function.LongConsumer;
 
-/* package */abstract class UnknownSizeSpliterator<T, I extends Iterator<? extends T>> implements Spliterator<T> {
+/* package */abstract class UnknownSizeSpliterator<T, S extends UnknownSizeSpliterator<? extends T, S, I>, I extends Iterator<? extends T>>
+        implements Spliterator<T> {
     static final int BATCH_UNIT = 1 << 10; // batch array size increment
     static final int MAX_BATCH = 1 << 25; // max batch array size;
 
     I it;
     int index, fence;
+    long est = Long.MAX_VALUE;
 
     public UnknownSizeSpliterator(I iterator) {
         this.it = iterator;
@@ -29,17 +31,27 @@ import java.util.function.LongConsumer;
         return n > MAX_BATCH ? MAX_BATCH : n;
     }
 
+    S correctSize(S prefix) {
+        if (this.it != null)
+            prefix.est = Long.MAX_VALUE - 1;
+        else {
+            prefix.est = this.est / 2;
+            this.est -= prefix.est;
+        }
+        return prefix;
+    }
+
     @Override
     public long estimateSize() {
-        return it == null ? fence - index : Long.MAX_VALUE;
+        return est;
     }
 
     @Override
     public int characteristics() {
-        return it == null ? SIZED | SUBSIZED | ORDERED : ORDERED;
+        return ORDERED;
     }
 
-    static class USOfRef<T> extends UnknownSizeSpliterator<T, Iterator<? extends T>> {
+    static class USOfRef<T> extends UnknownSizeSpliterator<T, USOfRef<T>, Iterator<? extends T>> {
         Object[] array;
 
         USOfRef(Iterator<? extends T> iterator) {
@@ -63,13 +75,13 @@ import java.util.function.LongConsumer;
                 } while (++j < n && i.hasNext());
                 fence = j;
                 if (i.hasNext()) {
-                    return new USOfRef<>(a, 0, j);
+                    return correctSize(new USOfRef<>(a, 0, j));
                 }
                 it = null;
                 array = a;
             }
             int lo = index, mid = (lo + fence) >>> 1;
-            return (lo >= mid) ? null : new USOfRef<>(array, lo, index = mid);
+            return (lo >= mid) ? null : correctSize(new USOfRef<>(array, lo, index = mid));
         }
 
         @Override
@@ -88,6 +100,7 @@ import java.util.function.LongConsumer;
                 }
             }
             index = fence;
+            est = 0;
         }
 
         @Override
@@ -105,11 +118,13 @@ import java.util.function.LongConsumer;
                 action.accept(t);
                 return true;
             }
+            est = 0;
             return false;
         }
     }
 
-    static class USOfInt extends UnknownSizeSpliterator<Integer, PrimitiveIterator.OfInt> implements Spliterator.OfInt {
+    static class USOfInt extends UnknownSizeSpliterator<Integer, USOfInt, PrimitiveIterator.OfInt> implements
+            Spliterator.OfInt {
         int[] array;
 
         USOfInt(PrimitiveIterator.OfInt iterator) {
@@ -133,13 +148,13 @@ import java.util.function.LongConsumer;
                 } while (++j < n && i.hasNext());
                 fence = j;
                 if (i.hasNext()) {
-                    return new USOfInt(a, 0, j);
+                    return correctSize(new USOfInt(a, 0, j));
                 }
                 it = null;
                 array = a;
             }
             int lo = index, mid = (lo + fence) >>> 1;
-            return (lo >= mid) ? null : new USOfInt(array, lo, index = mid);
+            return (lo >= mid) ? null : correctSize(new USOfInt(array, lo, index = mid));
         }
 
         @Override
@@ -156,6 +171,7 @@ import java.util.function.LongConsumer;
                 }
             }
             index = fence;
+            est = 0;
         }
 
         @Override
@@ -171,11 +187,13 @@ import java.util.function.LongConsumer;
                 action.accept(array[index++]);
                 return true;
             }
+            est = 0;
             return false;
         }
     }
 
-    static class USOfLong extends UnknownSizeSpliterator<Long, PrimitiveIterator.OfLong> implements Spliterator.OfLong {
+    static class USOfLong extends UnknownSizeSpliterator<Long, USOfLong, PrimitiveIterator.OfLong> implements
+            Spliterator.OfLong {
         long[] array;
 
         USOfLong(PrimitiveIterator.OfLong iterator) {
@@ -199,13 +217,13 @@ import java.util.function.LongConsumer;
                 } while (++j < n && i.hasNext());
                 fence = j;
                 if (i.hasNext()) {
-                    return new USOfLong(a, 0, j);
+                    return correctSize(new USOfLong(a, 0, j));
                 }
                 it = null;
                 array = a;
             }
             int lo = index, mid = (lo + fence) >>> 1;
-            return (lo >= mid) ? null : new USOfLong(array, lo, index = mid);
+            return (lo >= mid) ? null : correctSize(new USOfLong(array, lo, index = mid));
         }
 
         @Override
@@ -222,6 +240,7 @@ import java.util.function.LongConsumer;
                 }
             }
             index = fence;
+            est = 0;
         }
 
         @Override
@@ -237,22 +256,24 @@ import java.util.function.LongConsumer;
                 action.accept(array[index++]);
                 return true;
             }
+            est = 0;
             return false;
         }
     }
-    
-    static class USOfDouble extends UnknownSizeSpliterator<Double, PrimitiveIterator.OfDouble> implements Spliterator.OfDouble {
+
+    static class USOfDouble extends UnknownSizeSpliterator<Double, USOfDouble, PrimitiveIterator.OfDouble> implements
+            Spliterator.OfDouble {
         double[] array;
-        
+
         USOfDouble(PrimitiveIterator.OfDouble iterator) {
             super(iterator);
         }
-        
+
         USOfDouble(double[] array, int index, int fence) {
             super(index, fence);
             this.array = array;
         }
-        
+
         @Override
         public Spliterator.OfDouble trySplit() {
             PrimitiveIterator.OfDouble i = it;
@@ -265,15 +286,15 @@ import java.util.function.LongConsumer;
                 } while (++j < n && i.hasNext());
                 fence = j;
                 if (i.hasNext()) {
-                    return new USOfDouble(a, 0, j);
+                    return correctSize(new USOfDouble(a, 0, j));
                 }
                 it = null;
                 array = a;
             }
             int lo = index, mid = (lo + fence) >>> 1;
-                    return (lo >= mid) ? null : new USOfDouble(array, lo, index = mid);
+            return (lo >= mid) ? null : correctSize(new USOfDouble(array, lo, index = mid));
         }
-        
+
         @Override
         public void forEachRemaining(DoubleConsumer action) {
             if (it != null)
@@ -288,8 +309,9 @@ import java.util.function.LongConsumer;
                 }
             }
             index = fence;
+            est = 0;
         }
-        
+
         @Override
         public boolean tryAdvance(DoubleConsumer action) {
             if (it != null) {
@@ -303,6 +325,7 @@ import java.util.function.LongConsumer;
                 action.accept(array[index++]);
                 return true;
             }
+            est = 0;
             return false;
         }
     }
