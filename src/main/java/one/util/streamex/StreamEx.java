@@ -1670,7 +1670,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see BufferedReader#lines()
      */
     public static StreamEx<String> ofLines(BufferedReader reader) {
-        return of(reader.lines());
+        return of(UnknownSizeSpliterator.optimize(reader.lines()));
     }
 
     /**
@@ -1705,8 +1705,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public static StreamEx<String> ofLines(Reader reader) {
         if (reader instanceof BufferedReader)
-            return of(((BufferedReader) reader).lines());
-        return of(new BufferedReader(reader).lines());
+            return ofLines((BufferedReader) reader);
+        return of(UnknownSizeSpliterator.optimize(new BufferedReader(reader).lines()));
     }
 
     /**
@@ -1738,7 +1738,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Files#lines(Path)
      */
     public static StreamEx<String> ofLines(Path path) throws IOException {
-        return of(Files.lines(path));
+        return of(UnknownSizeSpliterator.optimize(Files.lines(path)));
     }
 
     /**
@@ -1774,7 +1774,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.5.0
      */
     public static StreamEx<String> ofLines(Path path, Charset charset) throws IOException {
-        return of(Files.lines(path, charset));
+        return of(UnknownSizeSpliterator.optimize(Files.lines(path, charset)));
     }
 
     /**
@@ -1910,7 +1910,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public static StreamEx<String> split(CharSequence str, Pattern pattern) {
         if (str.length() == 0)
             return of("");
-        return of(pattern.splitAsStream(str));
+        return of(UnknownSizeSpliterator.optimize(pattern.splitAsStream(str)));
     }
 
     /**
@@ -1947,7 +1947,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
                 return split(str, ch);
             }
         }
-        return of(Pattern.compile(regex).splitAsStream(str));
+        return of(UnknownSizeSpliterator.optimize(Pattern.compile(regex).splitAsStream(str)));
     }
 
     /**

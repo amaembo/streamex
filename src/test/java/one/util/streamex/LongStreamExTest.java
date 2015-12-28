@@ -78,6 +78,8 @@ public class LongStreamExTest {
                 .toArray());
         assertArrayEquals(new long[] { 1, 5, 3 },
             LongStreamEx.of(Spliterators.iterator(Spliterators.spliterator(new long[] { 1, 5, 3 }, 0))).toArray());
+        assertArrayEquals(new long[0], LongStreamEx.of(Spliterators.iterator(Spliterators.emptyLongSpliterator()))
+            .parallel().toArray());
         
         assertArrayEquals(new long[] { 2, 4, 6 }, LongStreamEx.of(new Long[] { 2L, 4L, 6L }).toArray());
     }

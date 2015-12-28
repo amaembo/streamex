@@ -1,5 +1,9 @@
 package one.util.streamex;
 
+import java.lang.reflect.Field;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.Iterator;
 import java.util.PrimitiveIterator;
 import java.util.Spliterator;
@@ -7,17 +11,65 @@ import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
 import java.util.function.IntConsumer;
 import java.util.function.LongConsumer;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /* package */abstract class UnknownSizeSpliterator<T, S extends UnknownSizeSpliterator<? extends T, S, I>, I extends Iterator<? extends T>>
         implements Spliterator<T> {
     static final int BATCH_UNIT = 1 << 10; // batch array size increment
     static final int MAX_BATCH = 1 << 25; // max batch array size;
 
+    private static Field SOURCE_SPLITERATOR;
+    private static Field SPLITERATOR_ITERATOR;
+
+    static {
+        try {
+            AccessController.doPrivileged((PrivilegedExceptionAction<Void>) () -> {
+                SOURCE_SPLITERATOR = Class.forName("java.util.stream.AbstractPipeline").getDeclaredField(
+                    "sourceSpliterator");
+                SOURCE_SPLITERATOR.setAccessible(true);
+                SPLITERATOR_ITERATOR = Class.forName("java.util.Spliterators$IteratorSpliterator").getDeclaredField(
+                    "it");
+                SPLITERATOR_ITERATOR.setAccessible(true);
+                return null;
+            });
+        } catch (PrivilegedActionException e) {
+        }
+    }
+
+    /**
+     * Optimize the stream created on IteratorSpliterator replacing it with
+     * UnknownSizeSpliterator.
+     * 
+     * @param stream
+     *            original stream
+     * @return either original or optimized stream
+     */
+    @SuppressWarnings("unchecked")
+    static <T> Stream<T> optimize(Stream<T> stream) {
+        if (SOURCE_SPLITERATOR == null || SPLITERATOR_ITERATOR == null)
+            return stream;
+        Iterator<T> it = null;
+        try {
+            Spliterator<T> spliterator = (Spliterator<T>) SOURCE_SPLITERATOR.get(stream);
+            if (spliterator != null && !spliterator.hasCharacteristics(SIZED)
+                && spliterator.getClass().getName().equals("java.util.Spliterators$IteratorSpliterator")) {
+                it = (Iterator<T>) SPLITERATOR_ITERATOR.get(spliterator);
+            }
+        } catch (IllegalArgumentException | IllegalAccessException e) {
+            // ignore
+        }
+        if (it == null)
+            return stream;
+        stream.spliterator(); // consume stream
+        return StreamSupport.stream(new USOfRef<>(it), stream.isParallel()).onClose(stream::close);
+    }
+
     I it;
     int index, fence;
     long est = Long.MAX_VALUE;
 
-    public UnknownSizeSpliterator(I iterator) {
+    UnknownSizeSpliterator(I iterator) {
         this.it = iterator;
     }
 
@@ -70,9 +122,9 @@ import java.util.function.LongConsumer;
                 int n = getN();
                 Object[] a = new Object[n];
                 int j = 0;
-                do {
-                    a[j] = i.next();
-                } while (++j < n && i.hasNext());
+                while(i.hasNext() && j < n) {
+                    a[j++] = i.next();
+                }
                 fence = j;
                 if (i.hasNext()) {
                     return correctSize(new USOfRef<>(a, 0, j));
@@ -143,9 +195,9 @@ import java.util.function.LongConsumer;
                 int n = getN();
                 int[] a = new int[n];
                 int j = 0;
-                do {
-                    a[j] = i.next();
-                } while (++j < n && i.hasNext());
+                while(i.hasNext() && j < n) {
+                    a[j++] = i.next();
+                }
                 fence = j;
                 if (i.hasNext()) {
                     return correctSize(new USOfInt(a, 0, j));
@@ -212,9 +264,9 @@ import java.util.function.LongConsumer;
                 int n = getN();
                 long[] a = new long[n];
                 int j = 0;
-                do {
-                    a[j] = i.next();
-                } while (++j < n && i.hasNext());
+                while(i.hasNext() && j < n) {
+                    a[j++] = i.next();
+                }
                 fence = j;
                 if (i.hasNext()) {
                     return correctSize(new USOfLong(a, 0, j));
@@ -281,9 +333,9 @@ import java.util.function.LongConsumer;
                 int n = getN();
                 double[] a = new double[n];
                 int j = 0;
-                do {
-                    a[j] = i.next();
-                } while (++j < n && i.hasNext());
+                while(i.hasNext() && j < n) {
+                    a[j++] = i.next();
+                }
                 fence = j;
                 if (i.hasNext()) {
                     return correctSize(new USOfDouble(a, 0, j));

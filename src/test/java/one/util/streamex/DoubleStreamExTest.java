@@ -74,6 +74,8 @@ public class DoubleStreamExTest {
             DoubleStreamEx.of(Spliterators.spliterator(new double[] { 1, 5, 3 }, 0)).toArray(), 0.0);
         assertArrayEquals(new double[] { 1, 5, 3 },
             DoubleStreamEx.of(Spliterators.iterator(Spliterators.spliterator(new double[] { 1, 5, 3 }, 0))).toArray(), 0.0);
+        assertArrayEquals(new double[0], DoubleStreamEx
+                .of(Spliterators.iterator(Spliterators.emptyDoubleSpliterator())).parallel().toArray(), 0.0);
         
         assertArrayEquals(new double[] { 2, 4, 6 }, DoubleStreamEx.of(new Double[] { 2.0, 4.0, 6.0 }).toArray(), 0.0);
     }
