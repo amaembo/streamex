@@ -242,7 +242,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         }));
     }
 
-    public <VV> EntryStream<K, VV> flatMapToValue(BiFunction<? super K, ? super V, ? extends Stream<? extends VV>> mapper) {
+    public <VV> EntryStream<K, VV> flatMapToValue(
+            BiFunction<? super K, ? super V, ? extends Stream<? extends VV>> mapper) {
         return strategy().newEntryStream(stream.flatMap(e -> {
             Stream<? extends VV> s = mapper.apply(e.getKey(), e.getValue());
             return s == null ? null : s.map(v -> new SimpleImmutableEntry<>(e.getKey(), v));
@@ -1271,6 +1272,318 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     public static <K, V> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3) {
         return of(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
             new SimpleImmutableEntry<>(k3, v3)));
+    }
+
+    /**
+     * Returns a sequential {@code EntryStream} containing four key-value pairs
+     *
+     * @param <K>
+     *            the type of key
+     * @param <V>
+     *            the type of value
+     * @param k1
+     *            the key of the first element
+     * @param v1
+     *            the value of the first element
+     * @param k2
+     *            the key of the second element
+     * @param v2
+     *            the value of the second element
+     * @param k3
+     *            the key of the third element
+     * @param v3
+     *            the value of the third element
+     * @param k4
+     *            the key of the fourth element
+     * @param v4
+     *            the value of the fourth element
+     * @return a sequential stream
+     * @since 0.5.2
+     */
+    public static <K, V> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4) {
+        return of(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
+            new SimpleImmutableEntry<>(k3, v3), new SimpleImmutableEntry<>(k4, v4)));
+    }
+
+    /**
+     * Returns a sequential {@code EntryStream} containing five key-value pairs
+     *
+     * @param <K>
+     *            the type of key
+     * @param <V>
+     *            the type of value
+     * @param k1
+     *            the key of the first element
+     * @param v1
+     *            the value of the first element
+     * @param k2
+     *            the key of the second element
+     * @param v2
+     *            the value of the second element
+     * @param k3
+     *            the key of the third element
+     * @param v3
+     *            the value of the third element
+     * @param k4
+     *            the key of the fourth element
+     * @param v4
+     *            the value of the fourth element
+     * @param k5
+     *            the key of the fifth element
+     * @param v5
+     *            the value of the fifth element
+     * @return a sequential stream
+     * @since 0.5.2
+     */
+    public static <K, V> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5) {
+        return of(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
+            new SimpleImmutableEntry<>(k3, v3), new SimpleImmutableEntry<>(k4, v4), new SimpleImmutableEntry<>(k5, v5)));
+    }
+
+    /**
+     * Returns a sequential {@code EntryStream} containing six key-value pairs
+     *
+     * @param <K>
+     *            the type of key
+     * @param <V>
+     *            the type of value
+     * @param k1
+     *            the key of the first element
+     * @param v1
+     *            the value of the first element
+     * @param k2
+     *            the key of the second element
+     * @param v2
+     *            the value of the second element
+     * @param k3
+     *            the key of the third element
+     * @param v3
+     *            the value of the third element
+     * @param k4
+     *            the key of the fourth element
+     * @param v4
+     *            the value of the fourth element
+     * @param k5
+     *            the key of the fifth element
+     * @param v5
+     *            the value of the fifth element
+     * @param k6
+     *            the key of the sixth element
+     * @param v6
+     *            the value of the sixth element
+     * @return a sequential stream
+     * @since 0.5.2
+     */
+    public static <K, V> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6) {
+        return of(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
+            new SimpleImmutableEntry<>(k3, v3), new SimpleImmutableEntry<>(k4, v4), new SimpleImmutableEntry<>(k5, v5),
+            new SimpleImmutableEntry<>(k6, v6)));
+    }
+
+    /**
+     * Returns a sequential {@code EntryStream} containing seven key-value pairs
+     *
+     * @param <K>
+     *            the type of key
+     * @param <V>
+     *            the type of value
+     * @param k1
+     *            the key of the first element
+     * @param v1
+     *            the value of the first element
+     * @param k2
+     *            the key of the second element
+     * @param v2
+     *            the value of the second element
+     * @param k3
+     *            the key of the third element
+     * @param v3
+     *            the value of the third element
+     * @param k4
+     *            the key of the fourth element
+     * @param v4
+     *            the value of the fourth element
+     * @param k5
+     *            the key of the fifth element
+     * @param v5
+     *            the value of the fifth element
+     * @param k6
+     *            the key of the sixth element
+     * @param v6
+     *            the value of the sixth element
+     * @param k7
+     *            the key of the seventh element
+     * @param v7
+     *            the value of the seventh element
+     * @return a sequential stream
+     * @since 0.5.2
+     */
+    public static <K, V> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6,
+            K k7, V v7) {
+        return of(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
+            new SimpleImmutableEntry<>(k3, v3), new SimpleImmutableEntry<>(k4, v4), new SimpleImmutableEntry<>(k5, v5),
+            new SimpleImmutableEntry<>(k6, v6), new SimpleImmutableEntry<>(k7, v7)));
+    }
+
+    /**
+     * Returns a sequential {@code EntryStream} containing eight key-value pairs
+     *
+     * @param <K>
+     *            the type of key
+     * @param <V>
+     *            the type of value
+     * @param k1
+     *            the key of the first element
+     * @param v1
+     *            the value of the first element
+     * @param k2
+     *            the key of the second element
+     * @param v2
+     *            the value of the second element
+     * @param k3
+     *            the key of the third element
+     * @param v3
+     *            the value of the third element
+     * @param k4
+     *            the key of the fourth element
+     * @param v4
+     *            the value of the fourth element
+     * @param k5
+     *            the key of the fifth element
+     * @param v5
+     *            the value of the fifth element
+     * @param k6
+     *            the key of the sixth element
+     * @param v6
+     *            the value of the sixth element
+     * @param k7
+     *            the key of the seventh element
+     * @param v7
+     *            the value of the seventh element
+     * @param k8
+     *            the key of the eighth element
+     * @param v8
+     *            the value of the eighth element
+     * @return a sequential stream
+     * @since 0.5.2
+     */
+    public static <K, V> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6,
+            K k7, V v7, K k8, V v8) {
+        return of(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
+            new SimpleImmutableEntry<>(k3, v3), new SimpleImmutableEntry<>(k4, v4), new SimpleImmutableEntry<>(k5, v5),
+            new SimpleImmutableEntry<>(k6, v6), new SimpleImmutableEntry<>(k7, v7), new SimpleImmutableEntry<>(k8, v8)));
+    }
+
+    /**
+     * Returns a sequential {@code EntryStream} containing nine key-value pairs
+     *
+     * @param <K>
+     *            the type of key
+     * @param <V>
+     *            the type of value
+     * @param k1
+     *            the key of the first element
+     * @param v1
+     *            the value of the first element
+     * @param k2
+     *            the key of the second element
+     * @param v2
+     *            the value of the second element
+     * @param k3
+     *            the key of the third element
+     * @param v3
+     *            the value of the third element
+     * @param k4
+     *            the key of the fourth element
+     * @param v4
+     *            the value of the fourth element
+     * @param k5
+     *            the key of the fifth element
+     * @param v5
+     *            the value of the fifth element
+     * @param k6
+     *            the key of the sixth element
+     * @param v6
+     *            the value of the sixth element
+     * @param k7
+     *            the key of the seventh element
+     * @param v7
+     *            the value of the seventh element
+     * @param k8
+     *            the key of the eighth element
+     * @param v8
+     *            the value of the eighth element
+     * @param k9
+     *            the key of the ninth element
+     * @param v9
+     *            the value of the ninth element
+     * @return a sequential stream
+     * @since 0.5.2
+     */
+    public static <K, V> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6,
+            K k7, V v7, K k8, V v8, K k9, V v9) {
+        return of(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
+            new SimpleImmutableEntry<>(k3, v3), new SimpleImmutableEntry<>(k4, v4), new SimpleImmutableEntry<>(k5, v5),
+            new SimpleImmutableEntry<>(k6, v6), new SimpleImmutableEntry<>(k7, v7), new SimpleImmutableEntry<>(k8, v8),
+            new SimpleImmutableEntry<>(k9, v9)));
+    }
+
+    /**
+     * Returns a sequential {@code EntryStream} containing ten key-value pairs
+     *
+     * @param <K>
+     *            the type of key
+     * @param <V>
+     *            the type of value
+     * @param k1
+     *            the key of the first element
+     * @param v1
+     *            the value of the first element
+     * @param k2
+     *            the key of the second element
+     * @param v2
+     *            the value of the second element
+     * @param k3
+     *            the key of the third element
+     * @param v3
+     *            the value of the third element
+     * @param k4
+     *            the key of the fourth element
+     * @param v4
+     *            the value of the fourth element
+     * @param k5
+     *            the key of the fifth element
+     * @param v5
+     *            the value of the fifth element
+     * @param k6
+     *            the key of the sixth element
+     * @param v6
+     *            the value of the sixth element
+     * @param k7
+     *            the key of the seventh element
+     * @param v7
+     *            the value of the seventh element
+     * @param k8
+     *            the key of the eighth element
+     * @param v8
+     *            the value of the eighth element
+     * @param k9
+     *            the key of the ninth element
+     * @param v9
+     *            the value of the ninth element
+     * @param k10
+     *            the key of the tenth element
+     * @param v10
+     *            the value of the tenth element
+     * @return a sequential stream
+     * @since 0.5.2
+     */
+    public static <K, V> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6,
+            K k7, V v7, K k8, V v8, K k9, V v9, K k10, V v10) {
+        return of(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
+            new SimpleImmutableEntry<>(k3, v3), new SimpleImmutableEntry<>(k4, v4), new SimpleImmutableEntry<>(k5, v5),
+            new SimpleImmutableEntry<>(k6, v6), new SimpleImmutableEntry<>(k7, v7), new SimpleImmutableEntry<>(k8, v8),
+            new SimpleImmutableEntry<>(k9, v9), new SimpleImmutableEntry<>(k10, v10)));
     }
 
     /**
