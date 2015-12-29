@@ -1,10 +1,12 @@
 # StreamEx changes
 
 ### 0.5.2
+* [#3] Optimized: parallel performance of `StreamEx.ofLines` as well as `StreamEx.split`
 * [#19] Optimized: pairMap and forPairs may work faster now, especially in the presence of upstream intermediate operations.
 * [#42] Added: `EntryStream.ofTree` methods to stream the tree-like structure tracking nodes depth.
 * [#46] Optimized: parallel performance of all `of(Iterator)` methods.
-* [#3] Optimized: parallel performance of `StreamEx.ofLines` as well as `StreamEx.split`
+* [#48] `EntryStream.of(key, value, key, value...)` now accepts up to 10 pairs.
+* Fixed: `StreamEx.of(emptyList().iterator()).parallel()` failed with `NoSuchElementException`.
 
 ### 0.5.1
 
