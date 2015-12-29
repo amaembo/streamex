@@ -48,6 +48,18 @@ import one.util.streamex.StreamExTest.Point;
 import org.junit.Test;
 
 public class EntryStreamTest {
+    private void checkAsString(String expected, EntryStream<?, ?> stream) {
+        assertEquals(expected, stream.join("->").joining(";"));
+    }
+
+    private Map<String, Integer> createMap() {
+        Map<String, Integer> data = new LinkedHashMap<>();
+        data.put("a", 1);
+        data.put("bb", 22);
+        data.put("ccc", 33);
+        return data;
+    }
+
     @Test
     public void testCreate() {
         assertEquals(0, EntryStream.empty().count());
@@ -62,7 +74,6 @@ public class EntryStreamTest {
         assertEquals(expected, StreamEx.of("aaa", "bbb", "c").mapToEntry(String::length).toMap());
         assertEquals(expected, StreamEx.of("aaa", "bbb", "c").mapToEntry(s -> s, String::length).toMap());
         assertEquals(Collections.singletonMap("foo", 1), EntryStream.of("foo", 1).toMap());
-        assertEquals("a->b:c->d", EntryStream.of("a", "b", "c", "d").join("->").joining(":"));
         assertEquals(createMap(), EntryStream.of("a", 1, "bb", 22, "ccc", 33).toMap());
 
         assertEquals(
@@ -79,7 +90,25 @@ public class EntryStreamTest {
         assertEquals(Collections.singletonMap("aaa", 3),
             EntryStream.of(Collections.singletonMap("aaa", 3).entrySet().iterator()).toMap());
     }
-
+    
+    @Test
+    public void testCreateKeyValuePairs() {
+        checkAsString("a->1", EntryStream.of("a", 1));
+        checkAsString("a->1;b->2", EntryStream.of("a", 1, "b", 2));
+        checkAsString("a->1;b->2;c->3", EntryStream.of("a", 1, "b", 2, "c", 3));
+        checkAsString("a->1;b->2;c->3;d->4", EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4));
+        checkAsString("a->1;b->2;c->3;d->4;e->5", EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4, "e", 5));
+        checkAsString("a->1;b->2;c->3;d->4;e->5;f->6", EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4, "e", 5, "f", 6));
+        checkAsString("a->1;b->2;c->3;d->4;e->5;f->6;g->7",
+            EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4, "e", 5, "f", 6, "g", 7));
+        checkAsString("a->1;b->2;c->3;d->4;e->5;f->6;g->7;h->8",
+            EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4, "e", 5, "f", 6, "g", 7, "h", 8));
+        checkAsString("a->1;b->2;c->3;d->4;e->5;f->6;g->7;h->8;i->9",
+            EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4, "e", 5, "f", 6, "g", 7, "h", 8, "i", 9));
+        checkAsString("a->1;b->2;c->3;d->4;e->5;f->6;g->7;h->8;i->9;j->10",
+            EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4, "e", 5, "f", 6, "g", 7, "h", 8, "i", 9, "j", 10));
+    }
+    
     @Test
     public void testSequential() {
         EntryStream<String, Integer> stream = EntryStream.of(createMap());
@@ -235,7 +264,7 @@ public class EntryStreamTest {
                 .append(createMap()).filterKeys(k -> k.length() > 1).values().toList());
         assertEquals(EntryStream.of(createMap()).toList(), EntryStream.empty().append("a", 1, "bb", 22, "ccc", 33)
                 .toList());
-        assertEquals("bb:22,a:1,ccc:33", EntryStream.of("bb", 22).append("a", 1, "ccc", 33).join(":").joining(","));
+        checkAsString("bb->22;a->1;ccc->33", EntryStream.of("bb", 22).append("a", 1, "ccc", 33));
     }
 
     @Test
@@ -243,9 +272,8 @@ public class EntryStreamTest {
         assertEquals(Arrays.asList(5, 22, 33, 22, 33),
             EntryStream.of(createMap()).prepend(createMap()).prepend("dddd", 5).filterKeys(k -> k.length() > 1)
                     .values().toList());
-        assertEquals("a:1,ccc:33,bb:22", EntryStream.of("bb", 22).prepend("a", 1, "ccc", 33).join(":").joining(","));
-        assertEquals("a:1,ccc:33,dddd:40,bb:22",
-            EntryStream.of("bb", 22).prepend("a", 1, "ccc", 33, "dddd", 40).join(":").joining(","));
+        checkAsString("a->1;ccc->33;bb->22", EntryStream.of("bb", 22).prepend("a", 1, "ccc", 33));
+        checkAsString("a->1;ccc->33;dddd->40;bb->22", EntryStream.of("bb", 22).prepend("a", 1, "ccc", 33, "dddd", 40));
     }
 
     @Test
@@ -471,14 +499,6 @@ public class EntryStreamTest {
             EntryStream.of(createMap()).join(" = ", "[", "]").joining("; ", "{", "}"));
     }
 
-    private Map<String, Integer> createMap() {
-        Map<String, Integer> data = new LinkedHashMap<>();
-        data.put("a", 1);
-        data.put("bb", 22);
-        data.put("ccc", 33);
-        return data;
-    }
-
     @Test
     public void testOfPairs() {
         Random r = new Random(1);
@@ -494,12 +514,10 @@ public class EntryStreamTest {
 
     @Test
     public void testDistinctKeysValues() {
-        Supplier<EntryStream<Integer, String>> s = () -> EntryStream.of(1, "a", 1, "b", 2, "b").append(2, "c", 1, "c",
-            3, "c");
-        assertEquals("1=a,2=b,3=c", s.get().distinctKeys().join("=").joining(","));
-        assertEquals("1=a,2=b,3=c", s.get().parallel().distinctKeys().join("=").joining(","));
-        assertEquals("1=a,1=b,2=c", s.get().distinctValues().join("=").joining(","));
-        assertEquals("1=a,1=b,2=c", s.get().parallel().distinctValues().join("=").joining(","));
+        entryStream(() -> EntryStream.of(1, "a", 1, "b", 2, "b", 2, "c", 1, "c", 3, "c"), s -> {
+            checkAsString("1->a;2->b;3->c", s.get().distinctKeys());
+            checkAsString("1->a;1->b;2->c", s.get().distinctValues());
+        });
     }
 
     @Test
