@@ -5,6 +5,7 @@
 * [#19] Optimized: pairMap and forPairs may work faster now, especially in the presence of upstream intermediate operations.
 * [#42] Added: `EntryStream.ofTree` methods to stream the tree-like structure tracking nodes depth.
 * [#46] Optimized: parallel performance of all `of(Iterator)` methods.
+* [#47] Added: `EntryStream.flatMapToKey/flatMapToValue` methods.
 * [#48] `EntryStream.of(key, value, key, value...)` now accepts up to 10 pairs.
 * Fixed: `StreamEx.of(emptyList().iterator()).parallel()` failed with `NoSuchElementException`.
 

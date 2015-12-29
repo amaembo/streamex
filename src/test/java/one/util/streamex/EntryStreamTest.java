@@ -37,6 +37,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import one.util.streamex.EntryStream;
@@ -336,7 +337,25 @@ public class EntryStreamTest {
         assertEquals(expected, result);
         assertEquals(0, EntryStream.<Stream<String>, String> of(null, "a").flatMapKeys(Function.identity()).count());
     }
+    
+    @Test
+    public void testFlatMapToValue() {
+        checkAsString(
+            "a->a;a->aa;a->aaa;b->b;b->bb",
+            EntryStream.of("a", 3, "b", 2, "c", 0).flatMapToValue(
+                (str, cnt) -> cnt == 0 ? null : IntStream.rangeClosed(1, cnt).mapToObj(
+                    idx -> StreamEx.constant(str, idx).joining())));
+    }
 
+    @Test
+    public void testFlatMapToKey() {
+        checkAsString(
+            "a->3;aa->3;aaa->3;b->2;bb->2",
+            EntryStream.of("a", 3, "c", 0, "b", 2).flatMapToKey(
+                (str, cnt) -> cnt == 0 ? null : IntStream.rangeClosed(1, cnt).mapToObj(
+                    idx -> StreamEx.constant(str, idx).joining())));
+    }
+    
     @Test
     public void testFlatMapValues() {
         Map<String, List<Integer>> data1 = new HashMap<>();

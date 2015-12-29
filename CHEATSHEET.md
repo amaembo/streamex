@@ -107,8 +107,8 @@ Flat-map primitive stream to the stream of other type | `IntStreamEx/LongStreamE
 Flatten multiple collections to the stream of their elements | `StreamEx/EntryStream.flatCollection()`
 Flatten multiple maps to the stream of their entries | `StreamEx.flatMapToEntry()`
 Perform cross product of current stream with given array, `Collection` or `Stream` source creating entries | `StreamEx.cross()`
-Flat-map entry keys leaving values unchanged | `EntryStream.flatMapKeys()`
-Flat-map entry values leaving keys unchanged | `EntryStream.flatMapValues()`
+Flat-map entry keys leaving values unchanged | `EntryStream.flatMapKeys()/flatMapToKey()`
+Flat-map entry values leaving keys unchanged | `EntryStream.flatMapValues()/flatMapToValue()`
 Flat-map entry key and value using `BiFunction` | `EntryStream.flatMapKeyValue()`
 
 ### distinct
