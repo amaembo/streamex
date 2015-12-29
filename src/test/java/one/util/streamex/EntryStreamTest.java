@@ -522,6 +522,9 @@ public class EntryStreamTest {
 
     @Test
     public void testOfTree() {
+        entryStream(() -> EntryStream.ofTree("a", (Integer depth, String str) -> null),
+            supplier -> checkAsString("0->a", supplier.get()));
+
         List<Object> input = Arrays.asList(
             "aa",
             null,
