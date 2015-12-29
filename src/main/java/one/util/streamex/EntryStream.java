@@ -204,6 +204,13 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         }));
     }
 
+    public <KK> EntryStream<KK, V> flatMapToKey(BiFunction<? super K, ? super V, ? extends Stream<? extends KK>> mapper) {
+        return strategy().newEntryStream(stream.flatMap(e -> {
+            Stream<? extends KK> s = mapper.apply(e.getKey(), e.getValue());
+            return s == null ? null : s.map(k -> new SimpleImmutableEntry<KK, V>(k, e.getValue()));
+        }));
+    }
+
     /**
      * Returns an {@code EntryStream} consisting of the entries whose values are
      * results of replacing source values with the contents of a mapped stream
@@ -231,6 +238,13 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     public <VV> EntryStream<K, VV> flatMapValues(Function<? super V, ? extends Stream<? extends VV>> mapper) {
         return strategy().newEntryStream(stream.flatMap(e -> {
             Stream<? extends VV> s = mapper.apply(e.getValue());
+            return s == null ? null : s.map(v -> new SimpleImmutableEntry<>(e.getKey(), v));
+        }));
+    }
+
+    public <VV> EntryStream<K, VV> flatMapToValue(BiFunction<? super K, ? super V, ? extends Stream<? extends VV>> mapper) {
+        return strategy().newEntryStream(stream.flatMap(e -> {
+            Stream<? extends VV> s = mapper.apply(e.getKey(), e.getValue());
             return s == null ? null : s.map(v -> new SimpleImmutableEntry<>(e.getKey(), v));
         }));
     }
