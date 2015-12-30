@@ -59,10 +59,8 @@ import static one.util.streamex.StreamExInternals.*;
  * 
  * @author Tagir Valeev
  *
- * @param <K>
- *            the type of {@code Entry} keys
- * @param <V>
- *            the type of {@code Entry} values
+ * @param <K> the type of {@code Entry} keys
+ * @param <V> the type of {@code Entry} values
  */
 public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream<K, V>> {
     @SuppressWarnings("unchecked")
@@ -82,7 +80,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     <M extends Map<K, V>> Consumer<? super Entry<K, V>> toMapConsumer(M map) {
         return entry -> addToMap(map, entry.getKey(), Objects.requireNonNull(entry.getValue()));
     }
-    
+
     static <K, V> Stream<Entry<K, V>> withValue(Stream<? extends K> s, V value) {
         return s == null ? null : s.map(key -> new SimpleImmutableEntry<K, V>(key, value));
     }
@@ -90,7 +88,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     static <K, V> Stream<Entry<K, V>> withKey(K key, Stream<? extends V> s) {
         return s == null ? null : s.map(value -> new SimpleImmutableEntry<>(key, value));
     }
-    
+
     static <K, V, R> Function<? super Entry<K, V>, ? extends R> toFunction(
             BiFunction<? super K, ? super V, ? extends R> mapper) {
         return entry -> mapper.apply(entry.getKey(), entry.getValue());
@@ -129,8 +127,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * thread does not belong to that pool, it will wait till calculation
      * finishes.
      *
-     * @param fjp
-     *            a {@code ForkJoinPool} to submit the stream operation to.
+     * @param fjp a {@code ForkJoinPool} to submit the stream operation to.
      * @return a parallel stream bound to the supplied {@code ForkJoinPool}
      * @since 0.2.0
      */
@@ -146,8 +143,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * This is an <a href="package-summary.html#StreamOps">intermediate</a>
      * operation.
      *
-     * @param delimiter
-     *            the delimiter to be used between key and value
+     * @param delimiter the delimiter to be used between key and value
      * @return the new stream
      * @since 0.2.2
      */
@@ -165,14 +161,11 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * This is an <a href="package-summary.html#StreamOps">intermediate</a>
      * operation.
      *
-     * @param delimiter
-     *            the delimiter to be used between key and value
-     * @param prefix
-     *            the sequence of characters to be used at the beginning of each
-     *            resulting string
-     * @param suffix
-     *            the sequence of characters to be used at the end of each
-     *            resulting string
+     * @param delimiter the delimiter to be used between key and value
+     * @param prefix the sequence of characters to be used at the beginning of
+     *        each resulting string
+     * @param suffix the sequence of characters to be used at the end of each
+     *        resulting string
      * @return the new stream
      * @since 0.2.2
      */
@@ -194,15 +187,11 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * This is an <a href="package-summary.html#StreamOps">intermediate
      * operation</a>.
      *
-     * @param <KK>
-     *            The type of new keys
-     * @param mapper
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function to apply to each key which produces a stream of new
-     *            keys
+     * @param <KK> The type of new keys
+     * @param mapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to each key which produces a stream of new keys
      * @return the new stream
      */
     public <KK> EntryStream<KK, V> flatMapKeys(Function<? super K, ? extends Stream<? extends KK>> mapper) {
@@ -221,15 +210,12 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * This is an <a href="package-summary.html#StreamOps">intermediate
      * operation</a>.
      *
-     * @param <KK>
-     *            The type of new keys
-     * @param mapper
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function to apply to each key and value which produces a
-     *            stream of new keys
+     * @param <KK> The type of new keys
+     * @param mapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to each key and value which produces a stream of
+     *        new keys
      * @return the new stream
      * @since 0.5.2
      */
@@ -251,15 +237,12 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * This is an <a href="package-summary.html#StreamOps">intermediate
      * operation</a>.
      *
-     * @param <VV>
-     *            The type of new values
-     * @param mapper
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function to apply to each value which produces a stream of new
-     *            values
+     * @param <VV> The type of new values
+     * @param mapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to each value which produces a stream of new
+     *        values
      * @return the new stream
      */
     public <VV> EntryStream<K, VV> flatMapValues(Function<? super V, ? extends Stream<? extends VV>> mapper) {
@@ -278,15 +261,12 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * This is an <a href="package-summary.html#StreamOps">intermediate
      * operation</a>.
      *
-     * @param <VV>
-     *            The type of new values
-     * @param mapper
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function to apply to each key and value which produces a
-     *            stream of new values
+     * @param <VV> The type of new values
+     * @param mapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to each key and value which produces a stream of
+     *        new values
      * @return the new stream
      * @since 0.5.2
      */
@@ -307,11 +287,9 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * This is an <a href="package-summary.html#StreamOps">intermediate</a>
      * operation.
      *
-     * @param <R>
-     *            The element type of the new stream
-     * @param mapper
-     *            a non-interfering, stateless function to apply to each
-     *            key-value pair which produces a stream of new values
+     * @param <R> The element type of the new stream
+     * @param mapper a non-interfering, stateless function to apply to each
+     *        key-value pair which produces a stream of new values
      * @return the new stream
      * @since 0.3.0
      */
@@ -323,8 +301,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * Returns a new {@code EntryStream} which is a concatenation of this stream
      * and the stream created from the supplied map entries.
      * 
-     * @param map
-     *            the map to prepend to the stream
+     * @param map the map to prepend to the stream
      * @return the new stream
      * @since 0.2.1
      */
@@ -336,10 +313,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * Returns a new {@code EntryStream} which is a concatenation of this stream
      * and the supplied key-value pair.
      * 
-     * @param key
-     *            the key of the new {@code Entry} to append to this stream
-     * @param value
-     *            the value of the new {@code Entry} to append to this stream
+     * @param key the key of the new {@code Entry} to append to this stream
+     * @param value the value of the new {@code Entry} to append to this stream
      * @return the new stream
      */
     public EntryStream<K, V> append(K key, V value) {
@@ -350,14 +325,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * Returns a new {@code EntryStream} which is a concatenation of this stream
      * and two supplied key-value pairs.
      * 
-     * @param k1
-     *            the key of the first {@code Entry} to append to this stream
-     * @param v1
-     *            the value of the first {@code Entry} to append to this stream
-     * @param k2
-     *            the key of the second {@code Entry} to append to this stream
-     * @param v2
-     *            the value of the second {@code Entry} to append to this stream
+     * @param k1 the key of the first {@code Entry} to append to this stream
+     * @param v1 the value of the first {@code Entry} to append to this stream
+     * @param k2 the key of the second {@code Entry} to append to this stream
+     * @param v2 the value of the second {@code Entry} to append to this stream
      * @return the new stream
      * @since 0.2.3
      */
@@ -369,18 +340,12 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * Returns a new {@code EntryStream} which is a concatenation of this stream
      * and three supplied key-value pairs.
      * 
-     * @param k1
-     *            the key of the first {@code Entry} to append to this stream
-     * @param v1
-     *            the value of the first {@code Entry} to append to this stream
-     * @param k2
-     *            the key of the second {@code Entry} to append to this stream
-     * @param v2
-     *            the value of the second {@code Entry} to append to this stream
-     * @param k3
-     *            the key of the third {@code Entry} to append to this stream
-     * @param v3
-     *            the value of the third {@code Entry} to append to this stream
+     * @param k1 the key of the first {@code Entry} to append to this stream
+     * @param v1 the value of the first {@code Entry} to append to this stream
+     * @param k2 the key of the second {@code Entry} to append to this stream
+     * @param v2 the value of the second {@code Entry} to append to this stream
+     * @param k3 the key of the third {@code Entry} to append to this stream
+     * @param v3 the value of the third {@code Entry} to append to this stream
      * @return the new stream
      * @since 0.2.3
      */
@@ -393,8 +358,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * Returns a new {@code EntryStream} which is a concatenation of the stream
      * created from the supplied map entries and this stream.
      * 
-     * @param map
-     *            the map to prepend to the stream
+     * @param map the map to prepend to the stream
      * @return the new stream
      * @since 0.2.1
      */
@@ -406,10 +370,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * Returns a new {@code EntryStream} which is a concatenation of the
      * supplied key-value pair and this stream.
      * 
-     * @param key
-     *            the key of the new {@code Entry} to prepend to this stream
-     * @param value
-     *            the value of the new {@code Entry} to prepend to this stream
+     * @param key the key of the new {@code Entry} to prepend to this stream
+     * @param value the value of the new {@code Entry} to prepend to this stream
      * @return the new stream
      */
     public EntryStream<K, V> prepend(K key, V value) {
@@ -420,15 +382,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * Returns a new {@code EntryStream} which is a concatenation of two
      * supplied key-value pairs and this stream.
      * 
-     * @param k1
-     *            the key of the first {@code Entry} to prepend to this stream
-     * @param v1
-     *            the value of the first {@code Entry} to prepend to this stream
-     * @param k2
-     *            the key of the second {@code Entry} to prepend to this stream
-     * @param v2
-     *            the value of the second {@code Entry} to prepend to this
-     *            stream
+     * @param k1 the key of the first {@code Entry} to prepend to this stream
+     * @param v1 the value of the first {@code Entry} to prepend to this stream
+     * @param k2 the key of the second {@code Entry} to prepend to this stream
+     * @param v2 the value of the second {@code Entry} to prepend to this stream
      * @return the new stream
      * @since 0.2.3
      */
@@ -440,19 +397,12 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * Returns a new {@code EntryStream} which is a concatenation of three
      * supplied key-value pairs and this stream.
      * 
-     * @param k1
-     *            the key of the first {@code Entry} to prepend to this stream
-     * @param v1
-     *            the value of the first {@code Entry} to prepend to this stream
-     * @param k2
-     *            the key of the second {@code Entry} to prepend to this stream
-     * @param v2
-     *            the value of the second {@code Entry} to prepend to this
-     *            stream
-     * @param k3
-     *            the key of the third {@code Entry} to prepend to this stream
-     * @param v3
-     *            the value of the third {@code Entry} to prepend to this stream
+     * @param k1 the key of the first {@code Entry} to prepend to this stream
+     * @param v1 the value of the first {@code Entry} to prepend to this stream
+     * @param k2 the key of the second {@code Entry} to prepend to this stream
+     * @param v2 the value of the second {@code Entry} to prepend to this stream
+     * @param k3 the key of the third {@code Entry} to prepend to this stream
+     * @param v3 the value of the third {@code Entry} to prepend to this stream
      * @return the new stream
      * @since 0.2.3
      */
@@ -511,10 +461,9 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * This is an <a href="package-summary.html#StreamOps">intermediate</a>
      * operation.
      *
-     * @param <KK>
-     *            The type of the keys of the new stream
-     * @param keyMapper
-     *            a non-interfering, stateless function to apply to each key
+     * @param <KK> The type of the keys of the new stream
+     * @param keyMapper a non-interfering, stateless function to apply to each
+     *        key
      * @return the new stream
      */
     public <KK> EntryStream<KK, V> mapKeys(Function<? super K, ? extends KK> keyMapper) {
@@ -530,10 +479,9 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * This is an <a href="package-summary.html#StreamOps">intermediate</a>
      * operation.
      *
-     * @param <VV>
-     *            The type of the values of the new stream
-     * @param valueMapper
-     *            a non-interfering, stateless function to apply to each value
+     * @param <VV> The type of the values of the new stream
+     * @param valueMapper a non-interfering, stateless function to apply to each
+     *        value
      * @return the new stream
      */
     public <VV> EntryStream<K, VV> mapValues(Function<? super V, ? extends VV> valueMapper) {
@@ -549,11 +497,9 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * This is an <a href="package-summary.html#StreamOps">intermediate</a>
      * operation.
      *
-     * @param <R>
-     *            The element type of the new stream
-     * @param mapper
-     *            a non-interfering, stateless function to apply to key and
-     *            value of each {@link Entry} in this stream
+     * @param <R> The element type of the new stream
+     * @param mapper a non-interfering, stateless function to apply to key and
+     *        value of each {@link Entry} in this stream
      * @return the new stream
      */
     public <R> StreamEx<R> mapKeyValue(BiFunction<? super K, ? super V, ? extends R> mapper) {
@@ -568,11 +514,9 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * This is an <a href="package-summary.html#StreamOps">intermediate</a>
      * operation.
      *
-     * @param <KK>
-     *            The type of the keys of the new stream
-     * @param keyMapper
-     *            a non-interfering, stateless function to apply to each
-     *            key-value pair which returns the updated key
+     * @param <KK> The type of the keys of the new stream
+     * @param keyMapper a non-interfering, stateless function to apply to each
+     *        key-value pair which returns the updated key
      * @return the new stream
      * @since 0.3.0
      */
@@ -589,11 +533,9 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * This is an <a href="package-summary.html#StreamOps">intermediate</a>
      * operation.
      *
-     * @param <VV>
-     *            The type of the values of the new stream
-     * @param valueMapper
-     *            a non-interfering, stateless function to apply to each
-     *            key-value pair which returns the updated value
+     * @param <VV> The type of the values of the new stream
+     * @param valueMapper a non-interfering, stateless function to apply to each
+     *        key-value pair which returns the updated value
      * @return the new stream
      * @since 0.3.0
      */
@@ -624,9 +566,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * This is an <a href="package-summary.html#StreamOps">intermediate</a>
      * operation.
      *
-     * @param keyPredicate
-     *            a non-interfering, stateless predicate to apply to the key of
-     *            each element to determine if it should be included
+     * @param keyPredicate a non-interfering, stateless predicate to apply to
+     *        the key of each element to determine if it should be included
      * @return the new stream
      */
     public EntryStream<K, V> filterKeys(Predicate<? super K> keyPredicate) {
@@ -641,9 +582,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * This is an <a href="package-summary.html#StreamOps">intermediate</a>
      * operation.
      *
-     * @param valuePredicate
-     *            a non-interfering, stateless predicate to apply to the value
-     *            of each element to determine if it should be included
+     * @param valuePredicate a non-interfering, stateless predicate to apply to
+     *        the value of each element to determine if it should be included
      * @return the new stream
      */
     public EntryStream<K, V> filterValues(Predicate<? super V> valuePredicate) {
@@ -658,10 +598,9 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * This is an <a href="package-summary.html#StreamOps">intermediate</a>
      * operation.
      *
-     * @param predicate
-     *            a non-interfering, stateless predicate to apply to the
-     *            key-value pairs of each element to determine if it should be
-     *            included
+     * @param predicate a non-interfering, stateless predicate to apply to the
+     *        key-value pairs of each element to determine if it should be
+     *        included
      * @return the new stream
      * @since 0.3.0
      */
@@ -677,9 +616,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * This is an <a href="package-summary.html#StreamOps">intermediate</a>
      * operation.
      *
-     * @param keyPredicate
-     *            a non-interfering, stateless predicate to apply to the key of
-     *            each element to determine if it should be excluded
+     * @param keyPredicate a non-interfering, stateless predicate to apply to
+     *        the key of each element to determine if it should be excluded
      * @return the new stream
      */
     public EntryStream<K, V> removeKeys(Predicate<? super K> keyPredicate) {
@@ -694,9 +632,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * This is an <a href="package-summary.html#StreamOps">intermediate</a>
      * operation.
      *
-     * @param valuePredicate
-     *            a non-interfering, stateless predicate to apply to the value
-     *            of each element to determine if it should be excluded
+     * @param valuePredicate a non-interfering, stateless predicate to apply to
+     *        the value of each element to determine if it should be excluded
      * @return the new stream
      */
     public EntryStream<K, V> removeValues(Predicate<? super V> valuePredicate) {
@@ -739,10 +676,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * This is an <a href="package-summary.html#StreamOps">intermediate</a>
      * operation.
      *
-     * @param <KK>
-     *            a type of keys to select.
-     * @param clazz
-     *            a class to filter the keys.
+     * @param <KK> a type of keys to select.
+     * @param clazz a class to filter the keys.
      * @return the new stream
      */
     @SuppressWarnings({ "unchecked" })
@@ -758,10 +693,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * This is an <a href="package-summary.html#StreamOps">intermediate</a>
      * operation.
      *
-     * @param <VV>
-     *            a type of values to select.
-     * @param clazz
-     *            a class to filter the values.
+     * @param <VV> a type of values to select.
+     * @param clazz a class to filter the values.
      * @return the new stream
      */
     @SuppressWarnings({ "unchecked" })
@@ -784,9 +717,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * operation. If the action modifies shared state, it is responsible for
      * providing the required synchronization.
      *
-     * @param keyAction
-     *            a non-interfering action to perform on the keys of the entries
-     *            as they are consumed from the stream
+     * @param keyAction a non-interfering action to perform on the keys of the
+     *        entries as they are consumed from the stream
      * @return the new stream
      * @since 0.2.3
      */
@@ -809,9 +741,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * operation. If the action modifies shared state, it is responsible for
      * providing the required synchronization.
      *
-     * @param valueAction
-     *            a non-interfering action to perform on the values of the
-     *            entries as they are consumed from the stream
+     * @param valueAction a non-interfering action to perform on the values of
+     *        the entries as they are consumed from the stream
      * @return the new stream
      * @since 0.2.3
      */
@@ -834,9 +765,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * operation. If the action modifies shared state, it is responsible for
      * providing the required synchronization.
      *
-     * @param action
-     *            a non-interfering action to perform on the keys and values of
-     *            the entries as they are consumed from the stream
+     * @param action a non-interfering action to perform on the keys and values
+     *        of the entries as they are consumed from the stream
      * @return the new stream
      * @since 0.2.3
      */
@@ -920,13 +850,12 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * <p>
      * Returned {@code Map} is guaranteed to be modifiable.
      *
-     * @param mergeFunction
-     *            a merge function, used to resolve collisions between values
-     *            associated with the same key, as supplied to
-     *            {@link Map#merge(Object, Object, BiFunction)}
+     * @param mergeFunction a merge function, used to resolve collisions between
+     *        values associated with the same key, as supplied to
+     *        {@link Map#merge(Object, Object, BiFunction)}
      * @return a {@code Map} containing the elements of this stream
-     * @throws IllegalStateException
-     *             if duplicate key was encountered in the stream
+     * @throws IllegalStateException if duplicate key was encountered in the
+     *         stream
      * @see Collectors#toMap(Function, Function)
      * @see Collectors#toConcurrentMap(Function, Function)
      * @since 0.1.0
@@ -950,11 +879,9 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
      * operation.
      * 
-     * @param <M>
-     *            the type of the resulting map
-     * @param mapSupplier
-     *            a function which returns a new, empty {@code Map} into which
-     *            the results will be inserted
+     * @param <M> the type of the resulting map
+     * @param mapSupplier a function which returns a new, empty {@code Map} into
+     *        which the results will be inserted
      * @return a {@code Map} containing the elements of this stream
      * @see Collectors#toMap(Function, Function)
      * @see Collectors#toConcurrentMap(Function, Function)
@@ -983,14 +910,11 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
      * operation.
      * 
-     * @param <M>
-     *            the type of the resulting map
-     * @param mergeFunction
-     *            a merge function, used to resolve collisions between values
-     *            associated with the same key.
-     * @param mapSupplier
-     *            a function which returns a new, empty {@code Map} into which
-     *            the results will be inserted
+     * @param <M> the type of the resulting map
+     * @param mergeFunction a merge function, used to resolve collisions between
+     *        values associated with the same key.
+     * @param mapSupplier a function which returns a new, empty {@code Map} into
+     *        which the results will be inserted
      * @return a {@code Map} containing the elements of this stream
      * @see Collectors#toMap(Function, Function)
      * @see Collectors#toConcurrentMap(Function, Function)
@@ -1052,13 +976,12 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * <p>
      * Returned {@code SortedMap} is guaranteed to be modifiable.
      *
-     * @param mergeFunction
-     *            a merge function, used to resolve collisions between values
-     *            associated with the same key, as supplied to
-     *            {@link Map#merge(Object, Object, BiFunction)}
+     * @param mergeFunction a merge function, used to resolve collisions between
+     *        values associated with the same key, as supplied to
+     *        {@link Map#merge(Object, Object, BiFunction)}
      * @return a {@code SortedMap} containing the elements of this stream
-     * @throws IllegalStateException
-     *             if duplicate key was encountered in the stream
+     * @throws IllegalStateException if duplicate key was encountered in the
+     *         stream
      * @see Collectors#toMap(Function, Function)
      * @see Collectors#toConcurrentMap(Function, Function)
      * @since 0.1.0
@@ -1121,8 +1044,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * the action accesses shared state, it is responsible for providing the
      * required synchronization.
      *
-     * @param action
-     *            a non-interfering action to perform on the key and value
+     * @param action a non-interfering action to perform on the key and value
      * @see #forEach(java.util.function.Consumer)
      */
     public void forKeyValue(BiConsumer<? super K, ? super V> action) {
@@ -1132,10 +1054,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns an empty sequential {@code EntryStream}.
      *
-     * @param <K>
-     *            the type of stream element keys
-     * @param <V>
-     *            the type of stream element values
+     * @param <K> the type of stream element keys
+     * @param <V> the type of stream element values
      * @return an empty sequential stream
      * @since 0.0.8
      */
@@ -1147,12 +1067,9 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * Returns an {@code EntryStream} object which wraps given {@link Stream} of
      * {@link Entry} elements
      * 
-     * @param <K>
-     *            the type of original stream keys
-     * @param <V>
-     *            the type of original stream values
-     * @param stream
-     *            original stream
+     * @param <K> the type of original stream keys
+     * @param <V> the type of original stream values
+     * @param stream original stream
      * @return the wrapped stream
      */
     public static <K, V> EntryStream<K, V> of(Stream<? extends Entry<K, V>> stream) {
@@ -1163,12 +1080,9 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * Returns a sequential {@link EntryStream} created from given
      * {@link Spliterator}.
      *
-     * @param <K>
-     *            the type of stream keys
-     * @param <V>
-     *            the type of stream values
-     * @param spliterator
-     *            a spliterator to create the stream from.
+     * @param <K> the type of stream keys
+     * @param <V> the type of stream values
+     * @param spliterator a spliterator to create the stream from.
      * @return the new stream
      * @since 0.3.4
      */
@@ -1189,12 +1103,9 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * Use this method only if you cannot provide better Stream source (like
      * {@code Collection} or {@code Spliterator}).
      *
-     * @param <K>
-     *            the type of stream keys
-     * @param <V>
-     *            the type of stream values
-     * @param iterator
-     *            an iterator to create the stream from.
+     * @param <K> the type of stream keys
+     * @param <V> the type of stream values
+     * @param iterator an iterator to create the stream from.
      * @return the new stream
      * @since 0.5.1
      */
@@ -1206,12 +1117,9 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * Returns an {@code EntryStream} object which contains the entries of
      * supplied {@code Map}.
      * 
-     * @param <K>
-     *            the type of map keys
-     * @param <V>
-     *            the type of map values
-     * @param map
-     *            the map to create the stream from
+     * @param <K> the type of map keys
+     * @param <V> the type of map values
+     * @param map the map to create the stream from
      * @return a new {@code EntryStream}
      */
     public static <K, V> EntryStream<K, V> of(Map<K, V> map) {
@@ -1227,10 +1135,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * should provide fast random access. The list is assumed to be unmodifiable
      * during the stream operations.
      * 
-     * @param <V>
-     *            list element type
-     * @param list
-     *            list to create the stream from
+     * @param <V> list element type
+     * @param list list to create the stream from
      * @return a new {@code EntryStream}
      * @since 0.2.3
      */
@@ -1242,10 +1148,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * Returns an {@code EntryStream} object whose keys are indices of given
      * array and the values are the corresponding array elements.
      * 
-     * @param <V>
-     *            array element type
-     * @param array
-     *            array to create the stream from
+     * @param <V> array element type
+     * @param array array to create the stream from
      * @return a new {@code EntryStream}
      * @since 0.2.3
      */
@@ -1257,14 +1161,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * Returns a sequential {@code EntryStream} containing a single key-value
      * pair
      *
-     * @param <K>
-     *            the type of key
-     * @param <V>
-     *            the type of value
-     * @param key
-     *            the key of the single element
-     * @param value
-     *            the value of the single element
+     * @param <K> the type of key
+     * @param <V> the type of value
+     * @param key the key of the single element
+     * @param value the value of the single element
      * @return a singleton sequential stream
      */
     public static <K, V> EntryStream<K, V> of(K key, V value) {
@@ -1274,18 +1174,12 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns a sequential {@code EntryStream} containing two key-value pairs
      *
-     * @param <K>
-     *            the type of key
-     * @param <V>
-     *            the type of value
-     * @param k1
-     *            the key of the first element
-     * @param v1
-     *            the value of the first element
-     * @param k2
-     *            the key of the second element
-     * @param v2
-     *            the value of the second element
+     * @param <K> the type of key
+     * @param <V> the type of value
+     * @param k1 the key of the first element
+     * @param v1 the value of the first element
+     * @param k2 the key of the second element
+     * @param v2 the value of the second element
      * @return a sequential stream
      * @since 0.2.3
      */
@@ -1296,22 +1190,14 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns a sequential {@code EntryStream} containing three key-value pairs
      *
-     * @param <K>
-     *            the type of key
-     * @param <V>
-     *            the type of value
-     * @param k1
-     *            the key of the first element
-     * @param v1
-     *            the value of the first element
-     * @param k2
-     *            the key of the second element
-     * @param v2
-     *            the value of the second element
-     * @param k3
-     *            the key of the third element
-     * @param v3
-     *            the value of the third element
+     * @param <K> the type of key
+     * @param <V> the type of value
+     * @param k1 the key of the first element
+     * @param v1 the value of the first element
+     * @param k2 the key of the second element
+     * @param v2 the value of the second element
+     * @param k3 the key of the third element
+     * @param v3 the value of the third element
      * @return a sequential stream
      * @since 0.2.3
      */
@@ -1323,26 +1209,16 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns a sequential {@code EntryStream} containing four key-value pairs
      *
-     * @param <K>
-     *            the type of key
-     * @param <V>
-     *            the type of value
-     * @param k1
-     *            the key of the first element
-     * @param v1
-     *            the value of the first element
-     * @param k2
-     *            the key of the second element
-     * @param v2
-     *            the value of the second element
-     * @param k3
-     *            the key of the third element
-     * @param v3
-     *            the value of the third element
-     * @param k4
-     *            the key of the fourth element
-     * @param v4
-     *            the value of the fourth element
+     * @param <K> the type of key
+     * @param <V> the type of value
+     * @param k1 the key of the first element
+     * @param v1 the value of the first element
+     * @param k2 the key of the second element
+     * @param v2 the value of the second element
+     * @param k3 the key of the third element
+     * @param v3 the value of the third element
+     * @param k4 the key of the fourth element
+     * @param v4 the value of the fourth element
      * @return a sequential stream
      * @since 0.5.2
      */
@@ -1354,30 +1230,18 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns a sequential {@code EntryStream} containing five key-value pairs
      *
-     * @param <K>
-     *            the type of key
-     * @param <V>
-     *            the type of value
-     * @param k1
-     *            the key of the first element
-     * @param v1
-     *            the value of the first element
-     * @param k2
-     *            the key of the second element
-     * @param v2
-     *            the value of the second element
-     * @param k3
-     *            the key of the third element
-     * @param v3
-     *            the value of the third element
-     * @param k4
-     *            the key of the fourth element
-     * @param v4
-     *            the value of the fourth element
-     * @param k5
-     *            the key of the fifth element
-     * @param v5
-     *            the value of the fifth element
+     * @param <K> the type of key
+     * @param <V> the type of value
+     * @param k1 the key of the first element
+     * @param v1 the value of the first element
+     * @param k2 the key of the second element
+     * @param v2 the value of the second element
+     * @param k3 the key of the third element
+     * @param v3 the value of the third element
+     * @param k4 the key of the fourth element
+     * @param v4 the value of the fourth element
+     * @param k5 the key of the fifth element
+     * @param v5 the value of the fifth element
      * @return a sequential stream
      * @since 0.5.2
      */
@@ -1389,34 +1253,20 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns a sequential {@code EntryStream} containing six key-value pairs
      *
-     * @param <K>
-     *            the type of key
-     * @param <V>
-     *            the type of value
-     * @param k1
-     *            the key of the first element
-     * @param v1
-     *            the value of the first element
-     * @param k2
-     *            the key of the second element
-     * @param v2
-     *            the value of the second element
-     * @param k3
-     *            the key of the third element
-     * @param v3
-     *            the value of the third element
-     * @param k4
-     *            the key of the fourth element
-     * @param v4
-     *            the value of the fourth element
-     * @param k5
-     *            the key of the fifth element
-     * @param v5
-     *            the value of the fifth element
-     * @param k6
-     *            the key of the sixth element
-     * @param v6
-     *            the value of the sixth element
+     * @param <K> the type of key
+     * @param <V> the type of value
+     * @param k1 the key of the first element
+     * @param v1 the value of the first element
+     * @param k2 the key of the second element
+     * @param v2 the value of the second element
+     * @param k3 the key of the third element
+     * @param v3 the value of the third element
+     * @param k4 the key of the fourth element
+     * @param v4 the value of the fourth element
+     * @param k5 the key of the fifth element
+     * @param v5 the value of the fifth element
+     * @param k6 the key of the sixth element
+     * @param v6 the value of the sixth element
      * @return a sequential stream
      * @since 0.5.2
      */
@@ -1429,38 +1279,22 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns a sequential {@code EntryStream} containing seven key-value pairs
      *
-     * @param <K>
-     *            the type of key
-     * @param <V>
-     *            the type of value
-     * @param k1
-     *            the key of the first element
-     * @param v1
-     *            the value of the first element
-     * @param k2
-     *            the key of the second element
-     * @param v2
-     *            the value of the second element
-     * @param k3
-     *            the key of the third element
-     * @param v3
-     *            the value of the third element
-     * @param k4
-     *            the key of the fourth element
-     * @param v4
-     *            the value of the fourth element
-     * @param k5
-     *            the key of the fifth element
-     * @param v5
-     *            the value of the fifth element
-     * @param k6
-     *            the key of the sixth element
-     * @param v6
-     *            the value of the sixth element
-     * @param k7
-     *            the key of the seventh element
-     * @param v7
-     *            the value of the seventh element
+     * @param <K> the type of key
+     * @param <V> the type of value
+     * @param k1 the key of the first element
+     * @param v1 the value of the first element
+     * @param k2 the key of the second element
+     * @param v2 the value of the second element
+     * @param k3 the key of the third element
+     * @param v3 the value of the third element
+     * @param k4 the key of the fourth element
+     * @param v4 the value of the fourth element
+     * @param k5 the key of the fifth element
+     * @param v5 the value of the fifth element
+     * @param k6 the key of the sixth element
+     * @param v6 the value of the sixth element
+     * @param k7 the key of the seventh element
+     * @param v7 the value of the seventh element
      * @return a sequential stream
      * @since 0.5.2
      */
@@ -1474,42 +1308,24 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns a sequential {@code EntryStream} containing eight key-value pairs
      *
-     * @param <K>
-     *            the type of key
-     * @param <V>
-     *            the type of value
-     * @param k1
-     *            the key of the first element
-     * @param v1
-     *            the value of the first element
-     * @param k2
-     *            the key of the second element
-     * @param v2
-     *            the value of the second element
-     * @param k3
-     *            the key of the third element
-     * @param v3
-     *            the value of the third element
-     * @param k4
-     *            the key of the fourth element
-     * @param v4
-     *            the value of the fourth element
-     * @param k5
-     *            the key of the fifth element
-     * @param v5
-     *            the value of the fifth element
-     * @param k6
-     *            the key of the sixth element
-     * @param v6
-     *            the value of the sixth element
-     * @param k7
-     *            the key of the seventh element
-     * @param v7
-     *            the value of the seventh element
-     * @param k8
-     *            the key of the eighth element
-     * @param v8
-     *            the value of the eighth element
+     * @param <K> the type of key
+     * @param <V> the type of value
+     * @param k1 the key of the first element
+     * @param v1 the value of the first element
+     * @param k2 the key of the second element
+     * @param v2 the value of the second element
+     * @param k3 the key of the third element
+     * @param v3 the value of the third element
+     * @param k4 the key of the fourth element
+     * @param v4 the value of the fourth element
+     * @param k5 the key of the fifth element
+     * @param v5 the value of the fifth element
+     * @param k6 the key of the sixth element
+     * @param v6 the value of the sixth element
+     * @param k7 the key of the seventh element
+     * @param v7 the value of the seventh element
+     * @param k8 the key of the eighth element
+     * @param v8 the value of the eighth element
      * @return a sequential stream
      * @since 0.5.2
      */
@@ -1523,46 +1339,26 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns a sequential {@code EntryStream} containing nine key-value pairs
      *
-     * @param <K>
-     *            the type of key
-     * @param <V>
-     *            the type of value
-     * @param k1
-     *            the key of the first element
-     * @param v1
-     *            the value of the first element
-     * @param k2
-     *            the key of the second element
-     * @param v2
-     *            the value of the second element
-     * @param k3
-     *            the key of the third element
-     * @param v3
-     *            the value of the third element
-     * @param k4
-     *            the key of the fourth element
-     * @param v4
-     *            the value of the fourth element
-     * @param k5
-     *            the key of the fifth element
-     * @param v5
-     *            the value of the fifth element
-     * @param k6
-     *            the key of the sixth element
-     * @param v6
-     *            the value of the sixth element
-     * @param k7
-     *            the key of the seventh element
-     * @param v7
-     *            the value of the seventh element
-     * @param k8
-     *            the key of the eighth element
-     * @param v8
-     *            the value of the eighth element
-     * @param k9
-     *            the key of the ninth element
-     * @param v9
-     *            the value of the ninth element
+     * @param <K> the type of key
+     * @param <V> the type of value
+     * @param k1 the key of the first element
+     * @param v1 the value of the first element
+     * @param k2 the key of the second element
+     * @param v2 the value of the second element
+     * @param k3 the key of the third element
+     * @param v3 the value of the third element
+     * @param k4 the key of the fourth element
+     * @param v4 the value of the fourth element
+     * @param k5 the key of the fifth element
+     * @param v5 the value of the fifth element
+     * @param k6 the key of the sixth element
+     * @param v6 the value of the sixth element
+     * @param k7 the key of the seventh element
+     * @param v7 the value of the seventh element
+     * @param k8 the key of the eighth element
+     * @param v8 the value of the eighth element
+     * @param k9 the key of the ninth element
+     * @param v9 the value of the ninth element
      * @return a sequential stream
      * @since 0.5.2
      */
@@ -1577,50 +1373,28 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns a sequential {@code EntryStream} containing ten key-value pairs
      *
-     * @param <K>
-     *            the type of key
-     * @param <V>
-     *            the type of value
-     * @param k1
-     *            the key of the first element
-     * @param v1
-     *            the value of the first element
-     * @param k2
-     *            the key of the second element
-     * @param v2
-     *            the value of the second element
-     * @param k3
-     *            the key of the third element
-     * @param v3
-     *            the value of the third element
-     * @param k4
-     *            the key of the fourth element
-     * @param v4
-     *            the value of the fourth element
-     * @param k5
-     *            the key of the fifth element
-     * @param v5
-     *            the value of the fifth element
-     * @param k6
-     *            the key of the sixth element
-     * @param v6
-     *            the value of the sixth element
-     * @param k7
-     *            the key of the seventh element
-     * @param v7
-     *            the value of the seventh element
-     * @param k8
-     *            the key of the eighth element
-     * @param v8
-     *            the value of the eighth element
-     * @param k9
-     *            the key of the ninth element
-     * @param v9
-     *            the value of the ninth element
-     * @param k10
-     *            the key of the tenth element
-     * @param v10
-     *            the value of the tenth element
+     * @param <K> the type of key
+     * @param <V> the type of value
+     * @param k1 the key of the first element
+     * @param v1 the value of the first element
+     * @param k2 the key of the second element
+     * @param v2 the value of the second element
+     * @param k3 the key of the third element
+     * @param v3 the value of the third element
+     * @param k4 the key of the fourth element
+     * @param v4 the value of the fourth element
+     * @param k5 the key of the fifth element
+     * @param v5 the value of the fifth element
+     * @param k6 the key of the sixth element
+     * @param v6 the value of the sixth element
+     * @param k7 the key of the seventh element
+     * @param v7 the value of the seventh element
+     * @param k8 the key of the eighth element
+     * @param v8 the value of the eighth element
+     * @param k9 the key of the ninth element
+     * @param v9 the value of the ninth element
+     * @param k10 the key of the tenth element
+     * @param v10 the value of the tenth element
      * @return a sequential stream
      * @since 0.5.2
      */
@@ -1641,17 +1415,12 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * lists should provide fast random access. The lists are assumed to be
      * unmodifiable during the stream operations.
      * 
-     * @param <K>
-     *            the type of stream element keys
-     * @param <V>
-     *            the type of stream element values
-     * @param keys
-     *            the list of keys, assumed to be unmodified during use
-     * @param values
-     *            the list of values, assumed to be unmodified during use
+     * @param <K> the type of stream element keys
+     * @param <V> the type of stream element values
+     * @param keys the list of keys, assumed to be unmodified during use
+     * @param values the list of values, assumed to be unmodified during use
      * @return a new {@code EntryStream}
-     * @throws IllegalArgumentException
-     *             if length of the lists differs.
+     * @throws IllegalArgumentException if length of the lists differs.
      * @see StreamEx#zip(List, List, BiFunction)
      * @since 0.2.1
      */
@@ -1664,17 +1433,12 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * Returns a sequential {@code EntryStream} containing {@code Entry} objects
      * composed from corresponding key and value in given two arrays.
      * 
-     * @param <K>
-     *            the type of stream element keys
-     * @param <V>
-     *            the type of stream element values
-     * @param keys
-     *            the array of keys
-     * @param values
-     *            the array of values
+     * @param <K> the type of stream element keys
+     * @param <V> the type of stream element values
+     * @param keys the array of keys
+     * @param values the array of values
      * @return a new {@code EntryStream}
-     * @throws IllegalArgumentException
-     *             if length of the arrays differs.
+     * @throws IllegalArgumentException if length of the arrays differs.
      * @see StreamEx#zip(Object[], Object[], BiFunction)
      * @since 0.2.1
      */
@@ -1701,10 +1465,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * should provide fast random access. The list is assumed to be unmodifiable
      * during the stream operations.
      *
-     * @param <T>
-     *            type of the list elements
-     * @param list
-     *            a list to take the elements from
+     * @param <T> type of the list elements
+     * @param list a list to take the elements from
      * @return a new {@code EntryStream}
      * @see StreamEx#ofPairs(List, BiFunction)
      * @since 0.3.6
@@ -1727,10 +1489,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * {@code Map.Entry(array[1], array[2])}. The number of elements in the
      * resulting stream is {@code array.length*(array.length+1L)/2}..
      * 
-     * @param <T>
-     *            type of the array elements
-     * @param array
-     *            a array to take the elements from
+     * @param <T> type of the array elements
+     * @param array a array to take the elements from
      * @return a new {@code EntryStream}
      * @see StreamEx#ofPairs(Object[], BiFunction)
      * @since 0.3.6
@@ -1744,8 +1504,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return src.flatMap(entry -> {
             Integer depth = entry.getKey();
             Stream<T> result = streamProvider.apply(depth, entry.getValue());
-            return result == null ? Stream.of(entry) : Stream.concat(Stream.of(entry),
-                flatTraverse(result.map(t -> new ObjIntBox<>(t, depth + 1)), streamProvider));
+            return result == null ? Stream.of(entry) : Stream.concat(Stream.of(entry), flatTraverse(result
+                    .map(t -> new ObjIntBox<>(t, depth + 1)), streamProvider));
         });
     }
 
@@ -1759,14 +1519,11 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * used for the root node only, 1 is for root immediate children, 2 is for
      * their children and so on.
      * 
-     * @param <T>
-     *            the type of tree nodes
-     * @param root
-     *            root node of the tree
-     * @param mapper
-     *            a non-interfering, stateless function to apply to each tree
-     *            node and its depth which returns null for leaf nodes or stream
-     *            of direct children for non-leaf nodes.
+     * @param <T> the type of tree nodes
+     * @param root root node of the tree
+     * @param mapper a non-interfering, stateless function to apply to each tree
+     *        node and its depth which returns null for leaf nodes or stream of
+     *        direct children for non-leaf nodes.
      * @return the new sequential ordered {@code EntryStream}
      * @since 0.5.2
      * @see StreamEx#ofTree(Object, Function)
@@ -1789,19 +1546,13 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * used for the root node only, 1 is for root immediate children, 2 is for
      * their children and so on.
      * 
-     * @param <T>
-     *            the base type of tree nodes
-     * @param <TT>
-     *            the sub-type of composite tree nodes which may have children
-     * @param root
-     *            root node of the tree
-     * @param collectionClass
-     *            a class representing the composite tree node
-     * @param mapper
-     *            a non-interfering, stateless function to apply to each
-     *            composite tree node and its depth which returns stream of
-     *            direct children. May return null if the given node has no
-     *            children.
+     * @param <T> the base type of tree nodes
+     * @param <TT> the sub-type of composite tree nodes which may have children
+     * @param root root node of the tree
+     * @param collectionClass a class representing the composite tree node
+     * @param mapper a non-interfering, stateless function to apply to each
+     *        composite tree node and its depth which returns stream of direct
+     *        children. May return null if the given node has no children.
      * @return the new sequential ordered stream
      * @since 0.5.2
      * @see StreamEx#ofTree(Object, Class, Function)

@@ -236,9 +236,8 @@ import static one.util.streamex.StreamExInternals.*;
      * This is a <a href="package-summary.html#StreamOps">stateful intermediate
      * operation</a>.
      *
-     * @param keyExtractor
-     *            a non-interfering, stateless function which classifies input
-     *            elements.
+     * @param keyExtractor a non-interfering, stateless function which
+     *        classifies input elements.
      * @return the new stream
      * @since 0.3.8
      */
@@ -406,8 +405,7 @@ import static one.util.streamex.StreamExInternals.*;
      * <p>
      * This is a short-circuiting terminal operation.
      *
-     * @param element
-     *            an element to look for
+     * @param element an element to look for
      * @return an {@code OptionalLong} describing the index of the first
      *         matching element of this stream, or an empty {@code OptionalLong}
      *         if there's no matching element.
@@ -426,12 +424,10 @@ import static one.util.streamex.StreamExInternals.*;
      * <p>
      * This is a short-circuiting terminal operation.
      *
-     * @param predicate
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            predicate which returned value should match
+     * @param predicate a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        predicate which returned value should match
      * @return an {@code OptionalLong} describing the index of the first
      *         matching element of this stream, or an empty {@code OptionalLong}
      *         if there's no matching element.
@@ -475,15 +471,12 @@ import static one.util.streamex.StreamExInternals.*;
      * one-to-many transformation to the elements of the stream, and then
      * flattening the resulting elements into a new stream.
      *
-     * @param <R>
-     *            The element type of the new stream
-     * @param mapper
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function to apply to each element which produces a
-     *            {@link Collection} of new values
+     * @param <R> The element type of the new stream
+     * @param mapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to each element which produces a
+     *        {@link Collection} of new values
      * @return the new stream
      */
     public <R> StreamEx<R> flatCollection(Function<? super T, ? extends Collection<? extends R>> mapper) {
@@ -501,13 +494,11 @@ import static one.util.streamex.StreamExInternals.*;
      * This is an <a href="package-summary.html#StreamOps">intermediate
      * operation</a>.
      *
-     * @param predicate
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            predicate to apply to each element to determine if it should
-     *            be excluded
+     * @param predicate a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        predicate to apply to each element to determine if it should be
+     *        excluded
      * @return the new stream
      */
     public S remove(Predicate<? super T> predicate) {
@@ -543,17 +534,14 @@ import static one.util.streamex.StreamExInternals.*;
      * on the same source may not return the same result. (If a stable result is
      * desired, use {@link #findFirst(Predicate)} instead.)
      *
-     * @param predicate
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            predicate which returned value should match
+     * @param predicate a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        predicate which returned value should match
      * @return an {@code Optional} describing some matching element of this
      *         stream, or an empty {@code Optional} if there's no matching
      *         element
-     * @throws NullPointerException
-     *             if the element selected is null
+     * @throws NullPointerException if the element selected is null
      * @see #findAny()
      * @see #findFirst(Predicate)
      */
@@ -569,17 +557,14 @@ import static one.util.streamex.StreamExInternals.*;
      * <p>
      * This is a short-circuiting terminal operation.
      *
-     * @param predicate
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            predicate which returned value should match
+     * @param predicate a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        predicate which returned value should match
      * @return an {@code Optional} describing the first matching element of this
      *         stream, or an empty {@code Optional} if there's no matching
      *         element
-     * @throws NullPointerException
-     *             if the element selected is null
+     * @throws NullPointerException if the element selected is null
      * @see #findFirst()
      */
     public Optional<T> findFirst(Predicate<? super T> predicate) {
@@ -598,12 +583,10 @@ import static one.util.streamex.StreamExInternals.*;
      * This is a <a href="package-summary.html#StreamOps">stateful intermediate
      * operation</a>.
      *
-     * @param comparator
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            {@code Comparator} to be used to compare stream elements
+     * @param comparator a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        {@code Comparator} to be used to compare stream elements
      * @return the new stream
      */
     public S reverseSorted(Comparator<? super T> comparator) {
@@ -623,14 +606,11 @@ import static one.util.streamex.StreamExInternals.*;
      * This is a <a href="package-summary.html#StreamOps">stateful intermediate
      * operation</a>.
      *
-     * @param <V>
-     *            the type of the {@code Comparable} sort key
-     * @param keyExtractor
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function to be used to extract sorting keys
+     * @param <V> the type of the {@code Comparable} sort key
+     * @param keyExtractor a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to be used to extract sorting keys
      * @return the new stream
      */
     public <V extends Comparable<? super V>> S sortedBy(Function<? super T, ? extends V> keyExtractor) {
@@ -649,12 +629,10 @@ import static one.util.streamex.StreamExInternals.*;
      * This is a <a href="package-summary.html#StreamOps">stateful intermediate
      * operation</a>.
      *
-     * @param keyExtractor
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function to be used to extract sorting keys
+     * @param keyExtractor a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to be used to extract sorting keys
      * @return the new stream
      */
     public S sortedByInt(ToIntFunction<? super T> keyExtractor) {
@@ -673,12 +651,10 @@ import static one.util.streamex.StreamExInternals.*;
      * This is a <a href="package-summary.html#StreamOps">stateful intermediate
      * operation</a>.
      *
-     * @param keyExtractor
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function to be used to extract sorting keys
+     * @param keyExtractor a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to be used to extract sorting keys
      * @return the new stream
      */
     public S sortedByLong(ToLongFunction<? super T> keyExtractor) {
@@ -697,12 +673,10 @@ import static one.util.streamex.StreamExInternals.*;
      * This is a <a href="package-summary.html#StreamOps">stateful intermediate
      * operation</a>.
      *
-     * @param keyExtractor
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function to be used to extract sorting keys
+     * @param keyExtractor a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to be used to extract sorting keys
      * @return the new stream
      */
     public S sortedByDouble(ToDoubleFunction<? super T> keyExtractor) {
@@ -722,36 +696,28 @@ import static one.util.streamex.StreamExInternals.*;
      * {@code min(Comparator.comparing(keyExtractor))}, but may work faster as
      * keyExtractor function is applied only once per each input element.
      *
-     * @param <V>
-     *            the type of the comparable keys
-     * @param keyExtractor
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function to extract the comparable keys from this stream
-     *            elements
+     * @param <V> the type of the comparable keys
+     * @param keyExtractor a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to extract the comparable keys from this stream elements
      * @return an {@code Optional} describing the minimum element of this
      *         stream, or an empty {@code Optional} if the stream is empty
-     * @throws NullPointerException
-     *             if the minimum element is null
+     * @throws NullPointerException if the minimum element is null
      */
     public <V extends Comparable<? super V>> Optional<T> minBy(Function<? super T, ? extends V> keyExtractor) {
         return Box
-                .asOptional(reduce(
-                    null,
-                    (PairBox<T, V> acc, T t) -> {
-                        V val = keyExtractor.apply(t);
-                        if (acc == null)
-                            return new PairBox<>(t, val);
-                        if (val.compareTo(acc.b) < 0) {
-                            acc.b = val;
-                            acc.a = t;
-                        }
-                        return acc;
-                    },
-                    (PairBox<T, V> acc1, PairBox<T, V> acc2) -> (acc1 == null || acc2 != null
-                        && acc1.b.compareTo(acc2.b) > 0) ? acc2 : acc1));
+                .asOptional(reduce(null, (PairBox<T, V> acc, T t) -> {
+                    V val = keyExtractor.apply(t);
+                    if (acc == null)
+                        return new PairBox<>(t, val);
+                    if (val.compareTo(acc.b) < 0) {
+                        acc.b = val;
+                        acc.a = t;
+                    }
+                    return acc;
+                }, (PairBox<T, V> acc1, PairBox<T, V> acc2) -> (acc1 == null || acc2 != null
+                    && acc1.b.compareTo(acc2.b) > 0) ? acc2 : acc1));
     }
 
     /**
@@ -766,16 +732,13 @@ import static one.util.streamex.StreamExInternals.*;
      * {@code min(Comparator.comparingInt(keyExtractor))}, but may work faster
      * as keyExtractor function is applied only once per each input element.
      *
-     * @param keyExtractor
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function to extract the int keys from this stream elements
+     * @param keyExtractor a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to extract the int keys from this stream elements
      * @return an {@code Optional} describing the minimum element of this
      *         stream, or an empty {@code Optional} if the stream is empty
-     * @throws NullPointerException
-     *             if the minimum element is null
+     * @throws NullPointerException if the minimum element is null
      */
     public Optional<T> minByInt(ToIntFunction<? super T> keyExtractor) {
         return Box.asOptional(reduce(null, (ObjIntBox<T> acc, T t) -> {
@@ -802,16 +765,13 @@ import static one.util.streamex.StreamExInternals.*;
      * {@code min(Comparator.comparingLong(keyExtractor))}, but may work faster
      * as keyExtractor function is applied only once per each input element.
      *
-     * @param keyExtractor
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function to extract the long keys from this stream elements
+     * @param keyExtractor a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to extract the long keys from this stream elements
      * @return an {@code Optional} describing the minimum element of this
      *         stream, or an empty {@code Optional} if the stream is empty
-     * @throws NullPointerException
-     *             if the minimum element is null
+     * @throws NullPointerException if the minimum element is null
      */
     public Optional<T> minByLong(ToLongFunction<? super T> keyExtractor) {
         return Box
@@ -841,32 +801,26 @@ import static one.util.streamex.StreamExInternals.*;
      * faster as keyExtractor function is applied only once per each input
      * element.
      *
-     * @param keyExtractor
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function to extract the double keys from this stream elements
+     * @param keyExtractor a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to extract the double keys from this stream elements
      * @return an {@code Optional} describing the minimum element of this
      *         stream, or an empty {@code Optional} if the stream is empty
-     * @throws NullPointerException
-     *             if the minimum element is null
+     * @throws NullPointerException if the minimum element is null
      */
     public Optional<T> minByDouble(ToDoubleFunction<? super T> keyExtractor) {
-        return Box.asOptional(reduce(
-            null,
-            (ObjDoubleBox<T> acc, T t) -> {
-                double val = keyExtractor.applyAsDouble(t);
-                if (acc == null)
-                    return new ObjDoubleBox<>(t, val);
-                if (Double.compare(val, acc.b) < 0) {
-                    acc.b = val;
-                    acc.a = t;
-                }
-                return acc;
-            },
-            (ObjDoubleBox<T> acc1, ObjDoubleBox<T> acc2) -> (acc1 == null || acc2 != null
-                && Double.compare(acc1.b, acc2.b) > 0) ? acc2 : acc1));
+        return Box.asOptional(reduce(null, (ObjDoubleBox<T> acc, T t) -> {
+            double val = keyExtractor.applyAsDouble(t);
+            if (acc == null)
+                return new ObjDoubleBox<>(t, val);
+            if (Double.compare(val, acc.b) < 0) {
+                acc.b = val;
+                acc.a = t;
+            }
+            return acc;
+        }, (ObjDoubleBox<T> acc1, ObjDoubleBox<T> acc2) -> (acc1 == null || acc2 != null
+            && Double.compare(acc1.b, acc2.b) > 0) ? acc2 : acc1));
     }
 
     /**
@@ -882,36 +836,28 @@ import static one.util.streamex.StreamExInternals.*;
      * {@code min(Comparator.comparing(keyExtractor))}, but may work faster as
      * keyExtractor function is applied only once per each input element.
      *
-     * @param <V>
-     *            the type of the comparable keys
-     * @param keyExtractor
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function to extract the comparable keys from this stream
-     *            elements
+     * @param <V> the type of the comparable keys
+     * @param keyExtractor a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to extract the comparable keys from this stream elements
      * @return an {@code Optional} describing the maximum element of this
      *         stream, or an empty {@code Optional} if the stream is empty
-     * @throws NullPointerException
-     *             if the maximum element is null
+     * @throws NullPointerException if the maximum element is null
      */
     public <V extends Comparable<? super V>> Optional<T> maxBy(Function<? super T, ? extends V> keyExtractor) {
         return Box
-                .asOptional(reduce(
-                    null,
-                    (PairBox<T, V> acc, T t) -> {
-                        V val = keyExtractor.apply(t);
-                        if (acc == null)
-                            return new PairBox<>(t, val);
-                        if (val.compareTo(acc.b) > 0) {
-                            acc.b = val;
-                            acc.a = t;
-                        }
-                        return acc;
-                    },
-                    (PairBox<T, V> acc1, PairBox<T, V> acc2) -> (acc1 == null || acc2 != null
-                        && acc1.b.compareTo(acc2.b) < 0) ? acc2 : acc1));
+                .asOptional(reduce(null, (PairBox<T, V> acc, T t) -> {
+                    V val = keyExtractor.apply(t);
+                    if (acc == null)
+                        return new PairBox<>(t, val);
+                    if (val.compareTo(acc.b) > 0) {
+                        acc.b = val;
+                        acc.a = t;
+                    }
+                    return acc;
+                }, (PairBox<T, V> acc1, PairBox<T, V> acc2) -> (acc1 == null || acc2 != null
+                    && acc1.b.compareTo(acc2.b) < 0) ? acc2 : acc1));
     }
 
     /**
@@ -926,16 +872,13 @@ import static one.util.streamex.StreamExInternals.*;
      * {@code min(Comparator.comparingInt(keyExtractor))}, but may work faster
      * as keyExtractor function is applied only once per each input element.
      *
-     * @param keyExtractor
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function to extract the int keys from this stream elements
+     * @param keyExtractor a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to extract the int keys from this stream elements
      * @return an {@code Optional} describing the maximum element of this
      *         stream, or an empty {@code Optional} if the stream is empty
-     * @throws NullPointerException
-     *             if the maximum element is null
+     * @throws NullPointerException if the maximum element is null
      */
     public Optional<T> maxByInt(ToIntFunction<? super T> keyExtractor) {
         return Box.asOptional(reduce(null, (ObjIntBox<T> acc, T t) -> {
@@ -962,16 +905,13 @@ import static one.util.streamex.StreamExInternals.*;
      * {@code min(Comparator.comparingLong(keyExtractor))}, but may work faster
      * as keyExtractor function is applied only once per each input element.
      *
-     * @param keyExtractor
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function to extract the long keys from this stream elements
+     * @param keyExtractor a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to extract the long keys from this stream elements
      * @return an {@code Optional} describing the maximum element of this
      *         stream, or an empty {@code Optional} if the stream is empty
-     * @throws NullPointerException
-     *             if the maximum element is null
+     * @throws NullPointerException if the maximum element is null
      */
     public Optional<T> maxByLong(ToLongFunction<? super T> keyExtractor) {
         return Box
@@ -1001,32 +941,26 @@ import static one.util.streamex.StreamExInternals.*;
      * faster as keyExtractor function is applied only once per each input
      * element.
      *
-     * @param keyExtractor
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function to extract the double keys from this stream elements
+     * @param keyExtractor a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to extract the double keys from this stream elements
      * @return an {@code Optional} describing the maximum element of this
      *         stream, or an empty {@code Optional} if the stream is empty
-     * @throws NullPointerException
-     *             if the maximum element is null
+     * @throws NullPointerException if the maximum element is null
      */
     public Optional<T> maxByDouble(ToDoubleFunction<? super T> keyExtractor) {
-        return Box.asOptional(reduce(
-            null,
-            (ObjDoubleBox<T> acc, T t) -> {
-                double val = keyExtractor.applyAsDouble(t);
-                if (acc == null)
-                    return new ObjDoubleBox<>(t, val);
-                if (Double.compare(val, acc.b) > 0) {
-                    acc.b = val;
-                    acc.a = t;
-                }
-                return acc;
-            },
-            (ObjDoubleBox<T> acc1, ObjDoubleBox<T> acc2) -> (acc1 == null || acc2 != null
-                && Double.compare(acc1.b, acc2.b) < 0) ? acc2 : acc1));
+        return Box.asOptional(reduce(null, (ObjDoubleBox<T> acc, T t) -> {
+            double val = keyExtractor.applyAsDouble(t);
+            if (acc == null)
+                return new ObjDoubleBox<>(t, val);
+            if (Double.compare(val, acc.b) > 0) {
+                acc.b = val;
+                acc.a = t;
+            }
+            return acc;
+        }, (ObjDoubleBox<T> acc1, ObjDoubleBox<T> acc2) -> (acc1 == null || acc2 != null
+            && Double.compare(acc1.b, acc2.b) < 0) ? acc2 : acc1));
     }
 
     /**
@@ -1036,8 +970,7 @@ import static one.util.streamex.StreamExInternals.*;
      * parallel if either of the input streams is parallel. When the resulting
      * stream is closed, the close handlers for both input streams are invoked.
      *
-     * @param other
-     *            the other stream
+     * @param other the other stream
      * @return this stream appended by the other stream
      * @see Stream#concat(Stream, Stream)
      */
@@ -1052,8 +985,7 @@ import static one.util.streamex.StreamExInternals.*;
      * parallel if either of the input streams is parallel. When the resulting
      * stream is closed, the close handlers for both input streams are invoked.
      *
-     * @param other
-     *            the other stream
+     * @param other the other stream
      * @return this stream prepended by the other stream
      * @see Stream#concat(Stream, Stream)
      */
@@ -1086,10 +1018,8 @@ import static one.util.streamex.StreamExInternals.*;
      * <p>
      * This is a terminal operation.
      *
-     * @param <R>
-     *            the result type
-     * @param finisher
-     *            a function to be applied to the intermediate list
+     * @param <R> the result type
+     * @param finisher a function to be applied to the intermediate list
      * @return result of applying the finisher transformation to the list of the
      *         stream elements.
      * @since 0.2.3
@@ -1123,10 +1053,8 @@ import static one.util.streamex.StreamExInternals.*;
      * <p>
      * This is a terminal operation.
      *
-     * @param <R>
-     *            the result type
-     * @param finisher
-     *            a function to be applied to the intermediate set
+     * @param <R> the result type
+     * @param finisher a function to be applied to the intermediate set
      * @return result of applying the finisher transformation to the set of the
      *         stream elements.
      * @since 0.2.3
@@ -1143,11 +1071,9 @@ import static one.util.streamex.StreamExInternals.*;
      * <p>
      * This is a terminal operation.
      *
-     * @param <C>
-     *            the type of the resulting {@code Collection}
-     * @param collectionFactory
-     *            a {@code Supplier} which returns a new, empty
-     *            {@code Collection} of the appropriate type
+     * @param <C> the type of the resulting {@code Collection}
+     * @param collectionFactory a {@code Supplier} which returns a new, empty
+     *        {@code Collection} of the appropriate type
      * @return a {@code Collection} containing the elements of this stream
      * @see Collectors#toCollection(Supplier)
      */
@@ -1181,16 +1107,12 @@ import static one.util.streamex.StreamExInternals.*;
      * For parallel stream it's not guaranteed that accumulator will always be
      * executed in the same thread.
      *
-     * @param <U>
-     *            The type of the result
-     * @param seed
-     *            the starting value
-     * @param accumulator
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function for incorporating an additional element into a result
+     * @param <U> The type of the result
+     * @param seed the starting value
+     * @param accumulator a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function for incorporating an additional element into a result
      * @return the result of the folding
      * @see #foldRight(Object, BiFunction)
      * @see #reduce(Object, BinaryOperator)
@@ -1235,12 +1157,10 @@ import static one.util.streamex.StreamExInternals.*;
      * For parallel stream it's not guaranteed that accumulator will always be
      * executed in the same thread.
      *
-     * @param accumulator
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function for incorporating an additional element into a result
+     * @param accumulator a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function for incorporating an additional element into a result
      * @return the result of the folding
      * @see #foldLeft(Object, BiFunction)
      * @see #foldRight(BinaryOperator)
@@ -1272,16 +1192,12 @@ import static one.util.streamex.StreamExInternals.*;
      * For parallel stream it's not guaranteed that accumulator will always be
      * executed in the same thread.
      *
-     * @param <U>
-     *            The type of the result
-     * @param seed
-     *            the starting value
-     * @param accumulator
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function for incorporating an additional element into a result
+     * @param <U> The type of the result
+     * @param seed the starting value
+     * @param accumulator a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function for incorporating an additional element into a result
      * @return the result of the folding
      * @see #foldLeft(Object, BiFunction)
      * @see #reduce(Object, BinaryOperator)
@@ -1315,12 +1231,10 @@ import static one.util.streamex.StreamExInternals.*;
      * For parallel stream it's not guaranteed that accumulator will always be
      * executed in the same thread.
      *
-     * @param accumulator
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function for incorporating an additional element into a result
+     * @param accumulator a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function for incorporating an additional element into a result
      * @return the result of the folding
      * @see #foldRight(Object, BiFunction)
      * @see #foldLeft(BinaryOperator)
@@ -1357,16 +1271,12 @@ import static one.util.streamex.StreamExInternals.*;
      * This method cannot take all the advantages of parallel streams as it must
      * process elements strictly left to right.
      *
-     * @param <U>
-     *            The type of the result
-     * @param seed
-     *            the starting value
-     * @param accumulator
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function for incorporating an additional element into a result
+     * @param <U> The type of the result
+     * @param seed the starting value
+     * @param accumulator a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function for incorporating an additional element into a result
      * @return the {@code List} where the first element is the seed and every
      *         successor element is the result of applying accumulator function
      *         to the previous list element and the corresponding stream
@@ -1401,12 +1311,10 @@ import static one.util.streamex.StreamExInternals.*;
      * This method cannot take all the advantages of parallel streams as it must
      * process elements strictly left to right.
      *
-     * @param accumulator
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function for incorporating an additional element into a result
+     * @param accumulator a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function for incorporating an additional element into a result
      * @return the {@code List} where the first element is the first element of
      *         this stream and every successor element is the result of applying
      *         accumulator function to the previous list element and the
@@ -1445,16 +1353,12 @@ import static one.util.streamex.StreamExInternals.*;
      * This method cannot take all the advantages of parallel streams as it must
      * process elements strictly right to left.
      *
-     * @param <U>
-     *            The type of the result
-     * @param seed
-     *            the starting value
-     * @param accumulator
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function for incorporating an additional element into a result
+     * @param <U> The type of the result
+     * @param seed the starting value
+     * @param accumulator a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function for incorporating an additional element into a result
      * @return the {@code List} where the last element is the seed and every
      *         predecessor element is the result of applying accumulator
      *         function to the corresponding stream element and the next list
@@ -1495,12 +1399,10 @@ import static one.util.streamex.StreamExInternals.*;
      * This method cannot take all the advantages of parallel streams as it must
      * process elements strictly right to left.
      *
-     * @param accumulator
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function for incorporating an additional element into a result
+     * @param accumulator a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function for incorporating an additional element into a result
      * @return the {@code List} where the last element is the last element of
      *         this stream and every predecessor element is the result of
      *         applying accumulator function to the corresponding stream element
@@ -1545,11 +1447,9 @@ import static one.util.streamex.StreamExInternals.*;
      * For sequential streams this method behaves exactly like
      * {@link #skip(long)}.
      *
-     * @param n
-     *            the number of leading elements to skip
+     * @param n the number of leading elements to skip
      * @return the new stream
-     * @throws IllegalArgumentException
-     *             if {@code n} is negative
+     * @throws IllegalArgumentException if {@code n} is negative
      * @see #skip(long)
      * @since 0.3.2
      */
@@ -1573,8 +1473,8 @@ import static one.util.streamex.StreamExInternals.*;
      * While this operation is quite cheap for sequential stream, it can be
      * quite expensive on parallel pipelines.
      * 
-     * @param predicate
-     *            a non-interfering, stateless predicate to apply to elements.
+     * @param predicate a non-interfering, stateless predicate to apply to
+     *        elements.
      * @return the new stream.
      * @since 0.3.6
      */
@@ -1602,8 +1502,8 @@ import static one.util.streamex.StreamExInternals.*;
      * While this operation is quite cheap for sequential stream, it can be
      * quite expensive on parallel pipelines.
      * 
-     * @param predicate
-     *            a non-interfering, stateless predicate to apply to elements.
+     * @param predicate a non-interfering, stateless predicate to apply to
+     *        elements.
      * @return the new stream.
      * @since 0.3.6
      */

@@ -66,9 +66,8 @@ public class AverageLongTest {
         avg2.accept(-2);
         assertEquals(-2.0, avg1.combine(avg2).result().getAsDouble(), 0.0);
 
-        assertEquals(expected,
-            Arrays.stream(input).parallel().collect(AverageLong::new, AverageLong::accept, AverageLong::combine)
-                    .result());
+        assertEquals(expected, Arrays.stream(input).parallel().collect(AverageLong::new, AverageLong::accept,
+            AverageLong::combine).result());
     }
 
     @Test
@@ -93,18 +92,17 @@ public class AverageLongTest {
         double expected = supplier.get().boxed().collect(getBigIntegerAverager()).getAsDouble();
         assertEquals(expected, supplier.get().collect(AverageLong::new, AverageLong::accept, AverageLong::combine)
                 .result().getAsDouble(), Math.abs(expected) / 1e14);
-        assertEquals(expected,
-            supplier.get().parallel().collect(AverageLong::new, AverageLong::accept, AverageLong::combine).result()
-                    .getAsDouble(), Math.abs(expected) / 1e14);
+        assertEquals(expected, supplier.get().parallel().collect(AverageLong::new, AverageLong::accept,
+            AverageLong::combine).result().getAsDouble(), Math.abs(expected) / 1e14);
     }
 
     private Collector<Long, ?, OptionalDouble> getBigIntegerAverager() {
         BiFunction<BigInteger, Long, OptionalDouble> finisher = (BigInteger sum, Long cnt) -> cnt == 0L ? OptionalDouble
-                .empty() : OptionalDouble.of(new BigDecimal(sum).divide(BigDecimal.valueOf(cnt), MathContext.DECIMAL64)
-                .doubleValue());
-        Collector<Long, ?, OptionalDouble> averager = MoreCollectors
-                .pairing(Collectors.reducing(BigInteger.ZERO, BigInteger::valueOf, (BigInteger b1, BigInteger b2) -> b1.add(b2)),
-                    Collectors.counting(), finisher);
+                .empty()
+                : OptionalDouble.of(new BigDecimal(sum).divide(BigDecimal.valueOf(cnt), MathContext.DECIMAL64)
+                        .doubleValue());
+        Collector<Long, ?, OptionalDouble> averager = MoreCollectors.pairing(Collectors.reducing(BigInteger.ZERO,
+            BigInteger::valueOf, (BigInteger b1, BigInteger b2) -> b1.add(b2)), Collectors.counting(), finisher);
         return averager;
     }
 }

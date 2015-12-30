@@ -33,16 +33,16 @@ public class DistinctSpliteratorTest {
 
     @Test
     public void testSpliterator() {
-        checkSpliterator("Distinct2", Arrays.asList("b"),
-            () -> new DistinctSpliterator<>(Arrays.asList("a", null, "b", "c", "b", null, "c", "b").spliterator(), 3));
-        checkSpliterator("Distinct34", Arrays.asList(0),
-            () -> new DistinctSpliterator<>(IntStream.range(0, 100).map(x -> x % 3).boxed().spliterator(), 34));
-        
-        assertEquals(Spliterator.DISTINCT | Spliterator.ORDERED,
-            new DistinctSpliterator<>(Arrays.asList("a", null, "b", "c", "b", null, "c", "b").spliterator(), 3)
-                    .characteristics());
-        assertEquals(Spliterator.DISTINCT | Spliterator.ORDERED | Spliterator.IMMUTABLE | Spliterator.SORTED | Spliterator.NONNULL,
-            new DistinctSpliterator<>(IntStream.range(0, 100).spliterator(), 3).characteristics());
+        checkSpliterator("Distinct2", Arrays.asList("b"), () -> new DistinctSpliterator<>(Arrays.asList("a", null, "b",
+            "c", "b", null, "c", "b").spliterator(), 3));
+        checkSpliterator("Distinct34", Arrays.asList(0), () -> new DistinctSpliterator<>(IntStream.range(0, 100).map(
+            x -> x % 3).boxed().spliterator(), 34));
+
+        assertEquals(Spliterator.DISTINCT | Spliterator.ORDERED, new DistinctSpliterator<>(Arrays.asList("a", null,
+            "b", "c", "b", null, "c", "b").spliterator(), 3).characteristics());
+        assertEquals(Spliterator.DISTINCT | Spliterator.ORDERED | Spliterator.IMMUTABLE | Spliterator.SORTED
+            | Spliterator.NONNULL, new DistinctSpliterator<>(IntStream.range(0, 100).spliterator(), 3)
+                .characteristics());
         assertEquals(100, new DistinctSpliterator<>(IntStream.range(0, 100).spliterator(), 3).estimateSize());
     }
 }

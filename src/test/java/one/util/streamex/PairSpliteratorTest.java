@@ -34,11 +34,11 @@ public class PairSpliteratorTest {
     @Test
     public void testSpliterator() {
         int[] ints = IntStreamEx.of(new Random(1), 100).toArray();
-        checkSpliterator("pair", () -> new PairSpliterator.PSOfRef<>((a, b) -> (a-b), Arrays.spliterator(ints)));
-        checkSpliterator("pair", () -> new PairSpliterator.PSOfInt((a, b) -> (a-b), Arrays.spliterator(ints)));
+        checkSpliterator("pair", () -> new PairSpliterator.PSOfRef<>((a, b) -> (a - b), Arrays.spliterator(ints)));
+        checkSpliterator("pair", () -> new PairSpliterator.PSOfInt((a, b) -> (a - b), Arrays.spliterator(ints)));
         long[] longs = LongStreamEx.of(new Random(1), 100).toArray();
-        checkSpliterator("pair", () -> new PairSpliterator.PSOfLong((a, b) -> (a-b), Arrays.spliterator(longs)));
+        checkSpliterator("pair", () -> new PairSpliterator.PSOfLong((a, b) -> (a - b), Arrays.spliterator(longs)));
         double[] doubles = DoubleStreamEx.of(new Random(1), 100).toArray();
-        checkSpliterator("pair", () -> new PairSpliterator.PSOfDouble((a, b) -> (a-b), Arrays.spliterator(doubles)));
+        checkSpliterator("pair", () -> new PairSpliterator.PSOfDouble((a, b) -> (a - b), Arrays.spliterator(doubles)));
     }
 }

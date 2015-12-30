@@ -163,9 +163,8 @@ public class DoubleStreamEx implements DoubleStream {
      * <p>
      * This is an intermediate operation.
      *
-     * @param predicate
-     *            a non-interfering, stateless predicate to apply to each
-     *            element to determine if it should be excluded
+     * @param predicate a non-interfering, stateless predicate to apply to each
+     *        element to determine if it should be excluded
      * @return the new stream
      */
     public DoubleStreamEx remove(DoublePredicate predicate) {
@@ -179,8 +178,7 @@ public class DoubleStreamEx implements DoubleStream {
      * <p>
      * This is an intermediate operation.
      *
-     * @param value
-     *            a value to compare to
+     * @param value a value to compare to
      * @return the new stream
      * @since 0.2.3
      */
@@ -195,8 +193,7 @@ public class DoubleStreamEx implements DoubleStream {
      * <p>
      * This is an intermediate operation.
      *
-     * @param value
-     *            a value to compare to
+     * @param value a value to compare to
      * @return the new stream
      * @since 0.2.3
      */
@@ -211,8 +208,7 @@ public class DoubleStreamEx implements DoubleStream {
      * <p>
      * This is an intermediate operation.
      *
-     * @param value
-     *            a value to compare to
+     * @param value a value to compare to
      * @return the new stream
      * @since 0.2.3
      */
@@ -227,8 +223,7 @@ public class DoubleStreamEx implements DoubleStream {
      * <p>
      * This is an intermediate operation.
      *
-     * @param value
-     *            a value to compare to
+     * @param value a value to compare to
      * @return the new stream
      * @since 0.2.3
      */
@@ -249,12 +244,10 @@ public class DoubleStreamEx implements DoubleStream {
      * This is an <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a>.
      *
-     * @param mapper
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function to apply to the first element
+     * @param mapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to the first element
      * @return the new stream
      * @since 0.4.1
      */
@@ -270,12 +263,10 @@ public class DoubleStreamEx implements DoubleStream {
      * This is an <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a>.
      *
-     * @param mapper
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function to apply to the first element
+     * @param mapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to the first element
      * @return the new stream
      * @since 0.4.1
      */
@@ -306,14 +297,12 @@ public class DoubleStreamEx implements DoubleStream {
      * <p>
      * This is an intermediate operation.
      *
-     * @param <K>
-     *            The {@code Entry} key type
-     * @param <V>
-     *            The {@code Entry} value type
-     * @param keyMapper
-     *            a non-interfering, stateless function to apply to each element
-     * @param valueMapper
-     *            a non-interfering, stateless function to apply to each element
+     * @param <K> The {@code Entry} key type
+     * @param <V> The {@code Entry} value type
+     * @param keyMapper a non-interfering, stateless function to apply to each
+     *        element
+     * @param valueMapper a non-interfering, stateless function to apply to each
+     *        element
      * @return the new stream
      * @since 0.3.1
      */
@@ -338,9 +327,8 @@ public class DoubleStreamEx implements DoubleStream {
      * <p>
      * This is an intermediate operation.
      *
-     * @param mapper
-     *            a non-interfering, stateless function to apply to each element
-     *            which produces an {@code IntStream} of new values
+     * @param mapper a non-interfering, stateless function to apply to each
+     *        element which produces an {@code IntStream} of new values
      * @return the new stream
      * @since 0.3.0
      */
@@ -358,9 +346,8 @@ public class DoubleStreamEx implements DoubleStream {
      * <p>
      * This is an intermediate operation.
      *
-     * @param mapper
-     *            a non-interfering, stateless function to apply to each element
-     *            which produces a {@code LongStream} of new values
+     * @param mapper a non-interfering, stateless function to apply to each
+     *        element which produces a {@code LongStream} of new values
      * @return the new stream
      * @since 0.3.0
      */
@@ -378,11 +365,9 @@ public class DoubleStreamEx implements DoubleStream {
      * <p>
      * This is an intermediate operation.
      *
-     * @param <R>
-     *            The element type of the new stream
-     * @param mapper
-     *            a non-interfering, stateless function to apply to each element
-     *            which produces a {@code Stream} of new values
+     * @param <R> The element type of the new stream
+     * @param mapper a non-interfering, stateless function to apply to each
+     *        element which produces a {@code Stream} of new values
      * @return the new stream
      * @since 0.3.0
      */
@@ -413,12 +398,10 @@ public class DoubleStreamEx implements DoubleStream {
      * This is a <a href="package-summary.html#StreamOps">stateful intermediate
      * operation</a>.
      * 
-     * @param comparator
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            {@code Comparator} to be used to compare stream elements
+     * @param comparator a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        {@code Comparator} to be used to compare stream elements
      * @return the new stream
      */
     public DoubleStreamEx sorted(Comparator<Double> comparator) {
@@ -453,14 +436,11 @@ public class DoubleStreamEx implements DoubleStream {
      * This is a <a href="package-summary.html#StreamOps">stateful intermediate
      * operation</a>.
      *
-     * @param <V>
-     *            the type of the {@code Comparable} sort key
-     * @param keyExtractor
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function to be used to extract sorting keys
+     * @param <V> the type of the {@code Comparable} sort key
+     * @param keyExtractor a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to be used to extract sorting keys
      * @return the new stream
      */
     public <V extends Comparable<? super V>> DoubleStreamEx sortedBy(DoubleFunction<V> keyExtractor) {
@@ -479,12 +459,10 @@ public class DoubleStreamEx implements DoubleStream {
      * This is a <a href="package-summary.html#StreamOps">stateful intermediate
      * operation</a>.
      *
-     * @param keyExtractor
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function to be used to extract sorting keys
+     * @param keyExtractor a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to be used to extract sorting keys
      * @return the new stream
      */
     public DoubleStreamEx sortedByInt(DoubleToIntFunction keyExtractor) {
@@ -503,12 +481,10 @@ public class DoubleStreamEx implements DoubleStream {
      * This is a <a href="package-summary.html#StreamOps">stateful intermediate
      * operation</a>.
      *
-     * @param keyExtractor
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function to be used to extract sorting keys
+     * @param keyExtractor a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to be used to extract sorting keys
      * @return the new stream
      */
     public DoubleStreamEx sortedByLong(DoubleToLongFunction keyExtractor) {
@@ -527,12 +503,10 @@ public class DoubleStreamEx implements DoubleStream {
      * This is a <a href="package-summary.html#StreamOps">stateful intermediate
      * operation</a>.
      *
-     * @param keyExtractor
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function to be used to extract sorting keys
+     * @param keyExtractor a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to be used to extract sorting keys
      * @return the new stream
      */
     public DoubleStreamEx sortedByDouble(DoubleUnaryOperator keyExtractor) {
@@ -580,11 +554,9 @@ public class DoubleStreamEx implements DoubleStream {
      * For sequential streams this method behaves exactly like
      * {@link #skip(long)}.
      *
-     * @param n
-     *            the number of leading elements to skip
+     * @param n the number of leading elements to skip
      * @return the new stream
-     * @throws IllegalArgumentException
-     *             if {@code n} is negative
+     * @throws IllegalArgumentException if {@code n} is negative
      * @see #skip(long)
      * @since 0.3.2
      */
@@ -677,12 +649,10 @@ public class DoubleStreamEx implements DoubleStream {
      * For parallel stream it's not guaranteed that accumulator will always be
      * executed in the same thread.
      *
-     * @param accumulator
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function for incorporating an additional element into a result
+     * @param accumulator a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function for incorporating an additional element into a result
      * @return the result of the folding
      * @see #foldLeft(double, DoubleBinaryOperator)
      * @see #reduce(DoubleBinaryOperator)
@@ -727,14 +697,11 @@ public class DoubleStreamEx implements DoubleStream {
      * For parallel stream it's not guaranteed that accumulator will always be
      * executed in the same thread.
      *
-     * @param seed
-     *            the starting value
-     * @param accumulator
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function for incorporating an additional element into a result
+     * @param seed the starting value
+     * @param accumulator a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function for incorporating an additional element into a result
      * @return the result of the folding
      * @see #reduce(double, DoubleBinaryOperator)
      * @see #foldLeft(DoubleBinaryOperator)
@@ -761,12 +728,10 @@ public class DoubleStreamEx implements DoubleStream {
      * This method cannot take all the advantages of parallel streams as it must
      * process elements strictly left to right.
      *
-     * @param accumulator
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function for incorporating an additional element into a result
+     * @param accumulator a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function for incorporating an additional element into a result
      * @return the array where the first element is the first element of this
      *         stream and every successor element is the result of applying
      *         accumulator function to the previous array element and the
@@ -799,14 +764,11 @@ public class DoubleStreamEx implements DoubleStream {
      * This method cannot take all the advantages of parallel streams as it must
      * process elements strictly left to right.
      *
-     * @param seed
-     *            the starting value
-     * @param accumulator
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            function for incorporating an additional element into a result
+     * @param seed the starting value
+     * @param accumulator a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function for incorporating an additional element into a result
      * @return the array where the first element is the seed and every successor
      *         element is the result of applying accumulator function to the
      *         previous array element and the corresponding stream element. The
@@ -842,13 +804,10 @@ public class DoubleStreamEx implements DoubleStream {
      * <p>
      * This is a terminal operation.
      *
-     * @param <A>
-     *            the intermediate accumulation type of the
-     *            {@code DoubleCollector}
-     * @param <R>
-     *            type of the result
-     * @param collector
-     *            the {@code DoubleCollector} describing the reduction
+     * @param <A> the intermediate accumulation type of the
+     *        {@code DoubleCollector}
+     * @param <R> type of the result
+     * @param collector the {@code DoubleCollector} describing the reduction
      * @return the result of the reduction
      * @see #collect(Supplier, ObjDoubleConsumer, BiConsumer)
      * @since 0.3.0
@@ -878,9 +837,8 @@ public class DoubleStreamEx implements DoubleStream {
      * <p>
      * This is a terminal operation.
      *
-     * @param comparator
-     *            a non-interfering, stateless {@link Comparator} to compare
-     *            elements of this stream
+     * @param comparator a non-interfering, stateless {@link Comparator} to
+     *        compare elements of this stream
      * @return an {@code OptionalDouble} describing the minimum element of this
      *         stream, or an empty {@code OptionalDouble} if the stream is empty
      * @since 0.1.2
@@ -896,10 +854,8 @@ public class DoubleStreamEx implements DoubleStream {
      * <p>
      * This is a terminal operation.
      *
-     * @param <V>
-     *            the type of the {@code Comparable} sort key
-     * @param keyExtractor
-     *            a non-interfering, stateless function
+     * @param <V> the type of the {@code Comparable} sort key
+     * @param keyExtractor a non-interfering, stateless function
      * @return an {@code OptionalDouble} describing the first element of this
      *         stream for which the lowest value was returned by key extractor,
      *         or an empty {@code OptionalDouble} if the stream is empty
@@ -928,8 +884,7 @@ public class DoubleStreamEx implements DoubleStream {
      * <p>
      * This is a terminal operation.
      *
-     * @param keyExtractor
-     *            a non-interfering, stateless function
+     * @param keyExtractor a non-interfering, stateless function
      * @return an {@code OptionalDouble} describing the first element of this
      *         stream for which the lowest value was returned by key extractor,
      *         or an empty {@code OptionalDouble} if the stream is empty
@@ -953,8 +908,7 @@ public class DoubleStreamEx implements DoubleStream {
      * <p>
      * This is a terminal operation.
      *
-     * @param keyExtractor
-     *            a non-interfering, stateless function
+     * @param keyExtractor a non-interfering, stateless function
      * @return an {@code OptionalDouble} describing the first element of this
      *         stream for which the lowest value was returned by key extractor,
      *         or an empty {@code OptionalDouble} if the stream is empty
@@ -978,8 +932,7 @@ public class DoubleStreamEx implements DoubleStream {
      * <p>
      * This is a terminal operation.
      *
-     * @param keyExtractor
-     *            a non-interfering, stateless function
+     * @param keyExtractor a non-interfering, stateless function
      * @return an {@code OptionalDouble} describing the first element of this
      *         stream for which the lowest value was returned by key extractor,
      *         or an empty {@code OptionalDouble} if the stream is empty
@@ -1012,9 +965,8 @@ public class DoubleStreamEx implements DoubleStream {
      * <p>
      * This is a terminal operation.
      *
-     * @param comparator
-     *            a non-interfering, stateless {@link Comparator} to compare
-     *            elements of this stream
+     * @param comparator a non-interfering, stateless {@link Comparator} to
+     *        compare elements of this stream
      * @return an {@code OptionalDouble} describing the maximum element of this
      *         stream, or an empty {@code OptionalDouble} if the stream is empty
      */
@@ -1029,10 +981,8 @@ public class DoubleStreamEx implements DoubleStream {
      * <p>
      * This is a terminal operation.
      *
-     * @param <V>
-     *            the type of the {@code Comparable} sort key
-     * @param keyExtractor
-     *            a non-interfering, stateless function
+     * @param <V> the type of the {@code Comparable} sort key
+     * @param keyExtractor a non-interfering, stateless function
      * @return an {@code OptionalDouble} describing the first element of this
      *         stream for which the highest value was returned by key extractor,
      *         or an empty {@code OptionalDouble} if the stream is empty
@@ -1061,8 +1011,7 @@ public class DoubleStreamEx implements DoubleStream {
      * <p>
      * This is a terminal operation.
      *
-     * @param keyExtractor
-     *            a non-interfering, stateless function
+     * @param keyExtractor a non-interfering, stateless function
      * @return an {@code OptionalDouble} describing the first element of this
      *         stream for which the highest value was returned by key extractor,
      *         or an empty {@code OptionalDouble} if the stream is empty
@@ -1086,8 +1035,7 @@ public class DoubleStreamEx implements DoubleStream {
      * <p>
      * This is a terminal operation.
      *
-     * @param keyExtractor
-     *            a non-interfering, stateless function
+     * @param keyExtractor a non-interfering, stateless function
      * @return an {@code OptionalDouble} describing the first element of this
      *         stream for which the highest value was returned by key extractor,
      *         or an empty {@code OptionalDouble} if the stream is empty
@@ -1111,8 +1059,7 @@ public class DoubleStreamEx implements DoubleStream {
      * <p>
      * This is a terminal operation.
      *
-     * @param keyExtractor
-     *            a non-interfering, stateless function
+     * @param keyExtractor a non-interfering, stateless function
      * @return an {@code OptionalDouble} describing the first element of this
      *         stream for which the highest value was returned by key extractor,
      *         or an empty {@code OptionalDouble} if the stream is empty
@@ -1176,12 +1123,10 @@ public class DoubleStreamEx implements DoubleStream {
      * <p>
      * This is a short-circuiting terminal operation.
      *
-     * @param predicate
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            predicate which returned value should match
+     * @param predicate a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        predicate which returned value should match
      * @return an {@code OptionalDouble} describing the first matching element
      *         of this stream, or an empty {@code OptionalDouble} if there's no
      *         matching element
@@ -1211,12 +1156,10 @@ public class DoubleStreamEx implements DoubleStream {
      * on the same source may not return the same result. (If a stable result is
      * desired, use {@link #findFirst(DoublePredicate)} instead.)
      *
-     * @param predicate
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            predicate which returned value should match
+     * @param predicate a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        predicate which returned value should match
      * @return an {@code OptionalDouble} describing some matching element of
      *         this stream, or an empty {@code OptionalDouble} if there's no
      *         matching element
@@ -1235,12 +1178,10 @@ public class DoubleStreamEx implements DoubleStream {
      * <p>
      * This is a short-circuiting terminal operation.
      *
-     * @param predicate
-     *            a <a
-     *            href="package-summary.html#NonInterference">non-interfering
-     *            </a>, <a
-     *            href="package-summary.html#Statelessness">stateless</a>
-     *            predicate which returned value should match
+     * @param predicate a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        predicate which returned value should match
      * @return an {@code OptionalLong} describing the index of the first
      *         matching element of this stream, or an empty {@code OptionalLong}
      *         if there's no matching element.
@@ -1288,8 +1229,7 @@ public class DoubleStreamEx implements DoubleStream {
      * thread does not belong to that pool, it will wait till calculation
      * finishes.
      *
-     * @param fjp
-     *            a {@code ForkJoinPool} to submit the stream operation to.
+     * @param fjp a {@code ForkJoinPool} to submit the stream operation to.
      * @return a parallel stream bound to the supplied {@code ForkJoinPool}
      * @since 0.2.0
      */
@@ -1311,8 +1251,7 @@ public class DoubleStreamEx implements DoubleStream {
      * Returns a new {@code DoubleStreamEx} which is a concatenation of this
      * stream and the stream containing supplied values
      * 
-     * @param values
-     *            the values to append to the stream
+     * @param values the values to append to the stream
      * @return the new stream
      */
     public DoubleStreamEx append(double... values) {
@@ -1328,8 +1267,7 @@ public class DoubleStreamEx implements DoubleStream {
      * parallel if either of the input streams is parallel. When the resulting
      * stream is closed, the close handlers for both input streams are invoked.
      *
-     * @param other
-     *            the other stream
+     * @param other the other stream
      * @return this stream appended by the other stream
      * @see DoubleStream#concat(DoubleStream, DoubleStream)
      */
@@ -1341,8 +1279,7 @@ public class DoubleStreamEx implements DoubleStream {
      * Returns a new {@code DoubleStreamEx} which is a concatenation of the
      * stream containing supplied values and this stream
      * 
-     * @param values
-     *            the values to prepend to the stream
+     * @param values the values to prepend to the stream
      * @return the new stream
      */
     public DoubleStreamEx prepend(double... values) {
@@ -1358,8 +1295,7 @@ public class DoubleStreamEx implements DoubleStream {
      * parallel if either of the input streams is parallel. When the resulting
      * stream is closed, the close handlers for both input streams are invoked.
      *
-     * @param other
-     *            the other stream
+     * @param other the other stream
      * @return this stream prepended by the other stream
      * @see DoubleStream#concat(DoubleStream, DoubleStream)
      */
@@ -1378,9 +1314,8 @@ public class DoubleStreamEx implements DoubleStream {
      * The output stream will contain one element less than this stream. If this
      * stream contains zero or one element the output stream will be empty.
      *
-     * @param mapper
-     *            a non-interfering, stateless function to apply to each
-     *            adjacent pair of this stream elements.
+     * @param mapper a non-interfering, stateless function to apply to each
+     *        adjacent pair of this stream elements.
      * @return the new stream
      * @since 0.2.1
      */
@@ -1396,8 +1331,7 @@ public class DoubleStreamEx implements DoubleStream {
      * <p>
      * This is a terminal operation.
      * 
-     * @param delimiter
-     *            the delimiter to be used between each element
+     * @param delimiter the delimiter to be used between each element
      * @return a {@code String}. For empty input stream empty String is
      *         returned.
      * @since 0.3.1
@@ -1415,14 +1349,11 @@ public class DoubleStreamEx implements DoubleStream {
      * <p>
      * This is a terminal operation.
      * 
-     * @param delimiter
-     *            the delimiter to be used between each element
-     * @param prefix
-     *            the sequence of characters to be used at the beginning of the
-     *            joined result
-     * @param suffix
-     *            the sequence of characters to be used at the end of the joined
-     *            result
+     * @param delimiter the delimiter to be used between each element
+     * @param prefix the sequence of characters to be used at the beginning of
+     *        the joined result
+     * @param suffix the sequence of characters to be used at the end of the
+     *        joined result
      * @return a {@code String}. For empty input stream empty String is
      *         returned.
      * @since 0.3.1
@@ -1446,8 +1377,8 @@ public class DoubleStreamEx implements DoubleStream {
      * While this operation is quite cheap for sequential stream, it can be
      * quite expensive on parallel pipelines.
      * 
-     * @param predicate
-     *            a non-interfering, stateless predicate to apply to elements.
+     * @param predicate a non-interfering, stateless predicate to apply to
+     *        elements.
      * @return the new stream.
      * @since 0.3.6
      */
@@ -1475,8 +1406,8 @@ public class DoubleStreamEx implements DoubleStream {
      * While this operation is quite cheap for sequential stream, it can be
      * quite expensive on parallel pipelines.
      * 
-     * @param predicate
-     *            a non-interfering, stateless predicate to apply to elements.
+     * @param predicate a non-interfering, stateless predicate to apply to
+     *        elements.
      * @return the new stream.
      * @since 0.3.6
      */
@@ -1500,8 +1431,7 @@ public class DoubleStreamEx implements DoubleStream {
     /**
      * Returns a sequential {@code DoubleStreamEx} containing a single element.
      *
-     * @param element
-     *            the single element
+     * @param element the single element
      * @return a singleton sequential stream
      */
     public static DoubleStreamEx of(double element) {
@@ -1512,8 +1442,7 @@ public class DoubleStreamEx implements DoubleStream {
      * Returns a sequential ordered {@code DoubleStreamEx} whose elements are
      * the specified values.
      *
-     * @param elements
-     *            the elements of the new stream
+     * @param elements the elements of the new stream
      * @return the new stream
      */
     public static DoubleStreamEx of(double... elements) {
@@ -1524,17 +1453,14 @@ public class DoubleStreamEx implements DoubleStream {
      * Returns a sequential {@link DoubleStreamEx} with the specified range of
      * the specified array as its source.
      *
-     * @param array
-     *            the array, assumed to be unmodified during use
-     * @param startInclusive
-     *            the first index to cover, inclusive
-     * @param endExclusive
-     *            index immediately past the last index to cover
+     * @param array the array, assumed to be unmodified during use
+     * @param startInclusive the first index to cover, inclusive
+     * @param endExclusive index immediately past the last index to cover
      * @return an {@code DoubleStreamEx} for the array range
-     * @throws ArrayIndexOutOfBoundsException
-     *             if {@code startInclusive} is negative, {@code endExclusive}
-     *             is less than {@code startInclusive}, or {@code endExclusive}
-     *             is greater than the array size
+     * @throws ArrayIndexOutOfBoundsException if {@code startInclusive} is
+     *         negative, {@code endExclusive} is less than
+     *         {@code startInclusive}, or {@code endExclusive} is greater than
+     *         the array size
      * @since 0.1.1
      * @see Arrays#stream(double[], int, int)
      */
@@ -1546,8 +1472,7 @@ public class DoubleStreamEx implements DoubleStream {
      * Returns a sequential ordered {@code DoubleStreamEx} whose elements are
      * the unboxed elements of supplied array.
      *
-     * @param array
-     *            the array to create the stream from.
+     * @param array the array to create the stream from.
      * @return the new stream
      * @see Arrays#stream(Object[])
      * @since 0.5.0
@@ -1560,8 +1485,7 @@ public class DoubleStreamEx implements DoubleStream {
      * Returns a sequential ordered {@code DoubleStreamEx} whose elements are
      * the specified float values casted to double.
      *
-     * @param elements
-     *            the elements of the new stream
+     * @param elements the elements of the new stream
      * @return the new stream
      * @since 0.2.0
      */
@@ -1573,17 +1497,14 @@ public class DoubleStreamEx implements DoubleStream {
      * Returns a sequential {@link DoubleStreamEx} with the specified range of
      * the specified array as its source. Array values will be casted to double.
      *
-     * @param array
-     *            the array, assumed to be unmodified during use
-     * @param startInclusive
-     *            the first index to cover, inclusive
-     * @param endExclusive
-     *            index immediately past the last index to cover
+     * @param array the array, assumed to be unmodified during use
+     * @param startInclusive the first index to cover, inclusive
+     * @param endExclusive index immediately past the last index to cover
      * @return an {@code IntStreamEx} for the array range
-     * @throws ArrayIndexOutOfBoundsException
-     *             if {@code startInclusive} is negative, {@code endExclusive}
-     *             is less than {@code startInclusive}, or {@code endExclusive}
-     *             is greater than the array size
+     * @throws ArrayIndexOutOfBoundsException if {@code startInclusive} is
+     *         negative, {@code endExclusive} is less than
+     *         {@code startInclusive}, or {@code endExclusive} is greater than
+     *         the array size
      * @since 0.2.0
      */
     public static DoubleStreamEx of(float[] array, int startInclusive, int endExclusive) {
@@ -1595,8 +1516,7 @@ public class DoubleStreamEx implements DoubleStream {
      * Returns a {@code DoubleStreamEx} object which wraps given
      * {@link DoubleStream}
      * 
-     * @param stream
-     *            original stream
+     * @param stream original stream
      * @return the wrapped stream
      * @since 0.0.8
      */
@@ -1608,8 +1528,7 @@ public class DoubleStreamEx implements DoubleStream {
      * Returns a sequential {@link DoubleStreamEx} created from given
      * {@link java.util.Spliterator.OfDouble}.
      * 
-     * @param spliterator
-     *            a spliterator to create the stream from.
+     * @param spliterator a spliterator to create the stream from.
      * @return the new stream
      * @since 0.3.4
      */
@@ -1629,8 +1548,7 @@ public class DoubleStreamEx implements DoubleStream {
      * <p>
      * Use this method only if you cannot provide better Stream source.
      *
-     * @param iterator
-     *            an iterator to create the stream from.
+     * @param iterator an iterator to create the stream from.
      * @return the new stream
      * @since 0.5.1
      */
@@ -1643,8 +1561,7 @@ public class DoubleStreamEx implements DoubleStream {
      * {@link OptionalDouble} value, if present, otherwise returns an empty
      * {@code DoubleStreamEx}.
      *
-     * @param optional
-     *            the optional to create a stream of
+     * @param optional the optional to create a stream of
      * @return a stream with an {@code OptionalDouble} value if present,
      *         otherwise an empty stream
      * @since 0.1.1
@@ -1657,8 +1574,7 @@ public class DoubleStreamEx implements DoubleStream {
      * Returns a sequential ordered {@code DoubleStreamEx} whose elements are
      * the unboxed elements of supplied collection.
      *
-     * @param collection
-     *            the collection to create the stream from.
+     * @param collection the collection to create the stream from.
      * @return the new stream
      * @see Collection#stream()
      */
@@ -1675,8 +1591,7 @@ public class DoubleStreamEx implements DoubleStream {
      * A pseudorandom {@code double} value is generated as if it's the result of
      * calling the method {@link Random#nextDouble()}.
      *
-     * @param random
-     *            a {@link Random} object to produce the stream from
+     * @param random a {@link Random} object to produce the stream from
      * @return a stream of pseudorandom {@code double} values
      * @see Random#doubles()
      */
@@ -1693,10 +1608,8 @@ public class DoubleStreamEx implements DoubleStream {
      * A pseudorandom {@code double} value is generated as if it's the result of
      * calling the method {@link Random#nextDouble()}.
      *
-     * @param random
-     *            a {@link Random} object to produce the stream from
-     * @param streamSize
-     *            the number of values to generate
+     * @param random a {@link Random} object to produce the stream from
+     * @param streamSize the number of values to generate
      * @return a stream of pseudorandom {@code double} values
      * @see Random#doubles(long)
      */
@@ -1709,12 +1622,9 @@ public class DoubleStreamEx implements DoubleStream {
      * values, each conforming to the given origin (inclusive) and bound
      * (exclusive) produced by given {@link Random} object.
      *
-     * @param random
-     *            a {@link Random} object to produce the stream from
-     * @param randomNumberOrigin
-     *            the origin (inclusive) of each random value
-     * @param randomNumberBound
-     *            the bound (exclusive) of each random value
+     * @param random a {@link Random} object to produce the stream from
+     * @param randomNumberOrigin the origin (inclusive) of each random value
+     * @param randomNumberBound the bound (exclusive) of each random value
      * @return a stream of pseudorandom {@code double} values, each with the
      *         given origin (inclusive) and bound (exclusive)
      * @see Random#doubles(double, double)
@@ -1729,14 +1639,10 @@ public class DoubleStreamEx implements DoubleStream {
      * (inclusive) and bound (exclusive) produced by given {@link Random}
      * object.
      *
-     * @param random
-     *            a {@link Random} object to produce the stream from
-     * @param randomNumberOrigin
-     *            the origin (inclusive) of each random value
-     * @param randomNumberBound
-     *            the bound (exclusive) of each random value
-     * @param streamSize
-     *            the number of values to generate
+     * @param random a {@link Random} object to produce the stream from
+     * @param randomNumberOrigin the origin (inclusive) of each random value
+     * @param randomNumberBound the bound (exclusive) of each random value
+     * @param streamSize the number of values to generate
      * @return a stream of pseudorandom {@code double} values, each with the
      *         given origin (inclusive) and bound (exclusive)
      * @see Random#doubles(long, double, double)
@@ -1757,11 +1663,9 @@ public class DoubleStreamEx implements DoubleStream {
      * {@code n}, will be the result of applying the function {@code f} to the
      * element at position {@code n - 1}.
      *
-     * @param seed
-     *            the initial element
-     * @param f
-     *            a function to be applied to to the previous element to produce
-     *            a new element
+     * @param seed the initial element
+     * @param f a function to be applied to to the previous element to produce a
+     *        new element
      * @return A new sequential {@code DoubleStream}
      * @see DoubleStream#iterate(double, DoubleUnaryOperator)
      */
@@ -1774,8 +1678,7 @@ public class DoubleStreamEx implements DoubleStream {
      * generated by the provided {@code DoubleSupplier}. This is suitable for
      * generating constant streams, streams of random elements, etc.
      *
-     * @param s
-     *            the {@code DoubleSupplier} for generated elements
+     * @param s the {@code DoubleSupplier} for generated elements
      * @return a new infinite sequential unordered {@code DoubleStreamEx}
      * @see DoubleStream#generate(DoubleSupplier)
      */
@@ -1787,10 +1690,8 @@ public class DoubleStreamEx implements DoubleStream {
      * Returns a sequential unordered {@code DoubleStreamEx} of given length
      * which elements are equal to supplied value.
      * 
-     * @param value
-     *            the constant value
-     * @param length
-     *            the length of the stream
+     * @param value the constant value
+     * @param length the length of the stream
      * @return a new {@code DoubleStreamEx}
      * @since 0.1.2
      */
@@ -1803,16 +1704,12 @@ public class DoubleStreamEx implements DoubleStream {
      * applying the given function to the corresponding pairs of values in given
      * two arrays.
      * 
-     * @param first
-     *            the first array
-     * @param second
-     *            the second array
-     * @param mapper
-     *            a non-interfering, stateless function to apply to each pair of
-     *            the corresponding array elements.
+     * @param first the first array
+     * @param second the second array
+     * @param mapper a non-interfering, stateless function to apply to each pair
+     *        of the corresponding array elements.
      * @return a new {@code DoubleStreamEx}
-     * @throws IllegalArgumentException
-     *             if length of the arrays differs.
+     * @throws IllegalArgumentException if length of the arrays differs.
      * @since 0.2.1
      */
     public static DoubleStreamEx zip(double[] first, double[] second, DoubleBinaryOperator mapper) {

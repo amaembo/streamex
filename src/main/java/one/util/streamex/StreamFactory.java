@@ -48,7 +48,7 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
-/* package */ class StreamFactory {
+/* package */class StreamFactory {
 
     static final class CustomPoolStreamFactory extends StreamFactory {
         private final ForkJoinPool fjp;
@@ -124,7 +124,7 @@ import java.util.stream.Stream;
         public <A> A[] toArray(IntFunction<A[]> generator) {
             return strategy.terminate(generator, stream::toArray);
         }
-        
+
         @Override
         public <R> R toListAndThen(Function<List<Entry<K, V>>, R> finisher) {
             return strategy.terminate(finisher, super::toListAndThen);

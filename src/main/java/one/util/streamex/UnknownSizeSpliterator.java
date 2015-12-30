@@ -41,8 +41,7 @@ import java.util.stream.StreamSupport;
      * Optimize the stream created on IteratorSpliterator replacing it with
      * UnknownSizeSpliterator.
      * 
-     * @param stream
-     *            original stream
+     * @param stream original stream
      * @return either original or optimized stream
      */
     @SuppressWarnings("unchecked")
@@ -122,7 +121,7 @@ import java.util.stream.StreamSupport;
                 int n = getN();
                 Object[] a = new Object[n];
                 int j = 0;
-                while(i.hasNext() && j < n) {
+                while (i.hasNext() && j < n) {
                     a[j++] = i.next();
                 }
                 fence = j;
@@ -195,7 +194,7 @@ import java.util.stream.StreamSupport;
                 int n = getN();
                 int[] a = new int[n];
                 int j = 0;
-                while(i.hasNext() && j < n) {
+                while (i.hasNext() && j < n) {
                     a[j++] = i.next();
                 }
                 fence = j;
@@ -264,7 +263,7 @@ import java.util.stream.StreamSupport;
                 int n = getN();
                 long[] a = new long[n];
                 int j = 0;
-                while(i.hasNext() && j < n) {
+                while (i.hasNext() && j < n) {
                     a[j++] = i.next();
                 }
                 fence = j;
@@ -333,7 +332,7 @@ import java.util.stream.StreamSupport;
                 int n = getN();
                 double[] a = new double[n];
                 int j = 0;
-                while(i.hasNext() && j < n) {
+                while (i.hasNext() && j < n) {
                     a[j++] = i.next();
                 }
                 fence = j;

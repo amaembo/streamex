@@ -37,7 +37,7 @@ import static org.junit.Assert.*;
 public class InternalsTest {
     @Test
     public void testArrayCollection() {
-        Collection<Object> collection = new ArrayCollection(new Object[] {"1", "2"});
+        Collection<Object> collection = new ArrayCollection(new Object[] { "1", "2" });
         List<Object> list = new LinkedList<>(collection);
         assertEquals("1", list.get(0));
         assertEquals("2", list.get(1));
@@ -50,7 +50,7 @@ public class InternalsTest {
         assertTrue(set.contains("2"));
         assertEquals(2, set.size());
     }
-    
+
     @Test(expected = UnsupportedOperationException.class)
     public void testPartialCollector() {
         PartialCollector.intSum().accumulator();
@@ -59,7 +59,7 @@ public class InternalsTest {
     @Test
     public void testJdk9Basics() {
         MethodHandle[][] jdk9Methods = initJdk9Methods();
-        if(Stream.of(Stream.class.getMethods()).anyMatch(m -> m.getName().equals("takeWhile")))
+        if (Stream.of(Stream.class.getMethods()).anyMatch(m -> m.getName().equals("takeWhile")))
             assertNotNull(jdk9Methods);
         else
             assertNull(jdk9Methods);

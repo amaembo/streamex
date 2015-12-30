@@ -120,8 +120,8 @@ public class TestHelpers {
         try {
             r.run();
         } catch (ComparisonFailure cmp) {
-            ComparisonFailure ex = new ComparisonFailure(message + ": " + cmp.getMessage(), cmp.getExpected(),
-                    cmp.getActual());
+            ComparisonFailure ex = new ComparisonFailure(message + ": " + cmp.getMessage(), cmp.getExpected(), cmp
+                    .getActual());
             ex.setStackTrace(cmp.getStackTrace());
             throw ex;
         } catch (AssertionError err) {
@@ -162,8 +162,7 @@ public class TestHelpers {
      * 
      * @author Tagir Valeev
      *
-     * @param <T>
-     *            type of the elements
+     * @param <T> type of the elements
      */
     private static class EmptyingSpliterator<T> implements Spliterator<T> {
         private Spliterator<T> source;

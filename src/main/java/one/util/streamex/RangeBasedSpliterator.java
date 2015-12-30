@@ -32,7 +32,8 @@ import static one.util.streamex.StreamExInternals.*;
 /**
  * @author Tagir Valeev
  */
-/* package */abstract class RangeBasedSpliterator<T, S extends RangeBasedSpliterator<T, ?>> implements Spliterator<T>, Cloneable {
+/* package */abstract class RangeBasedSpliterator<T, S extends RangeBasedSpliterator<T, ?>> implements Spliterator<T>,
+        Cloneable {
     int cur;
     int limit;
 
@@ -97,13 +98,13 @@ import static one.util.streamex.StreamExInternals.*;
             cur = limit;
         }
     }
-    
+
     static final class OfSubLists<T> extends RangeBasedSpliterator<List<T>, OfSubLists<T>> {
         private final List<T> source;
         private final int length;
         private final int shift;
         private final int listSize;
-        
+
         public OfSubLists(List<T> source, int length, int shift) {
             super(0, Math.max(0, source.size() - Math.max(length - shift, 0) - 1) / shift + 1);
             this.source = source;
@@ -111,7 +112,7 @@ import static one.util.streamex.StreamExInternals.*;
             this.shift = shift;
             this.length = length;
         }
-        
+
         @Override
         public boolean tryAdvance(Consumer<? super List<T>> action) {
             if (cur < limit) {
@@ -123,7 +124,7 @@ import static one.util.streamex.StreamExInternals.*;
             }
             return false;
         }
-        
+
         @Override
         public void forEachRemaining(Consumer<? super List<T>> action) {
             int l = limit, c = cur, ll = length, sf = shift, ls = listSize;
@@ -137,19 +138,20 @@ import static one.util.streamex.StreamExInternals.*;
             cur = limit;
         }
     }
-    
+
     static final class ZipRef<U, V, T> extends RangeBasedSpliterator<T, ZipRef<U, V, T>> {
         private final List<U> l1;
         private final List<V> l2;
         private final BiFunction<? super U, ? super V, ? extends T> mapper;
-        
-        public ZipRef(int fromInclusive, int toExclusive, BiFunction<? super U, ? super V, ? extends T> mapper, List<U> l1, List<V> l2) {
+
+        public ZipRef(int fromInclusive, int toExclusive, BiFunction<? super U, ? super V, ? extends T> mapper,
+                List<U> l1, List<V> l2) {
             super(fromInclusive, toExclusive);
             this.l1 = l1;
             this.l2 = l2;
             this.mapper = mapper;
         }
-        
+
         @Override
         public boolean tryAdvance(Consumer<? super T> action) {
             if (cur < limit) {
@@ -159,7 +161,7 @@ import static one.util.streamex.StreamExInternals.*;
             }
             return false;
         }
-        
+
         @Override
         public void forEachRemaining(Consumer<? super T> action) {
             int l = limit, c = cur;
@@ -170,18 +172,18 @@ import static one.util.streamex.StreamExInternals.*;
             cur = limit;
         }
     }
-    
+
     static final class ZipInt extends RangeBasedSpliterator<Integer, ZipInt> implements Spliterator.OfInt {
         private final IntBinaryOperator mapper;
         private final int[] arr1, arr2;
-        
+
         public ZipInt(int fromInclusive, int toExclusive, IntBinaryOperator mapper, int[] arr1, int[] arr2) {
             super(fromInclusive, toExclusive);
             this.mapper = mapper;
             this.arr1 = arr1;
             this.arr2 = arr2;
         }
-        
+
         @Override
         public boolean tryAdvance(IntConsumer action) {
             if (cur < limit) {
@@ -191,7 +193,7 @@ import static one.util.streamex.StreamExInternals.*;
             }
             return false;
         }
-        
+
         @Override
         public void forEachRemaining(IntConsumer action) {
             int l = limit, c = cur;
@@ -202,15 +204,15 @@ import static one.util.streamex.StreamExInternals.*;
             cur = limit;
         }
     }
-    
+
     static final class OfByte extends RangeBasedSpliterator<Integer, OfByte> implements Spliterator.OfInt {
         private final byte[] array;
-        
+
         public OfByte(int fromInclusive, int toExclusive, byte[] array) {
             super(fromInclusive, toExclusive);
             this.array = array;
         }
-        
+
         @Override
         public boolean tryAdvance(IntConsumer action) {
             if (cur < limit) {
@@ -220,7 +222,7 @@ import static one.util.streamex.StreamExInternals.*;
             }
             return false;
         }
-        
+
         @Override
         public void forEachRemaining(IntConsumer action) {
             int l = limit, c = cur;
@@ -230,15 +232,15 @@ import static one.util.streamex.StreamExInternals.*;
             cur = limit;
         }
     }
-    
+
     static final class OfChar extends RangeBasedSpliterator<Integer, OfChar> implements Spliterator.OfInt {
         private final char[] array;
-        
+
         public OfChar(int fromInclusive, int toExclusive, char[] array) {
             super(fromInclusive, toExclusive);
             this.array = array;
         }
-        
+
         @Override
         public boolean tryAdvance(IntConsumer action) {
             if (cur < limit) {
@@ -248,7 +250,7 @@ import static one.util.streamex.StreamExInternals.*;
             }
             return false;
         }
-        
+
         @Override
         public void forEachRemaining(IntConsumer action) {
             int l = limit, c = cur;
@@ -258,15 +260,15 @@ import static one.util.streamex.StreamExInternals.*;
             cur = limit;
         }
     }
-    
+
     static final class OfShort extends RangeBasedSpliterator<Integer, OfShort> implements Spliterator.OfInt {
         private final short[] array;
-        
+
         public OfShort(int fromInclusive, int toExclusive, short[] array) {
             super(fromInclusive, toExclusive);
             this.array = array;
         }
-        
+
         @Override
         public boolean tryAdvance(IntConsumer action) {
             if (cur < limit) {
@@ -276,7 +278,7 @@ import static one.util.streamex.StreamExInternals.*;
             }
             return false;
         }
-        
+
         @Override
         public void forEachRemaining(IntConsumer action) {
             int l = limit, c = cur;
@@ -286,18 +288,18 @@ import static one.util.streamex.StreamExInternals.*;
             cur = limit;
         }
     }
-    
+
     static final class ZipLong extends RangeBasedSpliterator<Long, ZipLong> implements Spliterator.OfLong {
         private final LongBinaryOperator mapper;
         private final long[] arr1, arr2;
-        
+
         public ZipLong(int fromInclusive, int toExclusive, LongBinaryOperator mapper, long[] arr1, long[] arr2) {
             super(fromInclusive, toExclusive);
             this.mapper = mapper;
             this.arr1 = arr1;
             this.arr2 = arr2;
         }
-        
+
         @Override
         public boolean tryAdvance(LongConsumer action) {
             if (cur < limit) {
@@ -307,7 +309,7 @@ import static one.util.streamex.StreamExInternals.*;
             }
             return false;
         }
-        
+
         @Override
         public void forEachRemaining(LongConsumer action) {
             int l = limit, c = cur;
@@ -318,15 +320,15 @@ import static one.util.streamex.StreamExInternals.*;
             cur = limit;
         }
     }
-    
+
     static final class OfFloat extends RangeBasedSpliterator<Double, OfFloat> implements Spliterator.OfDouble {
         private final float[] array;
-        
+
         public OfFloat(int fromInclusive, int toExclusive, float[] array) {
             super(fromInclusive, toExclusive);
             this.array = array;
         }
-        
+
         @Override
         public boolean tryAdvance(DoubleConsumer action) {
             if (cur < limit) {
@@ -336,7 +338,7 @@ import static one.util.streamex.StreamExInternals.*;
             }
             return false;
         }
-        
+
         @Override
         public void forEachRemaining(DoubleConsumer action) {
             int l = limit, c = cur;
@@ -346,18 +348,18 @@ import static one.util.streamex.StreamExInternals.*;
             cur = limit;
         }
     }
-    
+
     static final class ZipDouble extends RangeBasedSpliterator<Double, ZipDouble> implements Spliterator.OfDouble {
         private final DoubleBinaryOperator mapper;
         private final double[] arr1, arr2;
-        
+
         public ZipDouble(int fromInclusive, int toExclusive, DoubleBinaryOperator mapper, double[] arr1, double[] arr2) {
             super(fromInclusive, toExclusive);
             this.mapper = mapper;
             this.arr1 = arr1;
             this.arr2 = arr2;
         }
-        
+
         @Override
         public boolean tryAdvance(DoubleConsumer action) {
             if (cur < limit) {
@@ -367,7 +369,7 @@ import static one.util.streamex.StreamExInternals.*;
             }
             return false;
         }
-        
+
         @Override
         public void forEachRemaining(DoubleConsumer action) {
             int l = limit, c = cur;

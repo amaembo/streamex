@@ -60,8 +60,7 @@ public class PairPermutationSpliteratorTest {
     public void testSpliterator() {
         for (int i : IntStreamEx.rangeClosed(2, 13).boxed()) {
             List<Integer> input = IntStreamEx.range(i).boxed().toList();
-            List<Map.Entry<Integer, Integer>> expected = IntStreamEx
-                    .range(i)
+            List<Map.Entry<Integer, Integer>> expected = IntStreamEx.range(i)
                     .<Map.Entry<Integer, Integer>> flatMapToObj(
                         a -> IntStreamEx.range(a + 1, i).mapToObj(b -> new AbstractMap.SimpleEntry<>(a, b))).toList();
             checkSpliterator("#" + i, expected, () -> new PairPermutationSpliterator<>(input,

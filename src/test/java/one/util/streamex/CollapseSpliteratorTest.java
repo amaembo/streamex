@@ -45,8 +45,8 @@ import static org.junit.Assert.*;
  */
 public class CollapseSpliteratorTest {
     private static <T> void splitEquals(Spliterator<T> source, BiConsumer<Spliterator<T>, Spliterator<T>> consumer) {
-        Spliterator<T> right = new CollapseSpliterator<>(Objects::equals, Function.identity(),
-                StreamExInternals.selectFirst(), StreamExInternals.selectFirst(), source);
+        Spliterator<T> right = new CollapseSpliterator<>(Objects::equals, Function.identity(), StreamExInternals
+                .selectFirst(), StreamExInternals.selectFirst(), source);
         Spliterator<T> left = right.trySplit();
         assertNotNull(left);
         consumer.accept(left, right);
@@ -103,9 +103,10 @@ public class CollapseSpliteratorTest {
     }
 
     private void checkNonIdentity(List<Integer> input) {
-        checkSpliterator("collpase", () -> new CollapseSpliterator<Integer, Entry<Integer, Integer>>((a, b) -> (b - a == 1),
-                a -> new AbstractMap.SimpleEntry<>(a, a), (acc, a) -> new AbstractMap.SimpleEntry<>(acc.getKey(), a), (
-                        a, b) -> new AbstractMap.SimpleEntry<>(a.getKey(), b.getValue()), input.spliterator()));
+        checkSpliterator("collpase", () -> new CollapseSpliterator<Integer, Entry<Integer, Integer>>(
+                (a, b) -> (b - a == 1), a -> new AbstractMap.SimpleEntry<>(a, a),
+                (acc, a) -> new AbstractMap.SimpleEntry<>(acc.getKey(), a), (a, b) -> new AbstractMap.SimpleEntry<>(a
+                        .getKey(), b.getValue()), input.spliterator()));
     }
 
     @Test

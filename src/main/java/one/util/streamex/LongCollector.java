@@ -40,11 +40,9 @@ import static one.util.streamex.StreamExInternals.*;
  * 
  * @author Tagir Valeev
  *
- * @param <A>
- *            the mutable accumulation type of the reduction operation (often
- *            hidden as an implementation detail)
- * @param <R>
- *            the result type of the reduction operation
+ * @param <A> the mutable accumulation type of the reduction operation (often
+ *        hidden as an implementation detail)
+ * @param <R> the result type of the reduction operation
  * @see LongStreamEx#collect(LongCollector)
  * @since 0.3.0
  */
@@ -72,10 +70,9 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
     /**
      * Adapts this collector to perform an additional finishing transformation.
      *
-     * @param <RR>
-     *            result type of the resulting collector
-     * @param finisher
-     *            a function to be applied to the final result of this collector
+     * @param <RR> result type of the resulting collector
+     * @param finisher a function to be applied to the final result of this
+     *        collector
      * @return a collector which performs the action of this collector, followed
      *         by an additional finishing step
      * @since 0.3.7
@@ -90,15 +87,11 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * resulting {@code LongCollector} has the
      * {@code Collector.Characteristics.IDENTITY_FINISH} characteristic.
      *
-     * @param supplier
-     *            The supplier function for the new collector
-     * @param longAccumulator
-     *            The longAccumulator function for the new collector
-     * @param merger
-     *            The merger function for the new collector
-     * @param <R>
-     *            The type of intermediate accumulation result, and final
-     *            result, for the new collector
+     * @param supplier The supplier function for the new collector
+     * @param longAccumulator The longAccumulator function for the new collector
+     * @param merger The merger function for the new collector
+     * @param <R> The type of intermediate accumulation result, and final
+     *        result, for the new collector
      * @return the new {@code LongCollector}
      */
     static <R> LongCollector<R, R> of(Supplier<R> supplier, ObjLongConsumer<R> longAccumulator, BiConsumer<R, R> merger) {
@@ -109,12 +102,9 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * Adapts a {@code Collector} which accepts elements of type {@code Long} to
      * a {@code LongCollector}.
      * 
-     * @param <A>
-     *            The intermediate accumulation type of the collector
-     * @param <R>
-     *            The final result type of the collector
-     * @param collector
-     *            a {@code Collector} to adapt
+     * @param <A> The intermediate accumulation type of the collector
+     * @param <R> The final result type of the collector
+     * @param collector a {@code Collector} to adapt
      * @return a {@code LongCollector} which behaves in the same way as input
      *         collector.
      */
@@ -130,18 +120,12 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * {@code supplier}, {@code accumulator}, {@code merger}, and
      * {@code finisher} functions.
      *
-     * @param supplier
-     *            The supplier function for the new collector
-     * @param longAccumulator
-     *            The longAccumulator function for the new collector
-     * @param merger
-     *            The merger function for the new collector
-     * @param finisher
-     *            The finisher function for the new collector
-     * @param <A>
-     *            The intermediate accumulation type of the new collector
-     * @param <R>
-     *            The final result type of the new collector
+     * @param supplier The supplier function for the new collector
+     * @param longAccumulator The longAccumulator function for the new collector
+     * @param merger The merger function for the new collector
+     * @param finisher The finisher function for the new collector
+     * @param <A> The intermediate accumulation type of the new collector
+     * @param <R> The final result type of the new collector
      * @return the new {@code LongCollector}
      */
     static <A, R> LongCollector<A, R> of(Supplier<A> supplier, ObjLongConsumer<A> longAccumulator,
@@ -154,14 +138,11 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * strings and concatenates them, separated by the specified delimiter, with
      * the specified prefix and suffix, in encounter order.
      *
-     * @param delimiter
-     *            the delimiter to be used between each element
-     * @param prefix
-     *            the sequence of characters to be used at the beginning of the
-     *            joined result
-     * @param suffix
-     *            the sequence of characters to be used at the end of the joined
-     *            result
+     * @param delimiter the delimiter to be used between each element
+     * @param prefix the sequence of characters to be used at the beginning of
+     *        the joined result
+     * @param suffix the sequence of characters to be used at the end of the
+     *        joined result
      * @return A {@code LongCollector} which concatenates the input numbers,
      *         separated by the specified delimiter, in encounter order
      */
@@ -175,8 +156,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * strings and concatenates them, separated by the specified delimiter, in
      * encounter order.
      *
-     * @param delimiter
-     *            the delimiter to be used between each element
+     * @param delimiter the delimiter to be used between each element
      * @return A {@code LongCollector} which concatenates the input numbers,
      *         separated by the specified delimiter, in encounter order
      */
@@ -262,22 +242,18 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * Adapts a {@code LongCollector} to another one by applying a mapping
      * function to each input element before accumulation.
      *
-     * @param <A>
-     *            intermediate accumulation type of the downstream collector
-     * @param <R>
-     *            result type of collector
-     * @param mapper
-     *            a function to be applied to the input elements
-     * @param downstream
-     *            a collector which will accept mapped values
+     * @param <A> intermediate accumulation type of the downstream collector
+     * @param <R> result type of collector
+     * @param mapper a function to be applied to the input elements
+     * @param downstream a collector which will accept mapped values
      * @return a collector which applies the mapping function to the input
      *         elements and provides the mapped results to the downstream
      *         collector
      */
     static <A, R> LongCollector<?, R> mapping(LongUnaryOperator mapper, LongCollector<A, R> downstream) {
         ObjLongConsumer<A> downstreamAccumulator = downstream.longAccumulator();
-        return new LongCollectorImpl<>(downstream.supplier(), (r, t) -> downstreamAccumulator.accept(r,
-            mapper.applyAsLong(t)), downstream.merger(), downstream.finisher(), downstream.characteristics());
+        return new LongCollectorImpl<>(downstream.supplier(), (r, t) -> downstreamAccumulator.accept(r, mapper
+                .applyAsLong(t)), downstream.merger(), downstream.finisher(), downstream.characteristics());
     }
 
     /**
@@ -285,16 +261,11 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * {@code LongCollector} by applying a mapping function to each input
      * element before accumulation.
      *
-     * @param <U>
-     *            type of elements accepted by downstream collector
-     * @param <A>
-     *            intermediate accumulation type of the downstream collector
-     * @param <R>
-     *            result type of collector
-     * @param mapper
-     *            a function to be applied to the input elements
-     * @param downstream
-     *            a collector which will accept mapped values
+     * @param <U> type of elements accepted by downstream collector
+     * @param <A> intermediate accumulation type of the downstream collector
+     * @param <R> result type of collector
+     * @param mapper a function to be applied to the input elements
+     * @param downstream a collector which will accept mapped values
      * @return a collector which applies the mapping function to the input
      *         elements and provides the mapped results to the downstream
      *         collector
@@ -303,8 +274,8 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
         BiConsumer<A, U> accumulator = downstream.accumulator();
         if (downstream instanceof MergingCollector) {
             return new LongCollectorImpl<>(downstream.supplier(), (acc, i) -> accumulator.accept(acc, mapper.apply(i)),
-                    ((MergingCollector<U, A, R>) downstream).merger(), downstream.finisher(),
-                    downstream.characteristics());
+                    ((MergingCollector<U, A, R>) downstream).merger(), downstream.finisher(), downstream
+                            .characteristics());
         }
         return Box.partialCollector(downstream).asLong((box, i) -> accumulator.accept(box.a, mapper.apply(i)));
     }
@@ -314,8 +285,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * numbers under a specified {@link LongBinaryOperator}. The result is
      * described as an {@link OptionalLong}.
      *
-     * @param op
-     *            a {@code LongBinaryOperator} used to reduce the input numbers
+     * @param op a {@code LongBinaryOperator} used to reduce the input numbers
      * @return a {@code LongCollector} which implements the reduction operation.
      */
     static LongCollector<?, OptionalLong> reducing(LongBinaryOperator op) {
@@ -342,11 +312,9 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * numbers under a specified {@code IntBinaryOperator} using the provided
      * identity.
      *
-     * @param identity
-     *            the identity value for the reduction (also, the value that is
-     *            returned when there are no input elements)
-     * @param op
-     *            a {@code LongBinaryOperator} used to reduce the input numbers
+     * @param identity the identity value for the reduction (also, the value
+     *        that is returned when there are no input elements)
+     * @param op a {@code LongBinaryOperator} used to reduce the input numbers
      * @return a {@code LongCollector} which implements the reduction operation
      */
     static LongCollector<?, Long> reducing(long identity, LongBinaryOperator op) {
@@ -373,8 +341,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * There are no guarantees on the type, mutability, serializability, or
      * thread-safety of the {@code Map} returned.
      *
-     * @param predicate
-     *            a predicate used for classifying input elements
+     * @param predicate a predicate used for classifying input elements
      * @return a {@code LongCollector} implementing the partitioning operation
      */
     static LongCollector<?, Map<Boolean, long[]>> partitioningBy(LongPredicate predicate) {
@@ -392,14 +359,11 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * There are no guarantees on the type, mutability, serializability, or
      * thread-safety of the {@code Map} returned.
      *
-     * @param <A>
-     *            the intermediate accumulation type of the downstream collector
-     * @param <D>
-     *            the result type of the downstream reduction
-     * @param predicate
-     *            a predicate used for classifying input elements
-     * @param downstream
-     *            a {@code LongCollector} implementing the downstream reduction
+     * @param <A> the intermediate accumulation type of the downstream collector
+     * @param <D> the result type of the downstream reduction
+     * @param predicate a predicate used for classifying input elements
+     * @param downstream a {@code LongCollector} implementing the downstream
+     *        reduction
      * @return a {@code LongCollector} implementing the cascaded partitioning
      *         operation
      */
@@ -427,10 +391,8 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * There are no guarantees on the type, mutability, serializability, or
      * thread-safety of the {@code Map} objects returned.
      *
-     * @param <K>
-     *            the type of the keys
-     * @param classifier
-     *            the classifier function mapping input elements to keys
+     * @param <K> the type of the keys
+     * @param classifier the classifier function mapping input elements to keys
      * @return a {@code LongCollector} implementing the group-by operation
      */
     static <K> LongCollector<?, Map<K, long[]>> groupingBy(LongFunction<? extends K> classifier) {
@@ -453,16 +415,12 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * There are no guarantees on the type, mutability, serializability, or
      * thread-safety of the {@code Map} returned.
      *
-     * @param <K>
-     *            the type of the keys
-     * @param <A>
-     *            the intermediate accumulation type of the downstream collector
-     * @param <D>
-     *            the result type of the downstream reduction
-     * @param classifier
-     *            a classifier function mapping input elements to keys
-     * @param downstream
-     *            a {@code LongCollector} implementing the downstream reduction
+     * @param <K> the type of the keys
+     * @param <A> the intermediate accumulation type of the downstream collector
+     * @param <D> the result type of the downstream reduction
+     * @param classifier a classifier function mapping input elements to keys
+     * @param downstream a {@code LongCollector} implementing the downstream
+     *        reduction
      * @return a {@code LongCollector} implementing the cascaded group-by
      *         operation
      */
@@ -484,21 +442,15 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * downstream collector produces a result of type {@code D}. The resulting
      * collector produces a {@code Map<K, D>}.
      *
-     * @param <K>
-     *            the type of the keys
-     * @param <A>
-     *            the intermediate accumulation type of the downstream collector
-     * @param <D>
-     *            the result type of the downstream reduction
-     * @param <M>
-     *            the type of the resulting {@code Map}
-     * @param classifier
-     *            a classifier function mapping input elements to keys
-     * @param downstream
-     *            a {@code LongCollector} implementing the downstream reduction
-     * @param mapFactory
-     *            a function which, when called, produces a new empty
-     *            {@code Map} of the desired type
+     * @param <K> the type of the keys
+     * @param <A> the intermediate accumulation type of the downstream collector
+     * @param <D> the result type of the downstream reduction
+     * @param <M> the type of the resulting {@code Map}
+     * @param classifier a classifier function mapping input elements to keys
+     * @param downstream a {@code LongCollector} implementing the downstream
+     *        reduction
+     * @param mapFactory a function which, when called, produces a new empty
+     *        {@code Map} of the desired type
      * @return a {@code LongCollector} implementing the cascaded group-by
      *         operation
      */
@@ -531,10 +483,9 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * the results of applying the given predicate to the input elements, in
      * encounter order.
      * 
-     * @param predicate
-     *            a non-interfering, stateless predicate to apply to each input
-     *            element. The result values of this predicate are collected to
-     *            the resulting boolean array.
+     * @param predicate a non-interfering, stateless predicate to apply to each
+     *        input element. The result values of this predicate are collected
+     *        to the resulting boolean array.
      * @return a {@code LongCollector} which collects the results of the
      *         predicate function to the boolean array, in encounter order.
      * @since 0.3.8

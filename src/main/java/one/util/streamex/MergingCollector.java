@@ -12,13 +12,10 @@ import java.util.stream.Collector;
  * 
  * @author Tagir Valeev
  *
- * @param <T>
- *            the type of input elements to the reduction operation
- * @param <A>
- *            the mutable accumulation type of the reduction operation (often
- *            hidden as an implementation detail)
- * @param <R>
- *            the result type of the reduction operation
+ * @param <T> the type of input elements to the reduction operation
+ * @param <A> the mutable accumulation type of the reduction operation (often
+ *        hidden as an implementation detail)
+ * @param <R> the result type of the reduction operation
  */
 /* package */interface MergingCollector<T, A, R> extends Collector<T, A, R> {
     /**

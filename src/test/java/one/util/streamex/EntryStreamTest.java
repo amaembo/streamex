@@ -78,21 +78,19 @@ public class EntryStreamTest {
         assertEquals(Collections.singletonMap("foo", 1), EntryStream.of("foo", 1).toMap());
         assertEquals(createMap(), EntryStream.of("a", 1, "bb", 22, "ccc", 33).toMap());
 
-        assertEquals(
-            expected,
-            StreamEx.of(Collections.singletonMap("aaa", 3), Collections.singletonMap("bbb", 3),
-                Collections.singletonMap("c", 1), Collections.emptyMap()).flatMapToEntry(m -> m).toMap());
+        assertEquals(expected, StreamEx.of(Collections.singletonMap("aaa", 3), Collections.singletonMap("bbb", 3),
+            Collections.singletonMap("c", 1), Collections.emptyMap()).flatMapToEntry(m -> m).toMap());
 
         EntryStream<String, Integer> stream = EntryStream.of(data);
         assertSame(stream.stream, EntryStream.of(stream).stream);
         assertSame(stream.stream, EntryStream.of(StreamEx.of(EntryStream.of(stream))).stream);
 
-        assertEquals(Collections.singletonMap("aaa", 3),
-            EntryStream.of(Collections.singletonMap("aaa", 3).entrySet().spliterator()).toMap());
-        assertEquals(Collections.singletonMap("aaa", 3),
-            EntryStream.of(Collections.singletonMap("aaa", 3).entrySet().iterator()).toMap());
+        assertEquals(Collections.singletonMap("aaa", 3), EntryStream.of(
+            Collections.singletonMap("aaa", 3).entrySet().spliterator()).toMap());
+        assertEquals(Collections.singletonMap("aaa", 3), EntryStream.of(
+            Collections.singletonMap("aaa", 3).entrySet().iterator()).toMap());
     }
-    
+
     @Test
     public void testCreateKeyValuePairs() {
         checkAsString("a->1", EntryStream.of("a", 1));
@@ -101,16 +99,16 @@ public class EntryStreamTest {
         checkAsString("a->1;b->2;c->3;d->4", EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4));
         checkAsString("a->1;b->2;c->3;d->4;e->5", EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4, "e", 5));
         checkAsString("a->1;b->2;c->3;d->4;e->5;f->6", EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4, "e", 5, "f", 6));
-        checkAsString("a->1;b->2;c->3;d->4;e->5;f->6;g->7",
-            EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4, "e", 5, "f", 6, "g", 7));
-        checkAsString("a->1;b->2;c->3;d->4;e->5;f->6;g->7;h->8",
-            EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4, "e", 5, "f", 6, "g", 7, "h", 8));
-        checkAsString("a->1;b->2;c->3;d->4;e->5;f->6;g->7;h->8;i->9",
-            EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4, "e", 5, "f", 6, "g", 7, "h", 8, "i", 9));
-        checkAsString("a->1;b->2;c->3;d->4;e->5;f->6;g->7;h->8;i->9;j->10",
-            EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4, "e", 5, "f", 6, "g", 7, "h", 8, "i", 9, "j", 10));
+        checkAsString("a->1;b->2;c->3;d->4;e->5;f->6;g->7", EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4, "e", 5, "f",
+            6, "g", 7));
+        checkAsString("a->1;b->2;c->3;d->4;e->5;f->6;g->7;h->8", EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4, "e", 5,
+            "f", 6, "g", 7, "h", 8));
+        checkAsString("a->1;b->2;c->3;d->4;e->5;f->6;g->7;h->8;i->9", EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4,
+            "e", 5, "f", 6, "g", 7, "h", 8, "i", 9));
+        checkAsString("a->1;b->2;c->3;d->4;e->5;f->6;g->7;h->8;i->9;j->10", EntryStream.of("a", 1, "b", 2, "c", 3, "d",
+            4, "e", 5, "f", 6, "g", 7, "h", 8, "i", 9, "j", 10));
     }
-    
+
     @Test
     public void testSequential() {
         EntryStream<String, Integer> stream = EntryStream.of(createMap());
@@ -141,17 +139,17 @@ public class EntryStreamTest {
         Map<Integer, String> map2 = EntryStream.of(new String[] { "a", "bbb", "cc" }).toMap();
         assertEquals(map, map2);
 
-        Map<Integer, List<String>> grouping = EntryStream.of(new String[] { "a", "bbb", "cc", null, null })
-                .append(EntryStream.of(new String[] { "bb", "bbb", "c", null, "e" })).distinct().grouping();
+        Map<Integer, List<String>> grouping = EntryStream.of(new String[] { "a", "bbb", "cc", null, null }).append(
+            EntryStream.of(new String[] { "bb", "bbb", "c", null, "e" })).distinct().grouping();
         assertEquals(Arrays.asList("a", "bb"), grouping.get(0));
         assertEquals(Arrays.asList("bbb"), grouping.get(1));
         assertEquals(Arrays.asList("cc", "c"), grouping.get(2));
         assertEquals(Collections.singletonList(null), grouping.get(3));
         assertEquals(Arrays.asList(null, "e"), grouping.get(4));
 
-        assertEquals("0=a,1=bbb,2=cc",
-            EntryStream.of(new String[] { "a", "bbb", "cc" }).map(Object::toString).joining(","));
-        
+        assertEquals("0=a,1=bbb,2=cc", EntryStream.of(new String[] { "a", "bbb", "cc" }).map(Object::toString).joining(
+            ","));
+
         Entry<Integer, String> entry = EntryStream.of(Arrays.asList("a")).findFirst().get();
         // Test equals contract
         assertNotEquals(new Object(), entry);
@@ -166,8 +164,8 @@ public class EntryStreamTest {
 
     @Test
     public void testMap() {
-        assertEquals(Arrays.asList("1a", "22bb", "33ccc"),
-            EntryStream.of(createMap()).map(entry -> entry.getValue() + entry.getKey()).toList());
+        assertEquals(Arrays.asList("1a", "22bb", "33ccc"), EntryStream.of(createMap()).map(
+            entry -> entry.getValue() + entry.getKey()).toList());
     }
 
     @Test
@@ -182,8 +180,8 @@ public class EntryStreamTest {
                 .toMap());
         assertEquals(Collections.singletonMap("bb", 22), EntryStream.of(createMap()).filterValues(v -> v % 2 == 0)
                 .toMap());
-        assertEquals(Collections.singletonMap("ccc", 33),
-            EntryStream.of(createMap()).filterKeyValue((str, num) -> !str.equals("a") && num != 22).toMap());
+        assertEquals(Collections.singletonMap("ccc", 33), EntryStream.of(createMap()).filterKeyValue(
+            (str, num) -> !str.equals("a") && num != 22).toMap());
     }
 
     @Test
@@ -277,9 +275,8 @@ public class EntryStreamTest {
 
     @Test
     public void testPrepend() {
-        assertEquals(Arrays.asList(5, 22, 33, 22, 33),
-            EntryStream.of(createMap()).prepend(createMap()).prepend("dddd", 5).filterKeys(k -> k.length() > 1)
-                    .values().toList());
+        assertEquals(Arrays.asList(5, 22, 33, 22, 33), EntryStream.of(createMap()).prepend(createMap()).prepend("dddd",
+            5).filterKeys(k -> k.length() > 1).values().toList());
         checkAsString("a->1;ccc->33;bb->22", EntryStream.of("bb", 22).prepend("a", 1, "ccc", 33));
         checkAsString("a->1;ccc->33;dddd->40;bb->22", EntryStream.of("bb", 22).prepend("a", 1, "ccc", 33, "dddd", 40));
     }
@@ -322,12 +319,12 @@ public class EntryStreamTest {
 
     @Test
     public void testFlatMap() {
-        assertEquals(Arrays.asList((int) 'a', (int) 'b', (int) 'b', (int) 'c', (int) 'c', (int) 'c'),
-            EntryStream.of(createMap()).flatMap(entry -> entry.getKey().chars().boxed()).toList());
-        assertEquals(Arrays.asList("a", "b", "b", "c", "c", "c"),
-            EntryStream.of(createMap()).flatCollection(entry -> Arrays.asList(entry.getKey().split(""))).toList());
-        assertEquals(Arrays.asList("a", 1, "bb", 22, "ccc", 33),
-            EntryStream.of(createMap()).flatMapKeyValue((str, num) -> Stream.of(str, num)).toList());
+        assertEquals(Arrays.asList((int) 'a', (int) 'b', (int) 'b', (int) 'c', (int) 'c', (int) 'c'), EntryStream.of(
+            createMap()).flatMap(entry -> entry.getKey().chars().boxed()).toList());
+        assertEquals(Arrays.asList("a", "b", "b", "c", "c", "c"), EntryStream.of(createMap()).flatCollection(
+            entry -> Arrays.asList(entry.getKey().split(""))).toList());
+        assertEquals(Arrays.asList("a", 1, "bb", 22, "ccc", 33), EntryStream.of(createMap()).flatMapKeyValue(
+            (str, num) -> Stream.of(str, num)).toList());
     }
 
     @Test
@@ -344,25 +341,21 @@ public class EntryStreamTest {
         assertEquals(expected, result);
         assertEquals(0, EntryStream.<Stream<String>, String> of(null, "a").flatMapKeys(Function.identity()).count());
     }
-    
+
     @Test
     public void testFlatMapToValue() {
-        checkAsString(
-            "a->a;a->aa;a->aaa;b->b;b->bb",
-            EntryStream.of("a", 3, "b", 2, "c", 0).flatMapToValue(
-                (str, cnt) -> cnt == 0 ? null : IntStream.rangeClosed(1, cnt).mapToObj(
-                    idx -> StreamEx.constant(str, idx).joining())));
+        checkAsString("a->a;a->aa;a->aaa;b->b;b->bb", EntryStream.of("a", 3, "b", 2, "c", 0).flatMapToValue(
+            (str, cnt) -> cnt == 0 ? null : IntStream.rangeClosed(1, cnt).mapToObj(
+                idx -> StreamEx.constant(str, idx).joining())));
     }
 
     @Test
     public void testFlatMapToKey() {
-        checkAsString(
-            "a->3;aa->3;aaa->3;b->2;bb->2",
-            EntryStream.of("a", 3, "c", 0, "b", 2).flatMapToKey(
-                (str, cnt) -> cnt == 0 ? null : IntStream.rangeClosed(1, cnt).mapToObj(
-                    idx -> StreamEx.constant(str, idx).joining())));
+        checkAsString("a->3;aa->3;aaa->3;b->2;bb->2", EntryStream.of("a", 3, "c", 0, "b", 2).flatMapToKey(
+            (str, cnt) -> cnt == 0 ? null : IntStream.rangeClosed(1, cnt).mapToObj(
+                idx -> StreamEx.constant(str, idx).joining())));
     }
-    
+
     @Test
     public void testFlatMapValues() {
         Map<String, List<Integer>> data1 = new HashMap<>();
@@ -372,16 +365,16 @@ public class EntryStreamTest {
         data2.put("aaa", Arrays.asList(10));
         data2.put("bb", Arrays.asList(20));
         data2.put("cc", null);
-        Map<String, List<Integer>> result = StreamEx.of(data1, data2, null).flatMapToEntry(m -> m)
-                .flatMapValues(l -> l == null ? null : l.stream()).grouping();
+        Map<String, List<Integer>> result = StreamEx.of(data1, data2, null).flatMapToEntry(m -> m).flatMapValues(
+            l -> l == null ? null : l.stream()).grouping();
         Map<String, List<Integer>> expected = new HashMap<>();
         expected.put("aaa", Arrays.asList(1, 2, 3, 10));
         expected.put("bb", Arrays.asList(4, 5, 6, 20));
         assertEquals(expected, result);
 
         // Find the key which contains the biggest value in the list
-        assertEquals("bb",
-            EntryStream.of(data1).flatMapValues(List::stream).maxByInt(Entry::getValue).map(Entry::getKey).orElse(null));
+        assertEquals("bb", EntryStream.of(data1).flatMapValues(List::stream).maxByInt(Entry::getValue).map(
+            Entry::getKey).orElse(null));
     }
 
     @Test
@@ -404,15 +397,13 @@ public class EntryStreamTest {
         resultTree = s.get().parallel().grouping(TreeMap::new);
         assertEquals(expected, resultTree);
 
-        streamEx(
-            () -> IntStreamEx.range(1000).boxed(),
-            supplier -> {
-                assertEquals(EntryStream.of(0, 500, 1, 500).toMap(), supplier.get().mapToEntry(i -> i / 500, i -> i)
-                        .grouping(MoreCollectors.countingInt()));
-                ConcurrentSkipListMap<Integer, Integer> map = supplier.get().mapToEntry(i -> i / 500, i -> i)
-                        .grouping(ConcurrentSkipListMap::new, MoreCollectors.countingInt());
-                assertEquals(EntryStream.of(0, 500, 1, 500).toMap(), map);
-            });
+        streamEx(() -> IntStreamEx.range(1000).boxed(), supplier -> {
+            assertEquals(EntryStream.of(0, 500, 1, 500).toMap(), supplier.get().mapToEntry(i -> i / 500, i -> i)
+                    .grouping(MoreCollectors.countingInt()));
+            ConcurrentSkipListMap<Integer, Integer> map = supplier.get().mapToEntry(i -> i / 500, i -> i).grouping(
+                ConcurrentSkipListMap::new, MoreCollectors.countingInt());
+            assertEquals(EntryStream.of(0, 500, 1, 500).toMap(), map);
+        });
     }
 
     @Test
@@ -490,8 +481,8 @@ public class EntryStreamTest {
         // Weird way to create a map from the array. Don't do this in production
         // code!
         Object[] interleavingArray = { "a", 1, "bb", 22, "ccc", 33 };
-        Map<String, Integer> result = EntryStream
-                .of(StreamEx.of(interleavingArray).pairMap(SimpleEntry<Object, Object>::new)).selectKeys(String.class)
+        Map<String, Integer> result = EntryStream.of(
+            StreamEx.of(interleavingArray).pairMap(SimpleEntry<Object, Object>::new)).selectKeys(String.class)
                 .selectValues(Integer.class).toMap();
         assertEquals(createMap(), result);
     }
@@ -521,21 +512,19 @@ public class EntryStreamTest {
     @Test
     public void testJoin() {
         assertEquals("a = 1; bb = 22; ccc = 33", EntryStream.of(createMap()).join(" = ").joining("; "));
-        assertEquals("{[a = 1]; [bb = 22]; [ccc = 33]}",
-            EntryStream.of(createMap()).join(" = ", "[", "]").joining("; ", "{", "}"));
+        assertEquals("{[a = 1]; [bb = 22]; [ccc = 33]}", EntryStream.of(createMap()).join(" = ", "[", "]").joining(
+            "; ", "{", "}"));
     }
 
     @Test
     public void testOfPairs() {
         Random r = new Random(1);
-        Point[] pts = StreamEx.generate(() -> new Point(r.nextDouble(), r.nextDouble())).limit(100)
-                .toArray(Point[]::new);
+        Point[] pts = StreamEx.generate(() -> new Point(r.nextDouble(), r.nextDouble())).limit(100).toArray(
+            Point[]::new);
         double expected = StreamEx.of(pts).cross(pts).mapKeyValue(Point::distance).mapToDouble(Double::doubleValue)
                 .max().getAsDouble();
-        entryStream(
-            () -> EntryStream.ofPairs(pts),
-            supplier -> assertEquals(expected,
-                supplier.get().mapKeyValue(Point::distance).mapToDouble(Double::doubleValue).max().getAsDouble(), 0.0));
+        entryStream(() -> EntryStream.ofPairs(pts), supplier -> assertEquals(expected, supplier.get().mapKeyValue(
+            Point::distance).mapToDouble(Double::doubleValue).max().getAsDouble(), 0.0));
     }
 
     @Test
@@ -548,28 +537,23 @@ public class EntryStreamTest {
 
     @Test
     public void testOfTree() {
-        entryStream(() -> EntryStream.ofTree("a", (Integer depth, String str) -> null),
-            supplier -> checkAsString("0->a", supplier.get()));
+        entryStream(() -> EntryStream.ofTree("a", (Integer depth, String str) -> null), supplier -> checkAsString(
+            "0->a", supplier.get()));
 
-        List<Object> input = Arrays.asList(
-            "aa",
-            null,
-            Arrays.asList(Arrays.asList("bbbb", "cc", null, Arrays.asList()), "ddd", Arrays.asList("e"),
-                Arrays.asList("fff")), "ggg");
-        Supplier<Stream<Entry<Integer, Object>>> base = () -> EntryStream.ofTree(input, List.class,
-            (depth, l) -> l.stream());
-        entryStream(
-            base,
-            supplier -> assertEquals("{1=[aa, ggg], 2=[ddd], 3=[bbbb, cc, e, fff]}",
-                supplier.get().selectValues(String.class).grouping(TreeMap::new).toString()));
+        List<Object> input = Arrays
+                .asList("aa", null, Arrays.asList(Arrays.asList("bbbb", "cc", null, Arrays.asList()), "ddd", Arrays
+                        .asList("e"), Arrays.asList("fff")), "ggg");
+        Supplier<Stream<Entry<Integer, Object>>> base = () -> EntryStream.ofTree(input, List.class, (depth, l) -> l
+                .stream());
+        entryStream(base, supplier -> assertEquals("{1=[aa, ggg], 2=[ddd], 3=[bbbb, cc, e, fff]}", supplier.get()
+                .selectValues(String.class).grouping(TreeMap::new).toString()));
 
-        entryStream(
-            () -> EntryStream.ofTree("", (Integer depth, String str) -> depth >= 3 ? null : Stream.of("a", "b").map(str::concat)),
-            supplier -> {
-                assertEquals(Arrays.asList("", "a", "aa", "aaa", "aab", "ab", "aba", "abb", "b", "ba", "baa", "bab",
-                    "bb", "bba", "bbb"), supplier.get().values().toList());
-                assertEquals(Arrays.asList("a", "b", "aa", "ab", "ba", "bb", "aaa", "aab", "aba", "abb", "baa", "bab",
-                    "bba", "bbb"), supplier.get().sorted(Entry.comparingByKey()).values().without("").toList());
-            });
+        entryStream(() -> EntryStream.ofTree("", (Integer depth, String str) -> depth >= 3 ? null : Stream.of("a", "b")
+                .map(str::concat)), supplier -> {
+            assertEquals(Arrays.asList("", "a", "aa", "aaa", "aab", "ab", "aba", "abb", "b", "ba", "baa", "bab", "bb",
+                "bba", "bbb"), supplier.get().values().toList());
+            assertEquals(Arrays.asList("a", "b", "aa", "ab", "ba", "bb", "aaa", "aab", "aba", "abb", "baa", "bab",
+                "bba", "bbb"), supplier.get().sorted(Entry.comparingByKey()).values().without("").toList());
+        });
     }
 }

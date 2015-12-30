@@ -232,8 +232,7 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
      * but can be further set up in a flexible way, for example, specifying the
      * maximal allowed length of the resulting {@code String}.
      *
-     * @param delimiter
-     *            the delimiter to be used between each element
+     * @param delimiter the delimiter to be used between each element
      * @return A {@code Collector} which concatenates CharSequence elements,
      *         separated by the specified delimiter, in encounter order
      * @see Collectors#joining(CharSequence)
@@ -267,12 +266,10 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
      * {@code Joining.with(",").wrap("[", "]").wrap("(", ")")} is equivalent to
      * {@code Joining.with(",").wrap("([", "])")}.
      * 
-     * @param prefix
-     *            the sequence of characters to be used at the beginning of the
-     *            joined result
-     * @param suffix
-     *            the sequence of characters to be used at the end of the joined
-     *            result
+     * @param prefix the sequence of characters to be used at the beginning of
+     *        the joined result
+     * @param suffix the sequence of characters to be used at the end of the
+     *        joined result
      * @return a new {@code Collector} which wraps the result with the specified
      *         prefix and suffix.
      */
@@ -286,10 +283,9 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
      * the specified ellipsis {@code CharSequence} instead of default
      * {@code "..."} when the string limit (if specified) is reached.
      * 
-     * @param ellipsis
-     *            the sequence of characters to be used at the end of the joined
-     *            result to designate that not all of the input elements are
-     *            joined due to the specified string length restriction.
+     * @param ellipsis the sequence of characters to be used at the end of the
+     *        joined result to designate that not all of the input elements are
+     *        joined due to the specified string length restriction.
      * @return a new {@code Collector} which will use the specified ellipsis
      *         instead of current setting.
      */
@@ -316,9 +312,8 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
      * href="package-summary.html#ShortCircuitReduction">short-circuiting</a>:
      * it may not process all the input elements if the limit is reached.
      * 
-     * @param limit
-     *            the maximal number of UTF-16 characters in the resulting
-     *            String.
+     * @param limit the maximal number of UTF-16 characters in the resulting
+     *        String.
      * @return a new {@code Collector} which will produce String no longer than
      *         given limit.
      */
@@ -344,8 +339,7 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
      * href="package-summary.html#ShortCircuitReduction">short-circuiting</a>:
      * it may not process all the input elements if the limit is reached.
      * 
-     * @param limit
-     *            the maximal number of code points in the resulting String.
+     * @param limit the maximal number of code points in the resulting String.
      * @return a new {@code Collector} which will produce String no longer than
      *         given limit.
      */
@@ -375,9 +369,8 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
      * href="package-summary.html#ShortCircuitReduction">short-circuiting</a>:
      * it may not process all the input elements if the limit is reached.
      * 
-     * @param limit
-     *            the maximal number of grapheme clusters in the resulting
-     *            String.
+     * @param limit the maximal number of grapheme clusters in the resulting
+     *        String.
      * @return a new {@code Collector} which will produce String no longer than
      *         given limit.
      */
@@ -446,8 +439,8 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
      * The beginning and end of every input stream element or delimiter is
      * always considered as word boundary, so the stream of
      * {@code "one", "two three"} collected with
-     * {@code Joining.with("").maxChars(n).ellipsis("").cutAtWord()} may
-     * produce the following strings depending on {@code n}:
+     * {@code Joining.with("").maxChars(n).ellipsis("").cutAtWord()} may produce
+     * the following strings depending on {@code n}:
      * 
      * <pre>{@code
      * ""

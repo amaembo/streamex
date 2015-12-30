@@ -25,9 +25,9 @@ import java.util.function.LongConsumer;
  * @author Tagir Valeev
  *
  */
-/* package */ abstract class ConstSpliterator<T, S extends ConstSpliterator<T, ?>> implements Spliterator<T>, Cloneable {
+/* package */abstract class ConstSpliterator<T, S extends ConstSpliterator<T, ?>> implements Spliterator<T>, Cloneable {
     long remaining;
-    
+
     public ConstSpliterator(long remaining) {
         this.remaining = remaining;
     }
@@ -60,10 +60,10 @@ import java.util.function.LongConsumer;
     public int characteristics() {
         return SIZED | SUBSIZED | IMMUTABLE;
     }
-    
+
     static final class OfRef<T> extends ConstSpliterator<T, OfRef<T>> {
         private final T value;
-        
+
         OfRef(T value, long count) {
             super(count);
             this.value = value;
@@ -71,7 +71,7 @@ import java.util.function.LongConsumer;
 
         @Override
         public boolean tryAdvance(Consumer<? super T> action) {
-            if(remaining <= 0)
+            if (remaining <= 0)
                 return false;
             action.accept(value);
             remaining--;
@@ -80,33 +80,33 @@ import java.util.function.LongConsumer;
 
         @Override
         public void forEachRemaining(Consumer<? super T> action) {
-            for(long r = remaining; r > 0; r--) {
+            for (long r = remaining; r > 0; r--) {
                 action.accept(value);
             }
             remaining = 0;
         }
     }
-    
+
     static final class OfInt extends ConstSpliterator<Integer, OfInt> implements Spliterator.OfInt {
         private final int value;
-        
+
         OfInt(int value, long count) {
             super(count);
             this.value = value;
         }
-        
+
         @Override
         public boolean tryAdvance(IntConsumer action) {
-            if(remaining <= 0)
+            if (remaining <= 0)
                 return false;
             action.accept(value);
             remaining--;
             return true;
         }
-        
+
         @Override
         public void forEachRemaining(IntConsumer action) {
-            for(long r = remaining; r > 0; r--) {
+            for (long r = remaining; r > 0; r--) {
                 action.accept(value);
             }
             remaining = 0;
@@ -115,24 +115,24 @@ import java.util.function.LongConsumer;
 
     static final class OfLong extends ConstSpliterator<Long, OfLong> implements Spliterator.OfLong {
         private final long value;
-        
+
         OfLong(long value, long count) {
             super(count);
             this.value = value;
         }
-        
+
         @Override
         public boolean tryAdvance(LongConsumer action) {
-            if(remaining <= 0)
+            if (remaining <= 0)
                 return false;
             action.accept(value);
             remaining--;
             return true;
         }
-        
+
         @Override
         public void forEachRemaining(LongConsumer action) {
-            for(long r = remaining; r > 0; r--) {
+            for (long r = remaining; r > 0; r--) {
                 action.accept(value);
             }
             remaining = 0;
@@ -141,24 +141,24 @@ import java.util.function.LongConsumer;
 
     static final class OfDouble extends ConstSpliterator<Double, OfDouble> implements Spliterator.OfDouble {
         private final double value;
-        
+
         OfDouble(double value, long count) {
             super(count);
             this.value = value;
         }
-        
+
         @Override
         public boolean tryAdvance(DoubleConsumer action) {
-            if(remaining <= 0)
+            if (remaining <= 0)
                 return false;
             action.accept(value);
             remaining--;
             return true;
         }
-        
+
         @Override
         public void forEachRemaining(DoubleConsumer action) {
-            for(long r = remaining; r > 0; r--) {
+            for (long r = remaining; r > 0; r--) {
                 action.accept(value);
             }
             remaining = 0;

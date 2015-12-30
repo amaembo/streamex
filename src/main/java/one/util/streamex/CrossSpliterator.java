@@ -29,11 +29,11 @@ import java.util.stream.StreamSupport;
  * @author Tagir Valeev
  */
 /* package */abstract class CrossSpliterator<T, A> implements Spliterator<A> {
-	long est;
-	int splitPos;
-	final Spliterator<T>[] spliterators;
-	final Collection<T>[] collections;
-	
+    long est;
+    int splitPos;
+    final Spliterator<T>[] spliterators;
+    final Collection<T>[] collections;
+
     @SuppressWarnings("unchecked")
     CrossSpliterator(Collection<? extends Collection<T>> source) {
         this.splitPos = 0;
@@ -49,19 +49,19 @@ import java.util.stream.StreamSupport;
         this.collections = source.toArray(new Collection[source.size()]);
         this.spliterators = new Spliterator[collections.length];
     }
-	
+
     abstract Spliterator<A> doSplit(long prefixEst, Spliterator<T>[] prefixSpliterators,
             Collection<T>[] prefixCollections);
+
     abstract void accumulate(int pos, T t);
 
-    CrossSpliterator(long est, int splitPos,
-            Spliterator<T>[] spliterators, Collection<T>[] collections) {
+    CrossSpliterator(long est, int splitPos, Spliterator<T>[] spliterators, Collection<T>[] collections) {
         this.est = est;
         this.splitPos = splitPos;
         this.spliterators = spliterators;
         this.collections = collections;
     }
-    
+
     static final class Reducing<T, A> extends CrossSpliterator<T, A> {
         private A[] elements;
         private final BiFunction<A, ? super T, A> accumulator;
@@ -70,18 +70,17 @@ import java.util.stream.StreamSupport;
         Reducing(Collection<? extends Collection<T>> source, A identity, BiFunction<A, ? super T, A> accumulator) {
             super(source);
             this.accumulator = accumulator;
-            this.elements = (A[])new Object[collections.length+1];
+            this.elements = (A[]) new Object[collections.length + 1];
             this.elements[0] = identity;
         }
 
         private Reducing(long est, int splitPos, BiFunction<A, ? super T, A> accumulator,
-                Spliterator<T>[] spliterators, Collection<T>[] collections,
-                A[] elements) {
+                Spliterator<T>[] spliterators, Collection<T>[] collections, A[] elements) {
             super(est, splitPos, spliterators, collections);
             this.accumulator = accumulator;
             this.elements = elements;
         }
-        
+
         @Override
         public boolean tryAdvance(Consumer<? super A> action) {
             if (elements == null)
@@ -97,7 +96,7 @@ import java.util.stream.StreamSupport;
             est = 0;
             return false;
         }
-        
+
         @Override
         public void forEachRemaining(Consumer<? super A> action) {
             if (elements == null)
@@ -113,75 +112,73 @@ import java.util.stream.StreamSupport;
 
         @Override
         Spliterator<A> doSplit(long prefixEst, Spliterator<T>[] prefixSpliterators, Collection<T>[] prefixCollections) {
-            return new Reducing<>(prefixEst, splitPos, accumulator, prefixSpliterators,
-                    prefixCollections, elements.clone());
+            return new Reducing<>(prefixEst, splitPos, accumulator, prefixSpliterators, prefixCollections, elements
+                    .clone());
         }
 
         @Override
         void accumulate(int pos, T t) {
-            elements[pos+1] = accumulator.apply(elements[pos], t);
+            elements[pos + 1] = accumulator.apply(elements[pos], t);
         }
     }
 
     static final class ToList<T> extends CrossSpliterator<T, List<T>> {
-	    private List<T> elements;
+        private List<T> elements;
 
-	    @SuppressWarnings("unchecked")
-	    ToList(Collection<? extends Collection<T>> source) {
-	        super(source);
-	        this.elements = (List<T>) Arrays.asList(new Object[collections.length]);
-	    }
+        @SuppressWarnings("unchecked")
+        ToList(Collection<? extends Collection<T>> source) {
+            super(source);
+            this.elements = (List<T>) Arrays.asList(new Object[collections.length]);
+        }
 
-	    private ToList(long est, int splitPos,
-	            Spliterator<T>[] spliterators, Collection<T>[] collections,
-	            List<T> elements) {
-	        super(est, splitPos, spliterators, collections);
-	        this.elements = elements;
-	    }
+        private ToList(long est, int splitPos, Spliterator<T>[] spliterators, Collection<T>[] collections,
+                List<T> elements) {
+            super(est, splitPos, spliterators, collections);
+            this.elements = elements;
+        }
 
-	    @Override
-	    public boolean tryAdvance(Consumer<? super List<T>> action) {
-	        if (elements == null)
-	            return false;
-	        if (est < Long.MAX_VALUE && est > 0)
-	            est--;
-	        if (advance(collections.length - 1)) {
-	            action.accept(new ArrayList<>(elements));
-	            return true;
-	        }
-	        elements = null;
-	        est = 0;
-	        return false;
-	    }
+        @Override
+        public boolean tryAdvance(Consumer<? super List<T>> action) {
+            if (elements == null)
+                return false;
+            if (est < Long.MAX_VALUE && est > 0)
+                est--;
+            if (advance(collections.length - 1)) {
+                action.accept(new ArrayList<>(elements));
+                return true;
+            }
+            elements = null;
+            est = 0;
+            return false;
+        }
 
-	    @Override
-	    public void forEachRemaining(Consumer<? super List<T>> action) {
-	        if (elements == null)
-	            return;
-	        List<T> e = elements;
-	        int l = collections.length - 1;
-	        while (advance(l)) {
-	            action.accept(new ArrayList<>(e));
-	        }
-	        elements = null;
-	        est = 0;
-	    }
+        @Override
+        public void forEachRemaining(Consumer<? super List<T>> action) {
+            if (elements == null)
+                return;
+            List<T> e = elements;
+            int l = collections.length - 1;
+            while (advance(l)) {
+                action.accept(new ArrayList<>(e));
+            }
+            elements = null;
+            est = 0;
+        }
 
-	    @Override
+        @Override
         Spliterator<List<T>> doSplit(long prefixEst, Spliterator<T>[] prefixSpliterators,
                 Collection<T>[] prefixCollections) {
             @SuppressWarnings("unchecked")
             List<T> prefixElements = (List<T>) Arrays.asList(elements.toArray());
-	        return new ToList<>(prefixEst, splitPos, prefixSpliterators,
-	                prefixCollections, prefixElements);
+            return new ToList<>(prefixEst, splitPos, prefixSpliterators, prefixCollections, prefixElements);
         }
 
-	    @Override
-	    void accumulate(int pos, T t) {
-	        elements.set(pos, t);
-	    }
-	}
-    
+        @Override
+        void accumulate(int pos, T t) {
+            elements.set(pos, t);
+        }
+    }
+
     boolean advance(int i) {
         if (spliterators[i] == null) {
             if (i > 0 && collections[i - 1] != null && !advance(i - 1))
@@ -208,8 +205,7 @@ import java.util.stream.StreamSupport;
             if (splitPos == spliterators.length - 1)
                 return null;
             @SuppressWarnings("unchecked")
-            T[] arr = (T[]) StreamSupport.stream(spliterators[splitPos], false)
-                    .toArray();
+            T[] arr = (T[]) StreamSupport.stream(spliterators[splitPos], false).toArray();
             if (arr.length == 0)
                 return null;
             if (arr.length == 1) {
@@ -217,21 +213,19 @@ import java.util.stream.StreamSupport;
                 splitPos++;
                 return trySplit();
             }
-            spliterators[splitPos] = Spliterators.spliterator(arr,
-                    Spliterator.ORDERED);
+            spliterators[splitPos] = Spliterators.spliterator(arr, Spliterator.ORDERED);
             return trySplit();
         }
         long prefixEst = Long.MAX_VALUE;
         long newEst = spliterators[splitPos].getExactSizeIfKnown();
-        if(newEst == -1) {
+        if (newEst == -1) {
             newEst = Long.MAX_VALUE;
         } else {
             try {
                 for (int i = splitPos + 1; i < collections.length; i++) {
-                    newEst = StrictMath.multiplyExact(newEst,
-                            collections[i].size());
+                    newEst = StrictMath.multiplyExact(newEst, collections[i].size());
                 }
-                if(est != Long.MAX_VALUE)
+                if (est != Long.MAX_VALUE)
                     prefixEst = est - newEst;
             } catch (ArithmeticException e) {
                 newEst = Long.MAX_VALUE;
@@ -249,7 +243,7 @@ import java.util.stream.StreamSupport;
     public long estimateSize() {
         return est;
     }
-    
+
     @Override
     public int characteristics() {
         int sized = est < Long.MAX_VALUE ? SIZED : 0;

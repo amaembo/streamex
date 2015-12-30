@@ -59,13 +59,13 @@ public class UnorderedCancellableSpliteratorTest {
         BiConsumer<BoxedInteger, Integer> a = (acc, t) -> acc.value &= t;
         BinaryOperator<BoxedInteger> c = (a1, a2) -> new BoxedInteger(a1.value & a2.value);
         Predicate<BoxedInteger> p = acc -> acc.value == 0;
-        Supplier<Spliterator<BoxedInteger>> supplier = () -> new UnorderedCancellableSpliterator<>(
-                Arrays.asList(0b11100, 0b01110, 0b00011, 0b11010).spliterator(), s, a, c, p);
-        checkSpliterator("intersecting-short-circuit", Collections.singletonList(new BoxedInteger(0)),
-            supplier);
+        Supplier<Spliterator<BoxedInteger>> supplier = () -> new UnorderedCancellableSpliterator<>(Arrays.asList(
+            0b11100, 0b01110, 0b00011, 0b11010).spliterator(), s, a, c, p);
+        checkSpliterator("intersecting-short-circuit", Collections.singletonList(new BoxedInteger(0)), supplier);
         Spliterator<BoxedInteger> spliterator = supplier.get();
         assertEquals(4, spliterator.estimateSize());
-        assertTrue(spliterator.tryAdvance(x -> {}));
+        assertTrue(spliterator.tryAdvance(x -> {
+        }));
         assertEquals(0, spliterator.estimateSize());
         assertTrue(spliterator.hasCharacteristics(Spliterator.SIZED));
         checkSpliterator("intersecting-ok", Collections.singletonList(new BoxedInteger(0b111)),

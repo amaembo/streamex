@@ -250,7 +250,7 @@ import java.util.stream.Stream;
         IntBuffer(int size) {
             data = new int[size];
         }
-        
+
         void add(int n) {
             if (data.length == size) {
                 data = copy(data, new int[data.length * 2], size);
@@ -282,7 +282,7 @@ import java.util.stream.Stream;
         LongBuffer(int size) {
             data = new long[size];
         }
-        
+
         void add(long n) {
             if (data.length == size) {
                 data = copy(data, new long[data.length * 2], size);
@@ -314,7 +314,7 @@ import java.util.stream.Stream;
         DoubleBuffer(int size) {
             data = new double[size];
         }
-        
+
         void add(double n) {
             if (data.length == size) {
                 data = copy(data, new double[data.length * 2], size);
@@ -381,8 +381,8 @@ import java.util.stream.Stream;
         @SuppressWarnings({ "unchecked", "rawtypes" })
         static <A, R> PartialCollector<BooleanMap<A>, Map<Boolean, R>> partialCollector(Collector<?, A, R> downstream) {
             Supplier<A> downstreamSupplier = downstream.supplier();
-            Supplier<BooleanMap<A>> supplier = () -> new BooleanMap<>(downstreamSupplier.get(),
-                    downstreamSupplier.get());
+            Supplier<BooleanMap<A>> supplier = () -> new BooleanMap<>(downstreamSupplier.get(), downstreamSupplier
+                    .get());
             BinaryOperator<A> downstreamCombiner = downstream.combiner();
             BiConsumer<BooleanMap<A>, BooleanMap<A>> merger = (left, right) -> {
                 left.trueValue = downstreamCombiner.apply(left.trueValue, right.trueValue);
@@ -393,9 +393,8 @@ import java.util.stream.Stream;
                         ID_CHARACTERISTICS);
             } else {
                 Function<A, R> downstreamFinisher = downstream.finisher();
-                return new PartialCollector<>(supplier, merger, par -> new BooleanMap<>(
-                        downstreamFinisher.apply(par.trueValue), downstreamFinisher.apply(par.falseValue)),
-                        NO_CHARACTERISTICS);
+                return new PartialCollector<>(supplier, merger, par -> new BooleanMap<>(downstreamFinisher
+                        .apply(par.trueValue), downstreamFinisher.apply(par.falseValue)), NO_CHARACTERISTICS);
             }
         }
     }
@@ -459,8 +458,8 @@ import java.util.stream.Stream;
         }
 
         <T> Collector<T, A, R> asRef(BiConsumer<A, T> accumulator) {
-            return Collector.of(supplier, accumulator, combiner(), finisher,
-                characteristics.toArray(new Characteristics[characteristics.size()]));
+            return Collector.of(supplier, accumulator, combiner(), finisher, characteristics
+                    .toArray(new Characteristics[characteristics.size()]));
         }
 
         <T> Collector<T, A, R> asCancellable(BiConsumer<A, T> accumulator, Predicate<A> finished) {
@@ -526,7 +525,7 @@ import java.util.stream.Stream;
             return new PartialCollector<>(supplier, merger, StringBuilder::toString, NO_CHARACTERISTICS);
         }
     }
-    
+
     static abstract class CancellableCollector<T, A, R> implements Collector<T, A, R> {
         abstract Predicate<A> finished();
     }
@@ -854,8 +853,8 @@ import java.util.stream.Stream;
             if (hi == 0 && lo >= 0 || hi == -1 && lo < 0) {
                 return OptionalDouble.of(((double) lo) / cnt);
             }
-            return OptionalDouble.of(new BigDecimal(new BigInteger(java.nio.ByteBuffer.allocate(16)
-                    .order(ByteOrder.BIG_ENDIAN).putLong(hi).putLong(lo).array())).divide(BigDecimal.valueOf(cnt),
+            return OptionalDouble.of(new BigDecimal(new BigInteger(java.nio.ByteBuffer.allocate(16).order(
+                ByteOrder.BIG_ENDIAN).putLong(hi).putLong(lo).array())).divide(BigDecimal.valueOf(cnt),
                 MathContext.DECIMAL64).doubleValue());
         }
     }
@@ -868,7 +867,7 @@ import java.util.stream.Stream;
             super(null, null, false, false);
         }
     }
-    
+
     static class ArrayCollection extends AbstractCollection<Object> {
         private final Object[] arr;
 
@@ -889,7 +888,8 @@ import java.util.stream.Stream;
         @Override
         public Object[] toArray() {
             // intentional contract violation here:
-            // this way new ArrayList(new ArrayCollection(arr)) will not copy array at all
+            // this way new ArrayList(new ArrayCollection(arr)) will not copy
+            // array at all
             return arr;
         }
     }
@@ -914,7 +914,7 @@ import java.util.stream.Stream;
     static <T> BinaryOperator<T> selectFirst() {
         return (u, v) -> u;
     }
-    
+
     static int checkLength(int a, int b) {
         if (a != b)
             throw new IllegalArgumentException("Length differs: " + a + " != " + b);
@@ -945,10 +945,10 @@ import java.util.stream.Stream;
     static <T> Stream<T> unwrap(Stream<T> stream) {
         return stream instanceof AbstractStreamEx ? ((AbstractStreamEx<T, ?>) stream).stream : stream;
     }
-    
+
     static <A> Predicate<A> finished(Collector<?, A, ?> collector) {
-        if(collector instanceof CancellableCollector)
-            return ((CancellableCollector<?, A, ?>)collector).finished();
+        if (collector instanceof CancellableCollector)
+            return ((CancellableCollector<?, A, ?>) collector).finished();
         return null;
     }
 

@@ -69,12 +69,9 @@ public final class MoreCollectors {
      * Returns a {@code Collector} which just ignores the input and calls the
      * provided supplier once to return the output.
      * 
-     * @param <T>
-     *            the type of input elements
-     * @param <U>
-     *            the type of output
-     * @param supplier
-     *            the supplier of the output
+     * @param <T> the type of input elements
+     * @param <U> the type of output
+     * @param supplier the supplier of the output
      * @return a {@code Collector} which just ignores the input and calls the
      *         provided supplier once to return the output.
      */
@@ -96,11 +93,9 @@ public final class MoreCollectors {
      * {@code stream.toArray(generator)}. This collector is mostly useful as a
      * downstream collector.
      *
-     * @param <T>
-     *            the type of the input elements
-     * @param generator
-     *            a function which produces a new array of the desired type and
-     *            the provided length
+     * @param <T> the type of the input elements
+     * @param generator a function which produces a new array of the desired
+     *        type and the provided length
      * @return a {@code Collector} which collects all the input elements into an
      *         array, in encounter order
      */
@@ -113,12 +108,10 @@ public final class MoreCollectors {
      * results of applying the given predicate to the input elements, in
      * encounter order.
      * 
-     * @param <T>
-     *            the type of the input elements
-     * @param predicate
-     *            a non-interfering, stateless predicate to apply to each input
-     *            element. The result values of this predicate are collected to
-     *            the resulting boolean array.
+     * @param <T> the type of the input elements
+     * @param predicate a non-interfering, stateless predicate to apply to each
+     *        input element. The result values of this predicate are collected
+     *        to the resulting boolean array.
      * @return a {@code Collector} which collects the results of the predicate
      *         function to the boolean array, in encounter order.
      * @since 0.3.8
@@ -141,10 +134,8 @@ public final class MoreCollectors {
      * collector</a>: it may not process all the elements if the resulting set
      * contains all possible enum values.
      * 
-     * @param <T>
-     *            the type of the input elements
-     * @param enumClass
-     *            the class of input enum values
+     * @param <T> the type of the input elements
+     * @param enumClass the class of input enum values
      * @return a {@code Collector} which collects all the input elements into a
      *         {@code EnumSet}
      */
@@ -165,10 +156,8 @@ public final class MoreCollectors {
      * {@code stream.map(mapper).distinct().count()}. This collector is mostly
      * useful as a downstream collector.
      * 
-     * @param <T>
-     *            the type of the input elements
-     * @param mapper
-     *            a function which classifies input elements.
+     * @param <T> the type of the input elements
+     * @param mapper a function which classifies input elements.
      * @return a collector which counts a number of distinct classes the mapper
      *         function returns for the stream elements.
      */
@@ -193,21 +182,19 @@ public final class MoreCollectors {
      * The operation performed by the returned collector is equivalent to
      * {@code stream.distinct(mapper).toList()}, but may work faster.
      * 
-     * @param <T>
-     *            the type of the input elements
-     * @param mapper
-     *            a function which classifies input elements.
+     * @param <T> the type of the input elements
+     * @param mapper a function which classifies input elements.
      * @return a collector which collects distinct elements to the {@code List}.
      * @since 0.3.8
      */
     public static <T> Collector<T, ?, List<T>> distinctBy(Function<? super T, ?> mapper) {
-        return Collector.<T, Map<Object, T>, List<T>> of(LinkedHashMap::new,
-            (map, t) -> map.putIfAbsent(mapper.apply(t), t), (m1, m2) -> {
-                for (Entry<Object, T> e : m2.entrySet()) {
-                    m1.putIfAbsent(e.getKey(), e.getValue());
-                }
-                return m1;
-            }, map -> new ArrayList<>(map.values()));
+        return Collector.<T, Map<Object, T>, List<T>> of(LinkedHashMap::new, (map, t) -> map.putIfAbsent(mapper
+                .apply(t), t), (m1, m2) -> {
+            for (Entry<Object, T> e : m2.entrySet()) {
+                m1.putIfAbsent(e.getKey(), e.getValue());
+            }
+            return m1;
+        }, map -> new ArrayList<>(map.values()));
     }
 
     /**
@@ -215,8 +202,7 @@ public final class MoreCollectors {
      * counts the number of input elements and returns result as {@code Integer}
      * . If no elements are present, the result is 0.
      *
-     * @param <T>
-     *            the type of the input elements
+     * @param <T> the type of the input elements
      * @return a {@code Collector} that counts the input elements
      * @since 0.3.3
      * @see Collectors#counting()
@@ -236,24 +222,16 @@ public final class MoreCollectors {
      * collection might stop when both downstream collectors report that the
      * collection is complete.
      *
-     * @param <T>
-     *            the type of the input elements
-     * @param <A1>
-     *            the intermediate accumulation type of the first collector
-     * @param <A2>
-     *            the intermediate accumulation type of the second collector
-     * @param <R1>
-     *            the result type of the first collector
-     * @param <R2>
-     *            the result type of the second collector
-     * @param <R>
-     *            the final result type
-     * @param c1
-     *            the first collector
-     * @param c2
-     *            the second collector
-     * @param finisher
-     *            the function which merges two results into the single one.
+     * @param <T> the type of the input elements
+     * @param <A1> the intermediate accumulation type of the first collector
+     * @param <A2> the intermediate accumulation type of the second collector
+     * @param <R1> the result type of the first collector
+     * @param <R2> the result type of the second collector
+     * @param <R> the final result type
+     * @param c1 the first collector
+     * @param c2 the second collector
+     * @param finisher the function which merges two results into the single
+     *        one.
      * @return a {@code Collector} which aggregates the results of two supplied
      *         collectors.
      */
@@ -301,16 +279,12 @@ public final class MoreCollectors {
      * specified {@link Comparator}. The found elements are reduced using the
      * specified downstream {@code Collector}.
      *
-     * @param <T>
-     *            the type of the input elements
-     * @param <A>
-     *            the intermediate accumulation type of the downstream collector
-     * @param <D>
-     *            the result type of the downstream reduction
-     * @param comparator
-     *            a {@code Comparator} to compare the elements
-     * @param downstream
-     *            a {@code Collector} implementing the downstream reduction
+     * @param <T> the type of the input elements
+     * @param <A> the intermediate accumulation type of the downstream collector
+     * @param <D> the result type of the downstream reduction
+     * @param comparator a {@code Comparator} to compare the elements
+     * @param downstream a {@code Collector} implementing the downstream
+     *        reduction
      * @return a {@code Collector} which finds all the maximal elements.
      * @see #maxAll(Comparator)
      * @see #maxAll(Collector)
@@ -363,10 +337,8 @@ public final class MoreCollectors {
      * specified {@link Comparator}. The found elements are collected to
      * {@link List}.
      *
-     * @param <T>
-     *            the type of the input elements
-     * @param comparator
-     *            a {@code Comparator} to compare the elements
+     * @param <T> the type of the input elements
+     * @param comparator a {@code Comparator} to compare the elements
      * @return a {@code Collector} which finds all the maximal elements and
      *         collects them to the {@code List}.
      * @see #maxAll(Comparator, Collector)
@@ -382,14 +354,11 @@ public final class MoreCollectors {
      * order. The found elements are reduced using the specified downstream
      * {@code Collector}.
      *
-     * @param <T>
-     *            the type of the input elements
-     * @param <A>
-     *            the intermediate accumulation type of the downstream collector
-     * @param <D>
-     *            the result type of the downstream reduction
-     * @param downstream
-     *            a {@code Collector} implementing the downstream reduction
+     * @param <T> the type of the input elements
+     * @param <A> the intermediate accumulation type of the downstream collector
+     * @param <D> the result type of the downstream reduction
+     * @param downstream a {@code Collector} implementing the downstream
+     *        reduction
      * @return a {@code Collector} which finds all the maximal elements.
      * @see #maxAll(Comparator, Collector)
      * @see #maxAll(Comparator)
@@ -404,8 +373,7 @@ public final class MoreCollectors {
      * to each other and bigger than any other element according to the natural
      * order. The found elements are collected to {@link List}.
      *
-     * @param <T>
-     *            the type of the input elements
+     * @param <T> the type of the input elements
      * @return a {@code Collector} which finds all the maximal elements and
      *         collects them to the {@code List}.
      * @see #maxAll(Comparator)
@@ -421,16 +389,12 @@ public final class MoreCollectors {
      * specified {@link Comparator}. The found elements are reduced using the
      * specified downstream {@code Collector}.
      *
-     * @param <T>
-     *            the type of the input elements
-     * @param <A>
-     *            the intermediate accumulation type of the downstream collector
-     * @param <D>
-     *            the result type of the downstream reduction
-     * @param comparator
-     *            a {@code Comparator} to compare the elements
-     * @param downstream
-     *            a {@code Collector} implementing the downstream reduction
+     * @param <T> the type of the input elements
+     * @param <A> the intermediate accumulation type of the downstream collector
+     * @param <D> the result type of the downstream reduction
+     * @param comparator a {@code Comparator} to compare the elements
+     * @param downstream a {@code Collector} implementing the downstream
+     *        reduction
      * @return a {@code Collector} which finds all the minimal elements.
      * @see #minAll(Comparator)
      * @see #minAll(Collector)
@@ -446,10 +410,8 @@ public final class MoreCollectors {
      * specified {@link Comparator}. The found elements are collected to
      * {@link List}.
      *
-     * @param <T>
-     *            the type of the input elements
-     * @param comparator
-     *            a {@code Comparator} to compare the elements
+     * @param <T> the type of the input elements
+     * @param comparator a {@code Comparator} to compare the elements
      * @return a {@code Collector} which finds all the minimal elements and
      *         collects them to the {@code List}.
      * @see #minAll(Comparator, Collector)
@@ -465,14 +427,11 @@ public final class MoreCollectors {
      * order. The found elements are reduced using the specified downstream
      * {@code Collector}.
      *
-     * @param <T>
-     *            the type of the input elements
-     * @param <A>
-     *            the intermediate accumulation type of the downstream collector
-     * @param <D>
-     *            the result type of the downstream reduction
-     * @param downstream
-     *            a {@code Collector} implementing the downstream reduction
+     * @param <T> the type of the input elements
+     * @param <A> the intermediate accumulation type of the downstream collector
+     * @param <D> the result type of the downstream reduction
+     * @param downstream a {@code Collector} implementing the downstream
+     *        reduction
      * @return a {@code Collector} which finds all the minimal elements.
      * @see #minAll(Comparator, Collector)
      * @see #minAll(Comparator)
@@ -487,8 +446,7 @@ public final class MoreCollectors {
      * to each other and smaller than any other element according to the natural
      * order. The found elements are collected to {@link List}.
      *
-     * @param <T>
-     *            the type of the input elements
+     * @param <T> the type of the input elements
      * @return a {@code Collector} which finds all the minimal elements and
      *         collects them to the {@code List}.
      * @see #minAll(Comparator)
@@ -507,8 +465,7 @@ public final class MoreCollectors {
      * href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a>.
      * 
-     * @param <T>
-     *            the type of the input elements
+     * @param <T> the type of the input elements
      * @return a collector which returns an {@link Optional} describing the only
      *         element of the stream. For empty stream or stream containing more
      *         than one element an empty {@code Optional} is returned.
@@ -536,8 +493,7 @@ public final class MoreCollectors {
      * {@code stream.findFirst()}. This collector is mostly useful as a
      * downstream collector.
      * 
-     * @param <T>
-     *            the type of the input elements
+     * @param <T> the type of the input elements
      * @return a collector which returns an {@link Optional} which describes the
      *         first element of the stream. For empty stream an empty
      *         {@code Optional} is returned.
@@ -554,8 +510,7 @@ public final class MoreCollectors {
      * Returns a {@code Collector} which collects only the last stream element
      * if any.
      * 
-     * @param <T>
-     *            the type of the input elements
+     * @param <T> the type of the input elements
      * @return a collector which returns an {@link Optional} which describes the
      *         last element of the stream. For empty stream an empty
      *         {@code Optional} is returned.
@@ -582,10 +537,8 @@ public final class MoreCollectors {
      * {@code stream.limit(n).collect(Collectors.toList())}. This collector is
      * mostly useful as a downstream collector.
      * 
-     * @param <T>
-     *            the type of the input elements
-     * @param n
-     *            maximum number of stream elements to preserve
+     * @param <T> the type of the input elements
+     * @param n maximum number of stream elements to preserve
      * @return a collector which returns a {@code List} containing the first n
      *         stream elements or less if the stream was shorter.
      */
@@ -614,10 +567,8 @@ public final class MoreCollectors {
      * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a> which ignores the input and produces an empty list.
      * 
-     * @param <T>
-     *            the type of the input elements
-     * @param n
-     *            maximum number of stream elements to preserve
+     * @param <T> the type of the input elements
+     * @param n maximum number of stream elements to preserve
      * @return a collector which returns a {@code List} containing the last n
      *         stream elements or less if the stream was shorter.
      */
@@ -657,12 +608,9 @@ public final class MoreCollectors {
      * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a> which ignores the input and produces an empty list.
      * 
-     * @param <T>
-     *            the type of the input elements
-     * @param comparator
-     *            the comparator to compare the elements by
-     * @param n
-     *            maximum number of stream elements to preserve
+     * @param <T> the type of the input elements
+     * @param comparator the comparator to compare the elements by
+     * @param n maximum number of stream elements to preserve
      * @return a collector which returns a {@code List} containing the greatest
      *         n stream elements or less if the stream was shorter.
      */
@@ -710,10 +658,8 @@ public final class MoreCollectors {
      * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a> which ignores the input and produces an empty list.
      * 
-     * @param <T>
-     *            the type of the input elements
-     * @param n
-     *            maximum number of stream elements to preserve
+     * @param <T> the type of the input elements
+     * @param n maximum number of stream elements to preserve
      * @return a collector which returns a {@code List} containing the greatest
      *         n stream elements or less if the stream was shorter.
      */
@@ -742,12 +688,9 @@ public final class MoreCollectors {
      * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a> which ignores the input and produces an empty list.
      * 
-     * @param <T>
-     *            the type of the input elements
-     * @param comparator
-     *            the comparator to compare the elements by
-     * @param n
-     *            maximum number of stream elements to preserve
+     * @param <T> the type of the input elements
+     * @param comparator the comparator to compare the elements by
+     * @param n maximum number of stream elements to preserve
      * @return a collector which returns a {@code List} containing the least n
      *         stream elements or less if the stream was shorter.
      */
@@ -776,10 +719,8 @@ public final class MoreCollectors {
      * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a> which ignores the input and produces an empty list.
      * 
-     * @param <T>
-     *            the type of the input elements
-     * @param n
-     *            maximum number of stream elements to preserve
+     * @param <T> the type of the input elements
+     * @param n maximum number of stream elements to preserve
      * @return a collector which returns a {@code List} containing the least n
      *         stream elements or less if the stream was shorter.
      */
@@ -792,10 +733,8 @@ public final class MoreCollectors {
      * element according to the specified {@link Comparator}. If there are
      * several minimal elements, the index of the first one is returned.
      *
-     * @param <T>
-     *            the type of the input elements
-     * @param comparator
-     *            a {@code Comparator} to compare the elements
+     * @param <T> the type of the input elements
+     * @param comparator a {@code Comparator} to compare the elements
      * @return a {@code Collector} which finds the index of the minimal element.
      * @see #minIndex()
      * @since 0.3.5
@@ -828,8 +767,7 @@ public final class MoreCollectors {
      * element according to the elements natural order. If there are several
      * minimal elements, the index of the first one is returned.
      *
-     * @param <T>
-     *            the type of the input elements
+     * @param <T> the type of the input elements
      * @return a {@code Collector} which finds the index of the minimal element.
      * @see #minIndex(Comparator)
      * @since 0.3.5
@@ -843,10 +781,8 @@ public final class MoreCollectors {
      * element according to the specified {@link Comparator}. If there are
      * several maximal elements, the index of the first one is returned.
      *
-     * @param <T>
-     *            the type of the input elements
-     * @param comparator
-     *            a {@code Comparator} to compare the elements
+     * @param <T> the type of the input elements
+     * @param comparator a {@code Comparator} to compare the elements
      * @return a {@code Collector} which finds the index of the maximal element.
      * @see #maxIndex()
      * @since 0.3.5
@@ -860,8 +796,7 @@ public final class MoreCollectors {
      * element according to the elements natural order. If there are several
      * maximal elements, the index of the first one is returned.
      *
-     * @param <T>
-     *            the type of the input elements
+     * @param <T> the type of the input elements
      * @return a {@code Collector} which finds the index of the maximal element.
      * @see #maxIndex(Comparator)
      * @since 0.3.5
@@ -891,20 +826,15 @@ public final class MoreCollectors {
      * collection might stop when for every possible enum key the downstream
      * collection is known to be finished.
      *
-     * @param <T>
-     *            the type of the input elements
-     * @param <K>
-     *            the type of the enum values returned by the classifier
-     * @param <A>
-     *            the intermediate accumulation type of the downstream collector
-     * @param <D>
-     *            the result type of the downstream reduction
-     * @param enumClass
-     *            the class of enum values returned by the classifier
-     * @param classifier
-     *            a classifier function mapping input elements to enum values
-     * @param downstream
-     *            a {@code Collector} implementing the downstream reduction
+     * @param <T> the type of the input elements
+     * @param <K> the type of the enum values returned by the classifier
+     * @param <A> the intermediate accumulation type of the downstream collector
+     * @param <D> the result type of the downstream reduction
+     * @param enumClass the class of enum values returned by the classifier
+     * @param classifier a classifier function mapping input elements to enum
+     *        values
+     * @param downstream a {@code Collector} implementing the downstream
+     *        reduction
      * @return a {@code Collector} implementing the cascaded group-by operation
      * @see Collectors#groupingBy(Function, Collector)
      * @see #groupingBy(Function, Set, Supplier, Collector)
@@ -943,20 +873,14 @@ public final class MoreCollectors {
      * collection might stop when for every possible key from the domain the
      * downstream collection is known to be finished.
      *
-     * @param <T>
-     *            the type of the input elements
-     * @param <K>
-     *            the type of the keys
-     * @param <A>
-     *            the intermediate accumulation type of the downstream collector
-     * @param <D>
-     *            the result type of the downstream reduction
-     * @param classifier
-     *            a classifier function mapping input elements to keys
-     * @param domain
-     *            a domain of all possible key values
-     * @param downstream
-     *            a {@code Collector} implementing the downstream reduction
+     * @param <T> the type of the input elements
+     * @param <K> the type of the keys
+     * @param <A> the intermediate accumulation type of the downstream collector
+     * @param <D> the result type of the downstream reduction
+     * @param classifier a classifier function mapping input elements to keys
+     * @param domain a domain of all possible key values
+     * @param downstream a {@code Collector} implementing the downstream
+     *        reduction
      * @return a {@code Collector} implementing the cascaded group-by operation
      *         with given domain
      *
@@ -994,25 +918,17 @@ public final class MoreCollectors {
      * collection might stop when for every possible key from the domain the
      * downstream collection is known to be finished.
      *
-     * @param <T>
-     *            the type of the input elements
-     * @param <K>
-     *            the type of the keys
-     * @param <A>
-     *            the intermediate accumulation type of the downstream collector
-     * @param <D>
-     *            the result type of the downstream reduction
-     * @param <M>
-     *            the type of the resulting {@code Map}
-     * @param classifier
-     *            a classifier function mapping input elements to keys
-     * @param domain
-     *            a domain of all possible key values
-     * @param downstream
-     *            a {@code Collector} implementing the downstream reduction
-     * @param mapFactory
-     *            a function which, when called, produces a new empty
-     *            {@code Map} of the desired type
+     * @param <T> the type of the input elements
+     * @param <K> the type of the keys
+     * @param <A> the intermediate accumulation type of the downstream collector
+     * @param <D> the result type of the downstream reduction
+     * @param <M> the type of the resulting {@code Map}
+     * @param classifier a classifier function mapping input elements to keys
+     * @param domain a domain of all possible key values
+     * @param downstream a {@code Collector} implementing the downstream
+     *        reduction
+     * @param mapFactory a function which, when called, produces a new empty
+     *        {@code Map} of the desired type
      * @return a {@code Collector} implementing the cascaded group-by operation
      *         with given domain
      *
@@ -1077,10 +993,8 @@ public final class MoreCollectors {
      * collector</a>: it may not process all the elements if the resulting
      * intersection is empty.
      * 
-     * @param <T>
-     *            the type of the elements in the input collections
-     * @param <S>
-     *            the type of the input collections
+     * @param <T> the type of the elements in the input collections
+     * @param <S> the type of the input collections
      * @return a {@code Collector} which finds all the minimal elements and
      *         collects them to the {@code List}.
      * @since 0.4.0
@@ -1112,19 +1026,13 @@ public final class MoreCollectors {
      * href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a> if the downstream collector is short-circuiting.
      *
-     * @param <T>
-     *            the type of the input elements
-     * @param <A>
-     *            intermediate accumulation type of the downstream collector
-     * @param <R>
-     *            result type of the downstream collector
-     * @param <RR>
-     *            result type of the resulting collector
-     * @param downstream
-     *            a collector
-     * @param finisher
-     *            a function to be applied to the final result of the downstream
-     *            collector
+     * @param <T> the type of the input elements
+     * @param <A> intermediate accumulation type of the downstream collector
+     * @param <R> result type of the downstream collector
+     * @param <RR> result type of the resulting collector
+     * @param downstream a collector
+     * @param finisher a function to be applied to the final result of the
+     *        downstream collector
      * @return a collector which performs the action of the downstream
      *         collector, followed by an additional finishing step
      * @see Collectors#collectingAndThen(Collector, Function)
@@ -1134,10 +1042,9 @@ public final class MoreCollectors {
             Function<R, RR> finisher) {
         Predicate<A> finished = finished(downstream);
         if (finished != null) {
-            return new CancellableCollectorImpl<>(downstream.supplier(), downstream.accumulator(),
-                    downstream.combiner(), downstream.finisher().andThen(finisher), finished, downstream
-                            .characteristics().contains(Characteristics.UNORDERED) ? UNORDERED_CHARACTERISTICS
-                            : NO_CHARACTERISTICS);
+            return new CancellableCollectorImpl<>(downstream.supplier(), downstream.accumulator(), downstream
+                    .combiner(), downstream.finisher().andThen(finisher), finished, downstream.characteristics()
+                    .contains(Characteristics.UNORDERED) ? UNORDERED_CHARACTERISTICS : NO_CHARACTERISTICS);
         }
         return Collectors.collectingAndThen(downstream, finisher);
     }
@@ -1155,16 +1062,12 @@ public final class MoreCollectors {
      * href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a> if the downstream collector is short-circuiting.
      * 
-     * @param <T>
-     *            the type of the input elements
-     * @param <A>
-     *            the intermediate accumulation type of the downstream collector
-     * @param <D>
-     *            the result type of the downstream reduction
-     * @param predicate
-     *            a predicate used for classifying input elements
-     * @param downstream
-     *            a {@code Collector} implementing the downstream reduction
+     * @param <T> the type of the input elements
+     * @param <A> the intermediate accumulation type of the downstream collector
+     * @param <D> the result type of the downstream reduction
+     * @param predicate a predicate used for classifying input elements
+     * @param downstream a {@code Collector} implementing the downstream
+     *        reduction
      * @return a {@code Collector} implementing the cascaded partitioning
      *         operation
      * @since 0.4.0
@@ -1193,18 +1096,12 @@ public final class MoreCollectors {
      * href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a> if the downstream collector is short-circuiting.
      * 
-     * @param <T>
-     *            the type of the input elements
-     * @param <U>
-     *            type of elements accepted by downstream collector
-     * @param <A>
-     *            intermediate accumulation type of the downstream collector
-     * @param <R>
-     *            result type of collector
-     * @param mapper
-     *            a function to be applied to the input elements
-     * @param downstream
-     *            a collector which will accept mapped values
+     * @param <T> the type of the input elements
+     * @param <U> type of elements accepted by downstream collector
+     * @param <A> intermediate accumulation type of the downstream collector
+     * @param <R> result type of collector
+     * @param mapper a function to be applied to the input elements
+     * @param downstream a collector which will accept mapped values
      * @return a collector which applies the mapping function to the input
      *         elements and provides the mapped results to the downstream
      *         collector
@@ -1239,20 +1136,14 @@ public final class MoreCollectors {
      * href="package-summary.html#ShortCircuitReduction">short-circuiting</a>,
      * this method will also return a short-circuiting collector.
      * 
-     * @param <T>
-     *            the type of the input elements
-     * @param <U>
-     *            type of elements accepted by downstream collector
-     * @param <A>
-     *            intermediate accumulation type of the downstream collector
-     * @param <R>
-     *            result type of collector
-     * @param mapper
-     *            a function to be applied to the input elements, which returns
-     *            a stream of results
-     * @param downstream
-     *            a collector which will receive the elements of the stream
-     *            returned by mapper
+     * @param <T> the type of the input elements
+     * @param <U> type of elements accepted by downstream collector
+     * @param <A> intermediate accumulation type of the downstream collector
+     * @param <R> result type of collector
+     * @param mapper a function to be applied to the input elements, which
+     *        returns a stream of results
+     * @param downstream a collector which will receive the elements of the
+     *        stream returned by mapper
      * @return a collector which applies the mapping function to the input
      *         elements and provides the flat mapped results to the downstream
      *         collector
@@ -1285,8 +1176,8 @@ public final class MoreCollectors {
                     stream.spliterator().forEachRemaining(u -> downstreamAccumulator.accept(acc, u));
                 }
             }
-        }, downstream.combiner(), downstream.finisher(),
-            downstream.characteristics().toArray(new Characteristics[downstream.characteristics().size()]));
+        }, downstream.combiner(), downstream.finisher(), downstream.characteristics().toArray(
+            new Characteristics[downstream.characteristics().size()]));
     }
 
     /**
@@ -1304,16 +1195,11 @@ public final class MoreCollectors {
      * mostly useful as a downstream collector in cascaded operation involving
      * {@link #pairing(Collector, Collector, BiFunction)} collector.
      *
-     * @param <T>
-     *            the type of the input elements
-     * @param <A>
-     *            intermediate accumulation type of the downstream collector
-     * @param <R>
-     *            result type of collector
-     * @param predicate
-     *            a filter function to be applied to the input elements
-     * @param downstream
-     *            a collector which will accept filtered values
+     * @param <T> the type of the input elements
+     * @param <A> intermediate accumulation type of the downstream collector
+     * @param <R> result type of collector
+     * @param predicate a filter function to be applied to the input elements
+     * @param downstream a collector which will accept filtered values
      * @return a collector which applies the predicate to the input elements and
      *         provides the elements for which predicate returned true to the
      *         downstream collector
@@ -1328,8 +1214,8 @@ public final class MoreCollectors {
         };
         Predicate<A> finished = finished(downstream);
         if (finished != null) {
-            return new CancellableCollectorImpl<>(downstream.supplier(), accumulator, downstream.combiner(),
-                    downstream.finisher(), finished, downstream.characteristics());
+            return new CancellableCollectorImpl<>(downstream.supplier(), accumulator, downstream.combiner(), downstream
+                    .finisher(), finished, downstream.characteristics());
         }
         return Collector.of(downstream.supplier(), accumulator, downstream.combiner(), downstream.finisher(),
             downstream.characteristics().toArray(new Characteristics[downstream.characteristics().size()]));
@@ -1345,10 +1231,8 @@ public final class MoreCollectors {
      * href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a>: it may not process all the elements if the result is zero.
      * 
-     * @param <T>
-     *            the type of the input elements
-     * @param mapper
-     *            a function extracting the property to be processed
+     * @param <T> the type of the input elements
+     * @param mapper a function extracting the property to be processed
      * @return a {@code Collector} that produces the bitwise-and operation of a
      *         derived property
      * @since 0.4.0
@@ -1381,10 +1265,8 @@ public final class MoreCollectors {
      * href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a>: it may not process all the elements if the result is zero.
      * 
-     * @param <T>
-     *            the type of the input elements
-     * @param mapper
-     *            a function extracting the property to be processed
+     * @param <T> the type of the input elements
+     * @param mapper a function extracting the property to be processed
      * @return a {@code Collector} that produces the bitwise-and operation of a
      *         derived property
      * @since 0.4.0
@@ -1544,12 +1426,10 @@ public final class MoreCollectors {
      * the numbers which are bigger than any predecessor ({@code [1, 5, 7]}) as
      * 5 is the dominator element for the subsequent 3, 4 and 2.
      * 
-     * @param <T>
-     *            type of the input elements.
-     * @param isDominator
-     *            a non-interfering, stateless, transitive {@code BiPredicate}
-     *            which returns true if the first argument is the dominator for
-     *            the second argument.
+     * @param <T> type of the input elements.
+     * @param isDominator a non-interfering, stateless, transitive
+     *        {@code BiPredicate} which returns true if the first argument is
+     *        the dominator for the second argument.
      * @return a collector which collects input element into {@code List}
      *         leaving only dominator elements.
      * @see StreamEx#collapse(BiPredicate)

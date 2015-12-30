@@ -64,19 +64,19 @@ public class DoubleStreamExTest {
         assertArrayEquals(DoubleStreamEx.of(new Random(1), 10).toArray(), DoubleStreamEx.of(new Random(1)).limit(10)
                 .toArray(), 0.0);
         assertTrue(DoubleStreamEx.of(new Random(), 100, 1, 10).allMatch(x -> x >= 1 && x < 10));
-        assertArrayEquals(DoubleStreamEx.of(new Random(1), 100, 1, 10).toArray(),
-            DoubleStreamEx.of(new Random(1), 1, 10).limit(100).toArray(), 0.0);
+        assertArrayEquals(DoubleStreamEx.of(new Random(1), 100, 1, 10).toArray(), DoubleStreamEx.of(new Random(1), 1,
+            10).limit(100).toArray(), 0.0);
 
         DoubleStream stream = DoubleStreamEx.of(1, 2, 3);
         assertSame(stream, DoubleStreamEx.of(stream));
 
-        assertArrayEquals(new double[] { 1, 5, 3 },
-            DoubleStreamEx.of(Spliterators.spliterator(new double[] { 1, 5, 3 }, 0)).toArray(), 0.0);
-        assertArrayEquals(new double[] { 1, 5, 3 },
-            DoubleStreamEx.of(Spliterators.iterator(Spliterators.spliterator(new double[] { 1, 5, 3 }, 0))).toArray(), 0.0);
+        assertArrayEquals(new double[] { 1, 5, 3 }, DoubleStreamEx.of(
+            Spliterators.spliterator(new double[] { 1, 5, 3 }, 0)).toArray(), 0.0);
+        assertArrayEquals(new double[] { 1, 5, 3 }, DoubleStreamEx.of(
+            Spliterators.iterator(Spliterators.spliterator(new double[] { 1, 5, 3 }, 0))).toArray(), 0.0);
         assertArrayEquals(new double[0], DoubleStreamEx
                 .of(Spliterators.iterator(Spliterators.emptyDoubleSpliterator())).parallel().toArray(), 0.0);
-        
+
         assertArrayEquals(new double[] { 2, 4, 6 }, DoubleStreamEx.of(new Double[] { 2.0, 4.0, 6.0 }).toArray(), 0.0);
     }
 
@@ -111,9 +111,8 @@ public class DoubleStreamExTest {
         assertEquals(Long.MAX_VALUE, LongStreamEx.rangeClosed(1, Long.MAX_VALUE).asDoubleStream().spliterator()
                 .getExactSizeIfKnown());
 
-        assertArrayEquals(new double[] { 4, 2, 0, -2, -4 },
-            DoubleStreamEx.zip(new double[] { 5, 4, 3, 2, 1 }, new double[] { 1, 2, 3, 4, 5 }, (a, b) -> a - b)
-                    .toArray(), 0.0);
+        assertArrayEquals(new double[] { 4, 2, 0, -2, -4 }, DoubleStreamEx.zip(new double[] { 5, 4, 3, 2, 1 },
+            new double[] { 1, 2, 3, 4, 5 }, (a, b) -> a - b).toArray(), 0.0);
         assertEquals("1.0; 0.5; 0.25; 0.125", DoubleStreamEx.of(1.0, 0.5, 0.25, 0.125).mapToObj(String::valueOf)
                 .joining("; "));
         List<Double> list = new ArrayList<>();
@@ -141,19 +140,13 @@ public class DoubleStreamExTest {
 
     @Test
     public void testFlatMap() {
-        assertArrayEquals(
-            new int[] { 1, 5, 2, 3, 3, 2, 0, 9 },
-            DoubleStreamEx
-                    .of(1.5, 2.3, 3.2, 0.9)
-                    .flatMapToInt(
-                        x -> IntStreamEx.of((int) Math.floor(x), (int) (Math.round(10 * (x - Math.floor(x))))))
-                    .toArray());
-        assertEquals("1:.:5:2:2:.:3:3:.:2:0:.:9",
-            DoubleStreamEx.of(1.5, 22.3, 3.2, 0.9).flatMapToObj(x -> StreamEx.split(String.valueOf(x), ""))
-                    .joining(":"));
+        assertArrayEquals(new int[] { 1, 5, 2, 3, 3, 2, 0, 9 }, DoubleStreamEx.of(1.5, 2.3, 3.2, 0.9).flatMapToInt(
+            x -> IntStreamEx.of((int) Math.floor(x), (int) (Math.round(10 * (x - Math.floor(x)))))).toArray());
+        assertEquals("1:.:5:2:2:.:3:3:.:2:0:.:9", DoubleStreamEx.of(1.5, 22.3, 3.2, 0.9).flatMapToObj(
+            x -> StreamEx.split(String.valueOf(x), "")).joining(":"));
 
-        assertArrayEquals(new double[] { 0.0, 0.0, 1.0, 0.0, 1.0, 2.0 },
-            DoubleStreamEx.of(1, 2, 3).flatMap(x -> IntStreamEx.range((int) x).asDoubleStream()).toArray(), 0.0);
+        assertArrayEquals(new double[] { 0.0, 0.0, 1.0, 0.0, 1.0, 2.0 }, DoubleStreamEx.of(1, 2, 3).flatMap(
+            x -> IntStreamEx.range((int) x).asDoubleStream()).toArray(), 0.0);
 
         assertArrayEquals(new long[] { 0x3FF0000000000000L, 0x3FF0000000000000L, 0x4000000000000000L,
                 0x4000000000000000L, 0x7FF8000000000000L, 0x7FF8000000000000L }, DoubleStreamEx.of(1, 2, Double.NaN)
@@ -180,16 +173,14 @@ public class DoubleStreamExTest {
 
     @Test
     public void testRanges() {
-        assertArrayEquals(new double[] { 5, 4, Double.POSITIVE_INFINITY },
-            DoubleStreamEx.of(1, 5, 3, 4, -1, Double.POSITIVE_INFINITY).greater(3).toArray(), 0.0);
-        assertArrayEquals(new double[] {},
-            DoubleStreamEx.of(1, 5, 3, 4, -1, Double.POSITIVE_INFINITY).greater(Double.POSITIVE_INFINITY).toArray(),
-            0.0);
-        assertArrayEquals(new double[] { 5, 3, 4, Double.POSITIVE_INFINITY },
-            DoubleStreamEx.of(1, 5, 3, 4, -1, Double.POSITIVE_INFINITY).atLeast(3).toArray(), 0.0);
-        assertArrayEquals(new double[] { Double.POSITIVE_INFINITY },
-            DoubleStreamEx.of(1, 5, 3, 4, -1, Double.POSITIVE_INFINITY).atLeast(Double.POSITIVE_INFINITY).toArray(),
-            0.0);
+        assertArrayEquals(new double[] { 5, 4, Double.POSITIVE_INFINITY }, DoubleStreamEx.of(1, 5, 3, 4, -1,
+            Double.POSITIVE_INFINITY).greater(3).toArray(), 0.0);
+        assertArrayEquals(new double[] {}, DoubleStreamEx.of(1, 5, 3, 4, -1, Double.POSITIVE_INFINITY).greater(
+            Double.POSITIVE_INFINITY).toArray(), 0.0);
+        assertArrayEquals(new double[] { 5, 3, 4, Double.POSITIVE_INFINITY }, DoubleStreamEx.of(1, 5, 3, 4, -1,
+            Double.POSITIVE_INFINITY).atLeast(3).toArray(), 0.0);
+        assertArrayEquals(new double[] { Double.POSITIVE_INFINITY }, DoubleStreamEx.of(1, 5, 3, 4, -1,
+            Double.POSITIVE_INFINITY).atLeast(Double.POSITIVE_INFINITY).toArray(), 0.0);
         assertArrayEquals(new double[] { 1, -1 }, DoubleStreamEx.of(1, 5, 3, 4, -1, Double.POSITIVE_INFINITY).less(3)
                 .toArray(), 0.0);
         assertArrayEquals(new double[] { 1, 3, -1 }, DoubleStreamEx.of(1, 5, 3, 4, -1, Double.POSITIVE_INFINITY)
@@ -210,20 +201,18 @@ public class DoubleStreamExTest {
     @Test
     public void testSort() {
         assertArrayEquals(new double[] { 3, 2, 1 }, DoubleStreamEx.of(1, 2, 3).sortedByDouble(x -> -x).toArray(), 0.0);
-        assertArrayEquals(
-            new double[] { Double.POSITIVE_INFINITY, Double.MAX_VALUE, 1000, 1, Double.MIN_VALUE, 0, -0.0, -10,
-                    -Double.MAX_VALUE, Double.NEGATIVE_INFINITY },
-            DoubleStreamEx
-                    .of(0, 1, 1000, -10, -Double.MAX_VALUE, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY,
-                        Double.MAX_VALUE, -0.0, Double.MIN_VALUE).reverseSorted().toArray(), 0.0);
+        assertArrayEquals(new double[] { Double.POSITIVE_INFINITY, Double.MAX_VALUE, 1000, 1, Double.MIN_VALUE, 0,
+                -0.0, -10, -Double.MAX_VALUE, Double.NEGATIVE_INFINITY }, DoubleStreamEx.of(0, 1, 1000, -10,
+            -Double.MAX_VALUE, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.MAX_VALUE, -0.0,
+            Double.MIN_VALUE).reverseSorted().toArray(), 0.0);
         assertArrayEquals(new double[] { 1, 10, 2, 21, 9 }, DoubleStreamEx.of(1, 10, 2, 9, 21)
                 .sortedBy(String::valueOf).toArray(), 0.0);
 
-        assertArrayEquals(new double[] { 0.4, 1.5, 1.3, 2.3, 2.1, 2.0, 3.7 },
-            DoubleStreamEx.of(1.5, 2.3, 1.3, 2.1, 3.7, 0.4, 2.0).sortedByInt(x -> (int) x).toArray(), 0.0);
+        assertArrayEquals(new double[] { 0.4, 1.5, 1.3, 2.3, 2.1, 2.0, 3.7 }, DoubleStreamEx.of(1.5, 2.3, 1.3, 2.1,
+            3.7, 0.4, 2.0).sortedByInt(x -> (int) x).toArray(), 0.0);
 
-        assertArrayEquals(new double[] { 0.4, 1.5, 1.3, 2.3, 2.1, 2.0, 3.7 },
-            DoubleStreamEx.of(1.5, 2.3, 1.3, 2.1, 3.7, 0.4, 2.0).sortedByLong(x -> (long) x).toArray(), 0.0);
+        assertArrayEquals(new double[] { 0.4, 1.5, 1.3, 2.3, 2.1, 2.0, 3.7 }, DoubleStreamEx.of(1.5, 2.3, 1.3, 2.1,
+            3.7, 0.4, 2.0).sortedByLong(x -> (long) x).toArray(), 0.0);
     }
 
     @SafeVarargs
@@ -241,14 +230,12 @@ public class DoubleStreamExTest {
     @Test
     public void testMinMax() {
         checkEmpty(s -> s.maxBy(Double::valueOf), s -> s.maxByInt(x -> (int) x), s -> s.maxByLong(x -> (long) x),
-            s -> s.maxByDouble(x -> x), s -> s.minBy(Double::valueOf), s -> s.minByInt(x -> (int) x),
-            s -> s.minByLong(x -> (long) x), s -> s.minByDouble(x -> x));
-        assertEquals(9,
-            IntStreamEx.range(5, 12).asDoubleStream().max((a, b) -> String.valueOf(a).compareTo(String.valueOf(b)))
-                    .getAsDouble(), 0.0);
-        assertEquals(10,
-            IntStreamEx.range(5, 12).asDoubleStream().min((a, b) -> String.valueOf(a).compareTo(String.valueOf(b)))
-                    .getAsDouble(), 0.0);
+            s -> s.maxByDouble(x -> x), s -> s.minBy(Double::valueOf), s -> s.minByInt(x -> (int) x), s -> s
+                    .minByLong(x -> (long) x), s -> s.minByDouble(x -> x));
+        assertEquals(9, IntStreamEx.range(5, 12).asDoubleStream().max(
+            (a, b) -> String.valueOf(a).compareTo(String.valueOf(b))).getAsDouble(), 0.0);
+        assertEquals(10, IntStreamEx.range(5, 12).asDoubleStream().min(
+            (a, b) -> String.valueOf(a).compareTo(String.valueOf(b))).getAsDouble(), 0.0);
         assertEquals(9, IntStreamEx.range(5, 12).asDoubleStream().maxBy(String::valueOf).getAsDouble(), 0.0);
         assertEquals(10, IntStreamEx.range(5, 12).asDoubleStream().minBy(String::valueOf).getAsDouble(), 0.0);
         assertEquals(5, IntStreamEx.range(5, 12).asDoubleStream().maxByDouble(x -> 1.0 / x).getAsDouble(), 0.0);
@@ -267,10 +254,10 @@ public class DoubleStreamExTest {
         DoubleToLongFunction longKey = x -> String.valueOf(x).length();
         DoubleUnaryOperator doubleKey = x -> String.valueOf(x).length();
         DoubleFunction<Integer> objKey = x -> String.valueOf(x).length();
-        List<Function<DoubleStreamEx, OptionalDouble>> minFns = Arrays.asList(is -> is.minByInt(intKey),
-            is -> is.minByLong(longKey), is -> is.minByDouble(doubleKey), is -> is.minBy(objKey));
-        List<Function<DoubleStreamEx, OptionalDouble>> maxFns = Arrays.asList(is -> is.maxByInt(intKey),
-            is -> is.maxByLong(longKey), is -> is.maxByDouble(doubleKey), is -> is.maxBy(objKey));
+        List<Function<DoubleStreamEx, OptionalDouble>> minFns = Arrays.asList(is -> is.minByInt(intKey), is -> is
+                .minByLong(longKey), is -> is.minByDouble(doubleKey), is -> is.minBy(objKey));
+        List<Function<DoubleStreamEx, OptionalDouble>> maxFns = Arrays.asList(is -> is.maxByInt(intKey), is -> is
+                .maxByLong(longKey), is -> is.maxByDouble(doubleKey), is -> is.maxBy(objKey));
         minFns.forEach(fn -> assertEquals(1, fn.apply(s.get()).getAsDouble(), 0.0));
         minFns.forEach(fn -> assertEquals(1, fn.apply(s.get().parallel()).getAsDouble(), 0.0));
         maxFns.forEach(fn -> assertEquals(120, fn.apply(s.get()).getAsDouble(), 0.0));
@@ -291,21 +278,21 @@ public class DoubleStreamExTest {
         assertArrayEquals(expected, result, 0.0);
         assertEquals(984.0, IntStreamEx.of(data).asDoubleStream().parallel().pairMap((a, b) -> Math.abs(a - b)).max()
                 .getAsDouble(), 0.0);
-        assertArrayEquals(new double[] { 1.0, 1.0 },
-            DoubleStreamEx.of(1.0, 2.0, 3.0).append().parallel().pairMap((a, b) -> b - a).toArray(), 0.0);
+        assertArrayEquals(new double[] { 1.0, 1.0 }, DoubleStreamEx.of(1.0, 2.0, 3.0).append().parallel().pairMap(
+            (a, b) -> b - a).toArray(), 0.0);
 
-        assertArrayEquals(LongStreamEx.range(1, 100).asDoubleStream().toArray(),
-            LongStreamEx.range(100).map(i -> i * (i + 1) / 2).append(LongStream.empty()).asDoubleStream().parallel()
-                    .pairMap((a, b) -> b - a).toArray(), 0.0);
-        assertArrayEquals(LongStreamEx.range(1, 100).asDoubleStream().toArray(),
-            LongStreamEx.range(100).map(i -> i * (i + 1) / 2).prepend(LongStream.empty()).asDoubleStream().parallel()
-                    .pairMap((a, b) -> b - a).toArray(), 0.0);
+        assertArrayEquals(LongStreamEx.range(1, 100).asDoubleStream().toArray(), LongStreamEx.range(100).map(
+            i -> i * (i + 1) / 2).append(LongStream.empty()).asDoubleStream().parallel().pairMap((a, b) -> b - a)
+                .toArray(), 0.0);
+        assertArrayEquals(LongStreamEx.range(1, 100).asDoubleStream().toArray(), LongStreamEx.range(100).map(
+            i -> i * (i + 1) / 2).prepend(LongStream.empty()).asDoubleStream().parallel().pairMap((a, b) -> b - a)
+                .toArray(), 0.0);
 
-        assertEquals(1,
-            LongStreamEx.range(1000).mapToDouble(x -> x * x).pairMap((a, b) -> b - a).pairMap((a, b) -> b - a)
-                    .distinct().count());
-        
-        assertFalse(LongStreamEx.range(1000).asDoubleStream().greater(2000).parallel().pairMap((a, b) -> a).findFirst().isPresent());
+        assertEquals(1, LongStreamEx.range(1000).mapToDouble(x -> x * x).pairMap((a, b) -> b - a).pairMap(
+            (a, b) -> b - a).distinct().count());
+
+        assertFalse(LongStreamEx.range(1000).asDoubleStream().greater(2000).parallel().pairMap((a, b) -> a).findFirst()
+                .isPresent());
     }
 
     @Test
@@ -330,8 +317,8 @@ public class DoubleStreamExTest {
 
     @Test
     public void testMapToEntry() {
-        Map<Integer, List<Double>> map = DoubleStreamEx.of(0.3, 0.5, 1.3, 0.7, 1.9, 2.1)
-                .mapToEntry(x -> (int) x, x -> x).grouping();
+        Map<Integer, List<Double>> map = DoubleStreamEx.of(0.3, 0.5, 1.3, 0.7, 1.9, 2.1).mapToEntry(x -> (int) x,
+            x -> x).grouping();
         assertEquals(Arrays.asList(0.3, 0.5, 0.7), map.get(0));
         assertEquals(Arrays.asList(1.3, 1.9), map.get(1));
         assertEquals(Arrays.asList(2.1), map.get(2));
@@ -339,12 +326,10 @@ public class DoubleStreamExTest {
 
     @Test
     public void testRecreate() {
-        assertEquals(500,
-            DoubleStreamEx.iterate(0, i -> i + 1).skipOrdered(1).greater(0).boxed().parallel().findAny(i -> i == 500)
-                    .get(), 0.0);
-        assertEquals(500,
-            DoubleStreamEx.iterate(0, i -> i + 1).parallel().skipOrdered(1).greater(0).boxed().findAny(i -> i == 500)
-                    .get(), 0.0);
+        assertEquals(500, DoubleStreamEx.iterate(0, i -> i + 1).skipOrdered(1).greater(0).boxed().parallel().findAny(
+            i -> i == 500).get(), 0.0);
+        assertEquals(500, DoubleStreamEx.iterate(0, i -> i + 1).parallel().skipOrdered(1).greater(0).boxed().findAny(
+            i -> i == 500).get(), 0.0);
     }
 
     @Test
@@ -388,7 +373,7 @@ public class DoubleStreamExTest {
         assertArrayEquals(new double[] { -1, 2, 3, 4, 7 }, DoubleStreamEx.of(1, 2, 3, 4, 5).mapFirst(x -> x - 2.0)
                 .mapLast(x -> x + 2.0).toArray(), 0.0);
     }
-    
+
     @Test
     public void testScanLeft() {
         assertArrayEquals(new double[] { 0, 1, 3, 6, 10, 15, 21, 28, 36, 45 }, LongStreamEx.range(10).asDoubleStream()

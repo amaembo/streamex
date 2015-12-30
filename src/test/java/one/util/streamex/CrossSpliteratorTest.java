@@ -35,29 +35,24 @@ import org.junit.Test;
 public class CrossSpliteratorTest {
     @Test
     public void testCrossToList() {
-        for(int limit : new int[] {1, 2, 4, 9}) {
-			List<List<Integer>> input = Collections.nCopies(3, IntStreamEx
-					.range(limit).boxed().toList());
-			List<List<Integer>> expected = IntStreamEx
-					.range(limit * limit * limit)
-					.mapToObj(
-							i -> Arrays.asList(i / limit / limit, i / limit
-									% limit, i % limit)).toList();
+        for (int limit : new int[] { 1, 2, 4, 9 }) {
+            List<List<Integer>> input = Collections.nCopies(3, IntStreamEx.range(limit).boxed().toList());
+            List<List<Integer>> expected = IntStreamEx.range(limit * limit * limit).mapToObj(
+                i -> Arrays.asList(i / limit / limit, i / limit % limit, i % limit)).toList();
             checkSpliterator("cross", expected, () -> new CrossSpliterator.ToList<>(input));
         }
     }
-    
+
     @Test
     public void testCrossReduce() {
-        for(int limit : new int[] {1, 2, 4, 9}) {
-            List<List<Integer>> input = Collections.nCopies(3, IntStreamEx
-                    .range(limit).boxed().toList());
-            List<String> expected = IntStreamEx.range(limit * limit * limit)
-                    .mapToObj(i -> "" + (i / limit / limit) + (i / limit % limit) + (i % limit)).toList();
-            checkSpliterator("cross", expected, () -> new CrossSpliterator.Reducing<>(input, "", (s, b) -> s+b));
+        for (int limit : new int[] { 1, 2, 4, 9 }) {
+            List<List<Integer>> input = Collections.nCopies(3, IntStreamEx.range(limit).boxed().toList());
+            List<String> expected = IntStreamEx.range(limit * limit * limit).mapToObj(
+                i -> "" + (i / limit / limit) + (i / limit % limit) + (i % limit)).toList();
+            checkSpliterator("cross", expected, () -> new CrossSpliterator.Reducing<>(input, "", (s, b) -> s + b));
         }
     }
-    
+
     @Test
     public void testBigSize() {
         List<List<Integer>> input = new ArrayList<>();

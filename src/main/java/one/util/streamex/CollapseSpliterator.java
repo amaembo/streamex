@@ -35,12 +35,12 @@ import static one.util.streamex.StreamExInternals.*;
     private final BiFunction<R, T, R> accumulator;
     private final BinaryOperator<R> combiner;
     private final BiPredicate<? super T, ? super T> mergeable;
-    
+
     private static final class Connector<T, R> {
         CollapseSpliterator<T, R> lhs, rhs;
         T left = none(), right = none();
         R acc;
-        
+
         Connector(CollapseSpliterator<T, R> lhs, R acc, CollapseSpliterator<T, R> rhs) {
             this.lhs = lhs;
             this.rhs = rhs;
@@ -48,13 +48,13 @@ import static one.util.streamex.StreamExInternals.*;
         }
 
         R drain() {
-            if(lhs != null)
+            if (lhs != null)
                 lhs.right = null;
-            if(rhs != null)
+            if (rhs != null)
                 rhs.left = null;
             return acc;
         }
-        
+
         R drainLeft() {
             return left == NONE ? drain() : none();
         }
@@ -64,8 +64,8 @@ import static one.util.streamex.StreamExInternals.*;
         }
     }
 
-    CollapseSpliterator(BiPredicate<? super T, ? super T> mergeable, Function<T, R> mapper, BiFunction<R, T, R> accumulator,
-            BinaryOperator<R> combiner, Spliterator<T> source) {
+    CollapseSpliterator(BiPredicate<? super T, ? super T> mergeable, Function<T, R> mapper,
+            BiFunction<R, T, R> accumulator, BinaryOperator<R> combiner, Spliterator<T> source) {
         this.source = source;
         this.mergeable = mergeable;
         this.mapper = mapper;
@@ -74,7 +74,8 @@ import static one.util.streamex.StreamExInternals.*;
         this.root = this;
     }
 
-    private CollapseSpliterator(CollapseSpliterator<T, R> root, Spliterator<T> source, Connector<T, R> left, Connector<T, R> right) {
+    private CollapseSpliterator(CollapseSpliterator<T, R> root, Spliterator<T> source, Connector<T, R> left,
+            Connector<T, R> right) {
         this.source = source;
         this.root = root;
         this.mergeable = root.mergeable;
@@ -83,7 +84,7 @@ import static one.util.streamex.StreamExInternals.*;
         this.combiner = root.combiner;
         this.left = left;
         this.right = right;
-        if(left != null)
+        if (left != null)
             left.rhs = this;
         right.lhs = this;
     }
@@ -92,24 +93,24 @@ import static one.util.streamex.StreamExInternals.*;
     public void accept(T t) {
         cur = t;
     }
-    
+
     @Override
     public boolean tryAdvance(Consumer<? super R> action) {
         if (left != null) {
-            if(accept(handleLeft(), action)) {
+            if (accept(handleLeft(), action)) {
                 return true;
             }
         }
-        if(cur == NONE) {// start
-            if(!source.tryAdvance(this)) {
+        if (cur == NONE) {// start
+            if (!source.tryAdvance(this)) {
                 return accept(pushRight(none(), none()), action);
             }
         }
         T first = cur;
         R acc = mapper.apply(cur);
         T last = first;
-        while(source.tryAdvance(this)) {
-            if(!this.mergeable.test(last, cur)) {
+        while (source.tryAdvance(this)) {
+            if (!this.mergeable.test(last, cur)) {
                 action.accept(acc);
                 return true;
             }
@@ -118,19 +119,19 @@ import static one.util.streamex.StreamExInternals.*;
         }
         return accept(pushRight(acc, last), action);
     }
-    
+
     @Override
     public void forEachRemaining(Consumer<? super R> action) {
         while (left != null) {
             accept(handleLeft(), action);
         }
-        if(cur != NONE) {
+        if (cur != NONE) {
             acc = mapper.apply(cur);
         }
         source.forEachRemaining(next -> {
-            if(cur == NONE) {
+            if (cur == NONE) {
                 acc = mapper.apply(next);
-            } else if(!this.mergeable.test(cur, next)) {
+            } else if (!this.mergeable.test(cur, next)) {
                 action.accept(acc);
                 acc = mapper.apply(next);
             } else {
@@ -138,10 +139,10 @@ import static one.util.streamex.StreamExInternals.*;
             }
             cur = next;
         });
-        if(cur == NONE) {
+        if (cur == NONE) {
             accept(pushRight(none(), none()), action);
-        } else if(accept(pushRight(acc, cur), action)) {
-            if(right != null) {
+        } else if (accept(pushRight(acc, cur), action)) {
+            if (right != null) {
                 action.accept(right.acc);
                 right = null;
             }
@@ -149,29 +150,29 @@ import static one.util.streamex.StreamExInternals.*;
     }
 
     private boolean accept(R acc, Consumer<? super R> action) {
-        if(acc != NONE) {
+        if (acc != NONE) {
             action.accept(acc);
             return true;
         }
         return false;
     }
-    
+
     private R handleLeft() {
-        synchronized(root) {
+        synchronized (root) {
             Connector<T, R> l = left;
-            if(l == null) {
+            if (l == null) {
                 return none();
             }
-            if(l.left == NONE && l.right == NONE && l.acc != NONE) {
+            if (l.left == NONE && l.right == NONE && l.acc != NONE) {
                 return l.drain();
             }
         }
-        if(source.tryAdvance(this)) {
+        if (source.tryAdvance(this)) {
             T first = this.cur;
             T last = first;
             R acc = this.mapper.apply(first);
-            while(source.tryAdvance(this)) {
-                if(!this.mergeable.test(last, cur))
+            while (source.tryAdvance(this)) {
+                if (!this.mergeable.test(last, cur))
                     return pushLeft(first, acc);
                 last = cur;
                 acc = this.accumulator.apply(acc, last);
@@ -184,24 +185,24 @@ import static one.util.streamex.StreamExInternals.*;
 
     // l + <first|acc|?>
     private R pushLeft(T first, R acc) {
-        synchronized(root) {
+        synchronized (root) {
             Connector<T, R> l = left;
-            if(l == null)
+            if (l == null)
                 return acc;
             left = null;
             l.rhs = null;
             T laright = l.right;
             l.right = none();
-            if(l.acc == NONE) {
+            if (l.acc == NONE) {
                 l.acc = acc;
                 l.left = first;
                 return none();
             }
-            if(this.mergeable.test(laright, first)) {
+            if (this.mergeable.test(laright, first)) {
                 l.acc = this.combiner.apply(l.acc, acc);
                 return l.drainLeft();
             }
-            if(l.left == NONE) {
+            if (l.left == NONE) {
                 left = new Connector<>(null, acc, this);
                 return l.drain();
             }
@@ -212,18 +213,18 @@ import static one.util.streamex.StreamExInternals.*;
     // <?|acc|last> + r
     private R pushRight(R acc, T last) {
         cur = none();
-        if(right == null)
+        if (right == null)
             return acc;
-        synchronized(root) {
+        synchronized (root) {
             Connector<T, R> r = right;
-            if(r == null)
+            if (r == null)
                 return acc;
             right = null;
             r.lhs = null;
             T raleft = r.left;
             r.left = none();
-            if(r.acc == NONE) {
-                if(acc == NONE) {
+            if (r.acc == NONE) {
+                if (acc == NONE) {
                     r.drain();
                 } else {
                     r.acc = acc;
@@ -231,14 +232,14 @@ import static one.util.streamex.StreamExInternals.*;
                 }
                 return none();
             }
-            if(acc == NONE) {
+            if (acc == NONE) {
                 return r.drainRight();
             }
-            if(mergeable.test(last, raleft)) {
+            if (mergeable.test(last, raleft)) {
                 r.acc = combiner.apply(acc, r.acc);
                 return r.drainRight();
             }
-            if(r.right == NONE)
+            if (r.right == NONE)
                 right = new Connector<>(this, r.drain(), null);
             return acc;
         }
@@ -248,17 +249,17 @@ import static one.util.streamex.StreamExInternals.*;
     private R connectOne(T first, R acc, T last) {
         synchronized (root) {
             Connector<T, R> l = left;
-            if(l == null) {
+            if (l == null) {
                 return pushRight(acc, last);
             }
-            if(l.acc == NONE) {
+            if (l.acc == NONE) {
                 l.acc = acc;
                 l.left = first;
                 l.right = last;
                 return connectEmpty();
             }
             T laright = l.right;
-            if(mergeable.test(laright, first)) {
+            if (mergeable.test(laright, first)) {
                 l.acc = combiner.apply(l.acc, acc);
                 l.right = last;
                 return connectEmpty();
@@ -266,11 +267,11 @@ import static one.util.streamex.StreamExInternals.*;
             left = null;
             l.rhs = null;
             l.right = none();
-            if(l.left != NONE) {
+            if (l.left != NONE) {
                 return pushRight(acc, last);
             }
             acc = pushRight(acc, last);
-            if(acc != NONE)
+            if (acc != NONE)
                 left = new Connector<>(null, acc, this);
             return l.drain();
         }
@@ -280,30 +281,30 @@ import static one.util.streamex.StreamExInternals.*;
     private R connectEmpty() {
         synchronized (root) {
             Connector<T, R> l = left, r = right;
-            if(l == null) {
+            if (l == null) {
                 return pushRight(none(), none());
             }
             left = right = null;
             l.rhs = null;
             T laright = l.right;
             l.right = none();
-            if(l.acc == NONE) {
-                if(r == null)
+            if (l.acc == NONE) {
+                if (r == null)
                     l.drain();
                 else {
-                    if(l.lhs != null) {
+                    if (l.lhs != null) {
                         l.lhs.right = r;
                         r.lhs = l.lhs;
                     }
                 }
                 return none();
             }
-            if(r == null) {
+            if (r == null) {
                 return l.drainLeft();
             }
             r.lhs = null;
-            if(r.acc == NONE) {
-                if(r.rhs != null) {
+            if (r.acc == NONE) {
+                if (r.rhs != null) {
                     r.rhs.left = l;
                     l.rhs = r.rhs;
                     l.right = laright;
@@ -312,23 +313,23 @@ import static one.util.streamex.StreamExInternals.*;
             }
             T raleft = r.left;
             r.left = none();
-            if(mergeable.test(laright, raleft)) {
+            if (mergeable.test(laright, raleft)) {
                 R acc = combiner.apply(l.acc, r.acc);
-                if(l.left == NONE && r.right == NONE) {
+                if (l.left == NONE && r.right == NONE) {
                     l.drain();
                     r.drain();
                     return acc;
                 }
                 l.acc = acc;
                 l.right = r.right;
-                if(r.rhs != null) {
+                if (r.rhs != null) {
                     r.rhs.left = l;
                     l.rhs = r.rhs;
                 }
                 return none();
             }
-            if(l.left == NONE) {
-                if(r.right == NONE)
+            if (l.left == NONE) {
+                if (r.right == NONE)
                     right = new Connector<>(this, r.drain(), null);
                 return l.drain();
             }
@@ -342,7 +343,7 @@ import static one.util.streamex.StreamExInternals.*;
         if (prefix == null)
             return null;
         Connector<T, R> newBox = new Connector<>(null, none(), this);
-        synchronized(root) {
+        synchronized (root) {
             CollapseSpliterator<T, R> result = new CollapseSpliterator<>(root, prefix, left, newBox);
             this.left = newBox;
             return result;
