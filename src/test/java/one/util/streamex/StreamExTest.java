@@ -24,6 +24,7 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.AbstractList;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -1213,12 +1214,19 @@ public class StreamExTest {
     @Test
     public void testRunLenghts() {
         Integer[] input = { 1, 2, 2, 4, 2, null, null, 1, 1, 1, null, null };
-        String res = StreamEx.of(input).runLengths().join(": ").joining(", ");
-        String resParallel = StreamEx.of(input).parallel().runLengths().join(": ").joining(", ");
-        assertEquals("1: 1, 2: 2, 4: 1, 2: 1, null: 2, 1: 3, null: 2", res);
-        assertEquals("1: 1, 2: 2, 4: 1, 2: 1, null: 2, 1: 3, null: 2", resParallel);
-        assertEquals("1=1, 2=2, 4=1, 2=1, null=2, 1=3",
-            StreamEx.of(input).parallel().runLengths().distinct().map(String::valueOf).joining(", "));
+        streamEx(
+            () -> StreamEx.of(input),
+            s -> {
+                assertEquals("1: 1, 2: 2, 4: 1, 2: 1, null: 2, 1: 3, null: 2",
+                    s.get().runLengths().join(": ").joining(", "));
+                assertEquals("1=1, 2=2, 4=1, 2=1, null=2, 1=3", s.get().runLengths().distinct().map(String::valueOf)
+                        .joining(", "));
+            });
+        Entry<Integer, Long> entry = StreamEx.of(input).runLengths().findFirst().get();
+        // Test qeuals contract for custom entry
+        assertNotEquals(entry, new Object());
+        assertNotEquals(new Object(), entry);
+        assertEquals(entry, new AbstractMap.SimpleImmutableEntry<>(1, 1L));
     }
 
     @Test(expected = UnsupportedOperationException.class)

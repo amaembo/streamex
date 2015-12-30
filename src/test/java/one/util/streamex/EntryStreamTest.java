@@ -18,6 +18,7 @@ package one.util.streamex;
 import static one.util.streamex.TestHelpers.*;
 import static org.junit.Assert.*;
 
+import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -150,6 +151,12 @@ public class EntryStreamTest {
 
         assertEquals("0=a,1=bbb,2=cc",
             EntryStream.of(new String[] { "a", "bbb", "cc" }).map(Object::toString).joining(","));
+        
+        Entry<Integer, String> entry = EntryStream.of(Arrays.asList("a")).findFirst().get();
+        // Test equals contract
+        assertNotEquals(new Object(), entry);
+        assertNotEquals(entry, new Object());
+        assertEquals(entry, new AbstractMap.SimpleImmutableEntry<>(0, "a"));
     }
 
     @Test(expected = UnsupportedOperationException.class)
