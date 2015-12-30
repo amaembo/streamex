@@ -383,6 +383,8 @@ public class LongStreamExTest {
 
         assertEquals(1, LongStreamEx.range(1000).map(x -> x * x).pairMap((a, b) -> b - a).pairMap((a, b) -> b - a)
                 .distinct().count());
+        
+        assertFalse(LongStreamEx.range(1000).greater(2000).parallel().pairMap((a, b) -> a).findFirst().isPresent());
     }
 
     @Test

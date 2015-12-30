@@ -723,6 +723,8 @@ public class StreamExTest {
         // Find first element which violates the sorting
         assertEquals("bba", firstMisplaced(asList("a", "bb", "bb", "bba", "bb", "c")).get());
         assertFalse(firstMisplaced(asList("a", "bb", "bb", "bb", "c")).isPresent());
+        assertFalse(firstMisplaced(asList()).isPresent());
+        assertFalse(IntStreamEx.range(1000).greater(2000).boxed().parallel().pairMap((a, b) -> a).findFirst().isPresent());
     }
 
     @Test

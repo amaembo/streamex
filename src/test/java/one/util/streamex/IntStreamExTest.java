@@ -486,6 +486,8 @@ public class IntStreamExTest {
 
         assertArrayEquals(IntStreamEx.constant(1, 100).toArray(), IntStreamEx.iterate(0, i -> i + 1).parallel()
                 .pairMap((a, b) -> b - a).limit(100).toArray());
+        
+        assertFalse(IntStreamEx.range(1000).greater(2000).parallel().pairMap((a, b) -> a).findFirst().isPresent());
     }
 
     @Test
