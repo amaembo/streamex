@@ -82,7 +82,15 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     <M extends Map<K, V>> Consumer<? super Entry<K, V>> toMapConsumer(M map) {
         return entry -> addToMap(map, entry.getKey(), Objects.requireNonNull(entry.getValue()));
     }
+    
+    static <K, V> Stream<Entry<K, V>> withValue(Stream<? extends K> s, V value) {
+        return s == null ? null : s.map(key -> new SimpleImmutableEntry<K, V>(key, value));
+    }
 
+    static <K, V> Stream<Entry<K, V>> withKey(K key, Stream<? extends V> s) {
+        return s == null ? null : s.map(value -> new SimpleImmutableEntry<>(key, value));
+    }
+    
     static <K, V, R> Function<? super Entry<K, V>, ? extends R> toFunction(
             BiFunction<? super K, ? super V, ? extends R> mapper) {
         return entry -> mapper.apply(entry.getKey(), entry.getValue());
@@ -198,17 +206,36 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public <KK> EntryStream<KK, V> flatMapKeys(Function<? super K, ? extends Stream<? extends KK>> mapper) {
-        return strategy().newEntryStream(stream.flatMap(e -> {
-            Stream<? extends KK> s = mapper.apply(e.getKey());
-            return s == null ? null : s.map(k -> new SimpleImmutableEntry<KK, V>(k, e.getValue()));
-        }));
+        return strategy().newEntryStream(stream.flatMap(e -> withValue(mapper.apply(e.getKey()), e.getValue())));
     }
 
+    /**
+     * Returns an {@code EntryStream} consisting of the entries whose keys are
+     * results of replacing source keys with the contents of a mapped stream
+     * produced by applying the provided mapping function and values are left
+     * intact. Each mapped stream is {@link java.util.stream.BaseStream#close()
+     * closed} after its contents have been placed into this stream. (If a
+     * mapped stream is {@code null} an empty stream is used, instead.)
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate
+     * operation</a>.
+     *
+     * @param <KK>
+     *            The type of new keys
+     * @param mapper
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function to apply to each key and value which produces a
+     *            stream of new keys
+     * @return the new stream
+     * @since 0.5.2
+     */
     public <KK> EntryStream<KK, V> flatMapToKey(BiFunction<? super K, ? super V, ? extends Stream<? extends KK>> mapper) {
-        return strategy().newEntryStream(stream.flatMap(e -> {
-            Stream<? extends KK> s = mapper.apply(e.getKey(), e.getValue());
-            return s == null ? null : s.map(k -> new SimpleImmutableEntry<KK, V>(k, e.getValue()));
-        }));
+        return strategy().newEntryStream(
+            stream.flatMap(e -> withValue(mapper.apply(e.getKey(), e.getValue()), e.getValue())));
     }
 
     /**
@@ -236,18 +263,37 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public <VV> EntryStream<K, VV> flatMapValues(Function<? super V, ? extends Stream<? extends VV>> mapper) {
-        return strategy().newEntryStream(stream.flatMap(e -> {
-            Stream<? extends VV> s = mapper.apply(e.getValue());
-            return s == null ? null : s.map(v -> new SimpleImmutableEntry<>(e.getKey(), v));
-        }));
+        return strategy().newEntryStream(stream.flatMap(e -> withKey(e.getKey(), mapper.apply(e.getValue()))));
     }
 
+    /**
+     * Returns an {@code EntryStream} consisting of the entries whose values are
+     * results of replacing source values with the contents of a mapped stream
+     * produced by applying the provided mapping function and keys are left
+     * intact. Each mapped stream is {@link java.util.stream.BaseStream#close()
+     * closed} after its contents have been placed into this stream. (If a
+     * mapped stream is {@code null} an empty stream is used, instead.)
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate
+     * operation</a>.
+     *
+     * @param <VV>
+     *            The type of new values
+     * @param mapper
+     *            a <a
+     *            href="package-summary.html#NonInterference">non-interfering
+     *            </a>, <a
+     *            href="package-summary.html#Statelessness">stateless</a>
+     *            function to apply to each key and value which produces a
+     *            stream of new values
+     * @return the new stream
+     * @since 0.5.2
+     */
     public <VV> EntryStream<K, VV> flatMapToValue(
             BiFunction<? super K, ? super V, ? extends Stream<? extends VV>> mapper) {
-        return strategy().newEntryStream(stream.flatMap(e -> {
-            Stream<? extends VV> s = mapper.apply(e.getKey(), e.getValue());
-            return s == null ? null : s.map(v -> new SimpleImmutableEntry<>(e.getKey(), v));
-        }));
+        return strategy().newEntryStream(
+            stream.flatMap(e -> withKey(e.getKey(), mapper.apply(e.getKey(), e.getValue()))));
     }
 
     /**

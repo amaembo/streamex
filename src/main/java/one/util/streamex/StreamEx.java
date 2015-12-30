@@ -312,8 +312,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             return strategy().<T, V> newEntryStream(delegate(Spliterators.emptySpliterator()));
         if (other.length == 1)
             return mapToEntry(e -> other[0]);
-        return strategy().newEntryStream(
-            stream.flatMap(a -> Arrays.stream(other).map(b -> new SimpleImmutableEntry<>(a, b))));
+        return strategy().newEntryStream(stream.flatMap(a -> EntryStream.withKey(a, Arrays.stream(other))));
     }
 
     /**
@@ -342,8 +341,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public <V> EntryStream<T, V> cross(Collection<? extends V> other) {
         if (other.isEmpty())
             return strategy().<T, V> newEntryStream(delegate(Spliterators.emptySpliterator()));
-        return strategy()
-                .newEntryStream(stream.flatMap(a -> other.stream().map(b -> new SimpleImmutableEntry<>(a, b))));
+        return strategy().newEntryStream(stream.flatMap(a -> EntryStream.withKey(a, other.stream())));
     }
 
     /**
@@ -367,10 +365,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.2.3
      */
     public <V> EntryStream<T, V> cross(Function<? super T, ? extends Stream<? extends V>> mapper) {
-        return strategy().newEntryStream(stream.flatMap(a -> {
-            Stream<? extends V> s = mapper.apply(a);
-            return s == null ? null : s.map(b -> new SimpleImmutableEntry<>(a, b));
-        }));
+        return strategy().newEntryStream(stream.flatMap(a -> EntryStream.withKey(a, mapper.apply(a))));
     }
 
     /**
