@@ -584,6 +584,41 @@ public class MoreCollectorsTest {
         }
     }
     
+    @Test(expected = IllegalStateException.class)
+    public void testFlatMappingExceptional() {
+        Stream.of(1, 2, 3).collect(MoreCollectors.flatMapping(x -> Stream.of(1, x).onClose(() -> {
+            if(x == 3)
+                throw new IllegalStateException();
+        }), Collectors.toList()));
+    }
+    
+    @Test(expected = IllegalStateException.class)
+    public void testFlatMappingShortCircuitExceptional() {
+        Stream.of(1, 2, 3).collect(MoreCollectors.flatMapping(x -> Stream.of(1, x).onClose(() -> {
+            if(x == 3)
+                throw new IllegalStateException();
+        }), MoreCollectors.head(10)));
+    }
+
+    @Test
+    public void testFlatMappingExceptionalSuppressed() {
+        List<Collector<Integer, ?, List<Integer>>> downstreams = Arrays.asList(MoreCollectors.head(10), Collectors.toList());
+        for(Collector<Integer, ?, List<Integer>> downstream : downstreams) {
+            try {
+                Stream.of(1, 2, 3).collect(MoreCollectors.flatMapping(x -> Stream.of(1, x).peek(y -> {
+                    throw new IllegalArgumentException();
+                }).onClose(() -> {
+                    throw new IllegalStateException();
+                }), downstream));
+            } catch (Exception e) {
+                assertTrue(e instanceof IllegalArgumentException);
+                assertTrue(e.getSuppressed()[0] instanceof IllegalStateException);
+                continue;
+            }
+            fail("No exception");
+        }
+    }
+    
     @Test
     public void testCommonPrefix() {
         checkCollectorEmpty("prefix", "", MoreCollectors.commonPrefix());
