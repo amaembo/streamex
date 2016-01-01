@@ -543,6 +543,7 @@ public class EntryStreamTest {
         List<Object> input = Arrays
                 .asList("aa", null, Arrays.asList(Arrays.asList("bbbb", "cc", null, Arrays.asList()), "ddd", Arrays
                         .asList("e"), Arrays.asList("fff")), "ggg");
+        @SuppressWarnings("unchecked")
         Supplier<Stream<Entry<Integer, Object>>> base = () -> EntryStream.ofTree(input, List.class, (depth, l) -> l
                 .stream());
         entryStream(base, supplier -> assertEquals("{1=[aa, ggg], 2=[ddd], 3=[bbbb, cc, e, fff]}", supplier.get()
