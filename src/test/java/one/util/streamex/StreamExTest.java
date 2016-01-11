@@ -1496,4 +1496,26 @@ public class StreamExTest {
                 String[]::new)));
         });
     }
+    
+    @Test
+    public void testWithFirst() {
+        assertEquals(asList(1, 2, 3, 4, 5), StreamEx.of(0, 2, 4).flatMap(x -> Stream.of(x, x + 1))
+                .withFirst().values().toList());
+        
+        streamEx(() -> StreamEx.of("a", "b", "c", "d"), s -> assertEquals(Collections.singletonMap("a", asList("b",
+            "c", "d")), s.get().withFirst().grouping()));
+
+        streamEx(() -> StreamEx.of("a", "b", "c", "d"), s -> assertEquals(Collections.singletonMap("a", asList("b",
+            "c", "d")), s.get().withFirst((x, str) -> str.mapToEntry(e -> x, e -> e)).mapToEntry(Entry::getKey,
+            Entry::getValue).grouping()));
+
+        streamEx(() -> StreamEx.iterate(2, x -> x + 1), s -> assertEquals(asList(2, 3, 5, 7, 11, 13, 17, 19, 23, 29,
+            31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97), sieve(s.get()).takeWhile(x -> x < 100)
+                .toList()));
+        
+    }
+    
+    private static StreamEx<Integer> sieve(StreamEx<Integer> input) {
+        return input.withFirst((head, stream) -> sieve(stream.filter(n -> n % head != 0)).prepend(head));
+    }
 }

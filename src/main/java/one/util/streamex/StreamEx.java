@@ -1339,7 +1339,15 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             return left;
         }).map(pair -> mapper.apply(pair.a, pair.b));
     }
+    
+    public EntryStream<T, T> withFirst() {
+        return strategy().newEntryStream(delegate(new WithFirstSpliterator<>(stream.spliterator())));
+    }
 
+    public <U> StreamEx<U> withFirst(BiFunction<T, StreamEx<T>, Stream<U>> mapper) {
+        return strategy().newStreamEx(delegate(new WithHeadSpliterator<>(stream.spliterator(), mapper)));
+    }
+    
     /**
      * Returns an empty sequential {@code StreamEx}.
      *
