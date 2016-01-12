@@ -1512,9 +1512,12 @@ public class StreamExTest {
                 EntryStream.of("name", "Surname", "type", "string", "value", "Smith").toMap(),
                 EntryStream.of("name", "Given name", "type", "string", "value", "John").toMap()
                     );
-            streamEx(() -> StreamEx.ofLines(new StringReader(input)), s -> assertEquals(expected, s.get().map(
-                str -> str.split(",")).withFirst().mapKeyValue((header, row) -> EntryStream.zip(header, row).toMap())
-                    .toList()));
+            streamEx(() -> StreamEx.ofLines(new StringReader(input)), s -> {
+                assertEquals(expected, s.get().map(str -> str.split(",")).withFirst().mapKeyValue(
+                    (header, row) -> EntryStream.zip(header, row).toMap()).toList());
+                assertEquals(expected, s.get().map(str -> str.split(",")).withFirst((header, stream) -> 
+                    stream.map(row -> EntryStream.zip(header, row).toMap())).toList());
+            });
         });
         Map<Integer, List<Integer>> expected = Collections
                 .singletonMap(0, IntStreamEx.range(1, 10000).boxed().toList());

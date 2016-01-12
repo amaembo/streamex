@@ -16,6 +16,7 @@
 package one.util.streamex;
 
 import java.util.Spliterator;
+import java.util.Spliterators.AbstractSpliterator;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -25,12 +26,13 @@ import static one.util.streamex.StreamExInternals.*;
 /**
  * @author Tagir Valeev
  */
-/*package*/ final class WithHeadSpliterator<T, U> implements Spliterator<U> {
+/*package*/ final class WithHeadSpliterator<T, U> extends AbstractSpliterator<U> {
     private final Spliterator<T> source;
     private final BiFunction<T, StreamEx<T>, Stream<U>> mapper;
     private Spliterator<U> target;
     
     WithHeadSpliterator(Spliterator<T> source, BiFunction<T, StreamEx<T>, Stream<U>> mapper) {
+        super(Long.MAX_VALUE, ORDERED);
         this.source = source;
         this.mapper = mapper;
     }
@@ -66,20 +68,11 @@ import static one.util.streamex.StreamExInternals.*;
     }
 
     @Override
-    public Spliterator<U> trySplit() {
-        if(!init())
-            return null;
-        return target.trySplit();
-    }
-
-    @Override
     public long estimateSize() {
-        long size = source.estimateSize();
-        return size == Long.MAX_VALUE || size <= 0 ? size : size - 1;
-    }
-
-    @Override
-    public int characteristics() {
-        return source.characteristics() & ORDERED;
+        if(target == null) {
+            long size = source.estimateSize();
+            return size == Long.MAX_VALUE || size <= 0 ? size : size - 1;
+        }
+        return target.estimateSize();
     }
 }
