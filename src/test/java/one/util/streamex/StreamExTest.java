@@ -1499,21 +1499,26 @@ public class StreamExTest {
     
     @Test
     public void testWithFirst() {
-        repeat(100, i -> {
+        repeat(10, i -> {
             streamEx(() -> StreamEx.of(0, 2, 4), s -> assertEquals(asList(1, 2, 3, 4, 5), s.get().flatMap(
                 x -> Stream.of(x, x + 1)).withFirst().values().toList()));
             
             streamEx(() -> StreamEx.of("a", "b", "c", "d"), s -> assertEquals(Collections.singletonMap("a", asList("b",
                 "c", "d")), s.get().withFirst().grouping()));
             
+            // Header mapping
             String input = "name,type,value\nID,int,5\nSurname,string,Smith\nGiven name,string,John";
-            List<Map<String, String>> data = StreamEx.ofLines(new StringReader(input)).map(s -> s.split(","))
-                    .withFirst().mapKeyValue((header, row) -> EntryStream.zip(header, row).toMap()).toList();
-            assertEquals(asList(EntryStream.of("name", "ID", "type", "int", "value", "5").toMap(),
+            List<Map<String, String>> expected = asList(EntryStream.of("name", "ID", "type", "int", "value", "5").toMap(),
                 EntryStream.of("name", "Surname", "type", "string", "value", "Smith").toMap(),
                 EntryStream.of("name", "Given name", "type", "string", "value", "John").toMap()
-                ), data);
+                    );
+            streamEx(() -> StreamEx.ofLines(new StringReader(input)), s -> assertEquals(expected, s.get().map(
+                str -> str.split(",")).withFirst().mapKeyValue((header, row) -> EntryStream.zip(header, row).toMap())
+                    .toList()));
         });
+        Map<Integer, List<Integer>> expected = Collections
+                .singletonMap(0, IntStreamEx.range(1, 10000).boxed().toList());
+        streamEx(() -> IntStreamEx.range(10000).boxed(), s -> assertEquals(expected, s.get().withFirst().grouping()));
 
         streamEx(() -> StreamEx.of("a", "b", "c", "d"), s -> assertEquals(Collections.singletonMap("a", asList("b",
             "c", "d")), s.get().withFirst((x, str) -> str.mapToEntry(e -> x, e -> e)).mapToEntry(Entry::getKey,
