@@ -26,12 +26,12 @@ import static one.util.streamex.StreamExInternals.*;
 /**
  * @author Tagir Valeev
  */
-/*package*/ final class WithHeadSpliterator<T, U> extends AbstractSpliterator<U> {
+/*package*/ final class WithFirstMapperSpliterator<T, U> extends AbstractSpliterator<U> {
     private final Spliterator<T> source;
-    private final BiFunction<T, StreamEx<T>, Stream<U>> mapper;
+    private final BiFunction<? super T, ? super StreamEx<T>, ? extends Stream<U>> mapper;
     private Spliterator<U> target;
     
-    WithHeadSpliterator(Spliterator<T> source, BiFunction<T, StreamEx<T>, Stream<U>> mapper) {
+    WithFirstMapperSpliterator(Spliterator<T> source, BiFunction<? super T, ? super StreamEx<T>, ? extends Stream<U>> mapper) {
         super(Long.MAX_VALUE, ORDERED);
         this.source = source;
         this.mapper = mapper;
@@ -41,12 +41,6 @@ import static one.util.streamex.StreamExInternals.*;
     public boolean tryAdvance(Consumer<? super U> action) {
         if(!init())
             return false;
-        if(target instanceof WithHeadSpliterator) {
-            @SuppressWarnings("unchecked")
-            Spliterator<U> next = ((WithHeadSpliterator<?, U>) target).target;
-            if(next != null)
-                target = next;
-        }
         return target.tryAdvance(action);
     }
 

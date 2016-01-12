@@ -1344,8 +1344,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return strategy().newEntryStream(delegate(new WithFirstSpliterator<>(stream.spliterator())));
     }
 
-    public <U> StreamEx<U> withFirst(BiFunction<T, StreamEx<T>, Stream<U>> mapper) {
-        return strategy().newStreamEx(delegate(new WithHeadSpliterator<>(stream.spliterator(), mapper)));
+    public <U> StreamEx<U> withFirst(BiFunction<? super T, ? super StreamEx<T>, ? extends Stream<U>> mapper) {
+        return strategy().newStreamEx(delegate(new WithFirstMapperSpliterator<>(stream.spliterator(), mapper)));
     }
     
     /**

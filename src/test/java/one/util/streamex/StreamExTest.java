@@ -1530,9 +1530,25 @@ public class StreamExTest {
         streamEx(() -> StreamEx.iterate(2, x -> x + 1), s -> assertEquals(asList(2, 3, 5, 7, 11, 13, 17, 19, 23, 29,
             31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97), sieve(s.get()).takeWhile(x -> x < 100)
                 .toList()));
+        
+        emptyStreamEx(Integer.class, s -> {
+            assertEquals(0L, s.get().withFirst((first, head) -> {
+                throw new IllegalStateException();
+            }).count());
+            assertFalse(s.get().withFirst((first, head) -> {
+                throw new IllegalStateException();
+            }).findFirst().isPresent());
+        });
+        
+        streamEx(() -> IntStreamEx.range(100).boxed(), s -> assertEquals(IntStreamEx.rangeClosed(99, 0, -1).boxed()
+                .toList(), reverse(s.get()).toList()));
     }
     
     private static StreamEx<Integer> sieve(StreamEx<Integer> input) {
         return input.withFirst((head, stream) -> sieve(stream.filter(n -> n % head != 0)).prepend(head));
+    }
+    
+    private static <T> StreamEx<T> reverse(StreamEx<T> input) {
+        return input.withFirst((head, stream) -> reverse(stream).append(head));
     }
 }
