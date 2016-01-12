@@ -100,6 +100,9 @@ public class CustomPoolTest {
                 this.checkThread(list);
                 return list;
             }));
+        
+        assertEquals(Collections.singletonMap(1, 3L), StreamEx.of(1, 1, 1).parallel(pool).peek(this::checkThread)
+                .runLengths().toMap());
     }
 
     @Test

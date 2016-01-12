@@ -63,7 +63,7 @@ import java.util.stream.Stream;
         }
 
         @Override
-        public <K, V> EntryStream<K, V> newEntryStream(Stream<Entry<K, V>> src) {
+        public <K, V> EntryStream<K, V> newEntryStream(Stream<? extends Entry<K, V>> src) {
             return new CustomEntryStream<>(src, this);
         }
 
@@ -94,7 +94,7 @@ import java.util.stream.Stream;
     static final class CustomEntryStream<K, V> extends EntryStream<K, V> {
         private final CustomPoolStreamFactory strategy;
 
-        CustomEntryStream(Stream<Entry<K, V>> stream, CustomPoolStreamFactory strategy) {
+        CustomEntryStream(Stream<? extends Entry<K, V>> stream, CustomPoolStreamFactory strategy) {
             super(stream);
             this.strategy = strategy;
         }
@@ -521,7 +521,7 @@ import java.util.stream.Stream;
         return new StreamEx<>(src);
     }
 
-    public <K, V> EntryStream<K, V> newEntryStream(Stream<Entry<K, V>> src) {
+    public <K, V> EntryStream<K, V> newEntryStream(Stream<? extends Entry<K, V>> src) {
         return new EntryStream<>(src);
     }
 

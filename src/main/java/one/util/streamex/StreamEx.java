@@ -1250,7 +1250,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.3.3
      */
     public EntryStream<T, Long> runLengths() {
-        return EntryStream.of(collapseInternal(Objects::equals, t -> new ObjLongBox<>(t, 1L), (acc, t) -> {
+        return strategy().newEntryStream(collapseInternal(Objects::equals, t -> new ObjLongBox<>(t, 1L), (acc, t) -> {
             acc.b++;
             return acc;
         }, (e1, e2) -> {
