@@ -939,8 +939,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @param values the values to append to the stream
      * @return the new stream
      */
-    @SuppressWarnings("unchecked")
-    public StreamEx<T> append(T... values) {
+    @SafeVarargs
+    public final StreamEx<T> append(T... values) {
         if (values.length == 0)
             return this;
         return append(Stream.of(values));
@@ -967,8 +967,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @param values the values to prepend to the stream
      * @return the new stream
      */
-    @SuppressWarnings("unchecked")
-    public StreamEx<T> prepend(T... values) {
+    @SafeVarargs
+    public final StreamEx<T> prepend(T... values) {
         if (values.length == 0)
             return this;
         return prepend(Stream.of(values));

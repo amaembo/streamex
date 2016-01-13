@@ -1,7 +1,8 @@
 # StreamEx changes
 
 ### 0.5.3
-* [#51] Fixed: StreamEx.parallel(fjp).runLengths() fails to run the task in the specified pool
+* [#51] Fixed: StreamEx.parallel(fjp).runLengths() fails to run the task in the specified pool.
+* [#52] StreamEx.append(T...) and prepend(T...) are declared as @SafeVarargs and final now.
 
 ### 0.5.2
 * [#3] Optimized: parallel performance of `StreamEx.ofLines` as well as `StreamEx.split`
