@@ -1339,15 +1339,77 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             return left;
         }).map(pair -> mapper.apply(pair.a, pair.b));
     }
-    
+
+    /**
+     * Creates an {@link EntryStream} consisting of the {@link Entry} objects
+     * which keys are all the same and equal to the first element of this stream
+     * and values are the rest elements of this stream.
+     * 
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     * 
+     * <p>
+     * The size of the resulting stream is one element less than the input
+     * stream. If the input stream is empty or contains just one element, then
+     * the output stream will be empty.
+     *
+     * @return the new stream
+     * @see #withFirst(BiFunction)
+     * @since 0.5.3
+     */
     public EntryStream<T, T> withFirst() {
         return strategy().newEntryStream(delegate(new WithFirstSpliterator<>(stream.spliterator())));
     }
 
-    public <U> StreamEx<U> withFirst(BiFunction<? super T, ? super StreamEx<T>, ? extends Stream<U>> mapper) {
-        return strategy().newStreamEx(delegate(new WithFirstMapperSpliterator<>(stream.spliterator(), mapper)));
+    /**
+     * Creates a new Stream which is the result of applying of the supplied
+     * mapper {@code BiFunction} to the first element of the current stream and
+     * the stream containing the rest elements. (If a mapped stream is
+     * {@code null} an empty stream is used, instead.)
+     * 
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     * 
+     * <p>
+     * The mapper function is not applied when the input stream is empty.
+     * Otherwise it's applied at most once during the stream terminal operation
+     * execution. Sometimes it's useful to generate stream recursively like
+     * this:
+     * 
+     * <pre>{@code
+     * // Returns lazily-generated stream which performs scanLeft operation on the input
+     * static <T> StreamEx<T> scanLeft(StreamEx<T> input, BinaryOperator<T> operator) {
+     *     return input.withFirst((head, stream) -> scanLeft(stream.mapFirst(cur -> operator.apply(head, cur)), operator)
+     *           .prepend(head));
+     * }}</pre>
+     * 
+     * <p>
+     * Use caution though as this might lead to {@code StackOverflowError} for
+     * long input stream.
+     * 
+     * <p>
+     * This operation might perform badly with parallel streams. Sometimes the
+     * same semantics could be expressed using {@link #withFirst()} method with
+     * subsequent mapping or filtering. Consider using {@code withFirst()} if
+     * its possible in your case.
+     *
+     * @param <R> The element type of the new stream
+     * @param mapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering</a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to the first stream element and the stream of
+     *        the rest elements which creates a new stream.
+     * @return the new stream
+     * @see #withFirst()
+     * @since 0.5.3
+     */
+    public <R> StreamEx<R> withFirst(BiFunction<? super T, ? super StreamEx<T>, ? extends Stream<R>> mapper) {
+        WithFirstMapperSpliterator<T, R> spliterator = new WithFirstMapperSpliterator<>(stream.spliterator(), mapper);
+        return strategy().newStreamEx(delegate(spliterator).onClose(spliterator::close));
     }
-    
+
     /**
      * Returns an empty sequential {@code StreamEx}.
      *

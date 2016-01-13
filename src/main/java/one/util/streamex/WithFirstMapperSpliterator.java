@@ -16,9 +16,11 @@
 package one.util.streamex;
 
 import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.Spliterators.AbstractSpliterator;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.stream.BaseStream;
 import java.util.stream.Stream;
 
 import static one.util.streamex.StreamExInternals.*;
@@ -30,6 +32,7 @@ import static one.util.streamex.StreamExInternals.*;
     private final Spliterator<T> source;
     private final BiFunction<? super T, ? super StreamEx<T>, ? extends Stream<U>> mapper;
     private Spliterator<U> target;
+    private BaseStream<?, ?> stream;
     
     WithFirstMapperSpliterator(Spliterator<T> source, BiFunction<? super T, ? super StreamEx<T>, ? extends Stream<U>> mapper) {
         super(Long.MAX_VALUE, ORDERED);
@@ -56,9 +59,16 @@ import static one.util.streamex.StreamExInternals.*;
             if(!source.tryAdvance(x -> first.a = x)) {
                 return false;
             }
-            target = mapper.apply(first.a, StreamEx.of(source)).spliterator();
+            Stream<U> stream = mapper.apply(first.a, StreamEx.of(source));
+            this.stream = stream;
+            target = stream == null ? Spliterators.emptySpliterator() : stream.spliterator();
         }
         return true;
+    }
+    
+    void close() {
+        if(stream != null)
+            stream.close();
     }
 
     @Override

@@ -1542,13 +1542,45 @@ public class StreamExTest {
         
         streamEx(() -> IntStreamEx.range(100).boxed(), s -> assertEquals(IntStreamEx.rangeClosed(99, 0, -1).boxed()
                 .toList(), reverse(s.get()).toList()));
+        
+        streamEx(() -> StreamEx.of(1, 2), s -> assertEquals(0, s.get().withFirst((head, stream) -> null).count()));
+        
+        streamEx(() -> StreamEx.iterate(1, x -> x + 1), s -> assertEquals(asList(1, 3, 6, 10, 15, 21, 28, 36, 45, 55,
+            66, 78, 91), scanLeft(s.get(), Integer::sum).takeWhile(x -> x < 100).toList()));
     }
     
+    // Filters the input stream of natural numbers (2, 3, 4...) leaving only prime numbers
     private static StreamEx<Integer> sieve(StreamEx<Integer> input) {
         return input.withFirst((head, stream) -> sieve(stream.filter(n -> n % head != 0)).prepend(head));
     }
-    
+
+    // Creates a reversed stream
     private static <T> StreamEx<T> reverse(StreamEx<T> input) {
         return input.withFirst((head, stream) -> reverse(stream).append(head));
+    }
+    
+    // Creates lazy scanLeft stream
+    private static <T> StreamEx<T> scanLeft(StreamEx<T> input, BinaryOperator<T> operator) {
+        return input.withFirst((head, stream) -> scanLeft(stream.mapFirst(cur -> operator.apply(head, cur)), operator)
+                .prepend(head));
+    }
+    
+    @Test
+    public void testWithFirstClose() {
+        AtomicBoolean origClosed = new AtomicBoolean();
+        AtomicBoolean internalClosed = new AtomicBoolean();
+        AtomicBoolean finalClosed = new AtomicBoolean();
+        StreamEx<Object> res = StreamEx.of(1, 2, 3).onClose(() -> origClosed.set(true)).withFirst(
+            (head, stream) -> stream.onClose(() -> internalClosed.set(true)).map(x -> x + head)).onClose(
+            () -> finalClosed.set(true));
+        assertEquals(asList(3, 4), res.toList());
+        res.close();
+        assertTrue(origClosed.get());
+        assertTrue(internalClosed.get());
+        assertTrue(finalClosed.get());
+        
+        res = StreamEx.empty().withFirst((head, tail) -> tail);
+        assertEquals(0, res.count());
+        res.close();
     }
 }
