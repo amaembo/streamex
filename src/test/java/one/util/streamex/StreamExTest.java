@@ -1547,6 +1547,13 @@ public class StreamExTest {
         
         streamEx(() -> StreamEx.iterate(1, x -> x + 1), s -> assertEquals(asList(1, 3, 6, 10, 15, 21, 28, 36, 45, 55,
             66, 78, 91), scanLeft(s.get(), Integer::sum).takeWhile(x -> x < 100).toList()));
+        
+        // http://stackoverflow.com/q/34395943/4856258
+        int[] input = { 1, 2, 3, -1, 3, -10, 9, 100, 1, 100, 0 };
+        AtomicInteger counter = new AtomicInteger();
+        assertEquals(5, scanLeft(IntStreamEx.of(input).peek(x -> counter.incrementAndGet()).boxed(), Integer::sum)
+                .indexOf(x -> x < 0).getAsLong());
+        assertEquals(6, counter.get());
     }
     
     // Filters the input stream of natural numbers (2, 3, 4...) leaving only prime numbers
