@@ -1570,7 +1570,7 @@ public class StreamExTest {
         AtomicBoolean origClosed = new AtomicBoolean();
         AtomicBoolean internalClosed = new AtomicBoolean();
         AtomicBoolean finalClosed = new AtomicBoolean();
-        StreamEx<Object> res = StreamEx.of(1, 2, 3).onClose(() -> origClosed.set(true)).withFirst(
+        StreamEx<Integer> res = StreamEx.of(1, 2, 3).onClose(() -> origClosed.set(true)).<Integer>withFirst(
             (head, stream) -> stream.onClose(() -> internalClosed.set(true)).map(x -> x + head)).onClose(
             () -> finalClosed.set(true));
         assertEquals(asList(3, 4), res.toList());
@@ -1579,7 +1579,7 @@ public class StreamExTest {
         assertTrue(internalClosed.get());
         assertTrue(finalClosed.get());
         
-        res = StreamEx.empty().withFirst((head, tail) -> tail);
+        res = StreamEx.<Integer>empty().withFirst((head, tail) -> tail);
         assertEquals(0, res.count());
         res.close();
     }
