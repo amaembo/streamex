@@ -3,6 +3,7 @@
 ### 0.5.3
 * [#51] Fixed: StreamEx.parallel(fjp).runLengths() fails to run the task in the specified pool.
 * [#52] StreamEx.append(T...) and prepend(T...) are declared as @SafeVarargs and final now.
+* [#53] Optimized: mapFirst/mapLast methods will have less overhead now, especially for primitive streams.
 
 ### 0.5.2
 * [#3] Optimized: parallel performance of `StreamEx.ofLines` as well as `StreamEx.split`
