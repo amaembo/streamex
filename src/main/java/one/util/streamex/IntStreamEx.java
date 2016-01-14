@@ -1504,7 +1504,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.2.1
      */
     public IntStreamEx pairMap(IntBinaryOperator mapper) {
-        return delegate(new PairSpliterator.PSOfInt(mapper, stream.spliterator()));
+        return delegate(new PairSpliterator.PSOfInt(mapper, null, stream.spliterator(), PairSpliterator.MODE_PAIRS));
     }
 
     /**
@@ -1619,7 +1619,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.4.1
      */
     public IntStreamEx mapFirst(IntUnaryOperator mapper) {
-        return mapToObj(Integer::new).mapFirst(mapper::applyAsInt).mapToInt(Integer::intValue);
+        return delegate(new PairSpliterator.PSOfInt((a, b) -> b, mapper, stream.spliterator(), PairSpliterator.MODE_MAP_FIRST));
     }
 
     /**
@@ -1638,7 +1638,7 @@ public class IntStreamEx implements IntStream {
      * @since 0.4.1
      */
     public IntStreamEx mapLast(IntUnaryOperator mapper) {
-        return mapToObj(Integer::new).mapLast(mapper::applyAsInt).mapToInt(Integer::intValue);
+        return delegate(new PairSpliterator.PSOfInt((a, b) -> a, mapper, stream.spliterator(), PairSpliterator.MODE_MAP_LAST));
     }
 
     /**

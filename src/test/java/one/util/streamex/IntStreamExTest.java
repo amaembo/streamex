@@ -41,6 +41,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
 
+import static one.util.streamex.TestHelpers.*;
+
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -620,8 +622,11 @@ public class IntStreamExTest {
         String str = "testString";
         assertEquals("TestString", IntStreamEx.ofCodePoints(str).mapFirst(Character::toUpperCase).codePointsToString());
 
-        assertArrayEquals(new int[] { -1, 2, 3, 4, 7 }, IntStreamEx.of(1, 2, 3, 4, 5).mapFirst(x -> x - 2).mapLast(
-            x -> x + 2).toArray());
+        streamEx(() -> StreamEx.of(1, 2, 3, 4, 5), s -> {
+            assertArrayEquals(new int[] { -3, 2, 3, 4, 9 }, s.get().mapToInt(Integer::intValue).mapFirst(x -> x - 2)
+                    .mapLast(x -> x + 2).mapFirst(x -> x - 2)
+                    .mapLast(x -> x + 2).toArray());
+        });
     }
 
     @Test

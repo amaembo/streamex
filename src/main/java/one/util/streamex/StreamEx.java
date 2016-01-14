@@ -206,15 +206,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.4.1
      */
     public StreamEx<T> mapFirst(Function<? super T, ? extends T> mapper) {
-        // Cannot reuse NONE object here as the object appears in the stream and
-        // might become visible to other pipeline steps
-        // thus new Object is necessary every time
-        @SuppressWarnings("unchecked")
-        T first = (T) new Object();
-        Stream<T> none = Stream.of(first);
-        return strategy().newStreamEx(
-            delegate(new PairSpliterator.PSOfRef<T, T>((a, b) -> (a == first ? mapper.apply(b) : b), Stream.concat(
-                none, stream).spliterator())));
+        return strategy().newStreamEx(delegate(new PairSpliterator.PSOfRef<>(mapper, stream.spliterator(), true)));
     }
 
     /**
@@ -233,15 +225,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.4.1
      */
     public StreamEx<T> mapLast(Function<? super T, ? extends T> mapper) {
-        // Cannot reuse NONE object here as the object appears in the stream and
-        // might become visible to other pipeline steps
-        // thus new Object is necessary every time
-        @SuppressWarnings("unchecked")
-        T last = (T) new Object();
-        Stream<T> none = Stream.of(last);
-        return strategy().newStreamEx(
-            delegate(new PairSpliterator.PSOfRef<T, T>((a, b) -> (b == last ? mapper.apply(a) : a), Stream.concat(
-                stream, none).spliterator())));
+        return strategy().newStreamEx(delegate(new PairSpliterator.PSOfRef<>(mapper, stream.spliterator(), false)));
     }
 
     /**
@@ -939,8 +923,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @param values the values to append to the stream
      * @return the new stream
      */
-    @SuppressWarnings("unchecked")
-    public StreamEx<T> append(T... values) {
+    @SafeVarargs
+    public final StreamEx<T> append(T... values) {
         if (values.length == 0)
             return this;
         return append(Stream.of(values));
@@ -967,8 +951,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @param values the values to prepend to the stream
      * @return the new stream
      */
-    @SuppressWarnings("unchecked")
-    public StreamEx<T> prepend(T... values) {
+    @SafeVarargs
+    public final StreamEx<T> prepend(T... values) {
         if (values.length == 0)
             return this;
         return prepend(Stream.of(values));
@@ -1250,7 +1234,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.3.3
      */
     public EntryStream<T, Long> runLengths() {
-        return EntryStream.of(collapseInternal(Objects::equals, t -> new ObjLongBox<>(t, 1L), (acc, t) -> {
+        return strategy().newEntryStream(collapseInternal(Objects::equals, t -> new ObjLongBox<>(t, 1L), (acc, t) -> {
             acc.b++;
             return acc;
         }, (e1, e2) -> {

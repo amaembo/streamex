@@ -252,7 +252,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.4.1
      */
     public DoubleStreamEx mapFirst(DoubleUnaryOperator mapper) {
-        return boxed().mapFirst(mapper::applyAsDouble).mapToDouble(Double::doubleValue);
+        return delegate(new PairSpliterator.PSOfDouble((a, b) -> b, mapper, stream.spliterator(), PairSpliterator.MODE_MAP_FIRST));
     }
 
     /**
@@ -271,7 +271,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.4.1
      */
     public DoubleStreamEx mapLast(DoubleUnaryOperator mapper) {
-        return boxed().mapLast(mapper::applyAsDouble).mapToDouble(Double::doubleValue);
+        return delegate(new PairSpliterator.PSOfDouble((a, b) -> a, mapper, stream.spliterator(), PairSpliterator.MODE_MAP_LAST));
     }
 
     @Override
@@ -1320,7 +1320,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.2.1
      */
     public DoubleStreamEx pairMap(DoubleBinaryOperator mapper) {
-        return delegate(new PairSpliterator.PSOfDouble(mapper, stream.spliterator()));
+        return delegate(new PairSpliterator.PSOfDouble(mapper, null, stream.spliterator(), PairSpliterator.MODE_PAIRS));
     }
 
     /**
