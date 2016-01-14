@@ -1599,6 +1599,15 @@ public class StreamExTest {
     
     @Test
     public void testHeadTailTCO() {
+        // 20001+20002+...+40000
+        assertEquals(600010000, skip(StreamEx.iterate(1, x -> x + 1), 20000).limit(20000).mapToInt(Integer::intValue)
+            .sum());
+        // 1+3+5+...+39999
+        assertEquals(400000000, every(StreamEx.iterate(1, x -> x + 1), 2).limit(20000).mapToInt(Integer::intValue)
+            .sum());
+        assertEquals(400000000, filter(StreamEx.iterate(1, x -> x + 1), x -> x % 2 != 0).limit(20000).mapToInt(
+            Integer::intValue).sum());
+        // 1+2+...+20000
         assertEquals(200010000, (int) scanLeft(StreamEx.iterate(1, x -> x + 1), Integer::sum).limit(20000).reduce(
             (a, b) -> b).get());
         assertEquals(19999, takeWhile(StreamEx.iterate(1, x -> x + 1), x -> x < 20000).count());
@@ -1649,9 +1658,21 @@ public class StreamExTest {
                 : Stream.of(head));
     }
     
-    // take every nth stream element (starting from the first)
+    // take every nth stream element (starting from the first) (TCO)
     private static <T> StreamEx<T> every(StreamEx<T> input, int n) {
-        return input.headTail((head, tail) -> every(tail.skip(n-1), n).prepend(head) );
+        return input.headTail((head, tail) -> every(skip(tail, n-1), n).prepend(head) );
+    }
+
+    // reimplemented skip operation (TCO)
+    private static <T> StreamEx<T> skip(StreamEx<T> input, int n) {
+        return input.headTail((head, tail) -> n > 0 ? skip(tail, n-1) : tail.prepend(head) );
+    }
+    
+    // reimplemented filter operation (TCO)
+    @SuppressWarnings("unchecked")
+    private static <T> StreamEx<T> filter(StreamEx<T> input, Predicate<T> predicate) {
+        return input.<T>headTail((head, tail) -> filter(tail, predicate).prepend(
+            (T[]) (predicate.test(head) ? new Object[] { head } : new Object[0])));
     }
     
     @Test

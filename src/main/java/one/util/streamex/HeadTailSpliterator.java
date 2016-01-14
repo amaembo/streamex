@@ -91,6 +91,8 @@ import static one.util.streamex.StreamExInternals.*;
 
     @Override
     public Spliterator<U> tail() {
-        return target == null ? this : target;
+        if(!init())
+            return Spliterators.emptySpliterator();
+        return target;
     }
 }
