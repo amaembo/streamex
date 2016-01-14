@@ -19,15 +19,21 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.invoke.MethodType;
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
 import java.nio.ByteOrder;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.AbstractCollection;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
+import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Deque;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -50,6 +56,7 @@ import java.util.function.ObjIntConsumer;
 import java.util.function.ObjLongConsumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.BaseStream;
 import java.util.stream.Collector;
 import java.util.stream.Collector.Characteristics;
 import java.util.stream.DoubleStream;
@@ -76,6 +83,38 @@ import java.util.stream.Stream;
     static final int IDX_DOUBLE_STREAM = 3;
     static final int IDX_TAKE_WHILE = 0;
     static final int IDX_DROP_WHILE = 1;
+    
+    static final Field SOURCE_SPLITERATOR;
+    static final Field SOURCE_STAGE;
+    static final Field SOURCE_CLOSE_ACTION;
+    static final Field SPLITERATOR_ITERATOR;
+
+    static {
+        Deque<Field> fields = new ArrayDeque<>();
+        /*
+         * Fields accessed via reflection are used only for reading and only to
+         * make some performance optimizations decisions. They must be never
+         * written and absence of these fields should not break anything.
+         */
+        try {
+            AccessController.doPrivileged((PrivilegedExceptionAction<Void>) () -> {
+                Class<?> abstractPipelineClass = Class.forName("java.util.stream.AbstractPipeline");
+                fields.add(abstractPipelineClass.getDeclaredField("sourceSpliterator"));
+                fields.add(abstractPipelineClass.getDeclaredField("sourceStage"));
+                fields.add(abstractPipelineClass.getDeclaredField("sourceCloseAction"));
+                fields.add(Class.forName("java.util.Spliterators$IteratorSpliterator").getDeclaredField("it"));
+                for(Field f : fields)
+                    f.setAccessible(true);
+                return null;
+            });
+        } catch (PrivilegedActionException e) {
+            fields.clear();
+        }
+        SOURCE_SPLITERATOR = fields.poll();
+        SOURCE_STAGE = fields.poll();
+        SOURCE_CLOSE_ACTION = fields.poll();
+        SPLITERATOR_ITERATOR = fields.poll();
+    }
 
     static MethodHandle[][] initJdk9Methods() {
         Lookup lookup = MethodHandles.publicLookup();
@@ -970,5 +1009,21 @@ import java.util.stream.Stream;
     @SuppressWarnings("unchecked")
     static <T> T none() {
         return (T) NONE;
+    }
+
+    static boolean mayHaveCloseAction(BaseStream<?, ?> s) {
+        if (s == null)
+            return false;
+        if (SOURCE_STAGE == null || SOURCE_CLOSE_ACTION == null)
+            return true;
+        if (s instanceof AbstractStreamEx)
+            s = ((AbstractStreamEx<?, ?>) s).stream;
+        try {
+            if (SOURCE_CLOSE_ACTION.get(SOURCE_STAGE.get(s)) == null)
+                return false;
+        } catch (IllegalArgumentException | IllegalAccessException e) {
+            // ignore
+        }
+        return true;
     }
 }

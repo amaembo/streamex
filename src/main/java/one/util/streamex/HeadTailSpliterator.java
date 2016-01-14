@@ -29,10 +29,11 @@ import static one.util.streamex.StreamExInternals.*;
  * @author Tagir Valeev
  */
 /*package*/ final class HeadTailSpliterator<T, U> extends AbstractSpliterator<U> implements TailCallSpliterator<U> {
-    private final Spliterator<T> source;
-    private final BiFunction<? super T, ? super StreamEx<T>, ? extends Stream<U>> mapper;
+    private Spliterator<T> source;
+    private BiFunction<? super T, ? super StreamEx<T>, ? extends Stream<U>> mapper;
     private Spliterator<U> target;
-    private BaseStream<?, ?> stream;
+    private boolean finished;
+    BaseStream<?, ?> owner;
     
     HeadTailSpliterator(Spliterator<T> source, BiFunction<? super T, ? super StreamEx<T>, ? extends Stream<U>> mapper) {
         super(Long.MAX_VALUE, ORDERED);
@@ -45,7 +46,7 @@ import static one.util.streamex.StreamExInternals.*;
         if(!init())
             return false;
         target = traverseTail(target);
-        return target.tryAdvance(action);
+        return finishUnless(target.tryAdvance(action));
     }
 
     @Override
@@ -54,34 +55,44 @@ import static one.util.streamex.StreamExInternals.*;
             Spliterator<U> t = target;
             while(t instanceof TailCallSpliterator) {
                 t = traverseTail(t);
-                if(!t.tryAdvance(action))
+                if(!finishUnless(t.tryAdvance(action)))
                     return;
             }
             t.forEachRemaining(action);
-            target = t;
+            finishUnless(false);
         }
     }
 
+    private boolean finishUnless(boolean cont) {
+        if(cont)
+            return true;
+        target = null;
+        source = null;
+        mapper = null;
+        finished = true;
+        return false;
+    }
+
     private boolean init() {
+        if(finished)
+            return false;
         if(target == null) {
             Box<T> first = new Box<>(null);
-            if(!source.tryAdvance(x -> first.a = x)) {
+            if(!finishUnless(source.tryAdvance(x -> first.a = x))) {
                 return false;
             }
             Stream<U> stream = mapper.apply(first.a, StreamEx.of(traverseTail(source)));
-            this.stream = stream;
+            if(owner != null && mayHaveCloseAction(stream))
+                owner.onClose(stream::close);
             target = stream == null ? Spliterators.emptySpliterator() : stream.spliterator();
         }
         return true;
     }
     
-    void close() {
-        if(stream != null)
-            stream.close();
-    }
-
     @Override
     public long estimateSize() {
+        if(finished)
+            return 0;
         if(target == null) {
             long size = source.estimateSize();
             return size == Long.MAX_VALUE || size <= 0 ? size : size - 1;
@@ -93,6 +104,8 @@ import static one.util.streamex.StreamExInternals.*;
     public Spliterator<U> tail() {
         if(!init())
             return Spliterators.emptySpliterator();
-        return target;
+        Spliterator<U> t = target;
+        finishUnless(false);
+        return t;
     }
 }

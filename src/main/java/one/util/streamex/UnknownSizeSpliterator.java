@@ -1,9 +1,5 @@
 package one.util.streamex;
 
-import java.lang.reflect.Field;
-import java.security.AccessController;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
 import java.util.Iterator;
 import java.util.PrimitiveIterator;
 import java.util.Spliterator;
@@ -14,28 +10,12 @@ import java.util.function.LongConsumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static one.util.streamex.StreamExInternals.*;
+
 /* package */abstract class UnknownSizeSpliterator<T, S extends UnknownSizeSpliterator<? extends T, S, I>, I extends Iterator<? extends T>>
         implements Spliterator<T> {
     static final int BATCH_UNIT = 1 << 10; // batch array size increment
     static final int MAX_BATCH = 1 << 25; // max batch array size;
-
-    private static Field SOURCE_SPLITERATOR;
-    private static Field SPLITERATOR_ITERATOR;
-
-    static {
-        try {
-            AccessController.doPrivileged((PrivilegedExceptionAction<Void>) () -> {
-                SOURCE_SPLITERATOR = Class.forName("java.util.stream.AbstractPipeline").getDeclaredField(
-                    "sourceSpliterator");
-                SOURCE_SPLITERATOR.setAccessible(true);
-                SPLITERATOR_ITERATOR = Class.forName("java.util.Spliterators$IteratorSpliterator").getDeclaredField(
-                    "it");
-                SPLITERATOR_ITERATOR.setAccessible(true);
-                return null;
-            });
-        } catch (PrivilegedActionException e) {
-        }
-    }
 
     /**
      * Optimize the stream created on IteratorSpliterator replacing it with

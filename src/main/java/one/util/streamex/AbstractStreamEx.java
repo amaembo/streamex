@@ -109,7 +109,10 @@ import static one.util.streamex.StreamExInternals.*;
     }
 
     final <R> Stream<R> delegate(Spliterator<R> spliterator) {
-        return StreamSupport.stream(spliterator, stream.isParallel()).onClose(stream::close);
+        Stream<R> result = StreamSupport.stream(spliterator, stream.isParallel());
+        if(mayHaveCloseAction(stream))
+            result = result.onClose(stream::close);
+        return result;
     }
 
     final S callWhile(Predicate<? super T> predicate, int methodId) {

@@ -80,7 +80,7 @@ import static one.util.streamex.StreamExInternals.*;
 public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     
     private static class PrependSpliterator<T> implements TailCallSpliterator<T> {
-        private final Spliterator<T> source;
+        private Spliterator<T> source;
         private T[] prepended;
         private int position;
         private int characteristics;
@@ -140,7 +140,11 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
 
         @Override
         public Spliterator<T> tail() {
-            return prepended == null ? source : this;
+            if(prepended != null)
+                return this;
+            Spliterator<T> s = source;
+            source = null;
+            return s;
         }
     }
     
@@ -1486,7 +1490,9 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public <R> StreamEx<R> headTail(BiFunction<? super T, ? super StreamEx<T>, ? extends Stream<R>> mapper) {
         HeadTailSpliterator<T, R> spliterator = new HeadTailSpliterator<>(stream.spliterator(), mapper);
-        return strategy().newStreamEx(delegate(spliterator).onClose(spliterator::close));
+        Stream<R> delegate = delegate(spliterator);
+        spliterator.owner = delegate;
+        return strategy().newStreamEx(delegate);
     }
 
     /**

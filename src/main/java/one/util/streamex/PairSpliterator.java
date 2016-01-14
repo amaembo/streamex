@@ -132,10 +132,14 @@ import static one.util.streamex.StreamExInternals.*;
         }
     }
     
-    @SuppressWarnings("unchecked")
     @Override
     public Spliterator<R> tail() {
-        return mode == MODE_MAP_FIRST && right == EMPTY && left == null ? (Spliterator<R>)source : this;
+        if (mode != MODE_MAP_FIRST || right != EMPTY || left != null)
+            return this;
+        @SuppressWarnings("unchecked")
+        Spliterator<R> s = (Spliterator<R>)source;
+        source = null;
+        return s;
     }
 
     @Override
