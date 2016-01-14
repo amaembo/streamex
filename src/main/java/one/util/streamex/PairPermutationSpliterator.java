@@ -20,10 +20,12 @@ import java.util.Spliterator;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
+import one.util.streamex.StreamExInternals.CloneableSpliterator;
+
 /**
  * @author Tagir Valeev
  */
-/* package */final class PairPermutationSpliterator<T, R> implements Spliterator<R>, Cloneable {
+/* package */final class PairPermutationSpliterator<T, R> extends CloneableSpliterator<R, PairPermutationSpliterator<T, R>> {
     private long cur;
     private long limit;
     private final int size;

@@ -36,7 +36,7 @@ import static one.util.streamex.StreamExInternals.*;
  * @author Tagir Valeev
  */
 /* package */abstract class PairSpliterator<T, S extends Spliterator<T>, R, SS extends PairSpliterator<T, S, R, SS>>
-        implements TailCallSpliterator<R>, Cloneable {
+        extends CloneableSpliterator<R, SS> implements TailCallSpliterator<R> {
     static final int MODE_PAIRS = 0;
     static final int MODE_MAP_FIRST = 1;
     static final int MODE_MAP_LAST = 2;
@@ -162,17 +162,13 @@ import static one.util.streamex.StreamExInternals.*;
         S prefixSource = (S) source.trySplit();
         if (prefixSource == null)
             return null;
-        try {
-            SS clone = (SS) clone();
-            Sink<T> left = new Sink<>(lock);
-            Sink<T> right = new Sink<>(lock);
-            clone.source = prefixSource;
-            clone.right = right.other = left;
-            this.left = left.other = right;
-            return clone;
-        } catch (CloneNotSupportedException e) {
-            throw new InternalError();
-        }
+        SS clone = doClone();
+        Sink<T> left = new Sink<>(lock);
+        Sink<T> right = new Sink<>(lock);
+        clone.source = prefixSource;
+        clone.right = right.other = left;
+        this.left = left.other = right;
+        return clone;
     }
 
     void finish(BiConsumer<T, T> fn, T cur) {

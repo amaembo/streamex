@@ -20,10 +20,12 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
+import one.util.streamex.StreamExInternals.CloneableSpliterator;
+
 /**
  * @author Tagir Valeev
  */
-/* package */final class WithFirstSpliterator<T, R> implements Spliterator<R>, Cloneable {
+/* package */final class WithFirstSpliterator<T, R> extends CloneableSpliterator<R, WithFirstSpliterator<T, R>> {
     private static final int STATE_NONE = 0;
     private static final int STATE_INIT = 1;
     private static final int STATE_EMPTY = 2;
@@ -131,12 +133,9 @@ import java.util.function.Consumer;
             prefix = source.trySplit();
             if (prefix == null)
                 return null;
-            @SuppressWarnings("unchecked")
-            WithFirstSpliterator<T, R> result = (WithFirstSpliterator<T, R>) super.clone();
+            WithFirstSpliterator<T, R> result = doClone();
             result.source = prefix;
             return this.prefix = result;
-        } catch (CloneNotSupportedException e) {
-            throw new InternalError();
         } finally {
             release();
         }

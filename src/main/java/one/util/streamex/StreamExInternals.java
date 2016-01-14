@@ -937,7 +937,18 @@ import java.util.stream.Stream;
     static interface TailCallSpliterator<T> extends Spliterator<T> {
         Spliterator<T> tail();
     }
-
+    
+    static abstract class CloneableSpliterator<T, S extends CloneableSpliterator<T, ?>> implements Spliterator<T>, Cloneable {
+        @SuppressWarnings("unchecked")
+        S doClone() {
+            try {
+                return (S) this.clone();
+            } catch (CloneNotSupportedException e) {
+                throw new InternalError();
+            }
+        }
+    }
+    
     static <T> T copy(T src, T dest, int size) {
         System.arraycopy(src, 0, dest, 0, size);
         return dest;

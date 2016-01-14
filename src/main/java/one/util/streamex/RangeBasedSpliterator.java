@@ -32,8 +32,7 @@ import static one.util.streamex.StreamExInternals.*;
 /**
  * @author Tagir Valeev
  */
-/* package */abstract class RangeBasedSpliterator<T, S extends RangeBasedSpliterator<T, ?>> implements Spliterator<T>,
-        Cloneable {
+/* package */abstract class RangeBasedSpliterator<T, S extends RangeBasedSpliterator<T, ?>> extends CloneableSpliterator<T, S> {
     int cur;
     int limit;
 
@@ -52,17 +51,11 @@ import static one.util.streamex.StreamExInternals.*;
         return Spliterator.ORDERED | Spliterator.SIZED | Spliterator.SUBSIZED;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public S trySplit() {
         int size = limit - cur;
         if (size >= 2) {
-            S clone;
-            try {
-                clone = (S) clone();
-            } catch (CloneNotSupportedException e) {
-                throw new InternalError();
-            }
+            S clone = doClone();
             clone.limit = this.cur = this.cur + size / 2;
             return clone;
         }

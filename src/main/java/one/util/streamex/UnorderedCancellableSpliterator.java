@@ -30,7 +30,7 @@ import static one.util.streamex.StreamExInternals.*;
 /**
  * @author Tagir Valeev
  */
-/* package */class UnorderedCancellableSpliterator<T, A> implements Spliterator<A>, Cloneable {
+/* package */class UnorderedCancellableSpliterator<T, A> extends CloneableSpliterator<A, UnorderedCancellableSpliterator<T, A>> {
     private volatile Spliterator<T> source;
     private final BiConsumer<A, ? super T> accumulator;
     private final Predicate<A> cancelPredicate;
@@ -137,15 +137,10 @@ import static one.util.streamex.StreamExInternals.*;
         if (prefix == null) {
             return null;
         }
-        try {
-            @SuppressWarnings("unchecked")
-            UnorderedCancellableSpliterator<T, A> result = (UnorderedCancellableSpliterator<T, A>) this.clone();
-            result.source = prefix;
-            nPeers.incrementAndGet();
-            return result;
-        } catch (CloneNotSupportedException e) {
-            throw new InternalError();
-        }
+        UnorderedCancellableSpliterator<T, A> result = doClone();
+        result.source = prefix;
+        nPeers.incrementAndGet();
+        return result;
     }
 
     @Override

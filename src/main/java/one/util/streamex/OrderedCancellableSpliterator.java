@@ -23,12 +23,13 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import one.util.streamex.StreamExInternals.CloneableSpliterator;
 import static one.util.streamex.StreamExInternals.*;
 
 /**
  * @author Tagir Valeev
  */
-/* package */final class OrderedCancellableSpliterator<T, A> implements Spliterator<A>, Cloneable {
+/* package */final class OrderedCancellableSpliterator<T, A> extends CloneableSpliterator<A, OrderedCancellableSpliterator<T, A>> {
     private Spliterator<T> source;
     private final Object lock = new Object();
     private final BiConsumer<A, ? super T> accumulator;
@@ -156,20 +157,15 @@ import static one.util.streamex.StreamExInternals.*;
         if (prefix == null) {
             return null;
         }
-        try {
-            synchronized (lock) {
-                @SuppressWarnings("unchecked")
-                OrderedCancellableSpliterator<T, A> result = (OrderedCancellableSpliterator<T, A>) this.clone();
-                result.source = prefix;
-                this.prefix = result;
-                result.suffix = this;
-                OrderedCancellableSpliterator<T, A> prefixPrefix = result.prefix;
-                if (prefixPrefix != null)
-                    prefixPrefix.suffix = result;
-                return result;
-            }
-        } catch (CloneNotSupportedException e) {
-            throw new InternalError();
+        synchronized (lock) {
+            OrderedCancellableSpliterator<T, A> result = doClone();
+            result.source = prefix;
+            this.prefix = result;
+            result.suffix = this;
+            OrderedCancellableSpliterator<T, A> prefixPrefix = result.prefix;
+            if (prefixPrefix != null)
+                prefixPrefix.suffix = result;
+            return result;
         }
     }
 

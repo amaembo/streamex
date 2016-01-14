@@ -21,28 +21,24 @@ import java.util.function.DoubleConsumer;
 import java.util.function.IntConsumer;
 import java.util.function.LongConsumer;
 
+import one.util.streamex.StreamExInternals.CloneableSpliterator;
+
 /**
  * @author Tagir Valeev
  *
  */
-/* package */abstract class ConstSpliterator<T, S extends ConstSpliterator<T, ?>> implements Spliterator<T>, Cloneable {
+/* package */abstract class ConstSpliterator<T, S extends ConstSpliterator<T, ?>> extends CloneableSpliterator<T, S> {
     long remaining;
 
     public ConstSpliterator(long remaining) {
         this.remaining = remaining;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public S trySplit() {
         long remaining = this.remaining;
         if (remaining >= 2) {
-            S clone;
-            try {
-                clone = (S) clone();
-            } catch (CloneNotSupportedException e) {
-                throw new InternalError();
-            }
+            S clone = doClone();
             remaining >>= 1;
             clone.remaining = remaining;
             this.remaining -= remaining;
