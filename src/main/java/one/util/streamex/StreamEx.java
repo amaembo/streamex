@@ -50,6 +50,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.BinaryOperator;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -77,6 +78,72 @@ import static one.util.streamex.StreamExInternals.*;
  * @param <T> the type of the stream elements
  */
 public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
+    
+    private static class PrependSpliterator<T> implements TailCallSpliterator<T> {
+        private final Spliterator<T> source;
+        private T[] prepended;
+        private int position;
+        private int characteristics;
+        
+        public PrependSpliterator(Spliterator<T> source, T[] prepended) {
+            this.source = source;
+            this.prepended = prepended.length == 0 ? null : prepended;
+            this.characteristics = source.characteristics() & (ORDERED | SIZED| SUBSIZED);
+            if(((this.characteristics & SIZED) != 0) && prepended.length+source.estimateSize() < 0)
+                this.characteristics &= (~SIZED) & (~SUBSIZED);
+        }
+
+        @Override
+        public boolean tryAdvance(Consumer<? super T> action) {
+            if(prepended != null) {
+                action.accept(prepended[position++]);
+                if(position == prepended.length)
+                    prepended = null;
+                return true;
+            }
+            return source.tryAdvance(action);
+        }
+
+        @Override
+        public void forEachRemaining(Consumer<? super T> action) {
+            if(prepended != null) {
+                while(position < prepended.length) {
+                    action.accept(prepended[position++]);
+                }
+                prepended = null;
+            }
+            source.forEachRemaining(action);
+        }
+
+        @Override
+        public Spliterator<T> trySplit() {
+            if(prepended == null)
+                return source.trySplit();
+            Spliterator<T> prefix = Spliterators.spliterator(prepended, position, prepended.length, characteristics);
+            prepended = null;
+            return prefix;
+        }
+
+        @Override
+        public long estimateSize() {
+            long size = source.estimateSize();
+            if(prepended == null)
+                return size;
+            size = size+prepended.length-position;
+            return size < 0 ? Long.MAX_VALUE : size;
+        }
+
+        @Override
+        public int characteristics() {
+            return characteristics;
+        }
+
+        @Override
+        public Spliterator<T> tail() {
+            return prepended == null ? source : this;
+        }
+    }
+    
     StreamEx(Stream<T> stream) {
         super(stream);
     }
@@ -956,7 +1023,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public final StreamEx<T> prepend(T... values) {
         if (values.length == 0)
             return this;
-        return prepend(Stream.of(values));
+        return supply(delegate(new PrependSpliterator<>(stream.spliterator(), values)));
     }
 
     /**

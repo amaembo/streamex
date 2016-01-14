@@ -36,7 +36,7 @@ import static one.util.streamex.StreamExInternals.*;
  * @author Tagir Valeev
  */
 /* package */abstract class PairSpliterator<T, S extends Spliterator<T>, R, SS extends PairSpliterator<T, S, R, SS>>
-        implements Spliterator<R>, Cloneable {
+        implements TailCallSpliterator<R>, Cloneable {
     static final int MODE_PAIRS = 0;
     static final int MODE_MAP_FIRST = 1;
     static final int MODE_MAP_LAST = 2;
@@ -130,6 +130,12 @@ import static one.util.streamex.StreamExInternals.*;
             else
                 this.right = sink;
         }
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Override
+    public Spliterator<R> tail() {
+        return mode == MODE_MAP_FIRST && right == EMPTY && left == null ? (Spliterator<R>)source : this;
     }
 
     @Override

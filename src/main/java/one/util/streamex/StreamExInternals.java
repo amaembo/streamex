@@ -38,6 +38,7 @@ import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.Set;
+import java.util.Spliterator;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.DoublePredicate;
@@ -893,6 +894,10 @@ import java.util.stream.Stream;
             return arr;
         }
     }
+    
+    static interface TailCallSpliterator<T> extends Spliterator<T> {
+        Spliterator<T> tail();
+    }
 
     static <T> T copy(T src, T dest, int size) {
         System.arraycopy(src, 0, dest, 0, size);
@@ -950,6 +955,16 @@ import java.util.stream.Stream;
         if (collector instanceof CancellableCollector)
             return ((CancellableCollector<?, A, ?>) collector).finished();
         return null;
+    }
+    
+    static <T> Spliterator<T> traverseTail(Spliterator<T> spltr) {
+        Spliterator<T> current = spltr;
+        while(current instanceof TailCallSpliterator) {
+            Spliterator<T> next = ((TailCallSpliterator<T>)current).tail();
+            if(next == current) break;
+            current = next;
+        }
+        return current;
     }
 
     @SuppressWarnings("unchecked")

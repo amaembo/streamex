@@ -1597,6 +1597,16 @@ public class StreamExTest {
         assertEquals(asList(1, 2, 3, 4, 5, 5, 4, 3, 2, 1), mirror(StreamEx.of(1, 2, 3, 4, 5)).toList());
     }
     
+    @Test
+    public void testHeadTailTCO() {
+        assertEquals(200010000, (int) scanLeft(StreamEx.iterate(1, x -> x + 1), Integer::sum).limit(20000).reduce(
+            (a, b) -> b).get());
+        assertEquals(19999, takeWhile(StreamEx.iterate(1, x -> x + 1), x -> x < 20000).count());
+        assertTrue(takeWhile(StreamEx.iterate(1, x -> x + 1), x -> x < 20000).has(19999));
+        assertEquals(20000, takeWhileClosed(StreamEx.iterate(1, x -> x + 1), x -> x < 20000).count());
+        assertTrue(takeWhileClosed(StreamEx.iterate(1, x -> x + 1), x -> x < 20000).has(20000));
+    }
+    
     // Returns either the first stream element matching the predicate or just the first element if nothing matches
     private static <T> T firstMatchingOrFirst(StreamEx<T> stream, Predicate<T> predicate) {
         return stream.headTail((head, tail) -> tail.prepend(head).filter(predicate).append(head)).findFirst().get();
@@ -1622,18 +1632,18 @@ public class StreamExTest {
         return input.headTail((head, tail) -> cycle(tail.append(head)).prepend(head));
     }
     
-    // Creates lazy scanLeft stream
+    // Creates lazy scanLeft stream (TCO)
     private static <T> StreamEx<T> scanLeft(StreamEx<T> input, BinaryOperator<T> operator) {
         return input.headTail((head, tail) -> scanLeft(tail.mapFirst(cur -> operator.apply(head, cur)), operator)
                 .prepend(head));
     }
 
-    // takeWhile intermediate op implementation
+    // takeWhile intermediate op implementation (TCO)
     private static <T> StreamEx<T> takeWhile(StreamEx<T> input, Predicate<T> predicate) {
         return input.headTail((head, tail) -> predicate.test(head) ? takeWhile(tail, predicate).prepend(head) : null );
     }
     
-    // takeWhileClosed intermediate op implementation
+    // takeWhileClosed intermediate op implementation (TCO)
     private static <T> StreamEx<T> takeWhileClosed(StreamEx<T> input, Predicate<T> predicate) {
         return input.headTail((head, tail) -> predicate.test(head) ? takeWhileClosed(tail, predicate).prepend(head)
                 : Stream.of(head));

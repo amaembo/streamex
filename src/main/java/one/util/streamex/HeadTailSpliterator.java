@@ -28,7 +28,7 @@ import static one.util.streamex.StreamExInternals.*;
 /**
  * @author Tagir Valeev
  */
-/*package*/ final class HeadTailSpliterator<T, U> extends AbstractSpliterator<U> {
+/*package*/ final class HeadTailSpliterator<T, U> extends AbstractSpliterator<U> implements TailCallSpliterator<U> {
     private final Spliterator<T> source;
     private final BiFunction<? super T, ? super StreamEx<T>, ? extends Stream<U>> mapper;
     private Spliterator<U> target;
@@ -44,13 +44,22 @@ import static one.util.streamex.StreamExInternals.*;
     public boolean tryAdvance(Consumer<? super U> action) {
         if(!init())
             return false;
+        target = traverseTail(target);
         return target.tryAdvance(action);
     }
 
     @Override
     public void forEachRemaining(Consumer<? super U> action) {
-        if(init())
-            target.forEachRemaining(action);
+        if(init()) {
+            Spliterator<U> t = target;
+            while(t instanceof TailCallSpliterator) {
+                t = traverseTail(t);
+                if(!t.tryAdvance(action))
+                    return;
+            }
+            t.forEachRemaining(action);
+            target = t;
+        }
     }
 
     private boolean init() {
@@ -59,7 +68,7 @@ import static one.util.streamex.StreamExInternals.*;
             if(!source.tryAdvance(x -> first.a = x)) {
                 return false;
             }
-            Stream<U> stream = mapper.apply(first.a, StreamEx.of(source));
+            Stream<U> stream = mapper.apply(first.a, StreamEx.of(traverseTail(source)));
             this.stream = stream;
             target = stream == null ? Spliterators.emptySpliterator() : stream.spliterator();
         }
@@ -78,5 +87,10 @@ import static one.util.streamex.StreamExInternals.*;
             return size == Long.MAX_VALUE || size <= 0 ? size : size - 1;
         }
         return target.estimateSize();
+    }
+
+    @Override
+    public Spliterator<U> tail() {
+        return target == null ? this : target;
     }
 }
