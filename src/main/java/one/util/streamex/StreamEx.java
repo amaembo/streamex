@@ -1376,9 +1376,9 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
 
     /**
      * Creates a new Stream which is the result of applying of the supplied
-     * mapper {@code BiFunction} to the first element of the current stream and
-     * the stream containing the rest elements. (If a mapped stream is
-     * {@code null} an empty stream is used, instead.)
+     * mapper {@code BiFunction} to the first element of the current stream
+     * (head) and the stream containing the rest elements (tail). If a mapped
+     * stream is {@code null} an empty stream is used, instead.
      * 
      * <p>
      * This is an <a href="package-summary.html#StreamOps">quasi-intermediate
@@ -1393,8 +1393,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * <pre>{@code
      * // Returns lazily-generated stream which performs scanLeft operation on the input
      * static <T> StreamEx<T> scanLeft(StreamEx<T> input, BinaryOperator<T> operator) {
-     *     return input.withFirst((head, stream) -> scanLeft(stream.mapFirst(cur -> operator.apply(head, cur)), operator)
-     *           .prepend(head));
+     *     return input.headTail((head, tail) -> 
+     *         scanLeft(tail.mapFirst(cur -> operator.apply(head, cur)), operator).prepend(head));
      * }}</pre>
      * 
      * <p>

@@ -1571,6 +1571,9 @@ public class StreamExTest {
         
         streamEx(() -> StreamEx.iterate(1, x -> x + 1), s -> assertEquals(asList(1, 3, 6, 10, 15, 21, 28, 36, 45, 55,
             66, 78, 91), scanLeft(s.get(), Integer::sum).takeWhile(x -> x < 100).toList()));
+
+        streamEx(() -> StreamEx.iterate(1, x -> x + 1), s -> assertEquals(IntStreamEx.range(1, 100).boxed().toList(),
+            takeWhile(s.get(), x -> x < 100).toList()));
         
         // http://stackoverflow.com/q/34395943/4856258
         int[] input = { 1, 2, 3, -1, 3, -10, 9, 100, 1, 100, 0 };
@@ -1594,6 +1597,11 @@ public class StreamExTest {
     private static <T> StreamEx<T> scanLeft(StreamEx<T> input, BinaryOperator<T> operator) {
         return input.headTail((head, stream) -> scanLeft(stream.mapFirst(cur -> operator.apply(head, cur)), operator)
                 .prepend(head));
+    }
+
+    // takeWhile intermediate op implementation
+    private static <T> StreamEx<T> takeWhile(StreamEx<T> input, Predicate<T> predicate) {
+        return input.headTail((head, stream) -> predicate.test(head) ? takeWhile(stream, predicate).prepend(head) : null );
     }
     
     @Test
