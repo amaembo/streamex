@@ -281,7 +281,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.4.1
      */
     public LongStreamEx mapFirst(LongUnaryOperator mapper) {
-        return mapToObj(Long::new).mapFirst(mapper::applyAsLong).mapToLong(Long::longValue);
+        return delegate(new PairSpliterator.PSOfLong((a, b) -> b, mapper, stream.spliterator(), PairSpliterator.MODE_MAP_FIRST));
     }
 
     /**
@@ -300,7 +300,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.4.1
      */
     public LongStreamEx mapLast(LongUnaryOperator mapper) {
-        return mapToObj(Long::new).mapLast(mapper::applyAsLong).mapToLong(Long::longValue);
+        return delegate(new PairSpliterator.PSOfLong((a, b) -> a, mapper, stream.spliterator(), PairSpliterator.MODE_MAP_LAST));
     }
 
     @Override
@@ -1347,7 +1347,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.2.1
      */
     public LongStreamEx pairMap(LongBinaryOperator mapper) {
-        return delegate(new PairSpliterator.PSOfLong(mapper, stream.spliterator()));
+        return delegate(new PairSpliterator.PSOfLong(mapper, null, stream.spliterator(), PairSpliterator.MODE_PAIRS));
     }
 
     /**

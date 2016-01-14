@@ -34,11 +34,24 @@ public class PairSpliteratorTest {
     @Test
     public void testSpliterator() {
         int[] ints = IntStreamEx.of(new Random(1), 100).toArray();
-        checkSpliterator("pair", () -> new PairSpliterator.PSOfRef<>((a, b) -> (a - b), Arrays.spliterator(ints)));
-        checkSpliterator("pair", () -> new PairSpliterator.PSOfInt((a, b) -> (a - b), Arrays.spliterator(ints)));
         long[] longs = LongStreamEx.of(new Random(1), 100).toArray();
-        checkSpliterator("pair", () -> new PairSpliterator.PSOfLong((a, b) -> (a - b), Arrays.spliterator(longs)));
         double[] doubles = DoubleStreamEx.of(new Random(1), 100).toArray();
-        checkSpliterator("pair", () -> new PairSpliterator.PSOfDouble((a, b) -> (a - b), Arrays.spliterator(doubles)));
+
+        checkSpliterator("ref", () -> new PairSpliterator.PSOfRef<>((a, b) -> (a - b), Arrays.spliterator(ints)));
+        checkSpliterator("int", () -> new PairSpliterator.PSOfInt((a, b) -> (a - b), null, Arrays.spliterator(ints), PairSpliterator.MODE_PAIRS));
+        checkSpliterator("long", () -> new PairSpliterator.PSOfLong((a, b) -> (a - b), null, Arrays.spliterator(longs), PairSpliterator.MODE_PAIRS));
+        checkSpliterator("double", () -> new PairSpliterator.PSOfDouble((a, b) -> (a - b), null, Arrays.spliterator(doubles), PairSpliterator.MODE_PAIRS));
+        
+        // mapFirst
+        checkSpliterator("ref", () -> new PairSpliterator.PSOfRef<>(a -> a + 2, Arrays.spliterator(ints), false));
+        checkSpliterator("int", () -> new PairSpliterator.PSOfInt((a, b) -> b, a -> a+2, Arrays.spliterator(ints), PairSpliterator.MODE_MAP_FIRST));
+        checkSpliterator("long", () -> new PairSpliterator.PSOfLong((a, b) -> b, a -> a+2, Arrays.spliterator(longs), PairSpliterator.MODE_MAP_FIRST));
+        checkSpliterator("double", () -> new PairSpliterator.PSOfDouble((a, b) -> b, a -> a+2, Arrays.spliterator(doubles), PairSpliterator.MODE_MAP_FIRST));
+        
+        // mapLast
+        checkSpliterator("ref", () -> new PairSpliterator.PSOfRef<>(a -> a + 2, Arrays.spliterator(ints), false));
+        checkSpliterator("int", () -> new PairSpliterator.PSOfInt((a, b) -> a, a -> a+2, Arrays.spliterator(ints), PairSpliterator.MODE_MAP_LAST));
+        checkSpliterator("long", () -> new PairSpliterator.PSOfLong((a, b) -> a, a -> a+2, Arrays.spliterator(longs), PairSpliterator.MODE_MAP_LAST));
+        checkSpliterator("double", () -> new PairSpliterator.PSOfDouble((a, b) -> a, a -> a+2, Arrays.spliterator(doubles), PairSpliterator.MODE_MAP_LAST));
     }
 }

@@ -21,10 +21,14 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleConsumer;
+import java.util.function.DoubleUnaryOperator;
+import java.util.function.Function;
 import java.util.function.IntBinaryOperator;
 import java.util.function.IntConsumer;
+import java.util.function.IntUnaryOperator;
 import java.util.function.LongBinaryOperator;
 import java.util.function.LongConsumer;
+import java.util.function.LongUnaryOperator;
 
 import static one.util.streamex.StreamExInternals.*;
 
@@ -33,16 +37,21 @@ import static one.util.streamex.StreamExInternals.*;
  */
 /* package */abstract class PairSpliterator<T, S extends Spliterator<T>, R, SS extends PairSpliterator<T, S, R, SS>>
         implements Spliterator<R>, Cloneable {
+    static final int MODE_PAIRS = 0;
+    static final int MODE_MAP_FIRST = 1;
+    static final int MODE_MAP_LAST = 2;
+    
     private static Sink<?> EMPTY = new Sink<>(null);
     // Common lock for all the derived spliterators
-    private final Object lock = new Object();
+    final Object lock = new Object();
+    final int mode;
     S source;
     @SuppressWarnings("unchecked")
     Sink<T> left = (Sink<T>) EMPTY;
     @SuppressWarnings("unchecked")
     Sink<T> right = (Sink<T>) EMPTY;
 
-    private static final class Sink<T> {
+    static final class Sink<T> {
         Sink<T> other;
         private T payload = none();
         private final Object lock;
@@ -107,8 +116,20 @@ import static one.util.streamex.StreamExInternals.*;
         }
     }
 
-    PairSpliterator(S source) {
+    PairSpliterator(S source, int mode, T headTail) {
         this.source = source;
+        this.mode = mode;
+        if(mode != MODE_PAIRS) {
+            Sink<T> sink = new Sink<>(this.lock);
+            Sink<T> other = new Sink<>(this.lock);
+            sink.other = other;
+            other.other = sink;
+            other.push(headTail, null, true);
+            if(mode == MODE_MAP_FIRST)
+                this.left = sink;
+            else
+                this.right = sink;
+        }
     }
 
     @Override
@@ -154,14 +175,26 @@ import static one.util.streamex.StreamExInternals.*;
         }
     }
 
-    static final class PSOfRef<T, R> extends PairSpliterator<T, Spliterator<T>, R, PSOfRef<T, R>> implements
+    static class PSOfRef<T, R> extends PairSpliterator<T, Spliterator<T>, R, PSOfRef<T, R>> implements
             Consumer<T> {
+        private static final Object HEAD_TAIL = new Object();
+
         private final BiFunction<? super T, ? super T, ? extends R> mapper;
         private T cur;
 
-        public PSOfRef(BiFunction<? super T, ? super T, ? extends R> mapper, Spliterator<T> source) {
-            super(source);
+        PSOfRef(BiFunction<? super T, ? super T, ? extends R> mapper, Spliterator<T> source) {
+            super(source, MODE_PAIRS, null);
             this.mapper = mapper;
+        }
+
+        // Must be called only if T == R
+        @SuppressWarnings("unchecked")
+        PSOfRef(Function<? super T, ? extends R> mapper, Spliterator<T> source, boolean first) {
+            super(source, first ? MODE_MAP_FIRST : MODE_MAP_LAST, (T)HEAD_TAIL);
+            BiFunction<? super T, ? super T, ?> m = first ? 
+                    ((a, b) -> a == HEAD_TAIL ? mapper.apply(b) : (T)b) :
+                    ((a, b) -> b == HEAD_TAIL ? mapper.apply(a) : (T)a);
+            this.mapper = (BiFunction<? super T, ? super T, ? extends R>) m;
         }
 
         @Override
@@ -212,20 +245,29 @@ import static one.util.streamex.StreamExInternals.*;
     static final class PSOfInt extends PairSpliterator<Integer, Spliterator.OfInt, Integer, PSOfInt> implements
             Spliterator.OfInt, IntConsumer {
         private final IntBinaryOperator mapper;
+        private final IntUnaryOperator unaryMapper;
         private int cur;
 
-        public PSOfInt(IntBinaryOperator mapper, Spliterator.OfInt source) {
-            super(source);
+        PSOfInt(IntBinaryOperator mapper, IntUnaryOperator unaryMapper, Spliterator.OfInt source, int mode) {
+            super(source, mode, null);
             this.mapper = mapper;
+            this.unaryMapper = unaryMapper;
         }
-
+        
         @Override
         public void accept(int t) {
             cur = t;
         }
 
         private BiConsumer<Integer, Integer> fn(IntConsumer action) {
-            return (a, b) -> action.accept(mapper.applyAsInt(a, b));
+            switch(mode) {
+            case MODE_MAP_FIRST:
+                return (a, b) -> action.accept(a == null ? unaryMapper.applyAsInt(b) : b);
+            case MODE_MAP_LAST:
+                return (a, b) -> action.accept(b == null ? unaryMapper.applyAsInt(a) : a);
+            default:
+                return (a, b) -> action.accept(mapper.applyAsInt(a, b));
+            }
         }
 
         @Override
@@ -267,11 +309,13 @@ import static one.util.streamex.StreamExInternals.*;
     static final class PSOfLong extends PairSpliterator<Long, Spliterator.OfLong, Long, PSOfLong> implements
             Spliterator.OfLong, LongConsumer {
         private final LongBinaryOperator mapper;
+        private final LongUnaryOperator unaryMapper;
         private long cur;
 
-        public PSOfLong(LongBinaryOperator mapper, Spliterator.OfLong source) {
-            super(source);
+        PSOfLong(LongBinaryOperator mapper, LongUnaryOperator unaryMapper, Spliterator.OfLong source, int mode) {
+            super(source, mode, null);
             this.mapper = mapper;
+            this.unaryMapper = unaryMapper;
         }
 
         @Override
@@ -280,7 +324,14 @@ import static one.util.streamex.StreamExInternals.*;
         }
 
         private BiConsumer<Long, Long> fn(LongConsumer action) {
-            return (a, b) -> action.accept(mapper.applyAsLong(a, b));
+            switch(mode) {
+            case MODE_MAP_FIRST:
+                return (a, b) -> action.accept(a == null ? unaryMapper.applyAsLong(b) : b);
+            case MODE_MAP_LAST:
+                return (a, b) -> action.accept(b == null ? unaryMapper.applyAsLong(a) : a);
+            default:
+                return (a, b) -> action.accept(mapper.applyAsLong(a, b));
+            }
         }
 
         @Override
@@ -322,11 +373,13 @@ import static one.util.streamex.StreamExInternals.*;
     static final class PSOfDouble extends PairSpliterator<Double, Spliterator.OfDouble, Double, PSOfDouble> implements
             Spliterator.OfDouble, DoubleConsumer {
         private final DoubleBinaryOperator mapper;
+        private final DoubleUnaryOperator unaryMapper;
         private double cur;
 
-        public PSOfDouble(DoubleBinaryOperator mapper, Spliterator.OfDouble source) {
-            super(source);
+        PSOfDouble(DoubleBinaryOperator mapper, DoubleUnaryOperator unaryMapper, Spliterator.OfDouble source, int mode) {
+            super(source, mode, null);
             this.mapper = mapper;
+            this.unaryMapper = unaryMapper;
         }
 
         @Override
@@ -335,7 +388,14 @@ import static one.util.streamex.StreamExInternals.*;
         }
 
         private BiConsumer<Double, Double> fn(DoubleConsumer action) {
-            return (a, b) -> action.accept(mapper.applyAsDouble(a, b));
+            switch(mode) {
+            case MODE_MAP_FIRST:
+                return (a, b) -> action.accept(a == null ? unaryMapper.applyAsDouble(b) : b);
+            case MODE_MAP_LAST:
+                return (a, b) -> action.accept(b == null ? unaryMapper.applyAsDouble(a) : a);
+            default:
+                return (a, b) -> action.accept(mapper.applyAsDouble(a, b));
+            }
         }
 
         @Override
