@@ -1669,10 +1669,11 @@ public class StreamExTest {
     }
     
     // reimplemented filter operation (TCO)
-    @SuppressWarnings("unchecked")
     private static <T> StreamEx<T> filter(StreamEx<T> input, Predicate<T> predicate) {
-        return input.<T>headTail((head, tail) -> filter(tail, predicate).prepend(
-            (T[]) (predicate.test(head) ? new Object[] { head } : new Object[0])));
+        return input.<T>headTail((head, tail) -> {
+            StreamEx<T> filtered = filter(tail, predicate);
+            return predicate.test(head) ? filtered.prepend(head) : filtered;
+        });
     }
     
     @Test
