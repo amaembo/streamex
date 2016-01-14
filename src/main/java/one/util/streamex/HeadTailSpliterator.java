@@ -28,13 +28,13 @@ import static one.util.streamex.StreamExInternals.*;
 /**
  * @author Tagir Valeev
  */
-/*package*/ final class WithFirstMapperSpliterator<T, U> extends AbstractSpliterator<U> {
+/*package*/ final class HeadTailSpliterator<T, U> extends AbstractSpliterator<U> {
     private final Spliterator<T> source;
     private final BiFunction<? super T, ? super StreamEx<T>, ? extends Stream<U>> mapper;
     private Spliterator<U> target;
     private BaseStream<?, ?> stream;
     
-    WithFirstMapperSpliterator(Spliterator<T> source, BiFunction<? super T, ? super StreamEx<T>, ? extends Stream<U>> mapper) {
+    HeadTailSpliterator(Spliterator<T> source, BiFunction<? super T, ? super StreamEx<T>, ? extends Stream<U>> mapper) {
         super(Long.MAX_VALUE, ORDERED);
         this.source = source;
         this.mapper = mapper;

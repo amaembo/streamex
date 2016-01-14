@@ -1512,6 +1512,9 @@ public class StreamExTest {
             
             streamEx(() -> StreamEx.of("a", "b", "c", "d"), s -> assertEquals(Collections.singletonMap("a", asList("b",
                 "c", "d")), s.get().withFirst().grouping()));
+
+            streamEx(() -> StreamEx.of("a", "b", "c", "d"), s -> assertEquals(asList("ab", "ac", "ad"), s.get()
+                    .withFirst(String::concat).toList()));
             
             // Header mapping
             String input = "name,type,value\nID,int,5\nSurname,string,Smith\nGiven name,string,John";
@@ -1522,35 +1525,49 @@ public class StreamExTest {
             streamEx(() -> StreamEx.ofLines(new StringReader(input)), s -> {
                 assertEquals(expected, s.get().map(str -> str.split(",")).withFirst().mapKeyValue(
                     (header, row) -> EntryStream.zip(header, row).toMap()).toList());
-                assertEquals(expected, s.get().map(str -> str.split(",")).withFirst((header, stream) -> 
-                    stream.map(row -> EntryStream.zip(header, row).toMap())).toList());
+                assertEquals(expected, s.get().map(str -> str.split(","))
+                    .withFirst((header, row) -> EntryStream.zip(header, row).toMap()).toList());
             });
         });
         Map<Integer, List<Integer>> expected = Collections
                 .singletonMap(0, IntStreamEx.range(1, 10000).boxed().toList());
         streamEx(() -> IntStreamEx.range(10000).boxed(), s -> assertEquals(expected, s.get().withFirst().grouping()));
-
+    }
+    
+    @Test
+    public void testHeadTail() {
+        repeat(10, i -> {
+            // Header mapping
+            String input = "name,type,value\nID,int,5\nSurname,string,Smith\nGiven name,string,John";
+            List<Map<String, String>> expected = asList(EntryStream.of("name", "ID", "type", "int", "value", "5").toMap(),
+                EntryStream.of("name", "Surname", "type", "string", "value", "Smith").toMap(),
+                EntryStream.of("name", "Given name", "type", "string", "value", "John").toMap()
+                    );
+            streamEx(() -> StreamEx.ofLines(new StringReader(input)), s -> 
+                assertEquals(expected, s.get().map(str -> str.split(",")).headTail((header, stream) -> 
+                stream.map(row -> EntryStream.zip(header, row).toMap())).toList()));
+        });
         streamEx(() -> StreamEx.of("a", "b", "c", "d"), s -> assertEquals(Collections.singletonMap("a", asList("b",
-            "c", "d")), s.get().withFirst((x, str) -> str.mapToEntry(e -> x, e -> e)).mapToEntry(Entry::getKey,
-            Entry::getValue).grouping()));
-
+            "c", "d")), s.get().headTail((x, str) -> str.mapToEntry(e -> x, e -> e)).mapToEntry(Entry::getKey,
+                Entry::getValue).grouping()));
+        
         streamEx(() -> StreamEx.iterate(2, x -> x + 1), s -> assertEquals(asList(2, 3, 5, 7, 11, 13, 17, 19, 23, 29,
             31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97), sieve(s.get()).takeWhile(x -> x < 100)
-                .toList()));
+            .toList()));
         
         emptyStreamEx(Integer.class, s -> {
-            assertEquals(0L, s.get().withFirst((first, head) -> {
+            assertEquals(0L, s.get().headTail((first, head) -> {
                 throw new IllegalStateException();
             }).count());
-            assertFalse(s.get().withFirst((first, head) -> {
+            assertFalse(s.get().headTail((first, head) -> {
                 throw new IllegalStateException();
             }).findFirst().isPresent());
         });
         
         streamEx(() -> IntStreamEx.range(100).boxed(), s -> assertEquals(IntStreamEx.rangeClosed(99, 0, -1).boxed()
-                .toList(), reverse(s.get()).toList()));
+            .toList(), reverse(s.get()).toList()));
         
-        streamEx(() -> StreamEx.of(1, 2), s -> assertEquals(0, s.get().withFirst((head, stream) -> null).count()));
+        streamEx(() -> StreamEx.of(1, 2), s -> assertEquals(0, s.get().headTail((head, stream) -> null).count()));
         
         streamEx(() -> StreamEx.iterate(1, x -> x + 1), s -> assertEquals(asList(1, 3, 6, 10, 15, 21, 28, 36, 45, 55,
             66, 78, 91), scanLeft(s.get(), Integer::sum).takeWhile(x -> x < 100).toList()));
@@ -1559,32 +1576,32 @@ public class StreamExTest {
         int[] input = { 1, 2, 3, -1, 3, -10, 9, 100, 1, 100, 0 };
         AtomicInteger counter = new AtomicInteger();
         assertEquals(5, scanLeft(IntStreamEx.of(input).peek(x -> counter.incrementAndGet()).boxed(), Integer::sum)
-                .indexOf(x -> x < 0).getAsLong());
+            .indexOf(x -> x < 0).getAsLong());
         assertEquals(6, counter.get());
     }
     
     // Filters the input stream of natural numbers (2, 3, 4...) leaving only prime numbers
     private static StreamEx<Integer> sieve(StreamEx<Integer> input) {
-        return input.withFirst((head, stream) -> sieve(stream.filter(n -> n % head != 0)).prepend(head));
+        return input.headTail((head, stream) -> sieve(stream.filter(n -> n % head != 0)).prepend(head));
     }
 
     // Creates a reversed stream
     private static <T> StreamEx<T> reverse(StreamEx<T> input) {
-        return input.withFirst((head, stream) -> reverse(stream).append(head));
+        return input.headTail((head, stream) -> reverse(stream).append(head));
     }
     
     // Creates lazy scanLeft stream
     private static <T> StreamEx<T> scanLeft(StreamEx<T> input, BinaryOperator<T> operator) {
-        return input.withFirst((head, stream) -> scanLeft(stream.mapFirst(cur -> operator.apply(head, cur)), operator)
+        return input.headTail((head, stream) -> scanLeft(stream.mapFirst(cur -> operator.apply(head, cur)), operator)
                 .prepend(head));
     }
     
     @Test
-    public void testWithFirstClose() {
+    public void testHeadTailClose() {
         AtomicBoolean origClosed = new AtomicBoolean();
         AtomicBoolean internalClosed = new AtomicBoolean();
         AtomicBoolean finalClosed = new AtomicBoolean();
-        StreamEx<Integer> res = StreamEx.of(1, 2, 3).onClose(() -> origClosed.set(true)).<Integer>withFirst(
+        StreamEx<Integer> res = StreamEx.of(1, 2, 3).onClose(() -> origClosed.set(true)).<Integer>headTail(
             (head, stream) -> stream.onClose(() -> internalClosed.set(true)).map(x -> x + head)).onClose(
             () -> finalClosed.set(true));
         assertEquals(asList(3, 4), res.toList());
@@ -1593,7 +1610,7 @@ public class StreamExTest {
         assertTrue(internalClosed.get());
         assertTrue(finalClosed.get());
         
-        res = StreamEx.<Integer>empty().withFirst((head, tail) -> tail);
+        res = StreamEx.<Integer>empty().headTail((head, tail) -> tail);
         assertEquals(0, res.count());
         res.close();
     }

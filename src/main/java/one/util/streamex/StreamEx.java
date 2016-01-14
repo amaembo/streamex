@@ -23,6 +23,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -1325,6 +1326,31 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
+     * Returns a stream consisting of the results of applying the given function
+     * to the the first element and every other element of this stream.
+     * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     * 
+     * <p>
+     * The size of the resulting stream is one element less than the input
+     * stream. If the input stream is empty or contains just one element, then
+     * the output stream will be empty.
+     *
+     * @param <R> The element type of the new stream
+     * @param mapper a non-interfering, stateless function to apply to the first
+     *        stream element and every other element
+     * @return the new stream
+     * @see #withFirst()
+     * @see #headTail(BiFunction)
+     * @since 0.5.3
+     */
+    public <R> StreamEx<R> withFirst(BiFunction<? super T, ? super T, ? extends R> mapper) {
+        return strategy().newStreamEx(delegate(new WithFirstSpliterator<>(stream.spliterator(), mapper)));
+    }
+
+    /**
      * Creates an {@link EntryStream} consisting of the {@link Entry} objects
      * which keys are all the same and equal to the first element of this stream
      * and values are the rest elements of this stream.
@@ -1340,10 +1366,12 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *
      * @return the new stream
      * @see #withFirst(BiFunction)
+     * @see #headTail(BiFunction)
      * @since 0.5.3
      */
     public EntryStream<T, T> withFirst() {
-        return strategy().newEntryStream(delegate(new WithFirstSpliterator<>(stream.spliterator())));
+        return strategy().newEntryStream(
+            delegate(new WithFirstSpliterator<>(stream.spliterator(), AbstractMap.SimpleImmutableEntry<T, T>::new)));
     }
 
     /**
@@ -1389,8 +1417,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see #withFirst()
      * @since 0.5.3
      */
-    public <R> StreamEx<R> withFirst(BiFunction<? super T, ? super StreamEx<T>, ? extends Stream<R>> mapper) {
-        WithFirstMapperSpliterator<T, R> spliterator = new WithFirstMapperSpliterator<>(stream.spliterator(), mapper);
+    public <R> StreamEx<R> headTail(BiFunction<? super T, ? super StreamEx<T>, ? extends Stream<R>> mapper) {
+        HeadTailSpliterator<T, R> spliterator = new HeadTailSpliterator<>(stream.spliterator(), mapper);
         return strategy().newStreamEx(delegate(spliterator).onClose(spliterator::close));
     }
 

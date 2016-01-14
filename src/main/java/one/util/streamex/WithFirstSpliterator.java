@@ -15,29 +15,29 @@
  */
 package one.util.streamex;
 
-import java.util.AbstractMap;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Spliterator;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 /**
  * @author Tagir Valeev
  */
-/* package */final class WithFirstSpliterator<T> implements Spliterator<Map.Entry<T, T>>, Cloneable {
+/* package */final class WithFirstSpliterator<T, R> implements Spliterator<R>, Cloneable {
     private static final int STATE_NONE = 0;
     private static final int STATE_INIT = 1;
     private static final int STATE_EMPTY = 2;
 
     private ReentrantLock lock;
     private Spliterator<T> source;
-    private WithFirstSpliterator<T> prefix;
+    private WithFirstSpliterator<T, R> prefix;
     private volatile T first;
     private volatile int state = STATE_NONE;
+    private final BiFunction<? super T, ? super T, ? extends R> mapper;
     
-    WithFirstSpliterator(Spliterator<T> source) {
+    WithFirstSpliterator(Spliterator<T> source, BiFunction<? super T, ? super T, ? extends R> mapper) {
         this.source = source;
+        this.mapper = mapper;
     }
     
     private void acquire() {
@@ -53,7 +53,7 @@ import java.util.function.Consumer;
     }
 
     @Override
-    public boolean tryAdvance(Consumer<? super Entry<T, T>> action) {
+    public boolean tryAdvance(Consumer<? super R> action) {
         if (state == STATE_NONE) {
             acquire();
             try {
@@ -65,7 +65,7 @@ import java.util.function.Consumer;
         }
         if (state != STATE_INIT)
             return false;
-        return source.tryAdvance(x -> action.accept(new AbstractMap.SimpleImmutableEntry<>(first, x)));
+        return source.tryAdvance(x -> action.accept(mapper.apply(first, x)));
     }
 
     private void doInit() {
@@ -102,7 +102,7 @@ import java.util.function.Consumer;
     }
 
     @Override
-    public void forEachRemaining(Consumer<? super Entry<T, T>> action) {
+    public void forEachRemaining(Consumer<? super R> action) {
         acquire();
         try {
             source.forEachRemaining(x -> {
@@ -113,7 +113,7 @@ import java.util.function.Consumer;
                     }
                 }
                 release();
-                action.accept(new AbstractMap.SimpleImmutableEntry<>(first, x));
+                action.accept(mapper.apply(first, x));
             });
         }
         finally {
@@ -122,7 +122,7 @@ import java.util.function.Consumer;
     }
 
     @Override
-    public Spliterator<Entry<T, T>> trySplit() {
+    public Spliterator<R> trySplit() {
         Spliterator<T> prefix;
         if(lock == null)
             lock = new ReentrantLock();
@@ -132,7 +132,7 @@ import java.util.function.Consumer;
             if (prefix == null)
                 return null;
             @SuppressWarnings("unchecked")
-            WithFirstSpliterator<T> result = (WithFirstSpliterator<T>) super.clone();
+            WithFirstSpliterator<T, R> result = (WithFirstSpliterator<T, R>) super.clone();
             result.source = prefix;
             return this.prefix = result;
         } catch (CloneNotSupportedException e) {
