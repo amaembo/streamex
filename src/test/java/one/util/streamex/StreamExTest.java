@@ -1575,33 +1575,73 @@ public class StreamExTest {
         streamEx(() -> StreamEx.iterate(1, x -> x + 1), s -> assertEquals(IntStreamEx.range(1, 100).boxed().toList(),
             takeWhile(s.get(), x -> x < 100).toList()));
         
+        streamEx(() -> StreamEx.iterate(1, x -> x + 1), s -> assertEquals(IntStreamEx.rangeClosed(1, 100).boxed()
+                .toList(), takeWhileClosed(s.get(), x -> x < 100).toList()));
+        
+        streamEx(() -> IntStreamEx.range(1000).boxed(), s -> assertEquals(IntStreamEx.range(0, 1000, 20).boxed()
+                .toList(), every(s.get(), 20).toList()));
+        
         // http://stackoverflow.com/q/34395943/4856258
         int[] input = { 1, 2, 3, -1, 3, -10, 9, 100, 1, 100, 0 };
         AtomicInteger counter = new AtomicInteger();
         assertEquals(5, scanLeft(IntStreamEx.of(input).peek(x -> counter.incrementAndGet()).boxed(), Integer::sum)
             .indexOf(x -> x < 0).getAsLong());
         assertEquals(6, counter.get());
+        
+        assertEquals(4, (int)firstMatchingOrFirst(StreamEx.of(1, 2, 3, 4, 5), x -> x > 3));
+        assertEquals(1, (int)firstMatchingOrFirst(StreamEx.of(1, 2, 3, 4, 5), x -> x > 5));
+        assertEquals(1, (int)firstMatchingOrFirst(StreamEx.of(1, 2, 3, 4, 5), x -> x > 0));
+        
+        assertEquals(asList(1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3), cycle(StreamEx.of(1, 2, 3, 4, 5))
+                .limit(18).toList());
+        assertEquals(asList(1, 2, 3, 4, 5, 5, 4, 3, 2, 1), mirror(StreamEx.of(1, 2, 3, 4, 5)).toList());
+    }
+    
+    // Returns either the first stream element matching the predicate or just the first element if nothing matches
+    private static <T> T firstMatchingOrFirst(StreamEx<T> stream, Predicate<T> predicate) {
+        return stream.headTail((head, tail) -> tail.prepend(head).filter(predicate).append(head)).findFirst().get();
     }
     
     // Filters the input stream of natural numbers (2, 3, 4...) leaving only prime numbers
     private static StreamEx<Integer> sieve(StreamEx<Integer> input) {
-        return input.headTail((head, stream) -> sieve(stream.filter(n -> n % head != 0)).prepend(head));
+        return input.headTail((head, tail) -> sieve(tail.filter(n -> n % head != 0)).prepend(head));
     }
 
     // Creates a reversed stream
     private static <T> StreamEx<T> reverse(StreamEx<T> input) {
-        return input.headTail((head, stream) -> reverse(stream).append(head));
+        return input.headTail((head, tail) -> reverse(tail).append(head));
+    }
+    
+    // Creates a stream which consists of this stream and this reversed stream
+    private static <T> StreamEx<T> mirror(StreamEx<T> input) {
+        return input.headTail((head, tail) -> mirror(tail).append(head).prepend(head));
+    }
+    
+    // Creates an infinitely cycled stream
+    private static <T> StreamEx<T> cycle(StreamEx<T> input) {
+        return input.headTail((head, tail) -> cycle(tail.append(head)).prepend(head));
     }
     
     // Creates lazy scanLeft stream
     private static <T> StreamEx<T> scanLeft(StreamEx<T> input, BinaryOperator<T> operator) {
-        return input.headTail((head, stream) -> scanLeft(stream.mapFirst(cur -> operator.apply(head, cur)), operator)
+        return input.headTail((head, tail) -> scanLeft(tail.mapFirst(cur -> operator.apply(head, cur)), operator)
                 .prepend(head));
     }
 
     // takeWhile intermediate op implementation
     private static <T> StreamEx<T> takeWhile(StreamEx<T> input, Predicate<T> predicate) {
-        return input.headTail((head, stream) -> predicate.test(head) ? takeWhile(stream, predicate).prepend(head) : null );
+        return input.headTail((head, tail) -> predicate.test(head) ? takeWhile(tail, predicate).prepend(head) : null );
+    }
+    
+    // takeWhileClosed intermediate op implementation
+    private static <T> StreamEx<T> takeWhileClosed(StreamEx<T> input, Predicate<T> predicate) {
+        return input.headTail((head, tail) -> predicate.test(head) ? takeWhileClosed(tail, predicate).prepend(head)
+                : Stream.of(head));
+    }
+    
+    // take every nth stream element (starting from the first)
+    private static <T> StreamEx<T> every(StreamEx<T> input, int n) {
+        return input.headTail((head, tail) -> every(tail.skip(n-1), n).prepend(head) );
     }
     
     @Test
