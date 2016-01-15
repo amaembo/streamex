@@ -1605,6 +1605,12 @@ public class StreamExTest {
         
         assertEquals(asList(9, 13, 17), StreamEx.of(1, 3, 5, 7, 9).headTail(
             (head, tail) -> tail.pairMap((a, b) -> a + b + head)).toList());
+        
+        assertEquals("[[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15], [16, 17, 18, 19]]", batches(
+            IntStreamEx.range(20).mapToObj(Collections::singletonList), 4).toList().toString());
+        assertEquals(
+            "[[0, 1, 2, 3], [1, 2, 3, 4], [2, 3, 4, 5], [3, 4, 5, 6], [4, 5, 6, 7], [5, 6, 7, 8], [6, 7, 8, 9]]",
+            sliding(IntStreamEx.range(10).mapToObj(Collections::singletonList), 4).toList().toString());
     }
     
     @Test
@@ -1624,6 +1630,9 @@ public class StreamExTest {
         assertTrue(takeWhile(StreamEx.iterate(1, x -> x + 1), x -> x < 20000).has(19999));
         assertEquals(20000, takeWhileClosed(StreamEx.iterate(1, x -> x + 1), x -> x < 20000).count());
         assertTrue(takeWhileClosed(StreamEx.iterate(1, x -> x + 1), x -> x < 20000).has(20000));
+        assertEquals(5000, batches(IntStreamEx.range(20000).mapToObj(Collections::singletonList), 4).count());
+        assertEquals(4, batches(IntStreamEx.range(20000).mapToObj(Collections::singletonList), 5000).count());
+        assertEquals(19997, sliding(IntStreamEx.range(20000).mapToObj(Collections::singletonList), 4).count());
     }
     
     // Returns either the first stream element matching the predicate or just the first element if nothing matches
@@ -1684,6 +1693,20 @@ public class StreamExTest {
             StreamEx<T> filtered = filter(tail, predicate);
             return predicate.test(head) ? filtered.prepend(head) : filtered;
         });
+    }
+    
+    // Stream of single element lists -> stream of fixed size batches (TCO)
+    private static <T> StreamEx<List<T>> batches(StreamEx<List<T>> input, int size) {
+        return input.headTail((head, tail) -> head.size() >= size ? 
+                batches(tail, size).prepend(head) : 
+                batches(tail.mapFirst(next -> StreamEx.of(head, next).toFlatList(l -> l)), size));
+    }
+    
+    // Stream of single element lists -> stream of sliding windows (TCO)
+    private static <T> StreamEx<List<T>> sliding(StreamEx<List<T>> input, int size) {
+        return input.headTail((head, tail) -> head.size() == size ? 
+                sliding(tail.mapFirst(next -> StreamEx.of(head.subList(1, size), next).toFlatList(l -> l)), size).prepend(head) : 
+                sliding(tail.mapFirst(next -> StreamEx.of(head, next).toFlatList(l -> l)), size));
     }
     
     @Test
