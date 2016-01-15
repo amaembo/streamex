@@ -301,6 +301,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * Returns a new {@code EntryStream} which is a concatenation of this stream
      * and the stream created from the supplied map entries.
      * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     * 
      * @param map the map to prepend to the stream
      * @return the new stream
      * @since 0.2.1
@@ -313,6 +317,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * Returns a new {@code EntryStream} which is a concatenation of this stream
      * and the supplied key-value pair.
      * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     * 
      * @param key the key of the new {@code Entry} to append to this stream
      * @param value the value of the new {@code Entry} to append to this stream
      * @return the new stream
@@ -324,6 +332,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns a new {@code EntryStream} which is a concatenation of this stream
      * and two supplied key-value pairs.
+     * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
      * 
      * @param k1 the key of the first {@code Entry} to append to this stream
      * @param v1 the value of the first {@code Entry} to append to this stream
@@ -339,6 +351,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns a new {@code EntryStream} which is a concatenation of this stream
      * and three supplied key-value pairs.
+     * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
      * 
      * @param k1 the key of the first {@code Entry} to append to this stream
      * @param v1 the value of the first {@code Entry} to append to this stream
@@ -358,6 +374,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * Returns a new {@code EntryStream} which is a concatenation of the stream
      * created from the supplied map entries and this stream.
      * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     * 
      * @param map the map to prepend to the stream
      * @return the new stream
      * @since 0.2.1
@@ -370,6 +390,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * Returns a new {@code EntryStream} which is a concatenation of the
      * supplied key-value pair and this stream.
      * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     * 
      * @param key the key of the new {@code Entry} to prepend to this stream
      * @param value the value of the new {@code Entry} to prepend to this stream
      * @return the new stream
@@ -381,6 +405,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns a new {@code EntryStream} which is a concatenation of two
      * supplied key-value pairs and this stream.
+     * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
      * 
      * @param k1 the key of the first {@code Entry} to prepend to this stream
      * @param v1 the value of the first {@code Entry} to prepend to this stream
@@ -396,6 +424,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns a new {@code EntryStream} which is a concatenation of three
      * supplied key-value pairs and this stream.
+     * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
      * 
      * @param k1 the key of the first {@code Entry} to prepend to this stream
      * @param v1 the value of the first {@code Entry} to prepend to this stream

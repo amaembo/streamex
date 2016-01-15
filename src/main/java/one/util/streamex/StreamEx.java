@@ -268,7 +268,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
-     * operation</a>.
+     * operation</a> with <a href="package-summary.html#TCO">tail-call optimization</a>.
      *
      * @param mapper a <a
      *        href="package-summary.html#NonInterference">non-interfering </a>,
@@ -992,6 +992,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * Returns a new {@code StreamEx} which is a concatenation of this stream
      * and the stream containing supplied values.
      * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     * 
      * @param values the values to append to the stream
      * @return the new stream
      */
@@ -1006,6 +1010,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * Returns a new {@code StreamEx} which is a concatenation of this stream
      * and the stream created from supplied collection.
      * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+
      * @param collection the collection to append to the stream
      * @return the new stream
      * @since 0.2.1
@@ -1020,6 +1028,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * Returns a new {@code StreamEx} which is a concatenation of the stream
      * containing supplied values and this stream.
      * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a> with <a href="package-summary.html#TCO">tail-call optimization</a>.
+
      * @param values the values to prepend to the stream
      * @return the new stream
      */
@@ -1034,6 +1046,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * Returns a new {@code StreamEx} which is a concatenation of the stream
      * created from supplied collection and this stream.
      * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+
      * @param collection the collection to prepend to the stream
      * @return the new stream
      * @since 0.2.1
@@ -1453,7 +1469,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * 
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
-     * operation</a>.
+     * operation</a> with <a href="package-summary.html#TCO">tail-call
+     * optimization</a>.
      * 
      * <p>
      * The mapper function is not applied when the input stream is empty.
@@ -1469,14 +1486,18 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * }}</pre>
      * 
      * <p>
-     * Use caution though as this might lead to {@code StackOverflowError} for
-     * long input stream.
+     * When possible, use tail-call optimized operations to reduce the call
+     * stack depth. In particular, the example shown above uses only
+     * {@code headTail()}, {@link #mapFirst(Function)} and
+     * {@link #prepend(Object...)} operations, all of them are tail-call
+     * optimized, so it will not fail with {@code StackOverflowError} on long
+     * input stream.
      * 
      * <p>
      * This operation might perform badly with parallel streams. Sometimes the
-     * same semantics could be expressed using {@link #withFirst()} method with
-     * subsequent mapping or filtering. Consider using {@code withFirst()} if
-     * its possible in your case.
+     * same semantics could be expressed using other operations like
+     * {@link #withFirst(BiFunction)} which parallelizes better. Consider using
+     * {@code withFirst()} if its possible in your case.
      *
      * @param <R> The element type of the new stream
      * @param mapper a <a

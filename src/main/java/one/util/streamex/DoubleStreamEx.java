@@ -1251,6 +1251,10 @@ public class DoubleStreamEx implements DoubleStream {
      * Returns a new {@code DoubleStreamEx} which is a concatenation of this
      * stream and the stream containing supplied values
      * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     * 
      * @param values the values to append to the stream
      * @return the new stream
      */
@@ -1278,6 +1282,10 @@ public class DoubleStreamEx implements DoubleStream {
     /**
      * Returns a new {@code DoubleStreamEx} which is a concatenation of the
      * stream containing supplied values and this stream
+     * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
      * 
      * @param values the values to prepend to the stream
      * @return the new stream
