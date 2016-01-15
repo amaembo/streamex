@@ -267,7 +267,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * of applying the given function while the other elements are left intact.
      *
      * <p>
-     * This is an <a href="package-summary.html#StreamOps">quasi-intermediate
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a>.
      *
      * @param mapper a <a
@@ -286,7 +286,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * of applying the given function while the other elements are left intact.
      *
      * <p>
-     * This is an <a href="package-summary.html#StreamOps">quasi-intermediate
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a>.
      *
      * @param mapper a <a
@@ -1427,7 +1427,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * and values are the rest elements of this stream.
      * 
      * <p>
-     * This is an <a href="package-summary.html#StreamOps">quasi-intermediate
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a>.
      * 
      * <p>
@@ -1452,7 +1452,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * stream is {@code null} an empty stream is used, instead.
      * 
      * <p>
-     * This is an <a href="package-summary.html#StreamOps">quasi-intermediate
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a>.
      * 
      * <p>

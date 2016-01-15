@@ -270,7 +270,7 @@ public class LongStreamEx implements LongStream {
      * of applying the given function while the other elements are left intact.
      *
      * <p>
-     * This is an <a href="package-summary.html#StreamOps">quasi-intermediate
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a>.
      *
      * @param mapper a <a
@@ -289,7 +289,7 @@ public class LongStreamEx implements LongStream {
      * of applying the given function while the other elements are left intact.
      *
      * <p>
-     * This is an <a href="package-summary.html#StreamOps">quasi-intermediate
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a>.
      *
      * @param mapper a <a
@@ -1335,7 +1335,8 @@ public class LongStreamEx implements LongStream {
      * to the every adjacent pair of elements of this stream.
      *
      * <p>
-     * This is a quasi-intermediate operation.
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
      * 
      * <p>
      * The output stream will contain one element less than this stream. If this
