@@ -93,11 +93,7 @@ import static one.util.streamex.StreamExInternals.*;
     public long estimateSize() {
         if(finished)
             return 0;
-        if(target == null) {
-            long size = source.estimateSize();
-            return size == Long.MAX_VALUE || size <= 0 ? size : size - 1;
-        }
-        return target.estimateSize();
+        return (target == null ? source : target).estimateSize();
     }
 
     @Override

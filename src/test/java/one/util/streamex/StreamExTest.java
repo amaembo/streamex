@@ -412,11 +412,18 @@ public class StreamExTest {
 
     @Test
     public void testPrepend() {
-        assertEquals(asList("d", "e", "a", "b", "c"), StreamEx.of("a", "b", "c", "dd").remove(s -> s.length() > 1)
-                .prepend("d", "e").toList());
-        assertEquals(asList("d", "e", "a", "b", "c"), StreamEx.of("a", "b", "c").prepend(asList("d", "e").stream())
-                .toList());
-        assertEquals(asList("d", "e", "a", "b", "c"), StreamEx.of("a", "b", "c").prepend(asList("d", "e")).toList());
+        Supplier<Stream<String>> sized = () -> StreamEx.of("a", "b", "c", "dd");
+        Supplier<Stream<String>> notSized = () -> StreamEx.of(StreamEx.of("a", "b", "c", "dd").iterator());
+        for(Supplier<Stream<String>> supplier : asList(sized, notSized)) {
+            streamEx(supplier, s -> {
+                assertEquals(asList("d", "e", "a", "b", "c"), s.get().remove(str -> str.length() > 1).prepend("d", "e")
+                        .toList());
+                assertEquals(asList("d", "e", "a", "b", "c", "dd"), s.get().prepend(asList("d", "e").stream()).toList());
+                assertEquals(asList("d", "e", "a", "b", "c", "dd"), s.get().prepend(asList("d", "e")).toList());
+            });
+        }
+        assertArrayEquals(new Object[] { 1, 2, 3, 1, 1 }, StreamEx.constant(1, Long.MAX_VALUE - 1).prepend(1, 2, 3)
+                .limit(5).toArray());
     }
 
     @Test
@@ -1595,6 +1602,9 @@ public class StreamExTest {
         assertEquals(asList(1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3), cycle(StreamEx.of(1, 2, 3, 4, 5))
                 .limit(18).toList());
         assertEquals(asList(1, 2, 3, 4, 5, 5, 4, 3, 2, 1), mirror(StreamEx.of(1, 2, 3, 4, 5)).toList());
+        
+        assertEquals(asList(9, 13, 17), StreamEx.of(1, 3, 5, 7, 9).headTail(
+            (head, tail) -> tail.pairMap((a, b) -> a + b + head)).toList());
     }
     
     @Test

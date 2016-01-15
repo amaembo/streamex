@@ -122,12 +122,10 @@ import static one.util.streamex.StreamExInternals.*;
             else {
                 Object[] a = array;
                 int i = index, hi = fence;
-                if (i < hi && a.length >= hi) {
-                    do {
-                        @SuppressWarnings("unchecked")
-                        T t = (T) a[i];
-                        action.accept(t);
-                    } while (++i < hi);
+                while (i < hi) {
+                    @SuppressWarnings("unchecked")
+                    T t = (T) a[i++];
+                    action.accept(t);
                 }
             }
             index = fence;
@@ -195,10 +193,8 @@ import static one.util.streamex.StreamExInternals.*;
             else {
                 int[] a = array;
                 int i = index, hi = fence;
-                if (i < hi && a.length >= hi) {
-                    do {
-                        action.accept(a[i]);
-                    } while (++i < hi);
+                while (i < hi) {
+                    action.accept(a[i++]);
                 }
             }
             index = fence;
@@ -264,10 +260,8 @@ import static one.util.streamex.StreamExInternals.*;
             else {
                 long[] a = array;
                 int i = index, hi = fence;
-                if (i < hi && a.length >= hi) {
-                    do {
-                        action.accept(a[i]);
-                    } while (++i < hi);
+                while (i < hi) {
+                    action.accept(a[i++]);
                 }
             }
             index = fence;
@@ -333,10 +327,8 @@ import static one.util.streamex.StreamExInternals.*;
             else {
                 double[] a = array;
                 int i = index, hi = fence;
-                if (i < hi && a.length >= hi) {
-                    do {
-                        action.accept(a[i]);
-                    } while (++i < hi);
+                while (i < hi) {
+                    action.accept(a[i++]);
                 }
             }
             index = fence;

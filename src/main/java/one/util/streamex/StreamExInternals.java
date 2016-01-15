@@ -83,7 +83,7 @@ import java.util.stream.Stream;
     static final int IDX_DOUBLE_STREAM = 3;
     static final int IDX_TAKE_WHILE = 0;
     static final int IDX_DROP_WHILE = 1;
-    
+
     static final Field SOURCE_SPLITERATOR;
     static final Field SOURCE_STAGE;
     static final Field SOURCE_CLOSE_ACTION;
@@ -103,7 +103,7 @@ import java.util.stream.Stream;
                 fields.add(abstractPipelineClass.getDeclaredField("sourceStage"));
                 fields.add(abstractPipelineClass.getDeclaredField("sourceCloseAction"));
                 fields.add(Class.forName("java.util.Spliterators$IteratorSpliterator").getDeclaredField("it"));
-                for(Field f : fields)
+                for (Field f : fields)
                     f.setAccessible(true);
                 return null;
             });
@@ -933,12 +933,26 @@ import java.util.stream.Stream;
             return arr;
         }
     }
-    
+
+    /**
+     * A spliterator which may perform tail-call optimization
+     *
+     * @param <T>
+     */
     static interface TailCallSpliterator<T> extends Spliterator<T> {
+        /**
+         * Returns either this spliterator or another one. If another one
+         * spliterator is returned, then this spliterator becomes invalid and
+         * another one must be used as a replacement to continue the operation.
+         * Never returns null.
+         * 
+         * @return tail spliterator
+         */
         Spliterator<T> tail();
     }
-    
-    static abstract class CloneableSpliterator<T, S extends CloneableSpliterator<T, ?>> implements Spliterator<T>, Cloneable {
+
+    static abstract class CloneableSpliterator<T, S extends CloneableSpliterator<T, ?>> implements Spliterator<T>,
+            Cloneable {
         @SuppressWarnings("unchecked")
         S doClone() {
             try {
@@ -948,7 +962,7 @@ import java.util.stream.Stream;
             }
         }
     }
-    
+
     static <T> T copy(T src, T dest, int size) {
         System.arraycopy(src, 0, dest, 0, size);
         return dest;
@@ -1006,12 +1020,13 @@ import java.util.stream.Stream;
             return ((CancellableCollector<?, A, ?>) collector).finished();
         return null;
     }
-    
+
     static <T> Spliterator<T> traverseTail(Spliterator<T> spltr) {
         Spliterator<T> current = spltr;
-        while(current instanceof TailCallSpliterator) {
-            Spliterator<T> next = ((TailCallSpliterator<T>)current).tail();
-            if(next == current) break;
+        while (current instanceof TailCallSpliterator) {
+            Spliterator<T> next = ((TailCallSpliterator<T>) current).tail();
+            if (next == current)
+                break;
             current = next;
         }
         return current;
@@ -1022,6 +1037,13 @@ import java.util.stream.Stream;
         return (T) NONE;
     }
 
+    /**
+     * Checks whether given BaseStream has any close action registered.
+     * 
+     * @param s BaseStream to check
+     * @return false if supplied BaseStream is known to have no close action
+     *         registered, true otherwise.
+     */
     static boolean mayHaveCloseAction(BaseStream<?, ?> s) {
         if (s == null)
             return false;

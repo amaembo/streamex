@@ -87,9 +87,7 @@ import one.util.streamex.StreamExInternals.CloneableSpliterator;
     }
 
     private boolean initForEach(T x) {
-        int prefixState = state;
-        if (prefixState != STATE_NONE)
-            return false;
+        int prefixState = STATE_NONE;
         if (prefix != null) {
             prefix.doInit();
             prefixState = prefix.state;

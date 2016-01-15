@@ -49,7 +49,7 @@ import one.util.streamex.StreamExInternals.CloneableSpliterator;
 
     @Override
     public int characteristics() {
-        return Spliterator.ORDERED | Spliterator.SIZED | Spliterator.SUBSIZED;
+        return ORDERED | SIZED | SUBSIZED;
     }
 
     /*
@@ -63,17 +63,11 @@ import one.util.streamex.StreamExInternals.CloneableSpliterator;
         return x;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public Spliterator<R> trySplit() {
         long size = limit - cur;
         if (size >= 2) {
-            PairPermutationSpliterator<T, R> clone;
-            try {
-                clone = (PairPermutationSpliterator<T, R>) clone();
-            } catch (CloneNotSupportedException e) {
-                throw new InternalError();
-            }
+            PairPermutationSpliterator<T, R> clone = doClone();
             clone.limit = this.cur = this.cur + size / 2;
             int s = this.size;
             long rev = s * (s - 1L) / 2 - this.cur - 1;

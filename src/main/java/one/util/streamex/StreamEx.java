@@ -87,7 +87,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         
         public PrependSpliterator(Spliterator<T> source, T[] prepended) {
             this.source = source;
-            this.prepended = prepended.length == 0 ? null : prepended;
+            this.prepended = prepended;
             this.characteristics = source.characteristics() & (ORDERED | SIZED| SUBSIZED);
             if(((this.characteristics & SIZED) != 0) && prepended.length+source.estimateSize() < 0)
                 this.characteristics &= (~SIZED) & (~SUBSIZED);

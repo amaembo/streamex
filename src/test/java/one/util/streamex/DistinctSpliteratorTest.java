@@ -16,6 +16,8 @@
 package one.util.streamex;
 
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Spliterator;
 import java.util.stream.IntStream;
 
@@ -44,5 +46,18 @@ public class DistinctSpliteratorTest {
             | Spliterator.NONNULL, new DistinctSpliterator<>(IntStream.range(0, 100).spliterator(), 3)
                 .characteristics());
         assertEquals(100, new DistinctSpliterator<>(IntStream.range(0, 100).spliterator(), 3).estimateSize());
+    }
+    
+    @Test
+    public void testAdvanceSplit() {
+        DistinctSpliterator<String> ds = new DistinctSpliterator<>(Arrays.asList("a", null, "b", "c", "b", null, "c",
+            "b").spliterator(), 2);
+        Set<String> result = new HashSet<>();
+        assertTrue(ds.tryAdvance(result::add));
+        assertTrue(ds.tryAdvance(result::add));
+        Spliterator<String> prefix = ds.trySplit();
+        prefix.forEachRemaining(result::add);
+        ds.forEachRemaining(result::add);
+        assertEquals(StreamEx.of(null, "b", "c").toSet(), result);
     }
 }
