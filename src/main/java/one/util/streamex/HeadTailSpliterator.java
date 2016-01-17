@@ -20,6 +20,7 @@ import java.util.Spliterators;
 import java.util.Spliterators.AbstractSpliterator;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.BaseStream;
 import java.util.stream.Stream;
 
@@ -31,14 +32,17 @@ import static one.util.streamex.StreamExInternals.*;
 /*package*/ final class HeadTailSpliterator<T, U> extends AbstractSpliterator<U> implements TailCallSpliterator<U> {
     private Spliterator<T> source;
     private BiFunction<? super T, ? super StreamEx<T>, ? extends Stream<U>> mapper;
+    private Supplier<? extends Stream<U>> emptyMapper;
     private Spliterator<U> target;
     private boolean finished;
     BaseStream<?, ?> owner;
     
-    HeadTailSpliterator(Spliterator<T> source, BiFunction<? super T, ? super StreamEx<T>, ? extends Stream<U>> mapper) {
+    HeadTailSpliterator(Spliterator<T> source, BiFunction<? super T, ? super StreamEx<T>, ? extends Stream<U>> mapper,
+            Supplier<? extends Stream<U>> emptyMapper) {
         super(Long.MAX_VALUE, ORDERED);
         this.source = source;
         this.mapper = mapper;
+        this.emptyMapper = emptyMapper;
     }
     
     @Override
@@ -67,8 +71,6 @@ import static one.util.streamex.StreamExInternals.*;
         if(cont)
             return true;
         target = null;
-        source = null;
-        mapper = null;
         finished = true;
         return false;
     }
@@ -78,10 +80,11 @@ import static one.util.streamex.StreamExInternals.*;
             return false;
         if(target == null) {
             Box<T> first = new Box<>(null);
-            if(!finishUnless(source.tryAdvance(x -> first.a = x))) {
-                return false;
-            }
-            Stream<U> stream = mapper.apply(first.a, StreamEx.of(traverseTail(source)));
+            Stream<U> stream = source.tryAdvance(x -> first.a = x) ? mapper.apply(first.a, StreamEx
+                    .of(traverseTail(source))) : emptyMapper.get();
+            source = null;
+            mapper = null;
+            emptyMapper = null;
             if(owner != null && mayHaveCloseAction(stream))
                 owner.onClose(stream::close);
             target = stream == null ? Spliterators.emptySpliterator() : stream.spliterator();

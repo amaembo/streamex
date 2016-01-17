@@ -1510,7 +1510,12 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.5.3
      */
     public <R> StreamEx<R> headTail(BiFunction<? super T, ? super StreamEx<T>, ? extends Stream<R>> mapper) {
-        HeadTailSpliterator<T, R> spliterator = new HeadTailSpliterator<>(stream.spliterator(), mapper);
+        return headTail(mapper, () -> null);
+    }
+
+    public <R> StreamEx<R> headTail(BiFunction<? super T, ? super StreamEx<T>, ? extends Stream<R>> mapper,
+            Supplier<? extends Stream<R>> emptyMapper) {
+        HeadTailSpliterator<T, R> spliterator = new HeadTailSpliterator<>(stream.spliterator(), mapper, emptyMapper);
         Stream<R> delegate = delegate(spliterator);
         spliterator.owner = delegate;
         return strategy().newStreamEx(delegate);

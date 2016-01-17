@@ -24,6 +24,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -33,11 +34,13 @@ import java.util.Random;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 import org.junit.Test;
@@ -78,12 +81,27 @@ public class StreamExHeadTailTest {
     static <T, R> StreamEx<R> map(StreamEx<T> input, Function<T, R> mapper) {
         return input.headTail((head, tail) -> map(tail, mapper).prepend(mapper.apply(head)));
     }
-    
+
     // Stream.peek (TCO)
     static <T> StreamEx<T> peek(StreamEx<T> input, Consumer<T> consumer) {
         return input.headTail((head, tail) -> {
             consumer.accept(head);
             return peek(tail, consumer).prepend(head);
+        });
+    }
+
+    // Stream.sorted
+    static <T> StreamEx<T> sorted(StreamEx<T> input) {
+        return sorted(input, new ArrayList<>());
+    }
+
+    private static <T> StreamEx<T> sorted(StreamEx<T> input, List<T> cur) {
+        return input.headTail((head, tail) -> {
+            cur.add(head);
+            return sorted(tail, cur);
+        }, () -> {
+            cur.sort(null);
+            return cur.stream();
         });
     }
 
@@ -124,12 +142,17 @@ public class StreamExHeadTailTest {
         return input.headTail((head, tail) -> cycle(tail.append(head)).prepend(head));
     }
 
-    // Creates lazy scanLeft stream (TCO)
-    static <T> StreamEx<T> scanLeft(StreamEx<T> input, BinaryOperator<T> operator) {
-        return input.headTail((head, tail) -> scanLeft(tail.mapFirst(cur -> operator.apply(head, cur)), operator)
-                .prepend(head));
+    // mapFirst (TCO)
+    static <T> StreamEx<T> mapFirst(StreamEx<T> input, UnaryOperator<T> operator) {
+        return input.headTail((head, tail) -> tail.prepend(operator.apply(head)));
     }
 
+    // Creates lazy scanLeft stream (TCO)
+    static <T> StreamEx<T> scanLeft(StreamEx<T> input, BinaryOperator<T> operator) {
+        return input.headTail((head, tail) -> scanLeft(mapFirst(tail, cur -> operator.apply(head, cur)), operator)
+                .prepend(head));
+    }
+    
     // takeWhileClosed: takeWhile+first element violating the predicate (TCO)
     static <T> StreamEx<T> takeWhileClosed(StreamEx<T> input, Predicate<T> predicate) {
         return input.headTail((head, tail) -> predicate.test(head) ? takeWhileClosed(tail, predicate).prepend(head)
@@ -141,10 +164,26 @@ public class StreamExHeadTailTest {
         return input.headTail((head, tail) -> every(skip(tail, n - 1), n).prepend(head));
     }
 
-    // Stream of single element lists -> stream of fixed size batches (TCO)
-    static <T> StreamEx<List<T>> batches(StreamEx<List<T>> input, int size) {
-        return input.headTail((head, tail) -> head.size() >= size ? batches(tail, size).prepend(head) : batches(tail
-                .mapFirst(next -> StreamEx.of(head, next).toFlatList(l -> l)), size));
+    // maps every couple of elements using given mapper (in non-sliding manner)
+    static <T, R> StreamEx<R> couples(StreamEx<T> input, BiFunction<T, T, R> mapper) {
+        return input.headTail((left, tail1) -> tail1.headTail((right, tail2) -> couples(tail2, mapper).prepend(
+            mapper.apply(left, right))));
+    }
+
+    // maps every pair of elements using given mapper (in sliding manner)
+    static <T, R> StreamEx<R> pairs(StreamEx<T> input, BiFunction<T, T, R> mapper) {
+        return input.headTail((left, tail1) -> tail1.headTail((right, tail2) -> pairs(tail2.prepend(right), mapper)
+                .prepend(mapper.apply(left, right))));
+    }
+
+    // Stream of fixed size batches (TCO)
+    static <T> StreamEx<List<T>> batches(StreamEx<T> input, int size) {
+        return batches(input, size, Collections.emptyList());
+    }
+
+    private static <T> StreamEx<List<T>> batches(StreamEx<T> input, int size, List<T> cur) {
+        return input.headTail((head, tail) -> cur.size() >= size ? batches(tail, size, asList(head)).prepend(cur)
+                : batches(tail, size, StreamEx.of(cur).append(head).toList()), () -> Stream.of(cur));
     }
 
     // Stream of single element lists -> stream of sliding windows (TCO)
@@ -224,7 +263,9 @@ public class StreamExHeadTailTest {
             (head, tail) -> tail.pairMap((a, b) -> a + b + head)).toList());
 
         assertEquals("[[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15], [16, 17, 18, 19]]", batches(
-            IntStreamEx.range(20).mapToObj(Collections::singletonList), 4).toList().toString());
+            IntStreamEx.range(20).boxed(), 4).toList().toString());
+        assertEquals("[[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15], [16, 17, 18, 19], [20]]", batches(
+            IntStreamEx.range(21).boxed(), 4).toList().toString());
         assertEquals(
             "[[0, 1, 2, 3], [1, 2, 3, 4], [2, 3, 4, 5], [3, 4, 5, 6], [4, 5, 6, 7], [5, 6, 7, 8], [6, 7, 8, 9]]",
             sliding(IntStreamEx.range(10).mapToObj(Collections::singletonList), 4).toList().toString());
@@ -237,10 +278,18 @@ public class StreamExHeadTailTest {
 
         assertEquals(Arrays.asList(1, 3, 7, 5, 10), distinct(
             StreamEx.of(1, 1, 3, 1, 3, 7, 1, 3, 1, 7, 3, 5, 1, 3, 5, 5, 7, 7, 7, 10, 5, 3, 7, 1)).toList());
+
+        assertEquals(Arrays.asList("key1=1", "key2=2", "key3=3"), couples(StreamEx.of("key1", 1, "key2", 2, "key3", 3),
+            (k, v) -> k + "=" + v).toList());
+
+        assertEquals(Arrays.asList("key1=1", "1=key2", "key2=2", "2=key3", "key3=3"), pairs(
+            StreamEx.of("key1", 1, "key2", 2, "key3", 3), (k, v) -> k + "=" + v).toList());
     }
 
     @Test
     public void testHeadTailTCO() {
+        assertTrue(couples(IntStreamEx.range(20000).boxed(), (a, b) -> b - a).allMatch(x -> x == 1));
+        assertTrue(pairs(IntStreamEx.range(20000).boxed(), (a, b) -> b - a).allMatch(x -> x == 1));
         // 20001+20002+...+40000
         assertEquals(600010000, limit(skip(StreamEx.iterate(1, x -> x + 1), 20000), 20000).mapToInt(Integer::intValue)
                 .sum());
@@ -258,18 +307,21 @@ public class StreamExHeadTailTest {
 
         assertEquals(400020000, (int) limit(map(StreamEx.iterate(1, x -> x + 1), x -> x * 2), 20000).reduce(
             Integer::sum).get());
-        
+
         assertEquals(19999, takeWhile(StreamEx.iterate(1, x -> x + 1), x -> x < 20000).count());
         assertTrue(takeWhile(StreamEx.iterate(1, x -> x + 1), x -> x < 20000).has(19999));
         assertEquals(20000, takeWhileClosed(StreamEx.iterate(1, x -> x + 1), x -> x < 20000).count());
         assertTrue(takeWhileClosed(StreamEx.iterate(1, x -> x + 1), x -> x < 20000).has(20000));
         assertEquals(IntStreamEx.range(20000, 40000).boxed().toList(), dropWhile(IntStreamEx.range(40000).boxed(),
             i -> i != 20000).toList());
-        assertEquals(5000, batches(IntStreamEx.range(20000).mapToObj(Collections::singletonList), 4).count());
-        assertEquals(4, batches(IntStreamEx.range(20000).mapToObj(Collections::singletonList), 5000).count());
+        assertEquals(5000, batches(IntStreamEx.range(20000).boxed(), 4).count());
+        assertEquals(4, batches(IntStreamEx.range(20000).boxed(), 5000).count());
         assertEquals(19997, sliding(IntStreamEx.range(20000).mapToObj(Collections::singletonList), 4).count());
         assertEquals(15, dominators(IntStreamEx.of(new Random(1)).boxed(), (a, b) -> a >= b).takeWhile(
             x -> x < Integer.MAX_VALUE - 100000).count());
+
+        List<Integer> sortedRandoms = IntStreamEx.of(new Random(1), 20000).boxed().sorted().toList();
+        assertEquals(sortedRandoms, sorted(IntStreamEx.of(new Random(1), 20000).boxed(), new ArrayList<>()).toList());
     }
 
     @Test
