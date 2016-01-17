@@ -78,26 +78,26 @@ import static one.util.streamex.StreamExInternals.*;
  * @param <T> the type of the stream elements
  */
 public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
-    
+
     private static class PrependSpliterator<T> implements TailCallSpliterator<T> {
         private Spliterator<T> source;
         private T[] prepended;
         private int position;
         private int characteristics;
-        
+
         public PrependSpliterator(Spliterator<T> source, T[] prepended) {
             this.source = source;
             this.prepended = prepended;
-            this.characteristics = source.characteristics() & (ORDERED | SIZED| SUBSIZED);
-            if(((this.characteristics & SIZED) != 0) && prepended.length+source.estimateSize() < 0)
+            this.characteristics = source.characteristics() & (ORDERED | SIZED | SUBSIZED);
+            if (((this.characteristics & SIZED) != 0) && prepended.length + source.estimateSize() < 0)
                 this.characteristics &= (~SIZED) & (~SUBSIZED);
         }
 
         @Override
         public boolean tryAdvance(Consumer<? super T> action) {
-            if(prepended != null) {
+            if (prepended != null) {
                 action.accept(prepended[position++]);
-                if(position == prepended.length)
+                if (position == prepended.length)
                     prepended = null;
                 return true;
             }
@@ -105,9 +105,22 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         }
 
         @Override
+        public Spliterator<T> tryAdvanceOrTail(Consumer<? super T> action) {
+            if (prepended == null) {
+                Spliterator<T> s = source;
+                source = null;
+                return s;
+            }
+            action.accept(prepended[position++]);
+            if (position == prepended.length)
+                prepended = null;
+            return this;
+        }
+
+        @Override
         public void forEachRemaining(Consumer<? super T> action) {
-            if(prepended != null) {
-                while(position < prepended.length) {
+            if (prepended != null) {
+                while (position < prepended.length) {
                     action.accept(prepended[position++]);
                 }
                 prepended = null;
@@ -116,8 +129,21 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         }
 
         @Override
+        public Spliterator<T> forEachOrTail(Consumer<? super T> action) {
+            if (prepended != null) {
+                while (position < prepended.length) {
+                    action.accept(prepended[position++]);
+                }
+                prepended = null;
+            }
+            Spliterator<T> s = source;
+            source = null;
+            return s;
+        }
+
+        @Override
         public Spliterator<T> trySplit() {
-            if(prepended == null)
+            if (prepended == null)
                 return source.trySplit();
             Spliterator<T> prefix = Spliterators.spliterator(prepended, position, prepended.length, characteristics);
             prepended = null;
@@ -127,9 +153,9 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         @Override
         public long estimateSize() {
             long size = source.estimateSize();
-            if(prepended == null)
+            if (prepended == null)
                 return size;
-            size = size+prepended.length-position;
+            size = size + prepended.length - position;
             return size < 0 ? Long.MAX_VALUE : size;
         }
 
@@ -137,17 +163,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         public int characteristics() {
             return characteristics;
         }
-
-        @Override
-        public Spliterator<T> tail() {
-            if(prepended != null)
-                return this;
-            Spliterator<T> s = source;
-            source = null;
-            return s;
-        }
     }
-    
+
     StreamEx(Stream<T> stream) {
         super(stream);
     }
@@ -268,7 +285,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
-     * operation</a> with <a href="package-summary.html#TCO">tail-call optimization</a>.
+     * operation</a> with <a href="package-summary.html#TCO">tail-call
+     * optimization</a>.
      *
      * @param mapper a <a
      *        href="package-summary.html#NonInterference">non-interfering </a>,
@@ -1013,7 +1031,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a>.
-
+     * 
      * @param collection the collection to append to the stream
      * @return the new stream
      * @since 0.2.1
@@ -1030,8 +1048,9 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * 
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
-     * operation</a> with <a href="package-summary.html#TCO">tail-call optimization</a>.
-
+     * operation</a> with <a href="package-summary.html#TCO">tail-call
+     * optimization</a>.
+     * 
      * @param values the values to prepend to the stream
      * @return the new stream
      */
@@ -1049,7 +1068,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a>.
-
+     * 
      * @param collection the collection to prepend to the stream
      * @return the new stream
      * @since 0.2.1
@@ -1462,10 +1481,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
-     * Creates a new Stream which is the result of applying of the supplied
-     * mapper {@code BiFunction} to the first element of the current stream
-     * (head) and the stream containing the rest elements (tail). If a mapped
-     * stream is {@code null} an empty stream is used, instead.
+     * Creates a new Stream which is the result of applying of the mapper
+     * {@code BiFunction} to the first element of the current stream (head) and
+     * the stream containing the rest elements (tail). The mapper may return
+     * {@code null} instead of empty stream.
      * 
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
@@ -1473,7 +1492,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * optimization</a>.
      * 
      * <p>
-     * The mapper function is not applied when the input stream is empty.
+     * The mapper function is not applied when the input stream is empty. This
+     * operation is equivalent to {@code headTail(mapper, () -> null)}.
      * Otherwise it's applied at most once during the stream terminal operation
      * execution. Sometimes it's useful to generate stream recursively like
      * this:
@@ -1496,8 +1516,9 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * <p>
      * This operation might perform badly with parallel streams. Sometimes the
      * same semantics could be expressed using other operations like
-     * {@link #withFirst(BiFunction)} which parallelizes better. Consider using
-     * {@code withFirst()} if its possible in your case.
+     * {@link #withFirst(BiFunction)} or {@link #mapFirst(Function)} which
+     * parallelize better. Consider using these methods if its possible in your
+     * case.
      *
      * @param <R> The element type of the new stream
      * @param mapper a <a
@@ -1513,9 +1534,68 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return headTail(mapper, () -> null);
     }
 
+    /**
+     * Creates a new Stream which is the result of applying of the mapper
+     * {@code BiFunction} to the first element of the current stream (head) and
+     * the stream containing the rest elements (tail) or supplier if the current
+     * stream is empty. The mapper or supplier may return {@code null} instead
+     * of empty stream.
+     * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a> with <a href="package-summary.html#TCO">tail-call
+     * optimization</a>.
+     * 
+     * <p>
+     * Either mapper function or supplier (but not both) is applied at most once
+     * during the stream terminal operation execution. Sometimes it's useful to
+     * generate stream recursively like this:
+     * 
+     * <pre>{@code
+     * // Stream of fixed size batches
+     * static <T> StreamEx<List<T>> batches(StreamEx<T> input, int size) {
+     *     return batches(input, size, Collections.emptyList());
+     * }
+     *
+     * private static <T> StreamEx<List<T>> batches(StreamEx<T> input, int size, List<T> cur) {
+     *     return input.headTail((head, tail) -> cur.size() >= size 
+     *             ? batches(tail, size, Arrays.asList(head)).prepend(cur)
+     *             : batches(tail, size, StreamEx.of(cur).append(head).toList()), 
+     *             () -> Stream.of(cur));
+     * }}</pre>
+     * 
+     * <p>
+     * When possible, use tail-call optimized operations to reduce the call
+     * stack depth. In particular, the example shown above uses only
+     * {@code headTail()}, and {@link #prepend(Object...)} operations, both of
+     * them are tail-call optimized, so it will not fail with
+     * {@code StackOverflowError} on long input stream.
+     * 
+     * <p>
+     * This operation might perform badly with parallel streams. Sometimes the
+     * same semantics could be expressed using other operations like
+     * {@link #withFirst(BiFunction)} or {@link #mapFirst(Function)} which
+     * parallelize better. Consider using these methods if its possible in your
+     * case.
+     *
+     * @param <R> The element type of the new stream
+     * @param mapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering</a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to the first stream element and the stream of
+     *        the rest elements which creates a new stream.
+     * @param supplier a <a
+     *        href="package-summary.html#NonInterference">non-interfering</a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        supplier which creates a resulting stream when this stream is
+     *        empty.
+     * @return the new stream
+     * @see #headTail(BiFunction)
+     * @since 0.5.3
+     */
     public <R> StreamEx<R> headTail(BiFunction<? super T, ? super StreamEx<T>, ? extends Stream<R>> mapper,
-            Supplier<? extends Stream<R>> emptyMapper) {
-        HeadTailSpliterator<T, R> spliterator = new HeadTailSpliterator<>(stream.spliterator(), mapper, emptyMapper);
+            Supplier<? extends Stream<R>> supplier) {
+        HeadTailSpliterator<T, R> spliterator = new HeadTailSpliterator<>(stream.spliterator(), mapper, supplier);
         Stream<R> delegate = delegate(spliterator);
         spliterator.owner = delegate;
         return strategy().newStreamEx(delegate);

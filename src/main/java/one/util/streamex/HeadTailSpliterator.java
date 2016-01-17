@@ -24,6 +24,7 @@ import java.util.function.Supplier;
 import java.util.stream.BaseStream;
 import java.util.stream.Stream;
 
+import one.util.streamex.StreamExInternals.TailCallSpliterator;
 import static one.util.streamex.StreamExInternals.*;
 
 /**
@@ -45,45 +46,40 @@ import static one.util.streamex.StreamExInternals.*;
         this.emptyMapper = emptyMapper;
     }
     
-    private static <T> Spliterator<T> traverseTail(Spliterator<T> spltr) {
-        Spliterator<T> current = spltr;
-        while (current instanceof TailCallSpliterator) {
-            Spliterator<T> next = ((TailCallSpliterator<T>) current).tail();
-            if (next == current)
-                break;
-            current = next;
-        }
-        return current;
-    }
-
     @Override
     public boolean tryAdvance(Consumer<? super U> action) {
         if(!init())
             return false;
-        target = traverseTail(target);
-        return finishUnless(target.tryAdvance(action));
+        target = TailCallSpliterator.tryAdvanceWithTail(target, action);
+        if(target == null) {
+            finished = true;
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public Spliterator<U> tryAdvanceOrTail(Consumer<? super U> action) {
+        if(!init())
+            return null;
+        Spliterator<U> tail = target;
+        target = null;
+        finished = true;
+        return tail;
     }
 
     @Override
     public void forEachRemaining(Consumer<? super U> action) {
-        if(init()) {
-            Spliterator<U> t = target;
-            while(t instanceof TailCallSpliterator) {
-                t = traverseTail(t);
-                if(!finishUnless(t.tryAdvance(action)))
-                    return;
-            }
-            t.forEachRemaining(action);
-            finishUnless(false);
-        }
-    }
-
-    private boolean finishUnless(boolean cont) {
-        if(cont)
-            return true;
+        if(!init())
+            return;
+        TailCallSpliterator.forEachWithTail(target, action);
         target = null;
         finished = true;
-        return false;
+    }
+
+    @Override
+    public Spliterator<U> forEachOrTail(Consumer<? super U> action) {
+        return tryAdvanceOrTail(action);
     }
 
     private boolean init() {
@@ -91,13 +87,12 @@ import static one.util.streamex.StreamExInternals.*;
             return false;
         if(target == null) {
             Box<T> first = new Box<>(null);
-            Stream<U> stream = source.tryAdvance(x -> first.a = x) ? mapper.apply(first.a, StreamEx
-                    .of(traverseTail(source))) : emptyMapper.get();
+            source = TailCallSpliterator.tryAdvanceWithTail(source, x -> first.a = x);
+            Stream<U> stream = source == null ? emptyMapper.get() : mapper.apply(first.a, StreamEx.of(source));
             source = null;
             mapper = null;
             emptyMapper = null;
-            if(owner != null && mayHaveCloseAction(stream))
-                owner.onClose(stream::close);
+            delegateClose(owner, stream);
             target = stream == null ? Spliterators.emptySpliterator() : stream.spliterator();
         }
         return true;
@@ -108,14 +103,5 @@ import static one.util.streamex.StreamExInternals.*;
         if(finished)
             return 0;
         return (target == null ? source : target).estimateSize();
-    }
-
-    @Override
-    public Spliterator<U> tail() {
-        if(!init())
-            return Spliterators.emptySpliterator();
-        Spliterator<U> t = target;
-        finishUnless(false);
-        return t;
     }
 }

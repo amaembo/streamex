@@ -123,7 +123,7 @@ public class IntStreamEx implements IntStream {
 
     final IntStreamEx delegate(Spliterator.OfInt spliterator) {
         return strategy().newIntStreamEx(
-            StreamSupport.intStream(spliterator, stream.isParallel()).onClose(stream::close));
+            delegateClose(StreamSupport.intStream(spliterator, stream.isParallel()), stream));
     }
 
     final IntStreamEx callWhile(IntPredicate predicate, int methodId) {

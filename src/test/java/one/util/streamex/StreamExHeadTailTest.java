@@ -62,7 +62,7 @@ public class StreamExHeadTailTest {
 
     // Stream.limit (TCO)
     static <T> StreamEx<T> limit(StreamEx<T> input, int n) {
-        return input.headTail((head, tail) -> n > 0 ? limit(tail, n - 1).prepend(head) : null);
+        return input.headTail((head, tail) -> n > 1 ? limit(tail, n - 1).prepend(head) : Stream.of(head));
     }
 
     // Stream.filter (TCO)
@@ -160,7 +160,7 @@ public class StreamExHeadTailTest {
 
     // Creates lazy scanLeft stream (TCO)
     static <T> StreamEx<T> scanLeft(StreamEx<T> input, BinaryOperator<T> operator) {
-        return input.headTail((head, tail) -> scanLeft(mapFirst(tail, cur -> operator.apply(head, cur)), operator)
+        return input.headTail((head, tail) -> scanLeft(tail.mapFirst(cur -> operator.apply(head, cur)), operator)
                 .prepend(head));
     }
 
@@ -193,8 +193,10 @@ public class StreamExHeadTailTest {
     }
 
     private static <T> StreamEx<List<T>> batches(StreamEx<T> input, int size, List<T> cur) {
-        return input.headTail((head, tail) -> cur.size() >= size ? batches(tail, size, asList(head)).prepend(cur)
-                : batches(tail, size, StreamEx.of(cur).append(head).toList()), () -> Stream.of(cur));
+        return input.headTail((head, tail) -> cur.size() >= size 
+                ? batches(tail, size, asList(head)).prepend(cur)
+                : batches(tail, size, StreamEx.of(cur).append(head).toList()), 
+                () -> Stream.of(cur));
     }
 
     // Stream of single element lists -> stream of sliding windows (TCO)
@@ -218,6 +220,15 @@ public class StreamExHeadTailTest {
 
     private static <T, R> StreamEx<R> withIndices(StreamEx<T> input, int idx, BiFunction<Integer, T, R> mapper) {
         return input.headTail((head, tail) -> withIndices(tail, idx + 1, mapper).prepend(mapper.apply(idx, head)));
+    }
+
+    // Appends the stream of Integer with their sum
+    static StreamEx<Integer> appendSum(StreamEx<Integer> input) {
+        return reduceLast(input.append(0), Integer::sum);
+    }
+
+    static <T> StreamEx<T> reduceLast(StreamEx<T> input, BinaryOperator<T> op) {
+        return input.headTail((head, tail) -> reduceLast(tail, op).prepend(head).mapLast(last -> op.apply(head, last)));
     }
 
     // ///////////////////////
@@ -307,6 +318,9 @@ public class StreamExHeadTailTest {
 
         assertEquals(asList("1. Foo", "2. Bar", "3. Baz"), withIndices(StreamEx.of("Foo", "Bar", "Baz"),
             (idx, e) -> (idx + 1) + ". " + e).toList());
+        
+        assertEquals(asList(1,2,3,4,10), appendSum(StreamEx.of(1,2,3,4)).toList());
+        assertFalse(appendSum(StreamEx.of(1,2,3,4)).has(11));
     }
 
     @Test
@@ -350,6 +364,8 @@ public class StreamExHeadTailTest {
                 .count());
 
         assertEquals(20000, limit(distinctTCO(IntStreamEx.of(new Random(1)).boxed()), 20000).toSet().size());
+        assertEquals(IntStreamEx.range(20000).boxed().toList(), sorted(limit(
+            distinctTCO(IntStreamEx.of(new Random(1), 0, 20000).boxed()), 20000)).toList());
     }
 
     @Test

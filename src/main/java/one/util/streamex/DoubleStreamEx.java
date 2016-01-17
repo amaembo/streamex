@@ -117,7 +117,7 @@ public class DoubleStreamEx implements DoubleStream {
 
     final DoubleStreamEx delegate(Spliterator.OfDouble spliterator) {
         return strategy().newDoubleStreamEx(
-            StreamSupport.doubleStream(spliterator, stream.isParallel()).onClose(stream::close));
+            delegateClose(StreamSupport.doubleStream(spliterator, stream.isParallel()), stream));
     }
 
     final DoubleStreamEx callWhile(DoublePredicate predicate, int methodId) {

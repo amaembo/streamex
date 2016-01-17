@@ -30,13 +30,14 @@ import java.util.function.LongBinaryOperator;
 import java.util.function.LongConsumer;
 import java.util.function.LongUnaryOperator;
 
+import one.util.streamex.StreamExInternals.TailCallSpliterator;
 import static one.util.streamex.StreamExInternals.*;
 
 /**
  * @author Tagir Valeev
  */
 /* package */abstract class PairSpliterator<T, S extends Spliterator<T>, R, SS extends PairSpliterator<T, S, R, SS>>
-        extends CloneableSpliterator<R, SS> implements TailCallSpliterator<R> {
+        extends CloneableSpliterator<R, SS> {
     static final int MODE_PAIRS = 0;
     static final int MODE_MAP_FIRST = 1;
     static final int MODE_MAP_LAST = 2;
@@ -133,16 +134,6 @@ import static one.util.streamex.StreamExInternals.*;
     }
     
     @Override
-    public Spliterator<R> tail() {
-        if (mode != MODE_MAP_FIRST || right != EMPTY || left != null)
-            return this;
-        @SuppressWarnings("unchecked")
-        Spliterator<R> s = (Spliterator<R>)source;
-        source = null;
-        return s;
-    }
-
-    @Override
     public long estimateSize() {
         long size = source.estimateSize();
         if (size == Long.MAX_VALUE || size == 0)
@@ -182,7 +173,7 @@ import static one.util.streamex.StreamExInternals.*;
     }
 
     static class PSOfRef<T, R> extends PairSpliterator<T, Spliterator<T>, R, PSOfRef<T, R>> implements
-            Consumer<T> {
+            Consumer<T>, TailCallSpliterator<R> {
         private static final Object HEAD_TAIL = new Object();
 
         private final BiFunction<? super T, ? super T, ? extends R> mapper;
@@ -245,6 +236,41 @@ import static one.util.streamex.StreamExInternals.*;
                 }
             });
             finish(fn, cur);
+        }
+
+        @Override
+        public Spliterator<R> tryAdvanceOrTail(Consumer<? super R> action) {
+            if (mode != MODE_MAP_FIRST || right != EMPTY) {
+                return tryAdvance(action) ? this : null;
+            }
+            if (left != null) {
+                Sink<T> l = left;
+                left = null;
+                source = TailCallSpliterator.tryAdvanceWithTail(source, this);
+                if (source == null) {
+                    right = null;
+                    return null;
+                }
+                if (l.push(cur, fn(action), false))
+                    return this;
+            }
+            @SuppressWarnings("unchecked")
+            Spliterator<R> s = (Spliterator<R>)source;
+            source = null;
+            return s;
+        }
+        
+        @Override
+        public Spliterator<R> forEachOrTail(Consumer<? super R> action) {
+            if(mode != MODE_MAP_FIRST || right != EMPTY) {
+                forEachRemaining(action);
+                return null;
+            }
+            while (true) {
+                Spliterator<R> tail = tryAdvanceOrTail(action);
+                if (tail != this)
+                    return tail;
+            }
         }
     }
 

@@ -47,6 +47,7 @@ import java.util.Set;
 import java.util.Spliterator;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
+import java.util.function.Consumer;
 import java.util.function.DoublePredicate;
 import java.util.function.Function;
 import java.util.function.IntPredicate;
@@ -941,14 +942,50 @@ import java.util.stream.Stream;
      */
     static interface TailCallSpliterator<T> extends Spliterator<T> {
         /**
-         * Returns either this spliterator or another one. If another one
-         * spliterator is returned, then this spliterator becomes invalid and
-         * another one must be used as a replacement to continue the operation.
-         * Never returns null.
+         * Either advances by one element feeding it to consumer and returns
+         * this or returns tail spliterator (this spliterator becomes invalid
+         * and tail must be used instead) or returns null if traversal finished.
          * 
-         * @return tail spliterator
+         * @param action to feed the next element into
+         * @return tail spliterator, this or null
          */
-        Spliterator<T> tail();
+        Spliterator<T> tryAdvanceOrTail(Consumer<? super T> action);
+
+        /**
+         * Traverses this spliterator and returns null if traversal is completed
+         * or tail spliterator if it must be used for further traversal.
+         * 
+         * @param action to feed the elements into
+         * @return tail spliterator or null (never returns this)
+         */
+        Spliterator<T> forEachOrTail(Consumer<? super T> action);
+
+        static <T> Spliterator<T> tryAdvanceWithTail(Spliterator<T> target, Consumer<? super T> action) {
+            while (true) {
+                if (target instanceof TailCallSpliterator) {
+                    Spliterator<T> spltr = ((TailCallSpliterator<T>) target).tryAdvanceOrTail(action);
+                    if (spltr == null || spltr == target)
+                        return spltr;
+                    target = spltr;
+                } else {
+                    return target.tryAdvance(action) ? target : null;
+                }
+            }
+        }
+
+        static <T> void forEachWithTail(Spliterator<T> target, Consumer<? super T> action) {
+            while (true) {
+                if (target instanceof TailCallSpliterator) {
+                    Spliterator<T> spltr = ((TailCallSpliterator<T>) target).forEachOrTail(action);
+                    if (spltr == null)
+                        break;
+                    target = spltr;
+                } else {
+                    target.forEachRemaining(action);
+                    break;
+                }
+            }
+        }
     }
 
     static abstract class CloneableSpliterator<T, S extends CloneableSpliterator<T, ?>> implements Spliterator<T>,
@@ -1027,25 +1064,28 @@ import java.util.stream.Stream;
     }
 
     /**
-     * Checks whether given BaseStream has any close action registered.
+     * Close target when proxy is closed. May omit close handler registration if
+     * target has no close handlers registered.
      * 
-     * @param s BaseStream to check
-     * @return false if supplied BaseStream is known to have no close action
-     *         registered, true otherwise.
+     * @param proxy stream where close handler should be registered
+     * @param target target stream which must be closed
+     * @return proxy (to chain calls)
      */
-    static boolean mayHaveCloseAction(BaseStream<?, ?> s) {
-        if (s == null)
-            return false;
-        if (SOURCE_STAGE == null || SOURCE_CLOSE_ACTION == null)
-            return true;
-        if (s instanceof AbstractStreamEx)
-            s = ((AbstractStreamEx<?, ?>) s).stream;
+    static <T extends BaseStream<?, ?>> T delegateClose(T proxy, BaseStream<?, ?> target) {
+        if (target == null) {
+            return proxy;
+        }
+        if (target instanceof AbstractStreamEx) {
+            target = ((AbstractStreamEx<?, ?>) target).stream;
+        }
         try {
-            if (SOURCE_CLOSE_ACTION.get(SOURCE_STAGE.get(s)) == null)
-                return false;
+            if (SOURCE_STAGE != null && SOURCE_CLOSE_ACTION != null
+                && SOURCE_CLOSE_ACTION.get(SOURCE_STAGE.get(target)) == null)
+                return proxy;
         } catch (IllegalArgumentException | IllegalAccessException e) {
             // ignore
         }
-        return true;
+        proxy.onClose(target::close);
+        return proxy;
     }
 }

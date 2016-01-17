@@ -117,7 +117,7 @@ public class LongStreamEx implements LongStream {
 
     final LongStreamEx delegate(Spliterator.OfLong spliterator) {
         return strategy().newLongStreamEx(
-            StreamSupport.longStream(spliterator, stream.isParallel()).onClose(stream::close));
+            delegateClose(StreamSupport.longStream(spliterator, stream.isParallel()), stream));
     }
 
     final LongStreamEx callWhile(LongPredicate predicate, int methodId) {
