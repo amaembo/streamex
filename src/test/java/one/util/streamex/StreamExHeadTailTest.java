@@ -25,13 +25,14 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
@@ -75,6 +76,16 @@ public class StreamExHeadTailTest {
     // Stream.distinct
     static <T> StreamEx<T> distinct(StreamEx<T> input) {
         return input.headTail((head, tail) -> distinct(tail.filter(n -> !Objects.equals(head, n))).prepend(head));
+    }
+
+    // Stream.distinct (TCO)
+    static <T> StreamEx<T> distinctTCO(StreamEx<T> input) {
+        return distinctTCO(input, new HashSet<>());
+    }
+
+    private static <T> StreamEx<T> distinctTCO(StreamEx<T> input, Set<T> observed) {
+        return input.headTail((head, tail) -> observed.add(head) ? distinctTCO(tail, observed).prepend(head)
+                : distinctTCO(tail, observed));
     }
 
     // Stream.map (TCO)
@@ -152,7 +163,7 @@ public class StreamExHeadTailTest {
         return input.headTail((head, tail) -> scanLeft(mapFirst(tail, cur -> operator.apply(head, cur)), operator)
                 .prepend(head));
     }
-    
+
     // takeWhileClosed: takeWhile+first element violating the predicate (TCO)
     static <T> StreamEx<T> takeWhileClosed(StreamEx<T> input, Predicate<T> predicate) {
         return input.headTail((head, tail) -> predicate.test(head) ? takeWhileClosed(tail, predicate).prepend(head)
@@ -198,6 +209,15 @@ public class StreamExHeadTailTest {
     static <T> StreamEx<T> dominators(StreamEx<T> input, BiPredicate<T, T> isDominator) {
         return input.headTail((head, tail) -> dominators(dropWhile(tail, e -> isDominator.test(head, e)), isDominator)
                 .prepend(head));
+    }
+
+    // Stream of mappings of (index, element) (TCO)
+    static <T, R> StreamEx<R> withIndices(StreamEx<T> input, BiFunction<Integer, T, R> mapper) {
+        return withIndices(input, 0, mapper);
+    }
+
+    private static <T, R> StreamEx<R> withIndices(StreamEx<T> input, int idx, BiFunction<Integer, T, R> mapper) {
+        return input.headTail((head, tail) -> withIndices(tail, idx + 1, mapper).prepend(mapper.apply(idx, head)));
     }
 
     // ///////////////////////
@@ -273,17 +293,20 @@ public class StreamExHeadTailTest {
         assertEquals(IntStreamEx.range(50, 100).boxed().toList(), dropWhile(IntStreamEx.range(100).boxed(),
             i -> i != 50).toList());
 
-        assertEquals(Arrays.asList(1, 3, 4, 7, 10), dominators(
+        assertEquals(asList(1, 3, 4, 7, 10), dominators(
             StreamEx.of(1, 3, 4, 2, 1, 7, 5, 3, 4, 0, 4, 6, 7, 10, 4, 3, 2, 1), (a, b) -> a >= b).toList());
 
-        assertEquals(Arrays.asList(1, 3, 7, 5, 10), distinct(
+        assertEquals(asList(1, 3, 7, 5, 10), distinct(
             StreamEx.of(1, 1, 3, 1, 3, 7, 1, 3, 1, 7, 3, 5, 1, 3, 5, 5, 7, 7, 7, 10, 5, 3, 7, 1)).toList());
 
-        assertEquals(Arrays.asList("key1=1", "key2=2", "key3=3"), couples(StreamEx.of("key1", 1, "key2", 2, "key3", 3),
+        assertEquals(asList("key1=1", "key2=2", "key3=3"), couples(StreamEx.of("key1", 1, "key2", 2, "key3", 3),
             (k, v) -> k + "=" + v).toList());
 
-        assertEquals(Arrays.asList("key1=1", "1=key2", "key2=2", "2=key3", "key3=3"), pairs(
+        assertEquals(asList("key1=1", "1=key2", "key2=2", "2=key3", "key3=3"), pairs(
             StreamEx.of("key1", 1, "key2", 2, "key3", 3), (k, v) -> k + "=" + v).toList());
+
+        assertEquals(asList("1. Foo", "2. Bar", "3. Baz"), withIndices(StreamEx.of("Foo", "Bar", "Baz"),
+            (idx, e) -> (idx + 1) + ". " + e).toList());
     }
 
     @Test
@@ -322,6 +345,11 @@ public class StreamExHeadTailTest {
 
         List<Integer> sortedRandoms = IntStreamEx.of(new Random(1), 20000).boxed().sorted().toList();
         assertEquals(sortedRandoms, sorted(IntStreamEx.of(new Random(1), 20000).boxed(), new ArrayList<>()).toList());
+
+        assertEquals(20000, withIndices(IntStreamEx.of(new Random(1), 20000).boxed(), (idx, e) -> idx + ": " + e)
+                .count());
+
+        assertEquals(20000, limit(distinctTCO(IntStreamEx.of(new Random(1)).boxed()), 20000).toSet().size());
     }
 
     @Test
