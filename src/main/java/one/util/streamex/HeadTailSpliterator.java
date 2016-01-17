@@ -45,6 +45,17 @@ import static one.util.streamex.StreamExInternals.*;
         this.emptyMapper = emptyMapper;
     }
     
+    private static <T> Spliterator<T> traverseTail(Spliterator<T> spltr) {
+        Spliterator<T> current = spltr;
+        while (current instanceof TailCallSpliterator) {
+            Spliterator<T> next = ((TailCallSpliterator<T>) current).tail();
+            if (next == current)
+                break;
+            current = next;
+        }
+        return current;
+    }
+
     @Override
     public boolean tryAdvance(Consumer<? super U> action) {
         if(!init())

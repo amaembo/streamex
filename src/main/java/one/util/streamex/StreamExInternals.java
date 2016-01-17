@@ -1021,17 +1021,6 @@ import java.util.stream.Stream;
         return null;
     }
 
-    static <T> Spliterator<T> traverseTail(Spliterator<T> spltr) {
-        Spliterator<T> current = spltr;
-        while (current instanceof TailCallSpliterator) {
-            Spliterator<T> next = ((TailCallSpliterator<T>) current).tail();
-            if (next == current)
-                break;
-            current = next;
-        }
-        return current;
-    }
-
     @SuppressWarnings("unchecked")
     static <T> T none() {
         return (T) NONE;
