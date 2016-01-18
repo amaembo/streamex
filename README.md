@@ -8,7 +8,7 @@ The OSGi bundle name and Maven groupId are changed correspondingly. To migrate t
  
 This change is discussed [here](https://github.com/amaembo/streamex/issues/8). Sorry for possible inconvenience.
 
-# StreamEx 0.5.2
+# StreamEx 0.5.3
 Enhancing Java 8 Streams.
 
 [![Maven Central](https://img.shields.io/maven-central/v/one.util/streamex.svg)](https://maven-badges.herokuapp.com/maven-central/one.util/streamex/)
@@ -112,6 +112,14 @@ short[] multiply(short[] src, short multiplier) {
 }
 ```
 
+Define custom lazy intermediate operation recursively:
+```java
+static <T> StreamEx<T> scanLeft(StreamEx<T> input, BinaryOperator<T> operator) {
+        return input.headTail((head, tail) -> scanLeft(tail.mapFirst(cur -> operator.apply(head, cur)), operator)
+                .prepend(head));
+}
+```
+
 And more!
 
 ### License
@@ -128,7 +136,7 @@ To use from maven add this snippet to the pom.xml `dependencies` section:
 <dependency>
   <groupId>one.util</groupId>
   <artifactId>streamex</artifactId>
-  <version>0.5.2</version>
+  <version>0.5.3</version>
 </dependency>
 ```
 
