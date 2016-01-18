@@ -24,8 +24,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.StringReader;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -143,16 +145,52 @@ public class StreamExHeadTailTest {
         return input.headTail((head, tail) -> reverse(tail).append(head));
     }
 
+    // Creates a reversed stream (TSO)
+    static <T> StreamEx<T> reverseTSO(StreamEx<T> input) {
+        return reverseTSO(input, new ArrayDeque<>());
+    }
+    
+    private static <T> StreamEx<T> reverseTSO(StreamEx<T> input, Deque<T> buf) {
+        return input.headTail((head, tail) -> {
+            buf.addFirst(head);
+            return reverseTSO(tail, buf);
+        }, buf::stream);
+    }
+    
     // Creates a stream which consists of this stream and this reversed stream
     static <T> StreamEx<T> mirror(StreamEx<T> input) {
         return input.headTail((head, tail) -> mirror(tail).append(head).prepend(head));
     }
 
+    // Creates a reversed stream (TSO)
+    static <T> StreamEx<T> mirrorTSO(StreamEx<T> input) {
+        return mirrorTSO(input, new ArrayDeque<>());
+    }
+    
+    private static <T> StreamEx<T> mirrorTSO(StreamEx<T> input, Deque<T> buf) {
+        return input.headTail((head, tail) -> {
+            buf.addFirst(head);
+            return mirrorTSO(tail, buf).prepend(head);
+        }, buf::stream);
+    }
+    
     // Creates an infinitely cycled stream
     static <T> StreamEx<T> cycle(StreamEx<T> input) {
         return input.headTail((head, tail) -> cycle(tail.append(head)).prepend(head));
     }
 
+    // Creates a n-times cycled stream (TSO)
+    static <T> StreamEx<T> cycleTSO(StreamEx<T> input, int n) {
+        return cycleTSO(input, n, new ArrayList<>());
+    }
+    
+    private static <T> StreamEx<T> cycleTSO(StreamEx<T> input, int n, List<T> buf) {
+        return input.headTail((head, tail) -> {
+            buf.add(head);
+            return cycleTSO(tail, n, buf).prepend(head);
+        }, () -> IntStreamEx.range(n-1).flatMapToObj(i -> buf.stream()));
+    }
+    
     // mapFirst (TSO)
     static <T> StreamEx<T> mapFirst(StreamEx<T> input, UnaryOperator<T> operator) {
         return input.headTail((head, tail) -> tail.prepend(operator.apply(head)));
@@ -236,7 +274,20 @@ public class StreamExHeadTailTest {
         return input.headTail((head, tail) -> appendReduction(tail, op.apply(identity, head), op).prepend(head),
             () -> Stream.of(identity));
     }
+    
+    // Returns stream filtered by f1, then concatenated with the original stream filtered by f2
+    static <T> StreamEx<T> twoFilters(StreamEx<T> input, Predicate<T> f1, Predicate<T> f2) {
+        return twoFilters(input, f1, f2, Stream.builder());
+    }
 
+    private static <T> StreamEx<T> twoFilters(StreamEx<T> input, Predicate<T> f1, Predicate<T> f2, Stream.Builder<T> buf) {
+        return input.headTail((head, tail) -> {
+            StreamEx<T> res = twoFilters(tail, f1, f2, buf);
+            if(f2.test(head)) buf.add(head);
+            return f1.test(head) ? res.prepend(head) : res;
+        }, buf::build);
+    }
+    
     // ///////////////////////
     // Terminal ops
 
@@ -266,6 +317,8 @@ public class StreamExHeadTailTest {
 
         streamEx(() -> IntStreamEx.range(100).boxed(), s -> assertEquals(IntStreamEx.rangeClosed(99, 0, -1).boxed()
                 .toList(), reverse(s.get()).toList()));
+        streamEx(() -> IntStreamEx.range(100).boxed(), s -> assertEquals(IntStreamEx.rangeClosed(99, 0, -1).boxed()
+            .toList(), reverseTSO(s.get()).toList()));
 
         streamEx(() -> StreamEx.of(1, 2), s -> assertEquals(0, s.get().headTail((head, stream) -> null).count()));
 
@@ -294,6 +347,8 @@ public class StreamExHeadTailTest {
 
         assertEquals(asList(1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3), cycle(StreamEx.of(1, 2, 3, 4, 5))
                 .limit(18).toList());
+        assertEquals(asList(1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5), cycleTSO(StreamEx.of(1, 2, 3, 4, 5), 3)
+                .toList());
         assertEquals(asList(1, 2, 3, 4, 5, 5, 4, 3, 2, 1), mirror(StreamEx.of(1, 2, 3, 4, 5)).toList());
 
         assertEquals(asList(9, 13, 17), StreamEx.of(1, 3, 5, 7, 9).headTail(
@@ -327,6 +382,9 @@ public class StreamExHeadTailTest {
         
         assertEquals(asList(1,2,3,4,10), appendSum(StreamEx.of(1,2,3,4)).toList());
         assertFalse(appendSum(StreamEx.of(1,2,3,4)).has(11));
+        
+        assertEquals(asList(0, 3, 6, 9, 12, 15, 18, 0, 4, 8, 12, 16), twoFilters(IntStreamEx.range(20).boxed(),
+            x -> x % 3 == 0, x -> x % 4 == 0).toList());
     }
 
     @Test
@@ -341,14 +399,14 @@ public class StreamExHeadTailTest {
                 .sum());
         assertEquals(400000000, limit(filter(StreamEx.iterate(1, x -> x + 1), x -> x % 2 != 0), 20000).mapToInt(
             Integer::intValue).sum());
-        // 1+2+...+20000
-        assertEquals(200010000, (int) limit(scanLeft(StreamEx.iterate(1, x -> x + 1), Integer::sum), 20000).reduce(
+        // 1+2+...+10000
+        assertEquals(50005000, (int) limit(scanLeft(StreamEx.iterate(1, x -> x + 1), Integer::sum), 10000).reduce(
             (a, b) -> b).get());
-        assertEquals(asList(200010000), skip(
-            appendReduction(IntStreamEx.rangeClosed(1, 20000).boxed(), 0, Integer::sum), 20000).toList());
+        assertEquals(asList(50005000), skip(
+            appendReduction(IntStreamEx.rangeClosed(1, 10000).boxed(), 0, Integer::sum), 10000).toList());
         AtomicInteger sum = new AtomicInteger();
-        assertEquals(20000, peek(IntStreamEx.rangeClosed(1, 20000).boxed(), sum::addAndGet).count());
-        assertEquals(200010000, sum.get());
+        assertEquals(10000, peek(IntStreamEx.rangeClosed(1, 10000).boxed(), sum::addAndGet).count());
+        assertEquals(50005000, sum.get());
         
 
         assertEquals(400020000, (int) limit(map(StreamEx.iterate(1, x -> x + 1), x -> x * 2), 20000).reduce(
@@ -363,18 +421,24 @@ public class StreamExHeadTailTest {
         assertEquals(5000, batches(IntStreamEx.range(20000).boxed(), 4).count());
         assertEquals(4, batches(IntStreamEx.range(20000).boxed(), 5000).count());
         assertEquals(19997, sliding(IntStreamEx.range(20000).mapToObj(Collections::singletonList), 4).count());
+        assertEquals(IntStreamEx.range(40000).boxed().toList(), dominators(IntStreamEx.range(40000).boxed(),
+            (a, b) -> a >= b).toList());
         assertEquals(15, dominators(IntStreamEx.of(new Random(1)).boxed(), (a, b) -> a >= b).takeWhile(
             x -> x < Integer.MAX_VALUE - 100000).count());
 
-        List<Integer> sortedRandoms = IntStreamEx.of(new Random(1), 20000).boxed().sorted().toList();
-        assertEquals(sortedRandoms, sorted(IntStreamEx.of(new Random(1), 20000).boxed(), new ArrayList<>()).toList());
+        assertEquals(IntStreamEx.of(new Random(1), 10000).boxed().sorted().toList(), sorted(
+            IntStreamEx.of(new Random(1), 10000).boxed()).toList());
 
-        assertEquals(20000, withIndices(IntStreamEx.of(new Random(1), 20000).boxed(), (idx, e) -> idx + ": " + e)
+        assertEquals(10000, withIndices(IntStreamEx.of(new Random(1), 10000).boxed(), (idx, e) -> idx + ": " + e)
                 .count());
 
-        assertEquals(20000, limit(distinctTSO(IntStreamEx.of(new Random(1)).boxed()), 20000).toSet().size());
-        assertEquals(IntStreamEx.range(20000).boxed().toList(), sorted(limit(
-            distinctTSO(IntStreamEx.of(new Random(1), 0, 20000).boxed()), 20000)).toList());
+        assertEquals(10000, limit(distinctTSO(IntStreamEx.of(new Random(1)).boxed()), 10000).toSet().size());
+        assertEquals(IntStreamEx.range(10000).boxed().toList(), sorted(limit(
+            distinctTSO(IntStreamEx.of(new Random(1), 0, 10000).boxed()), 10000)).toList());
+        assertEquals(IntStreamEx.rangeClosed(9999, 0, -1).boxed()
+            .toList(), reverseTSO(IntStreamEx.range(10000).boxed()).toList());
+        assertEquals(IntStreamEx.range(10000).append(IntStreamEx.rangeClosed(9999, 0, -1)).boxed().toList(),
+            mirrorTSO(IntStreamEx.range(10000).boxed()).toList());
     }
 
     @Test
