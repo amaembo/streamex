@@ -227,8 +227,14 @@ public class StreamExHeadTailTest {
         return reduceLast(input.append(0), Integer::sum);
     }
 
-    static <T> StreamEx<T> reduceLast(StreamEx<T> input, BinaryOperator<T> op) {
+    private static <T> StreamEx<T> reduceLast(StreamEx<T> input, BinaryOperator<T> op) {
         return input.headTail((head, tail) -> reduceLast(tail, op).prepend(head).mapLast(last -> op.apply(head, last)));
+    }
+    
+    // Append the result of reduction of given stream (TCO)
+    static <T> StreamEx<T> appendReduction(StreamEx<T> input, T identity, BinaryOperator<T> op) {
+        return input.headTail((head, tail) -> appendReduction(tail, op.apply(identity, head), op).prepend(head),
+            () -> Stream.of(identity));
     }
 
     // ///////////////////////
@@ -338,9 +344,12 @@ public class StreamExHeadTailTest {
         // 1+2+...+20000
         assertEquals(200010000, (int) limit(scanLeft(StreamEx.iterate(1, x -> x + 1), Integer::sum), 20000).reduce(
             (a, b) -> b).get());
+        assertEquals(asList(200010000), skip(
+            appendReduction(IntStreamEx.rangeClosed(1, 20000).boxed(), 0, Integer::sum), 20000).toList());
         AtomicInteger sum = new AtomicInteger();
         assertEquals(20000, peek(IntStreamEx.rangeClosed(1, 20000).boxed(), sum::addAndGet).count());
         assertEquals(200010000, sum.get());
+        
 
         assertEquals(400020000, (int) limit(map(StreamEx.iterate(1, x -> x + 1), x -> x * 2), 20000).reduce(
             Integer::sum).get());
