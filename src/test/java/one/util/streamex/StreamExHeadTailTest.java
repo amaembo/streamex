@@ -476,5 +476,10 @@ public class StreamExHeadTailTest {
         streamEx(() -> StreamEx.of("a", "b", "c", "d"), s -> assertEquals(Collections.singletonMap("a", asList("b",
             "c", "d")), s.get().headTail((x, str) -> str.mapToEntry(e -> x, e -> e)).mapToEntry(Entry::getKey,
             Entry::getValue).grouping()));
+        assertEquals(asList("b:c", "c:d"), StreamEx.of(":", "b", "c", "d").headTail(
+            (head, tail) -> tail.pairMap((left, right) -> left + head + right)).toList());
+        assertEquals(asList("b:", "c", "d"), StreamEx.of(":", "b", "c", "d").headTail(
+            (head, tail) -> tail.mapFirst(first -> first + head)).toList());
+        
     }
 }
