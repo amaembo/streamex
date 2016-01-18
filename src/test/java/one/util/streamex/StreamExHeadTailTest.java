@@ -55,17 +55,17 @@ public class StreamExHeadTailTest {
     // ///////////////////////
     // JDK-8 intermediate ops
 
-    // Stream.skip (TCO)
+    // Stream.skip (TSO)
     static <T> StreamEx<T> skip(StreamEx<T> input, int n) {
         return input.headTail((head, tail) -> n > 0 ? skip(tail, n - 1) : tail.prepend(head));
     }
 
-    // Stream.limit (TCO)
+    // Stream.limit (TSO)
     static <T> StreamEx<T> limit(StreamEx<T> input, int n) {
         return input.headTail((head, tail) -> n > 1 ? limit(tail, n - 1).prepend(head) : Stream.of(head));
     }
 
-    // Stream.filter (TCO)
+    // Stream.filter (TSO)
     static <T> StreamEx<T> filter(StreamEx<T> input, Predicate<T> predicate) {
         return input.<T> headTail((head, tail) -> {
             StreamEx<T> filtered = filter(tail, predicate);
@@ -78,22 +78,22 @@ public class StreamExHeadTailTest {
         return input.headTail((head, tail) -> distinct(tail.filter(n -> !Objects.equals(head, n))).prepend(head));
     }
 
-    // Stream.distinct (TCO)
-    static <T> StreamEx<T> distinctTCO(StreamEx<T> input) {
-        return distinctTCO(input, new HashSet<>());
+    // Stream.distinct (TSO)
+    static <T> StreamEx<T> distinctTSO(StreamEx<T> input) {
+        return distinctTSO(input, new HashSet<>());
     }
 
-    private static <T> StreamEx<T> distinctTCO(StreamEx<T> input, Set<T> observed) {
-        return input.headTail((head, tail) -> observed.add(head) ? distinctTCO(tail, observed).prepend(head)
-                : distinctTCO(tail, observed));
+    private static <T> StreamEx<T> distinctTSO(StreamEx<T> input, Set<T> observed) {
+        return input.headTail((head, tail) -> observed.add(head) ? distinctTSO(tail, observed).prepend(head)
+                : distinctTSO(tail, observed));
     }
 
-    // Stream.map (TCO)
+    // Stream.map (TSO)
     static <T, R> StreamEx<R> map(StreamEx<T> input, Function<T, R> mapper) {
         return input.headTail((head, tail) -> map(tail, mapper).prepend(mapper.apply(head)));
     }
 
-    // Stream.peek (TCO)
+    // Stream.peek (TSO)
     static <T> StreamEx<T> peek(StreamEx<T> input, Consumer<T> consumer) {
         return input.headTail((head, tail) -> {
             consumer.accept(head);
@@ -119,12 +119,12 @@ public class StreamExHeadTailTest {
     // ///////////////////////
     // JDK-9 intermediate ops
 
-    // Stream.takeWhile (TCO)
+    // Stream.takeWhile (TSO)
     static <T> StreamEx<T> takeWhile(StreamEx<T> input, Predicate<T> predicate) {
         return input.headTail((head, tail) -> predicate.test(head) ? takeWhile(tail, predicate).prepend(head) : null);
     }
 
-    // Stream.dropWhile (TCO)
+    // Stream.dropWhile (TSO)
     static <T> StreamEx<T> dropWhile(StreamEx<T> input, Predicate<T> predicate) {
         return input.headTail((head, tail) -> predicate.test(head) ? dropWhile(tail, predicate) : tail.prepend(head));
     }
@@ -153,24 +153,24 @@ public class StreamExHeadTailTest {
         return input.headTail((head, tail) -> cycle(tail.append(head)).prepend(head));
     }
 
-    // mapFirst (TCO)
+    // mapFirst (TSO)
     static <T> StreamEx<T> mapFirst(StreamEx<T> input, UnaryOperator<T> operator) {
         return input.headTail((head, tail) -> tail.prepend(operator.apply(head)));
     }
 
-    // Creates lazy scanLeft stream (TCO)
+    // Creates lazy scanLeft stream (TSO)
     static <T> StreamEx<T> scanLeft(StreamEx<T> input, BinaryOperator<T> operator) {
         return input.headTail((head, tail) -> scanLeft(tail.mapFirst(cur -> operator.apply(head, cur)), operator)
                 .prepend(head));
     }
 
-    // takeWhileClosed: takeWhile+first element violating the predicate (TCO)
+    // takeWhileClosed: takeWhile+first element violating the predicate (TSO)
     static <T> StreamEx<T> takeWhileClosed(StreamEx<T> input, Predicate<T> predicate) {
         return input.headTail((head, tail) -> predicate.test(head) ? takeWhileClosed(tail, predicate).prepend(head)
                 : Stream.of(head));
     }
 
-    // take every nth stream element (starting from the first) (TCO)
+    // take every nth stream element (starting from the first) (TSO)
     static <T> StreamEx<T> every(StreamEx<T> input, int n) {
         return input.headTail((head, tail) -> every(skip(tail, n - 1), n).prepend(head));
     }
@@ -187,7 +187,7 @@ public class StreamExHeadTailTest {
                 .prepend(mapper.apply(left, right))));
     }
 
-    // Stream of fixed size batches (TCO)
+    // Stream of fixed size batches (TSO)
     static <T> StreamEx<List<T>> batches(StreamEx<T> input, int size) {
         return batches(input, size, Collections.emptyList());
     }
@@ -199,7 +199,7 @@ public class StreamExHeadTailTest {
                 () -> Stream.of(cur));
     }
 
-    // Stream of single element lists -> stream of sliding windows (TCO)
+    // Stream of single element lists -> stream of sliding windows (TSO)
     static <T> StreamEx<List<T>> sliding(StreamEx<List<T>> input, int size) {
         return input.headTail((head, tail) -> head.size() == size ? sliding(
             tail.mapFirst(next -> StreamEx.of(head.subList(1, size), next).toFlatList(l -> l)), size).prepend(head)
@@ -207,13 +207,13 @@ public class StreamExHeadTailTest {
     }
 
     // Stream of dominators (removes immediately following elements which the
-    // current element dominates on) (TCO)
+    // current element dominates on) (TSO)
     static <T> StreamEx<T> dominators(StreamEx<T> input, BiPredicate<T, T> isDominator) {
         return input.headTail((head, tail) -> dominators(dropWhile(tail, e -> isDominator.test(head, e)), isDominator)
                 .prepend(head));
     }
 
-    // Stream of mappings of (index, element) (TCO)
+    // Stream of mappings of (index, element) (TSO)
     static <T, R> StreamEx<R> withIndices(StreamEx<T> input, BiFunction<Integer, T, R> mapper) {
         return withIndices(input, 0, mapper);
     }
@@ -363,9 +363,9 @@ public class StreamExHeadTailTest {
         assertEquals(20000, withIndices(IntStreamEx.of(new Random(1), 20000).boxed(), (idx, e) -> idx + ": " + e)
                 .count());
 
-        assertEquals(20000, limit(distinctTCO(IntStreamEx.of(new Random(1)).boxed()), 20000).toSet().size());
+        assertEquals(20000, limit(distinctTSO(IntStreamEx.of(new Random(1)).boxed()), 20000).toSet().size());
         assertEquals(IntStreamEx.range(20000).boxed().toList(), sorted(limit(
-            distinctTCO(IntStreamEx.of(new Random(1), 0, 20000).boxed()), 20000)).toList());
+            distinctTSO(IntStreamEx.of(new Random(1), 0, 20000).boxed()), 20000)).toList());
     }
 
     @Test

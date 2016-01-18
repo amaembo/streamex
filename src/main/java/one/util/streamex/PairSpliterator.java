@@ -30,7 +30,7 @@ import java.util.function.LongBinaryOperator;
 import java.util.function.LongConsumer;
 import java.util.function.LongUnaryOperator;
 
-import one.util.streamex.StreamExInternals.TailCallSpliterator;
+import one.util.streamex.StreamExInternals.TailSpliterator;
 import static one.util.streamex.StreamExInternals.*;
 
 /**
@@ -173,7 +173,7 @@ import static one.util.streamex.StreamExInternals.*;
     }
 
     static class PSOfRef<T, R> extends PairSpliterator<T, Spliterator<T>, R, PSOfRef<T, R>> implements
-            Consumer<T>, TailCallSpliterator<R> {
+            Consumer<T>, TailSpliterator<R> {
         private static final Object HEAD_TAIL = new Object();
 
         private final BiFunction<? super T, ? super T, ? extends R> mapper;
@@ -246,7 +246,7 @@ import static one.util.streamex.StreamExInternals.*;
             if (left != null) {
                 Sink<T> l = left;
                 left = null;
-                source = TailCallSpliterator.tryAdvanceWithTail(source, this);
+                source = TailSpliterator.tryAdvanceWithTail(source, this);
                 if (source == null) {
                     right = null;
                     return null;

@@ -63,13 +63,13 @@
  * operation, then unordered mode is not propagated through it, so the operations prior to the quasi-intermediate operation 
  * (including the quasi-intermediate operation itself) will remain ordered.
  * 
- * <h3><a name="TCO">Tail call optimization</a></h3>
+ * <h3><a name="TSO">Tail stream optimization</a></h3>
  *
- * A few quasi-intermediate operations are tail-call optimized (TCO) which is important when using 
+ * A few quasi-intermediate operations are tail-stream optimized (TSO) which is important when using 
  * {@link one.util.streamex.StreamEx#headTail(java.util.function.BiFunction) headTail}
- * method recursively. When the TCO-compatible operation understands that it should just pass-through 
+ * method recursively. When the TSO-compatible operation understands that it should just pass-through 
  * the rest of the stream as-is, it notifies the surrounding {@code headTail} operation, and {@code headTail} operation 
- * removes the TCO-compatible operation from the pipeline shortening the call stack.
+ * removes the TSO-compatible operation from the pipeline shortening the call stack.
  * This allows writing many recursively defined operations which consume constant amount of the call stack and the heap.
  *
  * <h3><a name="NonInterference">Non-interference</a></h3>

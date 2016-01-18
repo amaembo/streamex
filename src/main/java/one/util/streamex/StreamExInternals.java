@@ -936,11 +936,11 @@ import java.util.stream.Stream;
     }
 
     /**
-     * A spliterator which may perform tail-call optimization
+     * A spliterator which may perform tail-stream optimization
      *
      * @param <T>
      */
-    static interface TailCallSpliterator<T> extends Spliterator<T> {
+    static interface TailSpliterator<T> extends Spliterator<T> {
         /**
          * Either advances by one element feeding it to consumer and returns
          * this or returns tail spliterator (this spliterator becomes invalid
@@ -962,8 +962,8 @@ import java.util.stream.Stream;
 
         static <T> Spliterator<T> tryAdvanceWithTail(Spliterator<T> target, Consumer<? super T> action) {
             while (true) {
-                if (target instanceof TailCallSpliterator) {
-                    Spliterator<T> spltr = ((TailCallSpliterator<T>) target).tryAdvanceOrTail(action);
+                if (target instanceof TailSpliterator) {
+                    Spliterator<T> spltr = ((TailSpliterator<T>) target).tryAdvanceOrTail(action);
                     if (spltr == null || spltr == target)
                         return spltr;
                     target = spltr;
@@ -975,8 +975,8 @@ import java.util.stream.Stream;
 
         static <T> void forEachWithTail(Spliterator<T> target, Consumer<? super T> action) {
             while (true) {
-                if (target instanceof TailCallSpliterator) {
-                    Spliterator<T> spltr = ((TailCallSpliterator<T>) target).forEachOrTail(action);
+                if (target instanceof TailSpliterator) {
+                    Spliterator<T> spltr = ((TailSpliterator<T>) target).forEachOrTail(action);
                     if (spltr == null)
                         break;
                     target = spltr;

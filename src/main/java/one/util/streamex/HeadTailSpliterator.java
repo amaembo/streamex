@@ -24,13 +24,13 @@ import java.util.function.Supplier;
 import java.util.stream.BaseStream;
 import java.util.stream.Stream;
 
-import one.util.streamex.StreamExInternals.TailCallSpliterator;
+import one.util.streamex.StreamExInternals.TailSpliterator;
 import static one.util.streamex.StreamExInternals.*;
 
 /**
  * @author Tagir Valeev
  */
-/*package*/ final class HeadTailSpliterator<T, U> extends AbstractSpliterator<U> implements TailCallSpliterator<U> {
+/*package*/ final class HeadTailSpliterator<T, U> extends AbstractSpliterator<U> implements TailSpliterator<U> {
     private Spliterator<T> source;
     private BiFunction<? super T, ? super StreamEx<T>, ? extends Stream<U>> mapper;
     private Supplier<? extends Stream<U>> emptyMapper;
@@ -50,7 +50,7 @@ import static one.util.streamex.StreamExInternals.*;
     public boolean tryAdvance(Consumer<? super U> action) {
         if(!init())
             return false;
-        target = TailCallSpliterator.tryAdvanceWithTail(target, action);
+        target = TailSpliterator.tryAdvanceWithTail(target, action);
         if(target == null) {
             finished = true;
             return false;
@@ -72,7 +72,7 @@ import static one.util.streamex.StreamExInternals.*;
     public void forEachRemaining(Consumer<? super U> action) {
         if(!init())
             return;
-        TailCallSpliterator.forEachWithTail(target, action);
+        TailSpliterator.forEachWithTail(target, action);
         target = null;
         finished = true;
     }
@@ -87,7 +87,7 @@ import static one.util.streamex.StreamExInternals.*;
             return false;
         if(target == null) {
             Box<T> first = new Box<>(null);
-            source = TailCallSpliterator.tryAdvanceWithTail(source, x -> first.a = x);
+            source = TailSpliterator.tryAdvanceWithTail(source, x -> first.a = x);
             Stream<U> stream = source == null ? emptyMapper.get() : mapper.apply(first.a, StreamEx.of(source));
             source = null;
             mapper = null;

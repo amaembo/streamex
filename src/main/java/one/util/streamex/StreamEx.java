@@ -79,7 +79,7 @@ import static one.util.streamex.StreamExInternals.*;
  */
 public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
 
-    private static class PrependSpliterator<T> implements TailCallSpliterator<T> {
+    private static class PrependSpliterator<T> implements TailSpliterator<T> {
         private Spliterator<T> source;
         private T[] prepended;
         private int position;
@@ -285,7 +285,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
-     * operation</a> with <a href="package-summary.html#TCO">tail-call
+     * operation</a> with <a href="package-summary.html#TSO">tail-stream
      * optimization</a>.
      *
      * @param mapper a <a
@@ -1048,7 +1048,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * 
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
-     * operation</a> with <a href="package-summary.html#TCO">tail-call
+     * operation</a> with <a href="package-summary.html#TSO">tail-stream
      * optimization</a>.
      * 
      * @param values the values to prepend to the stream
@@ -1488,7 +1488,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * 
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
-     * operation</a> with <a href="package-summary.html#TCO">tail-call
+     * operation</a> with <a href="package-summary.html#TSO">tail-stream
      * optimization</a>.
      * 
      * <p>
@@ -1506,10 +1506,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * }}</pre>
      * 
      * <p>
-     * When possible, use tail-call optimized operations to reduce the call
+     * When possible, use tail-stream optimized operations to reduce the call
      * stack depth. In particular, the example shown above uses only
      * {@code headTail()}, {@link #mapFirst(Function)} and
-     * {@link #prepend(Object...)} operations, all of them are tail-call
+     * {@link #prepend(Object...)} operations, all of them are tail-stream
      * optimized, so it will not fail with {@code StackOverflowError} on long
      * input stream.
      * 
@@ -1522,8 +1522,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *
      * @param <R> The element type of the new stream
      * @param mapper a <a
-     *        href="package-summary.html#NonInterference">non-interfering</a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        href="package-summary.html#NonInterference">non-interfering</a>
      *        function to apply to the first stream element and the stream of
      *        the rest elements which creates a new stream.
      * @return the new stream
@@ -1543,7 +1542,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * 
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
-     * operation</a> with <a href="package-summary.html#TCO">tail-call
+     * operation</a> with <a href="package-summary.html#TSO">tail-stream
      * optimization</a>.
      * 
      * <p>
@@ -1565,10 +1564,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * }}</pre>
      * 
      * <p>
-     * When possible, use tail-call optimized operations to reduce the call
+     * When possible, use tail-stream optimized operations to reduce the call
      * stack depth. In particular, the example shown above uses only
      * {@code headTail()}, and {@link #prepend(Object...)} operations, both of
-     * them are tail-call optimized, so it will not fail with
+     * them are tail-stream optimized, so it will not fail with
      * {@code StackOverflowError} on long input stream.
      * 
      * <p>
@@ -1580,13 +1579,11 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *
      * @param <R> The element type of the new stream
      * @param mapper a <a
-     *        href="package-summary.html#NonInterference">non-interfering</a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        href="package-summary.html#NonInterference">non-interfering</a>
      *        function to apply to the first stream element and the stream of
      *        the rest elements which creates a new stream.
      * @param supplier a <a
-     *        href="package-summary.html#NonInterference">non-interfering</a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        href="package-summary.html#NonInterference">non-interfering</a>
      *        supplier which creates a resulting stream when this stream is
      *        empty.
      * @return the new stream
