@@ -330,8 +330,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public EntryStream<K, V> append(K key, V value) {
-        return supply(delegate(new TailConcatSpliterator<>(stream.spliterator(), Collections.singleton(
-            new SimpleImmutableEntry<>(key, value)).spliterator())));
+        return appendSpliterator(null, Collections.singleton(new SimpleImmutableEntry<>(key, value)).spliterator());
     }
 
     /**
@@ -350,8 +349,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.3
      */
     public EntryStream<K, V> append(K k1, V v1, K k2, V v2) {
-        return supply(delegate(new TailConcatSpliterator<>(stream.spliterator(), Arrays.<Entry<K, V>> asList(
-            new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2)).spliterator())));
+        return appendSpliterator(null, Arrays.<Entry<K, V>> asList(new SimpleImmutableEntry<>(k1, v1),
+            new SimpleImmutableEntry<>(k2, v2)).spliterator());
     }
 
     /**
@@ -372,9 +371,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.3
      */
     public EntryStream<K, V> append(K k1, V v1, K k2, V v2, K k3, V v3) {
-        return supply(delegate(new TailConcatSpliterator<>(stream.spliterator(), Arrays.<Entry<K, V>> asList(
-            new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2), new SimpleImmutableEntry<>(k3, v3))
-                .spliterator())));
+        return appendSpliterator(null, Arrays.<Entry<K, V>> asList(new SimpleImmutableEntry<>(k1, v1),
+            new SimpleImmutableEntry<>(k2, v2), new SimpleImmutableEntry<>(k3, v3)).spliterator());
     }
 
     /**
@@ -394,7 +392,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.1
      */
     public EntryStream<K, V> prepend(Map<K, V> map) {
-        return prepend(map.entrySet().stream());
+        return prependSpliterator(null, map.entrySet().spliterator());
     }
 
     /**
@@ -411,8 +409,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public EntryStream<K, V> prepend(K key, V value) {
-        return supply(delegate(new TailConcatSpliterator<>(Collections
-                .singleton(new SimpleImmutableEntry<>(key, value)).spliterator(), stream.spliterator())));
+        return prependSpliterator(null, Collections.singleton(new SimpleImmutableEntry<>(key, value)).spliterator());
     }
 
     /**
@@ -432,8 +429,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.3
      */
     public EntryStream<K, V> prepend(K k1, V v1, K k2, V v2) {
-        return supply(delegate(new TailConcatSpliterator<>(Arrays.<Entry<K, V>> asList(
-            new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2)).spliterator(), stream.spliterator())));
+        return prependSpliterator(null, Arrays.<Entry<K, V>> asList(new SimpleImmutableEntry<>(k1, v1),
+            new SimpleImmutableEntry<>(k2, v2)).spliterator());
     }
 
     /**
@@ -455,9 +452,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.3
      */
     public EntryStream<K, V> prepend(K k1, V v1, K k2, V v2, K k3, V v3) {
-        return supply(delegate(new TailConcatSpliterator<>(Arrays.<Entry<K, V>> asList(
-            new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2), new SimpleImmutableEntry<>(k3, v3))
-                .spliterator(), stream.spliterator())));
+        return prependSpliterator(null, Arrays.<Entry<K, V>> asList(new SimpleImmutableEntry<>(k1, v1),
+            new SimpleImmutableEntry<>(k2, v2), new SimpleImmutableEntry<>(k3, v3)).spliterator());
     }
 
     /**

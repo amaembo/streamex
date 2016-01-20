@@ -935,10 +935,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     @SafeVarargs
     public final StreamEx<T> append(T... values) {
-        if (values.length == 0)
-            return this;
-        return supply(delegate(new TailConcatSpliterator<>(stream.spliterator(), Spliterators.spliterator(values,
-            Spliterator.ORDERED))));
+        return appendSpliterator(null, Spliterators.spliterator(values, Spliterator.ORDERED));
     }
 
     /**
@@ -977,10 +974,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     @SafeVarargs
     public final StreamEx<T> prepend(T... values) {
-        if (values.length == 0)
-            return this;
-        return supply(delegate(new TailConcatSpliterator<>(Spliterators.spliterator(values, Spliterator.ORDERED),
-                stream.spliterator())));
+        return prependSpliterator(null, Spliterators.spliterator(values, Spliterator.ORDERED));
     }
 
     /**
