@@ -927,6 +927,9 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a>.
      * 
+     * <p>
+     * May return this if no values are supplied.
+     * 
      * @param values the values to append to the stream
      * @return the new stream
      */
@@ -946,14 +949,15 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a>.
      * 
+     * <p>
+     * May return this if the supplied collection is empty and non-concurrent.
+     * 
      * @param collection the collection to append to the stream
      * @return the new stream
      * @since 0.2.1
      */
     public StreamEx<T> append(Collection<? extends T> collection) {
-        if (collection.isEmpty())
-            return this;
-        return supply(delegate(new TailConcatSpliterator<>(stream.spliterator(), collection.spliterator())));
+        return appendSpliterator(null, collection.spliterator());
     }
 
     /**
@@ -964,6 +968,9 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a> with <a href="package-summary.html#TSO">tail-stream
      * optimization</a>.
+     * 
+     * <p>
+     * May return this if no values are supplied.
      * 
      * @param values the values to prepend to the stream
      * @return the new stream
@@ -982,16 +989,18 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * 
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
-     * operation</a>.
+     * operation</a> with <a href="package-summary.html#TSO">tail-stream
+     * optimization</a>.
+     * 
+     * <p>
+     * May return this if the supplied collection is empty and non-concurrent.
      * 
      * @param collection the collection to prepend to the stream
      * @return the new stream
      * @since 0.2.1
      */
     public StreamEx<T> prepend(Collection<? extends T> collection) {
-        if (collection.isEmpty())
-            return this;
-        return supply(delegate(new TailConcatSpliterator<>(collection.spliterator(), stream.spliterator())));
+        return prependSpliterator(null, collection.spliterator());
     }
 
     /**

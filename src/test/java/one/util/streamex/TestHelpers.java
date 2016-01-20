@@ -19,7 +19,6 @@ import static one.util.streamex.StreamExInternals.*;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -29,6 +28,7 @@ import java.util.Random;
 import java.util.Spliterator;
 import java.util.Map.Entry;
 import java.util.Spliterators;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -70,11 +70,11 @@ public class TestHelpers {
             case PARALLEL:
                 return res.parallel();
             case APPEND:
-                // using Stream.empty() here makes the resulting stream
-                // unordered which is undesired
-                return StreamEx.of(res.parallel()).append(Arrays.<T> asList().stream());
+                // using Stream.empty() or Arrays.asList() here is optimized out
+                // in append/prepend which is undesired
+                return StreamEx.of(res.parallel()).append(new ConcurrentLinkedQueue<>());
             case PREPEND:
-                return StreamEx.of(res.parallel()).prepend(Arrays.<T> asList().stream());
+                return StreamEx.of(res.parallel()).prepend(new ConcurrentLinkedQueue<>());
             case RANDOM:
                 return StreamEx.of(new EmptyingSpliterator<>(res.parallel().spliterator())).parallel();
             default:

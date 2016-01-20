@@ -140,6 +140,32 @@ import static one.util.streamex.StreamExInternals.*;
         return stream.collect(collector);
     }
 
+    @SuppressWarnings("unchecked")
+    S appendSpliterator(Stream<? extends T> other, Spliterator<? extends T> right) {
+        if(right.getExactSizeIfKnown() == 0)
+            return (S) this;
+        Spliterator<T> left = stream.spliterator();
+        Spliterator<T> result;
+        if(left.getExactSizeIfKnown() == 0)
+            result = (Spliterator<T>) right;
+        else
+            result = new TailConcatSpliterator<>(left, right);
+        return supply(delegateClose(delegateClose(StreamSupport.stream(result, stream.isParallel()), stream), other));
+    }
+
+    @SuppressWarnings("unchecked")
+    S prependSpliterator(Stream<? extends T> other, Spliterator<? extends T> left) {
+        if(left.getExactSizeIfKnown() == 0)
+            return (S) this;
+        Spliterator<T> right = stream.spliterator();
+        Spliterator<T> result;
+        if(right.getExactSizeIfKnown() == 0)
+            result = (Spliterator<T>) left;
+        else
+            result = new TailConcatSpliterator<>(left, right);
+        return supply(delegateClose(delegateClose(StreamSupport.stream(result, stream.isParallel()), stream), other));
+    }
+
     abstract S supply(Stream<T> stream);
 
     @Override
@@ -970,12 +996,20 @@ import static one.util.streamex.StreamExInternals.*;
      * parallel if either of the input streams is parallel. When the resulting
      * stream is closed, the close handlers for both input streams are invoked.
      *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a> with <a href="package-summary.html#TSO">tail-stream
+     * optimization</a>.
+     * 
+     * <p>
+     * May return this if the supplied stream is known to be empty.
+     * 
      * @param other the other stream
      * @return this stream appended by the other stream
      * @see Stream#concat(Stream, Stream)
      */
     public S append(Stream<? extends T> other) {
-        return supply(Stream.concat(stream, unwrap(other)));
+        return appendSpliterator(other, other.spliterator());
     }
 
     /**
@@ -985,12 +1019,20 @@ import static one.util.streamex.StreamExInternals.*;
      * parallel if either of the input streams is parallel. When the resulting
      * stream is closed, the close handlers for both input streams are invoked.
      *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a> with <a href="package-summary.html#TSO">tail-stream
+     * optimization</a>.
+     * 
+     * <p>
+     * May return this if the supplied stream is known to be empty.
+     * 
      * @param other the other stream
      * @return this stream prepended by the other stream
      * @see Stream#concat(Stream, Stream)
      */
     public S prepend(Stream<? extends T> other) {
-        return supply(Stream.concat(unwrap(other), stream));
+        return prependSpliterator(other, other.spliterator());
     }
 
     /**
