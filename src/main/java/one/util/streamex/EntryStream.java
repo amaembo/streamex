@@ -18,7 +18,6 @@ package one.util.streamex;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -330,7 +329,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public EntryStream<K, V> append(K key, V value) {
-        return appendSpliterator(null, Collections.singleton(new SimpleImmutableEntry<>(key, value)).spliterator());
+        return appendSpliterator(null, Arrays.<Entry<K, V>> asList(new SimpleImmutableEntry<>(key, value)).spliterator());
     }
 
     /**
@@ -409,7 +408,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public EntryStream<K, V> prepend(K key, V value) {
-        return prependSpliterator(null, Collections.singleton(new SimpleImmutableEntry<>(key, value)).spliterator());
+        return prependSpliterator(null, Arrays.<Entry<K, V>> asList(new SimpleImmutableEntry<>(key, value)).spliterator());
     }
 
     /**

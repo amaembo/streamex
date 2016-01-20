@@ -46,6 +46,7 @@ import java.util.Spliterator;
 import java.util.TreeSet;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -406,8 +407,9 @@ public class StreamExTest {
         StreamEx<Integer> s = StreamEx.of(1, 2, 3);
         assertSame(s, s.append());
         assertSame(s, s.append(Collections.emptyList()));
-        assertSame(s, s.prepend());
-        assertSame(s, s.prepend(Collections.emptyList()));
+        assertSame(s, s.append(new ArrayList<>()));
+        assertSame(s, s.append(Stream.empty()));
+        assertNotSame(s, s.append(new ConcurrentLinkedQueue<>()));
     }
 
     @Test
@@ -424,6 +426,23 @@ public class StreamExTest {
         }
         assertArrayEquals(new Object[] { 1, 2, 3, 1, 1 }, StreamEx.constant(1, Long.MAX_VALUE - 1).prepend(1, 2, 3)
                 .limit(5).toArray());
+        
+        assertEquals(asList(4,3,2,1), StreamEx.of(1).prepend(2).prepend(StreamEx.of(3).prepend(4)).toList());
+
+        StreamEx<Integer> s = StreamEx.of(1, 2, 3);
+        assertSame(s, s.prepend());
+        assertSame(s, s.prepend(Collections.emptyList()));
+        assertSame(s, s.prepend(new ArrayList<>()));
+        assertSame(s, s.prepend(Stream.empty()));
+        assertNotSame(s, s.prepend(new ConcurrentLinkedQueue<>()));
+    }
+    
+    @Test
+    public void testPrependTSO() {
+        List<Integer> expected = IntStreamEx.rangeClosed(19999, 0, -1).boxed().toList();
+        assertEquals(expected, IntStreamEx.range(20000).mapToObj(StreamEx::of).reduce(StreamEx::prepend).get().toList());
+        assertEquals(expected, IntStreamEx.range(20000).parallel().mapToObj(StreamEx::of).reduce(StreamEx::prepend)
+                .get().toList());
     }
 
     @Test

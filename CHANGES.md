@@ -1,5 +1,8 @@
 # StreamEx changes
 
+### 0.5.4
+* [#56] Fixed: `StreamEx.append/prepend(Collection)` and `EntryStream.append/prepend(Map)` now properly append/prepend if supplied collection is concurrent (so it may be legally modified during the subsequent operations).
+
 ### 0.5.3
 * [#50] Added: `StreamEx.withFirst()`: extract first stream element 
 * [#51] Fixed: `StreamEx.parallel(fjp).runLengths()` fails to run the task in the specified pool.

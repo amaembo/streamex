@@ -33,6 +33,7 @@ import java.util.Random;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.Function;
@@ -271,6 +272,10 @@ public class EntryStreamTest {
         assertEquals(EntryStream.of(createMap()).toList(), EntryStream.empty().append("a", 1, "bb", 22, "ccc", 33)
                 .toList());
         checkAsString("bb->22;a->1;ccc->33", EntryStream.of("bb", 22).append("a", 1, "ccc", 33));
+        
+        EntryStream<String, Integer> stream = EntryStream.of("a", 1, "b", 2);
+        assertSame(stream, stream.append(Collections.emptyMap()));
+        assertNotSame(stream, stream.append(new ConcurrentHashMap<>()));
     }
 
     @Test
@@ -279,6 +284,10 @@ public class EntryStreamTest {
             5).filterKeys(k -> k.length() > 1).values().toList());
         checkAsString("a->1;ccc->33;bb->22", EntryStream.of("bb", 22).prepend("a", 1, "ccc", 33));
         checkAsString("a->1;ccc->33;dddd->40;bb->22", EntryStream.of("bb", 22).prepend("a", 1, "ccc", 33, "dddd", 40));
+
+        EntryStream<String, Integer> stream = EntryStream.of("a", 1, "b", 2);
+        assertSame(stream, stream.prepend(Collections.emptyMap()));
+        assertNotSame(stream, stream.prepend(new ConcurrentHashMap<>()));
     }
 
     @Test
