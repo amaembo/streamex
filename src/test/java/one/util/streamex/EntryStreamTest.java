@@ -83,8 +83,8 @@ public class EntryStreamTest {
             Collections.singletonMap("c", 1), Collections.emptyMap()).flatMapToEntry(m -> m).toMap());
 
         EntryStream<String, Integer> stream = EntryStream.of(data);
-        assertSame(stream.stream, EntryStream.of(stream).stream);
-        assertSame(stream.stream, EntryStream.of(StreamEx.of(EntryStream.of(stream))).stream);
+        assertSame(stream.stream(), EntryStream.of(stream).stream());
+        assertSame(stream.stream(), EntryStream.of(StreamEx.of(EntryStream.of(stream))).stream());
 
         assertEquals(Collections.singletonMap("aaa", 3), EntryStream.of(
             Collections.singletonMap("aaa", 3).entrySet().spliterator()).toMap());

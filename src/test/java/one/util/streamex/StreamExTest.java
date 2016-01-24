@@ -102,7 +102,7 @@ public class StreamExTest {
         assertEquals(asList("c", "d", "e"), StreamEx.of("abcdef".split(""), 2, 5).toList());
 
         StreamEx<String> stream = StreamEx.of("foo", "bar");
-        assertSame(stream.stream, StreamEx.of(stream).stream);
+        assertSame(stream.stream(), StreamEx.of(stream).stream());
 
         assertEquals(asList("a1", "b2", "c3"), StreamEx.zip(asList("a", "b", "c"), asList(1, 2, 3), (s, i) -> s + i)
                 .toList());

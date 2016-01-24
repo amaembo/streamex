@@ -1049,7 +1049,7 @@ import java.util.stream.Stream;
 
     @SuppressWarnings("unchecked")
     static <T> Stream<T> unwrap(Stream<T> stream) {
-        return stream instanceof AbstractStreamEx ? ((AbstractStreamEx<T, ?>) stream).stream : stream;
+        return stream instanceof AbstractStreamEx ? ((AbstractStreamEx<T, ?>) stream).stream() : stream;
     }
 
     static <A> Predicate<A> finished(Collector<?, A, ?> collector) {
@@ -1077,6 +1077,9 @@ import java.util.stream.Stream;
         }
         if (target instanceof AbstractStreamEx) {
             target = ((AbstractStreamEx<?, ?>) target).stream;
+            if (target == null) {
+                return proxy;
+            }
         }
         try {
             if (SOURCE_STAGE != null && SOURCE_CLOSE_ACTION != null

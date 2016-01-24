@@ -69,10 +69,7 @@ public class StreamExHeadTailTest {
 
     // Stream.filter (TSO)
     static <T> StreamEx<T> filter(StreamEx<T> input, Predicate<T> predicate) {
-        return input.<T> headTail((head, tail) -> {
-            StreamEx<T> filtered = filter(tail, predicate);
-            return predicate.test(head) ? filtered.prepend(head) : filtered;
-        });
+        return input.<T> headTail((head, tail) -> predicate.test(head) ? filter(tail, predicate).prepend(head) : filter(tail, predicate));
     }
 
     // Stream.distinct
@@ -96,17 +93,17 @@ public class StreamExHeadTailTest {
     }
 
     // Stream.peek (TSO)
-    static <T> StreamEx<T> peek(StreamEx<T> input, Consumer<T> consumer) {
-        return input.headTail((head, tail) -> {
-            consumer.accept(head);
-            return peek(tail, consumer).prepend(head);
-        });
-    }
+static <T> StreamEx<T> peek(StreamEx<T> input, Consumer<T> consumer) {
+    return input.headTail((head, tail) -> {
+        consumer.accept(head);
+        return peek(tail, consumer).prepend(head);
+    });
+}
     
     // Stream.flatMap (TSO)
-    static <T, R> StreamEx<R> flatMap(StreamEx<T> input, Function<T, Stream<R>> mapper) {
-        return input.headTail((head, tail) -> flatMap(tail, mapper).prepend(mapper.apply(head)));
-    }
+static <T, R> StreamEx<R> flatMap(StreamEx<T> input, Function<T, Stream<R>> mapper) {
+    return input.headTail((head, tail) -> flatMap(tail, mapper).prepend(mapper.apply(head)));
+}
 
     // Stream.sorted
     static <T> StreamEx<T> sorted(StreamEx<T> input) {

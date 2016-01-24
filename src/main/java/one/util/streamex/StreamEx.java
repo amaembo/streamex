@@ -90,12 +90,12 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     final <R> StreamEx<R> collapseInternal(BiPredicate<? super T, ? super T> collapsible, Function<T, R> mapper,
             BiFunction<R, T, R> accumulator, BinaryOperator<R> combiner) {
         return strategy().newStreamEx(
-            delegate(new CollapseSpliterator<>(collapsible, mapper, accumulator, combiner, stream.spliterator())));
+            delegate(new CollapseSpliterator<>(collapsible, mapper, accumulator, combiner, spliterator())));
     }
 
     @Override
     public StreamEx<T> sequential() {
-        return StreamFactory.DEFAULT.newStreamEx(stream.sequential());
+        return StreamFactory.DEFAULT.newStreamEx(stream().sequential());
     }
 
     /**
@@ -108,7 +108,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     @Override
     public StreamEx<T> parallel() {
-        return StreamFactory.DEFAULT.newStreamEx(stream.parallel());
+        return StreamFactory.DEFAULT.newStreamEx(stream().parallel());
     }
 
     /**
@@ -131,7 +131,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.2.0
      */
     public StreamEx<T> parallel(ForkJoinPool fjp) {
-        return StreamFactory.forCustomPool(fjp).newStreamEx(stream.parallel());
+        return StreamFactory.forCustomPool(fjp).newStreamEx(stream().parallel());
     }
 
     /**
@@ -166,7 +166,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return the new stream
      */
     public <V> EntryStream<T, V> mapToEntry(Function<? super T, ? extends V> valueMapper) {
-        return strategy().newEntryStream(stream.map(e -> new SimpleImmutableEntry<>(e, valueMapper.apply(e))));
+        return strategy().newEntryStream(stream().map(e -> new SimpleImmutableEntry<>(e, valueMapper.apply(e))));
     }
 
     /**
@@ -189,7 +189,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public <K, V> EntryStream<K, V> mapToEntry(Function<? super T, ? extends K> keyMapper,
             Function<? super T, ? extends V> valueMapper) {
         return strategy().newEntryStream(
-            stream.map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e), valueMapper.apply(e))));
+            stream().map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e), valueMapper.apply(e))));
     }
 
     /**
@@ -209,7 +209,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.4.1
      */
     public StreamEx<T> mapFirst(Function<? super T, ? extends T> mapper) {
-        return strategy().newStreamEx(delegate(new PairSpliterator.PSOfRef<>(mapper, stream.spliterator(), true)));
+        return strategy().newStreamEx(delegate(new PairSpliterator.PSOfRef<>(mapper, spliterator(), true)));
     }
 
     /**
@@ -228,7 +228,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.4.1
      */
     public StreamEx<T> mapLast(Function<? super T, ? extends T> mapper) {
-        return strategy().newStreamEx(delegate(new PairSpliterator.PSOfRef<>(mapper, stream.spliterator(), false)));
+        return strategy().newStreamEx(delegate(new PairSpliterator.PSOfRef<>(mapper, spliterator(), false)));
     }
 
     /**
@@ -250,7 +250,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return the new {@code EntryStream}
      */
     public <K, V> EntryStream<K, V> flatMapToEntry(Function<? super T, ? extends Map<K, V>> mapper) {
-        return strategy().newEntryStream(stream.flatMap(e -> {
+        return strategy().newEntryStream(stream().flatMap(e -> {
             Map<K, V> s = mapper.apply(e);
             return s == null ? null : s.entrySet().stream();
         }));
@@ -282,7 +282,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             return strategy().<T, V> newEntryStream(delegate(Spliterators.emptySpliterator()));
         if (other.length == 1)
             return mapToEntry(e -> other[0]);
-        return strategy().newEntryStream(stream.flatMap(a -> EntryStream.withKey(a, Arrays.stream(other))));
+        return strategy().newEntryStream(stream().flatMap(a -> EntryStream.withKey(a, Arrays.stream(other))));
     }
 
     /**
@@ -308,7 +308,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public <V> EntryStream<T, V> cross(Collection<? extends V> other) {
         if (other.isEmpty())
             return strategy().<T, V> newEntryStream(delegate(Spliterators.emptySpliterator()));
-        return strategy().newEntryStream(stream.flatMap(a -> EntryStream.withKey(a, other.stream())));
+        return strategy().newEntryStream(stream().flatMap(a -> EntryStream.withKey(a, other.stream())));
     }
 
     /**
@@ -330,7 +330,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.2.3
      */
     public <V> EntryStream<T, V> cross(Function<? super T, ? extends Stream<? extends V>> mapper) {
-        return strategy().newEntryStream(stream.flatMap(a -> EntryStream.withKey(a, mapper.apply(a))));
+        return strategy().newEntryStream(stream().flatMap(a -> EntryStream.withKey(a, mapper.apply(a))));
     }
 
     /**
@@ -386,7 +386,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public <K, D> Map<K, D> groupingBy(Function<? super T, ? extends K> classifier,
             Collector<? super T, ?, D> downstream) {
-        if (stream.isParallel() && downstream.characteristics().contains(Characteristics.UNORDERED))
+        if (isParallel() && downstream.characteristics().contains(Characteristics.UNORDERED))
             return rawCollect(Collectors.groupingByConcurrent(classifier, downstream));
         return rawCollect(Collectors.groupingBy(classifier, downstream));
     }
@@ -421,7 +421,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     @SuppressWarnings("unchecked")
     public <K, D, M extends Map<K, D>> M groupingBy(Function<? super T, ? extends K> classifier,
             Supplier<M> mapFactory, Collector<? super T, ?, D> downstream) {
-        if (stream.isParallel() && downstream.characteristics().contains(Characteristics.UNORDERED)
+        if (isParallel() && downstream.characteristics().contains(Characteristics.UNORDERED)
             && mapFactory.get() instanceof ConcurrentMap)
             return (M) rawCollect(Collectors.groupingByConcurrent(classifier,
                 (Supplier<ConcurrentMap<K, D>>) mapFactory, downstream));
@@ -765,7 +765,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see #toMap(Function)
      */
     public <K, V> Map<K, V> toMap(Function<? super T, ? extends K> keyMapper, Function<? super T, ? extends V> valMapper) {
-        Map<K, V> map = stream.isParallel() ? new ConcurrentHashMap<>() : new HashMap<>();
+        Map<K, V> map = isParallel() ? new ConcurrentHashMap<>() : new HashMap<>();
         return toMapThrowing(keyMapper, valMapper, map);
     }
 
@@ -876,7 +876,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public <K, V> SortedMap<K, V> toSortedMap(Function<? super T, ? extends K> keyMapper,
             Function<? super T, ? extends V> valMapper) {
-        SortedMap<K, V> map = stream.isParallel() ? new ConcurrentSkipListMap<>() : new TreeMap<>();
+        SortedMap<K, V> map = isParallel() ? new ConcurrentSkipListMap<>() : new TreeMap<>();
         return toMapThrowing(keyMapper, valMapper, map);
     }
 
@@ -1082,7 +1082,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public StreamEx<T> distinct(long atLeast) {
         if (atLeast <= 1)
             return distinct();
-        Spliterator<T> spliterator = stream.spliterator();
+        Spliterator<T> spliterator = spliterator();
         Spliterator<T> result;
         if (spliterator.hasCharacteristics(Spliterator.DISTINCT))
             // already distinct: cannot have any repeating elements
@@ -1111,7 +1111,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.2.1
      */
     public <R> StreamEx<R> pairMap(BiFunction<? super T, ? super T, ? extends R> mapper) {
-        return strategy().newStreamEx(delegate(new PairSpliterator.PSOfRef<T, R>(mapper, stream.spliterator())));
+        return strategy().newStreamEx(delegate(new PairSpliterator.PSOfRef<T, R>(mapper, spliterator())));
     }
 
     /**
@@ -1371,7 +1371,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.5.3
      */
     public <R> StreamEx<R> withFirst(BiFunction<? super T, ? super T, ? extends R> mapper) {
-        return strategy().newStreamEx(delegate(new WithFirstSpliterator<>(stream.spliterator(), mapper)));
+        return strategy().newStreamEx(delegate(new WithFirstSpliterator<>(spliterator(), mapper)));
     }
 
     /**
@@ -1395,7 +1395,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public EntryStream<T, T> withFirst() {
         return strategy().newEntryStream(
-            delegate(new WithFirstSpliterator<>(stream.spliterator(), AbstractMap.SimpleImmutableEntry<T, T>::new)));
+            delegate(new WithFirstSpliterator<>(spliterator(), AbstractMap.SimpleImmutableEntry<T, T>::new)));
     }
 
     /**
@@ -1510,7 +1510,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public <R> StreamEx<R> headTail(BiFunction<? super T, ? super StreamEx<T>, ? extends Stream<R>> mapper,
             Supplier<? extends Stream<R>> supplier) {
-        HeadTailSpliterator<T, R> spliterator = new HeadTailSpliterator<>(stream.spliterator(), mapper, supplier);
+        HeadTailSpliterator<T, R> spliterator = new HeadTailSpliterator<>(spliterator(), mapper, supplier);
         Stream<R> delegate = delegate(spliterator);
         spliterator.owner = delegate;
         return strategy().newStreamEx(delegate);

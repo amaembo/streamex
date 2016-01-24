@@ -96,7 +96,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
 
     @Override
     public EntryStream<K, V> sequential() {
-        return StreamFactory.DEFAULT.newEntryStream(stream.sequential());
+        return StreamFactory.DEFAULT.newEntryStream(stream().sequential());
     }
 
     /**
@@ -109,7 +109,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     @Override
     public EntryStream<K, V> parallel() {
-        return StreamFactory.DEFAULT.newEntryStream(stream.parallel());
+        return StreamFactory.DEFAULT.newEntryStream(stream().parallel());
     }
 
     /**
@@ -132,7 +132,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.0
      */
     public EntryStream<K, V> parallel(ForkJoinPool fjp) {
-        return StreamFactory.forCustomPool(fjp).newEntryStream(stream.parallel());
+        return StreamFactory.forCustomPool(fjp).newEntryStream(stream().parallel());
     }
 
     /**
@@ -195,7 +195,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public <KK> EntryStream<KK, V> flatMapKeys(Function<? super K, ? extends Stream<? extends KK>> mapper) {
-        return strategy().newEntryStream(stream.flatMap(e -> withValue(mapper.apply(e.getKey()), e.getValue())));
+        return strategy().newEntryStream(stream().flatMap(e -> withValue(mapper.apply(e.getKey()), e.getValue())));
     }
 
     /**
@@ -221,7 +221,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     public <KK> EntryStream<KK, V> flatMapToKey(BiFunction<? super K, ? super V, ? extends Stream<? extends KK>> mapper) {
         return strategy().newEntryStream(
-            stream.flatMap(e -> withValue(mapper.apply(e.getKey(), e.getValue()), e.getValue())));
+            stream().flatMap(e -> withValue(mapper.apply(e.getKey(), e.getValue()), e.getValue())));
     }
 
     /**
@@ -246,7 +246,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public <VV> EntryStream<K, VV> flatMapValues(Function<? super V, ? extends Stream<? extends VV>> mapper) {
-        return strategy().newEntryStream(stream.flatMap(e -> withKey(e.getKey(), mapper.apply(e.getValue()))));
+        return strategy().newEntryStream(stream().flatMap(e -> withKey(e.getKey(), mapper.apply(e.getValue()))));
     }
 
     /**
@@ -273,7 +273,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     public <VV> EntryStream<K, VV> flatMapToValue(
             BiFunction<? super K, ? super V, ? extends Stream<? extends VV>> mapper) {
         return strategy().newEntryStream(
-            stream.flatMap(e -> withKey(e.getKey(), mapper.apply(e.getKey(), e.getValue()))));
+            stream().flatMap(e -> withKey(e.getKey(), mapper.apply(e.getKey(), e.getValue()))));
     }
 
     /**
@@ -512,7 +512,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     public <KK> EntryStream<KK, V> mapKeys(Function<? super K, ? extends KK> keyMapper) {
         return strategy().newEntryStream(
-            stream.map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e.getKey()), e.getValue())));
+            stream().map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e.getKey()), e.getValue())));
     }
 
     /**
@@ -530,7 +530,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     public <VV> EntryStream<K, VV> mapValues(Function<? super V, ? extends VV> valueMapper) {
         return strategy().newEntryStream(
-            stream.map(e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e.getValue()))));
+            stream().map(e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e.getValue()))));
     }
 
     /**
@@ -566,7 +566,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     public <KK> EntryStream<KK, V> mapToKey(BiFunction<? super K, ? super V, ? extends KK> keyMapper) {
         return strategy().newEntryStream(
-            stream.map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e.getKey(), e.getValue()), e.getValue())));
+            stream().map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e.getKey(), e.getValue()), e.getValue())));
     }
 
     /**
@@ -585,7 +585,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     public <VV> EntryStream<K, VV> mapToValue(BiFunction<? super K, ? super V, ? extends VV> valueMapper) {
         return strategy().newEntryStream(
-            stream.map(e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e.getKey(), e.getValue()))));
+            stream().map(e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e.getKey(), e.getValue()))));
     }
 
     /**
@@ -599,7 +599,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public EntryStream<V, K> invert() {
-        return strategy().newEntryStream(stream.map(e -> new SimpleImmutableEntry<>(e.getValue(), e.getKey())));
+        return strategy().newEntryStream(stream().map(e -> new SimpleImmutableEntry<>(e.getValue(), e.getKey())));
     }
 
     /**
@@ -870,7 +870,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @see Collectors#toConcurrentMap(Function, Function)
      */
     public Map<K, V> toMap() {
-        Map<K, V> map = stream.isParallel() ? new ConcurrentHashMap<>() : new HashMap<>();
+        Map<K, V> map = isParallel() ? new ConcurrentHashMap<>() : new HashMap<>();
         forEach(toMapConsumer(map));
         return map;
     }
@@ -932,7 +932,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     public <M extends Map<K, V>> M toCustomMap(Supplier<M> mapSupplier) {
         M map = mapSupplier.get();
-        if (stream.isParallel() && !(map instanceof ConcurrentMap)) {
+        if (isParallel() && !(map instanceof ConcurrentMap)) {
             return collect(mapSupplier, (m, t) -> addToMap(m, t.getKey(), Objects.requireNonNull(t.getValue())), (m1,
                     m2) -> m2.forEach((k, v) -> addToMap(m1, k, v)));
         }
@@ -996,7 +996,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.1.0
      */
     public SortedMap<K, V> toSortedMap() {
-        SortedMap<K, V> map = stream.isParallel() ? new ConcurrentSkipListMap<>() : new TreeMap<>();
+        SortedMap<K, V> map = isParallel() ? new ConcurrentSkipListMap<>() : new TreeMap<>();
         forEach(toMapConsumer(map));
         return map;
     }
@@ -1045,7 +1045,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     public <A, D> Map<K, D> grouping(Collector<? super V, A, D> downstream) {
         Function<Entry<K, V>, K> keyMapper = Entry::getKey;
         Collector<Entry<K, V>, ?, D> mapping = Collectors.mapping(Entry::getValue, downstream);
-        if (stream.isParallel() && downstream.characteristics().contains(Characteristics.UNORDERED)) {
+        if (isParallel() && downstream.characteristics().contains(Characteristics.UNORDERED)) {
             return collect(Collectors.groupingByConcurrent(keyMapper, mapping));
         }
         return collect(Collectors.groupingBy(keyMapper, mapping));
@@ -1055,7 +1055,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     public <A, D, M extends Map<K, D>> M grouping(Supplier<M> mapSupplier, Collector<? super V, A, D> downstream) {
         Function<Entry<K, V>, K> keyMapper = Entry::getKey;
         Collector<Entry<K, V>, ?, D> mapping = Collectors.mapping(Entry::getValue, downstream);
-        if (stream.isParallel() && downstream.characteristics().contains(Characteristics.UNORDERED)
+        if (isParallel() && downstream.characteristics().contains(Characteristics.UNORDERED)
             && mapSupplier.get() instanceof ConcurrentMap) {
             return (M) collect(Collectors.groupingByConcurrent(keyMapper,
                 (Supplier<? extends ConcurrentMap<K, D>>) mapSupplier, mapping));
