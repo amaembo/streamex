@@ -59,6 +59,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.Collector.Characteristics;
 
+import one.util.streamex.PairSpliterator.PSOfRef;
 import static one.util.streamex.StreamExInternals.*;
 
 /**
@@ -89,10 +90,15 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return new StreamEx<>(stream, strategy);
     }
 
+    @Override
+    StreamEx<T> supply(Spliterator<T> spliterator) {
+        return new StreamEx<>(spliterator, strategy);
+    }
+
     final <R> StreamEx<R> collapseInternal(BiPredicate<? super T, ? super T> collapsible, Function<T, R> mapper,
             BiFunction<R, T, R> accumulator, BinaryOperator<R> combiner) {
-        return new StreamEx<>(
-            delegate(new CollapseSpliterator<>(collapsible, mapper, accumulator, combiner, spliterator())), strategy);
+        CollapseSpliterator<T, R> spliterator = new CollapseSpliterator<>(collapsible, mapper, accumulator, combiner, spliterator());
+        return mustClose() ? new StreamEx<>(delegateBase(spliterator), strategy) : new StreamEx<>(spliterator, strategy);
     }
 
     /**
@@ -170,7 +176,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.4.1
      */
     public StreamEx<T> mapFirst(Function<? super T, ? extends T> mapper) {
-        return new StreamEx<>(delegate(new PairSpliterator.PSOfRef<>(mapper, spliterator(), true)), strategy);
+        return delegate(new PairSpliterator.PSOfRef<>(mapper, spliterator(), true));
     }
 
     /**
@@ -189,7 +195,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.4.1
      */
     public StreamEx<T> mapLast(Function<? super T, ? extends T> mapper) {
-        return new StreamEx<>(delegate(new PairSpliterator.PSOfRef<>(mapper, spliterator(), false)), strategy);
+        return delegate(new PairSpliterator.PSOfRef<>(mapper, spliterator(), false));
     }
 
     /**
@@ -240,7 +246,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     @SuppressWarnings("unchecked")
     public <V> EntryStream<T, V> cross(V... other) {
         if (other.length == 0)
-            return new EntryStream<>(delegate(Spliterators.emptySpliterator()), strategy);
+            return mustClose() ? new EntryStream<>(delegateBase(Spliterators.emptySpliterator()), strategy)
+                    : new EntryStream<>(Spliterators.emptySpliterator(), strategy);
         if (other.length == 1)
             return mapToEntry(e -> other[0]);
         return new EntryStream<>(stream().flatMap(a -> EntryStream.withKey(a, Arrays.stream(other))), strategy);
@@ -268,7 +275,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public <V> EntryStream<T, V> cross(Collection<? extends V> other) {
         if (other.isEmpty())
-            return new EntryStream<>(delegate(Spliterators.emptySpliterator()), strategy);
+            return mustClose() ? new EntryStream<>(delegateBase(Spliterators.emptySpliterator()), strategy)
+                    : new EntryStream<>(Spliterators.emptySpliterator(), strategy);
         return new EntryStream<>(stream().flatMap(a -> EntryStream.withKey(a, other.stream())), strategy);
     }
 
@@ -1050,7 +1058,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             result = Spliterators.emptySpliterator();
         else
             result = new DistinctSpliterator<>(spliterator, atLeast);
-        return new StreamEx<>(delegate(result), strategy);
+        return delegate(result);
     }
 
     /**
@@ -1072,7 +1080,9 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.2.1
      */
     public <R> StreamEx<R> pairMap(BiFunction<? super T, ? super T, ? extends R> mapper) {
-        return new StreamEx<>(delegate(new PairSpliterator.PSOfRef<T, R>(mapper, spliterator())), strategy);
+        PSOfRef<T, R> spliterator = new PairSpliterator.PSOfRef<T, R>(mapper, spliterator());
+        return mustClose() ? new StreamEx<>(delegateBase(spliterator), strategy)
+                : new StreamEx<>(spliterator, strategy);
     }
 
     /**
@@ -1332,7 +1342,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.5.3
      */
     public <R> StreamEx<R> withFirst(BiFunction<? super T, ? super T, ? extends R> mapper) {
-        return new StreamEx<>(delegate(new WithFirstSpliterator<>(spliterator(), mapper)), strategy);
+        WithFirstSpliterator<T, R> spliterator = new WithFirstSpliterator<>(spliterator(), mapper);
+        return mustClose() ? new StreamEx<>(delegateBase(spliterator), strategy) : new StreamEx<>(spliterator, strategy);
     }
 
     /**
@@ -1355,8 +1366,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.5.3
      */
     public EntryStream<T, T> withFirst() {
-        return new EntryStream<>(
-            delegate(new WithFirstSpliterator<>(spliterator(), AbstractMap.SimpleImmutableEntry<T, T>::new)), strategy);
+        WithFirstSpliterator<T, Entry<T, T>> spliterator = new WithFirstSpliterator<>(spliterator(), AbstractMap.SimpleImmutableEntry<T, T>::new);
+        return mustClose() ? new EntryStream<>(delegateBase(spliterator), strategy) : new EntryStream<>(spliterator, strategy);
     }
 
     /**
@@ -1472,7 +1483,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public <R> StreamEx<R> headTail(BiFunction<? super T, ? super StreamEx<T>, ? extends Stream<R>> mapper,
             Supplier<? extends Stream<R>> supplier) {
         HeadTailSpliterator<T, R> spliterator = new HeadTailSpliterator<>(spliterator(), mapper, supplier);
-        Stream<R> delegate = delegate(spliterator);
+        Stream<R> delegate = delegateBase(spliterator);
         spliterator.owner = delegate;
         return new StreamEx<>(delegate, strategy);
     }

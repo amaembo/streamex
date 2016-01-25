@@ -77,6 +77,11 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return new EntryStream<>(stream, strategy);
     }
 
+    @Override
+    EntryStream<K, V> supply(Spliterator<Entry<K, V>> spliterator) {
+        return new EntryStream<>(spliterator, strategy);
+    }
+
     static <K, V> Consumer<? super Entry<K, V>> toConsumer(BiConsumer<? super K, ? super V> action) {
         return entry -> action.accept(entry.getKey(), entry.getValue());
     }

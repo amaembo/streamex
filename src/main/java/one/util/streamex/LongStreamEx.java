@@ -120,6 +120,8 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
     }
 
     final LongStreamEx delegate(Spliterator.OfLong spliterator) {
+        if(!mustClose())
+            return new LongStreamEx(spliterator, strategy);
         return new LongStreamEx(forwardClose(StreamSupport.longStream(spliterator, isParallel())), strategy);
     }
 

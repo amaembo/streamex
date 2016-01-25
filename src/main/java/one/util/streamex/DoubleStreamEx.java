@@ -120,6 +120,8 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
     }
 
     final DoubleStreamEx delegate(Spliterator.OfDouble spliterator) {
+        if(!mustClose())
+            return new DoubleStreamEx(spliterator, strategy);
         return new DoubleStreamEx(forwardClose(StreamSupport.doubleStream(spliterator, isParallel())), strategy);
     }
 

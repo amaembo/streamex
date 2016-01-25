@@ -56,6 +56,10 @@ import java.util.stream.BaseStream;
         return StreamExInternals.delegateClose(proxy, stream);
     }
 
+    boolean mustClose() {
+        return StreamExInternals.mustCloseStream(stream);
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public SPLTR spliterator() {

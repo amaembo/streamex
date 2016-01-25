@@ -1062,6 +1062,22 @@ import java.util.stream.Stream;
     static <T> T none() {
         return (T) NONE;
     }
+    
+    static <T extends BaseStream<?, ?>> boolean mustCloseStream(BaseStream<?, ?> target) {
+        if(target == null)
+            return false;
+        if (target instanceof BaseStreamEx) {
+            return ((BaseStreamEx<?,?,?>)target).mustClose();
+        }
+        try {
+            if (SOURCE_STAGE != null && SOURCE_CLOSE_ACTION != null
+                && SOURCE_CLOSE_ACTION.get(SOURCE_STAGE.get(target)) == null)
+                return false;
+        } catch (IllegalArgumentException | IllegalAccessException e) {
+            // ignore
+        }
+        return true;
+    }
 
     /**
      * Close target when proxy is closed. May omit close handler registration if
@@ -1072,20 +1088,12 @@ import java.util.stream.Stream;
      * @return proxy (to chain calls)
      */
     static <T extends BaseStream<?, ?>> T delegateClose(T proxy, BaseStream<?, ?> target) {
-        if (target == null) {
-            return proxy;
+        if (mustCloseStream(target)) {
+            if (target instanceof BaseStreamEx)
+                ((BaseStreamEx<?,?,?>)target).forwardClose(proxy);
+            else
+                proxy.onClose(target::close);
         }
-        if (target instanceof BaseStreamEx) {
-            return ((BaseStreamEx<?,?,?>)target).forwardClose(proxy);
-        }
-        try {
-            if (SOURCE_STAGE != null && SOURCE_CLOSE_ACTION != null
-                && SOURCE_CLOSE_ACTION.get(SOURCE_STAGE.get(target)) == null)
-                return proxy;
-        } catch (IllegalArgumentException | IllegalAccessException e) {
-            // ignore
-        }
-        proxy.onClose(target::close);
         return proxy;
     }
 }

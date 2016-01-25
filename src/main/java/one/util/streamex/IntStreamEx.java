@@ -126,6 +126,8 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
     }
 
     final IntStreamEx delegate(Spliterator.OfInt spliterator) {
+        if(!mustClose())
+            return new IntStreamEx(spliterator, strategy);
         return new IntStreamEx(forwardClose(StreamSupport.intStream(spliterator, isParallel())), strategy);
     }
 

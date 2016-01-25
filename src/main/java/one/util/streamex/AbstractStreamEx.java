@@ -114,10 +114,16 @@ import static one.util.streamex.StreamExInternals.*;
         return StreamSupport.stream(spliterator, strategy.parallel);
     }
 
-    final <R> Stream<R> delegate(Spliterator<R> spliterator) {
+    final <R> Stream<R> delegateBase(Spliterator<R> spliterator) {
         return forwardClose(StreamSupport.stream(spliterator, isParallel()));
     }
 
+    final S delegate(Spliterator<T> spliterator) {
+        if(mustClose())
+            return supply(forwardClose(StreamSupport.stream(spliterator, isParallel())));
+        return supply(spliterator);
+    }
+    
     final S callWhile(Predicate<? super T> predicate, int methodId) {
         try {
             return supply((Stream<T>) JDK9_METHODS[IDX_STREAM][methodId].invokeExact(stream(), predicate));
@@ -158,6 +164,8 @@ import static one.util.streamex.StreamExInternals.*;
             result = (Spliterator<T>) right;
         else
             result = new TailConcatSpliterator<>(left, right);
+        if(!mustClose() && !mustCloseStream(other))
+            return supply(result);
         return supply(StreamExInternals.delegateClose(forwardClose(StreamSupport.stream(result, isParallel())), other));
     }
 
@@ -171,10 +179,14 @@ import static one.util.streamex.StreamExInternals.*;
             result = (Spliterator<T>) left;
         else
             result = new TailConcatSpliterator<>(left, right);
+        if(!mustClose() && !mustCloseStream(other))
+            return supply(result);
         return supply(StreamExInternals.delegateClose(forwardClose(StreamSupport.stream(result, isParallel())), other));
     }
 
     abstract S supply(Stream<T> stream);
+
+    abstract S supply(Spliterator<T> spliterator);
 
     @Override
     public Iterator<T> iterator() {
@@ -1553,8 +1565,7 @@ import static one.util.streamex.StreamExInternals.*;
      * @since 0.3.2
      */
     public S skipOrdered(long n) {
-        return supply(delegate((isParallel() ? StreamSupport.stream(spliterator(), false) : stream()).skip(
-            n).spliterator()));
+        return delegate((isParallel() ? StreamSupport.stream(spliterator(), false) : stream()).skip(n).spliterator());
     }
 
     /**
@@ -1582,7 +1593,7 @@ import static one.util.streamex.StreamExInternals.*;
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_TAKE_WHILE);
         }
-        return supply(delegate(new AbstractStreamEx.TDOfRef<>(spliterator(), false, predicate)));
+        return delegate(new AbstractStreamEx.TDOfRef<>(spliterator(), false, predicate));
     }
 
     /**
@@ -1611,6 +1622,6 @@ import static one.util.streamex.StreamExInternals.*;
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_DROP_WHILE);
         }
-        return supply(delegate(new AbstractStreamEx.TDOfRef<>(spliterator(), true, predicate)));
+        return delegate(new AbstractStreamEx.TDOfRef<>(spliterator(), true, predicate));
     }
 }
