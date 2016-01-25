@@ -45,7 +45,6 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
@@ -78,60 +77,23 @@ import static one.util.streamex.StreamExInternals.*;
  */
 public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
 
-    StreamEx(Stream<T> stream) {
-        super(stream);
+    StreamEx(Stream<T> stream, ExecutionStrategy strategy) {
+        super(stream, strategy);
     }
 
+    StreamEx(Spliterator<T> spliterator, ExecutionStrategy strategy) {
+        super(spliterator, strategy);
+    }
+    
     @Override
     StreamEx<T> supply(Stream<T> stream) {
-        return strategy().newStreamEx(stream);
+        return new StreamEx<>(stream, strategy);
     }
 
     final <R> StreamEx<R> collapseInternal(BiPredicate<? super T, ? super T> collapsible, Function<T, R> mapper,
             BiFunction<R, T, R> accumulator, BinaryOperator<R> combiner) {
-        return strategy().newStreamEx(
-            delegate(new CollapseSpliterator<>(collapsible, mapper, accumulator, combiner, spliterator())));
-    }
-
-    @Override
-    public StreamEx<T> sequential() {
-        return StreamFactory.DEFAULT.newStreamEx(stream().sequential());
-    }
-
-    /**
-     * {@inheritDoc}
-     * 
-     * <p>
-     * If this stream was created using {@link #parallel(ForkJoinPool)}, the new
-     * stream forgets about supplied custom {@link ForkJoinPool} and its
-     * terminal operation will be executed in common pool.
-     */
-    @Override
-    public StreamEx<T> parallel() {
-        return StreamFactory.DEFAULT.newStreamEx(stream().parallel());
-    }
-
-    /**
-     * Returns an equivalent stream that is parallel and bound to the supplied
-     * {@link ForkJoinPool}.
-     *
-     * <p>
-     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
-     * operation.
-     * 
-     * <p>
-     * The terminal operation of this stream or any derived stream (except the
-     * streams created via {@link #parallel()} or {@link #sequential()} methods)
-     * will be executed inside the supplied {@code ForkJoinPool}. If current
-     * thread does not belong to that pool, it will wait till calculation
-     * finishes.
-     *
-     * @param fjp a {@code ForkJoinPool} to submit the stream operation to.
-     * @return a parallel stream bound to the supplied {@code ForkJoinPool}
-     * @since 0.2.0
-     */
-    public StreamEx<T> parallel(ForkJoinPool fjp) {
-        return StreamFactory.forCustomPool(fjp).newStreamEx(stream().parallel());
+        return new StreamEx<>(
+            delegate(new CollapseSpliterator<>(collapsible, mapper, accumulator, combiner, spliterator())), strategy);
     }
 
     /**
@@ -166,7 +128,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return the new stream
      */
     public <V> EntryStream<T, V> mapToEntry(Function<? super T, ? extends V> valueMapper) {
-        return strategy().newEntryStream(stream().map(e -> new SimpleImmutableEntry<>(e, valueMapper.apply(e))));
+        return new EntryStream<>(stream().map(e -> new SimpleImmutableEntry<>(e, valueMapper.apply(e))), strategy);
     }
 
     /**
@@ -188,8 +150,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public <K, V> EntryStream<K, V> mapToEntry(Function<? super T, ? extends K> keyMapper,
             Function<? super T, ? extends V> valueMapper) {
-        return strategy().newEntryStream(
-            stream().map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e), valueMapper.apply(e))));
+        return new EntryStream<>(
+            stream().map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e), valueMapper.apply(e))), strategy);
     }
 
     /**
@@ -209,7 +171,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.4.1
      */
     public StreamEx<T> mapFirst(Function<? super T, ? extends T> mapper) {
-        return strategy().newStreamEx(delegate(new PairSpliterator.PSOfRef<>(mapper, spliterator(), true)));
+        return new StreamEx<>(delegate(new PairSpliterator.PSOfRef<>(mapper, spliterator(), true)), strategy);
     }
 
     /**
@@ -228,7 +190,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.4.1
      */
     public StreamEx<T> mapLast(Function<? super T, ? extends T> mapper) {
-        return strategy().newStreamEx(delegate(new PairSpliterator.PSOfRef<>(mapper, spliterator(), false)));
+        return new StreamEx<>(delegate(new PairSpliterator.PSOfRef<>(mapper, spliterator(), false)), strategy);
     }
 
     /**
@@ -250,10 +212,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return the new {@code EntryStream}
      */
     public <K, V> EntryStream<K, V> flatMapToEntry(Function<? super T, ? extends Map<K, V>> mapper) {
-        return strategy().newEntryStream(stream().flatMap(e -> {
+        return new EntryStream<>(stream().flatMap(e -> {
             Map<K, V> s = mapper.apply(e);
             return s == null ? null : s.entrySet().stream();
-        }));
+        }), strategy);
     }
 
     /**
@@ -279,10 +241,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     @SuppressWarnings("unchecked")
     public <V> EntryStream<T, V> cross(V... other) {
         if (other.length == 0)
-            return strategy().<T, V> newEntryStream(delegate(Spliterators.emptySpliterator()));
+            return new EntryStream<>(delegate(Spliterators.emptySpliterator()), strategy);
         if (other.length == 1)
             return mapToEntry(e -> other[0]);
-        return strategy().newEntryStream(stream().flatMap(a -> EntryStream.withKey(a, Arrays.stream(other))));
+        return new EntryStream<>(stream().flatMap(a -> EntryStream.withKey(a, Arrays.stream(other))), strategy);
     }
 
     /**
@@ -307,8 +269,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public <V> EntryStream<T, V> cross(Collection<? extends V> other) {
         if (other.isEmpty())
-            return strategy().<T, V> newEntryStream(delegate(Spliterators.emptySpliterator()));
-        return strategy().newEntryStream(stream().flatMap(a -> EntryStream.withKey(a, other.stream())));
+            return new EntryStream<>(delegate(Spliterators.emptySpliterator()), strategy);
+        return new EntryStream<>(stream().flatMap(a -> EntryStream.withKey(a, other.stream())), strategy);
     }
 
     /**
@@ -330,7 +292,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.2.3
      */
     public <V> EntryStream<T, V> cross(Function<? super T, ? extends Stream<? extends V>> mapper) {
-        return strategy().newEntryStream(stream().flatMap(a -> EntryStream.withKey(a, mapper.apply(a))));
+        return new EntryStream<>(stream().flatMap(a -> EntryStream.withKey(a, mapper.apply(a))), strategy);
     }
 
     /**
@@ -1089,7 +1051,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             result = Spliterators.emptySpliterator();
         else
             result = new DistinctSpliterator<>(spliterator, atLeast);
-        return strategy().newStreamEx(delegate(result));
+        return new StreamEx<>(delegate(result), strategy);
     }
 
     /**
@@ -1111,7 +1073,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.2.1
      */
     public <R> StreamEx<R> pairMap(BiFunction<? super T, ? super T, ? extends R> mapper) {
-        return strategy().newStreamEx(delegate(new PairSpliterator.PSOfRef<T, R>(mapper, spliterator())));
+        return new StreamEx<>(delegate(new PairSpliterator.PSOfRef<T, R>(mapper, spliterator())), strategy);
     }
 
     /**
@@ -1259,13 +1221,13 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.3.3
      */
     public EntryStream<T, Long> runLengths() {
-        return strategy().newEntryStream(collapseInternal(Objects::equals, t -> new ObjLongBox<>(t, 1L), (acc, t) -> {
+        return new EntryStream<>(collapseInternal(Objects::equals, t -> new ObjLongBox<>(t, 1L), (acc, t) -> {
             acc.b++;
             return acc;
         }, (e1, e2) -> {
             e1.b += e2.b;
             return e1;
-        }));
+        }), strategy);
     }
 
     /**
@@ -1371,7 +1333,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.5.3
      */
     public <R> StreamEx<R> withFirst(BiFunction<? super T, ? super T, ? extends R> mapper) {
-        return strategy().newStreamEx(delegate(new WithFirstSpliterator<>(spliterator(), mapper)));
+        return new StreamEx<>(delegate(new WithFirstSpliterator<>(spliterator(), mapper)), strategy);
     }
 
     /**
@@ -1394,8 +1356,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.5.3
      */
     public EntryStream<T, T> withFirst() {
-        return strategy().newEntryStream(
-            delegate(new WithFirstSpliterator<>(spliterator(), AbstractMap.SimpleImmutableEntry<T, T>::new)));
+        return new EntryStream<>(
+            delegate(new WithFirstSpliterator<>(spliterator(), AbstractMap.SimpleImmutableEntry<T, T>::new)), strategy);
     }
 
     /**
@@ -1513,7 +1475,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         HeadTailSpliterator<T, R> spliterator = new HeadTailSpliterator<>(spliterator(), mapper, supplier);
         Stream<R> delegate = delegate(spliterator);
         spliterator.owner = delegate;
-        return strategy().newStreamEx(delegate);
+        return new StreamEx<>(delegate, strategy);
     }
 
     /**
@@ -1594,7 +1556,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return the wrapped stream
      */
     public static <T> StreamEx<T> of(Stream<T> stream) {
-        return new StreamEx<>(unwrap(stream));
+        return new StreamEx<>(unwrap(stream), ExecutionStrategy.of(stream));
     }
 
     /**

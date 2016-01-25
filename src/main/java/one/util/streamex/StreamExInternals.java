@@ -1075,11 +1075,8 @@ import java.util.stream.Stream;
         if (target == null) {
             return proxy;
         }
-        if (target instanceof AbstractStreamEx) {
-            target = ((AbstractStreamEx<?, ?>) target).stream;
-            if (target == null) {
-                return proxy;
-            }
+        if (target instanceof BaseStreamEx) {
+            return ((BaseStreamEx<?,?,?>)target).forwardClose(proxy);
         }
         try {
             if (SOURCE_STAGE != null && SOURCE_CLOSE_ACTION != null
