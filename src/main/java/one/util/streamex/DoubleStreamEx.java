@@ -565,7 +565,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
         if (spliterator != null && !isParallel()) {
             spliterator().forEachRemaining(action);
         } else {
-            if(strategy.getFjp() != null)
+            if(strategy.fjp != null)
                 strategy.terminate(() -> {
                     stream().forEach(action);
                     return null;
@@ -581,7 +581,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
         if (spliterator != null && !isParallel()) {
             spliterator().forEachRemaining(action);
         } else {
-            if(strategy.getFjp() != null)
+            if(strategy.fjp != null)
                 strategy.terminate(() -> {
                     stream().forEachOrdered(action);
                     return null;
@@ -594,7 +594,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
 
     @Override
     public double[] toArray() {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(stream()::toArray);
         return stream().toArray();
     }
@@ -627,14 +627,14 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
 
     @Override
     public double reduce(double identity, DoubleBinaryOperator op) {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(() -> stream().reduce(identity, op));
         return stream().reduce(identity, op);
     }
 
     @Override
     public OptionalDouble reduce(DoubleBinaryOperator op) {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(op, stream()::reduce);
         return stream().reduce(op);
     }
@@ -809,7 +809,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      */
     @Override
     public <R> R collect(Supplier<R> supplier, ObjDoubleConsumer<R> accumulator, BiConsumer<R, R> combiner) {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(() -> stream().collect(supplier, accumulator, combiner));
         return stream().collect(supplier, accumulator, combiner);
     }
@@ -846,7 +846,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
 
     @Override
     public double sum() {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(stream()::sum);
         return stream().sum();
     }
@@ -1108,14 +1108,14 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
 
     @Override
     public long count() {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(stream()::count);
         return stream().count();
     }
 
     @Override
     public OptionalDouble average() {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(stream()::average);
         return stream().average();
     }
@@ -1127,14 +1127,14 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
 
     @Override
     public boolean anyMatch(DoublePredicate predicate) {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(predicate, stream()::anyMatch);
         return stream().anyMatch(predicate);
     }
 
     @Override
     public boolean allMatch(DoublePredicate predicate) {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(predicate, stream()::allMatch);
         return stream().allMatch(predicate);
     }
@@ -1146,7 +1146,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
 
     @Override
     public OptionalDouble findFirst() {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(stream()::findFirst);
         return stream().findFirst();
     }
@@ -1174,7 +1174,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
 
     @Override
     public OptionalDouble findAny() {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(stream()::findAny);
         return stream().findAny();
     }

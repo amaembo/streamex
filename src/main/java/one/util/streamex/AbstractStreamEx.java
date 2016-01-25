@@ -111,7 +111,7 @@ import static one.util.streamex.StreamExInternals.*;
     
     @Override
     final Stream<T> createStream() {
-        return StreamSupport.stream(spliterator, strategy.isParallel());
+        return StreamSupport.stream(spliterator, strategy.parallel);
     }
 
     final <R> Stream<R> delegate(Spliterator<R> spliterator) {
@@ -143,7 +143,7 @@ import static one.util.streamex.StreamExInternals.*;
     }
 
     <R, A> R rawCollect(Collector<? super T, A, R> collector) {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(collector, stream()::collect);
         return stream().collect(collector);
     }
@@ -314,7 +314,7 @@ import static one.util.streamex.StreamExInternals.*;
         if (spliterator != null && !isParallel()) {
             spliterator().forEachRemaining(action);
         } else {
-            if(strategy.getFjp() != null)
+            if(strategy.fjp != null)
                 strategy.terminate(() -> {
                     stream().forEach(action);
                     return null;
@@ -330,7 +330,7 @@ import static one.util.streamex.StreamExInternals.*;
         if (spliterator != null && !isParallel()) {
             spliterator().forEachRemaining(action);
         } else {
-            if(strategy.getFjp() != null)
+            if(strategy.fjp != null)
                 strategy.terminate(() -> {
                     stream().forEachOrdered(action);
                     return null;
@@ -348,35 +348,35 @@ import static one.util.streamex.StreamExInternals.*;
 
     @Override
     public <A> A[] toArray(IntFunction<A[]> generator) {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(generator, stream()::toArray);
         return stream().toArray(generator);
     }
 
     @Override
     public T reduce(T identity, BinaryOperator<T> accumulator) {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(() -> stream().reduce(identity, accumulator));
         return stream().reduce(identity, accumulator);
     }
 
     @Override
     public Optional<T> reduce(BinaryOperator<T> accumulator) {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(accumulator, stream()::reduce);
         return stream().reduce(accumulator);
     }
 
     @Override
     public <U> U reduce(U identity, BiFunction<U, ? super T, U> accumulator, BinaryOperator<U> combiner) {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(() -> stream().reduce(identity, accumulator, combiner));
         return stream().reduce(identity, accumulator, combiner);
     }
 
     @Override
     public <R> R collect(Supplier<R> supplier, BiConsumer<R, ? super T> accumulator, BiConsumer<R, R> combiner) {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(() -> stream().collect(supplier, accumulator, combiner));
         return stream().collect(supplier, accumulator, combiner);
     }
@@ -440,21 +440,21 @@ import static one.util.streamex.StreamExInternals.*;
 
     @Override
     public long count() {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(stream()::count);
         return stream().count();
     }
 
     @Override
     public boolean anyMatch(Predicate<? super T> predicate) {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(predicate, stream()::anyMatch);
         return stream().anyMatch(predicate);
     }
 
     @Override
     public boolean allMatch(Predicate<? super T> predicate) {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(predicate, stream()::allMatch);
         return stream().allMatch(predicate);
     }
@@ -466,14 +466,14 @@ import static one.util.streamex.StreamExInternals.*;
 
     @Override
     public Optional<T> findFirst() {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(stream()::findFirst);
         return stream().findFirst();
     }
 
     @Override
     public Optional<T> findAny() {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(stream()::findAny);
         return stream().findAny();
     }
@@ -1123,7 +1123,7 @@ import static one.util.streamex.StreamExInternals.*;
      * @see #toList()
      */
     public <R> R toListAndThen(Function<List<T>, R> finisher) {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(() -> finisher.apply(toList()));
         return finisher.apply(toList());
     }

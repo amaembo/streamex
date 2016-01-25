@@ -122,7 +122,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
     
     @Override
     IntStream createStream() {
-        return StreamSupport.intStream(spliterator, strategy.isParallel());
+        return StreamSupport.intStream(spliterator, strategy.parallel);
     }
 
     final IntStreamEx delegate(Spliterator.OfInt spliterator) {
@@ -575,7 +575,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
         if (spliterator != null && !isParallel()) {
             spliterator().forEachRemaining(action);
         } else {
-            if(strategy.getFjp() != null)
+            if(strategy.fjp != null)
                 strategy.terminate(() -> {
                     stream().forEach(action);
                     return null;
@@ -591,7 +591,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
         if (spliterator != null && !isParallel()) {
             spliterator().forEachRemaining(action);
         } else {
-            if(strategy.getFjp() != null)
+            if(strategy.fjp != null)
                 strategy.terminate(() -> {
                     stream().forEachOrdered(action);
                     return null;
@@ -604,7 +604,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
 
     @Override
     public int[] toArray() {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(stream()::toArray);
         return stream().toArray();
     }
@@ -670,14 +670,14 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
 
     @Override
     public int reduce(int identity, IntBinaryOperator op) {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(() -> stream().reduce(identity, op));
         return stream().reduce(identity, op);
     }
 
     @Override
     public OptionalInt reduce(IntBinaryOperator op) {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(op, stream()::reduce);
         return stream().reduce(op);
     }
@@ -852,7 +852,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      */
     @Override
     public <R> R collect(Supplier<R> supplier, ObjIntConsumer<R> accumulator, BiConsumer<R, R> combiner) {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(() -> stream().collect(supplier, accumulator, combiner));
         return stream().collect(supplier, accumulator, combiner);
     }
@@ -1147,14 +1147,14 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
 
     @Override
     public long count() {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(stream()::count);
         return stream().count();
     }
 
     @Override
     public OptionalDouble average() {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(stream()::average);
         return stream().average();
     }
@@ -1166,14 +1166,14 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
 
     @Override
     public boolean anyMatch(IntPredicate predicate) {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(predicate, stream()::anyMatch);
         return stream().anyMatch(predicate);
     }
 
     @Override
     public boolean allMatch(IntPredicate predicate) {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(predicate, stream()::allMatch);
         return stream().allMatch(predicate);
     }
@@ -1185,7 +1185,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
 
     @Override
     public OptionalInt findFirst() {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(stream()::findFirst);
         return stream().findFirst();
     }
@@ -1213,7 +1213,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
 
     @Override
     public OptionalInt findAny() {
-        if(strategy.getFjp() != null)
+        if(strategy.fjp != null)
             return strategy.terminate(stream()::findAny);
         return stream().findAny();
     }

@@ -27,8 +27,8 @@ import java.util.stream.BaseStream;
     static final ExecutionStrategy SEQUENTIAL = new ExecutionStrategy(false);
     static final ExecutionStrategy PARALLEL = new ExecutionStrategy(true);
     
-    private final boolean parallel;
-    private final ForkJoinPool fjp;
+    final boolean parallel;
+    final ForkJoinPool fjp;
 
     private ExecutionStrategy(boolean parallel) {
         this.parallel = parallel;
@@ -40,14 +40,6 @@ import java.util.stream.BaseStream;
         this.fjp = fjp;
     }
 
-    public boolean isParallel() {
-        return parallel;
-    }
-
-    public ForkJoinPool getFjp() {
-        return fjp;
-    }
-
     public <T> T terminate(Supplier<T> terminalOperation) {
         return fjp.submit(terminalOperation::get).join();
     }
@@ -57,7 +49,7 @@ import java.util.stream.BaseStream;
     }
 
     public ExecutionStrategy combine(BaseStream<?,?> other) {
-        if(other.isParallel() && !isParallel())
+        if(other.isParallel() && !parallel)
             return PARALLEL;
         return this;
     }

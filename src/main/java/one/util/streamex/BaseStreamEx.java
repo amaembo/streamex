@@ -71,7 +71,7 @@ import java.util.stream.BaseStream;
 
     @Override
     public boolean isParallel() {
-        return strategy.isParallel();
+        return strategy.parallel;
     }
 
     @SuppressWarnings("unchecked")
