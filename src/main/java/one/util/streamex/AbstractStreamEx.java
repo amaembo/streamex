@@ -312,8 +312,7 @@ import static one.util.streamex.StreamExInternals.*;
     @Override
     public void forEach(Consumer<? super T> action) {
         if (spliterator != null && !isParallel()) {
-            spliterator.forEachRemaining(action);
-            spliterator = null;
+            spliterator().forEachRemaining(action);
         } else {
             if(strategy.getFjp() != null)
                 strategy.terminate(() -> {
@@ -329,8 +328,7 @@ import static one.util.streamex.StreamExInternals.*;
     @Override
     public void forEachOrdered(Consumer<? super T> action) {
         if (spliterator != null && !isParallel()) {
-            spliterator.forEachRemaining(action);
-            spliterator = null;
+            spliterator().forEachRemaining(action);
         } else {
             if(strategy.getFjp() != null)
                 strategy.terminate(() -> {

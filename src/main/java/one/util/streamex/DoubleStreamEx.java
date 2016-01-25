@@ -563,8 +563,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
     @Override
     public void forEach(DoubleConsumer action) {
         if (spliterator != null && !isParallel()) {
-            spliterator.forEachRemaining(action);
-            spliterator = null;
+            spliterator().forEachRemaining(action);
         } else {
             if(strategy.getFjp() != null)
                 strategy.terminate(() -> {
@@ -580,8 +579,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
     @Override
     public void forEachOrdered(DoubleConsumer action) {
         if (spliterator != null && !isParallel()) {
-            spliterator.forEachRemaining(action);
-            spliterator = null;
+            spliterator().forEachRemaining(action);
         } else {
             if(strategy.getFjp() != null)
                 strategy.terminate(() -> {
@@ -1444,7 +1442,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @return an empty sequential stream
      */
     public static DoubleStreamEx empty() {
-        return of(DoubleStream.empty());
+        return of(Spliterators.emptyDoubleSpliterator());
     }
 
     /**
@@ -1454,7 +1452,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @return a singleton sequential stream
      */
     public static DoubleStreamEx of(double element) {
-        return of(DoubleStream.of(element));
+        return of(new ConstSpliterator.OfDouble(element, 1, true));
     }
 
     /**
@@ -1465,7 +1463,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @return the new stream
      */
     public static DoubleStreamEx of(double... elements) {
-        return of(DoubleStream.of(elements));
+        return of(Arrays.spliterator(elements));
     }
 
     /**
@@ -1484,7 +1482,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @see Arrays#stream(double[], int, int)
      */
     public static DoubleStreamEx of(double[] array, int startInclusive, int endExclusive) {
-        return of(Arrays.stream(array, startInclusive, endExclusive));
+        return of(Arrays.spliterator(array, startInclusive, endExclusive));
     }
 
     /**
@@ -1553,7 +1551,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @since 0.3.4
      */
     public static DoubleStreamEx of(Spliterator.OfDouble spliterator) {
-        return of(StreamSupport.doubleStream(spliterator, false));
+        return new DoubleStreamEx(spliterator, ExecutionStrategy.SEQUENTIAL);
     }
 
     /**
@@ -1716,7 +1714,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @since 0.1.2
      */
     public static DoubleStreamEx constant(double value, long length) {
-        return of(new ConstSpliterator.OfDouble(value, length));
+        return of(new ConstSpliterator.OfDouble(value, length, false));
     }
 
     /**

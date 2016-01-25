@@ -57,7 +57,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 import java.util.stream.Collector.Characteristics;
 
 import static one.util.streamex.StreamExInternals.*;
@@ -1485,7 +1484,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return an empty sequential stream
      */
     public static <T> StreamEx<T> empty() {
-        return of(Stream.empty());
+        return of(Spliterators.emptySpliterator());
     }
 
     /**
@@ -1497,7 +1496,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Stream#of(Object)
      */
     public static <T> StreamEx<T> of(T element) {
-        return of(Stream.of(element));
+        return of(new ConstSpliterator.OfRef<>(element, 1, true));
     }
 
     /**
@@ -1511,7 +1510,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     @SafeVarargs
     public static <T> StreamEx<T> of(T... elements) {
-        return of(Stream.of(elements));
+        return of(Arrays.spliterator(elements));
     }
 
     /**
@@ -1531,7 +1530,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Arrays#stream(Object[], int, int)
      */
     public static <T> StreamEx<T> of(T[] array, int startInclusive, int endExclusive) {
-        return of(Arrays.stream(array, startInclusive, endExclusive));
+        return of(Arrays.spliterator(array, startInclusive, endExclusive));
     }
 
     /**
@@ -1545,7 +1544,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Collection#stream()
      */
     public static <T> StreamEx<T> of(Collection<T> collection) {
-        return of(collection.stream());
+        return of(collection.spliterator());
     }
 
     /**
@@ -1569,7 +1568,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.3.4
      */
     public static <T> StreamEx<T> of(Spliterator<T> spliterator) {
-        return of(StreamSupport.stream(spliterator, false));
+        return new StreamEx<>(spliterator, ExecutionStrategy.SEQUENTIAL);
     }
 
     /**
@@ -1791,7 +1790,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Map#keySet()
      */
     public static <T> StreamEx<T> ofKeys(Map<T, ?> map) {
-        return of(map.keySet().stream());
+        return of(map.keySet().spliterator());
     }
 
     /**
@@ -1823,7 +1822,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Map#values()
      */
     public static <T> StreamEx<T> ofValues(Map<?, T> map) {
-        return of(map.values().stream());
+        return of(map.values().spliterator());
     }
 
     /**
@@ -2036,7 +2035,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.1.2
      */
     public static <T> StreamEx<T> constant(T value, long length) {
-        return of(new ConstSpliterator.OfRef<>(value, length));
+        return of(new ConstSpliterator.OfRef<>(value, length, false));
     }
 
     /**
@@ -2164,7 +2163,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public static <T> StreamEx<T> ofTree(T root, Function<T, Stream<T>> mapper) {
         Stream<T> rootStream = mapper.apply(root);
-        return rootStream == null ? of(root) : of(flatTraverse(rootStream, mapper)).prepend(Stream.of(root));
+        return rootStream == null ? of(root) : of(flatTraverse(rootStream, mapper)).prepend(root);
     }
 
     /**
@@ -2283,7 +2282,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public static <T> StreamEx<List<T>> cartesianProduct(Collection<? extends Collection<T>> source) {
         if (source.isEmpty())
-            return of(Stream.of(Collections.emptyList()));
+            return StreamEx.<List<T>>of(Collections.emptyList());
         return of(new CrossSpliterator.ToList<>(source));
     }
 
@@ -2365,7 +2364,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public static <T> StreamEx<List<T>> cartesianPower(int n, Collection<T> source) {
         if (n == 0)
-            return of(Stream.of(Collections.emptyList()));
+            return StreamEx.<List<T>>of(Collections.emptyList());
         return of(new CrossSpliterator.ToList<>(Collections.nCopies(n, source)));
     }
 

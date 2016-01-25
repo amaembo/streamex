@@ -29,9 +29,11 @@ import one.util.streamex.StreamExInternals.CloneableSpliterator;
  */
 /* package */abstract class ConstSpliterator<T, S extends ConstSpliterator<T, ?>> extends CloneableSpliterator<T, S> {
     long remaining;
+    private final boolean ordered;
 
-    public ConstSpliterator(long remaining) {
+    public ConstSpliterator(long remaining, boolean ordered) {
         this.remaining = remaining;
+        this.ordered = ordered;
     }
 
     @Override
@@ -54,14 +56,14 @@ import one.util.streamex.StreamExInternals.CloneableSpliterator;
 
     @Override
     public int characteristics() {
-        return SIZED | SUBSIZED | IMMUTABLE;
+        return SIZED | SUBSIZED | IMMUTABLE | (ordered ? ORDERED : 0);
     }
 
     static final class OfRef<T> extends ConstSpliterator<T, OfRef<T>> {
         private final T value;
 
-        OfRef(T value, long count) {
-            super(count);
+        OfRef(T value, long count, boolean ordered) {
+            super(count, ordered);
             this.value = value;
         }
 
@@ -86,8 +88,8 @@ import one.util.streamex.StreamExInternals.CloneableSpliterator;
     static final class OfInt extends ConstSpliterator<Integer, OfInt> implements Spliterator.OfInt {
         private final int value;
 
-        OfInt(int value, long count) {
-            super(count);
+        OfInt(int value, long count, boolean ordered) {
+            super(count, ordered);
             this.value = value;
         }
 
@@ -112,8 +114,8 @@ import one.util.streamex.StreamExInternals.CloneableSpliterator;
     static final class OfLong extends ConstSpliterator<Long, OfLong> implements Spliterator.OfLong {
         private final long value;
 
-        OfLong(long value, long count) {
-            super(count);
+        OfLong(long value, long count, boolean ordered) {
+            super(count, ordered);
             this.value = value;
         }
 
@@ -138,8 +140,8 @@ import one.util.streamex.StreamExInternals.CloneableSpliterator;
     static final class OfDouble extends ConstSpliterator<Double, OfDouble> implements Spliterator.OfDouble {
         private final double value;
 
-        OfDouble(double value, long count) {
-            super(count);
+        OfDouble(double value, long count, boolean ordered) {
+            super(count, ordered);
             this.value = value;
         }
 

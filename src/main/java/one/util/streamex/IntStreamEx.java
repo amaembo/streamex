@@ -573,8 +573,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
     @Override
     public void forEach(IntConsumer action) {
         if (spliterator != null && !isParallel()) {
-            spliterator.forEachRemaining(action);
-            spliterator = null;
+            spliterator().forEachRemaining(action);
         } else {
             if(strategy.getFjp() != null)
                 strategy.terminate(() -> {
@@ -590,8 +589,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
     @Override
     public void forEachOrdered(IntConsumer action) {
         if (spliterator != null && !isParallel()) {
-            spliterator.forEachRemaining(action);
-            spliterator = null;
+            spliterator().forEachRemaining(action);
         } else {
             if(strategy.getFjp() != null)
                 strategy.terminate(() -> {
@@ -1663,7 +1661,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @return an empty sequential stream
      */
     public static IntStreamEx empty() {
-        return of(IntStream.empty());
+        return of(Spliterators.emptyIntSpliterator());
     }
 
     /**
@@ -1673,7 +1671,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @return a singleton sequential stream
      */
     public static IntStreamEx of(int element) {
-        return of(IntStream.of(element));
+        return of(new ConstSpliterator.OfInt(element, 1, true));
     }
 
     /**
@@ -1684,7 +1682,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @return the new stream
      */
     public static IntStreamEx of(int... elements) {
-        return of(IntStream.of(elements));
+        return of(Arrays.spliterator(elements));
     }
 
     /**
@@ -1703,7 +1701,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @see Arrays#stream(int[], int, int)
      */
     public static IntStreamEx of(int[] array, int startInclusive, int endExclusive) {
-        return of(Arrays.stream(array, startInclusive, endExclusive));
+        return of(Arrays.spliterator(array, startInclusive, endExclusive));
     }
 
     /**
@@ -1971,7 +1969,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.3.4
      */
     public static IntStreamEx of(Spliterator.OfInt spliterator) {
-        return of(StreamSupport.intStream(spliterator, false));
+        return new IntStreamEx(spliterator, ExecutionStrategy.SEQUENTIAL);
     }
 
     /**
@@ -2299,7 +2297,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.1.2
      */
     public static IntStreamEx constant(int value, long length) {
-        return of(new ConstSpliterator.OfInt(value, length));
+        return of(new ConstSpliterator.OfInt(value, length, false));
     }
 
     /**

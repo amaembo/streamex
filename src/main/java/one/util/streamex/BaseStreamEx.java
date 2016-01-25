@@ -61,8 +61,11 @@ import java.util.stream.BaseStream;
     public SPLTR spliterator() {
         if(stream != null)
             return (SPLTR) stream.spliterator();
-        if(spliterator != null)
-            return spliterator;
+        if(spliterator != null) {
+            SPLTR s = spliterator;
+            spliterator = null;
+            return s;
+        }
         throw new IllegalStateException(CONSUMED_MESSAGE);
     }
 

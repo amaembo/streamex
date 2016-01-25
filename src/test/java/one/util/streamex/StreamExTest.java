@@ -208,6 +208,17 @@ public class StreamExTest {
         list.addAll(list2);
         assertEquals(asList(1, 2, 3, 4, 5, 6, 7), list);
     }
+    
+    @Test
+    public void testForEach() {
+        List<Integer> list = new ArrayList<>();
+        StreamEx.of(1, 2, 3).forEach(list::add);
+        assertEquals(asList(1, 2, 3), list);
+        StreamEx.of(1, 2, 3).forEachOrdered(list::add);
+        assertEquals(asList(1, 2, 3, 1, 2, 3), list);
+        StreamEx.of(1, 2, 3).parallel().forEachOrdered(list::add);
+        assertEquals(asList(1, 2, 3, 1, 2, 3, 1, 2, 3), list);
+    }
 
     @Test
     public void testFlatMap() {

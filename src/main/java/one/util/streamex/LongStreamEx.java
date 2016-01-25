@@ -590,8 +590,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
     @Override
     public void forEach(LongConsumer action) {
         if (spliterator != null && !isParallel()) {
-            spliterator.forEachRemaining(action);
-            spliterator = null;
+            spliterator().forEachRemaining(action);
         } else {
             if(strategy.getFjp() != null)
                 strategy.terminate(() -> {
@@ -607,8 +606,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
     @Override
     public void forEachOrdered(LongConsumer action) {
         if (spliterator != null && !isParallel()) {
-            spliterator.forEachRemaining(action);
-            spliterator = null;
+            spliterator().forEachRemaining(action);
         } else {
             if(strategy.getFjp() != null)
                 strategy.terminate(() -> {
@@ -1468,7 +1466,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @return an empty sequential stream
      */
     public static LongStreamEx empty() {
-        return of(LongStream.empty());
+        return of(Spliterators.emptyLongSpliterator());
     }
 
     /**
@@ -1478,7 +1476,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @return a singleton sequential stream
      */
     public static LongStreamEx of(long element) {
-        return of(LongStream.of(element));
+        return of(new ConstSpliterator.OfLong(element, 1, true));
     }
 
     /**
@@ -1489,7 +1487,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @return the new stream
      */
     public static LongStreamEx of(long... elements) {
-        return of(LongStream.of(elements));
+        return of(Arrays.spliterator(elements));
     }
 
     /**
@@ -1508,7 +1506,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @see Arrays#stream(long[], int, int)
      */
     public static LongStreamEx of(long[] array, int startInclusive, int endExclusive) {
-        return of(Arrays.stream(array, startInclusive, endExclusive));
+        return of(Arrays.spliterator(array, startInclusive, endExclusive));
     }
 
     /**
@@ -1546,7 +1544,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @since 0.3.4
      */
     public static LongStreamEx of(Spliterator.OfLong spliterator) {
-        return of(StreamSupport.longStream(spliterator, false));
+        return new LongStreamEx(spliterator, ExecutionStrategy.SEQUENTIAL);
     }
 
     /**
@@ -1813,7 +1811,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @since 0.1.2
      */
     public static LongStreamEx constant(long value, long length) {
-        return of(new ConstSpliterator.OfLong(value, length));
+        return of(new ConstSpliterator.OfLong(value, length, false));
     }
 
     /**
