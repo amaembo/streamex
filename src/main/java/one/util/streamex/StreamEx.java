@@ -2282,7 +2282,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public static <T> StreamEx<List<T>> cartesianProduct(Collection<? extends Collection<T>> source) {
         if (source.isEmpty())
-            return StreamEx.<List<T>>of(Collections.emptyList());
+            return StreamEx.of(new ConstSpliterator.OfRef<>(Collections.emptyList(), 1, true));
         return of(new CrossSpliterator.ToList<>(source));
     }
 
@@ -2364,7 +2364,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public static <T> StreamEx<List<T>> cartesianPower(int n, Collection<T> source) {
         if (n == 0)
-            return StreamEx.<List<T>>of(Collections.emptyList());
+            return StreamEx.of(new ConstSpliterator.OfRef<>(Collections.emptyList(), 1, true));
         return of(new CrossSpliterator.ToList<>(Collections.nCopies(n, source)));
     }
 
