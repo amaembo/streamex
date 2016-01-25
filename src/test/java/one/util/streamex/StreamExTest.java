@@ -135,15 +135,22 @@ public class StreamExTest {
         String input = IntStreamEx.range(5000).joining("\n");
         List<String> expectedList = IntStreamEx.range(1, 5000).mapToObj(String::valueOf).toList();
         Set<String> expectedSet = IntStreamEx.range(1, 5000).mapToObj(String::valueOf).toSet();
-        assertEquals(expectedList, StreamEx.ofLines(new StringReader(input)).skip(1).parallel().toList());
-        assertEquals(expectedList, StreamEx.ofLines(new StringReader(input)).pairMap((a, b) -> b).parallel().toList());
+        // Saving actual to separate variable helps to work-around
+        // javac <8u40 issue JDK-8056984
+        List<String> actualList = StreamEx.ofLines(new StringReader(input)).skip(1).parallel().toList();
+        assertEquals(expectedList, actualList);
+        actualList = StreamEx.ofLines(new StringReader(input)).pairMap((a, b) -> b).parallel().toList();
+        assertEquals(expectedList, actualList);
 
-        assertEquals(expectedSet, StreamEx.ofLines(new StringReader(input)).pairMap((a, b) -> b).parallel().toSet());
-        assertEquals(expectedSet, StreamEx.ofLines(new StringReader(input)).skip(1).parallel().toCollection(
-            HashSet::new));
+        Set<String> actualSet = StreamEx.ofLines(new StringReader(input)).pairMap((a, b) -> b).parallel().toSet();
+        assertEquals(expectedSet, actualSet);
+        actualSet = StreamEx.ofLines(new StringReader(input)).skip(1).parallel().toCollection(HashSet::new);
+        assertEquals(expectedSet, actualSet);
 
-        assertEquals(expectedSet, StreamEx.ofLines(new StringReader(input)).parallel().skipOrdered(1).toSet());
-        assertEquals(expectedSet, StreamEx.ofLines(new StringReader(input)).skipOrdered(1).parallel().toSet());
+        actualSet = StreamEx.ofLines(new StringReader(input)).parallel().skipOrdered(1).toSet();
+        assertEquals(expectedSet, actualSet);
+        actualSet = StreamEx.ofLines(new StringReader(input)).skipOrdered(1).parallel().toSet();
+        assertEquals(expectedSet, actualSet);
 
         assertFalse(StreamEx.ofLines(new StringReader(input)).spliterator().getClass().getSimpleName().endsWith(
             "IteratorSpliterator"));
@@ -649,6 +656,10 @@ public class StreamExTest {
         assertEquals(IntStreamEx.range(10).boxed().toList(), IntStreamEx.range(100).mapToObj(x -> x / 10).sorted()
                 .distinct(3).sorted().toList());
 
+        // Saving actual to separate variable helps to work-around
+        // javac <8u40 issue JDK-8056984
+        List<String> actual = StreamEx.split("a,b,a,c,d,b,a", ",").parallel().distinct(2).sorted().toList();
+        assertEquals(asList("a", "b"), actual);
         assertEquals(asList("a", "b"), StreamEx.split("a,b,a,c,d,b,a", ",").parallel().distinct(2).sorted().toList());
     }
 
@@ -682,19 +693,6 @@ public class StreamExTest {
 
     private <T extends Comparable<? super T>> Optional<T> firstMisplaced(Collection<T> c) {
         return StreamEx.of(c).parallel().pairMap((a, b) -> a.compareTo(b) > 0 ? a : null).nonNull().findFirst();
-    }
-
-    static class Point {
-        double x, y;
-
-        Point(double x, double y) {
-            this.x = x;
-            this.y = y;
-        }
-
-        double distance(Point o) {
-            return Math.sqrt((x - o.x) * (x - o.x) + (y - o.y) * (y - o.y));
-        }
     }
 
     @Test
@@ -1570,4 +1568,18 @@ public class StreamExTest {
                 .singletonMap(0, IntStreamEx.range(1, 10000).boxed().toList());
         streamEx(() -> IntStreamEx.range(10000).boxed(), s -> assertEquals(expected, s.get().withFirst().grouping()));
     }
+
+    static class Point {
+        double x, y;
+
+        Point(double x, double y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        double distance(Point o) {
+            return Math.sqrt((x - o.x) * (x - o.x) + (y - o.y) * (y - o.y));
+        }
+    }
+
 }
