@@ -293,6 +293,17 @@ public class StreamExHeadTailTest {
         }, buf::build);
     }
     
+    static <T> StreamEx<T> skipLast(Stream<T> input, int n) {
+        return skipLast(StreamEx.of(input), n, new ArrayDeque<>());
+    }
+    
+    private static <T> StreamEx<T> skipLast(StreamEx<T> input, int n, Deque<T> buf) {
+        return input.headTail((head, tail) -> {
+            buf.addLast(head);
+            return buf.size() > n ? skipLast(tail, n, buf).prepend(buf.pollFirst()) : skipLast(tail, n, buf);
+        });
+    }
+    
     // ///////////////////////
     // Terminal ops
 
@@ -390,6 +401,8 @@ public class StreamExHeadTailTest {
         
         assertEquals(asList(0, 3, 6, 9, 12, 15, 18, 0, 4, 8, 12, 16), twoFilters(IntStreamEx.range(20).boxed(),
             x -> x % 3 == 0, x -> x % 4 == 0).toList());
+        
+        assertEquals(asList(5, 10, 1, 6, 7), skipLast(Stream.of(5, 10, 1, 6, 7, 15, -1, 10), 3).toList());
     }
 
     @Test
