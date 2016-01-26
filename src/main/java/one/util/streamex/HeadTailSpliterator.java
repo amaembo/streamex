@@ -21,7 +21,6 @@ import java.util.Spliterators.AbstractSpliterator;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.stream.BaseStream;
 import java.util.stream.Stream;
 
 import one.util.streamex.StreamExInternals.TailSpliterator;
@@ -36,7 +35,7 @@ import static one.util.streamex.StreamExInternals.*;
     private Supplier<? extends Stream<U>> emptyMapper;
     private Spliterator<U> target;
     private boolean finished;
-    BaseStream<?, ?> owner;
+    StreamContext context;
     
     HeadTailSpliterator(Spliterator<T> source, BiFunction<? super T, ? super StreamEx<T>, ? extends Stream<U>> mapper,
             Supplier<? extends Stream<U>> emptyMapper) {
@@ -92,7 +91,7 @@ import static one.util.streamex.StreamExInternals.*;
             source = null;
             mapper = null;
             emptyMapper = null;
-            delegateClose(owner, stream);
+            context.combine(stream);
             target = stream == null ? Spliterators.emptySpliterator() : stream.spliterator();
         }
         return true;

@@ -63,23 +63,23 @@ import static one.util.streamex.StreamExInternals.*;
  */
 public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream<K, V>> {
     @SuppressWarnings("unchecked")
-    EntryStream(Stream<? extends Entry<K, V>> stream, ExecutionStrategy strategy) {
-        super((Stream<Entry<K, V>>) stream, strategy);
+    EntryStream(Stream<? extends Entry<K, V>> stream, StreamContext context) {
+        super((Stream<Entry<K, V>>) stream, context);
     }
 
     @SuppressWarnings("unchecked")
-    EntryStream(Spliterator<? extends Entry<K, V>> spliterator, ExecutionStrategy strategy) {
-        super((Spliterator<Entry<K, V>>) spliterator, strategy);
+    EntryStream(Spliterator<? extends Entry<K, V>> spliterator, StreamContext context) {
+        super((Spliterator<Entry<K, V>>) spliterator, context);
     }
 
     @Override
     EntryStream<K, V> supply(Stream<Map.Entry<K, V>> stream) {
-        return new EntryStream<>(stream, strategy);
+        return new EntryStream<>(stream, context);
     }
 
     @Override
     EntryStream<K, V> supply(Spliterator<Entry<K, V>> spliterator) {
-        return new EntryStream<>(spliterator, strategy);
+        return new EntryStream<>(spliterator, context);
     }
 
     static <K, V> Consumer<? super Entry<K, V>> toConsumer(BiConsumer<? super K, ? super V> action) {
@@ -163,7 +163,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public <KK> EntryStream<KK, V> flatMapKeys(Function<? super K, ? extends Stream<? extends KK>> mapper) {
-        return new EntryStream<>(stream().flatMap(e -> withValue(mapper.apply(e.getKey()), e.getValue())), strategy);
+        return new EntryStream<>(stream().flatMap(e -> withValue(mapper.apply(e.getKey()), e.getValue())), context);
     }
 
     /**
@@ -189,7 +189,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     public <KK> EntryStream<KK, V> flatMapToKey(BiFunction<? super K, ? super V, ? extends Stream<? extends KK>> mapper) {
         return new EntryStream<>(
-                stream().flatMap(e -> withValue(mapper.apply(e.getKey(), e.getValue()), e.getValue())), strategy);
+                stream().flatMap(e -> withValue(mapper.apply(e.getKey(), e.getValue()), e.getValue())), context);
     }
 
     /**
@@ -214,7 +214,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public <VV> EntryStream<K, VV> flatMapValues(Function<? super V, ? extends Stream<? extends VV>> mapper) {
-        return new EntryStream<>(stream().flatMap(e -> withKey(e.getKey(), mapper.apply(e.getValue()))), strategy);
+        return new EntryStream<>(stream().flatMap(e -> withKey(e.getKey(), mapper.apply(e.getValue()))), context);
     }
 
     /**
@@ -241,7 +241,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     public <VV> EntryStream<K, VV> flatMapToValue(
             BiFunction<? super K, ? super V, ? extends Stream<? extends VV>> mapper) {
         return new EntryStream<>(
-            stream().flatMap(e -> withKey(e.getKey(), mapper.apply(e.getKey(), e.getValue()))), strategy);
+            stream().flatMap(e -> withKey(e.getKey(), mapper.apply(e.getKey(), e.getValue()))), context);
     }
 
     /**
@@ -480,7 +480,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     public <KK> EntryStream<KK, V> mapKeys(Function<? super K, ? extends KK> keyMapper) {
         return new EntryStream<>(stream().map(
-            e -> new SimpleImmutableEntry<>(keyMapper.apply(e.getKey()), e.getValue())), strategy);
+            e -> new SimpleImmutableEntry<>(keyMapper.apply(e.getKey()), e.getValue())), context);
     }
 
     /**
@@ -498,7 +498,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     public <VV> EntryStream<K, VV> mapValues(Function<? super V, ? extends VV> valueMapper) {
         return new EntryStream<>(
-            stream().map(e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e.getValue()))), strategy);
+            stream().map(e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e.getValue()))), context);
     }
 
     /**
@@ -534,7 +534,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     public <KK> EntryStream<KK, V> mapToKey(BiFunction<? super K, ? super V, ? extends KK> keyMapper) {
         return new EntryStream<>(stream().map(
-            e -> new SimpleImmutableEntry<>(keyMapper.apply(e.getKey(), e.getValue()), e.getValue())), strategy);
+            e -> new SimpleImmutableEntry<>(keyMapper.apply(e.getKey(), e.getValue()), e.getValue())), context);
     }
 
     /**
@@ -553,7 +553,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     public <VV> EntryStream<K, VV> mapToValue(BiFunction<? super K, ? super V, ? extends VV> valueMapper) {
         return new EntryStream<>(stream().map(
-            e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e.getKey(), e.getValue()))), strategy);
+            e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e.getKey(), e.getValue()))), context);
     }
 
     /**
@@ -567,7 +567,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public EntryStream<V, K> invert() {
-        return new EntryStream<>(stream().map(e -> new SimpleImmutableEntry<>(e.getValue(), e.getKey())), strategy);
+        return new EntryStream<>(stream().map(e -> new SimpleImmutableEntry<>(e.getValue(), e.getKey())), context);
     }
 
     /**
@@ -1085,7 +1085,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the wrapped stream
      */
     public static <K, V> EntryStream<K, V> of(Stream<? extends Entry<K, V>> stream) {
-        return new EntryStream<>(unwrap(stream), ExecutionStrategy.of(stream));
+        return new EntryStream<>(unwrap(stream), StreamContext.of(stream));
     }
 
     /**

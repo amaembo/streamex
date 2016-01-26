@@ -112,29 +112,31 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
         }
     }
 
-    IntStreamEx(IntStream stream, ExecutionStrategy strategy) {
-        super(stream, strategy);
+    IntStreamEx(IntStream stream, StreamContext context) {
+        super(stream, context);
     }
 
-    IntStreamEx(Spliterator.OfInt spliterator, ExecutionStrategy strategy) {
-        super(spliterator, strategy);
+    IntStreamEx(Spliterator.OfInt spliterator, StreamContext context) {
+        super(spliterator, context);
     }
     
     @Override
     IntStream createStream() {
-        return StreamSupport.intStream(spliterator, strategy.parallel);
+        return StreamSupport.intStream(spliterator, context.parallel);
+    }
+
+    private static IntStreamEx seq(IntStream stream) {
+        return new IntStreamEx(stream, StreamContext.SEQUENTIAL);
     }
 
     final IntStreamEx delegate(Spliterator.OfInt spliterator) {
-        if(!mustClose())
-            return new IntStreamEx(spliterator, strategy);
-        return new IntStreamEx(forwardClose(StreamSupport.intStream(spliterator, isParallel())), strategy);
+        return new IntStreamEx(spliterator, context);
     }
 
     final IntStreamEx callWhile(IntPredicate predicate, int methodId) {
         try {
             return new IntStreamEx(
-                (IntStream) JDK9_METHODS[IDX_INT_STREAM][methodId].invokeExact(stream(), predicate), strategy);
+                (IntStream) JDK9_METHODS[IDX_INT_STREAM][methodId].invokeExact(stream(), predicate), context);
         } catch (Error | RuntimeException e) {
             throw e;
         } catch (Throwable e) {
@@ -142,7 +144,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
         }
     }
 
-    <A> A collectSized(Supplier<A> supplier, ObjIntConsumer<A> accumulator, BiConsumer<A, A> combiner,
+    final <A> A collectSized(Supplier<A> supplier, ObjIntConsumer<A> accumulator, BiConsumer<A, A> combiner,
             IntFunction<A> sizedSupplier, ObjIntConsumer<A> sizedAccumulator) {
         if (isParallel())
             return collect(supplier, accumulator, combiner);
@@ -171,7 +173,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
 
     @Override
     public IntStreamEx filter(IntPredicate predicate) {
-        return new IntStreamEx(stream().filter(predicate), strategy);
+        return new IntStreamEx(stream().filter(predicate), context);
     }
 
     /**
@@ -280,22 +282,22 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
 
     @Override
     public IntStreamEx map(IntUnaryOperator mapper) {
-        return new IntStreamEx(stream().map(mapper), strategy);
+        return new IntStreamEx(stream().map(mapper), context);
     }
 
     @Override
     public <U> StreamEx<U> mapToObj(IntFunction<? extends U> mapper) {
-        return new StreamEx<>(stream().mapToObj(mapper), strategy);
+        return new StreamEx<>(stream().mapToObj(mapper), context);
     }
 
     @Override
     public LongStreamEx mapToLong(IntToLongFunction mapper) {
-        return new LongStreamEx(stream().mapToLong(mapper), strategy);
+        return new LongStreamEx(stream().mapToLong(mapper), context);
     }
 
     @Override
     public DoubleStreamEx mapToDouble(IntToDoubleFunction mapper) {
-        return new DoubleStreamEx(stream().mapToDouble(mapper), strategy);
+        return new DoubleStreamEx(stream().mapToDouble(mapper), context);
     }
 
     /**
@@ -317,12 +319,12 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      */
     public <K, V> EntryStream<K, V> mapToEntry(IntFunction<? extends K> keyMapper, IntFunction<? extends V> valueMapper) {
         return new EntryStream<>(stream().mapToObj(
-            t -> new AbstractMap.SimpleImmutableEntry<>(keyMapper.apply(t), valueMapper.apply(t))), strategy);
+            t -> new AbstractMap.SimpleImmutableEntry<>(keyMapper.apply(t), valueMapper.apply(t))), context);
     }
 
     @Override
     public IntStreamEx flatMap(IntFunction<? extends IntStream> mapper) {
-        return new IntStreamEx(stream().flatMap(mapper), strategy);
+        return new IntStreamEx(stream().flatMap(mapper), context);
     }
 
     /**
@@ -341,7 +343,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.3.0
      */
     public LongStreamEx flatMapToLong(IntFunction<? extends LongStream> mapper) {
-        return new LongStreamEx(stream().mapToObj(mapper).flatMapToLong(Function.identity()), strategy);
+        return new LongStreamEx(stream().mapToObj(mapper).flatMapToLong(Function.identity()), context);
     }
 
     /**
@@ -360,7 +362,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.3.0
      */
     public DoubleStreamEx flatMapToDouble(IntFunction<? extends DoubleStream> mapper) {
-        return new DoubleStreamEx(stream().mapToObj(mapper).flatMapToDouble(Function.identity()), strategy);
+        return new DoubleStreamEx(stream().mapToObj(mapper).flatMapToDouble(Function.identity()), context);
     }
 
     /**
@@ -380,17 +382,17 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.3.0
      */
     public <R> StreamEx<R> flatMapToObj(IntFunction<? extends Stream<R>> mapper) {
-        return new StreamEx<>(stream().mapToObj(mapper).flatMap(Function.identity()), strategy);
+        return new StreamEx<>(stream().mapToObj(mapper).flatMap(Function.identity()), context);
     }
 
     @Override
     public IntStreamEx distinct() {
-        return new IntStreamEx(stream().distinct(), strategy);
+        return new IntStreamEx(stream().distinct(), context);
     }
 
     @Override
     public IntStreamEx sorted() {
-        return new IntStreamEx(stream().sorted(), strategy);
+        return new IntStreamEx(stream().sorted(), context);
     }
 
     /**
@@ -413,7 +415,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @return the new stream
      */
     public IntStreamEx sorted(Comparator<Integer> comparator) {
-        return new IntStreamEx(stream().boxed().sorted(comparator).mapToInt(Integer::intValue), strategy);
+        return new IntStreamEx(stream().boxed().sorted(comparator).mapToInt(Integer::intValue), context);
     }
 
     /**
@@ -522,17 +524,17 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
 
     @Override
     public IntStreamEx peek(IntConsumer action) {
-        return new IntStreamEx(stream().peek(action), strategy);
+        return new IntStreamEx(stream().peek(action), context);
     }
 
     @Override
     public IntStreamEx limit(long maxSize) {
-        return new IntStreamEx(stream().limit(maxSize), strategy);
+        return new IntStreamEx(stream().limit(maxSize), context);
     }
 
     @Override
     public IntStreamEx skip(long n) {
-        return new IntStreamEx(stream().skip(n), strategy);
+        return new IntStreamEx(stream().skip(n), context);
     }
 
     /**
@@ -577,8 +579,8 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
         if (spliterator != null && !isParallel()) {
             spliterator().forEachRemaining(action);
         } else {
-            if(strategy.fjp != null)
-                strategy.terminate(() -> {
+            if(context.fjp != null)
+                context.terminate(() -> {
                     stream().forEach(action);
                     return null;
                 });
@@ -593,8 +595,8 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
         if (spliterator != null && !isParallel()) {
             spliterator().forEachRemaining(action);
         } else {
-            if(strategy.fjp != null)
-                strategy.terminate(() -> {
+            if(context.fjp != null)
+                context.terminate(() -> {
                     stream().forEachOrdered(action);
                     return null;
                 });
@@ -606,8 +608,8 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
 
     @Override
     public int[] toArray() {
-        if(strategy.fjp != null)
-            return strategy.terminate(stream()::toArray);
+        if(context.fjp != null)
+            return context.terminate(stream()::toArray);
         return stream().toArray();
     }
 
@@ -672,15 +674,15 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
 
     @Override
     public int reduce(int identity, IntBinaryOperator op) {
-        if(strategy.fjp != null)
-            return strategy.terminate(() -> stream().reduce(identity, op));
+        if(context.fjp != null)
+            return context.terminate(() -> stream().reduce(identity, op));
         return stream().reduce(identity, op);
     }
 
     @Override
     public OptionalInt reduce(IntBinaryOperator op) {
-        if(strategy.fjp != null)
-            return strategy.terminate(op, stream()::reduce);
+        if(context.fjp != null)
+            return context.terminate(op, stream()::reduce);
         return stream().reduce(op);
     }
 
@@ -854,8 +856,8 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      */
     @Override
     public <R> R collect(Supplier<R> supplier, ObjIntConsumer<R> accumulator, BiConsumer<R, R> combiner) {
-        if(strategy.fjp != null)
-            return strategy.terminate(() -> stream().collect(supplier, accumulator, combiner));
+        if(context.fjp != null)
+            return context.terminate(() -> stream().collect(supplier, accumulator, combiner));
         return stream().collect(supplier, accumulator, combiner);
     }
 
@@ -1149,15 +1151,15 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
 
     @Override
     public long count() {
-        if(strategy.fjp != null)
-            return strategy.terminate(stream()::count);
+        if(context.fjp != null)
+            return context.terminate(stream()::count);
         return stream().count();
     }
 
     @Override
     public OptionalDouble average() {
-        if(strategy.fjp != null)
-            return strategy.terminate(stream()::average);
+        if(context.fjp != null)
+            return context.terminate(stream()::average);
         return stream().average();
     }
 
@@ -1168,15 +1170,15 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
 
     @Override
     public boolean anyMatch(IntPredicate predicate) {
-        if(strategy.fjp != null)
-            return strategy.terminate(predicate, stream()::anyMatch);
+        if(context.fjp != null)
+            return context.terminate(predicate, stream()::anyMatch);
         return stream().anyMatch(predicate);
     }
 
     @Override
     public boolean allMatch(IntPredicate predicate) {
-        if(strategy.fjp != null)
-            return strategy.terminate(predicate, stream()::allMatch);
+        if(context.fjp != null)
+            return context.terminate(predicate, stream()::allMatch);
         return stream().allMatch(predicate);
     }
 
@@ -1187,8 +1189,8 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
 
     @Override
     public OptionalInt findFirst() {
-        if(strategy.fjp != null)
-            return strategy.terminate(stream()::findFirst);
+        if(context.fjp != null)
+            return context.terminate(stream()::findFirst);
         return stream().findFirst();
     }
 
@@ -1215,8 +1217,8 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
 
     @Override
     public OptionalInt findAny() {
-        if(strategy.fjp != null)
-            return strategy.terminate(stream()::findAny);
+        if(context.fjp != null)
+            return context.terminate(stream()::findAny);
         return stream().findAny();
     }
 
@@ -1292,17 +1294,17 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
 
     @Override
     public LongStreamEx asLongStream() {
-        return new LongStreamEx(stream().asLongStream(), strategy);
+        return new LongStreamEx(stream().asLongStream(), context);
     }
 
     @Override
     public DoubleStreamEx asDoubleStream() {
-        return new DoubleStreamEx(stream().asDoubleStream(), strategy);
+        return new DoubleStreamEx(stream().asDoubleStream(), context);
     }
 
     @Override
     public StreamEx<Integer> boxed() {
-        return new StreamEx<>(stream().boxed(), strategy);
+        return new StreamEx<>(stream().boxed(), context);
     }
 
     @Override
@@ -1339,7 +1341,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
     public IntStreamEx append(int... values) {
         if (values.length == 0)
             return this;
-        return new IntStreamEx(IntStream.concat(stream(), IntStream.of(values)), strategy);
+        return new IntStreamEx(IntStream.concat(stream(), IntStream.of(values)), context);
     }
 
     /**
@@ -1354,7 +1356,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @see IntStream#concat(IntStream, IntStream)
      */
     public IntStreamEx append(IntStream other) {
-        return new IntStreamEx(IntStream.concat(stream(), other), strategy.combine(other));
+        return new IntStreamEx(IntStream.concat(stream(), other), context.combine(other));
     }
 
     /**
@@ -1371,7 +1373,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
     public IntStreamEx prepend(int... values) {
         if (values.length == 0)
             return this;
-        return new IntStreamEx(IntStream.concat(IntStream.of(values), stream()), strategy);
+        return new IntStreamEx(IntStream.concat(IntStream.of(values), stream()), context);
     }
 
     /**
@@ -1386,7 +1388,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @see IntStream#concat(IntStream, IntStream)
      */
     public IntStreamEx prepend(IntStream other) {
-        return new IntStreamEx(IntStream.concat(other, stream()), strategy.combine(other));
+        return new IntStreamEx(IntStream.concat(other, stream()), context.combine(other));
     }
 
     /**
@@ -1809,7 +1811,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.5.0
      */
     public static IntStreamEx of(Integer[] array) {
-        return of(Arrays.stream(array).mapToInt(Integer::intValue));
+        return seq(Arrays.stream(array).mapToInt(Integer::intValue));
     }
 
     /**
@@ -1842,7 +1844,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.1.1
      */
     public static <T> IntStreamEx ofIndices(List<T> list, Predicate<T> predicate) {
-        return of(IntStream.range(0, list.size()).filter(i -> predicate.test(list.get(i))));
+        return seq(IntStream.range(0, list.size()).filter(i -> predicate.test(list.get(i))));
     }
 
     /**
@@ -1870,7 +1872,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.1.1
      */
     public static <T> IntStreamEx ofIndices(T[] array, Predicate<T> predicate) {
-        return of(IntStream.range(0, array.length).filter(i -> predicate.test(array[i])));
+        return seq(IntStream.range(0, array.length).filter(i -> predicate.test(array[i])));
     }
 
     /**
@@ -1896,7 +1898,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.1.1
      */
     public static IntStreamEx ofIndices(int[] array, IntPredicate predicate) {
-        return of(IntStream.range(0, array.length).filter(i -> predicate.test(array[i])));
+        return seq(IntStream.range(0, array.length).filter(i -> predicate.test(array[i])));
     }
 
     /**
@@ -1922,7 +1924,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.1.1
      */
     public static IntStreamEx ofIndices(long[] array, LongPredicate predicate) {
-        return of(IntStream.range(0, array.length).filter(i -> predicate.test(array[i])));
+        return seq(IntStream.range(0, array.length).filter(i -> predicate.test(array[i])));
     }
 
     /**
@@ -1948,9 +1950,9 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.1.1
      */
     public static IntStreamEx ofIndices(double[] array, DoublePredicate predicate) {
-        return of(IntStream.range(0, array.length).filter(i -> predicate.test(array[i])));
+        return seq(IntStream.range(0, array.length).filter(i -> predicate.test(array[i])));
     }
-
+    
     /**
      * Returns an {@code IntStreamEx} object which wraps given {@link IntStream}
      * 
@@ -1959,7 +1961,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.0.8
      */
     public static IntStreamEx of(IntStream stream) {
-        return stream instanceof IntStreamEx ? (IntStreamEx) stream : new IntStreamEx(stream, ExecutionStrategy.of(stream));
+        return stream instanceof IntStreamEx ? (IntStreamEx) stream : new IntStreamEx(stream, StreamContext.of(stream));
     }
 
     /**
@@ -1971,7 +1973,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.3.4
      */
     public static IntStreamEx of(Spliterator.OfInt spliterator) {
-        return new IntStreamEx(spliterator, ExecutionStrategy.SEQUENTIAL);
+        return new IntStreamEx(spliterator, StreamContext.SEQUENTIAL);
     }
 
     /**
@@ -2025,7 +2027,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @see BitSet#stream()
      */
     public static IntStreamEx of(BitSet bitSet) {
-        return of(bitSet.stream());
+        return seq(bitSet.stream());
     }
 
     /**
@@ -2037,7 +2039,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @see Collection#stream()
      */
     public static IntStreamEx of(Collection<Integer> collection) {
-        return of(collection.stream().mapToInt(Integer::intValue));
+        return seq(collection.stream().mapToInt(Integer::intValue));
     }
 
     /**
@@ -2053,7 +2055,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @see Random#ints()
      */
     public static IntStreamEx of(Random random) {
-        return of(random.ints());
+        return seq(random.ints());
     }
 
     /**
@@ -2070,7 +2072,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @see Random#ints(long)
      */
     public static IntStreamEx of(Random random, long streamSize) {
-        return of(random.ints(streamSize));
+        return seq(random.ints(streamSize));
     }
 
     /**
@@ -2085,7 +2087,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @see Random#ints(long, int, int)
      */
     public static IntStreamEx of(Random random, int randomNumberOrigin, int randomNumberBound) {
-        return of(random.ints(randomNumberOrigin, randomNumberBound));
+        return seq(random.ints(randomNumberOrigin, randomNumberBound));
     }
 
     /**
@@ -2101,7 +2103,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @see Random#ints(long, int, int)
      */
     public static IntStreamEx of(Random random, long streamSize, int randomNumberOrigin, int randomNumberBound) {
-        return of(random.ints(streamSize, randomNumberOrigin, randomNumberBound));
+        return seq(random.ints(streamSize, randomNumberOrigin, randomNumberBound));
     }
 
     /**
@@ -2164,7 +2166,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @see IntStream#iterate(int, IntUnaryOperator)
      */
     public static IntStreamEx iterate(final int seed, final IntUnaryOperator f) {
-        return of(IntStream.iterate(seed, f));
+        return seq(IntStream.iterate(seed, f));
     }
 
     /**
@@ -2177,7 +2179,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @see IntStream#generate(IntSupplier)
      */
     public static IntStreamEx generate(IntSupplier s) {
-        return of(IntStream.generate(s));
+        return seq(IntStream.generate(s));
     }
 
     /**
@@ -2191,7 +2193,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.1.1
      */
     public static IntStreamEx range(int endExclusive) {
-        return of(IntStream.range(0, endExclusive));
+        return seq(IntStream.range(0, endExclusive));
     }
 
     /**
@@ -2206,7 +2208,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @see IntStream#range(int, int)
      */
     public static IntStreamEx range(int startInclusive, int endExclusive) {
-        return of(IntStream.range(startInclusive, endExclusive));
+        return seq(IntStream.range(startInclusive, endExclusive));
     }
 
     /**
@@ -2245,7 +2247,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @see IntStream#rangeClosed(int, int)
      */
     public static IntStreamEx rangeClosed(int startInclusive, int endInclusive) {
-        return of(IntStream.rangeClosed(startInclusive, endInclusive));
+        return seq(IntStream.rangeClosed(startInclusive, endInclusive));
     }
 
     /**
@@ -2275,18 +2277,18 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
         if (step == 0)
             throw new IllegalArgumentException("step = 0");
         if (step == 1)
-            return of(IntStream.rangeClosed(startInclusive, endInclusive));
+            return seq(IntStream.rangeClosed(startInclusive, endInclusive));
         if (step == -1) {
             // Handled specially as number of elements can exceed
             // Integer.MAX_VALUE
             int sum = endInclusive + startInclusive;
-            return of(IntStream.rangeClosed(endInclusive, startInclusive).map(x -> sum - x));
+            return seq(IntStream.rangeClosed(endInclusive, startInclusive).map(x -> sum - x));
         }
         if (endInclusive > startInclusive ^ step > 0)
             return empty();
         int limit = (endInclusive - startInclusive) * Integer.signum(step);
         limit = Integer.divideUnsigned(limit, Math.abs(step));
-        return of(IntStream.rangeClosed(0, limit).map(x -> x * step + startInclusive));
+        return seq(IntStream.rangeClosed(0, limit).map(x -> x * step + startInclusive));
     }
 
     /**

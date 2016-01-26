@@ -28,21 +28,21 @@ import java.util.stream.BaseStream;
 
     private S stream;
     SPLTR spliterator;
-    ExecutionStrategy strategy;
+    StreamContext context;
     
-    BaseStreamEx(S stream, ExecutionStrategy strategy) {
+    BaseStreamEx(S stream, StreamContext context) {
         this.stream = stream;
-        this.strategy = strategy;
+        this.context = context;
     }
 
-    BaseStreamEx(SPLTR spliterator, ExecutionStrategy strategy) {
+    BaseStreamEx(SPLTR spliterator, StreamContext context) {
         this.spliterator = spliterator;
-        this.strategy = strategy;
+        this.context = context;
     }
     
     abstract S createStream();
 
-    S stream() {
+    final S stream() {
         if(stream != null)
             return stream;
         if(spliterator == null)
@@ -50,14 +50,6 @@ import java.util.stream.BaseStream;
         stream = createStream();
         spliterator = null;
         return stream;
-    }
-    
-    <B extends BaseStream<?, ?>> B forwardClose(B proxy) {
-        return StreamExInternals.delegateClose(proxy, stream);
-    }
-
-    boolean mustClose() {
-        return StreamExInternals.mustCloseStream(stream);
     }
 
     @SuppressWarnings("unchecked")
@@ -75,13 +67,13 @@ import java.util.stream.BaseStream;
 
     @Override
     public boolean isParallel() {
-        return strategy.parallel;
+        return context.parallel;
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public S sequential() {
-        strategy = ExecutionStrategy.SEQUENTIAL;
+        context = context.sequential();
         if(stream != null)
             stream = stream.sequential();
         return (S) this;
@@ -98,7 +90,7 @@ import java.util.stream.BaseStream;
     @SuppressWarnings("unchecked")
     @Override
     public S parallel() {
-        strategy = ExecutionStrategy.PARALLEL;
+        context = context.parallel();
         if(stream != null)
             stream = stream.parallel();
         return (S)this;
@@ -125,7 +117,7 @@ import java.util.stream.BaseStream;
      */
     @SuppressWarnings("unchecked")
     public S parallel(ForkJoinPool fjp) {
-        strategy = new ExecutionStrategy(fjp);
+        context = context.parallel(fjp);
         return (S) this;
     }
 
@@ -139,15 +131,12 @@ import java.util.stream.BaseStream;
     @SuppressWarnings("unchecked")
     @Override
     public S onClose(Runnable closeHandler) {
-        stream = stream().onClose(closeHandler);
+        context = context.onClose(closeHandler);
         return (S) this;
     }
 
     @Override
     public void close() {
-        if(stream != null)
-            stream.close();
+        context.close();
     }
-
-    
 }

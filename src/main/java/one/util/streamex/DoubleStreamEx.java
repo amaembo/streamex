@@ -106,12 +106,12 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
         }
     }
 
-    DoubleStreamEx(DoubleStream stream, ExecutionStrategy strategy) {
-        super(stream, strategy);
+    DoubleStreamEx(DoubleStream stream, StreamContext context) {
+        super(stream, context);
     }
 
-    DoubleStreamEx(Spliterator.OfDouble spliterator, ExecutionStrategy strategy) {
-        super(spliterator, strategy);
+    DoubleStreamEx(Spliterator.OfDouble spliterator, StreamContext context) {
+        super(spliterator, context);
     }
 
     @Override
@@ -119,16 +119,18 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
         return StreamSupport.doubleStream(spliterator, isParallel());
     }
 
+    private static DoubleStreamEx seq(DoubleStream stream) {
+        return new DoubleStreamEx(stream, StreamContext.SEQUENTIAL);
+    }
+
     final DoubleStreamEx delegate(Spliterator.OfDouble spliterator) {
-        if(!mustClose())
-            return new DoubleStreamEx(spliterator, strategy);
-        return new DoubleStreamEx(forwardClose(StreamSupport.doubleStream(spliterator, isParallel())), strategy);
+        return new DoubleStreamEx(spliterator, context);
     }
 
     final DoubleStreamEx callWhile(DoublePredicate predicate, int methodId) {
         try {
             return new DoubleStreamEx(
-                (DoubleStream) JDK9_METHODS[IDX_DOUBLE_STREAM][methodId].invokeExact(stream(), predicate), strategy);
+                (DoubleStream) JDK9_METHODS[IDX_DOUBLE_STREAM][methodId].invokeExact(stream(), predicate), context);
         } catch (Error | RuntimeException e) {
             throw e;
         } catch (Throwable e) {
@@ -148,7 +150,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
 
     @Override
     public DoubleStreamEx filter(DoublePredicate predicate) {
-        return new DoubleStreamEx(stream().filter(predicate), strategy);
+        return new DoubleStreamEx(stream().filter(predicate), context);
     }
 
     /**
@@ -228,7 +230,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
 
     @Override
     public DoubleStreamEx map(DoubleUnaryOperator mapper) {
-        return new DoubleStreamEx(stream().map(mapper), strategy);
+        return new DoubleStreamEx(stream().map(mapper), context);
     }
 
     /**
@@ -272,17 +274,17 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
 
     @Override
     public <U> StreamEx<U> mapToObj(DoubleFunction<? extends U> mapper) {
-        return new StreamEx<>(stream().mapToObj(mapper), strategy);
+        return new StreamEx<>(stream().mapToObj(mapper), context);
     }
 
     @Override
     public IntStreamEx mapToInt(DoubleToIntFunction mapper) {
-        return new IntStreamEx(stream().mapToInt(mapper), strategy);
+        return new IntStreamEx(stream().mapToInt(mapper), context);
     }
 
     @Override
     public LongStreamEx mapToLong(DoubleToLongFunction mapper) {
-        return new LongStreamEx(stream().mapToLong(mapper), strategy);
+        return new LongStreamEx(stream().mapToLong(mapper), context);
     }
 
     /**
@@ -305,12 +307,12 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
     public <K, V> EntryStream<K, V> mapToEntry(DoubleFunction<? extends K> keyMapper,
             DoubleFunction<? extends V> valueMapper) {
         return new EntryStream<>(stream().mapToObj(
-            t -> new AbstractMap.SimpleImmutableEntry<>(keyMapper.apply(t), valueMapper.apply(t))), strategy);
+            t -> new AbstractMap.SimpleImmutableEntry<>(keyMapper.apply(t), valueMapper.apply(t))), context);
     }
 
     @Override
     public DoubleStreamEx flatMap(DoubleFunction<? extends DoubleStream> mapper) {
-        return new DoubleStreamEx(stream().flatMap(mapper), strategy);
+        return new DoubleStreamEx(stream().flatMap(mapper), context);
     }
 
     /**
@@ -329,7 +331,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @since 0.3.0
      */
     public IntStreamEx flatMapToInt(DoubleFunction<? extends IntStream> mapper) {
-        return new IntStreamEx(stream().mapToObj(mapper).flatMapToInt(Function.identity()), strategy);
+        return new IntStreamEx(stream().mapToObj(mapper).flatMapToInt(Function.identity()), context);
     }
 
     /**
@@ -348,7 +350,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @since 0.3.0
      */
     public LongStreamEx flatMapToLong(DoubleFunction<? extends LongStream> mapper) {
-        return new LongStreamEx(stream().mapToObj(mapper).flatMapToLong(Function.identity()), strategy);
+        return new LongStreamEx(stream().mapToObj(mapper).flatMapToLong(Function.identity()), context);
     }
 
     /**
@@ -368,17 +370,17 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @since 0.3.0
      */
     public <R> StreamEx<R> flatMapToObj(DoubleFunction<? extends Stream<R>> mapper) {
-        return new StreamEx<>(stream().mapToObj(mapper).flatMap(Function.identity()), strategy);
+        return new StreamEx<>(stream().mapToObj(mapper).flatMap(Function.identity()), context);
     }
 
     @Override
     public DoubleStreamEx distinct() {
-        return new DoubleStreamEx(stream().distinct(), strategy);
+        return new DoubleStreamEx(stream().distinct(), context);
     }
 
     @Override
     public DoubleStreamEx sorted() {
-        return new DoubleStreamEx(stream().sorted(), strategy);
+        return new DoubleStreamEx(stream().sorted(), context);
     }
 
     /**
@@ -401,7 +403,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @return the new stream
      */
     public DoubleStreamEx sorted(Comparator<Double> comparator) {
-        return new DoubleStreamEx(stream().boxed().sorted(comparator).mapToDouble(Double::doubleValue), strategy);
+        return new DoubleStreamEx(stream().boxed().sorted(comparator).mapToDouble(Double::doubleValue), context);
     }
 
     /**
@@ -511,17 +513,17 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
 
     @Override
     public DoubleStreamEx peek(DoubleConsumer action) {
-        return new DoubleStreamEx(stream().peek(action), strategy);
+        return new DoubleStreamEx(stream().peek(action), context);
     }
 
     @Override
     public DoubleStreamEx limit(long maxSize) {
-        return new DoubleStreamEx(stream().limit(maxSize), strategy);
+        return new DoubleStreamEx(stream().limit(maxSize), context);
     }
 
     @Override
     public DoubleStreamEx skip(long n) {
-        return new DoubleStreamEx(stream().skip(n), strategy);
+        return new DoubleStreamEx(stream().skip(n), context);
     }
 
     /**
@@ -567,8 +569,8 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
         if (spliterator != null && !isParallel()) {
             spliterator().forEachRemaining(action);
         } else {
-            if(strategy.fjp != null)
-                strategy.terminate(() -> {
+            if(context.fjp != null)
+                context.terminate(() -> {
                     stream().forEach(action);
                     return null;
                 });
@@ -583,8 +585,8 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
         if (spliterator != null && !isParallel()) {
             spliterator().forEachRemaining(action);
         } else {
-            if(strategy.fjp != null)
-                strategy.terminate(() -> {
+            if(context.fjp != null)
+                context.terminate(() -> {
                     stream().forEachOrdered(action);
                     return null;
                 });
@@ -596,8 +598,8 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
 
     @Override
     public double[] toArray() {
-        if(strategy.fjp != null)
-            return strategy.terminate(stream()::toArray);
+        if(context.fjp != null)
+            return context.terminate(stream()::toArray);
         return stream().toArray();
     }
 
@@ -629,15 +631,15 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
 
     @Override
     public double reduce(double identity, DoubleBinaryOperator op) {
-        if(strategy.fjp != null)
-            return strategy.terminate(() -> stream().reduce(identity, op));
+        if(context.fjp != null)
+            return context.terminate(() -> stream().reduce(identity, op));
         return stream().reduce(identity, op);
     }
 
     @Override
     public OptionalDouble reduce(DoubleBinaryOperator op) {
-        if(strategy.fjp != null)
-            return strategy.terminate(op, stream()::reduce);
+        if(context.fjp != null)
+            return context.terminate(op, stream()::reduce);
         return stream().reduce(op);
     }
 
@@ -811,8 +813,8 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      */
     @Override
     public <R> R collect(Supplier<R> supplier, ObjDoubleConsumer<R> accumulator, BiConsumer<R, R> combiner) {
-        if(strategy.fjp != null)
-            return strategy.terminate(() -> stream().collect(supplier, accumulator, combiner));
+        if(context.fjp != null)
+            return context.terminate(() -> stream().collect(supplier, accumulator, combiner));
         return stream().collect(supplier, accumulator, combiner);
     }
 
@@ -848,8 +850,8 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
 
     @Override
     public double sum() {
-        if(strategy.fjp != null)
-            return strategy.terminate(stream()::sum);
+        if(context.fjp != null)
+            return context.terminate(stream()::sum);
         return stream().sum();
     }
 
@@ -1110,15 +1112,15 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
 
     @Override
     public long count() {
-        if(strategy.fjp != null)
-            return strategy.terminate(stream()::count);
+        if(context.fjp != null)
+            return context.terminate(stream()::count);
         return stream().count();
     }
 
     @Override
     public OptionalDouble average() {
-        if(strategy.fjp != null)
-            return strategy.terminate(stream()::average);
+        if(context.fjp != null)
+            return context.terminate(stream()::average);
         return stream().average();
     }
 
@@ -1129,15 +1131,15 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
 
     @Override
     public boolean anyMatch(DoublePredicate predicate) {
-        if(strategy.fjp != null)
-            return strategy.terminate(predicate, stream()::anyMatch);
+        if(context.fjp != null)
+            return context.terminate(predicate, stream()::anyMatch);
         return stream().anyMatch(predicate);
     }
 
     @Override
     public boolean allMatch(DoublePredicate predicate) {
-        if(strategy.fjp != null)
-            return strategy.terminate(predicate, stream()::allMatch);
+        if(context.fjp != null)
+            return context.terminate(predicate, stream()::allMatch);
         return stream().allMatch(predicate);
     }
 
@@ -1148,8 +1150,8 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
 
     @Override
     public OptionalDouble findFirst() {
-        if(strategy.fjp != null)
-            return strategy.terminate(stream()::findFirst);
+        if(context.fjp != null)
+            return context.terminate(stream()::findFirst);
         return stream().findFirst();
     }
 
@@ -1176,8 +1178,8 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
 
     @Override
     public OptionalDouble findAny() {
-        if(strategy.fjp != null)
-            return strategy.terminate(stream()::findAny);
+        if(context.fjp != null)
+            return context.terminate(stream()::findAny);
         return stream().findAny();
     }
 
@@ -1234,7 +1236,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
 
     @Override
     public StreamEx<Double> boxed() {
-        return new StreamEx<>(stream().boxed(), strategy);
+        return new StreamEx<>(stream().boxed(), context);
     }
 
     @Override
@@ -1271,7 +1273,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
     public DoubleStreamEx append(double... values) {
         if (values.length == 0)
             return this;
-        return new DoubleStreamEx(DoubleStream.concat(stream(), DoubleStream.of(values)), strategy);
+        return new DoubleStreamEx(DoubleStream.concat(stream(), DoubleStream.of(values)), context);
     }
 
     /**
@@ -1286,7 +1288,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @see DoubleStream#concat(DoubleStream, DoubleStream)
      */
     public DoubleStreamEx append(DoubleStream other) {
-        return new DoubleStreamEx(DoubleStream.concat(stream(), other), strategy.combine(other));
+        return new DoubleStreamEx(DoubleStream.concat(stream(), other), context.combine(other));
     }
 
     /**
@@ -1303,7 +1305,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
     public DoubleStreamEx prepend(double... values) {
         if (values.length == 0)
             return this;
-        return new DoubleStreamEx(DoubleStream.concat(DoubleStream.of(values), stream()), strategy);
+        return new DoubleStreamEx(DoubleStream.concat(DoubleStream.of(values), stream()), context);
     }
 
     /**
@@ -1318,7 +1320,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @see DoubleStream#concat(DoubleStream, DoubleStream)
      */
     public DoubleStreamEx prepend(DoubleStream other) {
-        return new DoubleStreamEx(DoubleStream.concat(other, stream()), strategy.combine(other));
+        return new DoubleStreamEx(DoubleStream.concat(other, stream()), context.combine(other));
     }
 
     /**
@@ -1497,7 +1499,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @since 0.5.0
      */
     public static DoubleStreamEx of(Double[] array) {
-        return of(Arrays.stream(array).mapToDouble(Double::doubleValue));
+        return seq(Arrays.stream(array).mapToDouble(Double::doubleValue));
     }
 
     /**
@@ -1541,7 +1543,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      */
     public static DoubleStreamEx of(DoubleStream stream) {
         return stream instanceof DoubleStreamEx ? (DoubleStreamEx) stream : new DoubleStreamEx(stream,
-                ExecutionStrategy.of(stream));
+                StreamContext.of(stream));
     }
 
     /**
@@ -1553,7 +1555,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @since 0.3.4
      */
     public static DoubleStreamEx of(Spliterator.OfDouble spliterator) {
-        return new DoubleStreamEx(spliterator, ExecutionStrategy.SEQUENTIAL);
+        return new DoubleStreamEx(spliterator, StreamContext.SEQUENTIAL);
     }
 
     /**
@@ -1599,7 +1601,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @see Collection#stream()
      */
     public static DoubleStreamEx of(Collection<Double> collection) {
-        return of(collection.stream().mapToDouble(Double::doubleValue));
+        return seq(collection.stream().mapToDouble(Double::doubleValue));
     }
 
     /**
@@ -1616,7 +1618,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @see Random#doubles()
      */
     public static DoubleStreamEx of(Random random) {
-        return of(random.doubles());
+        return seq(random.doubles());
     }
 
     /**
@@ -1634,7 +1636,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @see Random#doubles(long)
      */
     public static DoubleStreamEx of(Random random, long streamSize) {
-        return of(random.doubles(streamSize));
+        return seq(random.doubles(streamSize));
     }
 
     /**
@@ -1650,7 +1652,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @see Random#doubles(double, double)
      */
     public static DoubleStreamEx of(Random random, double randomNumberOrigin, double randomNumberBound) {
-        return of(random.doubles(randomNumberOrigin, randomNumberBound));
+        return seq(random.doubles(randomNumberOrigin, randomNumberBound));
     }
 
     /**
@@ -1668,7 +1670,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @see Random#doubles(long, double, double)
      */
     public static DoubleStreamEx of(Random random, long streamSize, double randomNumberOrigin, double randomNumberBound) {
-        return of(random.doubles(streamSize, randomNumberOrigin, randomNumberBound));
+        return seq(random.doubles(streamSize, randomNumberOrigin, randomNumberBound));
     }
 
     /**
@@ -1690,7 +1692,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @see DoubleStream#iterate(double, DoubleUnaryOperator)
      */
     public static DoubleStreamEx iterate(final double seed, final DoubleUnaryOperator f) {
-        return of(DoubleStream.iterate(seed, f));
+        return seq(DoubleStream.iterate(seed, f));
     }
 
     /**
@@ -1703,7 +1705,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @see DoubleStream#generate(DoubleSupplier)
      */
     public static DoubleStreamEx generate(DoubleSupplier s) {
-        return of(DoubleStream.generate(s));
+        return seq(DoubleStream.generate(s));
     }
 
     /**

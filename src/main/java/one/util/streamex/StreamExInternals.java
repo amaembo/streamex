@@ -1066,9 +1066,6 @@ import java.util.stream.Stream;
     static <T extends BaseStream<?, ?>> boolean mustCloseStream(BaseStream<?, ?> target) {
         if(target == null)
             return false;
-        if (target instanceof BaseStreamEx) {
-            return ((BaseStreamEx<?,?,?>)target).mustClose();
-        }
         try {
             if (SOURCE_STAGE != null && SOURCE_CLOSE_ACTION != null
                 && SOURCE_CLOSE_ACTION.get(SOURCE_STAGE.get(target)) == null)
@@ -1077,23 +1074,5 @@ import java.util.stream.Stream;
             // ignore
         }
         return true;
-    }
-
-    /**
-     * Close target when proxy is closed. May omit close handler registration if
-     * target has no close handlers registered.
-     * 
-     * @param proxy stream where close handler should be registered
-     * @param target target stream which must be closed
-     * @return proxy (to chain calls)
-     */
-    static <T extends BaseStream<?, ?>> T delegateClose(T proxy, BaseStream<?, ?> target) {
-        if (mustCloseStream(target)) {
-            if (target instanceof BaseStreamEx)
-                ((BaseStreamEx<?,?,?>)target).forwardClose(proxy);
-            else
-                proxy.onClose(target::close);
-        }
-        return proxy;
     }
 }
