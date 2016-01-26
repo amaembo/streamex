@@ -214,6 +214,13 @@ static <T, R> StreamEx<R> flatMap(StreamEx<T> input, Function<T, Stream<R>> mapp
     static <T> StreamEx<T> every(StreamEx<T> input, int n) {
         return input.headTail((head, tail) -> every(skip(tail, n - 1), n).prepend(head));
     }
+    
+    static <T> StreamEx<T> every3(StreamEx<T> input) {
+        return input.headTail(
+            (first, tail1) -> tail1.<T>headTail(
+                (second, tail2) -> tail2.headTail(
+                    (third, tail3) -> every3(tail3))).prepend(first));
+    }
 
     // maps every couple of elements using given mapper (in non-sliding manner)
     static <T, R> StreamEx<R> couples(StreamEx<T> input, BiFunction<T, T, R> mapper) {
@@ -387,6 +394,8 @@ static <T, R> StreamEx<R> flatMap(StreamEx<T> input, Function<T, Stream<R>> mapp
         
         assertEquals(asList(0, 3, 6, 9, 12, 15, 18, 0, 4, 8, 12, 16), twoFilters(IntStreamEx.range(20).boxed(),
             x -> x % 3 == 0, x -> x % 4 == 0).toList());
+        
+        assertEquals(asList(0, 3, 6, 9, 12, 15, 18), every3(IntStreamEx.range(20).boxed()).toList());
     }
 
     @Test

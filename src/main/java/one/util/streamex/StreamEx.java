@@ -905,6 +905,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return appendSpliterator(null, Spliterators.spliterator(values, Spliterator.ORDERED));
     }
 
+    public StreamEx<T> append(T value) {
+        return appendSpliterator(null, new ConstSpliterator.OfRef<>(value, 1, true));
+    }
+
     /**
      * Returns a new {@code StreamEx} which is a concatenation of this stream
      * and the stream created from supplied collection.
@@ -942,6 +946,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     @SafeVarargs
     public final StreamEx<T> prepend(T... values) {
         return prependSpliterator(null, Spliterators.spliterator(values, Spliterator.ORDERED));
+    }
+
+    public StreamEx<T> prepend(T value) {
+        return new StreamEx<>(new PrependSpliterator<>(spliterator(), value), context);
     }
 
     /**

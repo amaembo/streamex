@@ -34,7 +34,6 @@ import static one.util.streamex.StreamExInternals.*;
     private BiFunction<? super T, ? super StreamEx<T>, ? extends Stream<U>> mapper;
     private Supplier<? extends Stream<U>> emptyMapper;
     private Spliterator<U> target;
-    private boolean finished;
     StreamContext context;
     
     HeadTailSpliterator(Spliterator<T> source, BiFunction<? super T, ? super StreamEx<T>, ? extends Stream<U>> mapper,
@@ -51,7 +50,7 @@ import static one.util.streamex.StreamExInternals.*;
             return false;
         target = TailSpliterator.tryAdvanceWithTail(target, action);
         if(target == null) {
-            finished = true;
+            context = null;
             return false;
         }
         return true;
@@ -63,7 +62,7 @@ import static one.util.streamex.StreamExInternals.*;
             return null;
         Spliterator<U> tail = target;
         target = null;
-        finished = true;
+        context = null;
         return tail;
     }
 
@@ -73,7 +72,7 @@ import static one.util.streamex.StreamExInternals.*;
             return;
         TailSpliterator.forEachWithTail(target, action);
         target = null;
-        finished = true;
+        context = null;
     }
 
     @Override
@@ -82,7 +81,7 @@ import static one.util.streamex.StreamExInternals.*;
     }
 
     private boolean init() {
-        if(finished)
+        if(context == null)
             return false;
         if(target == null) {
             Box<T> first = new Box<>(null);
@@ -105,7 +104,7 @@ import static one.util.streamex.StreamExInternals.*;
     
     @Override
     public long estimateSize() {
-        if(finished)
+        if(context == null)
             return 0;
         return (target == null ? source : target).estimateSize();
     }
