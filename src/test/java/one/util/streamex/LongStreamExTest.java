@@ -15,6 +15,7 @@
  */
 package one.util.streamex;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -232,6 +233,13 @@ public class LongStreamExTest {
         assertTrue(LongStreamEx.empty().noneMatch(x -> true));
         assertFalse(LongStreamEx.of(1).noneMatch(x -> true));
         assertTrue(LongStreamEx.of(1).noneMatch(x -> false));
+    }
+    
+    @Test
+    public void testForEach() {
+        List<Long> list = new ArrayList<>();
+        LongStreamEx.of(1).forEach(list::add);
+        assertEquals(Arrays.asList(1L), list);
     }
 
     @Test

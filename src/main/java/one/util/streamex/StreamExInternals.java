@@ -1063,9 +1063,7 @@ import java.util.stream.Stream;
         return (T) NONE;
     }
     
-    static <T extends BaseStream<?, ?>> boolean mustCloseStream(BaseStream<?, ?> target) {
-        if(target == null)
-            return false;
+    static boolean mustCloseStream(BaseStream<?, ?> target) {
         try {
             if (SOURCE_STAGE != null && SOURCE_CLOSE_ACTION != null
                 && SOURCE_CLOSE_ACTION.get(SOURCE_STAGE.get(target)) == null)

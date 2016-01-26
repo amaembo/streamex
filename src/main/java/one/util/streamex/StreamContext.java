@@ -102,7 +102,7 @@ import static one.util.streamex.StreamExInternals.*;
         }
     }
 
-    private Runnable compose(Runnable r1, Runnable r2) {
+    private static Runnable compose(Runnable r1, Runnable r2) {
         return () -> {
             try {
                 r1.run();

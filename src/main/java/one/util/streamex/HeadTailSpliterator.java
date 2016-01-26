@@ -91,8 +91,14 @@ import static one.util.streamex.StreamExInternals.*;
             source = null;
             mapper = null;
             emptyMapper = null;
-            context.combine(stream);
-            target = stream == null ? Spliterators.emptySpliterator() : stream.spliterator();
+            if(stream == null) {
+                target = Spliterators.emptySpliterator();
+            } else {
+                StreamContext ctx = StreamContext.of(stream);
+                if(ctx.closeHandler != null)
+                    context.onClose(ctx.closeHandler);
+                target = stream.spliterator();
+            }
         }
         return true;
     }

@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Spliterator;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -78,11 +79,12 @@ public class BaseStreamExTest {
     
     @Test
     public void testCloseException() {
+        AtomicBoolean flag = new AtomicBoolean();
         Function<String, Runnable> ex = str -> () -> {throw new IllegalStateException(str);};
         StreamEx<Integer> stream = StreamEx.of(Stream.of(1,2,3).onClose(ex.apply("Orig stream")))
             .onClose(ex.apply("StreamEx"))
             .map(x -> x*2)
-            .onClose(ex.apply("After map"))
+            .onClose(() -> flag.set(true))
             .pairMap((a, b) -> a+b)
             .onClose(ex.apply("After pairMap"))
             .append(4)
@@ -95,9 +97,10 @@ public class BaseStreamExTest {
         }
         catch(IllegalStateException e) {
             assertEquals("Orig stream", e.getMessage());
-            assertEquals(Arrays.asList("StreamEx", "After map", "After pairMap", "After append", "Prepended Stream",
+            assertEquals(Arrays.asList("StreamEx", "After pairMap", "After append", "Prepended Stream",
                 "Prepended StreamEx"), StreamEx.of(e.getSuppressed()).map(IllegalStateException.class::cast).map(
                 Throwable::getMessage).toList());
+            assertTrue(flag.get());
             return;
         }
         fail("No exception");

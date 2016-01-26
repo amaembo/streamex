@@ -453,6 +453,11 @@ public class StreamExTest {
         assertSame(s, s.prepend(new ArrayList<>()));
         assertSame(s, s.prepend(Stream.empty()));
         assertNotSame(s, s.prepend(new ConcurrentLinkedQueue<>()));
+        
+        assertTrue(StreamEx.of("a", "b").prepend(Stream.of("c").parallel()).isParallel());
+        assertTrue(StreamEx.of("a", "b").parallel().prepend(Stream.of("c").parallel()).isParallel());
+        assertTrue(StreamEx.of("a", "b").parallel().prepend(Stream.of("c")).isParallel());
+        assertFalse(StreamEx.of("a", "b").prepend(Stream.of("c")).isParallel());
     }
     
     @Test
