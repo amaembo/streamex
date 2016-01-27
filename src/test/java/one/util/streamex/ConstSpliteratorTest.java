@@ -16,17 +16,20 @@
 package one.util.streamex;
 
 import static one.util.streamex.TestHelpers.*;
+import static org.junit.Assert.*;
 
 import java.util.Collections;
+import java.util.Spliterator;
 
 import one.util.streamex.ConstSpliterator;
+import one.util.streamex.ConstSpliterator.OfRef;
 
 import org.junit.Test;
 
 /**
  * @author Tagir Valeev
  */
-public class ConstantSpliteratorTest {
+public class ConstSpliteratorTest {
     @Test
     public void testConstant() {
         checkSpliterator("ref", Collections.nCopies(100, "val"), () -> new ConstSpliterator.OfRef<>("val", 100, false));
@@ -36,5 +39,29 @@ public class ConstantSpliteratorTest {
                 Long.MIN_VALUE, 100, false));
         checkSpliterator("ref", Collections.nCopies(100, Double.MIN_VALUE), () -> new ConstSpliterator.OfDouble(
                 Double.MIN_VALUE, 100, false));
+    }
+    
+    @Test
+    public void testCharacteristics() {
+        OfRef<String> spltr = new ConstSpliterator.OfRef<>("val", 4, true);
+        assertTrue(spltr.hasCharacteristics(Spliterator.ORDERED));
+        assertTrue(spltr.hasCharacteristics(Spliterator.SIZED));
+        assertTrue(spltr.hasCharacteristics(Spliterator.SUBSIZED));
+        assertTrue(spltr.hasCharacteristics(Spliterator.IMMUTABLE));
+        assertFalse(new ConstSpliterator.OfRef<>("val", 4, false).hasCharacteristics(Spliterator.ORDERED));
+    }
+    
+    @Test
+    public void testSplit() {
+        OfRef<String> spltr = new ConstSpliterator.OfRef<>("val", 4, true);
+        assertEquals(4, spltr.getExactSizeIfKnown());
+        spltr = spltr.trySplit();
+        assertEquals(2, spltr.getExactSizeIfKnown());
+        spltr = spltr.trySplit();
+        assertEquals(1, spltr.getExactSizeIfKnown());
+        assertNull(spltr.trySplit());
+        assertTrue(spltr.tryAdvance(x -> assertEquals("val", x)));
+        assertEquals(0, spltr.getExactSizeIfKnown());
+        assertNull(spltr.trySplit());
     }
 }

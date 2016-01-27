@@ -16,14 +16,17 @@
 package one.util.streamex;
 
 import static one.util.streamex.TestHelpers.*;
+import static org.junit.Assert.*;
 
 import java.util.Arrays;
 import java.util.Random;
+import java.util.Spliterator;
 
 import one.util.streamex.DoubleStreamEx;
 import one.util.streamex.IntStreamEx;
 import one.util.streamex.LongStreamEx;
 import one.util.streamex.PairSpliterator;
+import one.util.streamex.PairSpliterator.PSOfRef;
 
 import org.junit.Test;
 
@@ -61,5 +64,14 @@ public class PairSpliteratorTest {
             () -> new PairSpliterator.PSOfLong((a, b) -> a, a -> a+2, Arrays.spliterator(longs), PairSpliterator.MODE_MAP_LAST));
         checkSpliterator("double", DoubleStreamEx.of(doubles, 0, doubles.length-1).boxed().append(doubles[doubles.length-1] + 2).toList(),
             () -> new PairSpliterator.PSOfDouble((a, b) -> a, a -> a+2, Arrays.spliterator(doubles), PairSpliterator.MODE_MAP_LAST));
+    }
+    
+    @Test
+    public void testCharacteristics() {
+        PSOfRef<Integer, Integer> ps = new PairSpliterator.PSOfRef<>((a, b) -> (a - b), IntStreamEx.range(100).spliterator());
+        assertTrue(ps.hasCharacteristics(Spliterator.SIZED));
+        assertTrue(ps.hasCharacteristics(Spliterator.ORDERED));
+        assertTrue(ps.hasCharacteristics(Spliterator.IMMUTABLE));
+        assertEquals(99, ps.getExactSizeIfKnown());
     }
 }

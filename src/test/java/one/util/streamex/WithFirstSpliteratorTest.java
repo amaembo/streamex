@@ -53,5 +53,17 @@ public class WithFirstSpliteratorTest {
         assertEquals(0, spltr.getExactSizeIfKnown());
         assertFalse(spltr.tryAdvance(x -> fail("Should not happen")));
         assertEquals(0, spltr.getExactSizeIfKnown());
+        
+        WithFirstSpliterator<Long, Long> longSpltr = new WithFirstSpliterator<>(LongStreamEx.range(Long.MAX_VALUE)
+                .spliterator(), Long::sum);
+        assertTrue(longSpltr.hasCharacteristics(Spliterator.SIZED));
+        assertEquals(Long.MAX_VALUE-1, longSpltr.getExactSizeIfKnown());
+        assertTrue(longSpltr.tryAdvance(x -> assertEquals(1, (long)x)));
+        assertEquals(Long.MAX_VALUE-2, longSpltr.getExactSizeIfKnown());
+        
+        longSpltr = new WithFirstSpliterator<>(LongStreamEx.range(-1, Long.MAX_VALUE)
+                .spliterator(), Long::sum);
+        assertFalse(longSpltr.hasCharacteristics(Spliterator.SIZED));
+        assertEquals(Long.MAX_VALUE, longSpltr.estimateSize());
     }
 }

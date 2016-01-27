@@ -142,7 +142,8 @@ import one.util.streamex.StreamExInternals.CloneableSpliterator;
     @Override
     public long estimateSize() {
         long size = source.estimateSize();
-        if (size > 0 && size < Long.MAX_VALUE && lock == null && state == STATE_NONE)
+        if (size > 0 && (size < Long.MAX_VALUE || source.hasCharacteristics(SIZED)) && lock == null
+            && state == STATE_NONE)
             size--;
         return size;
     }
