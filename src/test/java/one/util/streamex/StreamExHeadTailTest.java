@@ -16,12 +16,8 @@
 package one.util.streamex;
 
 import static java.util.Arrays.asList;
-import static one.util.streamex.TestHelpers.emptyStreamEx;
-import static one.util.streamex.TestHelpers.repeat;
-import static one.util.streamex.TestHelpers.streamEx;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static one.util.streamex.TestHelpers.*;
+import static org.junit.Assert.*;
 
 import java.io.StringReader;
 import java.util.ArrayDeque;
@@ -35,6 +31,7 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Spliterator;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
@@ -510,5 +507,21 @@ public class StreamExHeadTailTest {
         assertEquals(asList("b:", "c", "d"), StreamEx.of(":", "b", "c", "d").headTail(
             (head, tail) -> tail.mapFirst(first -> first + head)).toList());
         
+    }
+    
+    @Test
+    public void testSpliterator() {
+        Spliterator<Integer> spltr = map(StreamEx.of(1,2,3,4), x -> x*2).spliterator();
+        assertTrue(spltr.hasCharacteristics(Spliterator.ORDERED));
+        assertEquals(4, spltr.estimateSize());
+        assertTrue(spltr.tryAdvance(x -> assertEquals(2, (int)x)));
+        assertEquals(3, spltr.estimateSize());
+        assertTrue(spltr.tryAdvance(x -> assertEquals(4, (int)x)));
+        assertEquals(2, spltr.estimateSize());
+        assertTrue(spltr.tryAdvance(x -> assertEquals(6, (int)x)));
+        assertEquals(1, spltr.estimateSize());
+        assertTrue(spltr.tryAdvance(x -> assertEquals(8, (int)x)));
+        assertFalse(spltr.tryAdvance(x -> fail("Should not be called")));
+        assertEquals(0, spltr.estimateSize());
     }
 }

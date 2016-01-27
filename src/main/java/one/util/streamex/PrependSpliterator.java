@@ -91,14 +91,14 @@ import one.util.streamex.StreamExInternals.TailSpliterator;
     @Override
     public long estimateSize() {
         long size = source.estimateSize();
-        return mode == 0 ? size : size + 1;
+        return mode == 0 || size == Long.MAX_VALUE ? size : size + 1;
     }
 
     @Override
     public int characteristics() {
         switch(mode) {
         case 1:
-            return source.characteristics() & ORDERED & SIZED & SUBSIZED;
+            return source.characteristics() & (ORDERED | SIZED | SUBSIZED);
         case 2:
             return source.characteristics() & ORDERED;
         default:
