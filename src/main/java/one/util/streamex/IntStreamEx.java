@@ -1651,7 +1651,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @param mapper a <a
      *        href="package-summary.html#NonInterference">non-interfering </a>,
      *        <a href="package-summary.html#Statelessness">stateless</a>
-     *        function to apply to the first element
+     *        function to apply to the last element
      * @return the new stream
      * @since 0.4.1
      */
@@ -1954,7 +1954,12 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
     }
     
     /**
-     * Returns an {@code IntStreamEx} object which wraps given {@link IntStream}
+     * Returns an {@code IntStreamEx} object which wraps given {@link IntStream}.
+     * 
+     * <p>
+     * The supplied stream must not be consumed or closed when this method is
+     * called. No operation must be performed on the supplied stream after it's
+     * wrapped.
      * 
      * @param stream original stream
      * @return the wrapped stream

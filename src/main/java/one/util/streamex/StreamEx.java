@@ -84,7 +84,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     StreamEx(Spliterator<T> spliterator, StreamContext context) {
         super(spliterator, context);
     }
-    
+
     @Override
     StreamEx<T> supply(Stream<T> stream) {
         return new StreamEx<>(stream, context);
@@ -97,7 +97,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
 
     final <R> StreamEx<R> collapseInternal(BiPredicate<? super T, ? super T> collapsible, Function<T, R> mapper,
             BiFunction<R, T, R> accumulator, BinaryOperator<R> combiner) {
-        CollapseSpliterator<T, R> spliterator = new CollapseSpliterator<>(collapsible, mapper, accumulator, combiner, spliterator());
+        CollapseSpliterator<T, R> spliterator = new CollapseSpliterator<>(collapsible, mapper, accumulator, combiner,
+                spliterator());
         return new StreamEx<>(spliterator, context);
     }
 
@@ -155,8 +156,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public <K, V> EntryStream<K, V> mapToEntry(Function<? super T, ? extends K> keyMapper,
             Function<? super T, ? extends V> valueMapper) {
-        return new EntryStream<>(
-            stream().map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e), valueMapper.apply(e))), context);
+        return new EntryStream<>(stream()
+                .map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e), valueMapper.apply(e))), context);
     }
 
     /**
@@ -190,7 +191,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @param mapper a <a
      *        href="package-summary.html#NonInterference">non-interfering </a>,
      *        <a href="package-summary.html#Statelessness">stateless</a>
-     *        function to apply to the first element
+     *        function to apply to the last element
      * @return the new stream
      * @since 0.4.1
      */
@@ -1371,7 +1372,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.5.3
      */
     public EntryStream<T, T> withFirst() {
-        WithFirstSpliterator<T, Entry<T, T>> spliterator = new WithFirstSpliterator<>(spliterator(), AbstractMap.SimpleImmutableEntry<T, T>::new);
+        WithFirstSpliterator<T, Entry<T, T>> spliterator = new WithFirstSpliterator<>(spliterator(),
+                AbstractMap.SimpleImmutableEntry<T, T>::new);
         return new EntryStream<>(spliterator, context);
     }
 
@@ -1563,7 +1565,12 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
-     * Returns an {@link StreamEx} object which wraps given {@link Stream}
+     * Returns an {@link StreamEx} object which wraps given {@link Stream}.
+     * 
+     * <p>
+     * The supplied stream must not be consumed or closed when this method is
+     * called. No operation must be performed on the supplied stream after it's
+     * wrapped.
      * 
      * @param <T> the type of stream elements
      * @param stream original stream

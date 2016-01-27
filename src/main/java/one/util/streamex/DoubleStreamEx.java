@@ -264,7 +264,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @param mapper a <a
      *        href="package-summary.html#NonInterference">non-interfering </a>,
      *        <a href="package-summary.html#Statelessness">stateless</a>
-     *        function to apply to the first element
+     *        function to apply to the last element
      * @return the new stream
      * @since 0.4.1
      */
@@ -1535,7 +1535,12 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
 
     /**
      * Returns a {@code DoubleStreamEx} object which wraps given
-     * {@link DoubleStream}
+     * {@link DoubleStream}.
+     * 
+     * <p>
+     * The supplied stream must not be consumed or closed when this method is
+     * called. No operation must be performed on the supplied stream after it's
+     * wrapped.
      * 
      * @param stream original stream
      * @return the wrapped stream
