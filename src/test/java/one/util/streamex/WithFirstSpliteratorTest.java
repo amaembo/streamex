@@ -16,11 +16,14 @@
 package one.util.streamex;
 
 import java.util.AbstractMap;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.stream.Stream;
 
 import org.junit.Test;
 
 import static one.util.streamex.TestHelpers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Tagir Valeev
@@ -34,5 +37,21 @@ public class WithFirstSpliteratorTest {
         checkSpliterator("withFirstFlatMap", EntryStream.of(0, 1, 0, 2, 0, 3, 0, 4, 0, 5).toList(),
             () -> new WithFirstSpliterator<>(Stream.of(0, 2, 4).flatMap(x -> Stream.of(x, x + 1)).parallel()
                     .spliterator(), AbstractMap.SimpleImmutableEntry<Integer, Integer>::new));
+    }
+    
+    @Test
+    public void testCharacteristics() {
+        WithFirstSpliterator<Integer, Integer> spltr = new WithFirstSpliterator<>(Stream.of(6, 1, 2, 3, 4, 5)
+                .spliterator(), (a, b) -> a + b);
+        assertTrue(spltr.hasCharacteristics(Spliterator.SIZED));
+        assertEquals(5, spltr.getExactSizeIfKnown());
+        assertTrue(spltr.tryAdvance(x -> assertEquals(7, (int)x)));
+        assertEquals(4, spltr.getExactSizeIfKnown());
+        
+        spltr = new WithFirstSpliterator<>(Spliterators.emptySpliterator(), (a, b) -> a + b);
+        assertTrue(spltr.hasCharacteristics(Spliterator.SIZED));
+        assertEquals(0, spltr.getExactSizeIfKnown());
+        assertFalse(spltr.tryAdvance(x -> fail("Should not happen")));
+        assertEquals(0, spltr.getExactSizeIfKnown());
     }
 }

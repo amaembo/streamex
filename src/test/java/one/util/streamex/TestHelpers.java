@@ -291,6 +291,19 @@ public class TestHelpers {
         }
         assertFalse(msg, sequential.tryAdvance(t -> fail(msg + ": Advance called with " + t)));
         assertEquals(msg, expected, seq);
+        
+        // Test TailSpliterator
+        if(sequential instanceof TailSpliterator) {
+            seq.clear();
+            TailSpliterator.forEachWithTail(supplier.get(), seq::add);
+            assertEquals(msg, expected, seq);
+            seq.clear();
+            sequential = supplier.get();
+            while(sequential != null) {
+                sequential = TailSpliterator.tryAdvanceWithTail(sequential, seq::add);
+            }
+        }
+        assertEquals(msg, expected, seq);
 
         // Test trySplit
         Random r = new Random(1);
