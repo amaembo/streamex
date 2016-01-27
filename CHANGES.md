@@ -1,6 +1,7 @@
 # StreamEx changes
 
 ### 0.5.4
+* [#10] Added: `chain()` method to all stream types allowing fluently chaining custom operations.
 * [#55] TailConcatSpliterator implemented; now all `StreamEx/EntryStream.append/prepend` methods are TSO-compatible. 
 * [#56] Fixed: `StreamEx.append/prepend(Collection)` and `EntryStream.append/prepend(Map)` now properly append/prepend if supplied collection is concurrent (so it may be legally modified during the subsequent operations).
 * [#57] JDK Stream creation is deferred until necessary. Now quasi-intermediate operations and especially `headTail()` may work faster.

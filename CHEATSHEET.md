@@ -161,6 +161,7 @@ What I want | How to get it
 --- | ---
 Extract first stream element and use it to alternate the rest of the stream | `StreamEx.headTail()`
 Define almost any custom intermediate operation recursively | `StreamEx.headTail()`
+Execute custom-defined operation in fluent manner | `any.chain()`
 Take stream elements while the condition is true | `any.takeWhile()`
 Skip stream elements while the condition is true | `any.dropWhile()`
 Work-around parallel stream skip bug prior to Java 8u60 | `any.skipOrdered()`
