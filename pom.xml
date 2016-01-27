@@ -131,12 +131,21 @@
                 <property name="token.S"><![CDATA[<code>S</code>]]></property>
                 <property name="token.StreamEx"><![CDATA[<code><a href="StreamEx.html" title="class in ${project.package}">StreamEx</a>&lt;<a href="StreamEx.html" title="type parameter in StreamEx">T</a>&gt;</code>]]></property>
                 <property name="token.EntryStream"><![CDATA[<code><a href="EntryStream.html" title="class in ${project.package}">EntryStream</a>&lt;<a href="EntryStream.html" title="type parameter in EntryStream">K</a>,<a href="EntryStream.html" title="type parameter in EntryStream">V</a>&gt;</code>]]></property>
+                <property name="token.S.Raw"><![CDATA[public&nbsp;S&nbsp;]]></property>
+                <property name="token.StreamEx.Raw"><![CDATA[public&nbsp;StreamEx&lt;T&gt;&nbsp;]]></property>
+                <property name="token.EntryStream.Raw"><![CDATA[public&nbsp;EntryStream&lt;K,V&gt;&nbsp;]]></property>
                 <replace
                   file="${project.build.directory}/apidocs/${project.package.path}/EntryStream.html"
                   token="${token.S}" value="${token.EntryStream}" />
                 <replace
+                  file="${project.build.directory}/apidocs/${project.package.path}/EntryStream.html"
+                  token="${token.S.Raw}" value="${token.EntryStream.Raw}" />
+                <replace
                   file="${project.build.directory}/apidocs/${project.package.path}/StreamEx.html"
                   token="${token.S}" value="${token.StreamEx}" />
+                <replace
+                  file="${project.build.directory}/apidocs/${project.package.path}/StreamEx.html"
+                  token="${token.S.Raw}" value="${token.StreamEx.Raw}" />
                 <jar
                   destfile="${project.build.directory}/${project.build.finalName}-javadoc.jar"
                   update="true">
