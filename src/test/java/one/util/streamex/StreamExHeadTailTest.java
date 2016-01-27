@@ -69,10 +69,7 @@ public class StreamExHeadTailTest {
 
     // Stream.filter (TSO)
     static <T> StreamEx<T> filter(StreamEx<T> input, Predicate<T> predicate) {
-        return input.<T> headTail((head, tail) -> {
-            StreamEx<T> filtered = filter(tail, predicate);
-            return predicate.test(head) ? filtered.prepend(head) : filtered;
-        });
+        return input.<T> headTail((head, tail) -> predicate.test(head) ? filter(tail, predicate).prepend(head) : filter(tail, predicate));
     }
 
     // Stream.distinct
@@ -216,6 +213,13 @@ public class StreamExHeadTailTest {
     // take every nth stream element (starting from the first) (TSO)
     static <T> StreamEx<T> every(StreamEx<T> input, int n) {
         return input.headTail((head, tail) -> every(skip(tail, n - 1), n).prepend(head));
+    }
+    
+    static <T> StreamEx<T> every3(StreamEx<T> input) {
+        return input.headTail(
+            (first, tail1) -> tail1.<T>headTail(
+                (second, tail2) -> tail2.headTail(
+                    (third, tail3) -> every3(tail3))).prepend(first));
     }
 
     // maps every couple of elements using given mapper (in non-sliding manner)
@@ -403,6 +407,7 @@ public class StreamExHeadTailTest {
             x -> x % 3 == 0, x -> x % 4 == 0).toList());
         
         assertEquals(asList(5, 10, 1, 6, 7), skipLast(Stream.of(5, 10, 1, 6, 7, 15, -1, 10), 3).toList());
+        assertEquals(asList(0, 3, 6, 9, 12, 15, 18), every3(IntStreamEx.range(20).boxed()).toList());
     }
 
     @Test

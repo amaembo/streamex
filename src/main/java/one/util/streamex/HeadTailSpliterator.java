@@ -21,7 +21,6 @@ import java.util.Spliterators.AbstractSpliterator;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.stream.BaseStream;
 import java.util.stream.Stream;
 
 import one.util.streamex.StreamExInternals.TailSpliterator;
@@ -35,8 +34,7 @@ import static one.util.streamex.StreamExInternals.*;
     private BiFunction<? super T, ? super StreamEx<T>, ? extends Stream<U>> mapper;
     private Supplier<? extends Stream<U>> emptyMapper;
     private Spliterator<U> target;
-    private boolean finished;
-    BaseStream<?, ?> owner;
+    StreamContext context;
     
     HeadTailSpliterator(Spliterator<T> source, BiFunction<? super T, ? super StreamEx<T>, ? extends Stream<U>> mapper,
             Supplier<? extends Stream<U>> emptyMapper) {
@@ -52,7 +50,7 @@ import static one.util.streamex.StreamExInternals.*;
             return false;
         target = TailSpliterator.tryAdvanceWithTail(target, action);
         if(target == null) {
-            finished = true;
+            context = null;
             return false;
         }
         return true;
@@ -64,7 +62,7 @@ import static one.util.streamex.StreamExInternals.*;
             return null;
         Spliterator<U> tail = target;
         target = null;
-        finished = true;
+        context = null;
         return tail;
     }
 
@@ -74,7 +72,7 @@ import static one.util.streamex.StreamExInternals.*;
             return;
         TailSpliterator.forEachWithTail(target, action);
         target = null;
-        finished = true;
+        context = null;
     }
 
     @Override
@@ -83,7 +81,7 @@ import static one.util.streamex.StreamExInternals.*;
     }
 
     private boolean init() {
-        if(finished)
+        if(context == null)
             return false;
         if(target == null) {
             Box<T> first = new Box<>(null);
@@ -92,15 +90,21 @@ import static one.util.streamex.StreamExInternals.*;
             source = null;
             mapper = null;
             emptyMapper = null;
-            delegateClose(owner, stream);
-            target = stream == null ? Spliterators.emptySpliterator() : stream.spliterator();
+            if(stream == null) {
+                target = Spliterators.emptySpliterator();
+            } else {
+                StreamContext ctx = StreamContext.of(stream);
+                if(ctx.closeHandler != null)
+                    context.onClose(ctx.closeHandler);
+                target = stream.spliterator();
+            }
         }
         return true;
     }
     
     @Override
     public long estimateSize() {
-        if(finished)
+        if(context == null)
             return 0;
         return (target == null ? source : target).estimateSize();
     }

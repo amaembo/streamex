@@ -50,12 +50,12 @@ import one.util.streamex.StreamEx;
  */
 public class TestHelpers {
     static enum Mode {
-        NORMAL, PARALLEL, APPEND, PREPEND, RANDOM
+        NORMAL, SPLITERATOR, PARALLEL, APPEND, PREPEND, RANDOM
     }
 
     static class StreamSupplier<T> {
-        private final Mode mode;
-        private final Supplier<Stream<T>> base;
+        final Mode mode;
+        final Supplier<Stream<T>> base;
 
         public StreamSupplier(Supplier<Stream<T>> base, Mode mode) {
             this.base = base;
@@ -66,6 +66,7 @@ public class TestHelpers {
             Stream<T> res = base.get();
             switch (mode) {
             case NORMAL:
+            case SPLITERATOR: 
                 return res.sequential();
             case PARALLEL:
                 return res.parallel();
@@ -96,6 +97,8 @@ public class TestHelpers {
 
         @Override
         public StreamEx<T> get() {
+            if(mode == Mode.SPLITERATOR)
+                return StreamEx.of(base.get().spliterator());
             return StreamEx.of(super.get());
         }
     }

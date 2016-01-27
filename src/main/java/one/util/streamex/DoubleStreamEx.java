@@ -26,6 +26,7 @@ import java.util.OptionalLong;
 import java.util.PrimitiveIterator;
 import java.util.Random;
 import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator.OfDouble;
 import java.util.Spliterators.AbstractDoubleSpliterator;
@@ -56,7 +57,7 @@ import static one.util.streamex.StreamExInternals.*;
  * 
  * @author Tagir Valeev
  */
-public class DoubleStreamEx implements DoubleStream {
+public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterator.OfDouble> implements DoubleStream {
     private static final class TDOfDouble extends AbstractDoubleSpliterator implements DoubleConsumer {
         private final DoublePredicate predicate;
         private final boolean drop;
@@ -105,25 +106,31 @@ public class DoubleStreamEx implements DoubleStream {
         }
     }
 
-    final DoubleStream stream;
-
-    DoubleStreamEx(DoubleStream stream) {
-        this.stream = stream;
+    DoubleStreamEx(DoubleStream stream, StreamContext context) {
+        super(stream, context);
     }
 
-    StreamFactory strategy() {
-        return StreamFactory.DEFAULT;
+    DoubleStreamEx(Spliterator.OfDouble spliterator, StreamContext context) {
+        super(spliterator, context);
+    }
+
+    @Override
+    DoubleStream createStream() {
+        return StreamSupport.doubleStream(spliterator, isParallel());
+    }
+
+    private static DoubleStreamEx seq(DoubleStream stream) {
+        return new DoubleStreamEx(stream, StreamContext.SEQUENTIAL);
     }
 
     final DoubleStreamEx delegate(Spliterator.OfDouble spliterator) {
-        return strategy().newDoubleStreamEx(
-            delegateClose(StreamSupport.doubleStream(spliterator, stream.isParallel()), stream));
+        return new DoubleStreamEx(spliterator, context);
     }
 
     final DoubleStreamEx callWhile(DoublePredicate predicate, int methodId) {
         try {
-            return strategy().newDoubleStreamEx(
-                (DoubleStream) JDK9_METHODS[IDX_DOUBLE_STREAM][methodId].invokeExact(stream, predicate));
+            return new DoubleStreamEx(
+                (DoubleStream) JDK9_METHODS[IDX_DOUBLE_STREAM][methodId].invokeExact(stream(), predicate), context);
         } catch (Error | RuntimeException e) {
             throw e;
         } catch (Throwable e) {
@@ -132,28 +139,18 @@ public class DoubleStreamEx implements DoubleStream {
     }
 
     @Override
-    public boolean isParallel() {
-        return stream.isParallel();
-    }
-
-    @Override
     public DoubleStreamEx unordered() {
-        return strategy().newDoubleStreamEx(stream.unordered());
+        return (DoubleStreamEx) super.unordered();
     }
 
     @Override
     public DoubleStreamEx onClose(Runnable closeHandler) {
-        return strategy().newDoubleStreamEx(stream.onClose(closeHandler));
-    }
-
-    @Override
-    public void close() {
-        stream.close();
+        return (DoubleStreamEx) super.onClose(closeHandler);
     }
 
     @Override
     public DoubleStreamEx filter(DoublePredicate predicate) {
-        return strategy().newDoubleStreamEx(stream.filter(predicate));
+        return new DoubleStreamEx(stream().filter(predicate), context);
     }
 
     /**
@@ -233,7 +230,7 @@ public class DoubleStreamEx implements DoubleStream {
 
     @Override
     public DoubleStreamEx map(DoubleUnaryOperator mapper) {
-        return strategy().newDoubleStreamEx(stream.map(mapper));
+        return new DoubleStreamEx(stream().map(mapper), context);
     }
 
     /**
@@ -252,7 +249,8 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.4.1
      */
     public DoubleStreamEx mapFirst(DoubleUnaryOperator mapper) {
-        return delegate(new PairSpliterator.PSOfDouble((a, b) -> b, mapper, stream.spliterator(), PairSpliterator.MODE_MAP_FIRST));
+        return delegate(new PairSpliterator.PSOfDouble((a, b) -> b, mapper, spliterator(),
+                PairSpliterator.MODE_MAP_FIRST));
     }
 
     /**
@@ -271,22 +269,22 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.4.1
      */
     public DoubleStreamEx mapLast(DoubleUnaryOperator mapper) {
-        return delegate(new PairSpliterator.PSOfDouble((a, b) -> a, mapper, stream.spliterator(), PairSpliterator.MODE_MAP_LAST));
+        return delegate(new PairSpliterator.PSOfDouble((a, b) -> a, mapper, spliterator(), PairSpliterator.MODE_MAP_LAST));
     }
 
     @Override
     public <U> StreamEx<U> mapToObj(DoubleFunction<? extends U> mapper) {
-        return strategy().newStreamEx(stream.mapToObj(mapper));
+        return new StreamEx<>(stream().mapToObj(mapper), context);
     }
 
     @Override
     public IntStreamEx mapToInt(DoubleToIntFunction mapper) {
-        return strategy().newIntStreamEx(stream.mapToInt(mapper));
+        return new IntStreamEx(stream().mapToInt(mapper), context);
     }
 
     @Override
     public LongStreamEx mapToLong(DoubleToLongFunction mapper) {
-        return strategy().newLongStreamEx(stream.mapToLong(mapper));
+        return new LongStreamEx(stream().mapToLong(mapper), context);
     }
 
     /**
@@ -308,13 +306,13 @@ public class DoubleStreamEx implements DoubleStream {
      */
     public <K, V> EntryStream<K, V> mapToEntry(DoubleFunction<? extends K> keyMapper,
             DoubleFunction<? extends V> valueMapper) {
-        return strategy().newEntryStream(
-            stream.mapToObj(t -> new AbstractMap.SimpleImmutableEntry<>(keyMapper.apply(t), valueMapper.apply(t))));
+        return new EntryStream<>(stream().mapToObj(
+            t -> new AbstractMap.SimpleImmutableEntry<>(keyMapper.apply(t), valueMapper.apply(t))), context);
     }
 
     @Override
     public DoubleStreamEx flatMap(DoubleFunction<? extends DoubleStream> mapper) {
-        return strategy().newDoubleStreamEx(stream.flatMap(mapper));
+        return new DoubleStreamEx(stream().flatMap(mapper), context);
     }
 
     /**
@@ -333,7 +331,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.3.0
      */
     public IntStreamEx flatMapToInt(DoubleFunction<? extends IntStream> mapper) {
-        return strategy().newIntStreamEx(stream.mapToObj(mapper).flatMapToInt(Function.identity()));
+        return new IntStreamEx(stream().mapToObj(mapper).flatMapToInt(Function.identity()), context);
     }
 
     /**
@@ -352,7 +350,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.3.0
      */
     public LongStreamEx flatMapToLong(DoubleFunction<? extends LongStream> mapper) {
-        return strategy().newLongStreamEx(stream.mapToObj(mapper).flatMapToLong(Function.identity()));
+        return new LongStreamEx(stream().mapToObj(mapper).flatMapToLong(Function.identity()), context);
     }
 
     /**
@@ -372,17 +370,17 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.3.0
      */
     public <R> StreamEx<R> flatMapToObj(DoubleFunction<? extends Stream<R>> mapper) {
-        return strategy().newStreamEx(stream.mapToObj(mapper).flatMap(Function.identity()));
+        return new StreamEx<>(stream().mapToObj(mapper).flatMap(Function.identity()), context);
     }
 
     @Override
     public DoubleStreamEx distinct() {
-        return strategy().newDoubleStreamEx(stream.distinct());
+        return new DoubleStreamEx(stream().distinct(), context);
     }
 
     @Override
     public DoubleStreamEx sorted() {
-        return strategy().newDoubleStreamEx(stream.sorted());
+        return new DoubleStreamEx(stream().sorted(), context);
     }
 
     /**
@@ -405,7 +403,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @return the new stream
      */
     public DoubleStreamEx sorted(Comparator<Double> comparator) {
-        return strategy().newDoubleStreamEx(stream.boxed().sorted(comparator).mapToDouble(Double::doubleValue));
+        return new DoubleStreamEx(stream().boxed().sorted(comparator).mapToDouble(Double::doubleValue), context);
     }
 
     /**
@@ -515,17 +513,17 @@ public class DoubleStreamEx implements DoubleStream {
 
     @Override
     public DoubleStreamEx peek(DoubleConsumer action) {
-        return strategy().newDoubleStreamEx(stream.peek(action));
+        return new DoubleStreamEx(stream().peek(action), context);
     }
 
     @Override
     public DoubleStreamEx limit(long maxSize) {
-        return strategy().newDoubleStreamEx(stream.limit(maxSize));
+        return new DoubleStreamEx(stream().limit(maxSize), context);
     }
 
     @Override
     public DoubleStreamEx skip(long n) {
-        return strategy().newDoubleStreamEx(stream.skip(n));
+        return new DoubleStreamEx(stream().skip(n), context);
     }
 
     /**
@@ -561,24 +559,48 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.3.2
      */
     public DoubleStreamEx skipOrdered(long n) {
-        Spliterator.OfDouble spliterator = (stream.isParallel() ? StreamSupport.doubleStream(stream.spliterator(),
-            false) : stream).skip(n).spliterator();
+        Spliterator.OfDouble spliterator = (isParallel() ? StreamSupport.doubleStream(spliterator(), false) : stream())
+                .skip(n).spliterator();
         return delegate(spliterator);
     }
 
     @Override
     public void forEach(DoubleConsumer action) {
-        stream.forEach(action);
+        if (spliterator != null && !isParallel()) {
+            spliterator().forEachRemaining(action);
+        } else {
+            if(context.fjp != null)
+                context.terminate(() -> {
+                    stream().forEach(action);
+                    return null;
+                });
+            else {
+                stream().forEach(action);
+            }
+        }
     }
 
     @Override
     public void forEachOrdered(DoubleConsumer action) {
-        stream.forEachOrdered(action);
+        if (spliterator != null && !isParallel()) {
+            spliterator().forEachRemaining(action);
+        } else {
+            if(context.fjp != null)
+                context.terminate(() -> {
+                    stream().forEachOrdered(action);
+                    return null;
+                });
+            else {
+                stream().forEachOrdered(action);
+            }
+        }
     }
 
     @Override
     public double[] toArray() {
-        return stream.toArray();
+        if(context.fjp != null)
+            return context.terminate(stream()::toArray);
+        return stream().toArray();
     }
 
     /**
@@ -594,7 +616,7 @@ public class DoubleStreamEx implements DoubleStream {
     public float[] toFloatArray() {
         if (isParallel())
             return collect(DoubleCollector.toFloatArray());
-        java.util.Spliterator.OfDouble spliterator = stream.spliterator();
+        java.util.Spliterator.OfDouble spliterator = spliterator();
         long size = spliterator.getExactSizeIfKnown();
         FloatBuffer buf;
         if (size >= 0 && size <= Integer.MAX_VALUE) {
@@ -609,12 +631,16 @@ public class DoubleStreamEx implements DoubleStream {
 
     @Override
     public double reduce(double identity, DoubleBinaryOperator op) {
-        return stream.reduce(identity, op);
+        if(context.fjp != null)
+            return context.terminate(() -> stream().reduce(identity, op));
+        return stream().reduce(identity, op);
     }
 
     @Override
     public OptionalDouble reduce(DoubleBinaryOperator op) {
-        return stream.reduce(op);
+        if(context.fjp != null)
+            return context.terminate(op, stream()::reduce);
+        return stream().reduce(op);
     }
 
     /**
@@ -660,7 +686,7 @@ public class DoubleStreamEx implements DoubleStream {
      */
     public OptionalDouble foldLeft(DoubleBinaryOperator accumulator) {
         PrimitiveBox b = new PrimitiveBox();
-        stream.forEachOrdered(t -> {
+        forEachOrdered(t -> {
             if (b.b)
                 b.d = accumulator.applyAsDouble(b.d, t);
             else {
@@ -709,7 +735,7 @@ public class DoubleStreamEx implements DoubleStream {
      */
     public double foldLeft(double seed, DoubleBinaryOperator accumulator) {
         double[] box = new double[] { seed };
-        stream.forEachOrdered(t -> box[0] = accumulator.applyAsDouble(box[0], t));
+        forEachOrdered(t -> box[0] = accumulator.applyAsDouble(box[0], t));
         return box[0];
     }
 
@@ -741,7 +767,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.5.1
      */
     public double[] scanLeft(DoubleBinaryOperator accumulator) {
-        Spliterator.OfDouble spliterator = stream.spliterator();
+        Spliterator.OfDouble spliterator = spliterator();
         double size = spliterator.getExactSizeIfKnown();
         DoubleBuffer buf = new DoubleBuffer(size >= 0 && size <= Integer.MAX_VALUE ? (int) size : INITIAL_SIZE);
         delegate(spliterator).forEachOrdered(
@@ -787,7 +813,9 @@ public class DoubleStreamEx implements DoubleStream {
      */
     @Override
     public <R> R collect(Supplier<R> supplier, ObjDoubleConsumer<R> accumulator, BiConsumer<R, R> combiner) {
-        return stream.collect(supplier, accumulator, combiner);
+        if(context.fjp != null)
+            return context.terminate(() -> stream().collect(supplier, accumulator, combiner));
+        return stream().collect(supplier, accumulator, combiner);
     }
 
     /**
@@ -822,7 +850,9 @@ public class DoubleStreamEx implements DoubleStream {
 
     @Override
     public double sum() {
-        return stream.sum();
+        if(context.fjp != null)
+            return context.terminate(stream()::sum);
+        return stream().sum();
     }
 
     @Override
@@ -1082,12 +1112,16 @@ public class DoubleStreamEx implements DoubleStream {
 
     @Override
     public long count() {
-        return stream.count();
+        if(context.fjp != null)
+            return context.terminate(stream()::count);
+        return stream().count();
     }
 
     @Override
     public OptionalDouble average() {
-        return stream.average();
+        if(context.fjp != null)
+            return context.terminate(stream()::average);
+        return stream().average();
     }
 
     @Override
@@ -1097,12 +1131,16 @@ public class DoubleStreamEx implements DoubleStream {
 
     @Override
     public boolean anyMatch(DoublePredicate predicate) {
-        return stream.anyMatch(predicate);
+        if(context.fjp != null)
+            return context.terminate(predicate, stream()::anyMatch);
+        return stream().anyMatch(predicate);
     }
 
     @Override
     public boolean allMatch(DoublePredicate predicate) {
-        return stream.allMatch(predicate);
+        if(context.fjp != null)
+            return context.terminate(predicate, stream()::allMatch);
+        return stream().allMatch(predicate);
     }
 
     @Override
@@ -1112,7 +1150,9 @@ public class DoubleStreamEx implements DoubleStream {
 
     @Override
     public OptionalDouble findFirst() {
-        return stream.findFirst();
+        if(context.fjp != null)
+            return context.terminate(stream()::findFirst);
+        return stream().findFirst();
     }
 
     /**
@@ -1138,7 +1178,9 @@ public class DoubleStreamEx implements DoubleStream {
 
     @Override
     public OptionalDouble findAny() {
-        return stream.findAny();
+        if(context.fjp != null)
+            return context.terminate(stream()::findAny);
+        return stream().findAny();
     }
 
     /**
@@ -1194,57 +1236,27 @@ public class DoubleStreamEx implements DoubleStream {
 
     @Override
     public StreamEx<Double> boxed() {
-        return strategy().newStreamEx(stream.boxed());
+        return new StreamEx<>(stream().boxed(), context);
     }
 
     @Override
     public DoubleStreamEx sequential() {
-        return StreamFactory.DEFAULT.newDoubleStreamEx(stream.sequential());
+        return (DoubleStreamEx) super.sequential();
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * <p>
-     * If this stream was created using {@link #parallel(ForkJoinPool)}, the new
-     * stream forgets about supplied custom {@link ForkJoinPool} and its
-     * terminal operation will be executed in common pool.
-     */
     @Override
     public DoubleStreamEx parallel() {
-        return StreamFactory.DEFAULT.newDoubleStreamEx(stream.parallel());
+        return (DoubleStreamEx) super.parallel();
     }
 
-    /**
-     * Returns an equivalent stream that is parallel and bound to the supplied
-     * {@link ForkJoinPool}.
-     *
-     * <p>
-     * This is an intermediate operation.
-     * 
-     * <p>
-     * The terminal operation of this stream or any derived stream (except the
-     * streams created via {@link #parallel()} or {@link #sequential()} methods)
-     * will be executed inside the supplied {@code ForkJoinPool}. If current
-     * thread does not belong to that pool, it will wait till calculation
-     * finishes.
-     *
-     * @param fjp a {@code ForkJoinPool} to submit the stream operation to.
-     * @return a parallel stream bound to the supplied {@code ForkJoinPool}
-     * @since 0.2.0
-     */
+    @Override
     public DoubleStreamEx parallel(ForkJoinPool fjp) {
-        return StreamFactory.forCustomPool(fjp).newDoubleStreamEx(stream.parallel());
+        return (DoubleStreamEx) super.parallel(fjp);
     }
 
     @Override
     public OfDouble iterator() {
-        return stream.iterator();
-    }
-
-    @Override
-    public java.util.Spliterator.OfDouble spliterator() {
-        return stream.spliterator();
+        return Spliterators.iterator(spliterator());
     }
 
     /**
@@ -1261,7 +1273,7 @@ public class DoubleStreamEx implements DoubleStream {
     public DoubleStreamEx append(double... values) {
         if (values.length == 0)
             return this;
-        return strategy().newDoubleStreamEx(DoubleStream.concat(stream, DoubleStream.of(values)));
+        return new DoubleStreamEx(DoubleStream.concat(stream(), DoubleStream.of(values)), context);
     }
 
     /**
@@ -1276,7 +1288,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @see DoubleStream#concat(DoubleStream, DoubleStream)
      */
     public DoubleStreamEx append(DoubleStream other) {
-        return strategy().newDoubleStreamEx(DoubleStream.concat(stream, other));
+        return new DoubleStreamEx(DoubleStream.concat(stream(), other), context.combine(other));
     }
 
     /**
@@ -1293,7 +1305,7 @@ public class DoubleStreamEx implements DoubleStream {
     public DoubleStreamEx prepend(double... values) {
         if (values.length == 0)
             return this;
-        return strategy().newDoubleStreamEx(DoubleStream.concat(DoubleStream.of(values), stream));
+        return new DoubleStreamEx(DoubleStream.concat(DoubleStream.of(values), stream()), context);
     }
 
     /**
@@ -1308,7 +1320,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @see DoubleStream#concat(DoubleStream, DoubleStream)
      */
     public DoubleStreamEx prepend(DoubleStream other) {
-        return strategy().newDoubleStreamEx(DoubleStream.concat(other, stream));
+        return new DoubleStreamEx(DoubleStream.concat(other, stream()), context.combine(other));
     }
 
     /**
@@ -1329,7 +1341,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.2.1
      */
     public DoubleStreamEx pairMap(DoubleBinaryOperator mapper) {
-        return delegate(new PairSpliterator.PSOfDouble(mapper, null, stream.spliterator(), PairSpliterator.MODE_PAIRS));
+        return delegate(new PairSpliterator.PSOfDouble(mapper, null, spliterator(), PairSpliterator.MODE_PAIRS));
     }
 
     /**
@@ -1396,7 +1408,7 @@ public class DoubleStreamEx implements DoubleStream {
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_TAKE_WHILE);
         }
-        return delegate(new DoubleStreamEx.TDOfDouble(stream.spliterator(), false, predicate));
+        return delegate(new DoubleStreamEx.TDOfDouble(spliterator(), false, predicate));
     }
 
     /**
@@ -1425,7 +1437,7 @@ public class DoubleStreamEx implements DoubleStream {
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_DROP_WHILE);
         }
-        return delegate(new DoubleStreamEx.TDOfDouble(stream.spliterator(), true, predicate));
+        return delegate(new DoubleStreamEx.TDOfDouble(spliterator(), true, predicate));
     }
 
     /**
@@ -1434,7 +1446,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @return an empty sequential stream
      */
     public static DoubleStreamEx empty() {
-        return of(DoubleStream.empty());
+        return of(Spliterators.emptyDoubleSpliterator());
     }
 
     /**
@@ -1444,7 +1456,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @return a singleton sequential stream
      */
     public static DoubleStreamEx of(double element) {
-        return of(DoubleStream.of(element));
+        return of(new ConstSpliterator.OfDouble(element, 1, true));
     }
 
     /**
@@ -1455,7 +1467,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @return the new stream
      */
     public static DoubleStreamEx of(double... elements) {
-        return of(DoubleStream.of(elements));
+        return of(Arrays.spliterator(elements));
     }
 
     /**
@@ -1474,7 +1486,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @see Arrays#stream(double[], int, int)
      */
     public static DoubleStreamEx of(double[] array, int startInclusive, int endExclusive) {
-        return of(Arrays.stream(array, startInclusive, endExclusive));
+        return of(Arrays.spliterator(array, startInclusive, endExclusive));
     }
 
     /**
@@ -1487,7 +1499,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.5.0
      */
     public static DoubleStreamEx of(Double[] array) {
-        return of(Arrays.stream(array).mapToDouble(Double::doubleValue));
+        return seq(Arrays.stream(array).mapToDouble(Double::doubleValue));
     }
 
     /**
@@ -1530,7 +1542,8 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.0.8
      */
     public static DoubleStreamEx of(DoubleStream stream) {
-        return stream instanceof DoubleStreamEx ? (DoubleStreamEx) stream : new DoubleStreamEx(stream);
+        return stream instanceof DoubleStreamEx ? (DoubleStreamEx) stream : new DoubleStreamEx(stream,
+                StreamContext.of(stream));
     }
 
     /**
@@ -1542,7 +1555,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.3.4
      */
     public static DoubleStreamEx of(Spliterator.OfDouble spliterator) {
-        return of(StreamSupport.doubleStream(spliterator, false));
+        return new DoubleStreamEx(spliterator, StreamContext.SEQUENTIAL);
     }
 
     /**
@@ -1588,7 +1601,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @see Collection#stream()
      */
     public static DoubleStreamEx of(Collection<Double> collection) {
-        return of(collection.stream().mapToDouble(Double::doubleValue));
+        return seq(collection.stream().mapToDouble(Double::doubleValue));
     }
 
     /**
@@ -1605,7 +1618,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @see Random#doubles()
      */
     public static DoubleStreamEx of(Random random) {
-        return of(random.doubles());
+        return seq(random.doubles());
     }
 
     /**
@@ -1623,7 +1636,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @see Random#doubles(long)
      */
     public static DoubleStreamEx of(Random random, long streamSize) {
-        return of(random.doubles(streamSize));
+        return seq(random.doubles(streamSize));
     }
 
     /**
@@ -1639,7 +1652,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @see Random#doubles(double, double)
      */
     public static DoubleStreamEx of(Random random, double randomNumberOrigin, double randomNumberBound) {
-        return of(random.doubles(randomNumberOrigin, randomNumberBound));
+        return seq(random.doubles(randomNumberOrigin, randomNumberBound));
     }
 
     /**
@@ -1657,7 +1670,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @see Random#doubles(long, double, double)
      */
     public static DoubleStreamEx of(Random random, long streamSize, double randomNumberOrigin, double randomNumberBound) {
-        return of(random.doubles(streamSize, randomNumberOrigin, randomNumberBound));
+        return seq(random.doubles(streamSize, randomNumberOrigin, randomNumberBound));
     }
 
     /**
@@ -1679,7 +1692,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @see DoubleStream#iterate(double, DoubleUnaryOperator)
      */
     public static DoubleStreamEx iterate(final double seed, final DoubleUnaryOperator f) {
-        return of(DoubleStream.iterate(seed, f));
+        return seq(DoubleStream.iterate(seed, f));
     }
 
     /**
@@ -1692,7 +1705,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @see DoubleStream#generate(DoubleSupplier)
      */
     public static DoubleStreamEx generate(DoubleSupplier s) {
-        return of(DoubleStream.generate(s));
+        return seq(DoubleStream.generate(s));
     }
 
     /**
@@ -1705,7 +1718,7 @@ public class DoubleStreamEx implements DoubleStream {
      * @since 0.1.2
      */
     public static DoubleStreamEx constant(double value, long length) {
-        return of(new ConstSpliterator.OfDouble(value, length));
+        return of(new ConstSpliterator.OfDouble(value, length, false));
     }
 
     /**

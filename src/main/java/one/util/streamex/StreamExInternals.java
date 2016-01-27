@@ -1049,7 +1049,7 @@ import java.util.stream.Stream;
 
     @SuppressWarnings("unchecked")
     static <T> Stream<T> unwrap(Stream<T> stream) {
-        return stream instanceof AbstractStreamEx ? ((AbstractStreamEx<T, ?>) stream).stream : stream;
+        return stream instanceof AbstractStreamEx ? ((AbstractStreamEx<T, ?>) stream).stream() : stream;
     }
 
     static <A> Predicate<A> finished(Collector<?, A, ?> collector) {
@@ -1062,30 +1062,15 @@ import java.util.stream.Stream;
     static <T> T none() {
         return (T) NONE;
     }
-
-    /**
-     * Close target when proxy is closed. May omit close handler registration if
-     * target has no close handlers registered.
-     * 
-     * @param proxy stream where close handler should be registered
-     * @param target target stream which must be closed
-     * @return proxy (to chain calls)
-     */
-    static <T extends BaseStream<?, ?>> T delegateClose(T proxy, BaseStream<?, ?> target) {
-        if (target == null) {
-            return proxy;
-        }
-        if (target instanceof AbstractStreamEx) {
-            target = ((AbstractStreamEx<?, ?>) target).stream;
-        }
+    
+    static boolean mustCloseStream(BaseStream<?, ?> target) {
         try {
             if (SOURCE_STAGE != null && SOURCE_CLOSE_ACTION != null
                 && SOURCE_CLOSE_ACTION.get(SOURCE_STAGE.get(target)) == null)
-                return proxy;
+                return false;
         } catch (IllegalArgumentException | IllegalAccessException e) {
             // ignore
         }
-        proxy.onClose(target::close);
-        return proxy;
+        return true;
     }
 }

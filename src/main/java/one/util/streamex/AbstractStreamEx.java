@@ -26,7 +26,9 @@ import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Set;
 import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.Spliterators.AbstractSpliterator;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
@@ -49,7 +51,8 @@ import java.util.stream.Collector.Characteristics;
 
 import static one.util.streamex.StreamExInternals.*;
 
-/* package */abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> implements Stream<T>, Iterable<T> {
+/* package */abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> extends
+        BaseStreamEx<T, Stream<T>, Spliterator<T>> implements Stream<T>, Iterable<T> {
     private static final class TDOfRef<T> extends AbstractSpliterator<T> implements Consumer<T> {
         private final Predicate<? super T> predicate;
         private final boolean drop;
@@ -98,23 +101,22 @@ import static one.util.streamex.StreamExInternals.*;
         }
     }
 
-    final Stream<T> stream;
-
-    AbstractStreamEx(Stream<T> stream) {
-        this.stream = stream;
+    AbstractStreamEx(Stream<T> stream, StreamContext context) {
+        super(stream, context);
     }
 
-    StreamFactory strategy() {
-        return StreamFactory.DEFAULT;
+    AbstractStreamEx(Spliterator<T> spliterator, StreamContext context) {
+        super(spliterator, context);
     }
-
-    final <R> Stream<R> delegate(Spliterator<R> spliterator) {
-        return delegateClose(StreamSupport.stream(spliterator, stream.isParallel()), stream);
+    
+    @Override
+    final Stream<T> createStream() {
+        return StreamSupport.stream(spliterator, context.parallel);
     }
 
     final S callWhile(Predicate<? super T> predicate, int methodId) {
         try {
-            return supply((Stream<T>) JDK9_METHODS[IDX_STREAM][methodId].invokeExact(stream, predicate));
+            return supply((Stream<T>) JDK9_METHODS[IDX_STREAM][methodId].invokeExact(stream(), predicate));
         } catch (Error | RuntimeException e) {
             throw e;
         } catch (Throwable e) {
@@ -137,115 +139,126 @@ import static one.util.streamex.StreamExInternals.*;
     }
 
     <R, A> R rawCollect(Collector<? super T, A, R> collector) {
-        return stream.collect(collector);
+        if(context.fjp != null)
+            return context.terminate(collector, stream()::collect);
+        return stream().collect(collector);
     }
 
     @SuppressWarnings("unchecked")
     S appendSpliterator(Stream<? extends T> other, Spliterator<? extends T> right) {
         if(right.getExactSizeIfKnown() == 0)
             return (S) this;
-        Spliterator<T> left = stream.spliterator();
+        Spliterator<T> left = spliterator();
         Spliterator<T> result;
         if(left.getExactSizeIfKnown() == 0)
             result = (Spliterator<T>) right;
         else
             result = new TailConcatSpliterator<>(left, right);
-        return supply(delegateClose(delegateClose(StreamSupport.stream(result, stream.isParallel()), stream), other));
+        context = context.combine(other);
+        return supply(result);
     }
 
     @SuppressWarnings("unchecked")
     S prependSpliterator(Stream<? extends T> other, Spliterator<? extends T> left) {
         if(left.getExactSizeIfKnown() == 0)
             return (S) this;
-        Spliterator<T> right = stream.spliterator();
+        Spliterator<T> right = spliterator();
         Spliterator<T> result;
         if(right.getExactSizeIfKnown() == 0)
             result = (Spliterator<T>) left;
         else
             result = new TailConcatSpliterator<>(left, right);
-        return supply(delegateClose(delegateClose(StreamSupport.stream(result, stream.isParallel()), stream), other));
+        context = context.combine(other);
+        return supply(result);
     }
 
     abstract S supply(Stream<T> stream);
 
+    abstract S supply(Spliterator<T> spliterator);
+
     @Override
     public Iterator<T> iterator() {
-        return stream.iterator();
+        return Spliterators.iterator(spliterator());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public S sequential() {
+        return (S) super.sequential();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public S parallel() {
+        return (S) super.parallel();
     }
 
     @Override
-    public Spliterator<T> spliterator() {
-        return stream.spliterator();
+    @SuppressWarnings("unchecked")
+    public S parallel(ForkJoinPool fjp) {
+        return (S) super.parallel(fjp);
     }
 
-    @Override
-    public boolean isParallel() {
-        return stream.isParallel();
-    }
-
+    @SuppressWarnings("unchecked")
     @Override
     public S unordered() {
-        return supply(stream.unordered());
+        return (S) super.unordered();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public S onClose(Runnable closeHandler) {
-        return supply(stream.onClose(closeHandler));
-    }
-
-    @Override
-    public void close() {
-        stream.close();
+        return (S) super.onClose(closeHandler);
     }
 
     @Override
     public S filter(Predicate<? super T> predicate) {
-        return supply(stream.filter(predicate));
+        return supply(stream().filter(predicate));
     }
 
     @Override
     public <R> StreamEx<R> flatMap(Function<? super T, ? extends Stream<? extends R>> mapper) {
-        return strategy().newStreamEx(stream.flatMap(mapper));
+        return new StreamEx<>(stream().flatMap(mapper), context);
     }
 
     @Override
     public <R> StreamEx<R> map(Function<? super T, ? extends R> mapper) {
-        return strategy().newStreamEx(stream.map(mapper));
+        return new StreamEx<>(stream().map(mapper), context);
     }
 
     @Override
     public IntStreamEx mapToInt(ToIntFunction<? super T> mapper) {
-        return strategy().newIntStreamEx(stream.mapToInt(mapper));
+        return new IntStreamEx(stream().mapToInt(mapper), context);
     }
 
     @Override
     public LongStreamEx mapToLong(ToLongFunction<? super T> mapper) {
-        return strategy().newLongStreamEx(stream.mapToLong(mapper));
+        return new LongStreamEx(stream().mapToLong(mapper), context);
     }
 
     @Override
     public DoubleStreamEx mapToDouble(ToDoubleFunction<? super T> mapper) {
-        return strategy().newDoubleStreamEx(stream.mapToDouble(mapper));
+        return new DoubleStreamEx(stream().mapToDouble(mapper), context);
     }
 
     @Override
     public IntStreamEx flatMapToInt(Function<? super T, ? extends IntStream> mapper) {
-        return strategy().newIntStreamEx(stream.flatMapToInt(mapper));
+        return new IntStreamEx(stream().flatMapToInt(mapper), context);
     }
 
     @Override
     public LongStreamEx flatMapToLong(Function<? super T, ? extends LongStream> mapper) {
-        return strategy().newLongStreamEx(stream.flatMapToLong(mapper));
+        return new LongStreamEx(stream().flatMapToLong(mapper), context);
     }
 
     @Override
     public DoubleStreamEx flatMapToDouble(Function<? super T, ? extends DoubleStream> mapper) {
-        return strategy().newDoubleStreamEx(stream.flatMapToDouble(mapper));
+        return new DoubleStreamEx(stream().flatMapToDouble(mapper), context);
     }
 
     @Override
     public S distinct() {
-        return supply(stream.distinct());
+        return supply(stream().distinct());
     }
 
     /**
@@ -268,42 +281,64 @@ import static one.util.streamex.StreamExInternals.*;
      * @since 0.3.8
      */
     public S distinct(Function<? super T, ?> keyExtractor) {
-        return supply(stream.map(t -> new PairBox<>(t, keyExtractor.apply(t))).distinct().map(box -> box.a));
+        return supply(stream().map(t -> new PairBox<>(t, keyExtractor.apply(t))).distinct().map(box -> box.a));
     }
 
     @Override
     public S sorted() {
-        return supply(stream.sorted());
+        return supply(stream().sorted());
     }
 
     @Override
     public S sorted(Comparator<? super T> comparator) {
-        return supply(stream.sorted(comparator));
+        return supply(stream().sorted(comparator));
     }
 
     @Override
     public S peek(Consumer<? super T> action) {
-        return supply(stream.peek(action));
+        return supply(stream().peek(action));
     }
 
     @Override
     public S limit(long maxSize) {
-        return supply(stream.limit(maxSize));
+        return supply(stream().limit(maxSize));
     }
 
     @Override
     public S skip(long n) {
-        return supply(stream.skip(n));
+        return supply(stream().skip(n));
     }
 
     @Override
     public void forEach(Consumer<? super T> action) {
-        stream.forEach(action);
+        if (spliterator != null && !isParallel()) {
+            spliterator().forEachRemaining(action);
+        } else {
+            if(context.fjp != null)
+                context.terminate(() -> {
+                    stream().forEach(action);
+                    return null;
+                });
+            else {
+                stream().forEach(action);
+            }
+        }
     }
 
     @Override
     public void forEachOrdered(Consumer<? super T> action) {
-        stream.forEachOrdered(action);
+        if (spliterator != null && !isParallel()) {
+            spliterator().forEachRemaining(action);
+        } else {
+            if(context.fjp != null)
+                context.terminate(() -> {
+                    stream().forEachOrdered(action);
+                    return null;
+                });
+            else {
+                stream().forEachOrdered(action);
+            }
+        }
     }
 
     @Override
@@ -313,27 +348,37 @@ import static one.util.streamex.StreamExInternals.*;
 
     @Override
     public <A> A[] toArray(IntFunction<A[]> generator) {
-        return stream.toArray(generator);
+        if(context.fjp != null)
+            return context.terminate(generator, stream()::toArray);
+        return stream().toArray(generator);
     }
 
     @Override
     public T reduce(T identity, BinaryOperator<T> accumulator) {
-        return stream.reduce(identity, accumulator);
+        if(context.fjp != null)
+            return context.terminate(() -> stream().reduce(identity, accumulator));
+        return stream().reduce(identity, accumulator);
     }
 
     @Override
     public Optional<T> reduce(BinaryOperator<T> accumulator) {
-        return stream.reduce(accumulator);
+        if(context.fjp != null)
+            return context.terminate(accumulator, stream()::reduce);
+        return stream().reduce(accumulator);
     }
 
     @Override
     public <U> U reduce(U identity, BiFunction<U, ? super T, U> accumulator, BinaryOperator<U> combiner) {
-        return stream.reduce(identity, accumulator, combiner);
+        if(context.fjp != null)
+            return context.terminate(() -> stream().reduce(identity, accumulator, combiner));
+        return stream().reduce(identity, accumulator, combiner);
     }
 
     @Override
     public <R> R collect(Supplier<R> supplier, BiConsumer<R, ? super T> accumulator, BiConsumer<R, R> combiner) {
-        return stream.collect(supplier, accumulator, combiner);
+        if(context.fjp != null)
+            return context.terminate(() -> stream().collect(supplier, accumulator, combiner));
+        return stream().collect(supplier, accumulator, combiner);
     }
 
     /**
@@ -350,7 +395,7 @@ import static one.util.streamex.StreamExInternals.*;
         if (finished != null) {
             BiConsumer<A, ? super T> acc = collector.accumulator();
             BinaryOperator<A> combiner = collector.combiner();
-            Spliterator<T> spliterator = stream.spliterator();
+            Spliterator<T> spliterator = spliterator();
             if (!isParallel()) {
                 A a = collector.supplier().get();
                 if (!finished.test(a)) {
@@ -378,7 +423,7 @@ import static one.util.streamex.StreamExInternals.*;
                 spltr = new OrderedCancellableSpliterator<>(spliterator, collector.supplier(), acc, combiner, finished);
             }
             return collector.finisher().apply(
-                strategy().newStreamEx(StreamSupport.stream(spltr, true)).findFirst().get());
+                new StreamEx<>(StreamSupport.stream(spltr, true), context).findFirst().get());
         }
         return rawCollect(collector);
     }
@@ -395,17 +440,23 @@ import static one.util.streamex.StreamExInternals.*;
 
     @Override
     public long count() {
-        return stream.count();
+        if(context.fjp != null)
+            return context.terminate(stream()::count);
+        return stream().count();
     }
 
     @Override
     public boolean anyMatch(Predicate<? super T> predicate) {
-        return stream.anyMatch(predicate);
+        if(context.fjp != null)
+            return context.terminate(predicate, stream()::anyMatch);
+        return stream().anyMatch(predicate);
     }
 
     @Override
     public boolean allMatch(Predicate<? super T> predicate) {
-        return stream.allMatch(predicate);
+        if(context.fjp != null)
+            return context.terminate(predicate, stream()::allMatch);
+        return stream().allMatch(predicate);
     }
 
     @Override
@@ -415,12 +466,16 @@ import static one.util.streamex.StreamExInternals.*;
 
     @Override
     public Optional<T> findFirst() {
-        return stream.findFirst();
+        if(context.fjp != null)
+            return context.terminate(stream()::findFirst);
+        return stream().findFirst();
     }
 
     @Override
     public Optional<T> findAny() {
-        return stream.findAny();
+        if(context.fjp != null)
+            return context.terminate(stream()::findAny);
+        return stream().findAny();
     }
 
     /**
@@ -1068,6 +1123,8 @@ import static one.util.streamex.StreamExInternals.*;
      * @see #toList()
      */
     public <R> R toListAndThen(Function<List<T>, R> finisher) {
+        if(context.fjp != null)
+            return context.terminate(() -> finisher.apply(toList()));
         return finisher.apply(toList());
     }
 
@@ -1496,8 +1553,7 @@ import static one.util.streamex.StreamExInternals.*;
      * @since 0.3.2
      */
     public S skipOrdered(long n) {
-        return supply(delegate((stream.isParallel() ? StreamSupport.stream(stream.spliterator(), false) : stream).skip(
-            n).spliterator()));
+        return supply((isParallel() ? StreamSupport.stream(spliterator(), false) : stream()).skip(n).spliterator());
     }
 
     /**
@@ -1525,7 +1581,7 @@ import static one.util.streamex.StreamExInternals.*;
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_TAKE_WHILE);
         }
-        return supply(delegate(new AbstractStreamEx.TDOfRef<>(stream.spliterator(), false, predicate)));
+        return supply(new AbstractStreamEx.TDOfRef<>(spliterator(), false, predicate));
     }
 
     /**
@@ -1554,6 +1610,6 @@ import static one.util.streamex.StreamExInternals.*;
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_DROP_WHILE);
         }
-        return supply(delegate(new AbstractStreamEx.TDOfRef<>(stream.spliterator(), true, predicate)));
+        return supply(new AbstractStreamEx.TDOfRef<>(spliterator(), true, predicate));
     }
 }

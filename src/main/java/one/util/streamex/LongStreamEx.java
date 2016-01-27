@@ -26,6 +26,7 @@ import java.util.OptionalLong;
 import java.util.PrimitiveIterator;
 import java.util.Random;
 import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator.OfLong;
 import java.util.Spliterators.AbstractLongSpliterator;
@@ -56,7 +57,7 @@ import static one.util.streamex.StreamExInternals.*;
  * 
  * @author Tagir Valeev
  */
-public class LongStreamEx implements LongStream {
+public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfLong> implements LongStream {
     private static final class TDOfLong extends AbstractLongSpliterator implements LongConsumer {
         private final LongPredicate predicate;
         private final boolean drop;
@@ -105,25 +106,31 @@ public class LongStreamEx implements LongStream {
         }
     }
 
-    final LongStream stream;
-
-    LongStreamEx(LongStream stream) {
-        this.stream = stream;
+    LongStreamEx(LongStream stream, StreamContext context) {
+        super(stream, context);
     }
 
-    StreamFactory strategy() {
-        return StreamFactory.DEFAULT;
+    LongStreamEx(Spliterator.OfLong spliterator, StreamContext context) {
+        super(spliterator, context);
+    }
+
+    @Override
+    LongStream createStream() {
+        return StreamSupport.longStream(spliterator, isParallel());
+    }
+
+    private static LongStreamEx seq(LongStream stream) {
+        return new LongStreamEx(stream, StreamContext.SEQUENTIAL);
     }
 
     final LongStreamEx delegate(Spliterator.OfLong spliterator) {
-        return strategy().newLongStreamEx(
-            delegateClose(StreamSupport.longStream(spliterator, stream.isParallel()), stream));
+        return new LongStreamEx(spliterator, context);
     }
 
     final LongStreamEx callWhile(LongPredicate predicate, int methodId) {
         try {
-            return strategy().newLongStreamEx(
-                (LongStream) JDK9_METHODS[IDX_LONG_STREAM][methodId].invokeExact(stream, predicate));
+            return new LongStreamEx(
+                (LongStream) JDK9_METHODS[IDX_LONG_STREAM][methodId].invokeExact(stream(), predicate), context);
         } catch (Error | RuntimeException e) {
             throw e;
         } catch (Throwable e) {
@@ -132,28 +139,18 @@ public class LongStreamEx implements LongStream {
     }
 
     @Override
-    public boolean isParallel() {
-        return stream.isParallel();
-    }
-
-    @Override
     public LongStreamEx unordered() {
-        return strategy().newLongStreamEx(stream.unordered());
+        return (LongStreamEx) super.unordered();
     }
 
     @Override
     public LongStreamEx onClose(Runnable closeHandler) {
-        return strategy().newLongStreamEx(stream.onClose(closeHandler));
-    }
-
-    @Override
-    public void close() {
-        stream.close();
+        return (LongStreamEx) super.onClose(closeHandler);
     }
 
     @Override
     public LongStreamEx filter(LongPredicate predicate) {
-        return strategy().newLongStreamEx(stream.filter(predicate));
+        return new LongStreamEx(stream().filter(predicate), context);
     }
 
     /**
@@ -262,7 +259,7 @@ public class LongStreamEx implements LongStream {
 
     @Override
     public LongStreamEx map(LongUnaryOperator mapper) {
-        return strategy().newLongStreamEx(stream.map(mapper));
+        return new LongStreamEx(stream().map(mapper), context);
     }
 
     /**
@@ -281,7 +278,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.4.1
      */
     public LongStreamEx mapFirst(LongUnaryOperator mapper) {
-        return delegate(new PairSpliterator.PSOfLong((a, b) -> b, mapper, stream.spliterator(), PairSpliterator.MODE_MAP_FIRST));
+        return delegate(new PairSpliterator.PSOfLong((a, b) -> b, mapper, spliterator(), PairSpliterator.MODE_MAP_FIRST));
     }
 
     /**
@@ -300,22 +297,22 @@ public class LongStreamEx implements LongStream {
      * @since 0.4.1
      */
     public LongStreamEx mapLast(LongUnaryOperator mapper) {
-        return delegate(new PairSpliterator.PSOfLong((a, b) -> a, mapper, stream.spliterator(), PairSpliterator.MODE_MAP_LAST));
+        return delegate(new PairSpliterator.PSOfLong((a, b) -> a, mapper, spliterator(), PairSpliterator.MODE_MAP_LAST));
     }
 
     @Override
     public <U> StreamEx<U> mapToObj(LongFunction<? extends U> mapper) {
-        return strategy().newStreamEx(stream.mapToObj(mapper));
+        return new StreamEx<>(stream().mapToObj(mapper), context);
     }
 
     @Override
     public IntStreamEx mapToInt(LongToIntFunction mapper) {
-        return strategy().newIntStreamEx(stream.mapToInt(mapper));
+        return new IntStreamEx(stream().mapToInt(mapper), context);
     }
 
     @Override
     public DoubleStreamEx mapToDouble(LongToDoubleFunction mapper) {
-        return strategy().newDoubleStreamEx(stream.mapToDouble(mapper));
+        return new DoubleStreamEx(stream().mapToDouble(mapper), context);
     }
 
     /**
@@ -337,13 +334,13 @@ public class LongStreamEx implements LongStream {
      */
     public <K, V> EntryStream<K, V> mapToEntry(LongFunction<? extends K> keyMapper,
             LongFunction<? extends V> valueMapper) {
-        return strategy().newEntryStream(
-            stream.mapToObj(t -> new AbstractMap.SimpleImmutableEntry<>(keyMapper.apply(t), valueMapper.apply(t))));
+        return new EntryStream<>(stream().mapToObj(
+            t -> new AbstractMap.SimpleImmutableEntry<>(keyMapper.apply(t), valueMapper.apply(t))), context);
     }
 
     @Override
     public LongStreamEx flatMap(LongFunction<? extends LongStream> mapper) {
-        return strategy().newLongStreamEx(stream.flatMap(mapper));
+        return new LongStreamEx(stream().flatMap(mapper), context);
     }
 
     /**
@@ -362,7 +359,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.3.0
      */
     public IntStreamEx flatMapToInt(LongFunction<? extends IntStream> mapper) {
-        return strategy().newIntStreamEx(stream.mapToObj(mapper).flatMapToInt(Function.identity()));
+        return new IntStreamEx(stream().mapToObj(mapper).flatMapToInt(Function.identity()), context);
     }
 
     /**
@@ -381,7 +378,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.3.0
      */
     public DoubleStreamEx flatMapToDouble(LongFunction<? extends DoubleStream> mapper) {
-        return strategy().newDoubleStreamEx(stream.mapToObj(mapper).flatMapToDouble(Function.identity()));
+        return new DoubleStreamEx(stream().mapToObj(mapper).flatMapToDouble(Function.identity()), context);
     }
 
     /**
@@ -401,17 +398,17 @@ public class LongStreamEx implements LongStream {
      * @since 0.3.0
      */
     public <R> StreamEx<R> flatMapToObj(LongFunction<? extends Stream<R>> mapper) {
-        return strategy().newStreamEx(stream.mapToObj(mapper).flatMap(Function.identity()));
+        return new StreamEx<>(stream().mapToObj(mapper).flatMap(Function.identity()), context);
     }
 
     @Override
     public LongStreamEx distinct() {
-        return strategy().newLongStreamEx(stream.distinct());
+        return new LongStreamEx(stream().distinct(), context);
     }
 
     @Override
     public LongStreamEx sorted() {
-        return strategy().newLongStreamEx(stream.sorted());
+        return new LongStreamEx(stream().sorted(), context);
     }
 
     /**
@@ -434,7 +431,7 @@ public class LongStreamEx implements LongStream {
      * @return the new stream
      */
     public LongStreamEx sorted(Comparator<Long> comparator) {
-        return strategy().newLongStreamEx(stream.boxed().sorted(comparator).mapToLong(Long::longValue));
+        return new LongStreamEx(stream().boxed().sorted(comparator).mapToLong(Long::longValue), context);
     }
 
     /**
@@ -543,17 +540,17 @@ public class LongStreamEx implements LongStream {
 
     @Override
     public LongStreamEx peek(LongConsumer action) {
-        return strategy().newLongStreamEx(stream.peek(action));
+        return new LongStreamEx(stream().peek(action), context);
     }
 
     @Override
     public LongStreamEx limit(long maxSize) {
-        return strategy().newLongStreamEx(stream.limit(maxSize));
+        return new LongStreamEx(stream().limit(maxSize), context);
     }
 
     @Override
     public LongStreamEx skip(long n) {
-        return strategy().newLongStreamEx(stream.skip(n));
+        return new LongStreamEx(stream().skip(n), context);
     }
 
     /**
@@ -589,34 +586,62 @@ public class LongStreamEx implements LongStream {
      * @since 0.3.2
      */
     public LongStreamEx skipOrdered(long n) {
-        Spliterator.OfLong spliterator = (stream.isParallel() ? StreamSupport.longStream(stream.spliterator(), false)
-                : stream).skip(n).spliterator();
+        Spliterator.OfLong spliterator = (isParallel() ? StreamSupport.longStream(spliterator(), false)
+                : stream()).skip(n).spliterator();
         return delegate(spliterator);
     }
 
     @Override
     public void forEach(LongConsumer action) {
-        stream.forEach(action);
+        if (spliterator != null && !isParallel()) {
+            spliterator().forEachRemaining(action);
+        } else {
+            if(context.fjp != null)
+                context.terminate(() -> {
+                    stream().forEach(action);
+                    return null;
+                });
+            else {
+                stream().forEach(action);
+            }
+        }
     }
 
     @Override
     public void forEachOrdered(LongConsumer action) {
-        stream.forEachOrdered(action);
+        if (spliterator != null && !isParallel()) {
+            spliterator().forEachRemaining(action);
+        } else {
+            if(context.fjp != null)
+                context.terminate(() -> {
+                    stream().forEachOrdered(action);
+                    return null;
+                });
+            else {
+                stream().forEachOrdered(action);
+            }
+        }
     }
 
     @Override
     public long[] toArray() {
-        return stream.toArray();
+        if(context.fjp != null)
+            return context.terminate(stream()::toArray);
+        return stream().toArray();
     }
 
     @Override
     public long reduce(long identity, LongBinaryOperator op) {
-        return stream.reduce(identity, op);
+        if(context.fjp != null)
+            return context.terminate(() -> stream().reduce(identity, op));
+        return stream().reduce(identity, op);
     }
 
     @Override
     public OptionalLong reduce(LongBinaryOperator op) {
-        return stream.reduce(op);
+        if(context.fjp != null)
+            return context.terminate(op, stream()::reduce);
+        return stream().reduce(op);
     }
 
     /**
@@ -662,7 +687,7 @@ public class LongStreamEx implements LongStream {
      */
     public OptionalLong foldLeft(LongBinaryOperator accumulator) {
         PrimitiveBox b = new PrimitiveBox();
-        stream.forEachOrdered(t -> {
+        forEachOrdered(t -> {
             if (b.b)
                 b.l = accumulator.applyAsLong(b.l, t);
             else {
@@ -711,7 +736,7 @@ public class LongStreamEx implements LongStream {
      */
     public long foldLeft(long seed, LongBinaryOperator accumulator) {
         long[] box = new long[] { seed };
-        stream.forEachOrdered(t -> box[0] = accumulator.applyAsLong(box[0], t));
+        forEachOrdered(t -> box[0] = accumulator.applyAsLong(box[0], t));
         return box[0];
     }
 
@@ -743,7 +768,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.5.1
      */
     public long[] scanLeft(LongBinaryOperator accumulator) {
-        Spliterator.OfLong spliterator = stream.spliterator();
+        Spliterator.OfLong spliterator = spliterator();
         long size = spliterator.getExactSizeIfKnown();
         LongBuffer buf = new LongBuffer(size >= 0 && size <= Integer.MAX_VALUE ? (int) size : INITIAL_SIZE);
         delegate(spliterator).forEachOrdered(
@@ -789,7 +814,9 @@ public class LongStreamEx implements LongStream {
      */
     @Override
     public <R> R collect(Supplier<R> supplier, ObjLongConsumer<R> accumulator, BiConsumer<R, R> combiner) {
-        return stream.collect(supplier, accumulator, combiner);
+        if(context.fjp != null)
+            return context.terminate(() -> stream().collect(supplier, accumulator, combiner));
+        return stream().collect(supplier, accumulator, combiner);
     }
 
     /**
@@ -1085,12 +1112,16 @@ public class LongStreamEx implements LongStream {
 
     @Override
     public long count() {
-        return stream.count();
+        if(context.fjp != null)
+            return context.terminate(stream()::count);
+        return stream().count();
     }
 
     @Override
     public OptionalDouble average() {
-        return stream.average();
+        if(context.fjp != null)
+            return context.terminate(stream()::average);
+        return stream().average();
     }
 
     @Override
@@ -1100,12 +1131,16 @@ public class LongStreamEx implements LongStream {
 
     @Override
     public boolean anyMatch(LongPredicate predicate) {
-        return stream.anyMatch(predicate);
+        if(context.fjp != null)
+            return context.terminate(predicate, stream()::anyMatch);
+        return stream().anyMatch(predicate);
     }
 
     @Override
     public boolean allMatch(LongPredicate predicate) {
-        return stream.allMatch(predicate);
+        if(context.fjp != null)
+            return context.terminate(predicate, stream()::allMatch);
+        return stream().allMatch(predicate);
     }
 
     @Override
@@ -1115,7 +1150,9 @@ public class LongStreamEx implements LongStream {
 
     @Override
     public OptionalLong findFirst() {
-        return stream.findFirst();
+        if(context.fjp != null)
+            return context.terminate(stream()::findFirst);
+        return stream().findFirst();
     }
 
     /**
@@ -1141,7 +1178,9 @@ public class LongStreamEx implements LongStream {
 
     @Override
     public OptionalLong findAny() {
-        return stream.findAny();
+        if(context.fjp != null)
+            return context.terminate(stream()::findAny);
+        return stream().findAny();
     }
 
     /**
@@ -1216,62 +1255,32 @@ public class LongStreamEx implements LongStream {
 
     @Override
     public DoubleStreamEx asDoubleStream() {
-        return strategy().newDoubleStreamEx(stream.asDoubleStream());
+        return new DoubleStreamEx(stream().asDoubleStream(), context);
     }
 
     @Override
     public StreamEx<Long> boxed() {
-        return strategy().newStreamEx(stream.boxed());
+        return new StreamEx<>(stream().boxed(), context);
     }
 
     @Override
     public LongStreamEx sequential() {
-        return StreamFactory.DEFAULT.newLongStreamEx(stream.sequential());
+        return (LongStreamEx) super.sequential();
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * <p>
-     * If this stream was created using {@link #parallel(ForkJoinPool)}, the new
-     * stream forgets about supplied custom {@link ForkJoinPool} and its
-     * terminal operation will be executed in common pool.
-     */
     @Override
     public LongStreamEx parallel() {
-        return StreamFactory.DEFAULT.newLongStreamEx(stream.parallel());
+        return (LongStreamEx) super.parallel();
     }
 
-    /**
-     * Returns an equivalent stream that is parallel and bound to the supplied
-     * {@link ForkJoinPool}.
-     *
-     * <p>
-     * This is an intermediate operation.
-     * 
-     * <p>
-     * The terminal operation of this stream or any derived stream (except the
-     * streams created via {@link #parallel()} or {@link #sequential()} methods)
-     * will be executed inside the supplied {@code ForkJoinPool}. If current
-     * thread does not belong to that pool, it will wait till calculation
-     * finishes.
-     *
-     * @param fjp a {@code ForkJoinPool} to submit the stream operation to.
-     * @return a parallel stream bound to the supplied {@code ForkJoinPool}
-     * @since 0.2.0
-     */
+    @Override
     public LongStreamEx parallel(ForkJoinPool fjp) {
-        return StreamFactory.forCustomPool(fjp).newLongStreamEx(stream.parallel());
+        return (LongStreamEx) super.parallel(fjp);
     }
 
     @Override
     public OfLong iterator() {
-        return stream.iterator();
-    }
-
-    @Override
-    public java.util.Spliterator.OfLong spliterator() {
-        return stream.spliterator();
+        return Spliterators.iterator(spliterator());
     }
 
     /**
@@ -1288,7 +1297,7 @@ public class LongStreamEx implements LongStream {
     public LongStreamEx append(long... values) {
         if (values.length == 0)
             return this;
-        return strategy().newLongStreamEx(LongStream.concat(stream, LongStream.of(values)));
+        return new LongStreamEx(LongStream.concat(stream(), LongStream.of(values)), context);
     }
 
     /**
@@ -1303,7 +1312,7 @@ public class LongStreamEx implements LongStream {
      * @see LongStream#concat(LongStream, LongStream)
      */
     public LongStreamEx append(LongStream other) {
-        return strategy().newLongStreamEx(LongStream.concat(stream, other));
+        return new LongStreamEx(LongStream.concat(stream(), other), context.combine(other));
     }
 
     /**
@@ -1320,7 +1329,7 @@ public class LongStreamEx implements LongStream {
     public LongStreamEx prepend(long... values) {
         if (values.length == 0)
             return this;
-        return strategy().newLongStreamEx(LongStream.concat(LongStream.of(values), stream));
+        return new LongStreamEx(LongStream.concat(LongStream.of(values), stream()), context);
     }
 
     /**
@@ -1335,7 +1344,7 @@ public class LongStreamEx implements LongStream {
      * @see LongStream#concat(LongStream, LongStream)
      */
     public LongStreamEx prepend(LongStream other) {
-        return strategy().newLongStreamEx(LongStream.concat(other, stream));
+        return new LongStreamEx(LongStream.concat(other, stream()), context.combine(other));
     }
 
     /**
@@ -1356,7 +1365,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.2.1
      */
     public LongStreamEx pairMap(LongBinaryOperator mapper) {
-        return delegate(new PairSpliterator.PSOfLong(mapper, null, stream.spliterator(), PairSpliterator.MODE_PAIRS));
+        return delegate(new PairSpliterator.PSOfLong(mapper, null, spliterator(), PairSpliterator.MODE_PAIRS));
     }
 
     /**
@@ -1423,7 +1432,7 @@ public class LongStreamEx implements LongStream {
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_TAKE_WHILE);
         }
-        return delegate(new LongStreamEx.TDOfLong(stream.spliterator(), false, predicate));
+        return delegate(new LongStreamEx.TDOfLong(spliterator(), false, predicate));
     }
 
     /**
@@ -1452,7 +1461,7 @@ public class LongStreamEx implements LongStream {
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_DROP_WHILE);
         }
-        return delegate(new LongStreamEx.TDOfLong(stream.spliterator(), true, predicate));
+        return delegate(new LongStreamEx.TDOfLong(spliterator(), true, predicate));
     }
 
     /**
@@ -1461,7 +1470,7 @@ public class LongStreamEx implements LongStream {
      * @return an empty sequential stream
      */
     public static LongStreamEx empty() {
-        return of(LongStream.empty());
+        return of(Spliterators.emptyLongSpliterator());
     }
 
     /**
@@ -1471,7 +1480,7 @@ public class LongStreamEx implements LongStream {
      * @return a singleton sequential stream
      */
     public static LongStreamEx of(long element) {
-        return of(LongStream.of(element));
+        return of(new ConstSpliterator.OfLong(element, 1, true));
     }
 
     /**
@@ -1482,7 +1491,7 @@ public class LongStreamEx implements LongStream {
      * @return the new stream
      */
     public static LongStreamEx of(long... elements) {
-        return of(LongStream.of(elements));
+        return of(Arrays.spliterator(elements));
     }
 
     /**
@@ -1501,7 +1510,7 @@ public class LongStreamEx implements LongStream {
      * @see Arrays#stream(long[], int, int)
      */
     public static LongStreamEx of(long[] array, int startInclusive, int endExclusive) {
-        return of(Arrays.stream(array, startInclusive, endExclusive));
+        return of(Arrays.spliterator(array, startInclusive, endExclusive));
     }
 
     /**
@@ -1514,7 +1523,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.5.0
      */
     public static LongStreamEx of(Long[] array) {
-        return of(Arrays.stream(array).mapToLong(Long::longValue));
+        return seq(Arrays.stream(array).mapToLong(Long::longValue));
     }
 
     /**
@@ -1526,7 +1535,8 @@ public class LongStreamEx implements LongStream {
      * @since 0.0.8
      */
     public static LongStreamEx of(LongStream stream) {
-        return stream instanceof LongStreamEx ? (LongStreamEx) stream : new LongStreamEx(stream);
+        return stream instanceof LongStreamEx ? (LongStreamEx) stream : new LongStreamEx(stream, StreamContext
+                .of(stream));
     }
 
     /**
@@ -1538,7 +1548,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.3.4
      */
     public static LongStreamEx of(Spliterator.OfLong spliterator) {
-        return of(StreamSupport.longStream(spliterator, false));
+        return new LongStreamEx(spliterator, StreamContext.SEQUENTIAL);
     }
 
     /**
@@ -1584,7 +1594,7 @@ public class LongStreamEx implements LongStream {
      * @see Collection#stream()
      */
     public static LongStreamEx of(Collection<Long> collection) {
-        return of(collection.stream().mapToLong(Long::longValue));
+        return seq(collection.stream().mapToLong(Long::longValue));
     }
 
     /**
@@ -1600,7 +1610,7 @@ public class LongStreamEx implements LongStream {
      * @see Random#longs()
      */
     public static LongStreamEx of(Random random) {
-        return of(random.longs());
+        return seq(random.longs());
     }
 
     /**
@@ -1617,7 +1627,7 @@ public class LongStreamEx implements LongStream {
      * @see Random#longs(long)
      */
     public static LongStreamEx of(Random random, long streamSize) {
-        return of(random.longs(streamSize));
+        return seq(random.longs(streamSize));
     }
 
     /**
@@ -1632,7 +1642,7 @@ public class LongStreamEx implements LongStream {
      * @see Random#longs(long, long, long)
      */
     public static LongStreamEx of(Random random, long randomNumberOrigin, long randomNumberBound) {
-        return of(random.longs(randomNumberOrigin, randomNumberBound));
+        return seq(random.longs(randomNumberOrigin, randomNumberBound));
     }
 
     /**
@@ -1648,7 +1658,7 @@ public class LongStreamEx implements LongStream {
      * @see Random#longs(long, long, long)
      */
     public static LongStreamEx of(Random random, long streamSize, long randomNumberOrigin, long randomNumberBound) {
-        return of(random.longs(streamSize, randomNumberOrigin, randomNumberBound));
+        return seq(random.longs(streamSize, randomNumberOrigin, randomNumberBound));
     }
 
     /**
@@ -1670,7 +1680,7 @@ public class LongStreamEx implements LongStream {
      * @see LongStream#iterate(long, LongUnaryOperator)
      */
     public static LongStreamEx iterate(final long seed, final LongUnaryOperator f) {
-        return of(LongStream.iterate(seed, f));
+        return seq(LongStream.iterate(seed, f));
     }
 
     /**
@@ -1683,7 +1693,7 @@ public class LongStreamEx implements LongStream {
      * @see LongStream#generate(LongSupplier)
      */
     public static LongStreamEx generate(LongSupplier s) {
-        return of(LongStream.generate(s));
+        return seq(LongStream.generate(s));
     }
 
     /**
@@ -1697,7 +1707,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.1.1
      */
     public static LongStreamEx range(long endExclusive) {
-        return of(LongStream.range(0, endExclusive));
+        return seq(LongStream.range(0, endExclusive));
     }
 
     /**
@@ -1712,7 +1722,7 @@ public class LongStreamEx implements LongStream {
      * @see LongStream#range(long, long)
      */
     public static LongStreamEx range(long startInclusive, long endExclusive) {
-        return of(LongStream.range(startInclusive, endExclusive));
+        return seq(LongStream.range(startInclusive, endExclusive));
     }
 
     /**
@@ -1751,7 +1761,7 @@ public class LongStreamEx implements LongStream {
      * @see LongStream#rangeClosed(long, long)
      */
     public static LongStreamEx rangeClosed(long startInclusive, long endInclusive) {
-        return of(LongStream.rangeClosed(startInclusive, endInclusive));
+        return seq(LongStream.rangeClosed(startInclusive, endInclusive));
     }
 
     /**
@@ -1781,18 +1791,18 @@ public class LongStreamEx implements LongStream {
         if (step == 0)
             throw new IllegalArgumentException("step = 0");
         if (step == 1)
-            return of(LongStream.rangeClosed(startInclusive, endInclusive));
+            return seq(LongStream.rangeClosed(startInclusive, endInclusive));
         if (step == -1) {
             // Handled specially as number of elements can exceed
             // Long.MAX_VALUE
             long sum = endInclusive + startInclusive;
-            return of(LongStream.rangeClosed(endInclusive, startInclusive).map(x -> sum - x));
+            return seq(LongStream.rangeClosed(endInclusive, startInclusive).map(x -> sum - x));
         }
         if ((endInclusive > startInclusive ^ step > 0) || endInclusive == startInclusive)
             return empty();
         long limit = (endInclusive - startInclusive) * Long.signum(step);
         limit = Long.divideUnsigned(limit, Math.abs(step));
-        return of(LongStream.rangeClosed(0, limit).map(x -> x * step + startInclusive));
+        return seq(LongStream.rangeClosed(0, limit).map(x -> x * step + startInclusive));
     }
 
     /**
@@ -1805,7 +1815,7 @@ public class LongStreamEx implements LongStream {
      * @since 0.1.2
      */
     public static LongStreamEx constant(long value, long length) {
-        return of(new ConstSpliterator.OfLong(value, length));
+        return of(new ConstSpliterator.OfLong(value, length, false));
     }
 
     /**
