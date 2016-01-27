@@ -376,7 +376,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public EntryStream<K, V> prepend(K key, V value) {
-        return prependSpliterator(null, Arrays.<Entry<K, V>> asList(new SimpleImmutableEntry<>(key, value)).spliterator());
+        return supply(new PrependSpliterator<>(spliterator(), new SimpleImmutableEntry<>(key, value)));
     }
 
     /**

@@ -889,7 +889,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
 
     /**
      * Returns a new {@code StreamEx} which is a concatenation of this stream
-     * and the stream containing supplied values.
+     * and the supplied values.
      * 
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
@@ -906,6 +906,19 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return appendSpliterator(null, Spliterators.spliterator(values, Spliterator.ORDERED));
     }
 
+    /**
+     * Returns a new {@code StreamEx} which is a concatenation of this stream
+     * and the supplied value.
+     * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a> with <a href="package-summary.html#TSO">tail-stream
+     * optimization</a>.
+     * 
+     * @param value the value to append to the stream
+     * @return the new stream
+     * @since 0.5.4
+     */
     public StreamEx<T> append(T value) {
         return appendSpliterator(null, new ConstSpliterator.OfRef<>(value, 1, true));
     }
@@ -930,8 +943,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
-     * Returns a new {@code StreamEx} which is a concatenation of the stream
-     * containing supplied values and this stream.
+     * Returns a new {@code StreamEx} which is a concatenation of supplied
+     * values and this stream.
      * 
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
@@ -949,6 +962,19 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return prependSpliterator(null, Spliterators.spliterator(values, Spliterator.ORDERED));
     }
 
+    /**
+     * Returns a new {@code StreamEx} which is a concatenation of supplied value
+     * and this stream.
+     * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a> with <a href="package-summary.html#TSO">tail-stream
+     * optimization</a>.
+     * 
+     * @param value the value to prepend to the stream
+     * @return the new stream
+     * @since 0.5.4
+     */
     public StreamEx<T> prepend(T value) {
         return new StreamEx<>(new PrependSpliterator<>(spliterator(), value), context);
     }
