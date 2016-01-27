@@ -1465,6 +1465,13 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
         return delegate(new LongStreamEx.TDOfLong(spliterator(), true, predicate));
     }
 
+    // Necessary to generate proper JavaDoc
+    // does not add overhead as it appears in bytecode anyways as bridge method
+    @Override
+    public <U> U chain(Function<? super LongStreamEx, U> mapper) {
+        return mapper.apply(this);
+    }
+
     /**
      * Returns an empty sequential {@code LongStreamEx}.
      *

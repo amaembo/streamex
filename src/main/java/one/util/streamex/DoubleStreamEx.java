@@ -1441,6 +1441,13 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
         return delegate(new DoubleStreamEx.TDOfDouble(spliterator(), true, predicate));
     }
 
+    // Necessary to generate proper JavaDoc
+    // does not add overhead as it appears in bytecode anyways as bridge method
+    @Override
+    public <U> U chain(Function<? super DoubleStreamEx, U> mapper) {
+        return mapper.apply(this);
+    }
+
     /**
      * Returns an empty sequential {@code DoubleStreamEx}.
      *

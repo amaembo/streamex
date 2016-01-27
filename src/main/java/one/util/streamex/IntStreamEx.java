@@ -1659,6 +1659,13 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
         return delegate(new PairSpliterator.PSOfInt((a, b) -> a, mapper, spliterator(), PairSpliterator.MODE_MAP_LAST));
     }
 
+    // Necessary to generate proper JavaDoc
+    // does not add overhead as it appears in bytecode anyways as bridge method
+    @Override
+    public <U> U chain(Function<? super IntStreamEx, U> mapper) {
+        return mapper.apply(this);
+    }
+
     /**
      * Returns an empty sequential {@code IntStreamEx}.
      *

@@ -154,12 +154,16 @@ import java.util.stream.BaseStream;
      * {@code chain()} method you can write in more fluent manner:
      * {@code StreamEx.of(input).map(...).chain(s -> batches(s, 10)).filter(...)}.
      * 
+     * <p>
+     * You could even go further and define a method which returns a function
+     * like {@code <T> UnaryOperator<StreamEx<T>> batches(int n)} and use it
+     * like this:
+     * {@code StreamEx.of(input).map(...).chain(batches(10)).filter(...)}.
+     * 
+     * @param <U> the type of the function result.
      * @param mapper function to invoke.
      * @return the result of the function invocation.
      * @since 0.5.4
      */
-    @SuppressWarnings("unchecked")
-    public <U> U chain(Function<? super B, U> mapper) {
-        return mapper.apply((B) this);
-    }
+    abstract public <U> U chain(Function<? super B, U> mapper);
 }

@@ -1520,6 +1520,13 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return new StreamEx<>(spliterator, context);
     }
 
+    // Necessary to generate proper JavaDoc
+    // does not add overhead as it appears in bytecode anyways as bridge method
+    @Override
+    public <U> U chain(Function<? super StreamEx<T>, U> mapper) {
+        return mapper.apply(this);
+    }
+
     /**
      * Returns an empty sequential {@code StreamEx}.
      *
