@@ -57,7 +57,8 @@ import static one.util.streamex.StreamExInternals.*;
  * 
  * @author Tagir Valeev
  */
-public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfLong> implements LongStream {
+public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfLong, LongStreamEx> implements
+        LongStream {
     private static final class TDOfLong extends AbstractLongSpliterator implements LongConsumer {
         private final LongPredicate predicate;
         private final boolean drop;
@@ -129,8 +130,8 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
 
     final LongStreamEx callWhile(LongPredicate predicate, int methodId) {
         try {
-            return new LongStreamEx(
-                (LongStream) JDK9_METHODS[IDX_LONG_STREAM][methodId].invokeExact(stream(), predicate), context);
+            return new LongStreamEx((LongStream) JDK9_METHODS[IDX_LONG_STREAM][methodId].invokeExact(stream(),
+                predicate), context);
         } catch (Error | RuntimeException e) {
             throw e;
         } catch (Throwable e) {
@@ -586,8 +587,8 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @since 0.3.2
      */
     public LongStreamEx skipOrdered(long n) {
-        Spliterator.OfLong spliterator = (isParallel() ? StreamSupport.longStream(spliterator(), false)
-                : stream()).skip(n).spliterator();
+        Spliterator.OfLong spliterator = (isParallel() ? StreamSupport.longStream(spliterator(), false) : stream())
+                .skip(n).spliterator();
         return delegate(spliterator);
     }
 
@@ -596,7 +597,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
         if (spliterator != null && !isParallel()) {
             spliterator().forEachRemaining(action);
         } else {
-            if(context.fjp != null)
+            if (context.fjp != null)
                 context.terminate(() -> {
                     stream().forEach(action);
                     return null;
@@ -612,7 +613,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
         if (spliterator != null && !isParallel()) {
             spliterator().forEachRemaining(action);
         } else {
-            if(context.fjp != null)
+            if (context.fjp != null)
                 context.terminate(() -> {
                     stream().forEachOrdered(action);
                     return null;
@@ -625,21 +626,21 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
 
     @Override
     public long[] toArray() {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(stream()::toArray);
         return stream().toArray();
     }
 
     @Override
     public long reduce(long identity, LongBinaryOperator op) {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(() -> stream().reduce(identity, op));
         return stream().reduce(identity, op);
     }
 
     @Override
     public OptionalLong reduce(LongBinaryOperator op) {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(op, stream()::reduce);
         return stream().reduce(op);
     }
@@ -814,7 +815,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      */
     @Override
     public <R> R collect(Supplier<R> supplier, ObjLongConsumer<R> accumulator, BiConsumer<R, R> combiner) {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(() -> stream().collect(supplier, accumulator, combiner));
         return stream().collect(supplier, accumulator, combiner);
     }
@@ -1112,14 +1113,14 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
 
     @Override
     public long count() {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(stream()::count);
         return stream().count();
     }
 
     @Override
     public OptionalDouble average() {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(stream()::average);
         return stream().average();
     }
@@ -1131,14 +1132,14 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
 
     @Override
     public boolean anyMatch(LongPredicate predicate) {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(predicate, stream()::anyMatch);
         return stream().anyMatch(predicate);
     }
 
     @Override
     public boolean allMatch(LongPredicate predicate) {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(predicate, stream()::allMatch);
         return stream().allMatch(predicate);
     }
@@ -1150,7 +1151,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
 
     @Override
     public OptionalLong findFirst() {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(stream()::findFirst);
         return stream().findFirst();
     }
@@ -1178,7 +1179,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
 
     @Override
     public OptionalLong findAny() {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(stream()::findAny);
         return stream().findAny();
     }

@@ -57,7 +57,8 @@ import static one.util.streamex.StreamExInternals.*;
  * 
  * @author Tagir Valeev
  */
-public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterator.OfDouble> implements DoubleStream {
+public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterator.OfDouble, DoubleStreamEx> implements
+        DoubleStream {
     private static final class TDOfDouble extends AbstractDoubleSpliterator implements DoubleConsumer {
         private final DoublePredicate predicate;
         private final boolean drop;

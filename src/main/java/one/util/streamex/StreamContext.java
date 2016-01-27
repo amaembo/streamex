@@ -132,7 +132,7 @@ import static one.util.streamex.StreamExInternals.*;
 
     static StreamContext of(BaseStream<?, ?> stream) {
         if (stream instanceof BaseStreamEx)
-            return ((BaseStreamEx<?, ?, ?>) stream).context;
+            return ((BaseStreamEx<?, ?, ?, ?>) stream).context;
         if (mustCloseStream(stream))
             return new StreamContext(stream.isParallel()).onClose(stream::close);
         return stream.isParallel() ? PARALLEL : SEQUENTIAL;

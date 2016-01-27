@@ -17,19 +17,20 @@ package one.util.streamex;
 
 import java.util.Spliterator;
 import java.util.concurrent.ForkJoinPool;
+import java.util.function.Function;
 import java.util.stream.BaseStream;
 
 /**
  * @author Tagir Valeev
  */
-/* package */abstract class BaseStreamEx<T, S extends BaseStream<T, S>, SPLTR extends Spliterator<T>>
+/* package */abstract class BaseStreamEx<T, S extends BaseStream<T, S>, SPLTR extends Spliterator<T>, B extends BaseStreamEx<T, S, SPLTR, B>>
         implements BaseStream<T, S> {
     static final String CONSUMED_MESSAGE = "Stream is already consumed";
 
     private S stream;
     SPLTR spliterator;
     StreamContext context;
-    
+
     BaseStreamEx(S stream, StreamContext context) {
         this.stream = stream;
         this.context = context;
@@ -39,13 +40,13 @@ import java.util.stream.BaseStream;
         this.spliterator = spliterator;
         this.context = context;
     }
-    
+
     abstract S createStream();
 
     final S stream() {
-        if(stream != null)
+        if (stream != null)
             return stream;
-        if(spliterator == null)
+        if (spliterator == null)
             throw new IllegalStateException(CONSUMED_MESSAGE);
         stream = createStream();
         spliterator = null;
@@ -55,9 +56,9 @@ import java.util.stream.BaseStream;
     @SuppressWarnings("unchecked")
     @Override
     public SPLTR spliterator() {
-        if(stream != null)
+        if (stream != null)
             return (SPLTR) stream.spliterator();
-        if(spliterator != null) {
+        if (spliterator != null) {
             SPLTR s = spliterator;
             spliterator = null;
             return s;
@@ -74,7 +75,7 @@ import java.util.stream.BaseStream;
     @Override
     public S sequential() {
         context = context.sequential();
-        if(stream != null)
+        if (stream != null)
             stream = stream.sequential();
         return (S) this;
     }
@@ -91,9 +92,9 @@ import java.util.stream.BaseStream;
     @Override
     public S parallel() {
         context = context.parallel();
-        if(stream != null)
+        if (stream != null)
             stream = stream.parallel();
-        return (S)this;
+        return (S) this;
     }
 
     /**
@@ -138,5 +139,27 @@ import java.util.stream.BaseStream;
     @Override
     public void close() {
         context.close();
+    }
+
+    /**
+     * Applies the supplied function to this stream and returns the result of
+     * the function.
+     * 
+     * <p>
+     * This method can be used to add more functionality in the fluent style.
+     * For example, consider user-defined static method
+     * {@code batches(stream, n)} which breaks the stream into batches of given
+     * length. Normally you would write
+     * {@code batches(StreamEx.of(input).map(...), 10).filter(...)}. Using the
+     * {@code chain()} method you can write in more fluent manner:
+     * {@code StreamEx.of(input).map(...).chain(s -> batches(s, 10)).filter(...)}.
+     * 
+     * @param mapper function to invoke.
+     * @return the result of the function invocation.
+     * @since 0.5.4
+     */
+    @SuppressWarnings("unchecked")
+    public <U> U chain(Function<? super B, U> mapper) {
+        return mapper.apply((B) this);
     }
 }

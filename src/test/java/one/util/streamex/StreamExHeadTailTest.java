@@ -203,6 +203,10 @@ public class StreamExHeadTailTest {
         return input.headTail((head, tail) -> scanLeft(tail.mapFirst(cur -> operator.apply(head, cur)), operator)
                 .prepend(head));
     }
+    
+    static <T> UnaryOperator<StreamEx<T>> scanLeft(BinaryOperator<T> operator) {
+        return stream -> scanLeft(stream, operator);
+    }
 
     // takeWhileClosed: takeWhile+first element violating the predicate (TSO)
     static <T> StreamEx<T> takeWhileClosed(StreamEx<T> input, Predicate<T> predicate) {
@@ -323,8 +327,8 @@ public class StreamExHeadTailTest {
     @Test
     public void testHeadTailRecursive() {
         streamEx(() -> StreamEx.iterate(2, x -> x + 1), s -> assertEquals(asList(2, 3, 5, 7, 11, 13, 17, 19, 23, 29,
-            31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97), sieve(s.get()).takeWhile(x -> x < 100)
-                .toList()));
+            31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97), s.get().chain(str -> sieve(str)).takeWhile(
+            x -> x < 100).toList()));
 
         emptyStreamEx(Integer.class, s -> {
             assertEquals(0L, s.get().headTail((first, head) -> {
@@ -343,13 +347,13 @@ public class StreamExHeadTailTest {
         streamEx(() -> StreamEx.of(1, 2), s -> assertEquals(0, s.get().headTail((head, stream) -> null).count()));
 
         streamEx(() -> StreamEx.iterate(1, x -> x + 1), s -> assertEquals(asList(1, 3, 6, 10, 15, 21, 28, 36, 45, 55,
-            66, 78, 91), scanLeft(s.get(), Integer::sum).takeWhile(x -> x < 100).toList()));
+            66, 78, 91), s.get().chain(scanLeft(Integer::sum)).takeWhile(x -> x < 100).toList()));
 
         streamEx(() -> StreamEx.iterate(1, x -> x + 1), s -> assertEquals(IntStreamEx.range(1, 100).boxed().toList(),
             takeWhile(s.get(), x -> x < 100).toList()));
 
         streamEx(() -> StreamEx.iterate(1, x -> x + 1), s -> assertEquals(IntStreamEx.rangeClosed(1, 100).boxed()
-                .toList(), takeWhileClosed(s.get(), x -> x < 100).toList()));
+                .toList(), s.get().chain(str -> takeWhileClosed(str, x -> x < 100)).toList()));
 
         streamEx(() -> IntStreamEx.range(1000).boxed(), s -> assertEquals(IntStreamEx.range(0, 1000, 20).boxed()
                 .toList(), every(s.get(), 20).toList()));
@@ -357,8 +361,8 @@ public class StreamExHeadTailTest {
         // http://stackoverflow.com/q/34395943/4856258
         int[] input = { 1, 2, 3, -1, 3, -10, 9, 100, 1, 100, 0 };
         AtomicInteger counter = new AtomicInteger();
-        assertEquals(5, scanLeft(IntStreamEx.of(input).peek(x -> counter.incrementAndGet()).boxed(), Integer::sum)
-                .indexOf(x -> x < 0).getAsLong());
+        assertEquals(5, IntStreamEx.of(input).peek(x -> counter.incrementAndGet()).boxed()
+                .chain(scanLeft(Integer::sum)).indexOf(x -> x < 0).getAsLong());
         assertEquals(6, counter.get());
 
         assertEquals(4, (int) firstMatchingOrFirst(StreamEx.of(1, 2, 3, 4, 5), x -> x > 3));

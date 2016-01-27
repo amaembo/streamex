@@ -63,7 +63,7 @@ import static one.util.streamex.StreamExInternals.*;
  * 
  * @author Tagir Valeev
  */
-public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.OfInt> implements IntStream {
+public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.OfInt, IntStreamEx> implements IntStream {
     private static final class TDOfInt extends AbstractIntSpliterator implements IntConsumer {
         private final IntPredicate predicate;
         private final boolean drop;

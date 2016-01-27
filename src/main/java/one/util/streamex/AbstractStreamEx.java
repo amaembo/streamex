@@ -52,7 +52,7 @@ import java.util.stream.Collector.Characteristics;
 import static one.util.streamex.StreamExInternals.*;
 
 /* package */abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> extends
-        BaseStreamEx<T, Stream<T>, Spliterator<T>> implements Stream<T>, Iterable<T> {
+        BaseStreamEx<T, Stream<T>, Spliterator<T>, S> implements Stream<T>, Iterable<T> {
     private static final class TDOfRef<T> extends AbstractSpliterator<T> implements Consumer<T> {
         private final Predicate<? super T> predicate;
         private final boolean drop;
