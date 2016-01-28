@@ -23,6 +23,7 @@ import java.io.StringReader;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
@@ -34,6 +35,7 @@ import java.util.Set;
 import java.util.Spliterator;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.BinaryOperator;
@@ -41,7 +43,12 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collector;
 import java.util.stream.Stream;
+
+
+
+
 
 import org.junit.Test;
 
@@ -309,6 +316,20 @@ public class StreamExHeadTailTest {
         });
     }
     
+    static <T> UnaryOperator<StreamEx<T>> limitSorted(Comparator<T> comparator, int n) {
+        @SuppressWarnings("unchecked")
+        Collector<T, Object, List<T>> collector = (Collector<T, Object, List<T>>) MoreCollectors.least(comparator, n);
+        return stream -> collectAndStream(stream, collector.supplier().get(), collector.accumulator(), collector
+                .finisher().andThen(StreamEx::of));
+    }
+    
+    private static <T, A, R> StreamEx<R> collectAndStream(StreamEx<T> input, A buf, BiConsumer<A, T> accumulator, Function<A, StreamEx<R>> finisher) {
+        return input.headTail((head, tail) -> {
+            accumulator.accept(buf, head);
+            return collectAndStream(tail, buf, accumulator, finisher);
+        }, () -> finisher.apply(buf));
+    }
+    
     // ///////////////////////
     // Terminal ops
 
@@ -409,6 +430,9 @@ public class StreamExHeadTailTest {
         
         assertEquals(asList(5, 10, 1, 6, 7), skipLast(Stream.of(5, 10, 1, 6, 7, 15, -1, 10), 3).toList());
         assertEquals(asList(0, 3, 6, 9, 12, 15, 18), every3(IntStreamEx.range(20).boxed()).toList());
+        
+        assertEquals(asList(0, 1, 2, 3, 3), StreamEx.of(0, 1, 4, 2, 10, 3, 5, 10, 3, 15).chain(
+            limitSorted(Comparator.<Integer> naturalOrder(), 5)).toList());
     }
 
     @Test
