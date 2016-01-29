@@ -6,6 +6,7 @@
 * [#56] Fixed: `StreamEx.append/prepend(Collection)` and `EntryStream.append/prepend(Map)` now properly append/prepend if supplied collection is concurrent (so it may be legally modified during the subsequent operations).
 * [#57] JDK Stream creation is deferred until necessary. Now quasi-intermediate operations and especially `headTail()` may work faster.
 * [#59] Added: `StreamEx.prepend(value)`, `StreamEx.append(value)` which might work faster than existing var-args methods.
+* Updated documentation.
 
 ### 0.5.3
 * [#50] Added: `StreamEx.withFirst()`: extract first stream element 

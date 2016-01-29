@@ -1002,6 +1002,23 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return collect(Collectors.toMap(Entry::getKey, Entry::getValue, mergeFunction, TreeMap::new));
     }
 
+    /**
+     * Returns a {@link Map} where elements of this stream with the same key are grouped together.
+     * The resulting {@code Map} keys are keys of this stream entries and the values
+     * are lists of the corresponding values.      
+     * 
+     * <p>There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code Map} or {@code List} objects returned.
+     * If more control over the returned {@code Map} is required, use {@link #grouping(Supplier)}.
+     * If more control over the lists required, use {@link #groupingTo(Supplier)}.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
+     *
+     * @return a {@code Map} containing the elements of this stream
+     * @see Collectors#groupingBy(Function)
+     */
     public Map<K, List<V>> grouping() {
         return grouping(Collectors.toList());
     }
