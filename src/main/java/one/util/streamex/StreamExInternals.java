@@ -672,6 +672,10 @@ import java.util.stream.Stream;
         Box(A obj) {
             this.a = obj;
         }
+        
+        public void setA(A a) {
+            this.a = a;
+        }
 
         static <A, R> PartialCollector<Box<A>, R> partialCollector(Collector<?, A, R> c) {
             Supplier<A> supplier = c.supplier();
@@ -696,6 +700,10 @@ import java.util.stream.Stream;
 
         static <T> PairBox<T, T> single(T a) {
             return new PairBox<>(a, a);
+        }
+
+        public void setB(B b) {
+            this.b = b;
         }
 
         @Override

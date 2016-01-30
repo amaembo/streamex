@@ -1402,7 +1402,16 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
                 AbstractMap.SimpleImmutableEntry<T, T>::new);
         return new EntryStream<>(spliterator, context);
     }
+    
+    public <V, R> StreamEx<R> zipWith(Stream<V> other, BiFunction<? super T, ? super V, ? extends R> mapper) {
+        return new StreamEx<>(new ZipSpliterator<>(spliterator(), other.spliterator(), mapper), context.combine(other));
+    }
 
+    public <V> EntryStream<T, V> zipWith(Stream<V> other) {
+        return new EntryStream<>(new ZipSpliterator<>(spliterator(), other.spliterator(),
+                AbstractMap.SimpleImmutableEntry<T, V>::new), context.combine(other));
+    }
+    
     /**
      * Creates a new Stream which is the result of applying of the mapper
      * {@code BiFunction} to the first element of the current stream (head) and
