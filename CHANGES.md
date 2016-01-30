@@ -1,5 +1,8 @@
 # StreamEx changes
 
+### 0.5.5
+* [#63] Optimized IntStreamEx/LongStreamEx.reverseSorted(): much faster now and take less memory.
+
 ### 0.5.4
 * [#10] Added: `chain()` method to all stream types allowing fluently chaining custom operations.
 * [#55] TailConcatSpliterator implemented; now all `StreamEx/EntryStream.append/prepend` methods are TSO-compatible. 

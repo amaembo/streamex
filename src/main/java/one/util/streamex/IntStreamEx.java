@@ -429,7 +429,8 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.0.8
      */
     public IntStreamEx reverseSorted() {
-        return sorted(Comparator.reverseOrder());
+        IntUnaryOperator inv = x -> -1-x;
+        return new IntStreamEx(stream().map(inv).sorted().map(inv), context);
     }
 
     /**
