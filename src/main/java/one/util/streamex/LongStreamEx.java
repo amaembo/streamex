@@ -446,7 +446,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @since 0.0.8
      */
     public LongStreamEx reverseSorted() {
-        LongUnaryOperator inv = x -> -1L-x;
+        LongUnaryOperator inv = x -> ~x;
         return new LongStreamEx(stream().map(inv).sorted().map(inv), context);
     }
 

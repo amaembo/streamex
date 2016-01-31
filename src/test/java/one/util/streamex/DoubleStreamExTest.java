@@ -201,10 +201,11 @@ public class DoubleStreamExTest {
     @Test
     public void testSort() {
         assertArrayEquals(new double[] { 3, 2, 1 }, DoubleStreamEx.of(1, 2, 3).sortedByDouble(x -> -x).toArray(), 0.0);
-        assertArrayEquals(new double[] { Double.POSITIVE_INFINITY, Double.MAX_VALUE, 1000, 1, Double.MIN_VALUE, 0,
-                -0.0, -10, -Double.MAX_VALUE, Double.NEGATIVE_INFINITY }, DoubleStreamEx.of(0, 1, 1000, -10,
-            -Double.MAX_VALUE, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.MAX_VALUE, -0.0,
-            Double.MIN_VALUE).reverseSorted().toArray(), 0.0);
+        assertArrayEquals(new double[] { Double.NaN, Double.NaN, Double.POSITIVE_INFINITY, Double.MAX_VALUE, 1000, 1,
+                Double.MIN_VALUE, 0, -0.0, -Double.MIN_VALUE * 3, -10, -Double.MAX_VALUE / 1.1, -Double.MAX_VALUE,
+                Double.NEGATIVE_INFINITY }, DoubleStreamEx.of(0, 1, -Double.MIN_VALUE * 3, 1000, -10,
+            -Double.MAX_VALUE, Double.POSITIVE_INFINITY, Double.NaN, Double.NEGATIVE_INFINITY, Double.NaN,
+            Double.MAX_VALUE, -0.0, Double.MIN_VALUE, -Double.MAX_VALUE / 1.1).reverseSorted().toArray(), 0.0);
         assertArrayEquals(new double[] { 1, 10, 2, 21, 9 }, DoubleStreamEx.of(1, 10, 2, 9, 21)
                 .sortedBy(String::valueOf).toArray(), 0.0);
 
