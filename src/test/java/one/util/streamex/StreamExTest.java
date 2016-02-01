@@ -537,9 +537,10 @@ public class StreamExTest {
     @Test
     public void testWithout() {
         assertEquals(asList("a", "bb", null), StreamEx.of("a", "bb", null, "c").without("c").toList());
-        assertEquals(asList("a", "bb", "c"), StreamEx.of("a", "bb", null, "c", null).without(null).toList());
+        String s = null;
+        assertEquals(asList("a", "bb", "c"), StreamEx.of("a", "bb", null, "c", null).without(s).toList());
         assertTrue(StreamEx.of("bb", "bb", "bb").without("bb").toList().isEmpty());
-        assertEquals(asList("bb", "bb", "bb"), StreamEx.of("bb", "bb", "bb").without(null).toList());
+        assertEquals(asList("bb", "bb", "bb"), StreamEx.of("bb", "bb", "bb").without(s).toList());
     }
 
     @Test
