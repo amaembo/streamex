@@ -215,9 +215,47 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @param value the value to remove from the stream.
      * @return the new stream
      * @since 0.2.2
+     * @see #without(int...)
+     * @see #remove(IntPredicate)
      */
     public IntStreamEx without(int value) {
         return filter(val -> val != value);
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream that don't
+     * equal to any of the supplied values.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
+     * operation. May return itself if no values were supplied.
+     * 
+     * <p>
+     * Current implementation scans the supplied values linearly for every
+     * stream element.
+     * 
+     * <p>
+     * If the {@code values} array is changed between calling this method and
+     * finishing the stream traversal, then the result of the stream traversal
+     * is undefined: changes may or may not be taken into account.
+     *
+     * @param values the values to remove from the stream.
+     * @return the new stream
+     * @since 0.5.5
+     * @see #without(int)
+     * @see #remove(IntPredicate)
+     */
+    public IntStreamEx without(int... values) {
+        if (values.length == 0)
+            return this;
+        if (values.length == 1)
+            return without(values[0]);
+        return filter(x -> {
+            for(int val : values) {
+                if(x == val) return false;
+            }
+            return true;
+        });
     }
 
     /**

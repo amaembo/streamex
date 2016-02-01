@@ -1031,11 +1031,52 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *        values and matching elements will be removed.
      * @return the new stream
      * @since 0.2.2
+     * @see #without(Object...)
+     * @see #remove(Predicate)
      */
     public StreamEx<T> without(T value) {
         if (value == null)
             return filter(Objects::nonNull);
         return remove(value::equals);
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream that don't
+     * equal to any of the supplied values.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
+     * operation. May return itself if no values were supplied.
+     * 
+     * <p>
+     * Current implementation scans the supplied values linearly for every
+     * stream element. If you have many values, consider using more efficient
+     * alternative instead. For example,
+     * {@code remove(StreamEx.of(values).toSet()::contains)}.
+     * 
+     * <p>
+     * Future implementations may take advantage on using {@code hashCode()} or
+     * {@code compareTo} for {@code Comparable} objects to improve the
+     * performance.
+     * 
+     * <p>
+     * If the {@code values} array is changed between calling this method and
+     * finishing the stream traversal, then the result of the stream traversal
+     * is undefined: changes may or may not be taken into account.
+     *
+     * @param values the values to remove from the stream.
+     * @return the new stream
+     * @since 0.5.5
+     * @see #without(Object)
+     * @see #remove(Predicate)
+     */
+    @SafeVarargs
+    public final StreamEx<T> without(T... values) {
+        if (values.length == 0)
+            return this;
+        if (values.length == 1)
+            return without(values[0]);
+        return remove(Arrays.asList(values)::contains);
     }
 
     /**
