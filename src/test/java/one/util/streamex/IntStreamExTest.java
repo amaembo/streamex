@@ -345,6 +345,10 @@ public class IntStreamExTest {
     public void testWithout() {
         assertArrayEquals(new int[] { 1, 2 }, IntStreamEx.range(1, 4).without(3).toArray());
         assertArrayEquals(new int[] { 1, 2, 3 }, IntStreamEx.range(1, 4).without(5).toArray());
+        IntStreamEx ise = IntStreamEx.range(5);
+        assertSame(ise, ise.without());
+        assertArrayEquals(new int[] { 0, 1, 3, 4 }, IntStreamEx.range(5).without(new int[] { 2 }).toArray());
+        assertArrayEquals(new int[] { 0 }, IntStreamEx.range(5).without(1, 2, 3, 4, 5, 6).toArray());
     }
 
     @Test

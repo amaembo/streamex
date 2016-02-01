@@ -290,6 +290,10 @@ public class LongStreamExTest {
     public void testWithout() {
         assertArrayEquals(new long[] { 1, 2 }, LongStreamEx.range(1, 4).without(3).toArray());
         assertArrayEquals(new long[] { 1, 2, 3 }, LongStreamEx.range(1, 4).without(5).toArray());
+        LongStreamEx lse = LongStreamEx.range(5);
+        assertSame(lse, lse.without());
+        assertArrayEquals(new long[] { 0, 1, 3, 4 }, LongStreamEx.range(5).without(new long[] { 2 }).toArray());
+        assertArrayEquals(new long[] { 0 }, LongStreamEx.range(5).without(1, 2, 3, 4, 5, 6).toArray());
     }
 
     @Test

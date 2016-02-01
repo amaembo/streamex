@@ -74,7 +74,7 @@ What I want | How to get it
 Remove nulls | `StreamEx/EntryStream.nonNull()`
 Remove entries which keys or values are null | `EntryStream.nonNullKeys()/nonNullValues()`
 Remove elements by predicate | `any.remove()`
-Remove given element | `StreamEx/IntStreamEx/LongStreamEx.without()`
+Remove given elements | `StreamEx/IntStreamEx/LongStreamEx.without()`
 Leave only elements greater/less/at least/at most given value | `IntStreamEx/LongStreamEx/DoubleStreamEx.greater()/atLeast()/less()/atMost()`
 Filter entries which keys or values satisfy the predicate | `EntryStream.filterKeys()/filterValues()`
 Filter entries applying the `BiPredicate` to key and value | `EntryStream.filterKeyValue()`

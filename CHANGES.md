@@ -1,6 +1,7 @@
 # StreamEx changes
 
 ### 0.5.5
+* [#41] Added: `IntStreamEx/LongStreamEx/StreamEx.without()` accepting several elements.
 * [#63] Optimized `IntStreamEx/LongStreamEx/DoubleStreamEx.reverseSorted()`: much faster now and take less memory.
 
 ### 0.5.4
