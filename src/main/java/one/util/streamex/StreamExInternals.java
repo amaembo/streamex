@@ -1047,11 +1047,6 @@ import java.util.stream.Stream;
         });
     }
 
-    @SuppressWarnings("unchecked")
-    static <T> Stream<T> unwrap(Stream<T> stream) {
-        return stream instanceof AbstractStreamEx ? ((AbstractStreamEx<T, ?>) stream).stream() : stream;
-    }
-
     static <A> Predicate<A> finished(Collector<?, A, ?> collector) {
         if (collector instanceof CancellableCollector)
             return ((CancellableCollector<?, A, ?>) collector).finished();

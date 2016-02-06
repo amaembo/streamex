@@ -1109,7 +1109,14 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the wrapped stream
      */
     public static <K, V> EntryStream<K, V> of(Stream<? extends Entry<K, V>> stream) {
-        return new EntryStream<>(unwrap(stream), StreamContext.of(stream));
+        if(stream instanceof AbstractStreamEx) {
+            @SuppressWarnings("unchecked")
+            AbstractStreamEx<Entry<K, V>, ?> ase = (AbstractStreamEx<Entry<K, V>, ?>)stream;
+            if(ase.spliterator != null)
+                return new EntryStream<>(ase.spliterator(), ase.context);
+            return new EntryStream<>(ase.stream(), ase.context);
+        }
+        return new EntryStream<>(stream, StreamContext.of(stream));
     }
 
     /**
