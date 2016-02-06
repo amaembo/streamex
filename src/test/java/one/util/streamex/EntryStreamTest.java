@@ -325,6 +325,14 @@ public class EntryStreamTest {
         assertEquals(createMap(), sortedMap2);
         assertTrue(sortedMap2 instanceof ConcurrentMap);
     }
+    
+    @Test
+    public void testToMapAndThen() {
+        Map<String, Integer> map = EntryStream.of(createMap()).append("d", 4).toMapAndThen(EntryStream::of).append("e",
+            5).toMap();
+        Map<String, Integer> expected = EntryStream.of("a", 1, "bb", 22, "ccc", 33, "d", 4, "e", 5).toMap();
+        assertEquals(expected, map);
+    }
 
     @Test
     public void testFlatMap() {

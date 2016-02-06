@@ -108,7 +108,7 @@ import static one.util.streamex.StreamExInternals.*;
     AbstractStreamEx(Spliterator<T> spliterator, StreamContext context) {
         super(spliterator, context);
     }
-    
+
     @Override
     final Stream<T> createStream() {
         return StreamSupport.stream(spliterator, context.parallel);
@@ -139,18 +139,18 @@ import static one.util.streamex.StreamExInternals.*;
     }
 
     <R, A> R rawCollect(Collector<? super T, A, R> collector) {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(collector, stream()::collect);
         return stream().collect(collector);
     }
 
     @SuppressWarnings("unchecked")
     S appendSpliterator(Stream<? extends T> other, Spliterator<? extends T> right) {
-        if(right.getExactSizeIfKnown() == 0)
+        if (right.getExactSizeIfKnown() == 0)
             return (S) this;
         Spliterator<T> left = spliterator();
         Spliterator<T> result;
-        if(left.getExactSizeIfKnown() == 0)
+        if (left.getExactSizeIfKnown() == 0)
             result = (Spliterator<T>) right;
         else
             result = new TailConcatSpliterator<>(left, right);
@@ -160,11 +160,11 @@ import static one.util.streamex.StreamExInternals.*;
 
     @SuppressWarnings("unchecked")
     S prependSpliterator(Stream<? extends T> other, Spliterator<? extends T> left) {
-        if(left.getExactSizeIfKnown() == 0)
+        if (left.getExactSizeIfKnown() == 0)
             return (S) this;
         Spliterator<T> right = spliterator();
         Spliterator<T> result;
-        if(right.getExactSizeIfKnown() == 0)
+        if (right.getExactSizeIfKnown() == 0)
             result = (Spliterator<T>) left;
         else
             result = new TailConcatSpliterator<>(left, right);
@@ -314,7 +314,7 @@ import static one.util.streamex.StreamExInternals.*;
         if (spliterator != null && !isParallel()) {
             spliterator().forEachRemaining(action);
         } else {
-            if(context.fjp != null)
+            if (context.fjp != null)
                 context.terminate(() -> {
                     stream().forEach(action);
                     return null;
@@ -330,7 +330,7 @@ import static one.util.streamex.StreamExInternals.*;
         if (spliterator != null && !isParallel()) {
             spliterator().forEachRemaining(action);
         } else {
-            if(context.fjp != null)
+            if (context.fjp != null)
                 context.terminate(() -> {
                     stream().forEachOrdered(action);
                     return null;
@@ -348,35 +348,35 @@ import static one.util.streamex.StreamExInternals.*;
 
     @Override
     public <A> A[] toArray(IntFunction<A[]> generator) {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(generator, stream()::toArray);
         return stream().toArray(generator);
     }
 
     @Override
     public T reduce(T identity, BinaryOperator<T> accumulator) {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(() -> stream().reduce(identity, accumulator));
         return stream().reduce(identity, accumulator);
     }
 
     @Override
     public Optional<T> reduce(BinaryOperator<T> accumulator) {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(accumulator, stream()::reduce);
         return stream().reduce(accumulator);
     }
 
     @Override
     public <U> U reduce(U identity, BiFunction<U, ? super T, U> accumulator, BinaryOperator<U> combiner) {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(() -> stream().reduce(identity, accumulator, combiner));
         return stream().reduce(identity, accumulator, combiner);
     }
 
     @Override
     public <R> R collect(Supplier<R> supplier, BiConsumer<R, ? super T> accumulator, BiConsumer<R, R> combiner) {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(() -> stream().collect(supplier, accumulator, combiner));
         return stream().collect(supplier, accumulator, combiner);
     }
@@ -440,21 +440,21 @@ import static one.util.streamex.StreamExInternals.*;
 
     @Override
     public long count() {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(stream()::count);
         return stream().count();
     }
 
     @Override
     public boolean anyMatch(Predicate<? super T> predicate) {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(predicate, stream()::anyMatch);
         return stream().anyMatch(predicate);
     }
 
     @Override
     public boolean allMatch(Predicate<? super T> predicate) {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(predicate, stream()::allMatch);
         return stream().allMatch(predicate);
     }
@@ -466,14 +466,14 @@ import static one.util.streamex.StreamExInternals.*;
 
     @Override
     public Optional<T> findFirst() {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(stream()::findFirst);
         return stream().findFirst();
     }
 
     @Override
     public Optional<T> findAny() {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(stream()::findAny);
         return stream().findAny();
     }
@@ -1109,21 +1109,23 @@ import static one.util.streamex.StreamExInternals.*;
     }
 
     /**
-     * Collecting the stream producing a {@link List} containing all the stream
-     * elements and performing an additional finishing transformation.
+     * Creates a {@link List} containing the elements of this stream, then
+     * performs finishing transformation and returns its result. There are no
+     * guarantees on the type, serializability or thread-safety of the
+     * {@code List} created.
      * 
      * <p>
      * This is a terminal operation.
      *
-     * @param <R> the result type
+     * @param <R> the type of the result
      * @param finisher a function to be applied to the intermediate list
      * @return result of applying the finisher transformation to the list of the
      *         stream elements.
      * @since 0.2.3
      * @see #toList()
      */
-    public <R> R toListAndThen(Function<List<T>, R> finisher) {
-        if(context.fjp != null)
+    public <R> R toListAndThen(Function<? super List<T>, R> finisher) {
+        if (context.fjp != null)
             return context.terminate(() -> finisher.apply(toList()));
         return finisher.apply(toList());
     }
@@ -1146,21 +1148,25 @@ import static one.util.streamex.StreamExInternals.*;
     }
 
     /**
-     * Collecting the stream producing a {@link Set} containing all the stream
-     * elements and performing an additional finishing transformation.
+     * Creates a {@link Set} containing the elements of this stream, then
+     * performs finishing transformation and returns its result. There are no
+     * guarantees on the type, serializability or thread-safety of the
+     * {@code Set} created.
      * 
      * <p>
      * This is a terminal operation.
      *
      * @param <R> the result type
-     * @param finisher a function to be applied to the intermediate set
-     * @return result of applying the finisher transformation to the set of the
-     *         stream elements.
+     * @param finisher a function to be applied to the intermediate {@code Set}
+     * @return result of applying the finisher transformation to the {@code Set}
+     *         of the stream elements.
      * @since 0.2.3
      * @see #toSet()
      */
-    public <R> R toSetAndThen(Function<Set<T>, R> finisher) {
-        return rawCollect(Collectors.collectingAndThen(Collectors.toSet(), finisher));
+    public <R> R toSetAndThen(Function<? super Set<T>, R> finisher) {
+        if (context.fjp != null)
+            return context.terminate(() -> finisher.apply(toSet()));
+        return finisher.apply(toSet());
     }
 
     /**

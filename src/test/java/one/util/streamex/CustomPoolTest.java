@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -100,7 +101,12 @@ public class CustomPoolTest {
                 this.checkThread(list);
                 return list;
             }));
-        
+        assertEquals(new HashSet<>(Arrays.asList(1, 2, 3)), StreamEx.of(1, 2, 3).parallel(pool).peek(this::checkThread)
+                .toSetAndThen(list -> {
+                    this.checkThread(list);
+                    return list;
+                }));
+
         assertEquals(Collections.singletonMap(1, 3L), StreamEx.of(1, 1, 1).parallel(pool).peek(this::checkThread)
                 .runLengths().toMap());
     }
@@ -143,6 +149,12 @@ public class CustomPoolTest {
             return l;
         });
         assertEquals(Arrays.asList(array), list);
+        Map<String, Integer> map = EntryStream.of("a", 1, "b", 2, "c", 3).parallel(pool).peek(
+            this::checkThread).filterValues(v -> v > 1).toMapAndThen(m -> {
+            this.checkThread(m);
+            return m;
+        });
+        assertEquals(EntryStream.of("b", 2, "c", 3).toMap(), map);
 
         assertEquals(new SimpleEntry<>("abc", 6), EntryStream.of("a", 1, "b", 2, "c", 3).parallel(pool).peek(
             this::checkThread).reduce(

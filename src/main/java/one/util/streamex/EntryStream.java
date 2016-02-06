@@ -240,8 +240,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     public <VV> EntryStream<K, VV> flatMapToValue(
             BiFunction<? super K, ? super V, ? extends Stream<? extends VV>> mapper) {
-        return new EntryStream<>(
-            stream().flatMap(e -> withKey(e.getKey(), mapper.apply(e.getKey(), e.getValue()))), context);
+        return new EntryStream<>(stream().flatMap(e -> withKey(e.getKey(), mapper.apply(e.getKey(), e.getValue()))),
+                context);
     }
 
     /**
@@ -297,7 +297,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public EntryStream<K, V> append(K key, V value) {
-        return appendSpliterator(null, Arrays.<Entry<K, V>> asList(new SimpleImmutableEntry<>(key, value)).spliterator());
+        return appendSpliterator(null, Arrays.<Entry<K, V>> asList(new SimpleImmutableEntry<>(key, value))
+                .spliterator());
     }
 
     /**
@@ -497,8 +498,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public <VV> EntryStream<K, VV> mapValues(Function<? super V, ? extends VV> valueMapper) {
-        return new EntryStream<>(
-            stream().map(e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e.getValue()))), context);
+        return new EntryStream<>(stream().map(
+            e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e.getValue()))), context);
     }
 
     /**
@@ -819,11 +820,6 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * {@link #toCustomMap(Supplier)}.
      *
      * <p>
-     * If the mapped keys contains duplicates (according to
-     * {@link Object#equals(Object)}), an {@code IllegalStateException} is
-     * thrown when the collection operation is performed.
-     * 
-     * <p>
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
      * operation.
      *
@@ -834,6 +830,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * For parallel stream the concurrent {@code Map} is created.
      *
      * @return a {@code Map} containing the elements of this stream
+     * @throws IllegalStateException if this stream contains duplicate keys
+     *         (according to {@link Object#equals(Object)})
      * @see Collectors#toMap(Function, Function)
      * @see Collectors#toConcurrentMap(Function, Function)
      */
@@ -841,6 +839,36 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         Map<K, V> map = isParallel() ? new ConcurrentHashMap<>() : new HashMap<>();
         forEach(toMapConsumer(map));
         return map;
+    }
+
+    /**
+     * Creates a {@link Map} containing the elements of this stream, then
+     * performs finishing transformation and returns its result. There are no
+     * guarantees on the type or serializability of the {@code Map} created.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
+     *
+     * <p>
+     * Created {@code Map} is guaranteed to be modifiable.
+     *
+     * <p>
+     * For parallel stream the concurrent {@code Map} is created.
+     *
+     * @param <R> the type of the result
+     * @param finisher a function to be applied to the intermediate map
+     * @return result of applying the finisher transformation to the {@code Map}
+     *         of the stream elements.
+     * @throws IllegalStateException if this stream contains duplicate keys
+     *         (according to {@link Object#equals(Object)})
+     * @see #toMap()
+     * @since 0.5.5
+     */
+    public <R> R toMapAndThen(Function<? super Map<K, V>, R> finisher) {
+        if (context.fjp != null)
+            return context.terminate(() -> finisher.apply(toMap()));
+        return finisher.apply(toMap());
     }
 
     /**
@@ -883,11 +911,6 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * {@code Map} is created by a provided supplier function.
      *
      * <p>
-     * If the mapped keys contains duplicates (according to
-     * {@link Object#equals(Object)}), an {@code IllegalStateException} is
-     * thrown when the collection operation is performed.
-     * 
-     * <p>
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
      * operation.
      * 
@@ -895,6 +918,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @param mapSupplier a function which returns a new, empty {@code Map} into
      *        which the results will be inserted
      * @return a {@code Map} containing the elements of this stream
+     * @throws IllegalStateException if this stream contains duplicate keys
+     *         (according to {@link Object#equals(Object)})
      * @see Collectors#toMap(Function, Function)
      * @see Collectors#toConcurrentMap(Function, Function)
      */
@@ -944,11 +969,6 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * {@link #toCustomMap(Supplier)}.
      *
      * <p>
-     * If the mapped keys contains duplicates (according to
-     * {@link Object#equals(Object)}), an {@code IllegalStateException} is
-     * thrown when the collection operation is performed.
-     * 
-     * <p>
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
      * operation.
      *
@@ -961,6 +981,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return a {@code SortedMap} containing the elements of this stream
      * @see Collectors#toMap(Function, Function)
      * @see Collectors#toConcurrentMap(Function, Function)
+     * @throws IllegalStateException if this stream contains duplicate keys
+     *         (according to {@link Object#equals(Object)})
      * @since 0.1.0
      */
     public SortedMap<K, V> toSortedMap() {
@@ -1003,14 +1025,16 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     }
 
     /**
-     * Returns a {@link Map} where elements of this stream with the same key are grouped together.
-     * The resulting {@code Map} keys are keys of this stream entries and the values
-     * are lists of the corresponding values.      
+     * Returns a {@link Map} where elements of this stream with the same key are
+     * grouped together. The resulting {@code Map} keys are keys of this stream
+     * entries and the values are lists of the corresponding values.
      * 
-     * <p>There are no guarantees on the type, mutability, serializability, or
-     * thread-safety of the {@code Map} or {@code List} objects returned.
-     * If more control over the returned {@code Map} is required, use {@link #grouping(Supplier)}.
-     * If more control over the lists required, use {@link #groupingTo(Supplier)}.
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code Map} or {@code List} objects returned. If
+     * more control over the returned {@code Map} is required, use
+     * {@link #grouping(Supplier)}. If more control over the lists required, use
+     * {@link #groupingTo(Supplier)}.
      *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
@@ -1109,10 +1133,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the wrapped stream
      */
     public static <K, V> EntryStream<K, V> of(Stream<? extends Entry<K, V>> stream) {
-        if(stream instanceof AbstractStreamEx) {
+        if (stream instanceof AbstractStreamEx) {
             @SuppressWarnings("unchecked")
-            AbstractStreamEx<Entry<K, V>, ?> ase = (AbstractStreamEx<Entry<K, V>, ?>)stream;
-            if(ase.spliterator != null)
+            AbstractStreamEx<Entry<K, V>, ?> ase = (AbstractStreamEx<Entry<K, V>, ?>) stream;
+            if (ase.spliterator != null)
                 return new EntryStream<>(ase.spliterator(), ase.context);
             return new EntryStream<>(ase.stream(), ase.context);
         }

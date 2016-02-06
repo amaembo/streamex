@@ -3,6 +3,7 @@
 ### 0.5.5
 * [#41] Added: `IntStreamEx/LongStreamEx/StreamEx.without()` accepting several elements.
 * [#63] Optimized `IntStreamEx/LongStreamEx/DoubleStreamEx.reverseSorted()`: much faster now and take less memory.
+* [#64] Added: `EntryStream.toMapAndThen()`.
 
 ### 0.5.4
 * [#10] Added: `chain()` method to all stream types allowing fluently chaining custom operations.

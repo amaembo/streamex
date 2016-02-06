@@ -176,6 +176,7 @@ What I want | How to get it
 Collect elements to `List`, `Set` or custom `Collection` | `StreamEx/EntryStream.toList()/toSet()/toCollection()`
 Collect elements to `List` or `Set` adding custom final step | `StreamEx/EntryStream.toListAndThen()/toSetAndThen()`
 Collect elements or entries to `Map` | `StreamEx/EntryStream.toMap()/toSortedMap()`
+Collect entries to `Map` adding custom final step | `EntryStream.toMapAndThen()`
 Collect entries to custom `Map` | `EntryStream.toCustomMap()`
 Partition elements using the `Predicate` | `StreamEx.partitioningBy()/partitioningTo()`
 Grouping elements | `StreamEx.groupingBy()/groupingTo()`

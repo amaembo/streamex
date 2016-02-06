@@ -679,11 +679,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * operation.
      * 
      * <p>
-     * If this stream contains duplicates (according to
-     * {@link Object#equals(Object)}), an {@code IllegalStateException} is
-     * thrown when the collection operation is performed.
-     *
-     * <p>
      * Returned {@code Map} is guaranteed to be modifiable.
      *
      * <p>
@@ -693,7 +688,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @param valMapper a mapping function to produce values
      * @return a {@code Map} whose keys are elements from this stream and values
      *         are the result of applying mapping function to the input elements
-     *
+     * @throws IllegalStateException if this stream contains duplicate objects
+     *         (according to {@link Object#equals(Object)})
      * @see Collectors#toMap(Function, Function)
      * @see Collectors#toConcurrentMap(Function, Function)
      * @see #toMap(Function, Function)
@@ -711,11 +707,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * operation.
      * 
      * <p>
-     * If the mapped keys contains duplicates (according to
-     * {@link Object#equals(Object)}), an {@code IllegalStateException} is
-     * thrown when the collection operation is performed.
-     * 
-     * <p>
      * Returned {@code Map} is guaranteed to be modifiable.
      *
      * <p>
@@ -727,6 +718,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @param valMapper a mapping function to produce values
      * @return a {@code Map} whose keys and values are the result of applying
      *         mapping functions to the input elements
+     * @throws IllegalStateException if duplicate mapped key is found (according
+     *         to {@link Object#equals(Object)})
      *
      * @see Collectors#toMap(Function, Function)
      * @see Collectors#toConcurrentMap(Function, Function)
