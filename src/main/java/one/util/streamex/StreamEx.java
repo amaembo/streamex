@@ -1404,12 +1404,12 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
     
     public <V, R> StreamEx<R> zipWith(Stream<V> other, BiFunction<? super T, ? super V, ? extends R> mapper) {
-        return new StreamEx<>(new ZipSpliterator<>(spliterator(), other.spliterator(), mapper), context.combine(other));
+        return new StreamEx<>(new ZipSpliterator<>(spliterator(), other.spliterator(), mapper, true), context.combine(other));
     }
 
     public <V> EntryStream<T, V> zipWith(Stream<V> other) {
         return new EntryStream<>(new ZipSpliterator<>(spliterator(), other.spliterator(),
-                AbstractMap.SimpleImmutableEntry<T, V>::new), context.combine(other));
+                AbstractMap.SimpleImmutableEntry<T, V>::new, true), context.combine(other));
     }
     
     /**

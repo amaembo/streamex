@@ -16,23 +16,31 @@
 package one.util.streamex;
 
 import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
+import one.util.streamex.UnknownSizeSpliterator.USOfRef;
 import static one.util.streamex.StreamExInternals.*;
 
 /**
  * @author Tagir Valeev
  */
 /* package */class ZipSpliterator<U, V, R> implements Spliterator<R> {
-    private final Spliterator<U> left;
-    private final Spliterator<V> right;
-    private final BiFunction<? super U, ? super V, ? extends R> mapper;
+    static final int BATCH_UNIT = UnknownSizeSpliterator.BATCH_UNIT;
+    static final int MAX_BATCH = UnknownSizeSpliterator.MAX_BATCH;
 
-    ZipSpliterator(Spliterator<U> left, Spliterator<V> right, BiFunction<? super U, ? super V, ? extends R> mapper) {
+    private Spliterator<U> left;
+    private Spliterator<V> right;
+    private final BiFunction<? super U, ? super V, ? extends R> mapper;
+    private boolean trySplit;
+    private int batch = 0;
+
+    ZipSpliterator(Spliterator<U> left, Spliterator<V> right, BiFunction<? super U, ? super V, ? extends R> mapper, boolean trySplit) {
         this.left = left;
         this.right = right;
         this.mapper = mapper;
+        this.trySplit = trySplit;
     }
 
     @Override
@@ -72,10 +80,72 @@ import static one.util.streamex.StreamExInternals.*;
 
     @Override
     public Spliterator<R> trySplit() {
-        // TODO Support array-based splitting
-        // TODO Support SUBSIZED splitting if parts match exactly
-        // TODO Support SUBSIZED splitting if parts differ a little bit
-        return null;
+        if(trySplit && hasCharacteristics(SIZED | SUBSIZED))
+        {
+            Spliterator<U> leftPrefix = left.trySplit();
+            if(leftPrefix == null)
+                return arraySplit();
+            Spliterator<V> rightPrefix = right.trySplit();
+            if(rightPrefix == null)
+            {
+                left = new TailConcatSpliterator<>(leftPrefix, left);
+                return arraySplit();
+            }
+            long leftSize = leftPrefix.getExactSizeIfKnown();
+            long rightSize = rightPrefix.getExactSizeIfKnown();
+            if(leftSize >= 0 && rightSize >= 0)
+            {
+                if(leftSize == rightSize)
+                {
+                    return new ZipSpliterator<>(leftPrefix, rightPrefix, mapper, true);
+                }
+                if(Math.abs(leftSize-rightSize) < Math.min(BATCH_UNIT, Math.max(leftSize, rightSize)/8))
+                {
+                    if(leftSize < rightSize)
+                    {
+                        @SuppressWarnings("unchecked")
+                        U[] array = (U[]) new Object[(int) (rightSize-leftSize)];
+                        leftSize += drainTo(array, left);
+                        leftPrefix = new TailConcatSpliterator<>(leftPrefix, Spliterators.spliterator(array, characteristics()));
+                    } else
+                    {
+                        @SuppressWarnings("unchecked")
+                        V[] array = (V[]) new Object[(int) (leftSize-rightSize)];
+                        rightSize += drainTo(array, right);
+                        rightPrefix = new TailConcatSpliterator<>(rightPrefix, Spliterators.spliterator(array, characteristics()));
+                    }
+                    this.trySplit = false;
+                    return new ZipSpliterator<>(leftPrefix, rightPrefix, mapper, false);
+                }
+            }
+            left = new TailConcatSpliterator<>(leftPrefix, left);
+            right = new TailConcatSpliterator<>(rightPrefix, right);
+        }
+        return arraySplit();
+    }
+    
+    private Spliterator<R> arraySplit() {
+        long s = estimateSize();
+        if (s <= 1) return null;
+        int n = batch + BATCH_UNIT;
+        if (n > s)
+            n = (int) s;
+        if (n > MAX_BATCH)
+            n = MAX_BATCH;
+        @SuppressWarnings("unchecked")
+        R[] array = (R[]) new Object[n];
+        int index = drainTo(array, this);
+        if((batch = index) == 0)
+            return null;
+        long s2 = estimateSize();
+        USOfRef<R> prefix = new UnknownSizeSpliterator.USOfRef<>(array, 0, index);
+        if(hasCharacteristics(SUBSIZED))
+            prefix.est = index;
+        else if(s == s2)
+            prefix.est = Math.max(index, s/2);
+        else
+            prefix.est = Math.max(index, s2 - s);
+        return prefix;
     }
 
     @Override

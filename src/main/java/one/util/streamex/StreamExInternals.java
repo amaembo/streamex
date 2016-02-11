@@ -1081,4 +1081,13 @@ import java.util.stream.Stream;
         }
         return true;
     }
+
+    static <T> int drainTo(T[] array, Spliterator<T> spliterator) {
+        Box<T> box = new Box<>(null);
+        int index = 0;
+        while(index < array.length && spliterator.tryAdvance(box::setA)) {
+            array[index++] = box.a;
+        }
+        return index;
+    }
 }
