@@ -19,6 +19,7 @@ import static one.util.streamex.TestHelpers.*;
 
 import java.util.List;
 import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.function.Supplier;
 
 import org.junit.Test;
@@ -29,16 +30,37 @@ import org.junit.Test;
 public class ZipSpliteratorTest {
     @Test
     public void testEven() {
-        Supplier<Spliterator<String>> s = () -> new ZipSpliterator<>(IntStreamEx.range(1000).spliterator(), 
-                IntStreamEx.range(1, 1001).spliterator(), (x, y) -> x+":"+y, true);
-        List<String> expected = IntStreamEx.range(1000).mapToObj(x -> x+":"+(x+1)).toList();
+        List<String> expected = IntStreamEx.range(200).mapToObj(x -> x+":"+(x+1)).toList();
+        int[] nums = IntStreamEx.range(200).toArray();
+        Supplier<Spliterator<String>> s = () -> new ZipSpliterator<>(IntStreamEx.range(200).spliterator(), 
+                IntStreamEx.range(1, 201).spliterator(), (x, y) -> x+":"+y, true);
         checkSpliterator("even", expected, s);
-        s = () -> new ZipSpliterator<>(IntStreamEx.range(1000).spliterator(), 
-                IntStreamEx.range(2, 1002).map(x -> x - 1).spliterator(), (x, y) -> x+":"+y, true);
+        s = () -> new ZipSpliterator<>(IntStreamEx.range(200).spliterator(), 
+                IntStreamEx.range(2, 202).parallel().map(x -> x - 1).spliterator(), (x, y) -> x+":"+y, true);
         checkSpliterator("evenMap", expected, s);
-        int[] nums = IntStreamEx.range(1000).toArray();
         s = () -> new ZipSpliterator<>(IntStreamEx.of(nums).spliterator(), 
-                IntStreamEx.range(2, 1002).map(x -> x - 1).spliterator(), (x, y) -> x+":"+y, true);
+                IntStreamEx.range(2, 202).parallel().map(x -> x - 1).spliterator(), (x, y) -> x+":"+y, true);
         checkSpliterator("evenArray", expected, s);
+    }
+
+    @Test
+    public void testUnEven() {
+        List<String> expected = IntStreamEx.range(200).mapToObj(x -> x+":"+(x+1)).toList();
+        Supplier<Spliterator<String>> s = () -> new ZipSpliterator<>(IntStreamEx.range(200).spliterator(), 
+                IntStreamEx.range(90).append(IntStreamEx.range(90, 200)).spliterator(), (x, y) -> x+":"+(y+1), true);
+        checkSpliterator("unevenRight", expected, s);
+        s = () -> new ZipSpliterator<>( 
+                IntStreamEx.range(90).append(IntStreamEx.range(90, 200)).spliterator(), 
+                IntStreamEx.range(200).spliterator(), (x, y) -> x+":"+(y+1), true);
+        checkSpliterator("unevenLeft", expected, s);
+    }
+    
+    @Test
+    public void testUnknownSize() {
+        List<String> expected = IntStreamEx.range(200).mapToObj(x -> x+":"+(x+1)).toList();
+        Supplier<Spliterator<String>> s = () -> new ZipSpliterator<>(Spliterators.spliteratorUnknownSize(IntStreamEx
+                .range(200).iterator(), Spliterator.ORDERED), Spliterators.spliteratorUnknownSize(IntStreamEx.range(1,
+            201).iterator(), Spliterator.ORDERED), (x, y) -> x + ":" + y, true);
+        checkSpliterator("unknownSize", expected, s);
     }
 }

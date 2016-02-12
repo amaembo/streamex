@@ -1402,16 +1402,87 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
                 AbstractMap.SimpleImmutableEntry<T, T>::new);
         return new EntryStream<>(spliterator, context);
     }
-    
+
+    /**
+     * Creates a new {@link StreamEx} which is the result of applying of the
+     * mapper {@code BiFunction} to the corresponding elements of this stream
+     * and the supplied other stream. The resulting stream is ordered if both of
+     * the input streams are ordered, and parallel if either of the input
+     * streams is parallel. When the resulting stream is closed, the close
+     * handlers for both input streams are invoked.
+     * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     * 
+     * <p>
+     * The resulting stream finishes when either of the input streams finish:
+     * the rest of the longer stream is discarded. It's unspecified whether the
+     * rest elements of the longer stream are actually consumed.
+     * 
+     * <p>
+     * The stream created by this operation may have poor characteristics and
+     * parallelize badly, so it should be used only when there's no other
+     * choice. If both input streams are random-access lists or arrays, consider
+     * using {@link #zip(List, List, BiFunction)} or
+     * {@link #zip(Object[], Object[], BiFunction)} respectively. If you want to
+     * zip the stream with the stream of indices, consider using
+     * {@link EntryStream#of(List)} instead.
+     * 
+     * @param <V> the type of the other stream elements
+     * @param <R> the type of the resulting stream elements
+     * @param other the stream to zip this stream with
+     * @param mapper a non-interfering, stateless function to apply to the
+     *        corresponding pairs of this stream and other stream elements
+     * @return the new stream
+     * @since 0.5.5
+     * @see #zipWith(Stream)
+     */
     public <V, R> StreamEx<R> zipWith(Stream<V> other, BiFunction<? super T, ? super V, ? extends R> mapper) {
-        return new StreamEx<>(new ZipSpliterator<>(spliterator(), other.spliterator(), mapper, true), context.combine(other));
+        return new StreamEx<>(new ZipSpliterator<>(spliterator(), other.spliterator(), mapper, true), context
+                .combine(other));
     }
 
+    /**
+     * Creates a new {@link EntryStream} which keys are elements of this stream
+     * and values are the corresponding elements of the supplied other stream.
+     * The resulting stream is ordered if both of the input streams are ordered,
+     * and parallel if either of the input streams is parallel. When the
+     * resulting stream is closed, the close handlers for both input streams are
+     * invoked.
+     * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     * 
+     * <p>
+     * The resulting stream finishes when either of the input streams finish:
+     * the rest of the longer stream is discarded. It's unspecified whether the
+     * rest elements of the longer stream are actually consumed.
+     * 
+     * <p>
+     * The stream created by this operation may have poor characteristics and
+     * parallelize badly, so it should be used only when there's no other
+     * choice. If both input streams are random-access lists or arrays, consider
+     * using {@link EntryStream#zip(List, List)} or
+     * {@link EntryStream#zip(Object[], Object[])} respectively. If you want to
+     * zip the stream with the stream of indices, consider using
+     * {@link EntryStream#of(List)} instead.
+     * 
+     * @param <V> the type of the other stream elements
+     * @param <R> the type of the resulting stream elements
+     * @param other the stream to zip this stream with
+     * @param mapper a non-interfering, stateless function to apply to the
+     *        corresponding pairs of this stream and other stream elements
+     * @return the new stream
+     * @see #zipWith(Stream, BiFunction)
+     * @since 0.5.5
+     */
     public <V> EntryStream<T, V> zipWith(Stream<V> other) {
         return new EntryStream<>(new ZipSpliterator<>(spliterator(), other.spliterator(),
                 AbstractMap.SimpleImmutableEntry<T, V>::new, true), context.combine(other));
     }
-    
+
     /**
      * Creates a new Stream which is the result of applying of the mapper
      * {@code BiFunction} to the first element of the current stream (head) and

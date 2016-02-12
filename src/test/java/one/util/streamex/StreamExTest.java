@@ -1596,6 +1596,8 @@ public class StreamExTest {
         List<String> expected = asList("1. John", "2. Mary", "3. Jane", "4. Jimmy");
         streamEx(input::stream, s -> assertEquals(expected, s.get().zipWith(
             IntStream.range(1, Integer.MAX_VALUE).boxed(), (name, idx) -> idx + ". " + name).toList()));
+        streamEx(input::stream, s -> assertEquals(expected, s.get().zipWith(
+            IntStream.range(1, Integer.MAX_VALUE).boxed()).mapKeyValue((name, idx) -> idx + ". " + name).toList()));
         streamEx(() -> IntStream.range(1, Integer.MAX_VALUE).boxed(), s -> assertEquals(expected, s.get().zipWith(
             input.stream(), (idx, name) -> idx + ". " + name).toList()));
     }
