@@ -1470,10 +1470,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * {@link EntryStream#of(List)} instead.
      * 
      * @param <V> the type of the other stream elements
-     * @param <R> the type of the resulting stream elements
      * @param other the stream to zip this stream with
-     * @param mapper a non-interfering, stateless function to apply to the
-     *        corresponding pairs of this stream and other stream elements
      * @return the new stream
      * @see #zipWith(Stream, BiFunction)
      * @since 0.5.5
