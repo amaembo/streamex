@@ -1389,9 +1389,13 @@ public class StreamExTest {
             assertEquals(asList("b", "cccc"), s.get().dropWhile(x -> x.length() > 1).toList());
             assertEquals(asList(), s.get().dropWhile(x -> x.length() > 0).toList());
             assertEquals(asList("aaa", "b", "cccc"), s.get().dropWhile(x -> x.length() > 5).toList());
-            assertEquals(Optional.of("b"), s.get().dropWhile(x -> x.length() > 1).findFirst());
-            assertEquals(Optional.empty(), s.get().dropWhile(x -> x.length() > 0).findFirst());
-            assertEquals(Optional.of("aaa"), s.get().dropWhile(x -> x.length() > 5).findFirst());
+            // Saving to Optional is necessary as javac <8u40 fails to compile this without intermediate variable
+            Optional<String> opt1 = s.get().dropWhile(x -> x.length() > 1).findFirst();
+            assertEquals(Optional.of("b"), opt1);
+            Optional<String> opt0 = s.get().dropWhile(x -> x.length() > 0).findFirst();
+            assertEquals(Optional.empty(), opt0);
+            Optional<String> opt5 = s.get().dropWhile(x -> x.length() > 5).findFirst();
+            assertEquals(Optional.of("aaa"), opt5);
         });
 
         // When testing with JDK9, "dropWhile" must redirect the call to JDK 9
