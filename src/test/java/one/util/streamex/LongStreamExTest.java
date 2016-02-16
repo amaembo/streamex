@@ -34,6 +34,7 @@ import java.util.function.LongToIntFunction;
 import java.util.function.LongUnaryOperator;
 import java.util.function.Supplier;
 import java.util.stream.LongStream;
+import java.util.stream.LongStream.Builder;
 
 import org.junit.Test;
 
@@ -449,6 +450,14 @@ public class LongStreamExTest {
             i -> i % 10 < 5).limit(10).toArray());
         assertEquals(100, LongStreamEx.range(100).dropWhile(i -> i % 10 < 0).count());
         assertEquals(0, LongStreamEx.range(100).dropWhile(i -> i % 10 < 10).count());
+        assertEquals(OptionalLong.of(0), LongStreamEx.range(100).dropWhile(i -> i % 10 < 0).findFirst());
+        assertEquals(OptionalLong.empty(), LongStreamEx.range(100).dropWhile(i -> i % 10 < 10).findFirst());
+
+        java.util.Spliterator.OfLong spltr = LongStreamEx.range(100).dropWhile(i -> i % 10 < 1).spliterator();
+        assertTrue(spltr.tryAdvance((long x) -> assertEquals(1, x)));
+        Builder builder = LongStream.builder();
+        spltr.forEachRemaining(builder);
+        assertArrayEquals(LongStreamEx.range(2, 100).toArray(), builder.build().toArray());
     }
 
     @Test

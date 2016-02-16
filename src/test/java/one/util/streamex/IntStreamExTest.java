@@ -39,6 +39,7 @@ import java.util.function.IntUnaryOperator;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.IntStream.Builder;
 import java.util.stream.StreamSupport;
 
 import static one.util.streamex.TestHelpers.*;
@@ -605,6 +606,14 @@ public class IntStreamExTest {
             i -> i % 10 < 5).limit(10).toArray());
         assertEquals(100, IntStreamEx.range(100).dropWhile(i -> i % 10 < 0).count());
         assertEquals(0, IntStreamEx.range(100).dropWhile(i -> i % 10 < 10).count());
+        assertEquals(OptionalInt.of(0), IntStreamEx.range(100).dropWhile(i -> i % 10 < 0).findFirst());
+        assertEquals(OptionalInt.empty(), IntStreamEx.range(100).dropWhile(i -> i % 10 < 10).findFirst());
+
+        java.util.Spliterator.OfInt spltr = IntStreamEx.range(100).dropWhile(i -> i % 10 < 1).spliterator();
+        assertTrue(spltr.tryAdvance((int x) -> assertEquals(1, x)));
+        Builder builder = IntStream.builder();
+        spltr.forEachRemaining(builder);
+        assertArrayEquals(IntStreamEx.range(2, 100).toArray(), builder.build().toArray());
     }
 
     @Test

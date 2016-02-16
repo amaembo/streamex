@@ -34,6 +34,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.DoubleStream;
 import java.util.stream.LongStream;
+import java.util.stream.DoubleStream.Builder;
 
 import org.junit.Test;
 
@@ -357,6 +358,14 @@ public class DoubleStreamExTest {
                 .dropWhile(i -> i % 10 < 5).limit(10).toArray(), 0.0);
         assertEquals(100, LongStreamEx.range(100).asDoubleStream().sorted().dropWhile(i -> i % 10 < 0).count());
         assertEquals(0, LongStreamEx.range(100).asDoubleStream().dropWhile(i -> i % 10 < 10).count());
+        assertEquals(OptionalDouble.of(0), LongStreamEx.range(100).asDoubleStream().dropWhile(i -> i % 10 < 0).findFirst());
+        assertEquals(OptionalDouble.empty(), LongStreamEx.range(100).asDoubleStream().dropWhile(i -> i % 10 < 10).findFirst());
+
+        java.util.Spliterator.OfDouble spltr = LongStreamEx.range(100).asDoubleStream().dropWhile(i -> i % 10 < 1).spliterator();
+        assertTrue(spltr.tryAdvance((double x) -> assertEquals(1, x, 0.0)));
+        Builder builder = DoubleStream.builder();
+        spltr.forEachRemaining(builder);
+        assertArrayEquals(LongStreamEx.range(2, 100).asDoubleStream().toArray(), builder.build().toArray(), 0.0);
     }
 
     @Test
