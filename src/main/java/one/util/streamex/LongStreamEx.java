@@ -252,8 +252,9 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
         if (values.length == 1)
             return without(values[0]);
         return filter(x -> {
-            for(long val : values) {
-                if(x == val) return false;
+            for (long val : values) {
+                if (x == val)
+                    return false;
             }
             return true;
         });
@@ -1489,6 +1490,8 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      *        elements.
      * @return the new stream.
      * @since 0.3.6
+     * @see #takeWhileInclusive(LongPredicate)
+     * @see #dropWhile(LongPredicate)
      */
     public LongStreamEx takeWhile(LongPredicate predicate) {
         Objects.requireNonNull(predicate);
@@ -1498,11 +1501,30 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
         return delegate(new LongStreamEx.TDOfLong(spliterator(), false, false, predicate));
     }
 
+    /**
+     * Returns a stream consisting of all elements from this stream until the
+     * first element which does not match the given predicate is found
+     * (including the first mismatching element).
+     * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     * 
+     * <p>
+     * While this operation is quite cheap for sequential stream, it can be
+     * quite expensive on parallel pipelines.
+     * 
+     * @param predicate a non-interfering, stateless predicate to apply to
+     *        elements.
+     * @return the new stream.
+     * @since 0.5.5
+     * @see #takeWhile(LongPredicate)
+     */
     public LongStreamEx takeWhileInclusive(LongPredicate predicate) {
         Objects.requireNonNull(predicate);
         return delegate(new LongStreamEx.TDOfLong(spliterator(), false, true, predicate));
     }
-    
+
     /**
      * Returns a stream consisting of all elements from this stream starting
      * from the first element which does not match the given predicate. If the

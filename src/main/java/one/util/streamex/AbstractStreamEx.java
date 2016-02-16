@@ -1604,6 +1604,8 @@ import static one.util.streamex.StreamExInternals.*;
      *        elements.
      * @return the new stream.
      * @since 0.3.6
+     * @see #takeWhileInclusive(Predicate)
+     * @see #dropWhile(Predicate)
      */
     public S takeWhile(Predicate<? super T> predicate) {
         Objects.requireNonNull(predicate);
@@ -1613,6 +1615,25 @@ import static one.util.streamex.StreamExInternals.*;
         return supply(new AbstractStreamEx.TDOfRef<>(spliterator(), false, false, predicate));
     }
 
+    /**
+     * Returns a stream consisting of all elements from this stream until the
+     * first element which does not match the given predicate is found
+     * (including the first mismatching element).
+     * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     * 
+     * <p>
+     * While this operation is quite cheap for sequential stream, it can be
+     * quite expensive on parallel pipelines.
+     * 
+     * @param predicate a non-interfering, stateless predicate to apply to
+     *        elements.
+     * @return the new stream.
+     * @since 0.5.5
+     * @see #takeWhile(Predicate)
+     */
     public S takeWhileInclusive(Predicate<? super T> predicate) {
         Objects.requireNonNull(predicate);
         return supply(new AbstractStreamEx.TDOfRef<>(spliterator(), false, true, predicate));

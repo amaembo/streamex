@@ -153,8 +153,8 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
 
     final DoubleStreamEx callWhile(DoublePredicate predicate, int methodId) {
         try {
-            return new DoubleStreamEx(
-                (DoubleStream) JDK9_METHODS[IDX_DOUBLE_STREAM][methodId].invokeExact(stream(), predicate), context);
+            return new DoubleStreamEx((DoubleStream) JDK9_METHODS[IDX_DOUBLE_STREAM][methodId].invokeExact(stream(),
+                predicate), context);
         } catch (Error | RuntimeException e) {
             throw e;
         } catch (Throwable e) {
@@ -293,7 +293,8 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @since 0.4.1
      */
     public DoubleStreamEx mapLast(DoubleUnaryOperator mapper) {
-        return delegate(new PairSpliterator.PSOfDouble((a, b) -> a, mapper, spliterator(), PairSpliterator.MODE_MAP_LAST));
+        return delegate(new PairSpliterator.PSOfDouble((a, b) -> a, mapper, spliterator(),
+                PairSpliterator.MODE_MAP_LAST));
     }
 
     @Override
@@ -444,7 +445,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
     public DoubleStreamEx reverseSorted() {
         return new DoubleStreamEx(stream().mapToLong(d -> {
             long l = Double.doubleToRawLongBits(d);
-            return l ^ (((l >>> 63)-1) | Long.MIN_VALUE);
+            return l ^ (((l >>> 63) - 1) | Long.MIN_VALUE);
         }).sorted().mapToDouble(l -> Double.longBitsToDouble(l ^ ((-(l >>> 63)) | Long.MIN_VALUE))), context);
     }
 
@@ -596,7 +597,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
         if (spliterator != null && !isParallel()) {
             spliterator().forEachRemaining(action);
         } else {
-            if(context.fjp != null)
+            if (context.fjp != null)
                 context.terminate(() -> {
                     stream().forEach(action);
                     return null;
@@ -612,7 +613,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
         if (spliterator != null && !isParallel()) {
             spliterator().forEachRemaining(action);
         } else {
-            if(context.fjp != null)
+            if (context.fjp != null)
                 context.terminate(() -> {
                     stream().forEachOrdered(action);
                     return null;
@@ -625,7 +626,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
 
     @Override
     public double[] toArray() {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(stream()::toArray);
         return stream().toArray();
     }
@@ -658,14 +659,14 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
 
     @Override
     public double reduce(double identity, DoubleBinaryOperator op) {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(() -> stream().reduce(identity, op));
         return stream().reduce(identity, op);
     }
 
     @Override
     public OptionalDouble reduce(DoubleBinaryOperator op) {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(op, stream()::reduce);
         return stream().reduce(op);
     }
@@ -840,7 +841,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      */
     @Override
     public <R> R collect(Supplier<R> supplier, ObjDoubleConsumer<R> accumulator, BiConsumer<R, R> combiner) {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(() -> stream().collect(supplier, accumulator, combiner));
         return stream().collect(supplier, accumulator, combiner);
     }
@@ -877,7 +878,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
 
     @Override
     public double sum() {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(stream()::sum);
         return stream().sum();
     }
@@ -1139,14 +1140,14 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
 
     @Override
     public long count() {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(stream()::count);
         return stream().count();
     }
 
     @Override
     public OptionalDouble average() {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(stream()::average);
         return stream().average();
     }
@@ -1158,14 +1159,14 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
 
     @Override
     public boolean anyMatch(DoublePredicate predicate) {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(predicate, stream()::anyMatch);
         return stream().anyMatch(predicate);
     }
 
     @Override
     public boolean allMatch(DoublePredicate predicate) {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(predicate, stream()::allMatch);
         return stream().allMatch(predicate);
     }
@@ -1177,7 +1178,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
 
     @Override
     public OptionalDouble findFirst() {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(stream()::findFirst);
         return stream().findFirst();
     }
@@ -1205,7 +1206,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
 
     @Override
     public OptionalDouble findAny() {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(stream()::findAny);
         return stream().findAny();
     }
@@ -1429,6 +1430,8 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      *        elements.
      * @return the new stream.
      * @since 0.3.6
+     * @see #takeWhileInclusive(DoublePredicate)
+     * @see #dropWhile(DoublePredicate)
      */
     public DoubleStreamEx takeWhile(DoublePredicate predicate) {
         Objects.requireNonNull(predicate);
@@ -1438,11 +1441,30 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
         return delegate(new DoubleStreamEx.TDOfDouble(spliterator(), false, false, predicate));
     }
 
+    /**
+     * Returns a stream consisting of all elements from this stream until the
+     * first element which does not match the given predicate is found
+     * (including the first mismatching element).
+     * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     * 
+     * <p>
+     * While this operation is quite cheap for sequential stream, it can be
+     * quite expensive on parallel pipelines.
+     * 
+     * @param predicate a non-interfering, stateless predicate to apply to
+     *        elements.
+     * @return the new stream.
+     * @since 0.5.5
+     * @see #takeWhile(DoublePredicate)
+     */
     public DoubleStreamEx takeWhileInclusive(DoublePredicate predicate) {
         Objects.requireNonNull(predicate);
         return delegate(new DoubleStreamEx.TDOfDouble(spliterator(), false, true, predicate));
     }
-    
+
     /**
      * Returns a stream consisting of all elements from this stream starting
      * from the first element which does not match the given predicate. If the
@@ -1586,8 +1608,8 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @since 0.0.8
      */
     public static DoubleStreamEx of(DoubleStream stream) {
-        return stream instanceof DoubleStreamEx ? (DoubleStreamEx) stream : new DoubleStreamEx(stream,
-                StreamContext.of(stream));
+        return stream instanceof DoubleStreamEx ? (DoubleStreamEx) stream : new DoubleStreamEx(stream, StreamContext
+                .of(stream));
     }
 
     /**

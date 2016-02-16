@@ -142,7 +142,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
     IntStreamEx(Spliterator.OfInt spliterator, StreamContext context) {
         super(spliterator, context);
     }
-    
+
     @Override
     IntStream createStream() {
         return StreamSupport.intStream(spliterator, context.parallel);
@@ -158,8 +158,8 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
 
     final IntStreamEx callWhile(IntPredicate predicate, int methodId) {
         try {
-            return new IntStreamEx(
-                (IntStream) JDK9_METHODS[IDX_INT_STREAM][methodId].invokeExact(stream(), predicate), context);
+            return new IntStreamEx((IntStream) JDK9_METHODS[IDX_INT_STREAM][methodId].invokeExact(stream(), predicate),
+                    context);
         } catch (Error | RuntimeException e) {
             throw e;
         } catch (Throwable e) {
@@ -274,8 +274,9 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
         if (values.length == 1)
             return without(values[0]);
         return filter(x -> {
-            for(int val : values) {
-                if(x == val) return false;
+            for (int val : values) {
+                if (x == val)
+                    return false;
             }
             return true;
         });
@@ -641,7 +642,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
         if (spliterator != null && !isParallel()) {
             spliterator().forEachRemaining(action);
         } else {
-            if(context.fjp != null)
+            if (context.fjp != null)
                 context.terminate(() -> {
                     stream().forEach(action);
                     return null;
@@ -657,7 +658,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
         if (spliterator != null && !isParallel()) {
             spliterator().forEachRemaining(action);
         } else {
-            if(context.fjp != null)
+            if (context.fjp != null)
                 context.terminate(() -> {
                     stream().forEachOrdered(action);
                     return null;
@@ -670,7 +671,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
 
     @Override
     public int[] toArray() {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(stream()::toArray);
         return stream().toArray();
     }
@@ -736,14 +737,14 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
 
     @Override
     public int reduce(int identity, IntBinaryOperator op) {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(() -> stream().reduce(identity, op));
         return stream().reduce(identity, op);
     }
 
     @Override
     public OptionalInt reduce(IntBinaryOperator op) {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(op, stream()::reduce);
         return stream().reduce(op);
     }
@@ -918,7 +919,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      */
     @Override
     public <R> R collect(Supplier<R> supplier, ObjIntConsumer<R> accumulator, BiConsumer<R, R> combiner) {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(() -> stream().collect(supplier, accumulator, combiner));
         return stream().collect(supplier, accumulator, combiner);
     }
@@ -1213,14 +1214,14 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
 
     @Override
     public long count() {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(stream()::count);
         return stream().count();
     }
 
     @Override
     public OptionalDouble average() {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(stream()::average);
         return stream().average();
     }
@@ -1232,14 +1233,14 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
 
     @Override
     public boolean anyMatch(IntPredicate predicate) {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(predicate, stream()::anyMatch);
         return stream().anyMatch(predicate);
     }
 
     @Override
     public boolean allMatch(IntPredicate predicate) {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(predicate, stream()::allMatch);
         return stream().allMatch(predicate);
     }
@@ -1251,7 +1252,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
 
     @Override
     public OptionalInt findFirst() {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(stream()::findFirst);
         return stream().findFirst();
     }
@@ -1279,7 +1280,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
 
     @Override
     public OptionalInt findAny() {
-        if(context.fjp != null)
+        if (context.fjp != null)
             return context.terminate(stream()::findAny);
         return stream().findAny();
     }
@@ -1645,6 +1646,8 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      *        elements.
      * @return the new stream.
      * @since 0.3.6
+     * @see #takeWhileInclusive(IntPredicate)
+     * @see #dropWhile(IntPredicate)
      */
     public IntStreamEx takeWhile(IntPredicate predicate) {
         Objects.requireNonNull(predicate);
@@ -1654,11 +1657,30 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
         return delegate(new IntStreamEx.TDOfInt(spliterator(), false, false, predicate));
     }
 
+    /**
+     * Returns a stream consisting of all elements from this stream until the
+     * first element which does not match the given predicate is found
+     * (including the first mismatching element).
+     * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     * 
+     * <p>
+     * While this operation is quite cheap for sequential stream, it can be
+     * quite expensive on parallel pipelines.
+     * 
+     * @param predicate a non-interfering, stateless predicate to apply to
+     *        elements.
+     * @return the new stream.
+     * @since 0.5.5
+     * @see #takeWhile(IntPredicate)
+     */
     public IntStreamEx takeWhileInclusive(IntPredicate predicate) {
         Objects.requireNonNull(predicate);
         return delegate(new IntStreamEx.TDOfInt(spliterator(), false, true, predicate));
     }
-    
+
     /**
      * Returns a stream consisting of all elements from this stream starting
      * from the first element which does not match the given predicate. If the
@@ -2026,9 +2048,10 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
     public static IntStreamEx ofIndices(double[] array, DoublePredicate predicate) {
         return seq(IntStream.range(0, array.length).filter(i -> predicate.test(array[i])));
     }
-    
+
     /**
-     * Returns an {@code IntStreamEx} object which wraps given {@link IntStream}.
+     * Returns an {@code IntStreamEx} object which wraps given {@link IntStream}
+     * .
      * 
      * <p>
      * The supplied stream must not be consumed or closed when this method is

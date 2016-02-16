@@ -82,6 +82,9 @@ Remove entries which keys or values satisfy the predicate | `EntryStream.removeK
 Remove entries applying the `BiPredicate` to key and value | `EntryStream.removeKeyValue()`
 Select elements which are instances of given class | `StreamEx.select()`
 Select entries which keys or values are instances of given class | `EntryStream.selectKeys()/selectValues()`
+Take stream elements while the condition is true | `any.takeWhile()`
+Take stream elements while the condition is true including first violating element | `any.takeWhileInclusive()`
+Skip stream elements while the condition is true | `any.dropWhile()`
 
 ### mapping
 
@@ -162,8 +165,6 @@ What I want | How to get it
 Extract first stream element and use it to alternate the rest of the stream | `StreamEx.headTail()`
 Define almost any custom intermediate operation recursively | `StreamEx.headTail()`
 Execute custom-defined operation in fluent manner | `any.chain()`
-Take stream elements while the condition is true | `any.takeWhile()`
-Skip stream elements while the condition is true | `any.dropWhile()`
 Work-around parallel stream skip bug prior to Java 8u60 | `any.skipOrdered()`
 Perform parallel stream computation using the custom `ForkJoinPool` | `any.parallel(pool)`
 
