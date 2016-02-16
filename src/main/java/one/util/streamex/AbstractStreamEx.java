@@ -56,15 +56,17 @@ import static one.util.streamex.StreamExInternals.*;
     private static final class TDOfRef<T> extends AbstractSpliterator<T> implements Consumer<T> {
         private final Predicate<? super T> predicate;
         private final boolean drop;
+        private final boolean inclusive;
         private boolean checked;
         private final Spliterator<T> source;
         private T cur;
 
-        TDOfRef(Spliterator<T> source, boolean drop, Predicate<? super T> predicate) {
+        TDOfRef(Spliterator<T> source, boolean drop, boolean inclusive, Predicate<? super T> predicate) {
             super(source.estimateSize(), source.characteristics()
                 & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL | DISTINCT));
             this.drop = drop;
             this.predicate = predicate;
+            this.inclusive = inclusive;
             this.source = source;
         }
 
@@ -87,12 +89,33 @@ import static one.util.streamex.StreamExInternals.*;
                 }
                 return false;
             }
-            if (!checked && source.tryAdvance(this) && predicate.test(cur)) {
+            if (!checked && source.tryAdvance(this) && (predicate.test(cur) || (checked = inclusive))) {
                 action.accept(cur);
                 return true;
             }
             checked = true;
             return false;
+        }
+
+        @Override
+        public void forEachRemaining(Consumer<? super T> action) {
+            if (drop) {
+                if (checked)
+                    source.forEachRemaining(action);
+                else {
+                    source.forEachRemaining(e -> {
+                        if (checked)
+                            action.accept(e);
+                        else {
+                            if (!predicate.test(e)) {
+                                checked = true;
+                                action.accept(e);
+                            }
+                        }
+                    });
+                }
+            } else
+                super.forEachRemaining(action);
         }
 
         @Override
@@ -1191,13 +1214,13 @@ import static one.util.streamex.StreamExInternals.*;
      * accumulation function, going left to right. This is equivalent to:
      * 
      * <pre>
-     * {@code
-     *     U result = seed;
-     *     for (T element : this stream)
-     *         result = accumulator.apply(result, element)
-     *     return result;
-     * }
-     * </pre>
+	 * {@code
+	 *     U result = seed;
+	 *     for (T element : this stream)
+	 *         result = accumulator.apply(result, element)
+	 *     return result;
+	 * }
+	 * </pre>
      *
      * <p>
      * This is a terminal operation.
@@ -1235,20 +1258,20 @@ import static one.util.streamex.StreamExInternals.*;
      * function, going left to right. This is equivalent to:
      * 
      * <pre>
-     * {@code
-     *     boolean foundAny = false;
-     *     T result = null;
-     *     for (T element : this stream) {
-     *         if (!foundAny) {
-     *             foundAny = true;
-     *             result = element;
-     *         }
-     *         else
-     *             result = accumulator.apply(result, element);
-     *     }
-     *     return foundAny ? Optional.of(result) : Optional.empty();
-     * }
-     * </pre>
+	 * {@code
+	 *     boolean foundAny = false;
+	 *     T result = null;
+	 *     for (T element : this stream) {
+	 *         if (!foundAny) {
+	 *             foundAny = true;
+	 *             result = element;
+	 *         }
+	 *         else
+	 *             result = accumulator.apply(result, element);
+	 *     }
+	 *     return foundAny ? Optional.of(result) : Optional.empty();
+	 * }
+	 * </pre>
      * 
      * <p>
      * This is a terminal operation.
@@ -1587,7 +1610,12 @@ import static one.util.streamex.StreamExInternals.*;
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_TAKE_WHILE);
         }
-        return supply(new AbstractStreamEx.TDOfRef<>(spliterator(), false, predicate));
+        return supply(new AbstractStreamEx.TDOfRef<>(spliterator(), false, false, predicate));
+    }
+
+    public S takeWhileInclusive(Predicate<? super T> predicate) {
+        Objects.requireNonNull(predicate);
+        return supply(new AbstractStreamEx.TDOfRef<>(spliterator(), false, true, predicate));
     }
 
     /**
@@ -1616,6 +1644,6 @@ import static one.util.streamex.StreamExInternals.*;
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_DROP_WHILE);
         }
-        return supply(new AbstractStreamEx.TDOfRef<>(spliterator(), true, predicate));
+        return supply(new AbstractStreamEx.TDOfRef<>(spliterator(), true, false, predicate));
     }
 }

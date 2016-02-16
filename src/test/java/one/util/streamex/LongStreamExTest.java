@@ -435,6 +435,15 @@ public class LongStreamExTest {
     }
 
     @Test
+    public void testTakeWhileInclusive() {
+        assertArrayEquals(LongStreamEx.range(101).toArray(), LongStreamEx.iterate(0, i -> i + 1)
+            .takeWhileInclusive(i -> i < 100).toArray());
+        assertEquals(1, LongStreamEx.iterate(0, i -> i + 1).takeWhileInclusive(i -> i < 0).count());
+        assertEquals(2, LongStreamEx.of(1, 3, 2).takeWhileInclusive(i -> i < 3).count());
+        assertEquals(3, LongStreamEx.of(1, 2, 3).takeWhileInclusive(i -> i < 100).count());
+    }
+    
+    @Test
     public void testDropWhile() {
         assertArrayEquals(new long[] { 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 }, LongStreamEx.range(100).dropWhile(
             i -> i % 10 < 5).limit(10).toArray());

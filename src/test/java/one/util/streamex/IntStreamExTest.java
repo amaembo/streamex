@@ -583,11 +583,22 @@ public class IntStreamExTest {
     public void testTakeWhile() {
         assertArrayEquals(IntStreamEx.range(100).toArray(), IntStreamEx.iterate(0, i -> i + 1).takeWhile(i -> i < 100)
                 .toArray());
+        assertEquals(0, IntStreamEx.empty().takeWhile(i -> true).count());
         assertEquals(0, IntStreamEx.iterate(0, i -> i + 1).takeWhile(i -> i < 0).count());
         assertEquals(1, IntStreamEx.of(1, 3, 2).takeWhile(i -> i < 3).count());
         assertEquals(3, IntStreamEx.of(1, 2, 3).takeWhile(i -> i < 100).count());
     }
 
+    @Test
+    public void testTakeWhileInclusive() {
+        assertArrayEquals(IntStreamEx.range(101).toArray(), IntStreamEx.iterate(0, i -> i + 1).takeWhileInclusive(
+            i -> i < 100).toArray());
+        assertEquals(0, IntStreamEx.empty().takeWhileInclusive(i -> true).count());
+        assertEquals(1, IntStreamEx.iterate(0, i -> i + 1).takeWhileInclusive(i -> i < 0).count());
+        assertEquals(2, IntStreamEx.of(1, 3, 2).takeWhileInclusive(i -> i < 3).count());
+        assertEquals(3, IntStreamEx.of(1, 2, 3).takeWhileInclusive(i -> i < 100).count());
+    }
+    
     @Test
     public void testDropWhile() {
         assertArrayEquals(new int[] { 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 }, IntStreamEx.range(100).dropWhile(

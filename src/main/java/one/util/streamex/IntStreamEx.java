@@ -67,15 +67,17 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
     private static final class TDOfInt extends AbstractIntSpliterator implements IntConsumer {
         private final IntPredicate predicate;
         private final boolean drop;
+        private final boolean inclusive;
         private boolean checked;
         private final Spliterator.OfInt source;
         private int cur;
 
-        TDOfInt(Spliterator.OfInt source, boolean drop, IntPredicate predicate) {
+        TDOfInt(Spliterator.OfInt source, boolean drop, boolean inclusive, IntPredicate predicate) {
             super(source.estimateSize(), source.characteristics()
                 & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL | DISTINCT));
             this.drop = drop;
             this.predicate = predicate;
+            this.inclusive = inclusive;
             this.source = source;
         }
 
@@ -98,12 +100,33 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
                 }
                 return false;
             }
-            if (!checked && source.tryAdvance(this) && predicate.test(cur)) {
+            if (!checked && source.tryAdvance(this) && (predicate.test(cur) || (checked = inclusive))) {
                 action.accept(cur);
                 return true;
             }
             checked = true;
             return false;
+        }
+
+        @Override
+        public void forEachRemaining(IntConsumer action) {
+            if (drop) {
+                if (checked)
+                    source.forEachRemaining(action);
+                else {
+                    source.forEachRemaining((int e) -> {
+                        if (checked)
+                            action.accept(e);
+                        else {
+                            if (!predicate.test(e)) {
+                                checked = true;
+                                action.accept(e);
+                            }
+                        }
+                    });
+                }
+            } else
+                super.forEachRemaining(action);
         }
 
         @Override
@@ -1628,9 +1651,14 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_TAKE_WHILE);
         }
-        return delegate(new IntStreamEx.TDOfInt(spliterator(), false, predicate));
+        return delegate(new IntStreamEx.TDOfInt(spliterator(), false, false, predicate));
     }
 
+    public IntStreamEx takeWhileInclusive(IntPredicate predicate) {
+        Objects.requireNonNull(predicate);
+        return delegate(new IntStreamEx.TDOfInt(spliterator(), false, true, predicate));
+    }
+    
     /**
      * Returns a stream consisting of all elements from this stream starting
      * from the first element which does not match the given predicate. If the
@@ -1657,7 +1685,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_DROP_WHILE);
         }
-        return delegate(new IntStreamEx.TDOfInt(spliterator(), true, predicate));
+        return delegate(new IntStreamEx.TDOfInt(spliterator(), true, false, predicate));
     }
 
     /**

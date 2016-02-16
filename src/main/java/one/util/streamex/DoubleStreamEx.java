@@ -62,15 +62,17 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
     private static final class TDOfDouble extends AbstractDoubleSpliterator implements DoubleConsumer {
         private final DoublePredicate predicate;
         private final boolean drop;
+        private final boolean inclusive;
         private boolean checked;
         private final Spliterator.OfDouble source;
         private double cur;
 
-        TDOfDouble(Spliterator.OfDouble source, boolean drop, DoublePredicate predicate) {
+        TDOfDouble(Spliterator.OfDouble source, boolean drop, boolean inclusive, DoublePredicate predicate) {
             super(source.estimateSize(), source.characteristics()
                 & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL | DISTINCT));
             this.drop = drop;
             this.predicate = predicate;
+            this.inclusive = inclusive;
             this.source = source;
         }
 
@@ -93,12 +95,33 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
                 }
                 return false;
             }
-            if (!checked && source.tryAdvance(this) && predicate.test(cur)) {
+            if (!checked && source.tryAdvance(this) && (predicate.test(cur) || (checked = inclusive))) {
                 action.accept(cur);
                 return true;
             }
             checked = true;
             return false;
+        }
+
+        @Override
+        public void forEachRemaining(DoubleConsumer action) {
+            if (drop) {
+                if (checked)
+                    source.forEachRemaining(action);
+                else {
+                    source.forEachRemaining((double e) -> {
+                        if (checked)
+                            action.accept(e);
+                        else {
+                            if (!predicate.test(e)) {
+                                checked = true;
+                                action.accept(e);
+                            }
+                        }
+                    });
+                }
+            } else
+                super.forEachRemaining(action);
         }
 
         @Override
@@ -1412,9 +1435,14 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_TAKE_WHILE);
         }
-        return delegate(new DoubleStreamEx.TDOfDouble(spliterator(), false, predicate));
+        return delegate(new DoubleStreamEx.TDOfDouble(spliterator(), false, false, predicate));
     }
 
+    public DoubleStreamEx takeWhileInclusive(DoublePredicate predicate) {
+        Objects.requireNonNull(predicate);
+        return delegate(new DoubleStreamEx.TDOfDouble(spliterator(), false, true, predicate));
+    }
+    
     /**
      * Returns a stream consisting of all elements from this stream starting
      * from the first element which does not match the given predicate. If the
@@ -1441,7 +1469,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_DROP_WHILE);
         }
-        return delegate(new DoubleStreamEx.TDOfDouble(spliterator(), true, predicate));
+        return delegate(new DoubleStreamEx.TDOfDouble(spliterator(), true, false, predicate));
     }
 
     // Necessary to generate proper JavaDoc

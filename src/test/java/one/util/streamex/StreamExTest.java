@@ -1366,19 +1366,30 @@ public class StreamExTest {
 
     @Test
     public void testTakeWhile() {
-        assertEquals(asList("aaa"), StreamEx.of("aaa", "b", "cccc").takeWhile(x -> x.length() > 1).toList());
-        assertEquals(asList("aaa"), StreamEx.of("aaa", "b", "cccc").sorted().takeWhile(x -> x.length() > 1).toList());
-        assertEquals(asList("aaa", "b", "cccc"), StreamEx.of("aaa", "b", "cccc").takeWhile(x -> x.length() > 0)
-                .toList());
-        assertEquals(Collections.emptyList(), StreamEx.of("aaa", "b", "cccc").takeWhile(x -> x.length() > 5).toList());
+        streamEx(asList("aaa", "b", "cccc")::stream, s -> {
+            assertEquals(asList("aaa"), s.get().takeWhile(x -> x.length() > 1).toList());
+            assertEquals(asList("aaa"), s.get().sorted().takeWhile(x -> x.length() > 1).toList());
+            assertEquals(asList("aaa", "b", "cccc"), s.get().takeWhile(x -> x.length() > 0).toList());
+            assertEquals(Collections.emptyList(), s.get().takeWhile(x -> x.length() > 5).toList());
+        });
     }
 
     @Test
+    public void testTakeWhileInclusive() {
+        streamEx(asList("aaa", "b", "cccc")::stream, s -> {
+            assertEquals(asList("aaa", "b"), s.get().takeWhileInclusive(x -> x.length() > 1).toList());
+            assertEquals(asList("aaa", "b", "cccc"), s.get().takeWhileInclusive(x -> x.length() > 0).toList());
+            assertEquals(asList("aaa"), s.get().takeWhileInclusive(x -> x.length() > 5).toList());
+        });
+    }
+    
+    @Test
     public void testDropWhile() {
-        assertEquals(asList("b", "cccc"), StreamEx.of("aaa", "b", "cccc").dropWhile(x -> x.length() > 1).toList());
-        assertEquals(Collections.emptyList(), StreamEx.of("aaa", "b", "cccc").dropWhile(x -> x.length() > 0).toList());
-        assertEquals(asList("aaa", "b", "cccc"), StreamEx.of("aaa", "b", "cccc").dropWhile(x -> x.length() > 5)
-                .toList());
+        streamEx(asList("aaa", "b", "cccc")::stream, s -> {
+            assertEquals(asList("b", "cccc"), s.get().dropWhile(x -> x.length() > 1).toList());
+            assertEquals(asList(), s.get().dropWhile(x -> x.length() > 0).toList());
+            assertEquals(asList("aaa", "b", "cccc"), s.get().dropWhile(x -> x.length() > 5).toList());
+        });
 
         // When testing with JDK9, "dropWhile" must redirect the call to JDK 9
         // dropWhile which propagates the "parallel" mode.

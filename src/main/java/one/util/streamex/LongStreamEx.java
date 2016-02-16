@@ -62,15 +62,17 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
     private static final class TDOfLong extends AbstractLongSpliterator implements LongConsumer {
         private final LongPredicate predicate;
         private final boolean drop;
+        private final boolean inclusive;
         private boolean checked;
         private final Spliterator.OfLong source;
         private long cur;
 
-        TDOfLong(Spliterator.OfLong source, boolean drop, LongPredicate predicate) {
+        TDOfLong(Spliterator.OfLong source, boolean drop, boolean inclusive, LongPredicate predicate) {
             super(source.estimateSize(), source.characteristics()
                 & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL | DISTINCT));
             this.drop = drop;
             this.predicate = predicate;
+            this.inclusive = inclusive;
             this.source = source;
         }
 
@@ -93,12 +95,33 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
                 }
                 return false;
             }
-            if (!checked && source.tryAdvance(this) && predicate.test(cur)) {
+            if (!checked && source.tryAdvance(this) && (predicate.test(cur) || (checked = inclusive))) {
                 action.accept(cur);
                 return true;
             }
             checked = true;
             return false;
+        }
+
+        @Override
+        public void forEachRemaining(LongConsumer action) {
+            if (drop) {
+                if (checked)
+                    source.forEachRemaining(action);
+                else {
+                    source.forEachRemaining((long e) -> {
+                        if (checked)
+                            action.accept(e);
+                        else {
+                            if (!predicate.test(e)) {
+                                checked = true;
+                                action.accept(e);
+                            }
+                        }
+                    });
+                }
+            } else
+                super.forEachRemaining(action);
         }
 
         @Override
@@ -1472,9 +1495,14 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_TAKE_WHILE);
         }
-        return delegate(new LongStreamEx.TDOfLong(spliterator(), false, predicate));
+        return delegate(new LongStreamEx.TDOfLong(spliterator(), false, false, predicate));
     }
 
+    public LongStreamEx takeWhileInclusive(LongPredicate predicate) {
+        Objects.requireNonNull(predicate);
+        return delegate(new LongStreamEx.TDOfLong(spliterator(), false, true, predicate));
+    }
+    
     /**
      * Returns a stream consisting of all elements from this stream starting
      * from the first element which does not match the given predicate. If the
@@ -1501,7 +1529,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_DROP_WHILE);
         }
-        return delegate(new LongStreamEx.TDOfLong(spliterator(), true, predicate));
+        return delegate(new LongStreamEx.TDOfLong(spliterator(), true, false, predicate));
     }
 
     // Necessary to generate proper JavaDoc
