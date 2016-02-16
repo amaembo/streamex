@@ -1214,13 +1214,13 @@ import static one.util.streamex.StreamExInternals.*;
      * accumulation function, going left to right. This is equivalent to:
      * 
      * <pre>
-	 * {@code
-	 *     U result = seed;
-	 *     for (T element : this stream)
-	 *         result = accumulator.apply(result, element)
-	 *     return result;
-	 * }
-	 * </pre>
+     * {@code
+     *     U result = seed;
+     *     for (T element : this stream)
+     *         result = accumulator.apply(result, element)
+     *     return result;
+     * }
+     * </pre>
      *
      * <p>
      * This is a terminal operation.
@@ -1258,20 +1258,20 @@ import static one.util.streamex.StreamExInternals.*;
      * function, going left to right. This is equivalent to:
      * 
      * <pre>
-	 * {@code
-	 *     boolean foundAny = false;
-	 *     T result = null;
-	 *     for (T element : this stream) {
-	 *         if (!foundAny) {
-	 *             foundAny = true;
-	 *             result = element;
-	 *         }
-	 *         else
-	 *             result = accumulator.apply(result, element);
-	 *     }
-	 *     return foundAny ? Optional.of(result) : Optional.empty();
-	 * }
-	 * </pre>
+     * {@code
+     *     boolean foundAny = false;
+     *     T result = null;
+     *     for (T element : this stream) {
+     *         if (!foundAny) {
+     *             foundAny = true;
+     *             result = element;
+     *         }
+     *         else
+     *             result = accumulator.apply(result, element);
+     *     }
+     *     return foundAny ? Optional.of(result) : Optional.empty();
+     * }
+     * </pre>
      * 
      * <p>
      * This is a terminal operation.
