@@ -57,6 +57,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import one.util.streamex.IntStreamEx;
@@ -1608,5 +1609,20 @@ public class StreamExTest {
         Map<Integer, List<Integer>> expected = Collections
                 .singletonMap(0, IntStreamEx.range(1, 10000).boxed().toList());
         streamEx(() -> IntStreamEx.range(10000).boxed(), s -> assertEquals(expected, s.get().withFirst().grouping()));
+    }
+    
+    @Test
+    public void testZipWith() {
+        List<String> input = asList("John", "Mary", "Jane", "Jimmy");
+        Spliterator<String> spliterator = StreamEx.of(input).zipWith(IntStreamEx.range(1, Integer.MAX_VALUE).boxed(),
+            (name, idx) -> idx + ". " + name).spliterator();
+        assertEquals(4, spliterator.getExactSizeIfKnown());
+        List<String> expected = asList("1. John", "2. Mary", "3. Jane", "4. Jimmy");
+        streamEx(input::stream, s -> assertEquals(expected, s.get().zipWith(
+            IntStream.range(1, Integer.MAX_VALUE).boxed(), (name, idx) -> idx + ". " + name).toList()));
+        streamEx(input::stream, s -> assertEquals(expected, s.get().zipWith(
+            IntStream.range(1, Integer.MAX_VALUE).boxed()).mapKeyValue((name, idx) -> idx + ". " + name).toList()));
+        streamEx(() -> IntStream.range(1, Integer.MAX_VALUE).boxed(), s -> assertEquals(expected, s.get().zipWith(
+            input.stream(), (idx, name) -> idx + ". " + name).toList()));
     }
 }

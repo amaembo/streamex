@@ -98,7 +98,7 @@ import one.util.streamex.StreamExInternals.TailSpliterator;
     @Override
     public long estimateSize() {
         if (left == null)
-            return right.estimateSize();
+            return right == null ? 0 : right.estimateSize();
         return size;
     }
 
