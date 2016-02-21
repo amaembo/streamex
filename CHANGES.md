@@ -2,6 +2,7 @@
 
 ### 0.5.5
 * [#41] Added: `IntStreamEx/LongStreamEx/StreamEx.without()` accepting several elements.
+* [#60] Added: `StreamEx.zipWith()` to zip the stream with another.
 * [#63] Optimized `IntStreamEx/LongStreamEx/DoubleStreamEx.reverseSorted()`: much faster now and take less memory.
 * [#64] Added: `EntryStream.toMapAndThen()`.
 * [#66] Added: `takeWhileInclusive()` for all stream types.
