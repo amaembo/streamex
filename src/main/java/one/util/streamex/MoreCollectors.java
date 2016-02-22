@@ -33,7 +33,6 @@ import java.util.OptionalInt;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.OptionalLong;
-import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -78,7 +77,8 @@ public final class MoreCollectors {
     private static <T, U> Collector<T, ?, U> empty(Supplier<U> supplier) {
         return new CancellableCollectorImpl<>(() -> NONE, (acc, t) -> {
             // empty
-            }, selectFirst(), acc -> supplier.get(), acc -> true, EnumSet.allOf(Characteristics.class));
+            }, selectFirst(), acc -> supplier.get(), acc -> true, EnumSet.of(Characteristics.UNORDERED,
+                Characteristics.CONCURRENT));
     }
 
     private static <T> Collector<T, ?, List<T>> empty() {
@@ -615,26 +615,7 @@ public final class MoreCollectors {
      *         n stream elements or less if the stream was shorter.
      */
     public static <T> Collector<T, ?, List<T>> greatest(Comparator<? super T> comparator, int n) {
-        if (n <= 0)
-            return empty();
-        BiConsumer<PriorityQueue<T>, T> accumulator = (queue, t) -> {
-            if (queue.size() < n)
-                queue.add(t);
-            else if (comparator.compare(queue.peek(), t) < 0) {
-                queue.poll();
-                queue.add(t);
-            }
-        };
-        return Collector.of(() -> new PriorityQueue<>(comparator), accumulator, (q1, q2) -> {
-            for (T t : q2) {
-                accumulator.accept(q1, t);
-            }
-            return q1;
-        }, queue -> {
-            List<T> result = new ArrayList<>(queue);
-            result.sort(comparator.reversed());
-            return result;
-        });
+        return least(comparator.reversed(), n);
     }
 
     /**
@@ -664,7 +645,7 @@ public final class MoreCollectors {
      *         n stream elements or less if the stream was shorter.
      */
     public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> greatest(int n) {
-        return greatest(Comparator.<T> naturalOrder(), n);
+        return least(Comparator.<T> reverseOrder(), n);
     }
 
     /**
@@ -695,7 +676,25 @@ public final class MoreCollectors {
      *         stream elements or less if the stream was shorter.
      */
     public static <T> Collector<T, ?, List<T>> least(Comparator<? super T> comparator, int n) {
-        return greatest(comparator.reversed(), n);
+        if (n <= 0)
+            return empty();
+        if (n == 1)
+            return collectingAndThen(Collectors.minBy(comparator), opt -> opt.isPresent() ? new ArrayList<>(Collections
+                        .singleton(opt.get())) : new ArrayList<>());
+        if (n > 10000)
+            return collectingAndThen(Collectors.toList(), list -> {
+                list.sort(comparator);
+                if (list.size() <= n)
+                    return list;
+                return new ArrayList<>(list.subList(0, n));
+            });
+        return Collector.<T, Limiter<T>, List<T>> of(() -> new Limiter<>(n, comparator), Limiter::add, (pq1, pq2) -> {
+            pq1.addAll(pq2);
+            return pq1;
+        }, pq -> {
+            pq.sort();
+            return new ArrayList<>(pq);
+        });
     }
 
     /**
@@ -725,7 +724,7 @@ public final class MoreCollectors {
      *         stream elements or less if the stream was shorter.
      */
     public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> least(int n) {
-        return greatest(Comparator.<T> reverseOrder(), n);
+        return least(Comparator.<T> naturalOrder(), n);
     }
 
     /**
