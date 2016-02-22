@@ -78,7 +78,8 @@ public final class MoreCollectors {
     private static <T, U> Collector<T, ?, U> empty(Supplier<U> supplier) {
         return new CancellableCollectorImpl<>(() -> NONE, (acc, t) -> {
             // empty
-            }, selectFirst(), acc -> supplier.get(), acc -> true, EnumSet.allOf(Characteristics.class));
+            }, selectFirst(), acc -> supplier.get(), acc -> true, EnumSet.of(Characteristics.UNORDERED,
+                Characteristics.CONCURRENT));
     }
 
     private static <T> Collector<T, ?, List<T>> empty() {
