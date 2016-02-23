@@ -49,6 +49,7 @@ import java.util.stream.Collector.Characteristics;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import one.util.streamex.StreamExInternals.Box;
 import static one.util.streamex.StreamExInternals.*;
 
 /**
@@ -678,9 +679,17 @@ public final class MoreCollectors {
     public static <T> Collector<T, ?, List<T>> least(Comparator<? super T> comparator, int n) {
         if (n <= 0)
             return empty();
-        if (n == 1)
-            return collectingAndThen(Collectors.minBy(comparator), opt -> opt.isPresent() ? new ArrayList<>(Collections
-                        .singleton(opt.get())) : new ArrayList<>());
+        if (n == 1) {
+            BiConsumer<Box<T>, T> accumulator = (box, t) -> {
+                if (box.a == NONE || comparator.compare(t, box.a) < 0)
+                    box.a = t;
+            };
+            return Collector.of(() -> new Box<T>(none()), accumulator, (box1, box2) -> {
+                if(box2.a != NONE)
+                    accumulator.accept(box1, box2.a);
+                return box1;
+            }, box -> box.a == NONE ? new ArrayList<>() : new ArrayList<>(Collections.singleton(box.a)));
+        }
         if (n > 10000)
             return collectingAndThen(Collectors.toList(), list -> {
                 list.sort(comparator);
@@ -688,10 +697,8 @@ public final class MoreCollectors {
                     return list;
                 return new ArrayList<>(list.subList(0, n));
             });
-        return Collector.<T, Limiter<T>, List<T>> of(() -> new Limiter<>(n, comparator), Limiter::add, (pq1, pq2) -> {
-            pq1.addAll(pq2);
-            return pq1;
-        }, pq -> {
+        return Collector.<T, Limiter<T>, List<T>> of(() -> new Limiter<>(n, comparator), Limiter::put, 
+            Limiter::putAll, pq -> {
             pq.sort();
             return new ArrayList<>(pq);
         });

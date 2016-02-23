@@ -56,8 +56,8 @@ public class LimiterTest {
     public static <T> void exerciseLimiter(String msg, Collection<T> input, int limit, Comparator<? super T> comp) {
         List<T> expected = input.stream().sorted(comp).limit(limit).collect(Collectors.toList());
         List<T> actual = input.stream().collect(MoreCollectors.least(comp, limit));
-        assertEquals("Mismatch (sequential), "+msg+", limit="+limit+":\n\t"+expected+"\n\t"+actual+"\n", actual, expected);
+        assertEquals("Mismatch (sequential), "+msg+", limit="+limit, expected, actual);
         actual = input.parallelStream().collect(MoreCollectors.least(comp, limit));
-        assertEquals("Mismatch (parallel), "+msg+", limit="+limit+":\n\t"+expected+"\n\t"+actual+"\n", actual, expected);
+        assertEquals("Mismatch (parallel), "+msg+", limit="+limit, expected, actual);
     }
 }

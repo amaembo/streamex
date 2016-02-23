@@ -17,20 +17,32 @@ package one.util.streamex;
 
 import java.util.AbstractCollection;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collector;
 
 /**
- * A container to keep n least elements according to given comparator
+ * A container to keep limit least elements according to given comparator
+ * 
+ * First stage (less than limit elements): fill the pq sequentially until limit
+ * elements is created.
+ * 
+ * Second stage: bootstrap. First fill series as a circular buffer until new
+ * element cannot be appended or prepended to it, then drain circular buffer
+ * elements to the pq (replacing greatest current element with the new one) and
+ * start circular buffer again.
+ * 
+ * Finally, sort the pq array respecting the insertion order (which is tracked
+ * in order array).
  * 
  * @author Tagir Valeev
  *
  * @param <T>
  */
-/* package */ class Limiter<T> extends AbstractCollection<T> {
-    private final T[] queue;
+/* package */class Limiter<T> extends AbstractCollection<T> {
+    private final T[] pq;
     private final T[] series;
     private final int[] order;
     private final Comparator<? super T> comparator;
@@ -38,66 +50,71 @@ import java.util.stream.Collector;
 
     @SuppressWarnings("unchecked")
     public Limiter(int limit, Comparator<? super T> comparator) {
-        queue = (T[]) new Object[limit];
+        // limit >= 2
+        pq = (T[]) new Object[limit];
         series = (T[]) new Object[limit];
         order = new int[limit];
         this.comparator = comparator;
     }
-    
-    public void addAll(Limiter<T> other) {
-        if(queue.length == 0)
-            return;
+
+    public Limiter<T> putAll(Limiter<T> other) {
         other.sort();
-    	for(int i = 0; i<other.size; i++) {
-    		if(!add(other.queue[i]))
-    		    break;
-    	}
+        for (int i = 0; i < other.size; i++) {
+            if (!put(other.pq[i]))
+                break;
+        }
+        return this;
     }
 
-    @Override
-    public boolean add(T e) {
-        int limit = queue.length;
-        if (limit < 2) {
-            if (limit == 0 || size == 1 && comparator.compare(e, queue[0]) >= 0)
-                return false;
-            queue[0] = e;
-            size = 1;
+    public boolean put(T t) {
+        int limit = pq.length;
+        if (size < limit) {
+            pq[size] = t;
+            if (++size == limit) {
+                Arrays.sort(pq, comparator);
+                Collections.reverse(Arrays.asList(pq));
+                for (int j = 0; j < limit; j++) {
+                    order[j] = limit - j - 1;
+                }
+            }
             return true;
         }
-        if (maxOrder == 0) {
-            maxOrder = 1;
-            series[0] = e;
-            return true;
-        }
-        if (size == limit && comparator.compare(e, queue[0]) >= 0)
+        if (comparator.compare(t, pq[0]) >= 0)
             return false;
+        if (maxOrder == 0) {
+            maxOrder = limit;
+            series[0] = t;
+            return true;
+        }
         if (head == tail) { // one element in the series
-            if (comparator.compare(e, series[head]) >= 0) {
+            if (comparator.compare(t, series[head]) >= 0) {
                 if (++tail == limit)
                     tail = 0;
-                series[tail] = e;
+                series[tail] = t;
             } else {
                 if (--head == -1)
                     head = limit - 1;
-                series[head] = e;
+                series[head] = t;
             }
         } else {
-            if (comparator.compare(e, series[tail]) >= 0) {
+            if (comparator.compare(t, series[tail]) >= 0) {
+                // append to the series or ignore new element
                 if (tail + 1 == head || head == 0 && tail == limit - 1)
                     return false;
                 if (++tail == limit)
                     tail = 0;
-                series[tail] = e;
-            } else if (comparator.compare(e, series[head]) < 0) {
+                series[tail] = t;
+            } else if (comparator.compare(t, series[head]) < 0) {
+                // prepend to the series possibly removing the biggest element
                 if (--head == -1)
                     head = limit - 1;
-                series[head] = e;
+                series[head] = t;
                 if (tail == head && --tail == -1) {
                     tail = limit - 1;
                 }
             } else {
                 drain();
-                series[head = tail = 0] = e;
+                series[head = tail = 0] = t;
             }
         }
         return true;
@@ -106,74 +123,67 @@ import java.util.stream.Collector;
     private void drain() {
         int i = head;
         while (true) {
-            if (!doAdd(series[i]) || i == tail)
+            if (!putPQ(series[i]) || i == tail)
                 break;
             if (++i == series.length)
                 i = 0;
         }
     }
 
-    private boolean doAdd(T t) {
-        int i = size;
-        int limit = queue.length;
-        if (i == limit) {
-            if (comparator.compare(queue[0], t) <= 0)
-                return false;
-            // sift-down
-            int mid = i >>> 1, cmp = 0, k = 0;
-            while (k < mid) {
-                int child = (k << 1) + 1;
-                T c = queue[child];
-                int oc = order[child];
-                int right = child + 1;
-                if (right < i && ((cmp = comparator.compare(c, queue[right])) < 0 || cmp == 0 && oc < order[right])) {
-                    c = queue[child = right];
-                    oc = order[child];
-                }
-                if (comparator.compare(t, c) >= 0)
-                    break;
-                queue[k] = c;
-                order[k] = oc;
-                k = child;
+    private boolean putPQ(T t) {
+        // size == limit == queue.length here
+        int limit = size;
+        if (comparator.compare(pq[0], t) <= 0)
+            return false;
+        // sift-down
+        int mid = limit >>> 1, cmp = 0, k = 0;
+        while (k < mid) {
+            int child = (k << 1) + 1;
+            T c = pq[child];
+            int oc = order[child];
+            int right = child + 1;
+            if (right < limit && ((cmp = comparator.compare(c, pq[right])) < 0 || cmp == 0 && oc < order[right])) {
+                c = pq[child = right];
+                oc = order[child];
             }
-            queue[k] = t;
-            order[k] = maxOrder++;
-        } else {
-            queue[i] = t;
-            if ((size = i + 1) == limit) {
-                Arrays.sort(queue, comparator.reversed());
-                for (int j = 0; j < limit; j++) {
-                    order[j] = j + 1;
-                }
-                maxOrder = limit + 1;
-            }
+            if (comparator.compare(t, c) >= 0)
+                break;
+            pq[k] = c;
+            order[k] = oc;
+            k = child;
         }
+        pq[k] = t;
+        order[k] = maxOrder++;
         return true;
     }
 
     public void sort() {
-        int limit = queue.length;
-        if (limit < 2 || maxOrder == 0)
-            return;
-        drain();
-        if(size < limit)
-            Arrays.sort(queue, 0, size, comparator);
-        else
+        int limit = pq.length;
+        if (size < limit)
+            Arrays.sort(pq, 0, size, comparator);
+        else {
+            if (maxOrder == 0) {
+                Collections.reverse(Arrays.asList(pq));
+                return;
+            }
+            drain();
+            // Respect order also
             quickSort(0, limit - 1);
+        }
     }
-    
+
     private void quickSort(int lowerIndex, int higherIndex) {
         int i = lowerIndex;
         int j = higherIndex;
-        int mid = lowerIndex+(higherIndex-lowerIndex)/2;
-        T pivot = queue[mid];
+        int mid = lowerIndex + (higherIndex - lowerIndex) / 2;
+        T pivot = pq[mid];
         int pivotOrder = order[mid];
         int cmp;
         while (i <= j) {
-            while ((cmp = comparator.compare(queue[i], pivot)) < 0 || cmp == 0 && order[i] < pivotOrder) {
+            while ((cmp = comparator.compare(pq[i], pivot)) < 0 || cmp == 0 && order[i] < pivotOrder) {
                 i++;
             }
-            while ((cmp = comparator.compare(queue[j], pivot)) > 0 || cmp == 0 && order[j] > pivotOrder) {
+            while ((cmp = comparator.compare(pq[j], pivot)) > 0 || cmp == 0 && order[j] > pivotOrder) {
                 j--;
             }
             if (i <= j) {
@@ -187,40 +197,40 @@ import java.util.stream.Collector;
         if (i < higherIndex)
             quickSort(i, higherIndex);
     }
- 
+
     private void exchange(int i, int j) {
         int temp = order[i];
         order[i] = order[j];
         order[j] = temp;
-        T t = queue[i];
-        queue[i] = queue[j];
-        queue[j] = t;
+        T t = pq[i];
+        pq[i] = pq[j];
+        pq[j] = t;
     }
-    
+
     public static <T> Collector<T, ?, List<T>> least(int limit, Comparator<? super T> comp) {
-        return Collector.<T, Limiter<T>, List<T>>of(() -> new Limiter<>(limit, comp), Limiter::add, (pq1, pq2) -> {
+        return Collector.<T, Limiter<T>, List<T>> of(() -> new Limiter<>(limit, comp), Limiter::add, (pq1, pq2) -> {
             pq1.addAll(pq2);
             return pq1;
         }, pq -> {
             pq.sort();
-            return pq.size == limit ? Arrays.asList(pq.queue) : Arrays.asList(pq.queue).subList(0, pq.size); 
+            return pq.size == limit ? Arrays.asList(pq.pq) : Arrays.asList(pq.pq).subList(0, pq.size);
         });
     }
 
     @Override
     public Iterator<T> iterator() {
-        return Arrays.asList(queue).subList(0, size).iterator();
+        return Arrays.asList(pq).subList(0, size).iterator();
     }
 
     @Override
     public int size() {
         return size;
     }
-    
+
     @Override
     public Object[] toArray() {
-        if(size == queue.length)
-            return queue;
-        return Arrays.copyOfRange(queue, 0, size);
+        if (size == pq.length)
+            return pq;
+        return Arrays.copyOfRange(pq, 0, size);
     }
 }
