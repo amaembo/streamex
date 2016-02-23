@@ -36,13 +36,13 @@ public class LimiterTest {
         exerciseLimiter("str", Arrays.asList("abc", "abgdc", "abd", "a", "fgssdfg", "sfsvsx", null,
             "wrffvs", "xcvbxvcb", "sffg", "abe", "adf", "abh"), cmp);
         for(int i : new int[] {10, 100, 1000, 10000, 100000}) {
-            exerciseLimiter("asc, nat, "+i, IntStream.range(0, i).boxed().collect(Collectors.toList()), Comparator.naturalOrder());
+            exerciseLimiter("asc, nat, "+i, IntStream.range(0, i).boxed().collect(Collectors.toList()), Comparator.<Integer>naturalOrder());
             exerciseLimiter("asc, dec, "+i, IntStream.range(0, i).boxed().collect(Collectors.toList()), Comparator.comparingInt(x -> x/10));
-            exerciseLimiter("desc, nat, "+i, IntStream.range(0, i).mapToObj(x -> ~x).collect(Collectors.toList()), Comparator.naturalOrder());
+            exerciseLimiter("desc, nat, "+i, IntStream.range(0, i).mapToObj(x -> ~x).collect(Collectors.toList()), Comparator.<Integer>naturalOrder());
             exerciseLimiter("desc, dec, "+i, IntStream.range(0, i).mapToObj(x -> ~x).collect(Collectors.toList()), Comparator.comparingInt(x -> x/10));
-            exerciseLimiter("rnd, nat, "+i, new Random(1).ints(i).boxed().collect(Collectors.toList()), Comparator.naturalOrder());
+            exerciseLimiter("rnd, nat, "+i, new Random(1).ints(i).boxed().collect(Collectors.toList()), Comparator.<Integer>naturalOrder());
             exerciseLimiter("rnd, dec, "+i, new Random(1).ints(i).boxed().collect(Collectors.toList()), Comparator.comparingInt(x -> x/10));
-            exerciseLimiter("rnd2, nat, "+i, new Random(1).ints(i, -1000, 1000).boxed().collect(Collectors.toList()), Comparator.naturalOrder());
+            exerciseLimiter("rnd2, nat, "+i, new Random(1).ints(i, -1000, 1000).boxed().collect(Collectors.toList()), Comparator.<Integer>naturalOrder());
             exerciseLimiter("rnd2, dec, "+i, new Random(1).ints(i, -1000, 1000).boxed().collect(Collectors.toList()), Comparator.comparingInt(x -> x/10));
         }
     }
