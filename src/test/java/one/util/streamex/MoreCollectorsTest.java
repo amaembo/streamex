@@ -84,6 +84,12 @@ public class MoreCollectorsTest {
             assertArrayEquals(new String[] { "eee", "ddd" }, result.get(3));
         });
     }
+    
+    @Test
+    public void testEmpty() {
+        List<Integer> list = Arrays.asList(1, 2, 3).stream().collect(MoreCollectors.head(0));
+        assertTrue(list.isEmpty());
+    }
 
     @Test
     public void testDistinctCount() {
