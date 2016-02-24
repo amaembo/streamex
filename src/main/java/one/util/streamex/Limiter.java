@@ -20,8 +20,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.List;
-import java.util.stream.Collector;
 
 /**
  * A container to keep limit least elements according to given comparator
@@ -205,16 +203,6 @@ import java.util.stream.Collector;
         T t = pq[i];
         pq[i] = pq[j];
         pq[j] = t;
-    }
-
-    public static <T> Collector<T, ?, List<T>> least(int limit, Comparator<? super T> comp) {
-        return Collector.<T, Limiter<T>, List<T>> of(() -> new Limiter<>(limit, comp), Limiter::add, (pq1, pq2) -> {
-            pq1.addAll(pq2);
-            return pq1;
-        }, pq -> {
-            pq.sort();
-            return pq.size == limit ? Arrays.asList(pq.pq) : Arrays.asList(pq.pq).subList(0, pq.size);
-        });
     }
 
     @Override
