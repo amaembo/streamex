@@ -680,15 +680,11 @@ public final class MoreCollectors {
         if (n <= 0)
             return empty();
         if (n == 1) {
-            BiConsumer<Box<T>, T> accumulator = (box, t) -> {
+            return Collector.of(() -> new Box<T>(none()), (box, t) -> {
                 if (box.a == NONE || comparator.compare(t, box.a) < 0)
                     box.a = t;
-            };
-            return Collector.of(() -> new Box<T>(none()), accumulator, (box1, box2) -> {
-                if(box2.a != NONE)
-                    accumulator.accept(box1, box2.a);
-                return box1;
-            }, box -> box.a == NONE ? new ArrayList<>() : new ArrayList<>(Collections.singleton(box.a)));
+            }, (box1, box2) -> (box2.a != NONE && (box1.a == NONE || comparator.compare(box2.a, box1.a) < 0)) ? box2
+                    : box1, box -> box.a == NONE ? new ArrayList<>() : new ArrayList<>(Collections.singleton(box.a)));
         }
         if (n > 10000)
             return collectingAndThen(Collectors.toList(), list -> {

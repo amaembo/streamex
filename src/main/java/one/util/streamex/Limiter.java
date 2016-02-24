@@ -43,17 +43,15 @@ import java.util.stream.Collector;
  */
 /* package */class Limiter<T> extends AbstractCollection<T> {
     private final T[] pq;
-    private final T[] series;
-    private final int[] order;
+    private T[] series;
+    private int[] order;
     private final Comparator<? super T> comparator;
     private int size, maxOrder, head, tail;
 
     @SuppressWarnings("unchecked")
     public Limiter(int limit, Comparator<? super T> comparator) {
         // limit >= 2
-        pq = (T[]) new Object[limit];
-        series = (T[]) new Object[limit];
-        order = new int[limit];
+        this.pq = (T[]) new Object[limit];
         this.comparator = comparator;
     }
 
@@ -66,23 +64,26 @@ import java.util.stream.Collector;
         return this;
     }
 
+    @SuppressWarnings("unchecked")
     public boolean put(T t) {
         int limit = pq.length;
         if (size < limit) {
-            pq[size] = t;
-            if (++size == limit) {
-                Arrays.sort(pq, comparator);
-                Collections.reverse(Arrays.asList(pq));
-                for (int j = 0; j < limit; j++) {
-                    order[j] = limit - j - 1;
-                }
-            }
+            pq[size++] = t;
             return true;
+        }
+        if (maxOrder == 0) {
+            Arrays.sort(pq, comparator);
+            Collections.reverse(Arrays.asList(pq));
+            maxOrder = limit;
         }
         if (comparator.compare(t, pq[0]) >= 0)
             return false;
-        if (maxOrder == 0) {
-            maxOrder = limit;
+        if (order == null) {
+            order = new int[limit];
+            for (int j = 0; j < limit; j++) {
+                order[j] = limit - j - 1;
+            }
+            series = (T[]) new Object[limit];
             series[0] = t;
             return true;
         }
@@ -158,17 +159,16 @@ import java.util.stream.Collector;
     }
 
     public void sort() {
-        int limit = pq.length;
-        if (size < limit)
+        if (maxOrder == 0)
             Arrays.sort(pq, 0, size, comparator);
         else {
-            if (maxOrder == 0) {
+            if (order == null) {
                 Collections.reverse(Arrays.asList(pq));
-                return;
+            } else {
+                drain();
+                // Respect order also
+                quickSort(0, pq.length - 1);
             }
-            drain();
-            // Respect order also
-            quickSort(0, limit - 1);
         }
     }
 

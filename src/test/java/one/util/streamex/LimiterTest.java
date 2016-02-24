@@ -36,24 +36,24 @@ public class LimiterTest {
         exerciseLimiter("str", Arrays.asList("abc", "abgdc", "abd", "a", "fgssdfg", "sfsvsx", null,
             "wrffvs", "xcvbxvcb", "sffg", "abe", "adf", "abh"), cmp);
         for(int i : new int[] {10, 100, 1000, 10000, 100000}) {
-            exerciseLimiter("asc, nat, "+i, IntStream.range(0, i).boxed().collect(Collectors.toList()), Comparator.<Integer>naturalOrder());
+            exerciseLimiter("asc, nat, "+i, IntStream.range(0, i).boxed().collect(Collectors.toList()), Comparator.naturalOrder());
             exerciseLimiter("asc, dec, "+i, IntStream.range(0, i).boxed().collect(Collectors.toList()), Comparator.comparingInt(x -> x/10));
-            exerciseLimiter("desc, nat, "+i, IntStream.range(0, i).mapToObj(x -> ~x).collect(Collectors.toList()), Comparator.<Integer>naturalOrder());
+            exerciseLimiter("desc, nat, "+i, IntStream.range(0, i).mapToObj(x -> ~x).collect(Collectors.toList()), Comparator.naturalOrder());
             exerciseLimiter("desc, dec, "+i, IntStream.range(0, i).mapToObj(x -> ~x).collect(Collectors.toList()), Comparator.comparingInt(x -> x/10));
-            exerciseLimiter("rnd, nat, "+i, new Random(1).ints(i).boxed().collect(Collectors.toList()), Comparator.<Integer>naturalOrder());
+            exerciseLimiter("rnd, nat, "+i, new Random(1).ints(i).boxed().collect(Collectors.toList()), Comparator.naturalOrder());
             exerciseLimiter("rnd, dec, "+i, new Random(1).ints(i).boxed().collect(Collectors.toList()), Comparator.comparingInt(x -> x/10));
-            exerciseLimiter("rnd2, nat, "+i, new Random(1).ints(i, -1000, 1000).boxed().collect(Collectors.toList()), Comparator.<Integer>naturalOrder());
+            exerciseLimiter("rnd2, nat, "+i, new Random(1).ints(i, -1000, 1000).boxed().collect(Collectors.toList()), Comparator.naturalOrder());
             exerciseLimiter("rnd2, dec, "+i, new Random(1).ints(i, -1000, 1000).boxed().collect(Collectors.toList()), Comparator.comparingInt(x -> x/10));
         }
     }
     
-    public static <T> void exerciseLimiter(String msg, Collection<T> input, Comparator<? super T> comp) {
+    public static <T> void exerciseLimiter(String msg, Collection<T> input, Comparator<T> comp) {
         for(int limit : new int[] {0, 1, 2, 5, 10, 20, 100, 1000}) {
             exerciseLimiter(msg, input, limit, comp);
         }
     }
 
-    public static <T> void exerciseLimiter(String msg, Collection<T> input, int limit, Comparator<? super T> comp) {
+    public static <T> void exerciseLimiter(String msg, Collection<T> input, int limit, Comparator<T> comp) {
         List<T> expected = input.stream().sorted(comp).limit(limit).collect(Collectors.toList());
         List<T> actual = input.stream().collect(MoreCollectors.least(comp, limit));
         assertEquals("Mismatch (sequential), "+msg+", limit="+limit, expected, actual);
