@@ -54,10 +54,16 @@ import java.util.Iterator;
     }
 
     public Limiter<T> putAll(Limiter<T> other) {
-        other.sort();
-        for (int i = 0; i < other.size; i++) {
-            if (!put(other.pq[i]))
-                break;
+        if(other.size + size < pq.length) {
+            System.arraycopy(other.pq, 0, pq, size, other.size);
+            size+=other.size;
+        }
+        else {
+            other.sort();
+            for (int i = 0; i < other.size; i++) {
+                if (!put(other.pq[i]))
+                    break;
+            }
         }
         return this;
     }
@@ -96,14 +102,7 @@ import java.util.Iterator;
                 series[head] = t;
             }
         } else {
-            if (comparator.compare(t, series[tail]) >= 0) {
-                // append to the series or ignore new element
-                if (tail + 1 == head || head == 0 && tail == limit - 1)
-                    return false;
-                if (++tail == limit)
-                    tail = 0;
-                series[tail] = t;
-            } else if (comparator.compare(t, series[head]) < 0) {
+            if (comparator.compare(t, series[head]) < 0) {
                 // prepend to the series possibly removing the biggest element
                 if (--head == -1)
                     head = limit - 1;
@@ -111,6 +110,13 @@ import java.util.Iterator;
                 if (tail == head && --tail == -1) {
                     tail = limit - 1;
                 }
+            } else if (comparator.compare(t, series[tail]) >= 0) {
+                // append to the series or ignore new element
+                if (tail + 1 == head || head == 0 && tail == limit - 1)
+                    return false;
+                if (++tail == limit)
+                    tail = 0;
+                series[tail] = t;
             } else {
                 drain();
                 series[head = tail = 0] = t;
