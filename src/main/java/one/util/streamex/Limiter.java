@@ -54,11 +54,10 @@ import java.util.Iterator;
     }
 
     public Limiter<T> putAll(Limiter<T> other) {
-        if(other.size + size < pq.length) {
+        if (other.size + size < pq.length) {
             System.arraycopy(other.pq, 0, pq, size, other.size);
-            size+=other.size;
-        }
-        else {
+            size += other.size;
+        } else {
             other.sort();
             for (int i = 0; i < other.size; i++) {
                 if (!put(other.pq[i]))
@@ -66,6 +65,14 @@ import java.util.Iterator;
             }
         }
         return this;
+    }
+
+    private static int inc(int val, int limit) {
+        return (val + 1) % limit;
+    }
+
+    private static int dec(int val, int limit) {
+        return (val + limit - 1) % limit;
     }
 
     @SuppressWarnings("unchecked")
@@ -80,9 +87,17 @@ import java.util.Iterator;
             Collections.reverse(Arrays.asList(pq));
             maxOrder = limit;
         }
+        T[] s = series;
+        if (s != null && comparator.compare(t, s[head]) < 0) {
+            // prepend to the series possibly removing the biggest element
+            s[head = dec(head, limit)] = t;
+            if (head == tail)
+                tail = dec(tail, limit);
+            return true;
+        }
         if (comparator.compare(t, pq[0]) >= 0)
             return false;
-        if (order == null) {
+        if (s == null) {
             order = new int[limit];
             for (int j = 0; j < limit; j++) {
                 order[j] = limit - j - 1;
@@ -91,54 +106,29 @@ import java.util.Iterator;
             series[0] = t;
             return true;
         }
+        int next = inc(tail, limit);
         if (head == tail) { // one element in the series
-            if (comparator.compare(t, series[head]) >= 0) {
-                if (++tail == limit)
-                    tail = 0;
-                series[tail] = t;
-            } else {
-                if (--head == -1)
-                    head = limit - 1;
-                series[head] = t;
-            }
+            s[tail = next] = t;
         } else {
-            if (comparator.compare(t, series[head]) < 0) {
-                // prepend to the series possibly removing the biggest element
-                if (--head == -1)
-                    head = limit - 1;
-                series[head] = t;
-                if (tail == head && --tail == -1) {
-                    tail = limit - 1;
-                }
-            } else if (comparator.compare(t, series[tail]) >= 0) {
+            if (comparator.compare(t, s[tail]) >= 0) {
                 // append to the series or ignore new element
-                if (tail + 1 == head || head == 0 && tail == limit - 1)
+                if (next == head)
                     return false;
-                if (++tail == limit)
-                    tail = 0;
-                series[tail] = t;
+                s[tail = next] = t;
             } else {
-                drain();
-                series[head = tail = 0] = t;
+                drain(s, limit);
+                s[head = tail = 0] = t;
             }
         }
         return true;
     }
 
-    private void drain() {
-        int i = head;
-        while (true) {
-            if (!putPQ(series[i]) || i == tail)
-                break;
-            if (++i == series.length)
-                i = 0;
-        }
+    private void drain(T[] series, int limit) {
+        for(int i = head; putPQ(series[i], limit) && i != tail; i = inc(i, limit));
     }
 
-    private boolean putPQ(T t) {
-        // size == limit == queue.length here
-        int limit = size;
-        if (comparator.compare(pq[0], t) <= 0)
+    private boolean putPQ(T t, int limit) {
+        if (comparator.compare(t, pq[0]) >= 0)
             return false;
         // sift-down
         int mid = limit >>> 1, cmp = 0, k = 0;
@@ -169,7 +159,7 @@ import java.util.Iterator;
             if (order == null) {
                 Collections.reverse(Arrays.asList(pq));
             } else {
-                drain();
+                drain(series, pq.length);
                 // Respect order also
                 quickSort(0, pq.length - 1);
             }
@@ -191,7 +181,12 @@ import java.util.Iterator;
                 j--;
             }
             if (i <= j) {
-                exchange(i, j);
+                int temp = order[i];
+                order[i] = order[j];
+                order[j] = temp;
+                T t = pq[i];
+                pq[i] = pq[j];
+                pq[j] = t;
                 i++;
                 j--;
             }
@@ -200,15 +195,6 @@ import java.util.Iterator;
             quickSort(lowerIndex, j);
         if (i < higherIndex)
             quickSort(i, higherIndex);
-    }
-
-    private void exchange(int i, int j) {
-        int temp = order[i];
-        order[i] = order[j];
-        order[j] = temp;
-        T t = pq[i];
-        pq[i] = pq[j];
-        pq[j] = t;
     }
 
     @Override
