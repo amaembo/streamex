@@ -30,6 +30,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Map.Entry;
 import java.util.SortedMap;
@@ -588,5 +589,11 @@ public class EntryStreamTest {
         Stream<String> s = Stream.of("a", "b", "c", "d", "e", "f", "g", "h", "i", "j");
         assertEquals(asList(asList("a", "b", "c"), asList("d", "e", "f"), asList("g", "h", "i"), asList("j")),
             IntStreamEx.ints().flatMapToObj(i -> StreamEx.constant(i, 3)).zipWith(s).collapseKeys().values().toList());
+    }
+    
+    @Test
+    public void testChain() {
+        assertEquals(EntryStream.of(1, "a", 2, "b", 3, "c").toList(), EntryStream.of(1, "a", 2, "b", 2, "b", 3, "c")
+                .chain(StreamEx::of).collapse(Objects::equals).toList());
     }
 }
