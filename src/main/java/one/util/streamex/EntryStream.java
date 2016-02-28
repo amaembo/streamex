@@ -16,8 +16,10 @@
 package one.util.streamex;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -88,6 +90,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
 
     <M extends Map<K, V>> Consumer<? super Entry<K, V>> toMapConsumer(M map) {
         return entry -> addToMap(map, entry.getKey(), Objects.requireNonNull(entry.getValue()));
+    }
+
+    BiPredicate<? super Entry<K, V>, ? super Entry<K, V>> equalKeys() {
+        return (e1, e2) -> Objects.equals(e1.getKey(), e2.getKey());
     }
 
     static <K, V> Stream<Entry<K, V>> withValue(Stream<? extends K> s, V value) {
@@ -811,6 +817,114 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     public StreamEx<V> values() {
         return map(Entry::getValue);
+    }
+
+    /**
+     * Merge series of adjacent stream entries with equal keys grouping the
+     * corresponding values into {@code List}.
+     * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate</a>
+     * partial reduction operation.
+     * 
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code List} objects of the resulting stream.
+     *
+     * <p>
+     * The key of the resulting entry is the key of the first merged entry.
+     * 
+     * @return a new {@code EntryStream} which keys are the keys of the original
+     *         stream and the values of adjacent entries with the same keys are
+     *         grouped into {@code List}
+     * @see StreamEx#groupRuns(BiPredicate)
+     * @since 0.5.5
+     */
+    public EntryStream<K, List<V>> collapseKeys() {
+        return new StreamEx<>(new CollapseSpliterator<Entry<K, V>, PairBox<K, List<V>>>(equalKeys(),
+                e -> new PairBox<>(e.getKey(), Collections.singletonList(e.getValue())), (pb, e) -> {
+                    if (!(pb.b instanceof ArrayList)) {
+                        V old = pb.b.get(0);
+                        pb.b = new ArrayList<>();
+                        pb.b.add(old);
+                    }
+                    pb.b.add(e.getValue());
+                    return pb;
+                }, (pb1, pb2) -> {
+                    if (!(pb1.b instanceof ArrayList)) {
+                        V old = pb1.b.get(0);
+                        pb1.b = new ArrayList<>();
+                        pb1.b.add(old);
+                    }
+                    pb1.b.addAll(pb2.b);
+                    return pb1;
+                }, spliterator()), context).mapToEntry(pb -> pb.a, pb -> pb.b);
+    }
+
+    /**
+     * Merge series of adjacent stream entries with equal keys combining the
+     * corresponding values using the provided function.
+     * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate</a>
+     * partial reduction operation.
+     * 
+     * <p>
+     * The key of the resulting entry is the key of the first merged entry.
+     *
+     * @param merger a non-interfering, stateless, associative function to merge
+     *        values of two adjacent entries which keys are equal. Note that it
+     *        can be applied to the results if previous merges.
+     * @return a new {@code EntryStream} which keys are the keys of the original
+     *         stream and the values are values of the adjacent entries with the
+     *         same keys, combined using the provided merger function.
+     * @see StreamEx#collapse(BiPredicate, BinaryOperator)
+     * @since 0.5.5
+     */
+    public EntryStream<K, V> collapseKeys(BinaryOperator<V> merger) {
+        BinaryOperator<Entry<K, V>> entryMerger = (e1, e2) -> new SimpleImmutableEntry<>(e1.getKey(), merger.apply(e1
+                .getValue(), e2.getValue()));
+        return new EntryStream<>(new CollapseSpliterator<>(equalKeys(), Function.identity(), entryMerger, entryMerger,
+                spliterator()), context);
+    }
+
+    /**
+     * Merge series of adjacent stream entries with equal keys combining the
+     * corresponding values using the provided {@code Collector}.
+     * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate</a>
+     * partial reduction operation.
+     * 
+     * <p>
+     * The key of the resulting entry is the key of the first merged entry.
+     *
+     * @param <R> the type of the values in the resulting stream
+     * @param <A> the intermediate accumulation type of the {@code Collector}
+     * @param collector a {@code Collector} which is used to combine the values
+     *        of the adjacent entries with the equal keys.
+     * @return a new {@code EntryStream} which keys are the keys of the original
+     *         stream and the values are values of the adjacent entries with the
+     *         same keys, combined using the provided collector.
+     * @see StreamEx#collapse(BiPredicate, Collector)
+     * @since 0.5.5
+     */
+    public <A, R> EntryStream<K, R> collapseKeys(Collector<? super V, A, R> collector) {
+        Supplier<A> supplier = collector.supplier();
+        BiConsumer<A, ? super V> accumulator = collector.accumulator();
+        BinaryOperator<A> combiner = collector.combiner();
+        Function<A, R> finisher = collector.finisher();
+        return new StreamEx<>(new CollapseSpliterator<Entry<K, V>, PairBox<K, A>>(equalKeys(), e -> {
+            A a = supplier.get();
+            accumulator.accept(a, e.getValue());
+            return new PairBox<>(e.getKey(), a);
+        }, (pb, e) -> {
+            accumulator.accept(pb.b, e.getValue());
+            return pb;
+        }, (pb1, pb2) -> {
+            pb1.b = combiner.apply(pb1.b, pb2.b);
+            return pb1;
+        }, spliterator()), context).mapToEntry(pb -> pb.a, pb -> finisher.apply(pb.b));
     }
 
     /**

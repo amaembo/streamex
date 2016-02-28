@@ -8,6 +8,7 @@
 * [#66] Added: `takeWhileInclusive()` for all stream types.
 * [#71] Fixed: some collectors like `head(0)`, `greatest(0)` failed when using with JDK Stream.
 * [#72] Added: `IntStreamEx.ints()` and `LongStreamEx.longs()`.
+* [#73] Added: `EntryStream.collapseKeys()`.
 
 ### 0.5.4
 * [#10] Added: `chain()` method to all stream types allowing fluently chaining custom operations.

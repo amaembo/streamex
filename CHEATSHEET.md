@@ -143,6 +143,7 @@ Group some adjacent stream elements into `List` | `StreamEx.groupRuns()`
 Reduce some adjacent stream elements using `Collector` or `BinaryOperator` | `StreamEx.collapse()`
 Collapse some adjacent stream elements into interval | `StreamEx.intervalMap()`
 Remove adjacent duplicate elements counting them | `StreamEx.runLengths()`
+Group adjacent entries with equal keys | `EntryStream.collapseKeys()`
 
 ### concatenate
 
