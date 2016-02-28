@@ -124,7 +124,8 @@ import java.util.Iterator;
     }
 
     private void drain(T[] series, int limit) {
-        for(int i = head; putPQ(series[i], limit) && i != tail; i = inc(i, limit));
+        for (int i = head; putPQ(series[i], limit) && i != tail; i = inc(i, limit))
+            ;
     }
 
     private boolean putPQ(T t, int limit) {
@@ -159,10 +160,57 @@ import java.util.Iterator;
             if (order == null) {
                 Collections.reverse(Arrays.asList(pq));
             } else {
-                drain(series, pq.length);
                 // Respect order also
                 quickSort(0, pq.length - 1);
+                merge();
             }
+        }
+    }
+    
+    private int binSearch(int from, int to, T t) {
+        while (from <= to) {
+            int mid = (from + to) >>> 1;
+            if (comparator.compare(pq[mid], t) <= 0)
+                from = mid + 1;
+            else
+                to = mid - 1;
+        }
+        return from;
+    }
+
+    private void merge() {
+        int j = head, limit = pq.length;
+        int start = binSearch(0, limit - 1, series[j]);
+        if(head == tail) {
+            if(start < limit) {
+                System.arraycopy(pq, start, pq, start+1, pq.length-start-1);
+                pq[start] = series[j];
+            }
+            return;
+        }
+        int end = binSearch(start, limit - 1, series[tail]);
+        int i = start;
+        for (int k = start; k < limit; k++) {
+            if (k != start && comparator.compare(series[j], pq[i]) >= 0) {
+                order[k] = i++;
+            } else {
+                order[k] = ~j;
+                j = inc(j, limit);
+                if (j == tail) {
+                    while (i < end && ++k < limit)
+                        order[k] = i++;
+                    if(++k < limit) {
+                        order[k] = ~j;
+                        while (++k < limit)
+                            order[k] = i++;
+                    }
+                    break;
+                }
+            }
+        }
+        for (int k = limit - 1; k >= start; k--) {
+            int o = order[k];
+            pq[k] = o >= 0 ? pq[o] : series[~o];
         }
     }
 
