@@ -2283,6 +2283,19 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
     public static IntStreamEx generate(IntSupplier s) {
         return seq(IntStream.generate(s));
     }
+    
+    /**
+     * Returns a sequential ordered {@code IntStreamEx} from 0 (inclusive) to
+     * {@code Integer.MAX_VALUE} (exclusive) by an incremental step of {@code 1}.
+     *
+     * @return a sequential {@code IntStreamEx} for the range of {@code int}
+     *         elements
+     * @see #range(int, int)
+     * @since 0.5.5
+     */
+    public static IntStreamEx ints() {
+        return seq(IntStream.range(0, Integer.MAX_VALUE));
+    }
 
     /**
      * Returns a sequential ordered {@code IntStreamEx} from 0 (inclusive) to

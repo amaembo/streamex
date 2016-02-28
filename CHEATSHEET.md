@@ -60,6 +60,7 @@ Stream of all possible tuples of given `Collection` of collections | `StreamEx.c
 Stream of permutations | `StreamEx.ofPermutations()`
 Stream of array or `List` indices (with optional element filter) | `IntStreamEx.ofIndices()`
 Stream of range of integral values (with optional step parameter) | `IntStreamEx/LongStreamEx.range()/rangeClosed()`
+Stream of increasing `int` or `long` values | `IntStreamEx.ints()`/`LongStreamEx.longs()`
 Stream of random numbers | `IntStreamEx/LongStreamEx/DoubleStreamEx.of(Random, ...)`
 Stream of `CharSequence` symbols | `IntStreamEx.ofChars()/ofCodePoints()`
 Stream of `BitSet` true bits | `IntStreamEx.of(BitSet)`

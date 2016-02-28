@@ -87,6 +87,12 @@ public class LongStreamExTest {
     }
 
     @Test
+    public void testLongs() {
+        assertEquals(Long.MAX_VALUE, LongStreamEx.longs().spliterator().getExactSizeIfKnown());
+        assertArrayEquals(new long[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, LongStreamEx.longs().limit(10).toArray());
+    }
+
+    @Test
     public void testRangeStep() {
         assertArrayEquals(new long[] { 0 }, LongStreamEx.range(0, 1000, 100000).toArray());
         assertArrayEquals(new long[] { 0, Long.MAX_VALUE - 1 }, LongStreamEx.range(0, Long.MAX_VALUE,

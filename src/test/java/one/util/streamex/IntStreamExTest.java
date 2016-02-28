@@ -103,6 +103,12 @@ public class IntStreamExTest {
 
         assertArrayEquals(new int[] { 2, 4, 6 }, IntStreamEx.of(new Integer[] { 2, 4, 6 }).toArray());
     }
+    
+    @Test
+    public void testInts() {
+        assertEquals(Integer.MAX_VALUE, IntStreamEx.ints().spliterator().getExactSizeIfKnown());
+        assertArrayEquals(new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, IntStreamEx.ints().limit(10).toArray());
+    }
 
     @Test
     public void testRangeStep() {

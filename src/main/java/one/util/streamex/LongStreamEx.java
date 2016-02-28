@@ -1800,6 +1800,19 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
 
     /**
      * Returns a sequential ordered {@code LongStreamEx} from 0 (inclusive) to
+     * {@code Long.MAX_VALUE} (exclusive) by an incremental step of {@code 1}.
+     *
+     * @return a sequential {@code LongStreamEx} for the range of {@code long}
+     *         elements
+     * @see #range(long, long)
+     * @since 0.5.5
+     */
+    public static LongStreamEx longs() {
+        return seq(LongStream.range(0, Long.MAX_VALUE));
+    }
+
+    /**
+     * Returns a sequential ordered {@code LongStreamEx} from 0 (inclusive) to
      * {@code endExclusive} (exclusive) by an incremental step of {@code 1}.
      *
      * @param endExclusive the exclusive upper bound
