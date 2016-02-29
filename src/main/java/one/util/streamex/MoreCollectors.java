@@ -693,8 +693,8 @@ public final class MoreCollectors {
                     return list;
                 return new ArrayList<>(list.subList(0, n));
             });
-        return Collector.<T, LimiterQuickSelect<T>, List<T>> of(() -> new LimiterQuickSelect<>(n, comparator), LimiterQuickSelect::put, 
-            LimiterQuickSelect::putAll, pq -> {
+        return Collector.<T, LimiterSort<T>, List<T>> of(() -> new LimiterSort<>(n, comparator), LimiterSort::put, 
+            LimiterSort::putAll, pq -> {
             pq.sort();
             return new ArrayList<>(pq);
         });
