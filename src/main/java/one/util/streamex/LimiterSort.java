@@ -21,28 +21,43 @@ import java.util.Comparator;
 import java.util.Iterator;
 
 /**
+ * Extracts least limit elements from the input sorting them according to the
+ * given comparator. Works for 2 <= limit < Integer.MAX_VALUE/2. Uses
+ * O(min(limit, inputSize)) additional memory.
+ * 
+ * @param <T> type of input elements
+ * 
  * @author Tagir Valeev
  */
-/* package */ class LimiterSort<T> extends AbstractCollection<T> {
+/* package */class LimiterSort<T> extends AbstractCollection<T> {
     private T[] data;
     private final int limit;
     private final Comparator<? super T> comparator;
     private int size;
     private boolean initial = true;
-    
+
     @SuppressWarnings("unchecked")
     public LimiterSort(int limit, Comparator<? super T> comparator) {
         this.limit = limit;
         this.comparator = comparator;
-        this.data = (T[]) new Object[Math.min(1000, limit)*2];
+        this.data = (T[]) new Object[Math.min(1000, limit) * 2];
     }
-    
+
+    /**
+     * Accumulate new element
+     * 
+     * @param t element to accumulate
+     * 
+     * @return false if the element is definitely not included into result, so
+     *         any bigger element could be skipped as well, or true if element
+     *         will probably be included into result.
+     */
     public boolean put(T t) {
-        if(initial) {
-            if(size == data.length) {
-                if(size < limit * 2) {
+        if (initial) {
+            if (size == data.length) {
+                if (size < limit * 2) {
                     @SuppressWarnings("unchecked")
-                    T[] newData = (T[]) new Object[Math.min(limit, size)*2];
+                    T[] newData = (T[]) new Object[Math.min(limit, size) * 2];
                     System.arraycopy(data, 0, newData, 0, size);
                     data = newData;
                 } else {
@@ -56,39 +71,46 @@ import java.util.Iterator;
             }
             return true;
         }
-        if(size == data.length) {
+        if (size == data.length) {
             sortTail();
         }
-        if(comparator.compare(t, data[limit-1]) < 0) {
+        if (comparator.compare(t, data[limit - 1]) < 0) {
             data[size++] = t;
             return true;
         }
         return false;
     }
-    
-    public LimiterSort<T> putAll(LimiterSort<T> lqs) {
-        if(!lqs.initial) {
-            for(int i=0; i<limit; i++) {
-                if(!put(lqs.data[i])) break;
+
+    /**
+     * Merge other {@code LimiterSort} object into this (other object becomes unusable after that).
+     * 
+     * @param ls other object to merge
+     * @return this object
+     */
+    public LimiterSort<T> putAll(LimiterSort<T> ls) {
+        if (!ls.initial) {
+            for (int i = 0; i < limit; i++) {
+                if (!put(ls.data[i]))
+                    break;
             }
-            for(int i=limit; i<lqs.size; i++) {
-                put(lqs.data[i]);
+            for (int i = limit; i < ls.size; i++) {
+                put(ls.data[i]);
             }
         } else {
-            for(int i=0; i<lqs.size; i++) {
-                put(lqs.data[i]);
+            for (int i = 0; i < ls.size; i++) {
+                put(ls.data[i]);
             }
         }
         return this;
     }
-    
+
     private void sortTail() {
         // size > limit here
         T[] d = data;
         int l = limit, s = size;
         Comparator<? super T> cmp = comparator;
         Arrays.sort(d, l, s, cmp);
-        if(cmp.compare(d[s-1], d[0]) < 0) {
+        if (cmp.compare(d[s - 1], d[0]) < 0) {
             // Common case: descending sequence
             // Assume size - limit <= limit here
             System.arraycopy(d, 0, d, s - l, 2 * l - s);
@@ -98,30 +120,35 @@ import java.util.Iterator;
             @SuppressWarnings("unchecked")
             T[] buf = (T[]) new Object[l];
             int i = 0, j = l, k = 0;
-            // d[l-1] is guaranteed to be the worst element, thus no need to check it
-            while(i < l - 1 && k < l && j < s) {
-                if(cmp.compare(d[i], d[j]) <= 0) {
+            // d[l-1] is guaranteed to be the worst element, thus no need to
+            // check it
+            while (i < l - 1 && k < l && j < s) {
+                if (cmp.compare(d[i], d[j]) <= 0) {
                     buf[k++] = d[i++];
                 } else {
                     buf[k++] = d[j++];
                 }
             }
-            if(k < l) {
-                if(i < l - 1) {
-                    System.arraycopy(d, i, d, k, l-k);
+            if (k < l) {
+                if (i < l - 1) {
+                    System.arraycopy(d, i, d, k, l - k);
                 } else { // j < s
-                    System.arraycopy(d, j, d, k, l-k);
+                    System.arraycopy(d, j, d, k, l - k);
                 }
             }
             System.arraycopy(buf, 0, d, 0, k);
         }
         size = l;
     }
-    
+
+    /**
+     * Must be called after accumulation is finished. After calling
+     * {@code sort()} this LimiterSort represents the resulting collection.
+     */
     public void sort() {
-        if(initial)
+        if (initial)
             Arrays.sort(data, 0, size, comparator);
-        else if(size > limit)
+        else if (size > limit)
             sortTail();
     }
 
