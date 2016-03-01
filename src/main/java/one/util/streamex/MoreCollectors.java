@@ -592,13 +592,14 @@ public final class MoreCollectors {
      * Returns a {@code Collector} which collects at most specified number of
      * the greatest stream elements according to the specified
      * {@link Comparator} into the {@link List}. The resulting {@code List} is
-     * sorted in comparator reverse order (greatest element is the first).
+     * sorted in comparator reverse order (greatest element is the first). The
+     * order of equal elements is the same as in the input stream.
      * 
      * <p>
      * The operation performed by the returned collector is equivalent to
      * {@code stream.sorted(comparator.reversed()).limit(n).collect(Collectors.toList())}
-     * , but can be performed much faster if the input is not sorted and
-     * {@code n} is much less than the stream size.
+     * , but usually performed much faster if {@code n} is much less than the
+     * stream size.
      * 
      * <p>
      * There are no guarantees on the type, mutability, serializability, or
@@ -623,13 +624,14 @@ public final class MoreCollectors {
      * Returns a {@code Collector} which collects at most specified number of
      * the greatest stream elements according to the natural order into the
      * {@link List}. The resulting {@code List} is sorted in reverse order
-     * (greatest element is the first).
+     * (greatest element is the first). The order of equal elements is the same
+     * as in the input stream.
      * 
      * <p>
      * The operation performed by the returned collector is equivalent to
      * {@code stream.sorted(Comparator.reverseOrder()).limit(n).collect(Collectors.toList())}
-     * , but can be performed much faster if the input is not sorted and
-     * {@code n} is much less than the stream size.
+     * , but usually performed much faster if {@code n} is much less than the
+     * stream size.
      * 
      * <p>
      * There are no guarantees on the type, mutability, serializability, or
@@ -653,13 +655,14 @@ public final class MoreCollectors {
      * Returns a {@code Collector} which collects at most specified number of
      * the least stream elements according to the specified {@link Comparator}
      * into the {@link List}. The resulting {@code List} is sorted in comparator
-     * order (least element is the first).
+     * order (least element is the first). The order of equal elements is the
+     * same as in the input stream.
      * 
      * <p>
      * The operation performed by the returned collector is equivalent to
      * {@code stream.sorted(comparator).limit(n).collect(Collectors.toList())},
-     * but can be performed much faster if the input is not sorted and {@code n}
-     * is much less than the stream size.
+     * but usually performed much faster if {@code n} is much less than the
+     * stream size.
      * 
      * <p>
      * There are no guarantees on the type, mutability, serializability, or
@@ -686,31 +689,32 @@ public final class MoreCollectors {
             }, (box1, box2) -> (box2.a != NONE && (box1.a == NONE || comparator.compare(box2.a, box1.a) < 0)) ? box2
                     : box1, box -> box.a == NONE ? new ArrayList<>() : new ArrayList<>(Collections.singleton(box.a)));
         }
-        if (n >= Integer.MAX_VALUE/2)
+        if (n >= Integer.MAX_VALUE / 2)
             return collectingAndThen(Collectors.toList(), list -> {
                 list.sort(comparator);
                 if (list.size() <= n)
                     return list;
                 return new ArrayList<>(list.subList(0, n));
             });
-        return Collector.<T, LimiterSort<T>, List<T>> of(() -> new LimiterSort<>(n, comparator), LimiterSort::put, 
-            LimiterSort::putAll, pq -> {
-            pq.sort();
-            return new ArrayList<>(pq);
-        });
+        return Collector.<T, Limiter<T>, List<T>> of(() -> new Limiter<>(n, comparator), Limiter::put, Limiter::putAll,
+            pq -> {
+                pq.sort();
+                return new ArrayList<>(pq);
+            });
     }
 
     /**
      * Returns a {@code Collector} which collects at most specified number of
      * the least stream elements according to the natural order into the
      * {@link List}. The resulting {@code List} is sorted in natural order
-     * (least element is the first).
+     * (least element is the first). The order of equal elements is the same as
+     * in the input stream.
      * 
      * <p>
      * The operation performed by the returned collector is equivalent to
-     * {@code stream.sorted().limit(n).collect(Collectors.toList())}, but can be
-     * performed much faster if the input is not sorted and {@code n} is much
-     * less than the stream size.
+     * {@code stream.sorted().limit(n).collect(Collectors.toList())}, but
+     * usually performed much faster if {@code n} is much less than the stream
+     * size.
      * 
      * <p>
      * There are no guarantees on the type, mutability, serializability, or

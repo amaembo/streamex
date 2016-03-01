@@ -17,248 +17,149 @@ package one.util.streamex;
 
 import java.util.AbstractCollection;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 
 /**
- * A container to keep limit least elements according to given comparator
+ * Extracts least limit elements from the input sorting them according to the
+ * given comparator. Works for 2 <= limit < Integer.MAX_VALUE/2. Uses
+ * O(min(limit, inputSize)) additional memory.
  * 
- * First stage (less than limit elements): fill the pq sequentially until limit
- * elements is created.
- * 
- * Second stage: bootstrap. First fill series as a circular buffer until new
- * element cannot be appended or prepended to it, then drain circular buffer
- * elements to the pq (replacing greatest current element with the new one) and
- * start circular buffer again.
- * 
- * Finally, sort the pq array respecting the insertion order (which is tracked
- * in order array).
+ * @param <T> type of input elements
  * 
  * @author Tagir Valeev
- *
- * @param <T>
  */
 /* package */class Limiter<T> extends AbstractCollection<T> {
-    private final T[] pq;
-    private T[] series;
-    private int[] order;
+    private T[] data;
+    private final int limit;
     private final Comparator<? super T> comparator;
-    private int size, maxOrder, head, tail;
+    private int size;
+    private boolean initial = true;
 
     @SuppressWarnings("unchecked")
     public Limiter(int limit, Comparator<? super T> comparator) {
-        // limit >= 2
-        this.pq = (T[]) new Object[limit];
+        this.limit = limit;
         this.comparator = comparator;
+        this.data = (T[]) new Object[Math.min(1000, limit) * 2];
     }
 
-    public Limiter<T> putAll(Limiter<T> other) {
-        if (other.size + size < pq.length) {
-            System.arraycopy(other.pq, 0, pq, size, other.size);
-            size += other.size;
-        } else {
-            other.sort();
-            for (int i = 0; i < other.size; i++) {
-                if (!put(other.pq[i]))
+    /**
+     * Accumulate new element
+     * 
+     * @param t element to accumulate
+     * 
+     * @return false if the element is definitely not included into result, so
+     *         any bigger element could be skipped as well, or true if element
+     *         will probably be included into result.
+     */
+    public boolean put(T t) {
+        if (initial) {
+            if (size == data.length) {
+                if (size < limit * 2) {
+                    @SuppressWarnings("unchecked")
+                    T[] newData = (T[]) new Object[Math.min(limit, size) * 2];
+                    System.arraycopy(data, 0, newData, 0, size);
+                    data = newData;
+                } else {
+                    Arrays.sort(data, comparator);
+                    initial = false;
+                    size = limit;
+                }
+                put(t);
+            } else {
+                data[size++] = t;
+            }
+            return true;
+        }
+        if (size == data.length) {
+            sortTail();
+        }
+        if (comparator.compare(t, data[limit - 1]) < 0) {
+            data[size++] = t;
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Merge other {@code Limiter} object into this (other object becomes unusable after that).
+     * 
+     * @param ls other object to merge
+     * @return this object
+     */
+    public Limiter<T> putAll(Limiter<T> ls) {
+        if (!ls.initial) {
+            for (int i = 0; i < limit; i++) {
+                if (!put(ls.data[i]))
                     break;
+            }
+            for (int i = limit; i < ls.size; i++) {
+                put(ls.data[i]);
+            }
+        } else {
+            for (int i = 0; i < ls.size; i++) {
+                put(ls.data[i]);
             }
         }
         return this;
     }
 
-    private static int inc(int val, int limit) {
-        return (val + 1) % limit;
-    }
-
-    private static int dec(int val, int limit) {
-        return (val + limit - 1) % limit;
-    }
-
-    @SuppressWarnings("unchecked")
-    public boolean put(T t) {
-        int limit = pq.length;
-        if (size < limit) {
-            pq[size++] = t;
-            return true;
-        }
-        if (maxOrder == 0) {
-            Arrays.sort(pq, comparator);
-            Collections.reverse(Arrays.asList(pq));
-            maxOrder = limit;
-        }
-        T[] s = series;
-        if (s != null && comparator.compare(t, s[head]) < 0) {
-            // prepend to the series possibly removing the biggest element
-            s[head = dec(head, limit)] = t;
-            if (head == tail)
-                tail = dec(tail, limit);
-            return true;
-        }
-        if (comparator.compare(t, pq[0]) >= 0)
-            return false;
-        if (s == null) {
-            order = new int[limit];
-            for (int j = 0; j < limit; j++) {
-                order[j] = limit - j - 1;
-            }
-            series = (T[]) new Object[limit];
-            series[0] = t;
-            return true;
-        }
-        int next = inc(tail, limit);
-        if (head == tail) { // one element in the series
-            s[tail = next] = t;
+    private void sortTail() {
+        // size > limit here
+        T[] d = data;
+        int l = limit, s = size;
+        Comparator<? super T> cmp = comparator;
+        Arrays.sort(d, l, s, cmp);
+        if (cmp.compare(d[s - 1], d[0]) < 0) {
+            // Common case: descending sequence
+            // Assume size - limit <= limit here
+            System.arraycopy(d, 0, d, s - l, 2 * l - s);
+            System.arraycopy(d, l, d, 0, s - l);
         } else {
-            if (comparator.compare(t, s[tail]) >= 0) {
-                // append to the series or ignore new element
-                if (next == head)
-                    return false;
-                s[tail = next] = t;
-            } else {
-                drain(s, limit);
-                s[head = tail = 0] = t;
-            }
-        }
-        return true;
-    }
-
-    private void drain(T[] series, int limit) {
-        for (int i = head; putPQ(series[i], limit) && i != tail; i = inc(i, limit))
-            ;
-    }
-
-    private boolean putPQ(T t, int limit) {
-        if (comparator.compare(t, pq[0]) >= 0)
-            return false;
-        // sift-down
-        int mid = limit >>> 1, cmp = 0, k = 0;
-        while (k < mid) {
-            int child = (k << 1) + 1;
-            T c = pq[child];
-            int oc = order[child];
-            int right = child + 1;
-            if (right < limit && ((cmp = comparator.compare(c, pq[right])) < 0 || cmp == 0 && oc < order[right])) {
-                c = pq[child = right];
-                oc = order[child];
-            }
-            if (comparator.compare(t, c) >= 0)
-                break;
-            pq[k] = c;
-            order[k] = oc;
-            k = child;
-        }
-        pq[k] = t;
-        order[k] = maxOrder++;
-        return true;
-    }
-
-    public void sort() {
-        if (maxOrder == 0)
-            Arrays.sort(pq, 0, size, comparator);
-        else {
-            if (order == null) {
-                Collections.reverse(Arrays.asList(pq));
-            } else {
-                // Respect order also
-                quickSort(0, pq.length - 1);
-                merge();
-            }
-        }
-    }
-    
-    private int binSearch(int from, int to, T t) {
-        while (from <= to) {
-            int mid = (from + to) >>> 1;
-            if (comparator.compare(pq[mid], t) <= 0)
-                from = mid + 1;
-            else
-                to = mid - 1;
-        }
-        return from;
-    }
-
-    private void merge() {
-        int j = head, limit = pq.length;
-        int start = binSearch(0, limit - 1, series[j]);
-        if(head == tail) {
-            if(start < limit) {
-                System.arraycopy(pq, start, pq, start+1, pq.length-start-1);
-                pq[start] = series[j];
-            }
-            return;
-        }
-        int end = binSearch(start, limit - 1, series[tail]);
-        int i = start;
-        for (int k = start; k < limit; k++) {
-            if (k != start && comparator.compare(series[j], pq[i]) >= 0) {
-                order[k] = i++;
-            } else {
-                order[k] = ~j;
-                j = inc(j, limit);
-                if (j == tail) {
-                    while (i < end && ++k < limit)
-                        order[k] = i++;
-                    if(++k < limit) {
-                        order[k] = ~j;
-                        while (++k < limit)
-                            order[k] = i++;
-                    }
-                    break;
+            // Merge presorted 0..limit-1 and limit..size-1
+            @SuppressWarnings("unchecked")
+            T[] buf = (T[]) new Object[l];
+            int i = 0, j = l, k = 0;
+            // d[l-1] is guaranteed to be the worst element, thus no need to
+            // check it
+            while (i < l - 1 && k < l && j < s) {
+                if (cmp.compare(d[i], d[j]) <= 0) {
+                    buf[k++] = d[i++];
+                } else {
+                    buf[k++] = d[j++];
                 }
             }
+            if (k < l) {
+                System.arraycopy(d, i < l - 1 ? i : j, d, k, l - k);
+            }
+            System.arraycopy(buf, 0, d, 0, k);
         }
-        for (int k = limit - 1; k >= start; k--) {
-            int o = order[k];
-            pq[k] = o >= 0 ? pq[o] : series[~o];
-        }
+        size = l;
     }
 
-    private void quickSort(int lowerIndex, int higherIndex) {
-        int i = lowerIndex;
-        int j = higherIndex;
-        int mid = lowerIndex + (higherIndex - lowerIndex) / 2;
-        T pivot = pq[mid];
-        int pivotOrder = order[mid];
-        int cmp;
-        while (i <= j) {
-            while ((cmp = comparator.compare(pq[i], pivot)) < 0 || cmp == 0 && order[i] < pivotOrder) {
-                i++;
-            }
-            while ((cmp = comparator.compare(pq[j], pivot)) > 0 || cmp == 0 && order[j] > pivotOrder) {
-                j--;
-            }
-            if (i <= j) {
-                int temp = order[i];
-                order[i] = order[j];
-                order[j] = temp;
-                T t = pq[i];
-                pq[i] = pq[j];
-                pq[j] = t;
-                i++;
-                j--;
-            }
-        }
-        if (lowerIndex < j)
-            quickSort(lowerIndex, j);
-        if (i < higherIndex)
-            quickSort(i, higherIndex);
-    }
-
-    @Override
-    public Iterator<T> iterator() {
-        return Arrays.asList(pq).subList(0, size).iterator();
-    }
-
-    @Override
-    public int size() {
-        return size;
+    /**
+     * Must be called after accumulation is finished. After calling
+     * {@code sort()} this Limiter represents the resulting collection.
+     */
+    public void sort() {
+        if (initial)
+            Arrays.sort(data, 0, size, comparator);
+        else if (size > limit)
+            sortTail();
     }
 
     @Override
     public Object[] toArray() {
-        if (size == pq.length)
-            return pq;
-        return Arrays.copyOfRange(pq, 0, size);
+        return Arrays.copyOfRange(data, 0, size());
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        return Arrays.asList(data).subList(0, size()).iterator();
+    }
+
+    @Override
+    public int size() {
+        return initial && size < limit ? size : limit;
     }
 }
