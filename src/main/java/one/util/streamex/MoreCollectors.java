@@ -33,7 +33,6 @@ import java.util.OptionalInt;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.OptionalLong;
-import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -50,6 +49,7 @@ import java.util.stream.Collector.Characteristics;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import one.util.streamex.StreamExInternals.Box;
 import static one.util.streamex.StreamExInternals.*;
 
 /**
@@ -592,13 +592,14 @@ public final class MoreCollectors {
      * Returns a {@code Collector} which collects at most specified number of
      * the greatest stream elements according to the specified
      * {@link Comparator} into the {@link List}. The resulting {@code List} is
-     * sorted in comparator reverse order (greatest element is the first).
+     * sorted in comparator reverse order (greatest element is the first). The
+     * order of equal elements is the same as in the input stream.
      * 
      * <p>
      * The operation performed by the returned collector is equivalent to
      * {@code stream.sorted(comparator.reversed()).limit(n).collect(Collectors.toList())}
-     * , but can be performed much faster if the input is not sorted and
-     * {@code n} is much less than the stream size.
+     * , but usually performed much faster if {@code n} is much less than the
+     * stream size.
      * 
      * <p>
      * There are no guarantees on the type, mutability, serializability, or
@@ -616,39 +617,21 @@ public final class MoreCollectors {
      *         n stream elements or less if the stream was shorter.
      */
     public static <T> Collector<T, ?, List<T>> greatest(Comparator<? super T> comparator, int n) {
-        if (n <= 0)
-            return empty();
-        BiConsumer<PriorityQueue<T>, T> accumulator = (queue, t) -> {
-            if (queue.size() < n)
-                queue.add(t);
-            else if (comparator.compare(queue.peek(), t) < 0) {
-                queue.poll();
-                queue.add(t);
-            }
-        };
-        return Collector.of(() -> new PriorityQueue<>(comparator), accumulator, (q1, q2) -> {
-            for (T t : q2) {
-                accumulator.accept(q1, t);
-            }
-            return q1;
-        }, queue -> {
-            List<T> result = new ArrayList<>(queue);
-            result.sort(comparator.reversed());
-            return result;
-        });
+        return least(comparator.reversed(), n);
     }
 
     /**
      * Returns a {@code Collector} which collects at most specified number of
      * the greatest stream elements according to the natural order into the
      * {@link List}. The resulting {@code List} is sorted in reverse order
-     * (greatest element is the first).
+     * (greatest element is the first). The order of equal elements is the same
+     * as in the input stream.
      * 
      * <p>
      * The operation performed by the returned collector is equivalent to
      * {@code stream.sorted(Comparator.reverseOrder()).limit(n).collect(Collectors.toList())}
-     * , but can be performed much faster if the input is not sorted and
-     * {@code n} is much less than the stream size.
+     * , but usually performed much faster if {@code n} is much less than the
+     * stream size.
      * 
      * <p>
      * There are no guarantees on the type, mutability, serializability, or
@@ -665,20 +648,21 @@ public final class MoreCollectors {
      *         n stream elements or less if the stream was shorter.
      */
     public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> greatest(int n) {
-        return greatest(Comparator.<T> naturalOrder(), n);
+        return least(Comparator.<T> reverseOrder(), n);
     }
 
     /**
      * Returns a {@code Collector} which collects at most specified number of
      * the least stream elements according to the specified {@link Comparator}
      * into the {@link List}. The resulting {@code List} is sorted in comparator
-     * order (least element is the first).
+     * order (least element is the first). The order of equal elements is the
+     * same as in the input stream.
      * 
      * <p>
      * The operation performed by the returned collector is equivalent to
      * {@code stream.sorted(comparator).limit(n).collect(Collectors.toList())},
-     * but can be performed much faster if the input is not sorted and {@code n}
-     * is much less than the stream size.
+     * but usually performed much faster if {@code n} is much less than the
+     * stream size.
      * 
      * <p>
      * There are no guarantees on the type, mutability, serializability, or
@@ -696,20 +680,41 @@ public final class MoreCollectors {
      *         stream elements or less if the stream was shorter.
      */
     public static <T> Collector<T, ?, List<T>> least(Comparator<? super T> comparator, int n) {
-        return greatest(comparator.reversed(), n);
+        if (n <= 0)
+            return empty();
+        if (n == 1) {
+            return Collector.of(() -> new Box<T>(none()), (box, t) -> {
+                if (box.a == NONE || comparator.compare(t, box.a) < 0)
+                    box.a = t;
+            }, (box1, box2) -> (box2.a != NONE && (box1.a == NONE || comparator.compare(box2.a, box1.a) < 0)) ? box2
+                    : box1, box -> box.a == NONE ? new ArrayList<>() : new ArrayList<>(Collections.singleton(box.a)));
+        }
+        if (n >= Integer.MAX_VALUE / 2)
+            return collectingAndThen(Collectors.toList(), list -> {
+                list.sort(comparator);
+                if (list.size() <= n)
+                    return list;
+                return new ArrayList<>(list.subList(0, n));
+            });
+        return Collector.<T, Limiter<T>, List<T>> of(() -> new Limiter<>(n, comparator), Limiter::put, Limiter::putAll,
+            pq -> {
+                pq.sort();
+                return new ArrayList<>(pq);
+            });
     }
 
     /**
      * Returns a {@code Collector} which collects at most specified number of
      * the least stream elements according to the natural order into the
      * {@link List}. The resulting {@code List} is sorted in natural order
-     * (least element is the first).
+     * (least element is the first). The order of equal elements is the same as
+     * in the input stream.
      * 
      * <p>
      * The operation performed by the returned collector is equivalent to
-     * {@code stream.sorted().limit(n).collect(Collectors.toList())}, but can be
-     * performed much faster if the input is not sorted and {@code n} is much
-     * less than the stream size.
+     * {@code stream.sorted().limit(n).collect(Collectors.toList())}, but
+     * usually performed much faster if {@code n} is much less than the stream
+     * size.
      * 
      * <p>
      * There are no guarantees on the type, mutability, serializability, or
@@ -726,7 +731,7 @@ public final class MoreCollectors {
      *         stream elements or less if the stream was shorter.
      */
     public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> least(int n) {
-        return greatest(Comparator.<T> reverseOrder(), n);
+        return least(Comparator.<T> naturalOrder(), n);
     }
 
     /**

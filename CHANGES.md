@@ -1,5 +1,11 @@
 # StreamEx changes
 
+### 0.6.0
+* [#70] Fixed: `MoreCollectors.least()/greatest()` now support null element (if the supplied `Comparator` supports nulls).
+* [#70] Fixed: `MoreCollectors.least()/greatest()` now returns stable result (the order of equal elements is not changed).
+* [#70] Optimized: `MoreCollectors.least()/greatest()` is usually faster now, especially when the selected elements are close to the stream end.
+
+
 ### 0.5.5
 * [#41] Added: `IntStreamEx/LongStreamEx/StreamEx.without()` accepting several elements.
 * [#60] Added: `StreamEx.zipWith()` to zip the stream with another.
