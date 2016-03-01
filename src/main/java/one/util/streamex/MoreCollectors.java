@@ -686,7 +686,7 @@ public final class MoreCollectors {
             }, (box1, box2) -> (box2.a != NONE && (box1.a == NONE || comparator.compare(box2.a, box1.a) < 0)) ? box2
                     : box1, box -> box.a == NONE ? new ArrayList<>() : new ArrayList<>(Collections.singleton(box.a)));
         }
-        if (n > 10000)
+        if (n >= Integer.MAX_VALUE/2)
             return collectingAndThen(Collectors.toList(), list -> {
                 list.sort(comparator);
                 if (list.size() <= n)

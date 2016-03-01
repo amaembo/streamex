@@ -50,6 +50,9 @@ public class LimiterTest {
             exerciseLimiter("rnd2, nat, " + i, randomRange, Comparator.naturalOrder());
             exerciseLimiter("rnd2, dec, " + i, randomRange, Comparator.comparingInt(x -> x / 10));
         }
+        List<Integer> list = IntStreamEx.range(100000).boxed().toList();
+        exerciseLimiter("big", list, Integer.MAX_VALUE/3, Comparator.naturalOrder()); 
+        exerciseLimiter("big", list, Integer.MAX_VALUE/2, Comparator.naturalOrder()); 
     }
 
     public static <T> void exerciseLimiter(String msg, Collection<T> input, Comparator<T> comp) {

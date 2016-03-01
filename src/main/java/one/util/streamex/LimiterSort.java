@@ -24,7 +24,7 @@ import java.util.Iterator;
  * @author Tagir Valeev
  */
 /* package */ class LimiterSort<T> extends AbstractCollection<T> {
-    private final T[] data;
+    private T[] data;
     private final int limit;
     private final Comparator<? super T> comparator;
     private int size;
@@ -34,15 +34,22 @@ import java.util.Iterator;
     public LimiterSort(int limit, Comparator<? super T> comparator) {
         this.limit = limit;
         this.comparator = comparator;
-        this.data = (T[]) new Object[limit*2];
+        this.data = (T[]) new Object[Math.min(1000, limit)*2];
     }
     
     public boolean put(T t) {
         if(initial) {
             if(size == data.length) {
-                Arrays.sort(data, comparator);
-                initial = false;
-                size = limit;
+                if(size < limit * 2) {
+                    @SuppressWarnings("unchecked")
+                    T[] newData = (T[]) new Object[Math.min(limit, size)*2];
+                    System.arraycopy(data, 0, newData, 0, size);
+                    data = newData;
+                } else {
+                    Arrays.sort(data, comparator);
+                    initial = false;
+                    size = limit;
+                }
                 put(t);
             } else {
                 data[size++] = t;
