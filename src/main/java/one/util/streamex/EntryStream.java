@@ -660,6 +660,24 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     }
 
     /**
+     * Returns a stream consisting of the elements of this stream which values
+     * don't match the given predicate.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
+     * operation.
+     *
+     * @param predicate a non-interfering, stateless predicate to apply to the
+     *        key-value pairs of each element to determine if it should be
+     *        excluded
+     * @return the new stream
+     * @since 0.6.0
+     */
+    public EntryStream<K, V> removeKeyValue(BiPredicate<? super K, ? super V> predicate) {
+        return filterKeyValue(predicate.negate());
+    }
+    
+    /**
      * Returns a stream consisting of the elements of this stream which key is
      * not null.
      *

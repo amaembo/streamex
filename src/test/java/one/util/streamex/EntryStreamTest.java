@@ -210,6 +210,8 @@ public class EntryStreamTest {
         assertEquals(asList("bbb"), EntryStream.of(data).removeValues(List::isEmpty).keys().toList());
         assertEquals(asList("aaa"), EntryStream.of(data).removeKeys(Pattern.compile("bbb").asPredicate()).keys()
                 .toList());
+        assertEquals(EntryStream.of("a", 1, "bb", 22).toMap(), EntryStream.of(createMap()).removeKeyValue(
+            (str, num) -> !str.equals("a") && num != 22).toMap());
     }
 
     @Test
