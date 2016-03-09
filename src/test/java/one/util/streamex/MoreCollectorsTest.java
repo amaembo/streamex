@@ -17,13 +17,13 @@ package one.util.streamex;
 
 import static one.util.streamex.TestHelpers.*;
 import static org.junit.Assert.*;
+import static java.util.Arrays.asList;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
@@ -74,7 +74,7 @@ public class MoreCollectorsTest {
 
     @Test
     public void testToArray() {
-        List<String> input = Arrays.asList("a", "bb", "c", "", "cc", "eee", "bb", "ddd");
+        List<String> input = asList("a", "bb", "c", "", "cc", "eee", "bb", "ddd");
         streamEx(input::stream, supplier -> {
             Map<Integer, String[]> result = supplier.get().groupingBy(String::length, HashMap::new,
                 MoreCollectors.toArray(String[]::new));
@@ -84,16 +84,16 @@ public class MoreCollectorsTest {
             assertArrayEquals(new String[] { "eee", "ddd" }, result.get(3));
         });
     }
-    
+
     @Test
     public void testEmpty() {
-        List<Integer> list = Arrays.asList(1, 2, 3).stream().collect(MoreCollectors.head(0));
+        List<Integer> list = asList(1, 2, 3).stream().collect(MoreCollectors.head(0));
         assertTrue(list.isEmpty());
     }
 
     @Test
     public void testDistinctCount() {
-        List<String> input = Arrays.asList("a", "bb", "c", "cc", "eee", "bb", "bc", "ddd");
+        List<String> input = asList("a", "bb", "c", "cc", "eee", "bb", "bc", "ddd");
         streamEx(input::stream, supplier -> {
             Map<String, Integer> result = supplier.get().groupingBy(s -> s.substring(0, 1), HashMap::new,
                 MoreCollectors.distinctCount(String::length));
@@ -107,30 +107,29 @@ public class MoreCollectorsTest {
 
     @Test
     public void testDistinctBy() {
-        List<String> input = Arrays.asList("a", "bb", "c", "cc", "eee", "bb", "bc", "ddd", "ca", "ce", "cf", "ded",
-            "dump");
+        List<String> input = asList("a", "bb", "c", "cc", "eee", "bb", "bc", "ddd", "ca", "ce", "cf", "ded", "dump");
         streamEx(input::stream, supplier -> {
             Map<String, List<String>> result = supplier.get().groupingBy(s -> s.substring(0, 1), HashMap::new,
                 MoreCollectors.distinctBy(String::length));
-            assertEquals(Arrays.asList("a"), result.get("a"));
-            assertEquals(Arrays.asList("bb"), result.get("b"));
-            assertEquals(Arrays.asList("c", "cc"), result.get("c"));
-            assertEquals(Arrays.asList("ddd", "dump"), result.get("d"));
-            assertEquals(Arrays.asList("eee"), result.get("e"));
+            assertEquals(asList("a"), result.get("a"));
+            assertEquals(asList("bb"), result.get("b"));
+            assertEquals(asList("c", "cc"), result.get("c"));
+            assertEquals(asList("ddd", "dump"), result.get("d"));
+            assertEquals(asList("eee"), result.get("e"));
         });
     }
 
     @Test
     public void testMaxAll() {
-        List<String> input = Arrays.asList("a", "bb", "c", "", "cc", "eee", "bb", "ddd");
-        checkCollector("maxAll", Arrays.asList("eee", "ddd"), input::stream, MoreCollectors.maxAll(Comparator
+        List<String> input = asList("a", "bb", "c", "", "cc", "eee", "bb", "ddd");
+        checkCollector("maxAll", asList("eee", "ddd"), input::stream, MoreCollectors.maxAll(Comparator
                 .comparingInt(String::length)));
         Collector<String, ?, String> maxAllJoin = MoreCollectors.maxAll(Comparator.comparingInt(String::length),
             Collectors.joining(","));
         checkCollector("maxAllJoin", "eee,ddd", input::stream, maxAllJoin);
         checkCollector("minAll", 1L, input::stream, MoreCollectors.minAll(Comparator.comparingInt(String::length),
             Collectors.counting()));
-        checkCollector("minAllEmpty", Arrays.asList(""), input::stream, MoreCollectors.minAll(Comparator
+        checkCollector("minAllEmpty", asList(""), input::stream, MoreCollectors.minAll(Comparator
                 .comparingInt(String::length)));
         checkCollectorEmpty("maxAll", Collections.emptyList(), MoreCollectors.maxAll(Comparator
                 .comparingInt(String::length)));
@@ -195,7 +194,7 @@ public class MoreCollectorsTest {
     @Test
     public void testHeadParallel() {
         List<Integer> expected = IntStreamEx.range(0, 2000, 2).boxed().toList();
-        List<Integer> expectedShort = Arrays.asList(0, 1);
+        List<Integer> expectedShort = asList(0, 1);
         for (int i = 0; i < 1000; i++) {
             assertEquals("#" + i, expectedShort, IntStreamEx.range(1000).boxed().parallel().collect(
                 MoreCollectors.head(2)));
@@ -208,17 +207,17 @@ public class MoreCollectorsTest {
     @Test
     public void testHeadTail() {
         List<Integer> ints = IntStreamEx.range(1000).boxed().toList();
-        checkShortCircuitCollector("tail(0)", Arrays.asList(), 0, ints::stream, MoreCollectors.tail(0));
-        checkCollector("tail(1)", Arrays.asList(999), ints::stream, MoreCollectors.tail(1));
-        checkCollector("tail(2)", Arrays.asList(998, 999), ints::stream, MoreCollectors.tail(2));
+        checkShortCircuitCollector("tail(0)", asList(), 0, ints::stream, MoreCollectors.tail(0));
+        checkCollector("tail(1)", asList(999), ints::stream, MoreCollectors.tail(1));
+        checkCollector("tail(2)", asList(998, 999), ints::stream, MoreCollectors.tail(2));
         checkCollector("tail(500)", ints.subList(500, 1000), ints::stream, MoreCollectors.tail(500));
         checkCollector("tail(999)", ints.subList(1, 1000), ints::stream, MoreCollectors.tail(999));
         checkCollector("tail(1000)", ints, ints::stream, MoreCollectors.tail(1000));
         checkCollector("tail(MAX)", ints, ints::stream, MoreCollectors.tail(Integer.MAX_VALUE));
 
-        checkShortCircuitCollector("head(0)", Arrays.asList(), 0, ints::stream, MoreCollectors.head(0));
-        checkShortCircuitCollector("head(1)", Arrays.asList(0), 1, ints::stream, MoreCollectors.head(1));
-        checkShortCircuitCollector("head(2)", Arrays.asList(0, 1), 2, ints::stream, MoreCollectors.head(2));
+        checkShortCircuitCollector("head(0)", asList(), 0, ints::stream, MoreCollectors.head(0));
+        checkShortCircuitCollector("head(1)", asList(0), 1, ints::stream, MoreCollectors.head(1));
+        checkShortCircuitCollector("head(2)", asList(0, 1), 2, ints::stream, MoreCollectors.head(2));
         checkShortCircuitCollector("head(500)", ints.subList(0, 500), 500, ints::stream, MoreCollectors.head(500));
         checkShortCircuitCollector("head(999)", ints.subList(0, 999), 999, ints::stream, MoreCollectors.head(999));
         checkShortCircuitCollector("head(1000)", ints, 1000, ints::stream, MoreCollectors.head(1000));
@@ -300,7 +299,7 @@ public class MoreCollectorsTest {
 
     @Test(expected = IllegalStateException.class)
     public void testGroupingByWithDomainException() {
-        List<Integer> list = Arrays.asList(1, 2, 20, 3, 31, 4);
+        List<Integer> list = asList(1, 2, 20, 3, 31, 4);
         Collector<Integer, ?, Map<Integer, List<Integer>>> c = MoreCollectors.groupingBy(i -> i % 10, StreamEx.of(0, 1,
             2, 3).toSet(), Collectors.toList());
         Map<Integer, List<Integer>> map = list.stream().collect(c);
@@ -309,7 +308,7 @@ public class MoreCollectorsTest {
 
     @Test
     public void testGroupingByWithDomain() {
-        List<String> data = Arrays.asList("a", "foo", "test", "ququq", "bar", "blahblah");
+        List<String> data = asList("a", "foo", "test", "ququq", "bar", "blahblah");
         Collector<String, ?, String> collector = MoreCollectors.collectingAndThen(MoreCollectors.groupingBy(
             String::length, IntStreamEx.range(10).boxed().toSet(), TreeMap::new, MoreCollectors.first()),
             Object::toString);
@@ -334,8 +333,8 @@ public class MoreCollectorsTest {
         AtomicInteger counter = new AtomicInteger();
         Map<String, List<String>> map = EntryStream.of(name2sex).peek(c -> counter.incrementAndGet()).collect(
             groupingBy);
-        assertEquals(Arrays.asList("Mary", "Lucie"), map.get("Girl"));
-        assertEquals(Arrays.asList("John", "James"), map.get("Boy"));
+        assertEquals(asList("Mary", "Lucie"), map.get("Girl"));
+        assertEquals(asList("John", "James"), map.get("Boy"));
         assertEquals(4, counter.get());
 
         Collector<Entry<String, String>, ?, Map<String, String>> groupingByJoin = MoreCollectors.groupingBy(
@@ -372,7 +371,7 @@ public class MoreCollectorsTest {
 
     @Test
     public void testMapping() {
-        List<String> input = Arrays.asList("Capital", "lower", "Foo", "bar");
+        List<String> input = asList("Capital", "lower", "Foo", "bar");
         Collector<String, ?, Map<Boolean, Optional<Integer>>> collector = MoreCollectors
                 .partitioningBy(str -> Character.isUpperCase(str.charAt(0)), MoreCollectors.mapping(String::length,
                     MoreCollectors.first()));
@@ -382,9 +381,9 @@ public class MoreCollectorsTest {
             str -> Character.isUpperCase(str.charAt(0)), MoreCollectors.mapping(String::length, MoreCollectors.last()));
         checkCollector("last", new BooleanMap<>(Optional.of(3), Optional.of(3)), input::stream, collectorLast);
 
-        input = Arrays.asList("Abc", "Bac", "Aac", "Abv", "Bbc", "Bgd", "Atc", "Bpv");
-        Map<Character, List<String>> expected = EntryStream.of('A', Arrays.asList("Abc", "Aac"), 'B',
-            Arrays.asList("Bac", "Bbc")).toMap();
+        input = asList("Abc", "Bac", "Aac", "Abv", "Bbc", "Bgd", "Atc", "Bpv");
+        Map<Character, List<String>> expected = EntryStream.of('A', asList("Abc", "Aac"), 'B', asList("Bac", "Bbc"))
+                .toMap();
         AtomicInteger cnt = new AtomicInteger();
         Collector<String, ?, Map<Character, List<String>>> groupMap = Collectors.groupingBy(s -> s.charAt(0),
             MoreCollectors.mapping(x -> {
@@ -395,18 +394,21 @@ public class MoreCollectorsTest {
         cnt.set(0);
         assertEquals(expected, input.stream().collect(groupMap));
         assertEquals(4, cnt.get());
+
+        checkCollector("mapping-toList", asList("a", "b", "c"), asList("a1", "b2", "c3")::stream, MoreCollectors
+                .mapping(str -> str.substring(0, 1)));
     }
 
     @Test
     public void testIntersecting() {
         for (int i = 0; i < 5; i++) {
-            List<List<String>> input = Arrays.asList(Arrays.asList("aa", "bb", "cc"), Arrays.asList("cc", "bb", "dd"),
-                Arrays.asList("ee", "dd"), Arrays.asList("aa", "bb", "dd"));
+            List<List<String>> input = asList(asList("aa", "bb", "cc"), asList("cc", "bb", "dd"), asList("ee", "dd"),
+                asList("aa", "bb", "dd"));
             checkShortCircuitCollector("#" + i, Collections.emptySet(), 3, input::stream, MoreCollectors.intersecting());
-            List<List<Integer>> copies = new ArrayList<>(Collections.nCopies(100, Arrays.asList(1, 2)));
+            List<List<Integer>> copies = new ArrayList<>(Collections.nCopies(100, asList(1, 2)));
             checkShortCircuitCollector("#" + i, StreamEx.of(1, 2).toSet(), 100, copies::stream, MoreCollectors
                     .intersecting());
-            copies.addAll(Collections.nCopies(100, Arrays.asList(3)));
+            copies.addAll(Collections.nCopies(100, asList(3)));
             checkShortCircuitCollector("#" + i, Collections.emptySet(), 101, copies::stream, MoreCollectors
                     .intersecting());
             checkCollectorEmpty("#" + i, Collections.emptySet(), MoreCollectors.intersecting());
@@ -415,7 +417,7 @@ public class MoreCollectorsTest {
 
     @Test
     public void testAndInt() {
-        List<Integer> ints = Arrays.asList(0b1100, 0b0110, 0b101110, 0b11110011);
+        List<Integer> ints = asList(0b1100, 0b0110, 0b101110, 0b11110011);
         Collector<Integer, ?, OptionalInt> collector = MoreCollectors.andingInt(Integer::intValue);
         checkShortCircuitCollector("andInt", OptionalInt.of(0), 4, ints::stream, collector);
         checkCollectorEmpty("andIntEmpty", OptionalInt.empty(), collector);
@@ -426,15 +428,15 @@ public class MoreCollectorsTest {
                 .andingInt(Integer::intValue), OptionalInt::getAsInt);
         assertTrue(unwrapped.characteristics().contains(Characteristics.UNORDERED));
         checkShortCircuitCollector("andIntUnwrapped", 0, 4, ints::stream, unwrapped);
-        checkShortCircuitCollector("andIntUnwrapped", 0, 2, Arrays.asList(0x1, 0x10, 0x100)::stream, unwrapped);
+        checkShortCircuitCollector("andIntUnwrapped", 0, 2, asList(0x1, 0x10, 0x100)::stream, unwrapped);
     }
 
     @Test
     public void testAndLong() {
-        List<Long> longs = Arrays.asList(0xFFFFFFFFFFFFFFFFL, 0xFFFFFFFF00000000L, 0xFFFFFFFF0000L);
+        List<Long> longs = asList(0xFFFFFFFFFFFFFFFFL, 0xFFFFFFFF00000000L, 0xFFFFFFFF0000L);
         checkShortCircuitCollector("andLong", OptionalLong.of(0xFFFF00000000L), 3, longs::stream, MoreCollectors
                 .andingLong(Long::longValue));
-        longs = Arrays.asList(1L, 2L, 3L, 4L);
+        longs = asList(1L, 2L, 3L, 4L);
         checkShortCircuitCollector("andLong", OptionalLong.of(0), 2, longs::stream, MoreCollectors
                 .andingLong(Long::longValue));
         checkCollectorEmpty("andLongEmpty", OptionalLong.empty(), MoreCollectors.andingLong(Long::longValue));
@@ -454,10 +456,13 @@ public class MoreCollectorsTest {
                 .first());
         Collector<Integer, ?, Integer> sumOddEven = MoreCollectors.pairing(firstEven, firstOdd, (e, o) -> e.get()
             + o.get());
-        List<Integer> ints = Arrays.asList(1, 3, 5, 7, 9, 10, 8, 6, 4, 2, 3, 7, 11);
+        List<Integer> ints = asList(1, 3, 5, 7, 9, 10, 8, 6, 4, 2, 3, 7, 11);
         checkShortCircuitCollector("sumOddEven", 11, 6, ints::stream, sumOddEven);
         Collector<Integer, ?, Long> countEven = MoreCollectors.filtering(x -> x % 2 == 0, Collectors.counting());
         checkCollector("filtering", 5L, ints::stream, countEven);
+        
+        checkCollector("filtering-toList", asList(1, 5, 3, 7), asList(1, 2, 4, 5, 4, 3, 0, 7, 8, 10)::stream,
+            MoreCollectors.filtering(x -> x % 2 == 1));
     }
 
     @Test
@@ -500,9 +505,8 @@ public class MoreCollectorsTest {
 
         Function<Entry<String, List<String>>, Stream<String>> valuesStream = e -> e.getValue() == null ? null : e
                 .getValue().stream();
-        List<Entry<String, List<String>>> list = EntryStream.of("a", Arrays.asList("bb", "cc", "dd"), "b",
-            Arrays.asList("ee", "ff"), "c", null).append("c", Arrays.asList("gg"), "b", null, "a", Arrays.asList("hh"))
-                .toList();
+        List<Entry<String, List<String>>> list = EntryStream.of("a", asList("bb", "cc", "dd"), "b", asList("ee", "ff"),
+            "c", null).append("c", asList("gg"), "b", null, "a", asList("hh")).toList();
         {
             Map<String, List<String>> expected = EntryStream.of(list.stream()).flatMapValues(
                 l -> l == null ? null : l.stream()).grouping();
@@ -544,8 +548,8 @@ public class MoreCollectorsTest {
             assertTrue(catched);
         }
         {
-            Map<String, List<String>> expected = EntryStream.of("a", Arrays.asList("bb"), "b", Arrays.asList("ee"),
-                "c", Arrays.asList("gg")).toMap();
+            Map<String, List<String>> expected = EntryStream
+                    .of("a", asList("bb"), "b", asList("ee"), "c", asList("gg")).toMap();
             Collector<Entry<String, List<String>>, ?, List<String>> headOne = MoreCollectors.flatMapping(valuesStream,
                 MoreCollectors.head(1));
             checkCollector("flatMappingSubShort", expected, list::stream, Collectors.groupingBy(Entry::getKey, headOne));
@@ -562,8 +566,8 @@ public class MoreCollectorsTest {
             assertEquals(3, cnt.get());
         }
         {
-            Map<String, List<String>> expected = EntryStream.of("a", Arrays.asList("bb", "cc"), "b",
-                Arrays.asList("ee", "ff"), "c", Arrays.asList("gg")).toMap();
+            Map<String, List<String>> expected = EntryStream.of("a", asList("bb", "cc"), "b", asList("ee", "ff"), "c",
+                asList("gg")).toMap();
             Collector<Entry<String, List<String>>, ?, List<String>> headTwo = MoreCollectors.flatMapping(valuesStream,
                 MoreCollectors.head(2));
             checkCollector("flatMappingSubShort", expected, list::stream, Collectors.groupingBy(Entry::getKey, headTwo));
@@ -590,6 +594,8 @@ public class MoreCollectorsTest {
             }
             assertTrue(catched);
         }
+        checkCollector("flatMapping-toList", asList(0, 1, 2, 3, 0, 1, 2, 0, 1, 2, 3, 4), asList(4, 3, 5)::stream,
+            MoreCollectors.flatMapping(x -> IntStreamEx.range(x).boxed()));
     }
 
     @Test(expected = IllegalStateException.class)
@@ -610,8 +616,7 @@ public class MoreCollectorsTest {
 
     @Test
     public void testFlatMappingExceptionalSuppressed() {
-        List<Collector<Integer, ?, List<Integer>>> downstreams = Arrays.asList(MoreCollectors.head(10), Collectors
-                .toList());
+        List<Collector<Integer, ?, List<Integer>>> downstreams = asList(MoreCollectors.head(10), Collectors.toList());
         for (Collector<Integer, ?, List<Integer>> downstream : downstreams) {
             try {
                 Stream.of(1, 2, 3).collect(MoreCollectors.flatMapping(x -> Stream.of(1, x).peek(y -> {
@@ -631,24 +636,24 @@ public class MoreCollectorsTest {
     @Test
     public void testCommonPrefix() {
         checkCollectorEmpty("prefix", "", MoreCollectors.commonPrefix());
-        List<String> input = Arrays.asList("abcdef", "abcdefg", "abcdfgfg", "abcefgh", "abcdfg");
+        List<String> input = asList("abcdef", "abcdefg", "abcdfgfg", "abcefgh", "abcdfg");
         checkShortCircuitCollector("prefix", "abc", input.size(), input::stream, MoreCollectors.commonPrefix());
-        List<CharSequence> inputSeq = Arrays.asList(new StringBuffer("abcdef"), "abcdefg", "abcdfgfg", "abcefgh",
+        List<CharSequence> inputSeq = asList(new StringBuffer("abcdef"), "abcdefg", "abcdfgfg", "abcefgh",
             new StringBuilder("abcdfg"));
         checkShortCircuitCollector("prefix", "abc", inputSeq.size(), inputSeq::stream, MoreCollectors.commonPrefix());
-        List<String> input2 = Arrays.asList("abcdef", "abcdefg", "dabcdfgfg", "abcefgh", "abcdfg");
+        List<String> input2 = asList("abcdef", "abcdefg", "dabcdfgfg", "abcefgh", "abcdfg");
         checkShortCircuitCollector("prefix", "", 3, input2::stream, MoreCollectors.commonPrefix());
         List<String> inputHalf = new ArrayList<>();
         inputHalf.addAll(Collections.nCopies(1000, "abc"));
         inputHalf.addAll(Collections.nCopies(1000, "def"));
         checkShortCircuitCollector("prefix", "", 1001, inputHalf::stream, MoreCollectors.commonPrefix());
-        List<String> inputSurrogate = Arrays.asList("abc\ud801\udc2f", "abc\ud801\udc2f", "abc\ud801\udc14");
+        List<String> inputSurrogate = asList("abc\ud801\udc2f", "abc\ud801\udc2f", "abc\ud801\udc14");
         checkShortCircuitCollector("prefix", "abc", inputSurrogate.size(), inputSurrogate::stream, MoreCollectors
                 .commonPrefix());
-        List<String> inputSurrogateBad = Arrays.asList("abc\ud801x", "abc\ud801y", "abc\ud801z");
+        List<String> inputSurrogateBad = asList("abc\ud801x", "abc\ud801y", "abc\ud801z");
         checkShortCircuitCollector("prefix", "abc\ud801", inputSurrogateBad.size(), inputSurrogateBad::stream,
             MoreCollectors.commonPrefix());
-        List<String> inputSurrogateMix = Arrays.asList("abc\ud801\udc2f", "abc\ud801x", "abc\ud801\udc14");
+        List<String> inputSurrogateMix = asList("abc\ud801\udc2f", "abc\ud801x", "abc\ud801\udc14");
         checkShortCircuitCollector("prefix", "abc", inputSurrogateMix.size(), inputSurrogateMix::stream, MoreCollectors
                 .commonPrefix());
     }
@@ -656,33 +661,32 @@ public class MoreCollectorsTest {
     @Test
     public void testCommonSuffix() {
         checkCollectorEmpty("suffix", "", MoreCollectors.commonSuffix());
-        List<String> input = Arrays.asList("defabc", "degfabc", "dfgfgabc", "efghabc", "dfgabc");
+        List<String> input = asList("defabc", "degfabc", "dfgfgabc", "efghabc", "dfgabc");
         checkShortCircuitCollector("suffix", "abc", input.size(), input::stream, MoreCollectors.commonSuffix());
-        List<CharSequence> inputSeq = Arrays.asList(new StringBuffer("degfabc"), "dfgfgabc", new StringBuilder(
-                "efghabc"), "defabc", "dfgabc");
+        List<CharSequence> inputSeq = asList(new StringBuffer("degfabc"), "dfgfgabc", new StringBuilder("efghabc"),
+            "defabc", "dfgabc");
         checkShortCircuitCollector("suffix", "abc", inputSeq.size(), inputSeq::stream, MoreCollectors.commonSuffix());
-        List<String> input2 = Arrays.asList("defabc", "defgabc", "dabcdfgfg", "efghabc", "dfgabc");
+        List<String> input2 = asList("defabc", "defgabc", "dabcdfgfg", "efghabc", "dfgabc");
         checkShortCircuitCollector("suffix", "", 3, input2::stream, MoreCollectors.commonSuffix());
         List<String> inputHalf = new ArrayList<>();
         inputHalf.addAll(Collections.nCopies(1000, "abc"));
         inputHalf.addAll(Collections.nCopies(1000, "def"));
         checkShortCircuitCollector("suffix", "", 1001, inputHalf::stream, MoreCollectors.commonSuffix());
-        List<String> inputSurrogate = Arrays.asList("\ud801\udc2fabc", "\ud802\udc2fabc", "\ud803\udc2fabc");
+        List<String> inputSurrogate = asList("\ud801\udc2fabc", "\ud802\udc2fabc", "\ud803\udc2fabc");
         checkShortCircuitCollector("suffix", "abc", inputSurrogate.size(), inputSurrogate::stream, MoreCollectors
                 .commonSuffix());
-        List<String> inputSurrogateBad = Arrays.asList("x\udc2fabc", "y\udc2fabc", "z\udc2fabc");
+        List<String> inputSurrogateBad = asList("x\udc2fabc", "y\udc2fabc", "z\udc2fabc");
         checkShortCircuitCollector("suffix", "\udc2fabc", inputSurrogateBad.size(), inputSurrogateBad::stream,
             MoreCollectors.commonSuffix());
-        List<String> inputSurrogateMix = Arrays.asList("\ud801\udc2fabc", "x\udc2fabc", "\ud801\udc14abc");
+        List<String> inputSurrogateMix = asList("\ud801\udc2fabc", "x\udc2fabc", "\ud801\udc14abc");
         checkShortCircuitCollector("suffix", "abc", inputSurrogateMix.size(), inputSurrogateMix::stream, MoreCollectors
                 .commonSuffix());
     }
 
     @Test
     public void testDominators() {
-        List<String> input = Arrays
-                .asList("a/", "a/b/c/", "b/c/", "b/d/", "c/a/", "d/a/b/", "c/a/b/", "c/b/", "b/c/d/");
-        List<String> expected = Arrays.asList("a/", "b/c/", "b/d/", "c/a/", "c/b/", "d/a/b/");
+        List<String> input = asList("a/", "a/b/c/", "b/c/", "b/d/", "c/a/", "d/a/b/", "c/a/b/", "c/b/", "b/c/d/");
+        List<String> expected = asList("a/", "b/c/", "b/d/", "c/a/", "c/b/", "d/a/b/");
         checkCollector("dominators", expected, () -> input.stream().sorted(), MoreCollectors.dominators((a, b) -> b
                 .startsWith(a)));
 
@@ -714,7 +718,7 @@ public class MoreCollectorsTest {
     @Test
     public void testIncreasingDominators() {
         int[] input = { 1, 3, 4, 2, 1, 7, 5, 3, 4, 0, 4, 6, 7, 10, 4, 3, 2, 1 };
-        List<Integer> result = Arrays.asList(1, 3, 4, 7, 10);
+        List<Integer> result = asList(1, 3, 4, 7, 10);
         checkCollector("increasing", result, () -> IntStreamEx.of(input).boxed(), MoreCollectors
                 .dominators((a, b) -> a >= b));
         int[] longInput = new Random(1).ints(10000, 0, 1000000).toArray();

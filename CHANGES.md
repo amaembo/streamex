@@ -5,6 +5,7 @@
 * [#70] Fixed: `MoreCollectors.least()/greatest()` now returns stable result (the order of equal elements is not changed).
 * [#70] Optimized: `MoreCollectors.least()/greatest()` is usually faster now, especially when the selected elements are close to the stream end.
 * [#74] Added: `EntryStream.removeKeyValue()`.
+* [#77] Added: `MoreCollectors.filtering()/mapping()/flatMapping()` with default downstream Collector `toList()`.
 
 
 ### 0.5.5

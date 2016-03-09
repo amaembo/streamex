@@ -1128,6 +1128,30 @@ public final class MoreCollectors {
     }
 
     /**
+     * Returns a collector which collects input elements to the new {@code List}
+     * transforming them with the supplied function beforehand.
+     * 
+     * <p>
+     * This method behaves like
+     * {@code Collectors.mapping(mapper, Collectors.toList())}.
+     * 
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code List} returned.
+     * 
+     * @param <T> the type of the input elements
+     * @param <U> the resulting type of the mapper function
+     * @param mapper a function to be applied to the input elements
+     * @return a collector which applies the mapping function to the input
+     *         elements and collects the mapped results to the {@code List}
+     * @see #mapping(Function, Collector)
+     * @since 0.6.0
+     */
+    public static <T, U> Collector<T, ?, List<U>> mapping(Function<? super T, ? extends U> mapper) {
+        return Collectors.mapping(mapper, Collectors.toList());
+    }
+
+    /**
      * Adapts a {@code Collector} accepting elements of type {@code U} to one
      * accepting elements of type {@code T} by applying a flat mapping function
      * to each input element before accumulation. The flat mapping function maps
@@ -1137,6 +1161,7 @@ public final class MoreCollectors {
      * have been placed downstream. (If a mapped stream is {@code null} an empty
      * stream is used, instead.)
      * 
+     * <p>
      * This method is similar to {@code Collectors.flatMapping} method which
      * appears in JDK 9. However when downstream collector is <a
      * href="package-summary.html#ShortCircuitReduction">short-circuiting</a>,
@@ -1187,6 +1212,33 @@ public final class MoreCollectors {
     }
 
     /**
+     * Returns a collector which launches a flat mapping function for each input
+     * element and collects the elements of the resulting streams to the flat
+     * {@code List}. Each mapped stream is
+     * {@link java.util.stream.BaseStream#close() closed} after its contents
+     * have been placed downstream. (If a mapped stream is {@code null} an empty
+     * stream is used, instead.)
+     * 
+     * <p>
+     * This method behaves like {@code flatMapping(mapper, Collectors.toList())}.
+     * 
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code List} returned.
+     * 
+     * @param <T> the type of the input elements
+     * @param <U> type of the resulting elements
+     * @param mapper a function to be applied to the input elements, which
+     *        returns a stream of results
+     * @return a collector which applies the mapping function to the input
+     *         elements and collects the flat mapped results to the {@code List}
+     * @since 0.6.0
+     */
+    public static <T, U> Collector<T, ?, List<U>> flatMapping(Function<? super T, ? extends Stream<? extends U>> mapper) {
+        return flatMapping(mapper, Collectors.toList());
+    }
+
+    /**
      * Returns a {@code Collector} which passes only those elements to the
      * specified downstream collector which match given predicate.
      *
@@ -1201,6 +1253,12 @@ public final class MoreCollectors {
      * mostly useful as a downstream collector in cascaded operation involving
      * {@link #pairing(Collector, Collector, BiFunction)} collector.
      *
+     * <p>
+     * This method is similar to {@code Collectors.filtering} method which
+     * appears in JDK 9. However when downstream collector is <a
+     * href="package-summary.html#ShortCircuitReduction">short-circuiting</a>,
+     * this method will also return a short-circuiting collector.
+     * 
      * @param <T> the type of the input elements
      * @param <A> intermediate accumulation type of the downstream collector
      * @param <R> result type of collector
@@ -1225,6 +1283,30 @@ public final class MoreCollectors {
         }
         return Collector.of(downstream.supplier(), accumulator, downstream.combiner(), downstream.finisher(),
             downstream.characteristics().toArray(new Characteristics[downstream.characteristics().size()]));
+    }
+
+    /**
+     * Returns a {@code Collector} which filters input elements by the supplied
+     * predicate, collecting them to the list.
+     *
+     * <p>
+     * This method behaves like
+     * {@code filtering(predicate, Collectors.toList())}.
+     * 
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code List} returned.
+     * 
+     * @param <T> the type of the input elements
+     * @param predicate a filter function to be applied to the input elements
+     * @return a collector which applies the predicate to the input elements and
+     *         collects the elements for which predicate returned true to the
+     *         {@code List}
+     * @see #filtering(Predicate, Collector)
+     * @since 0.6.0
+     */
+    public static <T> Collector<T, ?, List<T>> filtering(Predicate<? super T> predicate) {
+        return filtering(predicate, Collectors.toList());
     }
 
     /**
