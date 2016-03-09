@@ -500,7 +500,7 @@ import java.util.stream.Stream;
 
         <T> Collector<T, A, R> asRef(BiConsumer<A, T> accumulator) {
             return Collector.of(supplier, accumulator, combiner(), finisher, characteristics
-                    .toArray(new Characteristics[characteristics.size()]));
+                    .toArray(new Characteristics[0]));
         }
 
         <T> Collector<T, A, R> asCancellable(BiConsumer<A, T> accumulator, Predicate<A> finished) {
@@ -672,7 +672,7 @@ import java.util.stream.Stream;
         Box(A obj) {
             this.a = obj;
         }
-        
+
         public void setA(A a) {
             this.a = a;
         }
@@ -1065,7 +1065,7 @@ import java.util.stream.Stream;
     static <T> T none() {
         return (T) NONE;
     }
-    
+
     static boolean mustCloseStream(BaseStream<?, ?> target) {
         try {
             if (SOURCE_STAGE != null && SOURCE_CLOSE_ACTION != null
@@ -1080,7 +1080,7 @@ import java.util.stream.Stream;
     static <T> int drainTo(T[] array, Spliterator<T> spliterator) {
         Box<T> box = new Box<>(null);
         int index = 0;
-        while(index < array.length && spliterator.tryAdvance(box::setA)) {
+        while (index < array.length && spliterator.tryAdvance(box::setA)) {
             array[index++] = box.a;
         }
         return index;

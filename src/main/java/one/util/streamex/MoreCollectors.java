@@ -271,7 +271,7 @@ public final class MoreCollectors {
             Predicate<PairBox<A1, A2>> finished = acc -> c1Finished.test(acc.a) && c2Finished.test(acc.b);
             return new CancellableCollectorImpl<>(supplier, accumulator, combiner, resFinisher, finished, c);
         }
-        return Collector.of(supplier, accumulator, combiner, resFinisher, c.toArray(new Characteristics[c.size()]));
+        return Collector.of(supplier, accumulator, combiner, resFinisher, c.toArray(new Characteristics[0]));
     }
 
     /**
@@ -1207,8 +1207,7 @@ public final class MoreCollectors {
                     stream.spliterator().forEachRemaining(u -> downstreamAccumulator.accept(acc, u));
                 }
             }
-        }, downstream.combiner(), downstream.finisher(), downstream.characteristics().toArray(
-            new Characteristics[downstream.characteristics().size()]));
+        }, downstream.combiner(), downstream.finisher(), downstream.characteristics().toArray(new Characteristics[0]));
     }
 
     /**
@@ -1282,7 +1281,7 @@ public final class MoreCollectors {
                     .finisher(), finished, downstream.characteristics());
         }
         return Collector.of(downstream.supplier(), accumulator, downstream.combiner(), downstream.finisher(),
-            downstream.characteristics().toArray(new Characteristics[downstream.characteristics().size()]));
+            downstream.characteristics().toArray(new Characteristics[0]));
     }
 
     /**

@@ -46,7 +46,7 @@ import java.util.stream.StreamSupport;
             est = Long.MAX_VALUE;
         }
         this.est = est;
-        this.collections = source.toArray(new Collection[source.size()]);
+        this.collections = source.toArray(new Collection[0]);
         this.spliterators = new Spliterator[collections.length];
     }
 
