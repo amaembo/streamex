@@ -88,18 +88,17 @@ import java.util.Iterator;
      * @return this object
      */
     public Limiter<T> putAll(Limiter<T> ls) {
+        int i = 0;
         if (!ls.initial) {
-            for (int i = 0; i < limit; i++) {
+            // sorted part
+            for (; i < limit; i++) {
                 if (!put(ls.data[i]))
                     break;
             }
-            for (int i = limit; i < ls.size; i++) {
-                put(ls.data[i]);
-            }
-        } else {
-            for (int i = 0; i < ls.size; i++) {
-                put(ls.data[i]);
-            }
+            i = limit;
+        }
+        for (; i < ls.size; i++) {
+            put(ls.data[i]);
         }
         return this;
     }
