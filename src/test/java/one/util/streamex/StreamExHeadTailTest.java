@@ -450,7 +450,7 @@ public class StreamExHeadTailTest {
         // 1+2+...+10000
         assertEquals(50005000, (int) limit(scanLeft(StreamEx.iterate(1, x -> x + 1), Integer::sum), 10000).reduce(
             (a, b) -> b).get());
-        assertEquals(50005000, (int) limit(flatMap(StreamEx.iterate(1, x -> x + 3), x -> StreamEx.of(x, x + 1, x + 2)),
+        assertEquals(50005000, (int) limit(flatMap(StreamEx.iterate(1, x -> x + 3), (Integer x) -> StreamEx.of(x, x + 1, x + 2)),
             10000).reduce(Integer::sum).get());
         assertEquals(asList(50005000), skip(
             appendReduction(IntStreamEx.rangeClosed(1, 10000).boxed(), 0, Integer::sum), 10000).toList());
