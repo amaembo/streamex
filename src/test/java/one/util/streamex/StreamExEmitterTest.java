@@ -64,7 +64,7 @@ public class StreamExEmitterTest {
             return start == 1 ? null : collatz(start % 2 == 0 ? start / 2 : start * 3 + 1);
         };
     }
-    
+
     // Reads numbers from scanner stopping when non-number is encountered
     public static Emitter<Integer> scannerInts(Scanner sc) {
         return sc.hasNextInt() ? action -> {
@@ -77,7 +77,7 @@ public class StreamExEmitterTest {
     public static StreamEx<BigInteger> fibonacci() {
         return fibonacci(BigInteger.ONE, BigInteger.ZERO).stream();
     }
-    
+
     private static Emitter<BigInteger> fibonacci(BigInteger first, BigInteger second) {
         return action -> {
             BigInteger next = first.add(second);
@@ -94,24 +94,24 @@ public class StreamExEmitterTest {
     // Adapt iterator to emitter
     public static <T> Emitter<T> fromIterator(Iterator<T> iter) {
         return action -> {
-            if(!iter.hasNext()) 
+            if (!iter.hasNext())
                 return null;
             action.accept(iter.next());
             return fromIterator(iter);
         };
     }
 
-    // Perform scanLeft on the iterator 
+    // Perform scanLeft on the iterator
     public static <T> Emitter<T> scanLeft(Iterator<T> iter, T initial, BinaryOperator<T> reducer) {
         return action -> {
-            if(!iter.hasNext()) 
+            if (!iter.hasNext())
                 return null;
             T sum = reducer.apply(initial, iter.next());
             action.accept(sum);
             return scanLeft(iter, sum, reducer);
         };
     }
-    
+
     // Stream of all matches of given matcher
     public static Emitter<String> matches(Matcher m) {
         return m.find() ? action -> {
@@ -119,7 +119,15 @@ public class StreamExEmitterTest {
             return matches(m);
         } : null;
     }
-    
+
+    public static Emitter<Integer> flatTest(int start) {
+        return action -> {
+            for (int i = 0; i < start; i++)
+                action.accept(start);
+            return start == 0 ? null : flatTest(start - 1);
+        };
+    }
+
     @Test
     public void testEmitter() {
         assertEquals(asList(17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1), collatz(17).stream().toList());
@@ -129,21 +137,26 @@ public class StreamExEmitterTest {
         Scanner sc = new Scanner("1 2 3 4 test");
         assertEquals(asList(1, 2, 3, 4), scannerInts(sc).stream().toList());
         assertEquals("test", sc.next());
-        
+
         // Extracting to variables is necessary to work-around javac <8u40 bug
         String expected = "354224848179261915075";
         String actual = fibonacci().skip(99).findFirst().get().toString();
         assertEquals(expected, actual);
         assertEquals(asList(1, 1, 2, 3, 5, 8, 13, 21, 34, 55), fibonacci().map(BigInteger::intValueExact).limit(10)
                 .toList());
-        
-        assertEquals(asList("foo", "bar", "baz"), fromSpliterator(asList("foo", "bar", "baz").spliterator()).stream().toList());
-        assertEquals(asList("foo", "bar", "baz"), fromIterator(asList("foo", "bar", "baz").iterator()).stream().toList());
-        
+
+        assertEquals(asList("foo", "bar", "baz"), fromSpliterator(asList("foo", "bar", "baz").spliterator()).stream()
+                .toList());
+        assertEquals(asList("foo", "bar", "baz"), fromIterator(asList("foo", "bar", "baz").iterator()).stream()
+                .toList());
+
         assertEquals(asList("123", "543", "111", "5432"), matches(Pattern.compile("\\d+").matcher("123 543,111:5432"))
                 .stream().toList());
+
+        assertEquals(asList("aa", "aabbb", "aabbbc"), scanLeft(asList("aa", "bbb", "c").iterator(), "", String::concat)
+                .stream().toList());
         
-        assertEquals(asList("aa", "aabbb", "aabbbc"), 
-            scanLeft(asList("aa", "bbb", "c").iterator(), "", String::concat).stream().toList());
+        assertEquals(asList(4, 4, 4, 4, 3, 3, 3, 2, 2, 1), flatTest(4).stream().toList());
+        assertEquals(asList(4, 4, 4, 4, 3, 3, 3, 2, 2), flatTest(4).stream().limit(9).toList());
     }
 }

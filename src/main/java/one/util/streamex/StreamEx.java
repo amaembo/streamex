@@ -2643,46 +2643,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
          * @return the new spliterator
          */
         default Spliterator<T> spliterator() {
-            return new Spliterators.AbstractSpliterator<T>(Long.MAX_VALUE, Spliterator.ORDERED | Spliterator.IMMUTABLE) {
-                Emitter<T> e = Emitter.this;
-                Spliterator<T> buf;
-
-                @Override
-                public boolean tryAdvance(Consumer<? super T> action) {
-                    if (!fillBuf())
-                        return false;
-                    while (!buf.tryAdvance(action)) {
-                        buf = null;
-                        if (!fillBuf())
-                            return false;
-                    }
-                    return true;
-                }
-
-                @Override
-                public void forEachRemaining(Consumer<? super T> action) {
-                    if (buf != null) {
-                        buf.forEachRemaining(action);
-                        buf = null;
-                    }
-                    Emitter<T> e = this.e;
-                    this.e = null;
-                    while (e != null)
-                        e = e.next(action);
-                }
-
-                private boolean fillBuf() {
-                    while (buf == null) {
-                        if (e == null)
-                            return false;
-                        Builder<T> b = Stream.builder();
-                        Emitter<T> next = e.next(b);
-                        buf = b.build().spliterator();
-                        e = next;
-                    }
-                    return true;
-                }
-            };
+            return new EmitterSpliterator<>(this);
         }
 
         /**
