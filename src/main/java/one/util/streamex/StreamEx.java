@@ -49,6 +49,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.BinaryOperator;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -1721,10 +1722,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return the wrapped stream
      */
     public static <T> StreamEx<T> of(Stream<T> stream) {
-        if(stream instanceof AbstractStreamEx) {
+        if (stream instanceof AbstractStreamEx) {
             @SuppressWarnings("unchecked")
-            AbstractStreamEx<T, ?> ase = (AbstractStreamEx<T, ?>)stream;
-            if(ase.spliterator != null)
+            AbstractStreamEx<T, ?> ase = (AbstractStreamEx<T, ?>) stream;
+            if (ase.spliterator != null)
                 return new StreamEx<>(ase.spliterator(), ase.context);
             return new StreamEx<>(ase.stream(), ase.context);
         }
@@ -2590,5 +2591,108 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         if (n == 0)
             return of(identity);
         return of(new CrossSpliterator.Reducing<>(Collections.nCopies(n, source), identity, accumulator));
+    }
+
+    /**
+     * A helper interface to build a new stream by emitting elements and
+     * creating new emitters in a chain.
+     * 
+     * <p>
+     * Using this interface it's possible to create custom sources which cannot
+     * be easily expressed using {@link StreamEx#iterate(Object, UnaryOperator)}
+     * or {@link StreamEx#generate(Supplier)}. For example, the following method
+     * generates a Collatz sequence starting from given number:
+     * 
+     * <pre>{@code
+     * public static Emitter<Integer> collatz(int start) {
+     *    return action -> {
+     *       action.accept(start);
+     *       return start == 1 ? null : collatz(start % 2 == 0 ? start / 2 : start * 3 + 1);
+     *    };
+     * }}</pre>
+     * 
+     * <p>
+     * Now you can use {@code collatz(17).stream()} to get the stream of Collatz numbers.
+     * 
+     * @author Tagir Valeev
+     *
+     * @param <T> the type of the elements this emitter emits
+     * @since 0.6.0
+     */
+    @FunctionalInterface
+    public interface Emitter<T> {
+        /**
+         * Calls the supplied consumer zero or more times to emit some elements,
+         * the returns the next emitter which will emit more, or null if nothing
+         * more to emit.
+         * 
+         * <p>
+         * It's allowed not to emit anything (don't call the consumer). However
+         * if you do this and return new emitter which also does not emit
+         * anything, you will end up in endless loop.
+         * 
+         * @param cons consumer to be called to emit elements
+         * @return next emitter or null
+         */
+        Emitter<T> next(Consumer<? super T> cons);
+
+        /**
+         * Returns the spliterator which covers all the elements emitted by this
+         * emitter.
+         * 
+         * @return the new spliterator
+         */
+        default Spliterator<T> spliterator() {
+            return new Spliterators.AbstractSpliterator<T>(Long.MAX_VALUE, Spliterator.ORDERED | Spliterator.IMMUTABLE) {
+                Emitter<T> e = Emitter.this;
+                Spliterator<T> buf;
+
+                @Override
+                public boolean tryAdvance(Consumer<? super T> action) {
+                    if (!fillBuf())
+                        return false;
+                    while (!buf.tryAdvance(action)) {
+                        buf = null;
+                        if (!fillBuf())
+                            return false;
+                    }
+                    return true;
+                }
+
+                @Override
+                public void forEachRemaining(Consumer<? super T> action) {
+                    if (buf != null) {
+                        buf.forEachRemaining(action);
+                        buf = null;
+                    }
+                    Emitter<T> e = this.e;
+                    this.e = null;
+                    while (e != null)
+                        e = e.next(action);
+                }
+
+                private boolean fillBuf() {
+                    while (buf == null) {
+                        if (e == null)
+                            return false;
+                        Builder<T> b = Stream.builder();
+                        Emitter<T> next = e.next(b);
+                        buf = b.build().spliterator();
+                        e = next;
+                    }
+                    return true;
+                }
+            };
+        }
+
+        /**
+         * Returns the stream which covers all the elements emitted by this
+         * emitter.
+         * 
+         * @return the new stream
+         */
+        default StreamEx<T> stream() {
+            return of(spliterator());
+        }
     }
 }
