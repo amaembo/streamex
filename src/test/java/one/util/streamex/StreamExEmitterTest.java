@@ -22,10 +22,13 @@ import java.math.BigInteger;
 import java.util.Iterator;
 import java.util.Scanner;
 import java.util.Spliterator;
+import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import one.util.streamex.StreamEx.Emitter;
 
@@ -97,6 +100,25 @@ public class StreamExEmitterTest {
             return fromIterator(iter);
         };
     }
+
+    // Perform scanLeft on the iterator 
+    public static <T> Emitter<T> scanLeft(Iterator<T> iter, T initial, BinaryOperator<T> reducer) {
+        return action -> {
+            if(!iter.hasNext()) 
+                return null;
+            T sum = reducer.apply(initial, iter.next());
+            action.accept(sum);
+            return scanLeft(iter, sum, reducer);
+        };
+    }
+    
+    // Stream of all matches of given matcher
+    public static Emitter<String> matches(Matcher m) {
+        return m.find() ? action -> {
+            action.accept(m.group());
+            return matches(m);
+        } : null;
+    }
     
     @Test
     public void testEmitter() {
@@ -117,5 +139,11 @@ public class StreamExEmitterTest {
         
         assertEquals(asList("foo", "bar", "baz"), fromSpliterator(asList("foo", "bar", "baz").spliterator()).stream().toList());
         assertEquals(asList("foo", "bar", "baz"), fromIterator(asList("foo", "bar", "baz").iterator()).stream().toList());
+        
+        assertEquals(asList("123", "543", "111", "5432"), matches(Pattern.compile("\\d+").matcher("123 543,111:5432"))
+                .stream().toList());
+        
+        assertEquals(asList("aa", "aabbb", "aabbbc"), 
+            scanLeft(asList("aa", "bbb", "c").iterator(), "", String::concat).stream().toList());
     }
 }
