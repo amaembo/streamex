@@ -2623,7 +2623,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public interface Emitter<T> {
         /**
          * Calls the supplied consumer zero or more times to emit some elements,
-         * the returns the next emitter which will emit more, or null if nothing
+         * then returns the next emitter which will emit more, or null if nothing
          * more to emit.
          * 
          * <p>

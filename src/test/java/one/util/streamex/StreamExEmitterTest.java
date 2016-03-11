@@ -18,6 +18,7 @@ package one.util.streamex;
 import static org.junit.Assert.*;
 import static java.util.Arrays.asList;
 
+import java.math.BigInteger;
 import java.util.Scanner;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -32,6 +33,7 @@ import org.junit.Test;
  * @author Tagir Valeev
  */
 public class StreamExEmitterTest {
+    // Like Stream.generate(supplier)
     public static <T> Emitter<T> generate(Supplier<T> supplier) {
         return new Emitter<T>() {
             @Override
@@ -42,6 +44,7 @@ public class StreamExEmitterTest {
         };
     }
 
+    // Like Java-9 Stream.iterate(seed, test, op)
     public static <T> Emitter<T> iterate(T seed, Predicate<? super T> test, UnaryOperator<T> op) {
         return test.test(seed) ? action -> {
             action.accept(seed);
@@ -49,6 +52,7 @@ public class StreamExEmitterTest {
         } : null;
     }
 
+    // Collatz sequence starting from given number
     public static Emitter<Integer> collatz(int start) {
         return action -> {
             action.accept(start);
@@ -56,11 +60,25 @@ public class StreamExEmitterTest {
         };
     }
     
+    // Reads numbers from scanner stopping when non-number is encountered
     public static Emitter<Integer> scannerInts(Scanner sc) {
         return sc.hasNextInt() ? action -> {
             action.accept(sc.nextInt());
             return scannerInts(sc);
         } : null;
+    }
+
+    // Stream of Fibonacci numbers
+    public static StreamEx<BigInteger> fibonacci() {
+        return fibonacci(BigInteger.ONE, BigInteger.ZERO).stream();
+    }
+    
+    private static Emitter<BigInteger> fibonacci(BigInteger first, BigInteger second) {
+        return action -> {
+            BigInteger next = first.add(second);
+            action.accept(next);
+            return fibonacci(second, next);
+        };
     }
 
     @Test
@@ -72,5 +90,8 @@ public class StreamExEmitterTest {
         Scanner sc = new Scanner("1 2 3 4 test");
         assertEquals(asList(1, 2, 3, 4), scannerInts(sc).stream().toList());
         assertEquals("test", sc.next());
+        assertEquals("354224848179261915075", fibonacci().skip(99).findFirst().get().toString());
+        assertEquals(asList(1, 1, 2, 3, 5, 8, 13, 21, 34, 55), fibonacci().map(BigInteger::intValueExact).limit(10)
+                .toList());
     }
 }
