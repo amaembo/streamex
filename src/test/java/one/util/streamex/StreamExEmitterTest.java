@@ -19,7 +19,9 @@ import static org.junit.Assert.*;
 import static java.util.Arrays.asList;
 
 import java.math.BigInteger;
+import java.util.Iterator;
 import java.util.Scanner;
+import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -81,6 +83,21 @@ public class StreamExEmitterTest {
         };
     }
 
+    // Adapt spliterator to emitter
+    public static <T> Emitter<T> fromSpliterator(Spliterator<T> spltr) {
+        return action -> spltr.tryAdvance(action) ? fromSpliterator(spltr) : null;
+    }
+
+    // Adapt iterator to emitter
+    public static <T> Emitter<T> fromIterator(Iterator<T> iter) {
+        return action -> {
+            if(!iter.hasNext()) 
+                return null;
+            action.accept(iter.next());
+            return fromIterator(iter);
+        };
+    }
+    
     @Test
     public void testEmitter() {
         assertEquals(asList(17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1), collatz(17).stream().toList());
@@ -90,8 +107,15 @@ public class StreamExEmitterTest {
         Scanner sc = new Scanner("1 2 3 4 test");
         assertEquals(asList(1, 2, 3, 4), scannerInts(sc).stream().toList());
         assertEquals("test", sc.next());
-        assertEquals("354224848179261915075", fibonacci().skip(99).findFirst().get().toString());
+        
+        // Extracting to variables is necessary to work-around javac <8u40 bug
+        String expected = "354224848179261915075";
+        String actual = fibonacci().skip(99).findFirst().get().toString();
+        assertEquals(expected, actual);
         assertEquals(asList(1, 1, 2, 3, 5, 8, 13, 21, 34, 55), fibonacci().map(BigInteger::intValueExact).limit(10)
                 .toList());
+        
+        assertEquals(asList("foo", "bar", "baz"), fromSpliterator(asList("foo", "bar", "baz").spliterator()).stream().toList());
+        assertEquals(asList("foo", "bar", "baz"), fromIterator(asList("foo", "bar", "baz").iterator()).stream().toList());
     }
 }
