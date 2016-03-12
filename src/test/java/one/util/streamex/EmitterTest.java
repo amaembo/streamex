@@ -25,6 +25,7 @@ import java.util.Scanner;
 import java.util.Spliterator;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
+import java.util.function.LongPredicate;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
@@ -170,6 +171,21 @@ public class EmitterTest {
         };
     }
     
+    public static LongStreamEx primes() {
+        return ((LongEmitter)(action -> {
+            action.accept(2);
+            return primes(3, x -> x % 2 != 0);
+        })).stream();
+    }
+    
+    private static LongEmitter primes(long start, LongPredicate isPrime) {
+        return action -> {
+            long nextPrime = LongStreamEx.range(start, Long.MAX_VALUE, 2).findFirst(isPrime).getAsLong();
+            action.accept(nextPrime);
+            return primes(nextPrime+2, isPrime.and(x -> x % nextPrime != 0));
+        };
+    }
+    
     @Test
     public void testEmitter() {
         assertEquals(asList(17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1), collatz(17).stream().toList());
@@ -213,5 +229,7 @@ public class EmitterTest {
         checkSpliterator("flatTest", asList(4, 4, 4, 4, 3, 3, 3, 2, 2, 1), flatTestInt(4)::spliterator);
         checkSpliterator("flatTest", asList(4L, 4L, 4L, 4L, 3L, 3L, 3L, 2L, 2L, 1L), flatTestLong(4)::spliterator);
         checkSpliterator("flatTest", asList(4.0, 4.0, 4.0, 4.0, 3.0, 3.0, 3.0, 2.0, 2.0, 1.0), flatTestDouble(4)::spliterator);
+        
+        assertEquals(7919L, primes().skip(999).findFirst().getAsLong());
     }
 }
