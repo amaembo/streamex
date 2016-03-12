@@ -16,6 +16,7 @@
 package one.util.streamex;
 
 import static org.junit.Assert.*;
+import static one.util.streamex.TestHelpers.*;
 import static java.util.Arrays.asList;
 
 import java.math.BigInteger;
@@ -30,6 +31,9 @@ import java.util.function.UnaryOperator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import one.util.streamex.DoubleStreamEx.DoubleEmitter;
+import one.util.streamex.IntStreamEx.IntEmitter;
+import one.util.streamex.LongStreamEx.LongEmitter;
 import one.util.streamex.StreamEx.Emitter;
 
 import org.junit.Test;
@@ -37,7 +41,7 @@ import org.junit.Test;
 /**
  * @author Tagir Valeev
  */
-public class StreamExEmitterTest {
+public class EmitterTest {
     // Like Stream.generate(supplier)
     public static <T> Emitter<T> generate(Supplier<T> supplier) {
         return new Emitter<T>() {
@@ -62,6 +66,20 @@ public class StreamExEmitterTest {
         return action -> {
             action.accept(start);
             return start == 1 ? null : collatz(start % 2 == 0 ? start / 2 : start * 3 + 1);
+        };
+    }
+
+    public static IntEmitter collatzInt(int start) {
+        return action -> {
+            action.accept(start);
+            return start == 1 ? null : collatzInt(start % 2 == 0 ? start / 2 : start * 3 + 1);
+        };
+    }
+    
+    public static LongEmitter collatzLong(long start) {
+        return action -> {
+            action.accept(start);
+            return start == 1 ? null : collatzLong(start % 2 == 0 ? start / 2 : start * 3 + 1);
         };
     }
 
@@ -128,10 +146,42 @@ public class StreamExEmitterTest {
         };
     }
 
+    public static IntEmitter flatTestInt(int start) {
+        return action -> {
+            for (int i = 0; i < start; i++)
+                action.accept(start);
+            return start == 0 ? null : flatTestInt(start - 1);
+        };
+    }
+    
+    public static LongEmitter flatTestLong(int start) {
+        return action -> {
+            for (int i = 0; i < start; i++)
+                action.accept(start);
+            return start == 0 ? null : flatTestLong(start - 1);
+        };
+    }
+    
+    public static DoubleEmitter flatTestDouble(int start) {
+        return action -> {
+            for (int i = 0; i < start; i++)
+                action.accept(start);
+            return start == 0 ? null : flatTestDouble(start - 1);
+        };
+    }
+    
     @Test
     public void testEmitter() {
         assertEquals(asList(17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1), collatz(17).stream().toList());
+        checkSpliterator("collatz", asList(17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1), collatz(17)::spliterator);
+        assertArrayEquals(new int[] {17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1}, collatzInt(17).stream().toArray());
+        checkSpliterator("collatzInt", asList(17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1), collatzInt(17)::spliterator);
+        assertArrayEquals(new long[] {17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1}, collatzLong(17).stream().toArray());
+        checkSpliterator("collatzLong", asList(17L, 52L, 26L, 13L, 40L, 20L, 10L, 5L, 16L, 8L, 4L, 2L, 1L),
+            collatzLong(17)::spliterator);
         assertTrue(collatz(17).stream().has(1));
+        assertTrue(collatzInt(17).stream().has(1));
+        assertFalse(collatzLong(17).stream().has(0));
         assertEquals(asList(4, 4, 4, 4, 4), generate(() -> 4).stream().limit(5).toList());
         assertEquals(asList(1, 2, 3, 4, 5, 6, 7, 8, 9), iterate(1, x -> x < 10, x -> x + 1).stream().toList());
         Scanner sc = new Scanner("1 2 3 4 test");
@@ -158,5 +208,10 @@ public class StreamExEmitterTest {
         
         assertEquals(asList(4, 4, 4, 4, 3, 3, 3, 2, 2, 1), flatTest(4).stream().toList());
         assertEquals(asList(4, 4, 4, 4, 3, 3, 3, 2, 2), flatTest(4).stream().limit(9).toList());
+        
+        checkSpliterator("flatTest", asList(4, 4, 4, 4, 3, 3, 3, 2, 2, 1), flatTest(4)::spliterator);
+        checkSpliterator("flatTest", asList(4, 4, 4, 4, 3, 3, 3, 2, 2, 1), flatTestInt(4)::spliterator);
+        checkSpliterator("flatTest", asList(4L, 4L, 4L, 4L, 3L, 3L, 3L, 2L, 2L, 1L), flatTestLong(4)::spliterator);
+        checkSpliterator("flatTest", asList(4.0, 4.0, 4.0, 4.0, 3.0, 3.0, 3.0, 2.0, 2.0, 1.0), flatTestDouble(4)::spliterator);
     }
 }

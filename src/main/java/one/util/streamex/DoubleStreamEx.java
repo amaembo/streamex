@@ -1804,4 +1804,55 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
         return of(new RangeBasedSpliterator.ZipDouble(0, checkLength(first.length, second.length), mapper, first,
                 second));
     }
+    
+    /**
+     * A helper interface to build a new stream by emitting elements and
+     * creating new emitters in a chain.
+     * 
+     * <p>
+     * Using this interface it's possible to create custom sources which cannot
+     * be easily expressed using {@link DoubleStreamEx#iterate(double, DoubleUnaryOperator)}
+     * or {@link DoubleStreamEx#generate(DoubleSupplier)}.
+     * 
+     * @author Tagir Valeev
+     *
+     * @since 0.6.0
+     */
+    @FunctionalInterface
+    public interface DoubleEmitter {
+        /**
+         * Calls the supplied consumer zero or more times to emit some elements,
+         * then returns the next emitter which will emit more, or null if nothing
+         * more to emit.
+         * 
+         * <p>
+         * It's allowed not to emit anything (don't call the consumer). However
+         * if you do this and return new emitter which also does not emit
+         * anything, you will end up in endless loop.
+         * 
+         * @param cons consumer to be called to emit elements
+         * @return next emitter or null
+         */
+        DoubleEmitter next(DoubleConsumer cons);
+
+        /**
+         * Returns the spliterator which covers all the elements emitted by this
+         * emitter.
+         * 
+         * @return the new spliterator
+         */
+        default Spliterator.OfDouble spliterator() {
+            return new EmitterSpliterator.OfDouble(this);
+        }
+
+        /**
+         * Returns the stream which covers all the elements emitted by this
+         * emitter.
+         * 
+         * @return the new stream
+         */
+        default DoubleStreamEx stream() {
+            return of(spliterator());
+        }
+    }
 }

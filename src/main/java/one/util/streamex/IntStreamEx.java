@@ -2435,4 +2435,67 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
     public static IntStreamEx zip(int[] first, int[] second, IntBinaryOperator mapper) {
         return of(new RangeBasedSpliterator.ZipInt(0, checkLength(first.length, second.length), mapper, first, second));
     }
+    
+    /**
+     * A helper interface to build a new stream by emitting elements and
+     * creating new emitters in a chain.
+     * 
+     * <p>
+     * Using this interface it's possible to create custom sources which cannot
+     * be easily expressed using {@link IntStreamEx#iterate(int, IntUnaryOperator)}
+     * or {@link IntStreamEx#generate(IntSupplier)}. For example, the following method
+     * generates a Collatz sequence starting from given number:
+     * 
+     * <pre>{@code
+     * public static IntEmitter collatz(int start) {
+     *    return action -> {
+     *       action.accept(start);
+     *       return start == 1 ? null : collatz(start % 2 == 0 ? start / 2 : start * 3 + 1);
+     *    };
+     * }}</pre>
+     * 
+     * <p>
+     * Now you can use {@code collatz(17).stream()} to get the stream of Collatz numbers.
+     * 
+     * @author Tagir Valeev
+     *
+     * @since 0.6.0
+     */
+    @FunctionalInterface
+    public interface IntEmitter {
+        /**
+         * Calls the supplied consumer zero or more times to emit some elements,
+         * then returns the next emitter which will emit more, or null if nothing
+         * more to emit.
+         * 
+         * <p>
+         * It's allowed not to emit anything (don't call the consumer). However
+         * if you do this and return new emitter which also does not emit
+         * anything, you will end up in endless loop.
+         * 
+         * @param cons consumer to be called to emit elements
+         * @return next emitter or null
+         */
+        IntEmitter next(IntConsumer cons);
+
+        /**
+         * Returns the spliterator which covers all the elements emitted by this
+         * emitter.
+         * 
+         * @return the new spliterator
+         */
+        default Spliterator.OfInt spliterator() {
+            return new EmitterSpliterator.OfInt(this);
+        }
+
+        /**
+         * Returns the stream which covers all the elements emitted by this
+         * emitter.
+         * 
+         * @return the new stream
+         */
+        default IntStreamEx stream() {
+            return of(spliterator());
+        }
+    }
 }

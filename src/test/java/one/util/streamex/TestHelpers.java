@@ -304,6 +304,15 @@ public class TestHelpers {
             }
         }
         assertEquals(msg, expected, seq);
+        
+        // Test advance+remaining
+        for (int i = 1; i < Math.min(4, expected.size() - 1); i++) {
+            seq.clear();
+            sequential = supplier.get();
+            for(int j=0; j<i; j++) assertTrue(msg, sequential.tryAdvance(seq::add));
+            sequential.forEachRemaining(seq::add);
+            assertEquals(msg, expected, seq);
+        }
 
         // Test trySplit
         Random r = new Random(1);
