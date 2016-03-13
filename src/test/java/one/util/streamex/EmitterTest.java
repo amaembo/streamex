@@ -31,7 +31,6 @@ import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import one.util.streamex.DoubleStreamEx.DoubleEmitter;
 import one.util.streamex.IntStreamEx.IntEmitter;
 import one.util.streamex.LongStreamEx.LongEmitter;
@@ -85,7 +84,7 @@ public class EmitterTest {
     }
 
     // Reads numbers from scanner stopping when non-number is encountered
-    public static Emitter<Integer> scannerInts(Scanner sc) {
+    public static IntEmitter scannerInts(Scanner sc) {
         return sc.hasNextInt() ? action -> {
             action.accept(sc.nextInt());
             return scannerInts(sc);
@@ -201,7 +200,7 @@ public class EmitterTest {
         assertEquals(asList(4, 4, 4, 4, 4), generate(() -> 4).stream().limit(5).toList());
         assertEquals(asList(1, 2, 3, 4, 5, 6, 7, 8, 9), iterate(1, x -> x < 10, x -> x + 1).stream().toList());
         Scanner sc = new Scanner("1 2 3 4 test");
-        assertEquals(asList(1, 2, 3, 4), scannerInts(sc).stream().toList());
+        assertArrayEquals(new int[] {1, 2, 3, 4}, scannerInts(sc).stream().toArray());
         assertEquals("test", sc.next());
 
         // Extracting to variables is necessary to work-around javac <8u40 bug
