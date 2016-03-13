@@ -6,6 +6,7 @@
 * [#70] Optimized: `MoreCollectors.least()/greatest()` is usually faster now, especially when the selected elements are close to the stream end.
 * [#74] Added: `EntryStream.removeKeyValue()`.
 * [#77] Added: `MoreCollectors.filtering()/mapping()/flatMapping()` with default downstream Collector `toList()`.
+* [#83] Changed: `StreamEx.of(Collection)`, `of(Iterator)`, etc. now use `? extends T` type instead of just `T`.
 
 
 ### 0.5.5
