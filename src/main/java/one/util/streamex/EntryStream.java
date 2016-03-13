@@ -64,14 +64,12 @@ import static one.util.streamex.StreamExInternals.*;
  * @param <V> the type of {@code Entry} values
  */
 public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream<K, V>> {
-    @SuppressWarnings("unchecked")
     EntryStream(Stream<? extends Entry<K, V>> stream, StreamContext context) {
-        super((Stream<Entry<K, V>>) stream, context);
+        super(stream, context);
     }
 
-    @SuppressWarnings("unchecked")
     EntryStream(Spliterator<? extends Entry<K, V>> spliterator, StreamContext context) {
-        super((Spliterator<Entry<K, V>>) spliterator, context);
+        super(spliterator, context);
     }
 
     @Override

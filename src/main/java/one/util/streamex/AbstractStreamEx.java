@@ -124,12 +124,14 @@ import static one.util.streamex.StreamExInternals.*;
         }
     }
 
-    AbstractStreamEx(Stream<T> stream, StreamContext context) {
-        super(stream, context);
+    @SuppressWarnings("unchecked")
+    AbstractStreamEx(Stream<? extends T> stream, StreamContext context) {
+        super((Stream<T>)stream, context);
     }
 
-    AbstractStreamEx(Spliterator<T> spliterator, StreamContext context) {
-        super(spliterator, context);
+    @SuppressWarnings("unchecked")
+    AbstractStreamEx(Spliterator<? extends T> spliterator, StreamContext context) {
+        super((Spliterator<T>)spliterator, context);
     }
 
     @Override

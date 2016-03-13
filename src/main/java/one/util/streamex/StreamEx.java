@@ -78,11 +78,11 @@ import static one.util.streamex.StreamExInternals.*;
  */
 public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
 
-    StreamEx(Stream<T> stream, StreamContext context) {
+    StreamEx(Stream<? extends T> stream, StreamContext context) {
         super(stream, context);
     }
 
-    StreamEx(Spliterator<T> spliterator, StreamContext context) {
+    StreamEx(Spliterator<? extends T> spliterator, StreamContext context) {
         super(spliterator, context);
     }
 
@@ -101,6 +101,13 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         CollapseSpliterator<T, R> spliterator = new CollapseSpliterator<>(collapsible, mapper, accumulator, combiner,
                 spliterator());
         return new StreamEx<>(spliterator, context);
+    }
+    
+    private static <T> StreamEx<T> flatTraverse(Stream<T> src, Function<T, Stream<T>> streamProvider) {
+        return StreamEx.of(src).flatMap(t -> {
+            Stream<T> result = streamProvider.apply(t);
+            return result == null ? Stream.of(t) : flatTraverse(result, streamProvider).prepend(t);
+        });
     }
 
     /**
@@ -1705,7 +1712,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *         collection
      * @see Collection#stream()
      */
-    public static <T> StreamEx<T> of(Collection<T> collection) {
+    public static <T> StreamEx<T> of(Collection<? extends T> collection) {
         return of(collection.spliterator());
     }
 
@@ -1741,7 +1748,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return the new stream
      * @since 0.3.4
      */
-    public static <T> StreamEx<T> of(Spliterator<T> spliterator) {
+    public static <T> StreamEx<T> of(Spliterator<? extends T> spliterator) {
         return new StreamEx<>(spliterator, StreamContext.SEQUENTIAL);
     }
 
@@ -1763,7 +1770,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return the new stream
      * @since 0.5.1
      */
-    public static <T> StreamEx<T> of(Iterator<T> iterator) {
+    public static <T> StreamEx<T> of(Iterator<? extends T> iterator) {
         return of(new UnknownSizeSpliterator.USOfRef<>(iterator));
     }
 
@@ -1780,7 +1787,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return the new stream
      * @since 0.5.1
      */
-    public static <T> StreamEx<T> of(Enumeration<T> enumeration) {
+    public static <T> StreamEx<T> of(Enumeration<? extends T> enumeration) {
         return of(new Iterator<T>() {
             @Override
             public boolean hasNext() {
@@ -1804,7 +1811,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *         empty stream
      * @since 0.1.1
      */
-    public static <T> StreamEx<T> of(Optional<T> optional) {
+    public static <T> StreamEx<T> of(Optional<? extends T> optional) {
         return optional.isPresent() ? of(optional.get()) : empty();
     }
 
@@ -1980,7 +1987,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @throws NullPointerException if map is null
      * @see Map#keySet()
      */
-    public static <T, V> StreamEx<T> ofKeys(Map<T, V> map, Predicate<V> valueFilter) {
+    public static <T, V> StreamEx<T> ofKeys(Map<T, V> map, Predicate<? super V> valueFilter) {
         return EntryStream.of(map).filterValues(valueFilter).keys();
     }
 
@@ -2012,7 +2019,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @throws NullPointerException if map is null
      * @see Map#values()
      */
-    public static <K, T> StreamEx<T> ofValues(Map<K, T> map, Predicate<K> keyFilter) {
+    public static <K, T> StreamEx<T> ofValues(Map<K, T> map, Predicate<? super K> keyFilter) {
         return EntryStream.of(map).filterKeys(keyFilter).values();
     }
 
@@ -2337,7 +2344,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public static <T> StreamEx<T> ofTree(T root, Function<T, Stream<T>> mapper) {
         Stream<T> rootStream = mapper.apply(root);
-        return rootStream == null ? of(root) : of(flatTraverse(rootStream, mapper)).prepend(root);
+        return rootStream == null ? of(root) : flatTraverse(rootStream, mapper).prepend(root);
     }
 
     /**

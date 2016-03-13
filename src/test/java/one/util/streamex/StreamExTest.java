@@ -206,6 +206,17 @@ public class StreamExTest {
         assertTrue(StreamEx.of("a", "b", "c").spliterator().hasCharacteristics(Spliterator.ORDERED));
         assertFalse(StreamEx.of("a", "b", "c").unordered().spliterator().hasCharacteristics(Spliterator.ORDERED));
     }
+    
+    @Test
+    public void testCovariance() {
+        StreamEx<Number> stream = StreamEx.of(1, 2, 3);
+        List<Number> list = stream.toList();
+        assertEquals(asList(1,2,3), list);
+        
+        StreamEx<Object> objStream = StreamEx.of(list.spliterator());
+        List<Object> objList = objStream.toList();
+        assertEquals(asList(1, 2, 3), objList);
+    }
 
     @Test
     public void testToList() {
