@@ -1755,10 +1755,86 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @param f a function to be applied to to the previous element to produce a
      *        new element
      * @return A new sequential {@code DoubleStream}
-     * @see DoubleStream#iterate(double, DoubleUnaryOperator)
+     * @see #iterate(double, DoublePredicate, DoubleUnaryOperator)
      */
     public static DoubleStreamEx iterate(final double seed, final DoubleUnaryOperator f) {
-        return seq(DoubleStream.iterate(seed, f));
+        return iterate(seed, x -> true, f);
+    }
+
+    /**
+     * Returns a sequential ordered {@code DoubleStreamEx} produced by iterative
+     * application of a function to an initial element, conditioned on
+     * satisfying the supplied predicate. The stream terminates as soon as the
+     * predicate function returns false.
+     *
+     * <p>
+     * {@code DoubleStreamEx.iterate} should produce the same sequence of
+     * elements as produced by the corresponding for-loop:
+     * 
+     * <pre>{@code
+     *     for (double index=seed; predicate.test(index); index = f.apply(index)) {
+     *         ... 
+     *     }
+     * }</pre>
+     *
+     * <p>
+     * The resulting sequence may be empty if the predicate does not hold on the
+     * seed value. Otherwise the first element will be the supplied seed value,
+     * the next element (if present) will be the result of applying the function
+     * f to the seed value, and so on iteratively until the predicate indicates
+     * that the stream should terminate.
+     *
+     * @param seed the initial element
+     * @param predicate a predicate to apply to elements to determine when the
+     *        stream must terminate.
+     * @param f a function to be applied to the previous element to produce a
+     *        new element
+     * @return a new sequential {@code DoubleStreamEx}
+     * @see #iterate(double, DoubleUnaryOperator)
+     * @since 0.6.0
+     */
+    public static DoubleStreamEx iterate(double seed, DoublePredicate predicate, DoubleUnaryOperator f) {
+        Objects.requireNonNull(f);
+        Objects.requireNonNull(predicate);
+        Spliterator.OfDouble spliterator = new Spliterators.AbstractDoubleSpliterator(Long.MAX_VALUE,
+                Spliterator.ORDERED | Spliterator.IMMUTABLE | Spliterator.NONNULL) {
+            double prev;
+            boolean started, finished;
+
+            @Override
+            public boolean tryAdvance(DoubleConsumer action) {
+                Objects.requireNonNull(action);
+                if (finished)
+                    return false;
+                double t;
+                if (started)
+                    t = f.applyAsDouble(prev);
+                else {
+                    t = seed;
+                    started = true;
+                }
+                if (!predicate.test(t)) {
+                    finished = true;
+                    return false;
+                }
+                action.accept(prev = t);
+                return true;
+            }
+
+            @Override
+            public void forEachRemaining(DoubleConsumer action) {
+                Objects.requireNonNull(action);
+                if (finished)
+                    return;
+                finished = true;
+                double t = started ? f.applyAsDouble(prev) : seed;
+                while (predicate.test(t)) {
+                    action.accept(t);
+                    t = f.applyAsDouble(t);
+                }
+            }
+        };
+        return of(spliterator);
     }
 
     /**
@@ -1804,15 +1880,16 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
         return of(new RangeBasedSpliterator.ZipDouble(0, checkLength(first.length, second.length), mapper, first,
                 second));
     }
-    
+
     /**
      * A helper interface to build a new stream by emitting elements and
      * creating new emitters in a chain.
      * 
      * <p>
      * Using this interface it's possible to create custom sources which cannot
-     * be easily expressed using {@link DoubleStreamEx#iterate(double, DoubleUnaryOperator)}
-     * or {@link DoubleStreamEx#generate(DoubleSupplier)}.
+     * be easily expressed using
+     * {@link DoubleStreamEx#iterate(double, DoubleUnaryOperator)} or
+     * {@link DoubleStreamEx#generate(DoubleSupplier)}.
      * 
      * @author Tagir Valeev
      *
@@ -1822,8 +1899,8 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
     public interface DoubleEmitter {
         /**
          * Calls the supplied consumer zero or more times to emit some elements,
-         * then returns the next emitter which will emit more, or null if nothing
-         * more to emit.
+         * then returns the next emitter which will emit more, or null if
+         * nothing more to emit.
          * 
          * <p>
          * It's allowed not to emit anything (don't call the consumer). However

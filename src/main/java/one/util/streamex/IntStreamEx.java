@@ -2265,10 +2265,86 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @param f a function to be applied to to the previous element to produce a
      *        new element
      * @return A new sequential {@code IntStream}
-     * @see IntStream#iterate(int, IntUnaryOperator)
+     * @see #iterate(int, IntPredicate, IntUnaryOperator)
      */
     public static IntStreamEx iterate(final int seed, final IntUnaryOperator f) {
-        return seq(IntStream.iterate(seed, f));
+        return iterate(seed, x -> true, f);
+    }
+
+    /**
+     * Returns a sequential ordered {@code IntStreamEx} produced by iterative
+     * application of a function to an initial element, conditioned on
+     * satisfying the supplied predicate. The stream terminates as soon as the
+     * predicate function returns false.
+     *
+     * <p>
+     * {@code IntStreamEx.iterate} should produce the same sequence of elements
+     * as produced by the corresponding for-loop:
+     * 
+     * <pre>{@code
+     *     for (int index=seed; predicate.test(index); index = f.apply(index)) { 
+     *         ... 
+     *     }
+     * }</pre>
+     *
+     * <p>
+     * The resulting sequence may be empty if the predicate does not hold on the
+     * seed value. Otherwise the first element will be the supplied seed value,
+     * the next element (if present) will be the result of applying the function
+     * f to the seed value, and so on iteratively until the predicate indicates
+     * that the stream should terminate.
+     *
+     * @param seed the initial element
+     * @param predicate a predicate to apply to elements to determine when the
+     *        stream must terminate.
+     * @param f a function to be applied to the previous element to produce a
+     *        new element
+     * @return a new sequential {@code IntStreamEx}
+     * @see #iterate(int, IntUnaryOperator)
+     * @since 0.6.0
+     */
+    public static IntStreamEx iterate(int seed, IntPredicate predicate, IntUnaryOperator f) {
+        Objects.requireNonNull(f);
+        Objects.requireNonNull(predicate);
+        Spliterator.OfInt spliterator = new Spliterators.AbstractIntSpliterator(Long.MAX_VALUE, Spliterator.ORDERED
+            | Spliterator.IMMUTABLE | Spliterator.NONNULL) {
+            int prev;
+            boolean started, finished;
+
+            @Override
+            public boolean tryAdvance(IntConsumer action) {
+                Objects.requireNonNull(action);
+                if (finished)
+                    return false;
+                int t;
+                if (started)
+                    t = f.applyAsInt(prev);
+                else {
+                    t = seed;
+                    started = true;
+                }
+                if (!predicate.test(t)) {
+                    finished = true;
+                    return false;
+                }
+                action.accept(prev = t);
+                return true;
+            }
+
+            @Override
+            public void forEachRemaining(IntConsumer action) {
+                Objects.requireNonNull(action);
+                if (finished)
+                    return;
+                finished = true;
+                int t = started ? f.applyAsInt(prev) : seed;
+                while (predicate.test(t)) {
+                    action.accept(t);
+                    t = f.applyAsInt(t);
+                }
+            }
+        };
+        return of(spliterator);
     }
 
     /**
@@ -2283,10 +2359,11 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
     public static IntStreamEx generate(IntSupplier s) {
         return seq(IntStream.generate(s));
     }
-    
+
     /**
      * Returns a sequential ordered {@code IntStreamEx} from 0 (inclusive) to
-     * {@code Integer.MAX_VALUE} (exclusive) by an incremental step of {@code 1}.
+     * {@code Integer.MAX_VALUE} (exclusive) by an incremental step of {@code 1}
+     * .
      *
      * @return a sequential {@code IntStreamEx} for the range of {@code int}
      *         elements
@@ -2435,16 +2512,17 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
     public static IntStreamEx zip(int[] first, int[] second, IntBinaryOperator mapper) {
         return of(new RangeBasedSpliterator.ZipInt(0, checkLength(first.length, second.length), mapper, first, second));
     }
-    
+
     /**
      * A helper interface to build a new stream by emitting elements and
      * creating new emitters in a chain.
      * 
      * <p>
      * Using this interface it's possible to create custom sources which cannot
-     * be easily expressed using {@link IntStreamEx#iterate(int, IntUnaryOperator)}
-     * or {@link IntStreamEx#generate(IntSupplier)}. For example, the following method
-     * generates a Collatz sequence starting from given number:
+     * be easily expressed using
+     * {@link IntStreamEx#iterate(int, IntUnaryOperator)} or
+     * {@link IntStreamEx#generate(IntSupplier)}. For example, the following
+     * method generates a Collatz sequence starting from given number:
      * 
      * <pre>{@code
      * public static IntEmitter collatz(int start) {
@@ -2455,7 +2533,8 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * }}</pre>
      * 
      * <p>
-     * Now you can use {@code collatz(17).stream()} to get the stream of Collatz numbers.
+     * Now you can use {@code collatz(17).stream()} to get the stream of Collatz
+     * numbers.
      * 
      * @author Tagir Valeev
      *
@@ -2465,8 +2544,8 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
     public interface IntEmitter {
         /**
          * Calls the supplied consumer zero or more times to emit some elements,
-         * then returns the next emitter which will emit more, or null if nothing
-         * more to emit.
+         * then returns the next emitter which will emit more, or null if
+         * nothing more to emit.
          * 
          * <p>
          * It's allowed not to emit anything (don't call the consumer). However

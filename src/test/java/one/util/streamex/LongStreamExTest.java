@@ -38,6 +38,7 @@ import java.util.stream.LongStream.Builder;
 
 import org.junit.Test;
 
+import static one.util.streamex.TestHelpers.*;
 import static org.junit.Assert.*;
 
 public class LongStreamExTest {
@@ -60,7 +61,6 @@ public class LongStreamExTest {
         assertArrayEquals(new long[] { 1, 2, 3 }, LongStreamEx.range(1L, 4L).toArray());
         assertArrayEquals(new long[] { 0, 1, 2 }, LongStreamEx.range(3L).toArray());
         assertArrayEquals(new long[] { 1, 2, 3 }, LongStreamEx.rangeClosed(1, 3).toArray());
-        assertArrayEquals(new long[] { 1, 2, 4, 8, 16 }, LongStreamEx.iterate(1, x -> x * 2).limit(5).toArray());
         assertArrayEquals(new long[] { 1, 1, 1, 1 }, LongStreamEx.generate(() -> 1).limit(4).toArray());
         assertArrayEquals(new long[] { 1, 1, 1, 1 }, LongStreamEx.constant(1L, 4).toArray());
         assertEquals(10, LongStreamEx.of(new Random(), 10).count());
@@ -84,6 +84,15 @@ public class LongStreamExTest {
                 .parallel().toArray());
 
         assertArrayEquals(new long[] { 2, 4, 6 }, LongStreamEx.of(new Long[] { 2L, 4L, 6L }).toArray());
+    }
+    
+    @Test
+    public void testIterate() {
+        assertArrayEquals(new long[] { 1, 2, 4, 8, 16 }, LongStreamEx.iterate(1, x -> x * 2).limit(5).toArray());
+        assertArrayEquals(new long[] { 1, 2, 4, 8, 16, 32, 64 }, LongStreamEx.iterate(1, x -> x < 100, x -> x * 2).toArray());
+        assertEquals(0, LongStreamEx.iterate(0, x -> x < 0, x -> 1 / x).count());
+        assertFalse(LongStreamEx.iterate(1, x -> x < 100, x -> x * 2).has(10));
+        checkSpliterator("iterate", () -> LongStreamEx.iterate(1, x -> x < 100, x -> x * 2).spliterator());
     }
 
     @Test

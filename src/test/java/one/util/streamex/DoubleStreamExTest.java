@@ -38,6 +38,7 @@ import java.util.stream.DoubleStream.Builder;
 
 import org.junit.Test;
 
+import static one.util.streamex.TestHelpers.*;
 import static org.junit.Assert.*;
 
 public class DoubleStreamExTest {
@@ -79,6 +80,17 @@ public class DoubleStreamExTest {
                 .of(Spliterators.iterator(Spliterators.emptyDoubleSpliterator())).parallel().toArray(), 0.0);
 
         assertArrayEquals(new double[] { 2, 4, 6 }, DoubleStreamEx.of(new Double[] { 2.0, 4.0, 6.0 }).toArray(), 0.0);
+    }
+
+    @Test
+    public void testIterate() {
+        assertArrayEquals(new double[] { 1, 2, 4, 8, 16 }, DoubleStreamEx.iterate(1, x -> x * 2).limit(5).toArray(),
+            0.0);
+        assertArrayEquals(new double[] { 1, 2, 4, 8, 16, 32, 64 }, DoubleStreamEx.iterate(1, x -> x < 100, x -> x * 2)
+                .toArray(), 0.0);
+        assertEquals(0, DoubleStreamEx.iterate(0, x -> x < 0, x -> 1 / x).count());
+        assertFalse(DoubleStreamEx.iterate(1, x -> x < 100, x -> x * 2).findFirst(x -> x == 10).isPresent());
+        checkSpliterator("iterate", () -> DoubleStreamEx.iterate(1, x -> x < 100, x -> x * 2).spliterator());
     }
 
     @Test

@@ -97,7 +97,6 @@ public class StreamExTest {
         assertEquals(asList("a", "b"), StreamEx.ofLines(new StringReader("a\nb")).toList());
         assertEquals(asList("a", "b"), StreamEx.ofLines(new BufferedReader(new StringReader("a\nb"))).toList());
         assertEquals(asList("a", "b"), StreamEx.ofLines(getReader()).toList());
-        assertEquals(asList("a", "aa", "aaa", "aaaa"), StreamEx.iterate("a", x -> x + "a").limit(4).toList());
         assertEquals(asList("a", "a", "a", "a"), StreamEx.generate(() -> "a").limit(4).toList());
         assertEquals(asList("a", "a", "a", "a"), StreamEx.constant("a", 4).toList());
         assertEquals(asList("c", "d", "e"), StreamEx.of("abcdef".split(""), 2, 5).toList());
@@ -115,6 +114,16 @@ public class StreamExTest {
         assertEquals(asList(), StreamEx.of(asList().iterator()).toList());
         assertEquals(asList(), StreamEx.of(asList().iterator()).parallel().toList());
         assertEquals(asList("a", "b"), StreamEx.of(new Vector<>(asList("a", "b")).elements()).toList());
+    }
+
+    @Test
+    public void testIterate() {
+        assertEquals(asList("a", "aa", "aaa", "aaaa"), StreamEx.iterate("a", x -> x + "a").limit(4).toList());
+        assertEquals(asList("a", "aa", "aaa", "aaaa"), StreamEx.iterate("a", x -> x.length() <= 4, x -> x + "a")
+                .toList());
+        assertFalse(StreamEx.iterate("a", x -> x.length() <= 10, x -> x + "a").has("b"));
+        assertEquals(0, StreamEx.iterate("", x -> !x.isEmpty(), x -> x.substring(1)).count());
+        checkSpliterator("iterate", () -> StreamEx.iterate(1, x -> x < 100, x -> x * 2).spliterator());
     }
 
     @Test
@@ -206,13 +215,13 @@ public class StreamExTest {
         assertTrue(StreamEx.of("a", "b", "c").spliterator().hasCharacteristics(Spliterator.ORDERED));
         assertFalse(StreamEx.of("a", "b", "c").unordered().spliterator().hasCharacteristics(Spliterator.ORDERED));
     }
-    
+
     @Test
     public void testCovariance() {
         StreamEx<Number> stream = StreamEx.of(1, 2, 3);
         List<Number> list = stream.toList();
-        assertEquals(asList(1,2,3), list);
-        
+        assertEquals(asList(1, 2, 3), list);
+
         StreamEx<Object> objStream = StreamEx.of(list.spliterator());
         List<Object> objList = objStream.toList();
         assertEquals(asList(1, 2, 3), objList);
@@ -227,7 +236,7 @@ public class StreamExTest {
         list.addAll(list2);
         assertEquals(asList(1, 2, 3, 4, 5, 6, 7), list);
     }
-    
+
     @Test
     public void testForEach() {
         List<Integer> list = new ArrayList<>();
@@ -446,18 +455,20 @@ public class StreamExTest {
     public void testPrepend() {
         Supplier<Stream<String>> sized = () -> StreamEx.of("a", "b", "c", "dd");
         Supplier<Stream<String>> notSized = () -> StreamEx.of(StreamEx.of("a", "b", "c", "dd").iterator());
-        for(Supplier<Stream<String>> supplier : asList(sized, notSized)) {
-            streamEx(supplier, s -> {
-                assertEquals(asList("d", "e", "a", "b", "c"), s.get().remove(str -> str.length() > 1).prepend("d", "e")
-                        .toList());
-                assertEquals(asList("d", "e", "a", "b", "c", "dd"), s.get().prepend(asList("d", "e").stream()).toList());
-                assertEquals(asList("d", "e", "a", "b", "c", "dd"), s.get().prepend(asList("d", "e")).toList());
-            });
+        for (Supplier<Stream<String>> supplier : asList(sized, notSized)) {
+            streamEx(supplier,
+                s -> {
+                    assertEquals(asList("d", "e", "a", "b", "c"), s.get().remove(str -> str.length() > 1).prepend("d",
+                        "e").toList());
+                    assertEquals(asList("d", "e", "a", "b", "c", "dd"), s.get().prepend(asList("d", "e").stream())
+                            .toList());
+                    assertEquals(asList("d", "e", "a", "b", "c", "dd"), s.get().prepend(asList("d", "e")).toList());
+                });
         }
         assertArrayEquals(new Object[] { 1, 2, 3, 1, 1 }, StreamEx.constant(1, Long.MAX_VALUE - 1).prepend(1, 2, 3)
                 .limit(5).toArray());
-        
-        assertEquals(asList(4,3,2,1), StreamEx.of(1).prepend(2).prepend(StreamEx.of(3).prepend(4)).toList());
+
+        assertEquals(asList(4, 3, 2, 1), StreamEx.of(1).prepend(2).prepend(StreamEx.of(3).prepend(4)).toList());
 
         StreamEx<Integer> s = StreamEx.of(1, 2, 3);
         assertSame(s, s.prepend());
@@ -465,13 +476,13 @@ public class StreamExTest {
         assertSame(s, s.prepend(new ArrayList<>()));
         assertSame(s, s.prepend(Stream.empty()));
         assertNotSame(s, s.prepend(new ConcurrentLinkedQueue<>()));
-        
+
         assertTrue(StreamEx.of("a", "b").prepend(Stream.of("c").parallel()).isParallel());
         assertTrue(StreamEx.of("a", "b").parallel().prepend(Stream.of("c").parallel()).isParallel());
         assertTrue(StreamEx.of("a", "b").parallel().prepend(Stream.of("c")).isParallel());
         assertFalse(StreamEx.of("a", "b").prepend(Stream.of("c")).isParallel());
     }
-    
+
     @Test
     public void testPrependTSO() {
         List<Integer> expected = IntStreamEx.rangeClosed(19999, 0, -1).boxed().toList();
@@ -553,10 +564,10 @@ public class StreamExTest {
         assertEquals(asList("a", "bb", "c"), StreamEx.of("a", "bb", null, "c", null).without(s).toList());
         assertTrue(StreamEx.of("bb", "bb", "bb").without("bb").toList().isEmpty());
         assertEquals(asList("bb", "bb", "bb"), StreamEx.of("bb", "bb", "bb").without(s).toList());
-        
+
         StreamEx<String> stream = StreamEx.of("a", "b", "c");
         assertSame(stream, stream.without());
-        assertEquals(asList("a", "b", "c"), StreamEx.of("a", "b", null, "c").without(new String[] {null}).toList());
+        assertEquals(asList("a", "b", "c"), StreamEx.of("a", "b", null, "c").without(new String[] { null }).toList());
         assertEquals(asList(), StreamEx.of("a", "b", null, "c").without("c", null, "b", "a").toList());
     }
 
@@ -1394,14 +1405,15 @@ public class StreamExTest {
             assertEquals(asList("aaa"), s.get().takeWhileInclusive(x -> x.length() > 5).toList());
         });
     }
-    
+
     @Test
     public void testDropWhile() {
         streamEx(asList("aaa", "b", "cccc")::stream, s -> {
             assertEquals(asList("b", "cccc"), s.get().dropWhile(x -> x.length() > 1).toList());
             assertEquals(asList(), s.get().dropWhile(x -> x.length() > 0).toList());
             assertEquals(asList("aaa", "b", "cccc"), s.get().dropWhile(x -> x.length() > 5).toList());
-            // Saving to Optional is necessary as javac <8u40 fails to compile this without intermediate variable
+            // Saving to Optional is necessary as javac <8u40 fails to compile
+            // this without intermediate variable
             Optional<String> opt1 = s.get().dropWhile(x -> x.length() > 1).findFirst();
             assertEquals(Optional.of("b"), opt1);
             Optional<String> opt0 = s.get().dropWhile(x -> x.length() > 0).findFirst();
@@ -1537,8 +1549,8 @@ public class StreamExTest {
         streamEx(() -> StreamEx.of(0, 343, 999), s -> assertEquals(asList(2, 343, 997), s.get().mapFirst(x -> x + 2)
                 .mapLast(x -> x - 2).toList()));
         streamEx(() -> IntStreamEx.range(1000).boxed(), s -> {
-            assertEquals(asList(2, 343, 997), s.get().filter(
-                x -> x == 0 || x == 343 || x == 999).mapFirst(x -> x + 2).mapLast(x -> x - 2).toList());
+            assertEquals(asList(2, 343, 997), s.get().filter(x -> x == 0 || x == 343 || x == 999).mapFirst(x -> x + 2)
+                    .mapLast(x -> x - 2).toList());
             assertEquals(asList(4, 343, 997), s.get().filter(x -> x == 0 || x == 343 || x == 999).mapFirst(x -> x + 2)
                     .mapFirst(x -> x + 2).mapLast(x -> x - 2).toList());
         });
@@ -1591,37 +1603,36 @@ public class StreamExTest {
                 String[]::new)));
         });
     }
-    
+
     @Test
     public void testWithFirst() {
         repeat(10, i -> {
             streamEx(() -> StreamEx.of(0, 2, 4), s -> assertEquals(asList(1, 2, 3, 4, 5), s.get().flatMap(
                 x -> Stream.of(x, x + 1)).withFirst().values().toList()));
-            
+
             streamEx(() -> StreamEx.of("a", "b", "c", "d"), s -> assertEquals(Collections.singletonMap("a", asList("b",
                 "c", "d")), s.get().withFirst().grouping()));
 
             streamEx(() -> StreamEx.of("a", "b", "c", "d"), s -> assertEquals(asList("ab", "ac", "ad"), s.get()
                     .withFirst(String::concat).toList()));
-            
+
             // Header mapping
             String input = "name,type,value\nID,int,5\nSurname,string,Smith\nGiven name,string,John";
-            List<Map<String, String>> expected = asList(EntryStream.of("name", "ID", "type", "int", "value", "5").toMap(),
-                EntryStream.of("name", "Surname", "type", "string", "value", "Smith").toMap(),
-                EntryStream.of("name", "Given name", "type", "string", "value", "John").toMap()
-                    );
+            List<Map<String, String>> expected = asList(EntryStream.of("name", "ID", "type", "int", "value", "5")
+                    .toMap(), EntryStream.of("name", "Surname", "type", "string", "value", "Smith").toMap(),
+                EntryStream.of("name", "Given name", "type", "string", "value", "John").toMap());
             streamEx(() -> StreamEx.ofLines(new StringReader(input)), s -> {
                 assertEquals(expected, s.get().map(str -> str.split(",")).withFirst().mapKeyValue(
                     (header, row) -> EntryStream.zip(header, row).toMap()).toList());
-                assertEquals(expected, s.get().map(str -> str.split(","))
-                    .withFirst((header, row) -> EntryStream.zip(header, row).toMap()).toList());
+                assertEquals(expected, s.get().map(str -> str.split(",")).withFirst(
+                    (header, row) -> EntryStream.zip(header, row).toMap()).toList());
             });
         });
         Map<Integer, List<Integer>> expected = Collections
                 .singletonMap(0, IntStreamEx.range(1, 10000).boxed().toList());
         streamEx(() -> IntStreamEx.range(10000).boxed(), s -> assertEquals(expected, s.get().withFirst().grouping()));
     }
-    
+
     @Test
     public void testZipWith() {
         List<String> input = asList("John", "Mary", "Jane", "Jimmy");

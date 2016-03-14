@@ -43,6 +43,7 @@ Stream of `byte[]`, `char[]`, `short[]` array | `IntStreamEx.of()`
 Stream of `float[]` array | `DoubleStreamEx.of()`
 Infinite Stream from `Supplier` | `any.generate()`
 Infinite Stream using iterative function | `any.iterate()`
+Convert three-argument for loop to Stream | `any.iterate()`
 Fixed length Stream of constant elements | `any.constant()`
 Stream of array or `List` with indices | `EntryStream.of()`
 Stream of single value or empty if null supplied | `StreamEx.ofNullable()`

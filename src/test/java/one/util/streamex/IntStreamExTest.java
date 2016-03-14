@@ -73,7 +73,6 @@ public class IntStreamExTest {
         assertArrayEquals(new int[] { 0, 1, 2 }, IntStreamEx.range(3).toArray());
         assertArrayEquals(new int[] { 1, 2, 3 }, IntStreamEx.range(1, 4).toArray());
         assertArrayEquals(new int[] { 1, 2, 3 }, IntStreamEx.rangeClosed(1, 3).toArray());
-        assertArrayEquals(new int[] { 1, 2, 4, 8, 16 }, IntStreamEx.iterate(1, x -> x * 2).limit(5).toArray());
         assertArrayEquals(new int[] { 1, 1, 1, 1 }, IntStreamEx.generate(() -> 1).limit(4).toArray());
         assertArrayEquals(new int[] { 1, 1, 1, 1 }, IntStreamEx.constant(1, 4).toArray());
         assertArrayEquals(new int[] { 'a', 'b', 'c' }, IntStreamEx.ofChars("abc").toArray());
@@ -102,6 +101,15 @@ public class IntStreamExTest {
         assertArrayEquals(new int[] { 1, 3, 5 }, IntStreamEx.of(bs).toArray());
 
         assertArrayEquals(new int[] { 2, 4, 6 }, IntStreamEx.of(new Integer[] { 2, 4, 6 }).toArray());
+    }
+    
+    @Test
+    public void testIterate() {
+        assertArrayEquals(new int[] { 1, 2, 4, 8, 16 }, IntStreamEx.iterate(1, x -> x * 2).limit(5).toArray());
+        assertArrayEquals(new int[] { 1, 2, 4, 8, 16, 32, 64 }, IntStreamEx.iterate(1, x -> x < 100, x -> x * 2).toArray());
+        assertEquals(0, IntStreamEx.iterate(0, x -> x < 0, x -> 1 / x).count());
+        assertFalse(IntStreamEx.iterate(1, x -> x < 100, x -> x * 2).has(10));
+        checkSpliterator("iterate", () -> IntStreamEx.iterate(1, x -> x < 100, x -> x * 2).spliterator());
     }
     
     @Test

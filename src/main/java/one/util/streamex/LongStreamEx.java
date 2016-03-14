@@ -1779,10 +1779,86 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @param f a function to be applied to to the previous element to produce a
      *        new element
      * @return A new sequential {@code LongStream}
-     * @see LongStream#iterate(long, LongUnaryOperator)
+     * @see #iterate(long, LongPredicate, LongUnaryOperator)
      */
     public static LongStreamEx iterate(final long seed, final LongUnaryOperator f) {
-        return seq(LongStream.iterate(seed, f));
+        return iterate(seed, x -> true, f);
+    }
+
+    /**
+     * Returns a sequential ordered {@code LongStreamEx} produced by iterative
+     * application of a function to an initial element, conditioned on
+     * satisfying the supplied predicate. The stream terminates as soon as the
+     * predicate function returns false.
+     *
+     * <p>
+     * {@code LongStreamEx.iterate} should produce the same sequence of elements
+     * as produced by the corresponding for-loop:
+     * 
+     * <pre>{@code
+     *     for (long index=seed; predicate.test(index); index = f.apply(index)) { 
+     *         ... 
+     *     }
+     * }</pre>
+     *
+     * <p>
+     * The resulting sequence may be empty if the predicate does not hold on the
+     * seed value. Otherwise the first element will be the supplied seed value,
+     * the next element (if present) will be the result of applying the function
+     * f to the seed value, and so on iteratively until the predicate indicates
+     * that the stream should terminate.
+     *
+     * @param seed the initial element
+     * @param predicate a predicate to apply to elements to determine when the
+     *        stream must terminate.
+     * @param f a function to be applied to the previous element to produce a
+     *        new element
+     * @return a new sequential {@code LongStreamEx}
+     * @see #iterate(long, LongUnaryOperator)
+     * @since 0.6.0
+     */
+    public static LongStreamEx iterate(long seed, LongPredicate predicate, LongUnaryOperator f) {
+        Objects.requireNonNull(f);
+        Objects.requireNonNull(predicate);
+        Spliterator.OfLong spliterator = new Spliterators.AbstractLongSpliterator(Long.MAX_VALUE, Spliterator.ORDERED
+            | Spliterator.IMMUTABLE | Spliterator.NONNULL) {
+            long prev;
+            boolean started, finished;
+
+            @Override
+            public boolean tryAdvance(LongConsumer action) {
+                Objects.requireNonNull(action);
+                if (finished)
+                    return false;
+                long t;
+                if (started)
+                    t = f.applyAsLong(prev);
+                else {
+                    t = seed;
+                    started = true;
+                }
+                if (!predicate.test(t)) {
+                    finished = true;
+                    return false;
+                }
+                action.accept(prev = t);
+                return true;
+            }
+
+            @Override
+            public void forEachRemaining(LongConsumer action) {
+                Objects.requireNonNull(action);
+                if (finished)
+                    return;
+                finished = true;
+                long t = started ? f.applyAsLong(prev) : seed;
+                while (predicate.test(t)) {
+                    action.accept(t);
+                    t = f.applyAsLong(t);
+                }
+            }
+        };
+        return of(spliterator);
     }
 
     /**
@@ -1956,9 +2032,10 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * 
      * <p>
      * Using this interface it's possible to create custom sources which cannot
-     * be easily expressed using {@link LongStreamEx#iterate(long, LongUnaryOperator)}
-     * or {@link LongStreamEx#generate(LongSupplier)}. For example, the following method
-     * generates a Collatz sequence starting from given number:
+     * be easily expressed using
+     * {@link LongStreamEx#iterate(long, LongUnaryOperator)} or
+     * {@link LongStreamEx#generate(LongSupplier)}. For example, the following
+     * method generates a Collatz sequence starting from given number:
      * 
      * <pre>{@code
      * public static LongEmitter collatz(long start) {
@@ -1969,7 +2046,8 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * }}</pre>
      * 
      * <p>
-     * Now you can use {@code collatz(17).stream()} to get the stream of Collatz numbers.
+     * Now you can use {@code collatz(17).stream()} to get the stream of Collatz
+     * numbers.
      * 
      * @author Tagir Valeev
      *
@@ -1979,8 +2057,8 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
     public interface LongEmitter {
         /**
          * Calls the supplied consumer zero or more times to emit some elements,
-         * then returns the next emitter which will emit more, or null if nothing
-         * more to emit.
+         * then returns the next emitter which will emit more, or null if
+         * nothing more to emit.
          * 
          * <p>
          * It's allowed not to emit anything (don't call the consumer). However

@@ -102,7 +102,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
                 spliterator());
         return new StreamEx<>(spliterator, context);
     }
-    
+
     private static <T> StreamEx<T> flatTraverse(Stream<T> src, Function<T, Stream<T>> streamProvider) {
         return StreamEx.of(src).flatMap(t -> {
             Stream<T> result = streamProvider.apply(t);
@@ -2185,10 +2185,89 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @param f a function to be applied to to the previous element to produce a
      *        new element
      * @return a new sequential {@code StreamEx}
-     * @see Stream#iterate(Object, UnaryOperator)
+     * @see #iterate(Object, Predicate, UnaryOperator)
      */
     public static <T> StreamEx<T> iterate(final T seed, final UnaryOperator<T> f) {
-        return new StreamEx<>(Stream.iterate(seed, f), StreamContext.SEQUENTIAL);
+        return iterate(seed, x -> true, f);
+    }
+
+    /**
+     * Returns a sequential ordered {@code StreamEx} produced by iterative
+     * application of a function to an initial element, conditioned on
+     * satisfying the supplied predicate. The stream terminates as soon as the
+     * predicate function returns false.
+     *
+     * <p>
+     * {@code StreamEx.iterate} should produce the same sequence of elements as
+     * produced by the corresponding for-loop:
+     * 
+     * <pre>{@code
+     *     for (T index=seed; predicate.test(index); index = f.apply(index)) { 
+     *         ... 
+     *     }
+     * }</pre>
+     *
+     * <p>
+     * The resulting sequence may be empty if the predicate does not hold on the
+     * seed value. Otherwise the first element will be the supplied seed value,
+     * the next element (if present) will be the result of applying the function
+     * f to the seed value, and so on iteratively until the predicate indicates
+     * that the stream should terminate.
+     *
+     * @param <T> the type of stream elements
+     * @param seed the initial element
+     * @param predicate a predicate to apply to elements to determine when the
+     *        stream must terminate.
+     * @param f a function to be applied to the previous element to produce a
+     *        new element
+     * @return a new sequential {@code StreamEx}
+     * @see #iterate(Object, UnaryOperator)
+     * @since 0.6.0
+     */
+    public static <T> StreamEx<T> iterate(T seed, Predicate<? super T> predicate, UnaryOperator<T> f) {
+        Objects.requireNonNull(f);
+        Objects.requireNonNull(predicate);
+        Spliterator<T> spliterator = new Spliterators.AbstractSpliterator<T>(Long.MAX_VALUE, Spliterator.ORDERED
+            | Spliterator.IMMUTABLE) {
+            T prev;
+            boolean started, finished;
+
+            @Override
+            public boolean tryAdvance(Consumer<? super T> action) {
+                Objects.requireNonNull(action);
+                if (finished)
+                    return false;
+                T t;
+                if (started)
+                    t = f.apply(prev);
+                else {
+                    t = seed;
+                    started = true;
+                }
+                if (!predicate.test(t)) {
+                    prev = null;
+                    finished = true;
+                    return false;
+                }
+                action.accept(prev = t);
+                return true;
+            }
+
+            @Override
+            public void forEachRemaining(Consumer<? super T> action) {
+                Objects.requireNonNull(action);
+                if (finished)
+                    return;
+                finished = true;
+                T t = started ? f.apply(prev) : seed;
+                prev = null;
+                while (predicate.test(t)) {
+                    action.accept(t);
+                    t = f.apply(t);
+                }
+            }
+        };
+        return of(spliterator);
     }
 
     /**
@@ -2619,7 +2698,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * }}</pre>
      * 
      * <p>
-     * Now you can use {@code collatz(17).stream()} to get the stream of Collatz numbers.
+     * Now you can use {@code collatz(17).stream()} to get the stream of Collatz
+     * numbers.
      * 
      * @author Tagir Valeev
      *
@@ -2630,8 +2710,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public interface Emitter<T> {
         /**
          * Calls the supplied consumer zero or more times to emit some elements,
-         * then returns the next emitter which will emit more, or null if nothing
-         * more to emit.
+         * then returns the next emitter which will emit more, or null if
+         * nothing more to emit.
          * 
          * <p>
          * It's allowed not to emit anything (don't call the consumer). However
