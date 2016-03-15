@@ -1,5 +1,7 @@
 # StreamEx changes
 
+Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
+
 ### 0.6.0
 Warning: this release introduces some changes which may break backwards compatibility.
 

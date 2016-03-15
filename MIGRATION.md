@@ -1,6 +1,6 @@
 # Migration between StreamEx releases
 
-This document describes StreamEx changes which may break the backwards compatibility. For full list of changes see [CHANGES.md](CHANGES.md).  
+This document describes StreamEx changes which may break the backwards compatibility. For full list of changes see [CHANGES.md](CHANGES.md).
 
 ### 0.6.0
 

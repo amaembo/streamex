@@ -15,7 +15,7 @@ Full API documentation is available [here](http://amaembo.github.io/streamex/jav
 
 Take a look at the [Cheatsheet](CHEATSHEET.md) for brief introduction to the StreamEx!
 
-Before updating StreamEx check the [Migration notes](MIGRATION.md) and full list of [changes](CHANGES.md).
+Before updating StreamEx check the [migration notes](MIGRATION.md) and full list of [changes](CHANGES.md).
 
 StreamEx library main points are following:
 
@@ -122,7 +122,7 @@ This project is licensed under [Apache License, version 2.0](https://www.apache.
 
 Releases are available in [Maven Central](https://repo1.maven.org/maven2/one/util/streamex/)
 
-Before updating StreamEx check the [Migration notes](MIGRATION.md) and full list of [changes](CHANGES.md).
+Before updating StreamEx check the [migration notes](MIGRATION.md) and full list of [changes](CHANGES.md).
 
 To use from maven add this snippet to the pom.xml `dependencies` section:
 
