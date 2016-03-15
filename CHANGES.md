@@ -1,6 +1,9 @@
 # StreamEx changes
 
 ### 0.6.0
+Warning: this release introduces some changes which may break backwards compatibility.
+
+* [#67] Changed: `StreamEx.withFirst()` now includes `(first, first)` pair into result as well. If you want to exclude it, use `.withFirst().skip(1)`. 
 * [#70] Fixed: `MoreCollectors.least()/greatest()` now support null element (if the supplied `Comparator` supports nulls).
 * [#70] Fixed: `MoreCollectors.least()/greatest()` now returns stable result (the order of equal elements is not changed).
 * [#70] Optimized: `MoreCollectors.least()/greatest()` is usually faster now, especially when the selected elements are close to the stream end.

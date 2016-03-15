@@ -1607,13 +1607,21 @@ public class StreamExTest {
     @Test
     public void testWithFirst() {
         repeat(10, i -> {
-            streamEx(() -> StreamEx.of(0, 2, 4), s -> assertEquals(asList(1, 2, 3, 4, 5), s.get().flatMap(
-                x -> Stream.of(x, x + 1)).withFirst().values().toList()));
-
-            streamEx(() -> StreamEx.of("a", "b", "c", "d"), s -> assertEquals(Collections.singletonMap("a", asList("b",
+            streamEx(() -> StreamEx.of(0, 2, 4), s -> assertEquals(asList("0|0", "0|1", "0|2", "0|3", "0|4", "0|5"), s
+                    .get().flatMap(x -> Stream.of(x, x + 1)).withFirst().mapKeyValue((a, b) -> a + "|" + b).toList()));
+            
+            // Check exception-friendliness: short-circuiting collectors use Exceptions for control flow
+            streamEx(() -> IntStreamEx.range(100).boxed(), s -> {
+                assertEquals("0|0, 0|1, 0|2, ...",
+                    s.get().withFirst((a, b) -> a+"|"+b).collect(Joining.with(", ").maxChars(18)));
+                assertEquals(asList(),
+                    s.get().withFirst((a, b) -> a+"|"+b).collect(MoreCollectors.head(0)));
+            });
+            
+            streamEx(() -> StreamEx.of("a", "b", "c", "d"), s -> assertEquals(Collections.singletonMap("a", asList("a", "b",
                 "c", "d")), s.get().withFirst().grouping()));
 
-            streamEx(() -> StreamEx.of("a", "b", "c", "d"), s -> assertEquals(asList("ab", "ac", "ad"), s.get()
+            streamEx(() -> StreamEx.of("a", "b", "c", "d"), s -> assertEquals(asList("aa", "ab", "ac", "ad"), s.get()
                     .withFirst(String::concat).toList()));
 
             // Header mapping
@@ -1622,14 +1630,14 @@ public class StreamExTest {
                     .toMap(), EntryStream.of("name", "Surname", "type", "string", "value", "Smith").toMap(),
                 EntryStream.of("name", "Given name", "type", "string", "value", "John").toMap());
             streamEx(() -> StreamEx.ofLines(new StringReader(input)), s -> {
-                assertEquals(expected, s.get().map(str -> str.split(",")).withFirst().mapKeyValue(
+                assertEquals(expected, s.get().map(str -> str.split(",")).withFirst().skip(1).mapKeyValue(
                     (header, row) -> EntryStream.zip(header, row).toMap()).toList());
-                assertEquals(expected, s.get().map(str -> str.split(",")).withFirst(
-                    (header, row) -> EntryStream.zip(header, row).toMap()).toList());
+                assertEquals(expected, s.get().map(str -> str.split(","))
+                    .withFirst((header, row) -> EntryStream.zip(header, row).toMap()).skip(1).toList());
             });
         });
         Map<Integer, List<Integer>> expected = Collections
-                .singletonMap(0, IntStreamEx.range(1, 10000).boxed().toList());
+                .singletonMap(0, IntStreamEx.range(0, 10000).boxed().toList());
         streamEx(() -> IntStreamEx.range(10000).boxed(), s -> assertEquals(expected, s.get().withFirst().grouping()));
     }
 

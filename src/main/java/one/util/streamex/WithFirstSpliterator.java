@@ -27,8 +27,9 @@ import one.util.streamex.StreamExInternals.CloneableSpliterator;
  */
 /* package */final class WithFirstSpliterator<T, R> extends CloneableSpliterator<R, WithFirstSpliterator<T, R>> {
     private static final int STATE_NONE = 0;
-    private static final int STATE_INIT = 1;
-    private static final int STATE_EMPTY = 2;
+    private static final int STATE_FIRST_READ = 1;
+    private static final int STATE_INIT = 2;
+    private static final int STATE_EMPTY = 3;
 
     private ReentrantLock lock;
     private Spliterator<T> source;
@@ -65,9 +66,18 @@ import one.util.streamex.StreamExInternals.CloneableSpliterator;
                 release();
             }
         }
+        if (state == STATE_FIRST_READ) {
+            state = STATE_INIT;
+            action.accept(mapper.apply(first, first));
+            return true;
+        }
         if (state != STATE_INIT)
             return false;
-        return source.tryAdvance(x -> action.accept(mapper.apply(first, x)));
+        return source.tryAdvance(consumer(action));
+    }
+
+    private Consumer<T> consumer(Consumer<? super R> action) {
+        return x -> action.accept(mapper.apply(first, x));
     }
 
     private void doInit() {
@@ -78,43 +88,40 @@ import one.util.streamex.StreamExInternals.CloneableSpliterator;
             prefix.doInit();
             prefixState = prefix.state;
         }
-        if (prefixState == STATE_INIT) {
-            this.first = prefix.first;
-            this.state = STATE_INIT;
+        if (prefixState == STATE_FIRST_READ || prefixState == STATE_INIT) {
+            first = prefix.first;
+            state = STATE_INIT;
             return;
         }
-        state = source.tryAdvance(x -> first = x) ? STATE_INIT : STATE_EMPTY;
-    }
-
-    private boolean initForEach(T x) {
-        int prefixState = STATE_NONE;
-        if (prefix != null) {
-            prefix.doInit();
-            prefixState = prefix.state;
-        }
-        state = STATE_INIT;
-        if (prefixState == STATE_INIT) {
-            this.first = prefix.first;
-            return false;
-        }
-        this.first = x;
-        return true;
+        state = source.tryAdvance(x -> first = x) ? STATE_FIRST_READ : STATE_EMPTY;
     }
 
     @Override
     public void forEachRemaining(Consumer<? super R> action) {
+        Consumer<T> accept = consumer(action);
         acquire();
+        int myState = state;
+        if(myState == STATE_FIRST_READ || myState == STATE_INIT) {
+            release();
+            if(myState == STATE_FIRST_READ) {
+                state = STATE_INIT;
+                accept.accept(first);
+            }
+            source.forEachRemaining(accept);
+            return;
+        }
         try {
-            source.forEachRemaining(x -> {
+            Consumer<T> init = x -> {
                 if (state == STATE_NONE) {
-                    if (initForEach(x)) {
-                        release();
-                        return;
+                    if (prefix != null) {
+                        prefix.doInit();
                     }
+                    this.first = (prefix == null || prefix.state == STATE_EMPTY) ? x : prefix.first;
+                    state = STATE_INIT;
                 }
                 release();
-                action.accept(mapper.apply(first, x));
-            });
+            };
+            source.forEachRemaining(init.andThen(accept));
         }
         finally {
             release();
@@ -123,11 +130,15 @@ import one.util.streamex.StreamExInternals.CloneableSpliterator;
 
     @Override
     public Spliterator<R> trySplit() {
+        if(state != STATE_NONE)
+            return null;
         Spliterator<T> prefix;
         if(lock == null)
             lock = new ReentrantLock();
         acquire();
         try {
+            if(state != STATE_NONE)
+                return null;
             prefix = source.trySplit();
             if (prefix == null)
                 return null;
@@ -141,11 +152,7 @@ import one.util.streamex.StreamExInternals.CloneableSpliterator;
 
     @Override
     public long estimateSize() {
-        long size = source.estimateSize();
-        if (size > 0 && (size < Long.MAX_VALUE || source.hasCharacteristics(SIZED)) && lock == null
-            && state == STATE_NONE)
-            size--;
-        return size;
+        return source.estimateSize();
     }
 
     @Override

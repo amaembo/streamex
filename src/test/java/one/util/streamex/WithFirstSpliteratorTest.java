@@ -31,10 +31,10 @@ import static org.junit.Assert.*;
 public class WithFirstSpliteratorTest {
     @Test
     public void testSpliterator() {
-        checkSpliterator("withFirst", EntryStream.of(0, 1, 0, 2, 0, 3, 0, 4, 0, 5).toList(),
+        checkSpliterator("withFirst", EntryStream.of(0, 0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5).toList(),
             () -> new WithFirstSpliterator<>(Stream.of(0, 1, 2, 3, 4, 5).spliterator(),
                     AbstractMap.SimpleImmutableEntry<Integer, Integer>::new));
-        checkSpliterator("withFirstFlatMap", EntryStream.of(0, 1, 0, 2, 0, 3, 0, 4, 0, 5).toList(),
+        checkSpliterator("withFirstFlatMap", EntryStream.of(0, 0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5).toList(),
             () -> new WithFirstSpliterator<>(Stream.of(0, 2, 4).flatMap(x -> Stream.of(x, x + 1)).parallel()
                     .spliterator(), AbstractMap.SimpleImmutableEntry<Integer, Integer>::new));
     }
@@ -44,6 +44,8 @@ public class WithFirstSpliteratorTest {
         WithFirstSpliterator<Integer, Integer> spltr = new WithFirstSpliterator<>(Stream.of(6, 1, 2, 3, 4, 5)
                 .spliterator(), (a, b) -> a + b);
         assertTrue(spltr.hasCharacteristics(Spliterator.SIZED));
+        assertEquals(6, spltr.getExactSizeIfKnown());
+        assertTrue(spltr.tryAdvance(x -> assertEquals(12, (int)x)));
         assertEquals(5, spltr.getExactSizeIfKnown());
         assertTrue(spltr.tryAdvance(x -> assertEquals(7, (int)x)));
         assertEquals(4, spltr.getExactSizeIfKnown());
@@ -57,9 +59,9 @@ public class WithFirstSpliteratorTest {
         WithFirstSpliterator<Long, Long> longSpltr = new WithFirstSpliterator<>(LongStreamEx.range(Long.MAX_VALUE)
                 .spliterator(), Long::sum);
         assertTrue(longSpltr.hasCharacteristics(Spliterator.SIZED));
+        assertEquals(Long.MAX_VALUE, longSpltr.getExactSizeIfKnown());
+        assertTrue(longSpltr.tryAdvance(x -> assertEquals(0, (long)x)));
         assertEquals(Long.MAX_VALUE-1, longSpltr.getExactSizeIfKnown());
-        assertTrue(longSpltr.tryAdvance(x -> assertEquals(1, (long)x)));
-        assertEquals(Long.MAX_VALUE-2, longSpltr.getExactSizeIfKnown());
         
         longSpltr = new WithFirstSpliterator<>(LongStreamEx.range(-1, Long.MAX_VALUE)
                 .spliterator(), Long::sum);
