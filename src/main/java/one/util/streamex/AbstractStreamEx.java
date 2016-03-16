@@ -452,6 +452,10 @@ import static one.util.streamex.StreamExInternals.*;
         }
         return rawCollect(collector);
     }
+    
+    public <R> R collect(Function<StreamCollector<T, T>, Collector<T, ?, R>> builder) {
+        return collect(StreamCollector.build(builder));
+    }
 
     @Override
     public Optional<T> min(Comparator<? super T> comparator) {
