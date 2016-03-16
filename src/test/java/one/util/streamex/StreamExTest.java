@@ -1563,7 +1563,21 @@ public class StreamExTest {
         streamEx(asList("red", "green", "blue", "orange")::stream, s -> assertEquals("red, green, blue, or orange", s
                 .get().mapLast("or "::concat).joining(", ")));
     }
+    
+    @Test
+    public void testMapFirstOrElse() {
+        streamEx(() -> StreamEx.split("testString", ""), s -> assertEquals("Teststring", s
+                .get().mapFirstOrElse(String::toUpperCase, String::toLowerCase).joining()));
+    }
 
+    @Test
+    public void testMapLastOrElse() {
+        streamEx(asList("red", "green", "blue", "orange")::stream, s -> assertEquals("red, green, blue, or orange!", s
+            .get().mapLastOrElse(str -> str + ", ", str -> "or " + str + "!").joining()));
+        streamEx(asList("red", "green", "blue", "orange")::stream, s -> assertEquals("|- red\n|- green\n|- blue\n\\- orange",
+            s.get().mapLastOrElse("|- "::concat, "\\- "::concat).joining("\n")));
+    }
+    
     @Test
     public void testSplit() {
         assertFalse(StreamEx.split("str", "abcd").spliterator().getClass().getSimpleName().endsWith(
@@ -1639,6 +1653,9 @@ public class StreamExTest {
         Map<Integer, List<Integer>> expected = Collections
                 .singletonMap(0, IntStreamEx.range(0, 10000).boxed().toList());
         streamEx(() -> IntStreamEx.range(10000).boxed(), s -> assertEquals(expected, s.get().withFirst().grouping()));
+        
+        streamEx(() -> StreamEx.of(5, 10, 13, 12, 11), s -> assertEquals(asList("5+0", "5+5", "5+8", "5+7", "5+6"), s
+                .get().withFirst((a, b) -> a + "+" + (b - a)).toList()));
     }
 
     @Test

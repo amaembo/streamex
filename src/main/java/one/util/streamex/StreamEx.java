@@ -188,6 +188,11 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return supply(new PairSpliterator.PSOfRef<>(mapper, spliterator(), true));
     }
 
+    public <R> StreamEx<R> mapFirstOrElse(Function<? super T, ? extends R> firstMapper,
+            Function<? super T, ? extends R> notFirstMapper) {
+        return new StreamEx<>(new PairSpliterator.PSOfRef<>(firstMapper, notFirstMapper, spliterator(), true), context);
+    }
+
     /**
      * Returns a stream where the last element is the replaced with the result
      * of applying the given function while the other elements are left intact.
@@ -205,6 +210,11 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public StreamEx<T> mapLast(Function<? super T, ? extends T> mapper) {
         return supply(new PairSpliterator.PSOfRef<>(mapper, spliterator(), false));
+    }
+
+    public <R> StreamEx<R> mapLastOrElse(Function<? super T, ? extends R> notLastMapper,
+            Function<? super T, ? extends R> lastMapper) {
+        return new StreamEx<>(new PairSpliterator.PSOfRef<>(lastMapper, notLastMapper, spliterator(), false), context);
     }
 
     /**

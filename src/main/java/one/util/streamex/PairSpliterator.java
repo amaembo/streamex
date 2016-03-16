@@ -41,6 +41,8 @@ import static one.util.streamex.StreamExInternals.*;
     static final int MODE_PAIRS = 0;
     static final int MODE_MAP_FIRST = 1;
     static final int MODE_MAP_LAST = 2;
+    static final int MODE_MAP_FIRST_OR_ELSE = 3;
+    static final int MODE_MAP_LAST_OR_ELSE = 4;
     
     private static Sink<?> EMPTY = new Sink<>(null);
     // Common lock for all the derived spliterators
@@ -126,7 +128,7 @@ import static one.util.streamex.StreamExInternals.*;
             sink.other = other;
             other.other = sink;
             other.push(headTail, null, true);
-            if(mode == MODE_MAP_FIRST)
+            if(mode == MODE_MAP_FIRST || mode == MODE_MAP_FIRST_OR_ELSE)
                 this.left = sink;
             else
                 this.right = sink;
@@ -192,6 +194,14 @@ import static one.util.streamex.StreamExInternals.*;
                     ((a, b) -> a == HEAD_TAIL ? mapper.apply(b) : (T)b) :
                     ((a, b) -> b == HEAD_TAIL ? mapper.apply(a) : (T)a);
             this.mapper = (BiFunction<? super T, ? super T, ? extends R>) m;
+        }
+
+        @SuppressWarnings("unchecked")
+        PSOfRef(Function<? super T, ? extends R> boundMapper, Function<? super T, ? extends R> elseMapper, Spliterator<T> source, boolean first) {
+            super(source, first ? MODE_MAP_FIRST_OR_ELSE : MODE_MAP_LAST_OR_ELSE, (T)HEAD_TAIL);
+            this.mapper = first ? 
+                ((a, b) -> a == HEAD_TAIL ? boundMapper.apply(b) : elseMapper.apply(b)) :
+                ((a, b) -> b == HEAD_TAIL ? boundMapper.apply(a) : elseMapper.apply(a));
         }
 
         @Override
