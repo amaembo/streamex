@@ -1088,15 +1088,19 @@ import java.util.stream.Stream;
         return index;
     }
 
-    static <T, A, R, RR> OptionalCollector<T, A, RR> collectingAndThen(OptionalCollector<T, A, R> downstream,
+    static <T, A, R, RR> OptionalCollector<T, A, RR> collectingAndThen(Collector<T, A, Optional<R>> downstream,
             Function<Optional<R>, Optional<RR>> finisher) {
         Predicate<A> finished = finished(downstream);
+        @SuppressWarnings("unchecked")
+        Function<A, Optional<RR>> newFinisher = finisher == null
+                ? (Function<A, Optional<RR>>) (Function<A, ?>) downstream.finisher()
+                : downstream.finisher().andThen(finisher);
         if (finished != null) {
             return new OptionalCancellableCollectorImpl<>(downstream.supplier(), downstream.accumulator(), downstream
-                    .combiner(), downstream.finisher().andThen(finisher), finished, downstream.characteristics()
+                    .combiner(), newFinisher, finished, downstream.characteristics()
                     .contains(Characteristics.UNORDERED) ? UNORDERED_CHARACTERISTICS : NO_CHARACTERISTICS);
         }
         return OptionalCollector.of(downstream.supplier(), downstream.accumulator(), downstream
-                    .combiner(), downstream.finisher().andThen(finisher), downstream.characteristics().toArray(new Characteristics[0]));
+                    .combiner(), newFinisher, downstream.characteristics().toArray(new Characteristics[0]));
     }
 }

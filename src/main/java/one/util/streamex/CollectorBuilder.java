@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
@@ -35,6 +36,11 @@ import one.util.streamex.MoreCollectors;
  *
  * @param <T> initial type of the elements to collect
  * @param <R> current type of the elements
+ * 
+ * TODO: three-arg reduce
+ * TODO: skip
+ * TODO: toMap-merge
+ * TODO: pairMap
  */
 public class CollectorBuilder<T, R> {
     private static final Collector<Object, ?, List<Object>> LIST = Collectors.toList();
@@ -55,7 +61,7 @@ public class CollectorBuilder<T, R> {
                 list -> list.stream().collect(downstream));
     }
 
-    CollectorBuilder(CollectorBuilder<T, ?> upstream,
+    private CollectorBuilder(CollectorBuilder<T, ?> upstream,
             Function<Collector<?, ?, ?>, Collector<?, ?, ?>> maker) {
         this.upstream = upstream;
         this.maker = maker;
@@ -127,6 +133,21 @@ public class CollectorBuilder<T, R> {
         return evaluate(Collectors.groupingBy(classifier, list()));
     }
     
+    public Collector<T, ?, Map<Boolean, List<R>>> partitioningBy(
+            Predicate<? super R> predicate) {
+        return evaluate(MoreCollectors.partitioningBy(predicate, list()));
+    }
+    
+    public <A, D> Collector<T, ?, Map<Boolean, D>> partitioningBy(
+            Predicate<? super R> predicate, 
+            Function<? super CollectorBuilder<R, R>, ? extends Collector<R, A, D>> builder) {
+        return evaluate(MoreCollectors.partitioningBy(predicate, build(builder)));
+    }
+    
+    public <A, U> Collector<T, ?, U> collect(Collector<R, A, U> collector) {
+        return evaluate(collector);
+    }
+
     public Collector<T, ?, Object[]> toArray() {
         return toArray(Object[]::new);
     }
@@ -134,10 +155,6 @@ public class CollectorBuilder<T, R> {
     @SuppressWarnings({ "unchecked" })
     public <A> Collector<T, ?, A[]> toArray(IntFunction<A[]> generator) {
         return evaluate((Collector<R, ?, A[]>)(Collector<?,?,?>)MoreCollectors.toArray(generator));
-    }
-    
-    public <A, U> Collector<T, ?, U> collect(Collector<R, A, U> collector) {
-        return evaluate(collector);
     }
 
     public Collector<T, ?, List<R>> toList() {
@@ -148,19 +165,36 @@ public class CollectorBuilder<T, R> {
         return evaluate(Collectors.toSet());
     }
     
-    public Collector<T, ?, Optional<R>> max(Comparator<? super R> cmp) {
-        return evaluate(Collectors.maxBy(cmp));
+    public <K, V> Collector<T, ?, Map<K, V>> toMap(Function<? super R, ? extends K> keyMapper,
+            Function<? super R, ? extends V> valueMapper) {
+        return evaluate(Collectors.toMap(keyMapper, valueMapper));
     }
-
+    
+    public <V> Collector<T, ?, Map<R, V>> toMap(Function<? super R, ? extends V> valueMapper) {
+        return evaluate(Collectors.toMap(Function.identity(), valueMapper));
+    }
+    
     public Collector<T, ?, Long> count() {
         return evaluate(Collectors.summingLong(x -> 1L));
     }
     
-    public Collector<T, ?, Optional<R>> min(Comparator<? super R> cmp) {
-        return evaluate(Collectors.minBy(cmp));
+    public OptionalCollector<T, ?, R> reduce(BinaryOperator<R> op) {
+        return evaluate(MoreCollectors.reducing(op));
+    }
+
+    public Collector<T, ?, R> reduce(R identity, BinaryOperator<R> op) {
+        return evaluate(Collectors.reducing(identity, op));
     }
     
-    public Collector<T, ?, Optional<R>> findFirst() {
+    public OptionalCollector<T, ?, R> max(Comparator<? super R> cmp) {
+        return evaluate(MoreCollectors.maxBy(cmp));
+    }
+
+    public OptionalCollector<T, ?, R> min(Comparator<? super R> cmp) {
+        return evaluate(MoreCollectors.minBy(cmp));
+    }
+    
+    public OptionalCollector<T, ?, R> findFirst() {
         return evaluate(MoreCollectors.first());
     }
 
@@ -172,6 +206,10 @@ public class CollectorBuilder<T, R> {
         return this.<CharSequence> map(Objects::toString).evaluate(Collectors.joining(delimiter));
     }
 
+    public Collector<T, ?, String> joining(String delimiter, String prefix, String suffix) {
+        return this.<CharSequence> map(Objects::toString).evaluate(Collectors.joining(delimiter, prefix, suffix));
+    }
+    
     @SuppressWarnings("unchecked")
     private <U> Collector<T, ?, U> evaluate(Collector<R, ?, U> finisher) {
         Collector<?, ?, ?> cur = finisher;
@@ -183,6 +221,13 @@ public class CollectorBuilder<T, R> {
         return (Collector<T, ?, U>) cur;
     }
 
+    private <U> OptionalCollector<T, ?, U> evaluate(OptionalCollector<R, ?, U> finisher) {
+        Collector<T, ?, Optional<U>> collector = evaluate((Collector<R, ?, Optional<U>>)finisher);
+        return collector instanceof OptionalCollector ?
+                (OptionalCollector<T, ?, U>)collector :
+                    StreamExInternals.collectingAndThen(collector, null);
+    }
+    
     static <T, R> Collector<T, ?, R> build(
             Function<? super CollectorBuilder<T, T>, ? extends Collector<T, ?, R>> builder) {
         return builder.apply(new CollectorBuilder<>(null, Function.identity()));
