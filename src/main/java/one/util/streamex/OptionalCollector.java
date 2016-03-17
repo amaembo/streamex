@@ -54,10 +54,6 @@ public interface OptionalCollector<T, A, R> extends Collector<T, A, Optional<R>>
         return MoreCollectors.collectingAndThen(this, opt -> opt.orElseGet(supplier));
     }
     
-    default public <X extends RuntimeException> Collector<T, A, R> orElseThrow(Supplier<X> exceptionSupplier) {
-        return MoreCollectors.collectingAndThen(this, opt -> opt.orElseThrow(exceptionSupplier));
-    }
-    
     public static<T, A, R> OptionalCollector<T, A, R> of(Supplier<A> supplier,
             BiConsumer<A, T> accumulator,
             BinaryOperator<A> combiner,

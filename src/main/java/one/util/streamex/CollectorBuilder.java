@@ -187,15 +187,18 @@ public class CollectorBuilder<T, R> {
     }
     
     public OptionalCollector<T, ?, R> max(Comparator<? super R> cmp) {
-        return evaluate(MoreCollectors.maxBy(cmp));
+        OptionalCollector<R, ?, R> c = MoreCollectors.maxBy(cmp);
+        return evaluate(c);
     }
 
     public OptionalCollector<T, ?, R> min(Comparator<? super R> cmp) {
-        return evaluate(MoreCollectors.minBy(cmp));
+        OptionalCollector<R, ?, R> c = MoreCollectors.minBy(cmp);
+        return evaluate(c);
     }
     
     public OptionalCollector<T, ?, R> findFirst() {
-        return evaluate(MoreCollectors.first());
+        OptionalCollector<R, ?, R> c = MoreCollectors.first();
+        return evaluate(c);
     }
 
     public Collector<T, ?, String> joining() {
