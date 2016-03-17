@@ -627,6 +627,11 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * synchronization.
      *
      * <p>
+     * Note that the action might not be called at all if the first element is
+     * not consumed from the input (for example, if there's short-circuiting
+     * operation downstream which stopped the stream before the first element).
+     * 
+     * <p>
      * This method exists mainly to support debugging.
      *
      * @param action a <a href="package-summary.html#NonInterference">
@@ -658,7 +663,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * synchronization.
      * 
      * <p>
-     * Note that this method might not be called at all if the last element is
+     * Note that the action might not be called at all if the last element is
      * not consumed from the input (for example, if there's short-circuiting
      * operation downstream).
      * 
