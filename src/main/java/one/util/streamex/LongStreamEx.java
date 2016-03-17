@@ -352,6 +352,10 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a>.
      *
+     * <p>
+     * The mapper function is called at most once. It could be not called at all
+     * if the stream is empty or there is short-circuiting operation downstream.
+     *
      * @param mapper a <a
      *        href="package-summary.html#NonInterference">non-interfering </a>,
      *        <a href="package-summary.html#Statelessness">stateless</a>
@@ -607,6 +611,73 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
         return new LongStreamEx(stream().peek(action), context);
     }
 
+    /**
+     * Returns a stream consisting of the elements of this stream, additionally
+     * performing the provided action on the first stream element when it's
+     * consumed from the resulting stream.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate
+     * operation</a>.
+     *
+     * <p>
+     * The action is called at most once. For parallel stream pipelines, it's
+     * not guaranteed in which thread it will be executed, so if it modifies
+     * shared state, it is responsible for providing the required
+     * synchronization.
+     *
+     * <p>
+     * This method exists mainly to support debugging.
+     *
+     * @param action a <a href="package-summary.html#NonInterference">
+     *        non-interfering</a> action to perform on the first stream element
+     *        as it is consumed from the stream
+     * @return the new stream
+     * @since 0.6.0
+     */
+    public LongStreamEx peekFirst(LongConsumer action) {
+        return mapFirst(x -> {
+            action.accept(x);
+            return x;
+        });
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream, additionally
+     * performing the provided action on the last stream element when it's
+     * consumed from the resulting stream.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate
+     * operation</a>.
+     *
+     * <p>
+     * The action is called at most once. For parallel stream pipelines, it's
+     * not guaranteed in which thread it will be executed, so if it modifies
+     * shared state, it is responsible for providing the required
+     * synchronization.
+     * 
+     * <p>
+     * Note that this method might not be called at all if the last element is
+     * not consumed from the input (for example, if there's short-circuiting
+     * operation downstream).
+     * 
+     * <p>
+     * This method exists mainly to support debugging.
+     *
+     * @param action a <a href="package-summary.html#NonInterference">
+     *        non-interfering</a> action to perform on the first stream element
+     *        as it is consumed from the stream
+     * @return the new stream
+     * @since 0.6.0
+     */
+    public LongStreamEx peekLast(LongConsumer action) {
+        return mapLast(x -> {
+            action.accept(x);
+            return x;
+        });
+    }
+    
     @Override
     public LongStreamEx limit(long maxSize) {
         return new LongStreamEx(stream().limit(maxSize), context);

@@ -200,6 +200,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a>.
+     * 
+     * <p>
+     * The mapper function is called at most once. It could be not called at all
+     * if the stream is empty or there is short-circuiting operation downstream.
      *
      * @param mapper a <a
      *        href="package-summary.html#NonInterference">non-interfering </a>,
@@ -215,6 +219,73 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public <R> StreamEx<R> mapLastOrElse(Function<? super T, ? extends R> notLastMapper,
             Function<? super T, ? extends R> lastMapper) {
         return new StreamEx<>(new PairSpliterator.PSOfRef<>(lastMapper, notLastMapper, spliterator(), false), context);
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream, additionally
+     * performing the provided action on the first stream element when it's
+     * consumed from the resulting stream.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate
+     * operation</a>.
+     *
+     * <p>
+     * The action is called at most once. For parallel stream pipelines, it's
+     * not guaranteed in which thread it will be executed, so if it modifies
+     * shared state, it is responsible for providing the required
+     * synchronization.
+     *
+     * <p>
+     * This method exists mainly to support debugging.
+     *
+     * @param action a <a href="package-summary.html#NonInterference">
+     *        non-interfering</a> action to perform on the first stream element
+     *        as it is consumed from the stream
+     * @return the new stream
+     * @since 0.6.0
+     */
+    public StreamEx<T> peekFirst(Consumer<? super T> action) {
+        return mapFirst(x -> {
+            action.accept(x);
+            return x;
+        });
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream, additionally
+     * performing the provided action on the last stream element when it's
+     * consumed from the resulting stream.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate
+     * operation</a>.
+     *
+     * <p>
+     * The action is called at most once. For parallel stream pipelines, it's
+     * not guaranteed in which thread it will be executed, so if it modifies
+     * shared state, it is responsible for providing the required
+     * synchronization.
+     * 
+     * <p>
+     * Note that this method might not be called at all if the last element is
+     * not consumed from the input (for example, if there's short-circuiting
+     * operation downstream).
+     * 
+     * <p>
+     * This method exists mainly to support debugging.
+     *
+     * @param action a <a href="package-summary.html#NonInterference">
+     *        non-interfering</a> action to perform on the first stream element
+     *        as it is consumed from the stream
+     * @return the new stream
+     * @since 0.6.0
+     */
+    public StreamEx<T> peekLast(Consumer<? super T> action) {
+        return mapLast(x -> {
+            action.accept(x);
+            return x;
+        });
     }
 
     /**

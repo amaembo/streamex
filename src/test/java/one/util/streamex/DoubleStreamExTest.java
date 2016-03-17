@@ -25,6 +25,7 @@ import java.util.Random;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleFunction;
 import java.util.function.DoubleToIntFunction;
@@ -405,6 +406,40 @@ public class DoubleStreamExTest {
                 .mapLast(x -> x + 2.0).toArray(), 0.0);
     }
 
+    @Test
+    public void testPeekFirst() {
+        double[] input = {1, 10, 100, 1000};
+        
+        AtomicReference<Double> firstElement = new AtomicReference<>();
+        assertArrayEquals(new double[] {10, 100, 1000}, DoubleStreamEx.of(input).peekFirst(firstElement::set).skip(1).toArray(), 0.0);
+        assertEquals(1, firstElement.get(), 0.0);
+
+        assertArrayEquals(new double[] {10, 100, 1000}, DoubleStreamEx.of(input).skip(1).peekFirst(firstElement::set).toArray(), 0.0);
+        assertEquals(10, firstElement.get(), 0.0);
+        
+        firstElement.set(-1.0);
+        assertArrayEquals(new double[] {}, DoubleStreamEx.of(input).skip(4).peekFirst(firstElement::set).toArray(), 0.0);
+        assertEquals(-1, firstElement.get(), 0.0);
+    }
+    
+    @Test
+    public void testPeekLast() {
+        double[] input = {1, 10, 100, 1000};
+        AtomicReference<Double> lastElement = new AtomicReference<>();
+        assertArrayEquals(new double[] {1, 10, 100}, DoubleStreamEx.of(input).peekLast(lastElement::set).limit(3).toArray(), 0.0);
+        assertNull(lastElement.get());
+
+        assertArrayEquals(new double[] { 1, 10, 100 }, DoubleStreamEx.of(input).less(1000).peekLast(lastElement::set)
+                .limit(3).toArray(), 0.0);
+        assertEquals(100, lastElement.get(), 0.0);
+        
+        assertArrayEquals(input, DoubleStreamEx.of(input).peekLast(lastElement::set).limit(4).toArray(), 0.0);
+        assertEquals(1000, lastElement.get(), 0.0);
+        
+        assertArrayEquals(new double[] {1, 10, 100}, DoubleStreamEx.of(input).limit(3).peekLast(lastElement::set).toArray(), 0.0);
+        assertEquals(100, lastElement.get(), 0.0);
+    }
+    
     @Test
     public void testScanLeft() {
         assertArrayEquals(new double[] { 0, 1, 3, 6, 10, 15, 21, 28, 36, 45 }, LongStreamEx.range(10).asDoubleStream()

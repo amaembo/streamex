@@ -25,6 +25,7 @@ import java.util.Random;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.function.LongBinaryOperator;
 import java.util.function.LongConsumer;
@@ -505,6 +506,40 @@ public class LongStreamExTest {
             x -> x + 2L).toArray());
     }
 
+    @Test
+    public void testPeekFirst() {
+        long[] input = {1, 10, 100, 1000};
+        
+        AtomicLong firstElement = new AtomicLong();
+        assertArrayEquals(new long[] {10, 100, 1000}, LongStreamEx.of(input).peekFirst(firstElement::set).skip(1).toArray());
+        assertEquals(1, firstElement.get());
+
+        assertArrayEquals(new long[] {10, 100, 1000}, LongStreamEx.of(input).skip(1).peekFirst(firstElement::set).toArray());
+        assertEquals(10, firstElement.get());
+        
+        firstElement.set(-1);
+        assertArrayEquals(new long[] {}, LongStreamEx.of(input).skip(4).peekFirst(firstElement::set).toArray());
+        assertEquals(-1, firstElement.get());
+    }
+    
+    @Test
+    public void testPeekLast() {
+        long[] input = {1, 10, 100, 1000};
+        AtomicLong lastElement = new AtomicLong(-1);
+        assertArrayEquals(new long[] {1, 10, 100}, LongStreamEx.of(input).peekLast(lastElement::set).limit(3).toArray());
+        assertEquals(-1, lastElement.get());
+
+        assertArrayEquals(new long[] { 1, 10, 100 }, LongStreamEx.of(input).less(1000).peekLast(lastElement::set)
+                .limit(3).toArray());
+        assertEquals(100, lastElement.get());
+        
+        assertArrayEquals(input, LongStreamEx.of(input).peekLast(lastElement::set).limit(4).toArray());
+        assertEquals(1000, lastElement.get());
+        
+        assertArrayEquals(new long[] {1, 10, 100}, LongStreamEx.of(input).limit(3).peekLast(lastElement::set).toArray());
+        assertEquals(100, lastElement.get());
+    }
+    
     @Test
     public void testScanLeft() {
         assertArrayEquals(new long[] { 0, 1, 3, 6, 10, 15, 21, 28, 36, 45 }, LongStreamEx.range(10).scanLeft(Long::sum));

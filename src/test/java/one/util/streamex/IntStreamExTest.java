@@ -668,6 +668,40 @@ public class IntStreamExTest {
     }
 
     @Test
+    public void testPeekFirst() {
+        int[] input = {1, 10, 100, 1000};
+        
+        AtomicInteger firstElement = new AtomicInteger();
+        assertArrayEquals(new int[] {10, 100, 1000}, IntStreamEx.of(input).peekFirst(firstElement::set).skip(1).toArray());
+        assertEquals(1, firstElement.get());
+
+        assertArrayEquals(new int[] {10, 100, 1000}, IntStreamEx.of(input).skip(1).peekFirst(firstElement::set).toArray());
+        assertEquals(10, firstElement.get());
+        
+        firstElement.set(-1);
+        assertArrayEquals(new int[] {}, IntStreamEx.of(input).skip(4).peekFirst(firstElement::set).toArray());
+        assertEquals(-1, firstElement.get());
+    }
+    
+    @Test
+    public void testPeekLast() {
+        int[] input = {1, 10, 100, 1000};
+        AtomicInteger lastElement = new AtomicInteger(-1);
+        assertArrayEquals(new int[] {1, 10, 100}, IntStreamEx.of(input).peekLast(lastElement::set).limit(3).toArray());
+        assertEquals(-1, lastElement.get());
+
+        assertArrayEquals(new int[] { 1, 10, 100 }, IntStreamEx.of(input).less(1000).peekLast(lastElement::set)
+                .limit(3).toArray());
+        assertEquals(100, lastElement.get());
+        
+        assertArrayEquals(input, IntStreamEx.of(input).peekLast(lastElement::set).limit(4).toArray());
+        assertEquals(1000, lastElement.get());
+        
+        assertArrayEquals(new int[] {1, 10, 100}, IntStreamEx.of(input).limit(3).peekLast(lastElement::set).toArray());
+        assertEquals(100, lastElement.get());
+    }
+    
+    @Test
     public void testScanLeft() {
         assertArrayEquals(new int[] { 0, 1, 3, 6, 10, 15, 21, 28, 36, 45 }, IntStreamEx.range(10)
                 .scanLeft(Integer::sum));
