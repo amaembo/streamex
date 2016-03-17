@@ -60,6 +60,7 @@ import java.util.function.Supplier;
 import java.util.stream.BaseStream;
 import java.util.stream.Collector;
 import java.util.stream.Collector.Characteristics;
+
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
@@ -571,7 +572,7 @@ import java.util.stream.Stream;
         abstract Predicate<A> finished();
     }
 
-    static final class CancellableCollectorImpl<T, A, R> extends CancellableCollector<T, A, R> {
+    static class CancellableCollectorImpl<T, A, R> extends CancellableCollector<T, A, R> {
         private final Supplier<A> supplier;
         private final BiConsumer<A, T> accumulator;
         private final BinaryOperator<A> combiner;
@@ -581,7 +582,7 @@ import java.util.stream.Stream;
 
         public CancellableCollectorImpl(Supplier<A> supplier, BiConsumer<A, T> accumulator, BinaryOperator<A> combiner,
                 Function<A, R> finisher, Predicate<A> finished,
-                Set<java.util.stream.Collector.Characteristics> characteristics) {
+                Set<Characteristics> characteristics) {
             this.supplier = supplier;
             this.accumulator = accumulator;
             this.combiner = combiner;
@@ -618,6 +619,14 @@ import java.util.stream.Stream;
         @Override
         Predicate<A> finished() {
             return finished;
+        }
+    }
+    
+    static final class OptionalCancellableCollectorImpl<T, A, R> extends CancellableCollectorImpl<T, A, Optional<R>> implements OptionalCollector<T, A, R> {
+        public OptionalCancellableCollectorImpl(Supplier<A> supplier, BiConsumer<A, T> accumulator,
+                BinaryOperator<A> combiner, Function<A, Optional<R>> finisher, Predicate<A> finished,
+                Set<Characteristics> characteristics) {
+            super(supplier, accumulator, combiner, finisher, finished, characteristics);
         }
     }
 
@@ -1077,5 +1086,17 @@ import java.util.stream.Stream;
             array[index++] = box.a;
         }
         return index;
+    }
+
+    static <T, A, R, RR> OptionalCollector<T, A, RR> collectingAndThen(OptionalCollector<T, A, R> downstream,
+            Function<Optional<R>, Optional<RR>> finisher) {
+        Predicate<A> finished = finished(downstream);
+        if (finished != null) {
+            return new OptionalCancellableCollectorImpl<>(downstream.supplier(), downstream.accumulator(), downstream
+                    .combiner(), downstream.finisher().andThen(finisher), finished, downstream.characteristics()
+                    .contains(Characteristics.UNORDERED) ? UNORDERED_CHARACTERISTICS : NO_CHARACTERISTICS);
+        }
+        return OptionalCollector.of(downstream.supplier(), downstream.accumulator(), downstream
+                    .combiner(), downstream.finisher().andThen(finisher), downstream.characteristics().toArray(new Characteristics[0]));
     }
 }

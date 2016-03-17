@@ -9,6 +9,7 @@ Issue#67: Now `StreamEx.withFirst()` as well as `StreamEx.withFirst(BinaryOperat
 ### 0.5.5
 
 Issue#41: As `StreamEx.without(T...)` was added, the existing code may become ambiguous now. If you've used `.without(null)` before, replace it with dedicated `.nonNull()` operation.
+
 Issue#63: `DoubleStreamEx.reverseSorted()` may change the order of non-canonical `NaN` values (actually sorting them).
 
 ### 0.5.3

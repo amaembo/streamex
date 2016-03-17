@@ -160,6 +160,7 @@ What I want | How to get it
 Peek only entry keys | `EntryStream.peekKeys()`
 Peek only entry values | `EntryStream.peekValues()`
 Peek entry keys and values using `BiConsumer` | `EntryStream.peekKeyValue()`
+Peek only first or last stream element | `any.peekFirst()/peekLast()`
 
 ### misc
 

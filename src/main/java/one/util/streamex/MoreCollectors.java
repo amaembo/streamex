@@ -472,8 +472,8 @@ public final class MoreCollectors {
      *         than one element an empty {@code Optional} is returned.
      * @since 0.4.0
      */
-    public static <T> Collector<T, ?, Optional<T>> onlyOne() {
-        return new CancellableCollectorImpl<T, Box<Optional<T>>, Optional<T>>(() -> new Box<Optional<T>>(null),
+    public static <T> OptionalCollector<T, ?, T> onlyOne() {
+        return new OptionalCancellableCollectorImpl<T, Box<Optional<T>>, T>(() -> new Box<Optional<T>>(null),
                 (box, t) -> box.a = box.a == null ? Optional.of(t) : Optional.empty(),
                 (box1, box2) -> box1.a == null ? box2 : box2.a == null ? box1 : new Box<>(Optional.empty()),
                 box -> box.a == null ? Optional.empty() : box.a, box -> box.a != null && !box.a.isPresent(),
@@ -499,14 +499,32 @@ public final class MoreCollectors {
      *         first element of the stream. For empty stream an empty
      *         {@code Optional} is returned.
      */
-    public static <T> Collector<T, ?, Optional<T>> first() {
-        return new CancellableCollectorImpl<>(() -> new Box<T>(none()), (box, t) -> {
+    public static <T> OptionalCollector<T, ?, T> first() {
+        return new OptionalCancellableCollectorImpl<>(() -> new Box<T>(none()), (box, t) -> {
             if (box.a == NONE)
                 box.a = t;
         }, (box1, box2) -> box1.a == NONE ? box2 : box1, box -> box.a == NONE ? Optional.empty() : Optional.of(box.a),
                 box -> box.a != NONE, NO_CHARACTERISTICS);
     }
+    
+    public static <T> OptionalCollector<T, ?, T> reducing(BinaryOperator<T> op) {
+        return OptionalCollector.of(() -> new Box<T>(none()), (box, t) -> box.a = box.a == NONE ? t : op.apply(box.a, t),
+                (box1, box2) -> {
+                    if(box1.a == NONE) return box2;
+                    if(box2.a != NONE)
+                        box1.a = op.apply(box1.a, box2.a);
+                    return box1;
+                }, box -> box.a == NONE ? Optional.empty() : Optional.of(box.a));
+    }
+    
+    public static <T> OptionalCollector<T, ?, T> maxBy(Comparator<? super T> cmp) {
+        return reducing(BinaryOperator.maxBy(cmp));
+    }
 
+    public static <T> OptionalCollector<T, ?, T> minBy(Comparator<? super T> cmp) {
+        return reducing(BinaryOperator.minBy(cmp));
+    }
+    
     /**
      * Returns a {@code Collector} which collects only the last stream element
      * if any.
@@ -516,8 +534,8 @@ public final class MoreCollectors {
      *         last element of the stream. For empty stream an empty
      *         {@code Optional} is returned.
      */
-    public static <T> Collector<T, ?, Optional<T>> last() {
-        return Collectors.reducing((u, v) -> v);
+    public static <T> OptionalCollector<T, ?, T> last() {
+        return reducing((u, v) -> v);
     }
 
     /**

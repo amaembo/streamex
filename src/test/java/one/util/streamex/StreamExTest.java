@@ -50,6 +50,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.IntPredicate;
@@ -1576,6 +1577,43 @@ public class StreamExTest {
             .get().mapLastOrElse(str -> str + ", ", str -> "or " + str + "!").joining()));
         streamEx(asList("red", "green", "blue", "orange")::stream, s -> assertEquals("|- red\n|- green\n|- blue\n\\- orange",
             s.get().mapLastOrElse("|- "::concat, "\\- "::concat).joining("\n")));
+    }
+    
+    @Test
+    public void testPeekFirst() {
+        List<String> input = asList("A", "B", "C", "D");
+        streamEx(input::stream, s -> {
+            AtomicReference<String> firstElement = new AtomicReference<>();
+            assertEquals(asList("B", "C", "D"), s.get().peekFirst(firstElement::set).skip(1).toList());
+            assertEquals("A", firstElement.get());
+
+            assertEquals(asList("B", "C", "D"), s.get().skip(1).peekFirst(firstElement::set).toList());
+            assertEquals("B", firstElement.get());
+            
+            firstElement.set(null);
+            assertEquals(asList(), s.get().skip(4).peekFirst(firstElement::set).toList());
+            assertNull(firstElement.get());
+        });
+    }
+    
+    @Test
+    public void testPeekLast() {
+        List<String> input = asList("A", "B", "C", "D");
+        AtomicReference<String> lastElement = new AtomicReference<>();
+        assertEquals(asList("A", "B", "C"), StreamEx.of(input).peekLast(lastElement::set).limit(3).toList());
+        assertNull(lastElement.get());
+
+        assertEquals(input, StreamEx.of(input).peekLast(lastElement::set).limit(4).toList());
+        assertEquals("D", lastElement.get());
+        
+        assertEquals(asList("A", "B", "C"), StreamEx.of(input).limit(3).peekLast(lastElement::set).toList());
+        assertEquals("C", lastElement.get());
+        
+        lastElement.set(null);
+        assertEquals(2L, StreamEx.of(input).peekLast(lastElement::set).indexOf("C").getAsLong());
+        assertNull(lastElement.get());
+        assertEquals(3L, StreamEx.of(input).peekLast(lastElement::set).indexOf("D").getAsLong());
+        assertEquals("D", lastElement.get());
     }
     
     @Test
