@@ -15,10 +15,12 @@
  */
 package one.util.streamex;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
 import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Tagir Valeev
@@ -26,8 +28,13 @@ import org.junit.Test;
 public class StreamCollectorTest {
     @Test
     public void testBasics() {
-        Map<Integer, List<String>> map = IntStreamEx.range(100).boxed().collect(
-            c -> c.groupingBy(x -> x / 10, c1 -> c1.flatMap(x -> StreamEx.of(x, x)).map(x -> "[" + x + "]").limit(3)
-                    .toList()));
+        Map<Integer, List<String>> map = IntStreamEx.range(22).boxed().into(
+            c -> c.groupingBy(x -> x / 10, 
+                c1 -> c1.flatMap(x -> StreamEx.of(x, x*2)).map(x -> "[" + x + "]").limit(5).toList()));
+        Map<Integer, List<String>> expected = EntryStream.of(
+            0, Arrays.asList("[0]", "[0]", "[1]", "[2]", "[2]"),
+            1, Arrays.asList("[10]", "[20]", "[11]", "[22]", "[12]"),
+            2, Arrays.asList("[20]", "[40]", "[21]", "[42]")).toMap();
+        assertEquals(expected, map);
     }
 }
