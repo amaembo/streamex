@@ -21,6 +21,7 @@ import static java.util.Arrays.asList;
 
 import java.math.BigInteger;
 import java.util.Iterator;
+import java.util.Queue;
 import java.util.Scanner;
 import java.util.Spliterator;
 import java.util.function.BinaryOperator;
@@ -31,6 +32,7 @@ import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import one.util.streamex.DoubleStreamEx.DoubleEmitter;
 import one.util.streamex.IntStreamEx.IntEmitter;
 import one.util.streamex.LongStreamEx.LongEmitter;
@@ -182,6 +184,16 @@ public class EmitterTest {
             long nextPrime = LongStreamEx.range(start, Long.MAX_VALUE, 2).findFirst(isPrime).getAsLong();
             action.accept(nextPrime);
             return primes(nextPrime+2, isPrime.and(x -> x % nextPrime != 0));
+        };
+    }
+    
+    public static <T> Emitter<T> fromQueue(Queue<T> queue, T sentinel) {
+        return action -> {
+            T next = queue.poll();
+            if(next == null || next.equals(sentinel))
+                return null;
+            action.accept(next);
+            return fromQueue(queue, sentinel);
         };
     }
     

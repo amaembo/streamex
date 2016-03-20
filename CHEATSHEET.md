@@ -103,7 +103,8 @@ Drop entry keys leaving only values | `EntryStream.values()`
 Convert every entry to `String` | `EntryStream.join()`
 Map pair of adjacent elements to the single element | `any.pairMap()`
 Map only first or last element, leaving others as is | `any.mapFirst()/mapLast()`
-Attach the first stream element to every other element | `StreamEx.withFirst()`
+Map stream element providing special mapper function for the first or last element | `any.mapFirstOrElse()/mapLastOrElse()`
+Attach the first stream element to every stream element | `StreamEx.withFirst()`
 
 ### flat-mapping
 

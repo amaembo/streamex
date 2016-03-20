@@ -188,6 +188,28 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return supply(new PairSpliterator.PSOfRef<>(mapper, spliterator(), true));
     }
 
+    /**
+     * Returns a stream where the first element is transformed using
+     * {@code firstMapper} function and other elements are transformed using
+     * {@code notFirstMapper} function.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     *
+     * @param <R> The element type of the new stream element
+     * @param firstMapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to the first element
+     * @param notFirstMapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to all elements except the first one.
+     * @return the new stream
+     * @since 0.6.0
+     * @see #mapFirst(Function)
+     */
     public <R> StreamEx<R> mapFirstOrElse(Function<? super T, ? extends R> firstMapper,
             Function<? super T, ? extends R> notFirstMapper) {
         return new StreamEx<>(new PairSpliterator.PSOfRef<>(firstMapper, notFirstMapper, spliterator(), true), context);
@@ -216,6 +238,28 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return supply(new PairSpliterator.PSOfRef<>(mapper, spliterator(), false));
     }
 
+    /**
+     * Returns a stream where the last element is transformed using
+     * {@code lastMapper} function and other elements are transformed using
+     * {@code notLastMapper} function.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     *
+     * @param <R> The element type of the new stream element
+     * @param notLastMapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to all elements except the last one.
+     * @param lastMapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to the last element
+     * @return the new stream
+     * @since 0.6.0
+     * @see #mapFirst(Function)
+     */
     public <R> StreamEx<R> mapLastOrElse(Function<? super T, ? extends R> notLastMapper,
             Function<? super T, ? extends R> lastMapper) {
         return new StreamEx<>(new PairSpliterator.PSOfRef<>(lastMapper, notLastMapper, spliterator(), false), context);
