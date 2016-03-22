@@ -28,8 +28,14 @@ import one.util.streamex.IntStreamEx;
 import one.util.streamex.LongCollector;
 import one.util.streamex.LongStreamEx;
 
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
+/**
+ * @author Tagir Valeev
+ */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class DoubleCollectorTest {
     @Test
     public void testJoining() {

@@ -32,11 +32,14 @@ import one.util.streamex.Joining;
 import one.util.streamex.StreamEx;
 
 import org.junit.Assert;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
 /**
  * @author Tagir Valeev
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class JoiningTest {
     @Test(expected = IllegalArgumentException.class)
     public void testMaxCharsRange() {

@@ -58,8 +58,14 @@ import one.util.streamex.MoreCollectors;
 import one.util.streamex.StreamEx;
 import one.util.streamex.StreamExInternals.BooleanMap;
 
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
+/**
+ * @author Tagir Valeev
+ */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class MoreCollectorsTest {
     @Test(expected = UnsupportedOperationException.class)
     public void testInstantiate() throws Throwable {

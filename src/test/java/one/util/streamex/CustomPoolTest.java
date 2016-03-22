@@ -37,10 +37,16 @@ import one.util.streamex.LongStreamEx;
 import one.util.streamex.MoreCollectors;
 import one.util.streamex.StreamEx;
 
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
 import static org.junit.Assert.*;
 
+/**
+ * @author Tagir Valeev
+ */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class CustomPoolTest {
     ForkJoinPool pool = new ForkJoinPool(3);
 

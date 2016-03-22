@@ -37,11 +37,17 @@ import java.util.stream.DoubleStream;
 import java.util.stream.LongStream;
 import java.util.stream.DoubleStream.Builder;
 
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
 import static one.util.streamex.TestHelpers.*;
 import static org.junit.Assert.*;
 
+/**
+ * @author Tagir Valeev
+ */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class DoubleStreamExTest {
     @Test
     public void testCreate() {

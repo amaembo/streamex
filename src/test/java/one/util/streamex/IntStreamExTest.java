@@ -44,10 +44,16 @@ import java.util.stream.StreamSupport;
 
 import static one.util.streamex.TestHelpers.*;
 
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
 import static org.junit.Assert.*;
 
+/**
+ * @author Tagir Valeev
+ */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class IntStreamExTest {
     private static final byte[] EVEN_BYTES = new byte[] { 2, 4, 6, 8, 10 };
 

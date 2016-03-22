@@ -51,8 +51,14 @@ import one.util.streamex.MoreCollectors;
 import one.util.streamex.StreamEx;
 import one.util.streamex.StreamExTest.Point;
 
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
+/**
+ * @author Tagir Valeev
+ */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class EntryStreamTest {
     private void checkAsString(String expected, EntryStream<?, ?> stream) {
         assertEquals(expected, stream.join("->").joining(";"));

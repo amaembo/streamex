@@ -66,14 +66,20 @@ import one.util.streamex.MoreCollectors;
 import one.util.streamex.StreamEx;
 import one.util.streamex.TestHelpers.StreamExSupplier;
 
+import org.junit.FixMethodOrder;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runners.MethodSorters;
 
 import static one.util.streamex.TestHelpers.*;
 import static org.junit.Assert.*;
 import static java.util.Arrays.asList;
 
+/**
+ * @author Tagir Valeev
+ */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class StreamExTest {
     @Rule
     public TemporaryFolder tmp = new TemporaryFolder();
