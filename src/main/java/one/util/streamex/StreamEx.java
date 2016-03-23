@@ -388,7 +388,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             return new EntryStream<>(Spliterators.emptySpliterator(), context);
         if (other.length == 1)
             return mapToEntry(e -> other[0]);
-        return new EntryStream<>(stream().flatMap(a -> EntryStream.withKey(a, Arrays.stream(other))), context);
+        return cross(t -> of(other));
     }
 
     /**
@@ -414,7 +414,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public <V> EntryStream<T, V> cross(Collection<? extends V> other) {
         if (other.isEmpty())
             return new EntryStream<>(Spliterators.emptySpliterator(), context);
-        return new EntryStream<>(stream().flatMap(a -> EntryStream.withKey(a, other.stream())), context);
+        return cross(t -> of(other));
     }
 
     /**
