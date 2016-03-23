@@ -18,8 +18,10 @@ package one.util.streamex;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.OptionalDouble;
+import java.util.Scanner;
 import java.util.PrimitiveIterator.OfDouble;
 import java.util.Random;
 import java.util.Spliterator;
@@ -460,5 +462,23 @@ public class DoubleStreamExTest {
                 .scanLeft(1, (a, b) -> a * b), 0.0);
         assertArrayEquals(new double[] { 1, 1, 2, 6, 24, 120 }, LongStreamEx.rangeClosed(1, 5).asDoubleStream()
                 .parallel().scanLeft(1, (a, b) -> a * b), 0.0);
+    }
+
+    // Reads numbers from scanner stopping when non-number is encountered
+    // leaving scanner in known state
+    public static DoubleStreamEx scannerDoubles(Scanner sc) {
+        return DoubleStreamEx.produce(action -> {
+            if(sc.hasNextDouble())
+                action.accept(sc.nextDouble());
+            return sc.hasNextDouble();
+        });
+    }
+
+    @Test
+    public void testProduce() {
+        Scanner sc = new Scanner("1.0 2.5 3 -4.6 test");
+        sc.useLocale(Locale.ENGLISH);
+        assertArrayEquals(new double[] {1, 2.5, 3, -4.6}, scannerDoubles(sc).stream().toArray(), 0.0);
+        assertEquals("test", sc.next());
     }
 }

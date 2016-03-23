@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.OptionalLong;
+import java.util.Scanner;
 import java.util.PrimitiveIterator.OfLong;
 import java.util.Random;
 import java.util.Spliterator;
@@ -559,5 +560,22 @@ public class LongStreamExTest {
             (a, b) -> a * b));
         assertArrayEquals(new long[] { 1, 1, 2, 6, 24, 120 }, LongStreamEx.rangeClosed(1, 5).parallel().scanLeft(1,
             (a, b) -> a * b));
+    }
+
+    // Reads numbers from scanner stopping when non-number is encountered
+    // leaving scanner in known state
+    public static LongStreamEx scannerLongs(Scanner sc) {
+        return LongStreamEx.produce(action -> {
+            if(sc.hasNextLong())
+                action.accept(sc.nextLong());
+            return sc.hasNextLong();
+        });
+    }
+
+    @Test
+    public void testProduce() {
+        Scanner sc = new Scanner("1 2 3 4 20000000000 test");
+        assertArrayEquals(new long[] {1, 2, 3, 4, 20000000000L}, scannerLongs(sc).stream().toArray());
+        assertEquals("test", sc.next());
     }
 }

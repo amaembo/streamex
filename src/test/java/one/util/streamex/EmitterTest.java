@@ -21,40 +21,25 @@ import static java.util.Arrays.asList;
 
 import java.math.BigInteger;
 import java.util.Iterator;
-import java.util.Queue;
-import java.util.Scanner;
-import java.util.Spliterator;
 import java.util.function.BinaryOperator;
-import java.util.function.Consumer;
 import java.util.function.LongPredicate;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import one.util.streamex.DoubleStreamEx.DoubleEmitter;
 import one.util.streamex.IntStreamEx.IntEmitter;
 import one.util.streamex.LongStreamEx.LongEmitter;
 import one.util.streamex.StreamEx.Emitter;
 
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
 /**
  * @author Tagir Valeev
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class EmitterTest {
-    // Like Stream.generate(supplier)
-    public static <T> Emitter<T> generate(Supplier<T> supplier) {
-        return new Emitter<T>() {
-            @Override
-            public Emitter<T> next(Consumer<? super T> action) {
-                action.accept(supplier.get());
-                return this;
-            }
-        };
-    }
-
     // Like Java-9 Stream.iterate(seed, test, op)
     public static <T> Emitter<T> iterate(T seed, Predicate<? super T> test, UnaryOperator<T> op) {
         return test.test(seed) ? action -> {
@@ -85,14 +70,6 @@ public class EmitterTest {
         };
     }
 
-    // Reads numbers from scanner stopping when non-number is encountered
-    public static IntEmitter scannerInts(Scanner sc) {
-        return sc.hasNextInt() ? action -> {
-            action.accept(sc.nextInt());
-            return scannerInts(sc);
-        } : null;
-    }
-
     // Stream of Fibonacci numbers
     public static StreamEx<BigInteger> fibonacci() {
         return fibonacci(BigInteger.ONE, BigInteger.ZERO).stream();
@@ -106,21 +83,6 @@ public class EmitterTest {
         };
     }
 
-    // Adapt spliterator to emitter
-    public static <T> Emitter<T> fromSpliterator(Spliterator<T> spltr) {
-        return action -> spltr.tryAdvance(action) ? fromSpliterator(spltr) : null;
-    }
-
-    // Adapt iterator to emitter
-    public static <T> Emitter<T> fromIterator(Iterator<T> iter) {
-        return action -> {
-            if (!iter.hasNext())
-                return null;
-            action.accept(iter.next());
-            return fromIterator(iter);
-        };
-    }
-
     // Perform scanLeft on the iterator
     public static <T> Emitter<T> scanLeft(Iterator<T> iter, T initial, BinaryOperator<T> reducer) {
         return action -> {
@@ -130,14 +92,6 @@ public class EmitterTest {
             action.accept(sum);
             return scanLeft(iter, sum, reducer);
         };
-    }
-
-    // Stream of all matches of given matcher
-    public static Emitter<String> matches(Matcher m) {
-        return m.find() ? action -> {
-            action.accept(m.group());
-            return matches(m);
-        } : null;
     }
 
     public static Emitter<Integer> flatTest(int start) {
@@ -187,16 +141,6 @@ public class EmitterTest {
         };
     }
     
-    public static <T> Emitter<T> fromQueue(Queue<T> queue, T sentinel) {
-        return action -> {
-            T next = queue.poll();
-            if(next == null || next.equals(sentinel))
-                return null;
-            action.accept(next);
-            return fromQueue(queue, sentinel);
-        };
-    }
-    
     @Test
     public void testEmitter() {
         assertEquals(asList(17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1), collatz(17).stream().toList());
@@ -209,11 +153,7 @@ public class EmitterTest {
         assertTrue(collatz(17).stream().has(1));
         assertTrue(collatzInt(17).stream().has(1));
         assertFalse(collatzLong(17).stream().has(0));
-        assertEquals(asList(4, 4, 4, 4, 4), generate(() -> 4).stream().limit(5).toList());
         assertEquals(asList(1, 2, 3, 4, 5, 6, 7, 8, 9), iterate(1, x -> x < 10, x -> x + 1).stream().toList());
-        Scanner sc = new Scanner("1 2 3 4 test");
-        assertArrayEquals(new int[] {1, 2, 3, 4}, scannerInts(sc).stream().toArray());
-        assertEquals("test", sc.next());
 
         // Extracting to variables is necessary to work-around javac <8u40 bug
         String expected = "354224848179261915075";
@@ -221,14 +161,6 @@ public class EmitterTest {
         assertEquals(expected, actual);
         assertEquals(asList(1, 1, 2, 3, 5, 8, 13, 21, 34, 55), fibonacci().map(BigInteger::intValueExact).limit(10)
                 .toList());
-
-        assertEquals(asList("foo", "bar", "baz"), fromSpliterator(asList("foo", "bar", "baz").spliterator()).stream()
-                .toList());
-        assertEquals(asList("foo", "bar", "baz"), fromIterator(asList("foo", "bar", "baz").iterator()).stream()
-                .toList());
-
-        assertEquals(asList("123", "543", "111", "5432"), matches(Pattern.compile("\\d+").matcher("123 543,111:5432"))
-                .stream().toList());
 
         assertEquals(asList("aa", "aabbb", "aabbbc"), scanLeft(asList("aa", "bbb", "c").iterator(), "", String::concat)
                 .stream().toList());

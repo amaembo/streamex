@@ -26,6 +26,7 @@ import java.util.OptionalInt;
 import java.util.PrimitiveIterator;
 import java.util.PrimitiveIterator.OfInt;
 import java.util.Random;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
@@ -720,5 +721,22 @@ public class IntStreamExTest {
         assertArrayEquals(new int[] { 1, 1, 2, 6, 24, 120 }, IntStreamEx.rangeClosed(1, 5).scanLeft(1, (a, b) -> a * b));
         assertArrayEquals(new int[] { 1, 1, 2, 6, 24, 120 }, IntStreamEx.rangeClosed(1, 5).parallel().scanLeft(1,
             (a, b) -> a * b));
+    }
+
+    // Reads numbers from scanner stopping when non-number is encountered
+    // leaving scanner in known state
+    public static IntStreamEx scannerInts(Scanner sc) {
+        return IntStreamEx.produce(action -> {
+            if(sc.hasNextInt())
+                action.accept(sc.nextInt());
+            return sc.hasNextInt();
+        });
+    }
+
+    @Test
+    public void testProduce() {
+        Scanner sc = new Scanner("1 2 3 4 20000000000 test");
+        assertArrayEquals(new int[] {1, 2, 3, 4}, scannerInts(sc).stream().toArray());
+        assertEquals("20000000000", sc.next());
     }
 }

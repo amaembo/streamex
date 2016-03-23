@@ -2415,6 +2415,48 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
+     * Return an ordered stream produced by consecutive calls of the supplied
+     * producer until it returns false.
+     * 
+     * <p>
+     * The producer function may call the passed consumer any number of times
+     * and return true if the producer should be called again or false
+     * otherwise. It's guaranteed that the producer will not be called anymore,
+     * once it returns false.
+     * 
+     * <p>
+     * This method is particularly useful when producer changes the mutable
+     * object which should be left in known state after the full stream
+     * consumption. For example, the following code could be used to drain
+     * elements from the queue until it's empty or sentinel is reached
+     * (consuming the sentinel):
+     * 
+     * <pre>{@code
+     * return StreamEx.produce(action -> {
+     *   T next = queue.poll();
+     *   if(next == null || next.equals(sentinel))
+     *       return false;
+     *   action.accept(next);
+     *   return true;
+     * });}</pre>
+     * 
+     * <p>
+     * Note however that if a short-circuiting operation is used, then the final
+     * state of the mutable object cannot be guaranteed.
+     * 
+     * @param <T> the type of the resulting stream elements
+     * @param producer a predicate which calls the passed consumer to emit
+     *        stream element(s) and returns true if it producer should be
+     *        applied again.
+     * @return the new stream
+     * @since 0.6.0
+     */
+    public static <T> StreamEx<T> produce(Predicate<Consumer<? super T>> producer) {
+        Box<Emitter<T>> box = new Box<>(null);
+        return (box.a = action -> producer.test(action) ? box.a : null).stream();
+    }
+
+    /**
      * Returns a sequential unordered {@code StreamEx} of given length which
      * elements are equal to supplied value.
      * 
@@ -2844,14 +2886,20 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
          * nothing more to emit.
          * 
          * <p>
+         * Normally one element is emitted during the {@code next()} method
+         * call. However, it's not restricted: you may emit as many elements as
+         * you want, though in some cases if many elements were emitted they
+         * might be buffered consuming additional memory.
+         * 
+         * <p>
          * It's allowed not to emit anything (don't call the consumer). However
          * if you do this and return new emitter which also does not emit
          * anything, you will end up in endless loop.
          * 
-         * @param cons consumer to be called to emit elements
+         * @param action consumer to be called to emit elements
          * @return next emitter or null
          */
-        Emitter<T> next(Consumer<? super T> cons);
+        Emitter<T> next(Consumer<? super T> action);
 
         /**
          * Returns the spliterator which covers all the elements emitted by this

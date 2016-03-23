@@ -16,6 +16,7 @@ Warning: this release introduces some changes which may break backwards compatib
 * [#83] Changed: `StreamEx.of(Collection)`, `of(Iterator)`, etc. now use `? extends T` type instead of just `T`.
 * [#85] Added: `StreamEx.mapFirstOrElse()/mapLastOrElse()`.
 * [#86] Added: `peekFirst()`, `peekLast()` for all stream types.
+* [#89] Added: `produce()` method for all stream types.
 
 
 ### 0.5.5

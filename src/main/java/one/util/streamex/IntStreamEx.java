@@ -56,6 +56,7 @@ import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import one.util.streamex.StreamExInternals.Box;
 import static one.util.streamex.StreamExInternals.*;
 
 /**
@@ -2437,6 +2438,33 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
     }
 
     /**
+     * Return an ordered stream produced by consecutive calls of the supplied
+     * producer until it returns false.
+     * 
+     * <p>
+     * The producer function may call the passed consumer any number of times
+     * and return true if the producer should be called again or false
+     * otherwise. It's guaranteed that the producer will not be called anymore,
+     * once it returns false.
+     * 
+     * <p>
+     * This method is particularly useful when producer changes the mutable
+     * object which should be left in known state after the full stream
+     * consumption. Note however that if a short-circuiting operation is used,
+     * then the final state of the mutable object cannot be guaranteed.
+     * 
+     * @param producer a predicate which calls the passed consumer to emit
+     *        stream element(s) and returns true if it producer should be
+     *        applied again.
+     * @return the new stream
+     * @since 0.6.0
+     */
+    public static IntStreamEx produce(Predicate<IntConsumer> producer) {
+        Box<IntEmitter> box = new Box<>(null);
+        return (box.a = action -> producer.test(action) ? box.a : null).stream();
+    }
+
+    /**
      * Returns a sequential ordered {@code IntStreamEx} from 0 (inclusive) to
      * {@code Integer.MAX_VALUE} (exclusive) by an incremental step of {@code 1}
      * .
@@ -2624,14 +2652,20 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
          * nothing more to emit.
          * 
          * <p>
+         * Normally one element is emitted during the {@code next()} method
+         * call. However, it's not restricted: you may emit as many elements as
+         * you want, though in some cases if many elements were emitted they
+         * might be buffered consuming additional memory.
+         * 
+         * <p>
          * It's allowed not to emit anything (don't call the consumer). However
          * if you do this and return new emitter which also does not emit
          * anything, you will end up in endless loop.
          * 
-         * @param cons consumer to be called to emit elements
+         * @param action consumer to be called to emit elements
          * @return next emitter or null
          */
-        IntEmitter next(IntConsumer cons);
+        IntEmitter next(IntConsumer action);
 
         /**
          * Returns the spliterator which covers all the elements emitted by this

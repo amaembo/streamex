@@ -25,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.AbstractList;
 import java.util.AbstractMap;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -32,6 +33,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -39,6 +41,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
 import java.util.SortedMap;
@@ -56,6 +59,7 @@ import java.util.function.Function;
 import java.util.function.IntPredicate;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -1715,5 +1719,64 @@ public class StreamExTest {
             IntStream.range(1, Integer.MAX_VALUE).boxed()).mapKeyValue((name, idx) -> idx + ". " + name).toList()));
         streamEx(() -> IntStream.range(1, Integer.MAX_VALUE).boxed(), s -> assertEquals(expected, s.get().zipWith(
             input.stream(), (idx, name) -> idx + ". " + name).toList()));
+    }
+    
+    // Like Stream.generate(supplier)
+    public static <T> StreamEx<T> generate(Supplier<T> supplier) {
+        return StreamEx.produce(action -> {
+            action.accept(supplier.get());
+            return true;
+        });
+    }
+
+    // Adapt spliterator to produce
+    public static <T> StreamEx<T> fromSpliterator(Spliterator<T> spltr) {
+        return StreamEx.produce(action -> spltr.tryAdvance(action));
+    }
+
+    // Adapt iterator to produce
+    public static <T> StreamEx<T> fromIterator(Iterator<T> iter) {
+        return StreamEx.produce(action -> {
+            if(!iter.hasNext()) return false;
+            action.accept(iter.next());
+            return true;
+        });
+    }
+
+    // Stream of all matches of given matcher
+    public static StreamEx<String> matches(Matcher m) {
+        return StreamEx.produce(action -> {
+            if(!m.find()) return false;
+            action.accept(m.group());
+            return true;
+        });
+    }
+
+    public static <T> StreamEx<T> fromQueue(Queue<T> queue, T sentinel) {
+        return StreamEx.produce(action -> {
+            T next = queue.poll();
+            if(next == null || next.equals(sentinel))
+                return false;
+            action.accept(next);
+            return true;
+        });
+    }
+    
+    @Test
+    public void testProduce() {
+        assertEquals(asList(4, 4, 4, 4, 4), generate(() -> 4).limit(5).toList());
+        assertEquals(asList("foo", "bar", "baz"), fromSpliterator(asList("foo", "bar", "baz").spliterator()).toList());
+        assertEquals(asList("foo", "bar", "baz"), fromIterator(asList("foo", "bar", "baz").iterator()).toList());
+
+        assertEquals(asList("123", "543", "111", "5432"), matches(Pattern.compile("\\d+").matcher("123 543,111:5432"))
+                .toList());
+
+        
+        Queue<String> queue = new ArrayDeque<>(asList("one", "two", "STOP", "three", "four", "five", "STOP", "STOP", "six"));
+        assertEquals(asList("one", "two"), fromQueue(queue, "STOP").toList());
+        assertEquals(asList("three", "four", "five"), fromQueue(queue, "STOP").toList());
+        assertEquals(asList(), fromQueue(queue, "STOP").toList());
+        assertEquals(asList("six"), fromQueue(queue, "STOP").toList());
+        assertEquals(asList(), fromQueue(queue, "STOP").toList());
     }
 }
