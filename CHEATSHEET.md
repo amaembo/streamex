@@ -45,6 +45,7 @@ Infinite Stream from `Supplier` | `any.generate()`
 Infinite Stream using iterative function | `any.iterate()`
 Convert three-argument for loop to Stream | `any.iterate()`
 Fixed length Stream of constant elements | `any.constant()`
+Custom stream source which maintains mutable state | `Emitter/IntEmitter/LongEmitter/DoubleEmitter`
 Stream of array or `List` with indices | `EntryStream.of()`
 Stream of single value or empty if null supplied | `StreamEx.ofNullable()`
 Stream of `Map` keys (with optional values filter) | `StreamEx.ofKeys()`
