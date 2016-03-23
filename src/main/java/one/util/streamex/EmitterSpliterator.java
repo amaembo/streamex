@@ -29,15 +29,15 @@ import java.util.stream.Stream;
 /* package */final class EmitterSpliterator<T> extends Spliterators.AbstractSpliterator<T> implements Consumer<T> {
     StreamEx.Emitter<T> e;
     Spliterator<T> buf;
-    boolean hasValue;
-    Consumer<? super T> action;
-    Stream.Builder<T> builder;
+    int vals;
+    Consumer<? super T> cons;
 
     EmitterSpliterator(StreamEx.Emitter<T> e) {
         super(Long.MAX_VALUE, Spliterator.ORDERED | Spliterator.IMMUTABLE);
         this.e = e;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public boolean tryAdvance(Consumer<? super T> action) {
         if (buf != null) {
@@ -45,17 +45,19 @@ import java.util.stream.Stream;
                 return true;
             buf = null;
         }
-        hasValue = false;
-        this.action = action;
-        while (!hasValue && e != null) {
+        vals = 0;
+        cons = action;
+        while (e != null) {
             e = e.next(this);
+            if (vals > 0) {
+                if (vals > 1) {
+                    buf = ((Stream.Builder<T>)cons).build().spliterator();
+                }
+                cons = null;
+                return true;
+            }
         }
-        this.action = null;
-        if (builder != null) {
-            buf = builder.build().spliterator();
-            builder = null;
-        }
-        return hasValue;
+        return false;
     }
 
     @Override
@@ -72,23 +74,17 @@ import java.util.stream.Stream;
 
     @Override
     public void accept(T t) {
-        if (hasValue) {
-            if (builder == null) {
-                builder = Stream.builder();
-            }
-            builder.accept(t);
-        } else {
-            action.accept(t);
-            hasValue = true;
+        if ((vals = Math.addExact(vals, 1)) == 2) {
+            cons = Stream.builder();
         }
+        cons.accept(t);
     }
 
     static final class OfInt extends Spliterators.AbstractIntSpliterator implements IntConsumer {
         IntStreamEx.IntEmitter e;
         Spliterator.OfInt buf;
-        boolean hasValue;
-        IntConsumer action;
-        IntStream.Builder builder;
+        int vals;
+        IntConsumer cons;
 
         OfInt(IntStreamEx.IntEmitter e) {
             super(Long.MAX_VALUE, Spliterator.ORDERED | Spliterator.IMMUTABLE | Spliterator.NONNULL);
@@ -102,17 +98,19 @@ import java.util.stream.Stream;
                     return true;
                 buf = null;
             }
-            hasValue = false;
-            this.action = action;
-            while (!hasValue && e != null) {
+            vals = 0;
+            cons = action;
+            while (e != null) {
                 e = e.next(this);
+                if (vals > 0) {
+                    if (vals > 1) {
+                        buf = ((IntStream.Builder)cons).build().spliterator();
+                    }
+                    cons = null;
+                    return true;
+                }
             }
-            this.action = null;
-            if (builder != null) {
-                buf = builder.build().spliterator();
-                builder = null;
-            }
-            return hasValue;
+            return false;
         }
 
         @Override
@@ -129,24 +127,18 @@ import java.util.stream.Stream;
 
         @Override
         public void accept(int t) {
-            if (hasValue) {
-                if (builder == null) {
-                    builder = IntStream.builder();
-                }
-                builder.accept(t);
-            } else {
-                action.accept(t);
-                hasValue = true;
+            if ((vals = Math.addExact(vals, 1)) == 2) {
+                cons = IntStream.builder();
             }
+            cons.accept(t);
         }
     }
 
     static final class OfLong extends Spliterators.AbstractLongSpliterator implements LongConsumer {
         LongStreamEx.LongEmitter e;
         Spliterator.OfLong buf;
-        boolean hasValue;
-        LongConsumer action;
-        LongStream.Builder builder;
+        int vals;
+        LongConsumer cons;
 
         OfLong(LongStreamEx.LongEmitter e) {
             super(Long.MAX_VALUE, Spliterator.ORDERED | Spliterator.IMMUTABLE | Spliterator.NONNULL);
@@ -160,17 +152,19 @@ import java.util.stream.Stream;
                     return true;
                 buf = null;
             }
-            hasValue = false;
-            this.action = action;
-            while (!hasValue && e != null) {
+            vals = 0;
+            cons = action;
+            while (e != null) {
                 e = e.next(this);
+                if (vals > 0) {
+                    if (vals > 1) {
+                        buf = ((LongStream.Builder)cons).build().spliterator();
+                    }
+                    cons = null;
+                    return true;
+                }
             }
-            this.action = null;
-            if (builder != null) {
-                buf = builder.build().spliterator();
-                builder = null;
-            }
-            return hasValue;
+            return false;
         }
 
         @Override
@@ -187,24 +181,18 @@ import java.util.stream.Stream;
 
         @Override
         public void accept(long t) {
-            if (hasValue) {
-                if (builder == null) {
-                    builder = LongStream.builder();
-                }
-                builder.accept(t);
-            } else {
-                action.accept(t);
-                hasValue = true;
+            if ((vals = Math.addExact(vals, 1)) == 2) {
+                cons = LongStream.builder();
             }
+            cons.accept(t);
         }
     }
 
     static final class OfDouble extends Spliterators.AbstractDoubleSpliterator implements DoubleConsumer {
         DoubleStreamEx.DoubleEmitter e;
         Spliterator.OfDouble buf;
-        boolean hasValue;
-        DoubleConsumer action;
-        DoubleStream.Builder builder;
+        int vals;
+        DoubleConsumer cons;
 
         OfDouble(DoubleStreamEx.DoubleEmitter e) {
             super(Long.MAX_VALUE, Spliterator.ORDERED | Spliterator.IMMUTABLE | Spliterator.NONNULL);
@@ -218,17 +206,19 @@ import java.util.stream.Stream;
                     return true;
                 buf = null;
             }
-            hasValue = false;
-            this.action = action;
-            while (!hasValue && e != null) {
+            vals = 0;
+            cons = action;
+            while (e != null) {
                 e = e.next(this);
+                if (vals > 0) {
+                    if (vals > 1) {
+                        buf = ((DoubleStream.Builder)cons).build().spliterator();
+                    }
+                    cons = null;
+                    return true;
+                }
             }
-            this.action = null;
-            if (builder != null) {
-                buf = builder.build().spliterator();
-                builder = null;
-            }
-            return hasValue;
+            return false;
         }
 
         @Override
@@ -245,15 +235,10 @@ import java.util.stream.Stream;
 
         @Override
         public void accept(double t) {
-            if (hasValue) {
-                if (builder == null) {
-                    builder = DoubleStream.builder();
-                }
-                builder.accept(t);
-            } else {
-                action.accept(t);
-                hasValue = true;
+            if ((vals = Math.addExact(vals, 1)) == 2) {
+                cons = DoubleStream.builder();
             }
+            cons.accept(t);
         }
     }
 }
