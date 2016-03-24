@@ -35,6 +35,8 @@ import static one.util.streamex.StreamExInternals.*;
     private final BiFunction<? super U, ? super V, ? extends R> mapper;
     private boolean trySplit;
     private int batch = 0;
+    private final Box<U> l = new Box<>();
+    private final Box<V> r = new Box<>();
 
     ZipSpliterator(Spliterator<U> left, Spliterator<V> right, BiFunction<? super U, ? super V, ? extends R> mapper, boolean trySplit) {
         this.left = left;
@@ -45,9 +47,8 @@ import static one.util.streamex.StreamExInternals.*;
 
     @Override
     public boolean tryAdvance(Consumer<? super R> action) {
-        PairBox<U, V> box = new PairBox<>(null, null);
-        if (left.tryAdvance(box) && right.tryAdvance(box::setB)) {
-            action.accept(mapper.apply(box.a, box.b));
+        if (left.tryAdvance(l) && right.tryAdvance(r)) {
+            action.accept(mapper.apply(l.a, r.a));
             return true;
         }
         return false;
@@ -62,17 +63,15 @@ import static one.util.streamex.StreamExInternals.*;
         long leftSize = left.getExactSizeIfKnown();
         long rightSize = right.getExactSizeIfKnown();
         if(leftSize <= rightSize) {
-            Box<V> box = new Box<>();
             left.forEachRemaining(u -> {
-                if(right.tryAdvance(box)) {
-                    action.accept(mapper.apply(u, box.a));
+                if(right.tryAdvance(r)) {
+                    action.accept(mapper.apply(u, r.a));
                 }
             });
         } else {
-            Box<U> box = new Box<>();
             right.forEachRemaining(v -> {
-                if(left.tryAdvance(box)) {
-                    action.accept(mapper.apply(box.a, v));
+                if(left.tryAdvance(l)) {
+                    action.accept(mapper.apply(l.a, v));
                 }
             });
         }

@@ -31,18 +31,25 @@ import java.util.function.Consumer;
     private final boolean trimEmpty;
 
     CharSpliterator(CharSequence source, char delimiter, boolean trimEmpty) {
-        this(source, delimiter, 0, source.length(), trimEmpty, 0, null);
-    }
-
-    private CharSpliterator(CharSequence source, char delimiter, int pos, int fence, boolean trimEmpty, int nEmpty,
-            String next) {
         this.source = source;
         this.delimiter = delimiter;
-        this.pos = pos;
+        this.fence = source.length();
+        this.trimEmpty = trimEmpty;
+    }
+
+    // Create prefix spliterator and update suffix fields
+    private CharSpliterator(CharSpliterator suffix, int fence, boolean trimEmpty, int suffixNEmpty, int suffixPos) {
+        this.source = suffix.source;
+        this.delimiter = suffix.delimiter;
         this.fence = fence;
         this.trimEmpty = trimEmpty;
-        this.nEmpty = nEmpty;
-        this.next = next;
+        
+        this.pos = suffix.pos;
+        suffix.pos = suffixPos;
+        this.nEmpty = suffix.nEmpty;
+        suffix.nEmpty = suffixNEmpty;
+        this.next = suffix.next;
+        suffix.next = null;
     }
 
     private int next(int pos) {
@@ -103,26 +110,14 @@ import java.util.function.Consumer;
         int nextPos = next(mid);
         if (nextPos == fence)
             return null;
-        Spliterator<String> prefix;
         if (trimEmpty && nextPos == mid) {
             while (nextPos < fence && source.charAt(nextPos) == delimiter)
                 nextPos++;
-            if (nextPos == fence) {
-                prefix = new CharSpliterator(source, delimiter, pos, mid, true, nEmpty, next);
-                nEmpty = 0;
-                pos = nextPos + 1;
-            } else {
-                prefix = new CharSpliterator(source, delimiter, pos, mid, false, nEmpty, next);
-                nEmpty = nextPos - mid - 1;
-                pos = nextPos;
-            }
-        } else {
-            prefix = new CharSpliterator(source, delimiter, pos, nextPos, false, nEmpty, next);
-            nEmpty = 0;
-            pos = nextPos + 1;
+            return nextPos == fence ? 
+                    new CharSpliterator(this, mid, true, 0, nextPos + 1) : 
+                        new CharSpliterator(this, mid, false, nextPos - mid - 1, nextPos);
         }
-        next = null;
-        return prefix;
+        return new CharSpliterator(this, nextPos, false, 0, nextPos + 1);
     }
 
     @Override
