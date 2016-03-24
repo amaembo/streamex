@@ -20,16 +20,13 @@ import java.util.Spliterators;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-import one.util.streamex.UnknownSizeSpliterator.USOfRef;
+import static one.util.streamex.UnknownSizeSpliterator.*;
 import static one.util.streamex.StreamExInternals.*;
 
 /**
  * @author Tagir Valeev
  */
 /* package */class ZipSpliterator<U, V, R> implements Spliterator<R> {
-    static final int BATCH_UNIT = UnknownSizeSpliterator.BATCH_UNIT;
-    static final int MAX_BATCH = UnknownSizeSpliterator.MAX_BATCH;
-
     private Spliterator<U> left;
     private Spliterator<V> right;
     private final BiFunction<? super U, ? super V, ? extends R> mapper;
