@@ -473,7 +473,7 @@ public final class MoreCollectors {
      * @since 0.4.0
      */
     public static <T> Collector<T, ?, Optional<T>> onlyOne() {
-        return new CancellableCollectorImpl<T, Box<Optional<T>>, Optional<T>>(() -> new Box<Optional<T>>(null),
+        return new CancellableCollectorImpl<T, Box<Optional<T>>, Optional<T>>(Box::new,
                 (box, t) -> box.a = box.a == null ? Optional.of(t) : Optional.empty(),
                 (box1, box2) -> box1.a == null ? box2 : box2.a == null ? box1 : new Box<>(Optional.empty()),
                 box -> box.a == null ? Optional.empty() : box.a, box -> box.a != null && !box.a.isPresent(),
@@ -1006,7 +1006,7 @@ public final class MoreCollectors {
      * @since 0.4.0
      */
     public static <T, S extends Collection<T>> Collector<S, ?, Set<T>> intersecting() {
-        return new CancellableCollectorImpl<>(() -> new Box<Set<T>>(null), (b, t) -> {
+        return new CancellableCollectorImpl<S, Box<Set<T>>, Set<T>>(Box::new, (b, t) -> {
             if (b.a == null) {
                 b.a = new HashSet<>(t);
             } else {

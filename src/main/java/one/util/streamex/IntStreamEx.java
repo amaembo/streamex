@@ -2460,7 +2460,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.6.0
      */
     public static IntStreamEx produce(Predicate<IntConsumer> producer) {
-        Box<IntEmitter> box = new Box<>(null);
+        Box<IntEmitter> box = new Box<>();
         return (box.a = action -> producer.test(action) ? box.a : null).stream();
     }
 

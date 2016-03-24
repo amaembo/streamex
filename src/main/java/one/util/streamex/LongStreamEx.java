@@ -1975,7 +1975,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @since 0.6.0
      */
     public static LongStreamEx produce(Predicate<LongConsumer> producer) {
-        Box<LongEmitter> box = new Box<>(null);
+        Box<LongEmitter> box = new Box<>();
         return (box.a = action -> producer.test(action) ? box.a : null).stream();
     }
 

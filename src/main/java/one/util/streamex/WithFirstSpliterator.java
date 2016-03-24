@@ -25,7 +25,7 @@ import one.util.streamex.StreamExInternals.CloneableSpliterator;
 /**
  * @author Tagir Valeev
  */
-/* package */final class WithFirstSpliterator<T, R> extends CloneableSpliterator<R, WithFirstSpliterator<T, R>> {
+/* package */final class WithFirstSpliterator<T, R> extends CloneableSpliterator<R, WithFirstSpliterator<T, R>> implements Consumer<T> {
     private static final int STATE_NONE = 0;
     private static final int STATE_FIRST_READ = 1;
     private static final int STATE_INIT = 2;
@@ -37,6 +37,7 @@ import one.util.streamex.StreamExInternals.CloneableSpliterator;
     private volatile T first;
     private volatile int state = STATE_NONE;
     private final BiFunction<? super T, ? super T, ? extends R> mapper;
+    private Consumer<? super R> action;
     
     WithFirstSpliterator(Spliterator<T> source, BiFunction<? super T, ? super T, ? extends R> mapper) {
         this.source = source;
@@ -73,11 +74,10 @@ import one.util.streamex.StreamExInternals.CloneableSpliterator;
         }
         if (state != STATE_INIT)
             return false;
-        return source.tryAdvance(consumer(action));
-    }
-
-    private Consumer<T> consumer(Consumer<? super R> action) {
-        return x -> action.accept(mapper.apply(first, x));
+        this.action = action;
+        boolean hasNext = source.tryAdvance(this);
+        this.action = null;
+        return hasNext;
     }
 
     private void doInit() {
@@ -98,16 +98,17 @@ import one.util.streamex.StreamExInternals.CloneableSpliterator;
 
     @Override
     public void forEachRemaining(Consumer<? super R> action) {
-        Consumer<T> accept = consumer(action);
         acquire();
         int myState = state;
+        this.action = action;
         if(myState == STATE_FIRST_READ || myState == STATE_INIT) {
             release();
             if(myState == STATE_FIRST_READ) {
                 state = STATE_INIT;
-                accept.accept(first);
+                accept(first);
             }
-            source.forEachRemaining(accept);
+            source.forEachRemaining(this);
+            this.action = null;
             return;
         }
         try {
@@ -121,7 +122,8 @@ import one.util.streamex.StreamExInternals.CloneableSpliterator;
                 }
                 release();
             };
-            source.forEachRemaining(init.andThen(accept));
+            source.forEachRemaining(init.andThen(this));
+            this.action = null;
         }
         finally {
             release();
@@ -159,5 +161,10 @@ import one.util.streamex.StreamExInternals.CloneableSpliterator;
     public int characteristics() {
         return NONNULL
             | (source.characteristics() & (DISTINCT | IMMUTABLE | CONCURRENT | ORDERED | (lock == null ? SIZED : 0)));
+    }
+
+    @Override
+    public void accept(T x) {
+        action.accept(mapper.apply(first, x));
     }
 }

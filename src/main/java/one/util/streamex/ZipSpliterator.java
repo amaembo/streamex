@@ -46,7 +46,7 @@ import static one.util.streamex.StreamExInternals.*;
     @Override
     public boolean tryAdvance(Consumer<? super R> action) {
         PairBox<U, V> box = new PairBox<>(null, null);
-        if (left.tryAdvance(box::setA) && right.tryAdvance(box::setB)) {
+        if (left.tryAdvance(box) && right.tryAdvance(box::setB)) {
             action.accept(mapper.apply(box.a, box.b));
             return true;
         }
@@ -62,16 +62,16 @@ import static one.util.streamex.StreamExInternals.*;
         long leftSize = left.getExactSizeIfKnown();
         long rightSize = right.getExactSizeIfKnown();
         if(leftSize <= rightSize) {
-            Box<V> box = new Box<>(null);
+            Box<V> box = new Box<>();
             left.forEachRemaining(u -> {
-                if(right.tryAdvance(box::setA)) {
+                if(right.tryAdvance(box)) {
                     action.accept(mapper.apply(u, box.a));
                 }
             });
         } else {
-            Box<U> box = new Box<>(null);
+            Box<U> box = new Box<>();
             right.forEachRemaining(v -> {
-                if(left.tryAdvance(box::setA)) {
+                if(left.tryAdvance(box)) {
                     action.accept(mapper.apply(box.a, v));
                 }
             });

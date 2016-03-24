@@ -117,9 +117,8 @@ import static one.util.streamex.StreamExInternals.*;
             this.source = null;
             action.accept(result);
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     @Override

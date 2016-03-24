@@ -2452,7 +2452,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.6.0
      */
     public static <T> StreamEx<T> produce(Predicate<Consumer<? super T>> producer) {
-        Box<Emitter<T>> box = new Box<>(null);
+        Box<Emitter<T>> box = new Box<>();
         return (box.a = action -> producer.test(action) ? box.a : null).stream();
     }
 

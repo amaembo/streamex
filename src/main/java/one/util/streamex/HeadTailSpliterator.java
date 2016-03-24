@@ -84,8 +84,8 @@ import static one.util.streamex.StreamExInternals.*;
         if(context == null)
             return false;
         if(target == null) {
-            Box<T> first = new Box<>(null);
-            source = TailSpliterator.tryAdvanceWithTail(source, x -> first.a = x);
+            Box<T> first = new Box<>();
+            source = TailSpliterator.tryAdvanceWithTail(source, first);
             Stream<U> stream = source == null ? emptyMapper.get() : mapper.apply(first.a, StreamEx.of(source));
             source = null;
             mapper = null;

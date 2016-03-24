@@ -1951,7 +1951,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @since 0.6.0
      */
     public static DoubleStreamEx produce(Predicate<DoubleConsumer> producer) {
-        Box<DoubleEmitter> box = new Box<>(null);
+        Box<DoubleEmitter> box = new Box<>();
         return (box.a = action -> producer.test(action) ? box.a : null).stream();
     }
 

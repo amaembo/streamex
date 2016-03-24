@@ -432,11 +432,10 @@ import java.util.stream.Stream;
             if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
                 return (PartialCollector) new PartialCollector<>(supplier, merger, Function.identity(),
                         ID_CHARACTERISTICS);
-            } else {
-                Function<A, R> downstreamFinisher = downstream.finisher();
-                return new PartialCollector<>(supplier, merger, par -> new BooleanMap<>(downstreamFinisher
-                        .apply(par.trueValue), downstreamFinisher.apply(par.falseValue)), NO_CHARACTERISTICS);
             }
+            Function<A, R> downstreamFinisher = downstream.finisher();
+            return new PartialCollector<>(supplier, merger, par -> new BooleanMap<>(downstreamFinisher
+                    .apply(par.trueValue), downstreamFinisher.apply(par.falseValue)), NO_CHARACTERISTICS);
         }
     }
 
@@ -541,13 +540,12 @@ import java.util.stream.Stream;
             if (downstream.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH)) {
                 return (PartialCollector<Map<K, A>, M>) new PartialCollector<>((Supplier<Map<K, A>>) mapFactory,
                         merger, Function.identity(), ID_CHARACTERISTICS);
-            } else {
-                Function<A, D> downstreamFinisher = downstream.finisher();
-                return new PartialCollector<>((Supplier<Map<K, A>>) mapFactory, merger, map -> {
-                    map.replaceAll((k, v) -> ((Function<A, A>) downstreamFinisher).apply(v));
-                    return (M) map;
-                }, NO_CHARACTERISTICS);
             }
+            Function<A, D> downstreamFinisher = downstream.finisher();
+            return new PartialCollector<>((Supplier<Map<K, A>>) mapFactory, merger, map -> {
+                map.replaceAll((k, v) -> ((Function<A, A>) downstreamFinisher).apply(v));
+                return (M) map;
+            }, NO_CHARACTERISTICS);
         }
 
         static PartialCollector<StringBuilder, String> joining(CharSequence delimiter, CharSequence prefix,
@@ -666,14 +664,18 @@ import java.util.stream.Stream;
         }
     }
 
-    static class Box<A> {
+    static class Box<A> implements Consumer<A> {
         A a;
-
+        
+        Box() {
+        }
+        
         Box(A obj) {
             this.a = obj;
         }
 
-        public void setA(A a) {
+        @Override
+        public void accept(A a) {
             this.a = a;
         }
 
@@ -1071,9 +1073,9 @@ import java.util.stream.Stream;
     }
 
     static <T> int drainTo(T[] array, Spliterator<T> spliterator) {
-        Box<T> box = new Box<>(null);
+        Box<T> box = new Box<>();
         int index = 0;
-        while (index < array.length && spliterator.tryAdvance(box::setA)) {
+        while (index < array.length && spliterator.tryAdvance(box)) {
             array[index++] = box.a;
         }
         return index;

@@ -45,19 +45,16 @@ import java.util.stream.Stream;
                 return true;
             buf = null;
         }
-        vals = 0;
         cons = action;
-        while (e != null) {
-            e = e.next(this);
-            if (vals > 0) {
-                if (vals > 1) {
-                    buf = ((Stream.Builder<T>)cons).build().spliterator();
-                }
-                cons = null;
-                return true;
-            }
+        for (vals = 0; vals == 0; e = e.next(this)) {
+            if (e == null)
+                return false;
         }
-        return false;
+        if (vals > 1) {
+            buf = ((Stream.Builder<T>) cons).build().spliterator();
+        }
+        cons = null;
+        return true;
     }
 
     @Override
@@ -74,7 +71,7 @@ import java.util.stream.Stream;
 
     @Override
     public void accept(T t) {
-        if ((vals = Math.addExact(vals, 1)) == 2) {
+        if ((vals += vals < 3 ? 1 : 0) == 2) {
             cons = Stream.builder();
         }
         cons.accept(t);
@@ -98,19 +95,16 @@ import java.util.stream.Stream;
                     return true;
                 buf = null;
             }
-            vals = 0;
             cons = action;
-            while (e != null) {
-                e = e.next(this);
-                if (vals > 0) {
-                    if (vals > 1) {
-                        buf = ((IntStream.Builder)cons).build().spliterator();
-                    }
-                    cons = null;
-                    return true;
-                }
+            for (vals = 0; vals == 0; e = e.next(this)) {
+                if (e == null)
+                    return false;
             }
-            return false;
+            if (vals > 1) {
+                buf = ((IntStream.Builder) cons).build().spliterator();
+            }
+            cons = null;
+            return true;
         }
 
         @Override
@@ -127,7 +121,7 @@ import java.util.stream.Stream;
 
         @Override
         public void accept(int t) {
-            if ((vals = Math.addExact(vals, 1)) == 2) {
+            if ((vals += vals < 3 ? 1 : 0) == 2) {
                 cons = IntStream.builder();
             }
             cons.accept(t);
@@ -152,19 +146,16 @@ import java.util.stream.Stream;
                     return true;
                 buf = null;
             }
-            vals = 0;
             cons = action;
-            while (e != null) {
-                e = e.next(this);
-                if (vals > 0) {
-                    if (vals > 1) {
-                        buf = ((LongStream.Builder)cons).build().spliterator();
-                    }
-                    cons = null;
-                    return true;
-                }
+            for (vals = 0; vals == 0; e = e.next(this)) {
+                if (e == null)
+                    return false;
             }
-            return false;
+            if (vals > 1) {
+                buf = ((LongStream.Builder) cons).build().spliterator();
+            }
+            cons = null;
+            return true;
         }
 
         @Override
@@ -181,7 +172,7 @@ import java.util.stream.Stream;
 
         @Override
         public void accept(long t) {
-            if ((vals = Math.addExact(vals, 1)) == 2) {
+            if ((vals += vals < 3 ? 1 : 0) == 2) {
                 cons = LongStream.builder();
             }
             cons.accept(t);
@@ -206,19 +197,16 @@ import java.util.stream.Stream;
                     return true;
                 buf = null;
             }
-            vals = 0;
             cons = action;
-            while (e != null) {
-                e = e.next(this);
-                if (vals > 0) {
-                    if (vals > 1) {
-                        buf = ((DoubleStream.Builder)cons).build().spliterator();
-                    }
-                    cons = null;
-                    return true;
-                }
+            for (vals = 0; vals == 0; e = e.next(this)) {
+                if (e == null)
+                    return false;
             }
-            return false;
+            if (vals > 1) {
+                buf = ((DoubleStream.Builder) cons).build().spliterator();
+            }
+            cons = null;
+            return true;
         }
 
         @Override
@@ -235,7 +223,7 @@ import java.util.stream.Stream;
 
         @Override
         public void accept(double t) {
-            if ((vals = Math.addExact(vals, 1)) == 2) {
+            if ((vals += vals < 3 ? 1 : 0) == 2) {
                 cons = DoubleStream.builder();
             }
             cons.accept(t);

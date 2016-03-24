@@ -23,12 +23,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
-/* package */final class DistinctSpliterator<T> implements Spliterator<T>, Consumer<T> {
+import static one.util.streamex.StreamExInternals.*;
+
+/* package */final class DistinctSpliterator<T> extends Box<T> implements Spliterator<T>, Consumer<T> {
     private final Spliterator<T> source;
     private AtomicLong nullCounter;
     private Map<T, Long> counts;
     private final long atLeast;
-    private T cur;
 
     DistinctSpliterator(Spliterator<T> source, long atLeast, AtomicLong nullCounter, Map<T, Long> counts) {
         this.source = source;
@@ -42,24 +43,19 @@ import java.util.function.Consumer;
     }
 
     @Override
-    public void accept(T t) {
-        cur = t;
-    }
-
-    @Override
     public boolean tryAdvance(Consumer<? super T> action) {
         if (nullCounter == null) {
             while (source.tryAdvance(this)) {
-                if (counts.merge(cur, 1L, Long::sum) == atLeast) {
-                    action.accept(cur);
+                if (counts.merge(a, 1L, Long::sum) == atLeast) {
+                    action.accept(a);
                     return true;
                 }
             }
         } else {
             while (source.tryAdvance(this)) {
-                long count = cur == null ? nullCounter.incrementAndGet() : counts.merge(cur, 1L, Long::sum);
+                long count = a == null ? nullCounter.incrementAndGet() : counts.merge(a, 1L, Long::sum);
                 if (count == atLeast) {
-                    action.accept(cur);
+                    action.accept(a);
                     return true;
                 }
             }
