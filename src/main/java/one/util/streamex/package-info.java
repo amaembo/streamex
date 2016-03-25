@@ -42,6 +42,10 @@
  * 
  * <p>
  * {@link one.util.streamex.Joining}: an advanced implementation of joining collector.
+ * 
+ * <p>
+ * {@link one.util.streamex.StreamEx.Emitter}, {@link one.util.streamex.IntStreamEx.IntEmitter}, {@link one.util.streamex.LongStreamEx.LongEmitter}, {@link one.util.streamex.DoubleStreamEx.DoubleEmitter}: 
+ * helper interfaces to create custom stream sources.
  *
  * <h2><a name="StreamOps">Stream operations and pipelines</a></h2>
  * <p>StreamEx operations are divided into <em>intermediate</em>, <em>quasi-intermediate</em> and

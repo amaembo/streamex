@@ -674,7 +674,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     public EntryStream<K, V> removeKeyValue(BiPredicate<? super K, ? super V> predicate) {
         return filterKeyValue(predicate.negate());
     }
-    
+
     /**
      * Returns a stream consisting of the elements of this stream which key is
      * not null.
@@ -1156,8 +1156,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
 
     /**
      * Returns a {@link Map} where elements of this stream with the same key are
-     * grouped together. The resulting {@code Map} keys are keys of this stream
-     * entries and the values are lists of the corresponding values.
+     * grouped together. The resulting {@code Map} keys are the keys of this
+     * stream entries and the values are the lists of the corresponding values.
      * 
      * <p>
      * There are no guarantees on the type, mutability, serializability, or
@@ -1177,10 +1177,55 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return grouping(Collectors.toList());
     }
 
+    /**
+     * Returns a {@link Map} where elements of this stream with the same key are
+     * grouped together. The resulting {@code Map} keys are the keys of this
+     * stream entries and the values are the lists of the corresponding values.
+     * The {@code Map} is created using the provided supplier function.
+     * 
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code List} objects returned. If more control over
+     * the lists required, use {@link #groupingTo(Supplier)}.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
+     *
+     * @param <M> the type of the resulting {@code Map}
+     * @param mapSupplier a function which returns a new, empty {@code Map} into
+     *        which the results will be inserted
+     * @return a {@code Map} containing the elements of this stream
+     * @see #grouping(Supplier, Collector)
+     * @see #groupingTo(Supplier, Supplier)
+     */
     public <M extends Map<K, List<V>>> M grouping(Supplier<M> mapSupplier) {
         return grouping(mapSupplier, Collectors.toList());
     }
 
+    /**
+     * Returns a {@link Map} where elements of this stream with the same key are
+     * grouped together. The resulting {@code Map} keys are the keys of this
+     * stream entries and the corresponding values are combined using the
+     * provided downstream collector.
+     * 
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code Map} object returned. If more control over
+     * the returned {@code Map} is required, use
+     * {@link #grouping(Supplier, Collector)}.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
+     *
+     * @param <A> the intermediate accumulation type of the downstream collector
+     * @param <D> the result type of the downstream reduction
+     * @param downstream a {@code Collector} implementing the downstream
+     *        reduction
+     * @return a {@code Map} containing the elements of this stream
+     * @see Collectors#groupingBy(Function, Collector)
+     */
     public <A, D> Map<K, D> grouping(Collector<? super V, A, D> downstream) {
         Function<Entry<K, V>, K> keyMapper = Entry::getKey;
         Collector<Entry<K, V>, ?, D> mapping = Collectors.mapping(Entry::getValue, downstream);

@@ -17,7 +17,7 @@ Warning: this release introduces some changes which may break backwards compatib
 * [#85] Added: `StreamEx.mapFirstOrElse()/mapLastOrElse()`.
 * [#86] Added: `peekFirst()`, `peekLast()` for all stream types.
 * [#89] Added: `produce()` method for all stream types.
-
+* Updated documentation.
 
 ### 0.5.5
 * [#41] Added: `IntStreamEx/LongStreamEx/StreamEx.without()` accepting several elements.
