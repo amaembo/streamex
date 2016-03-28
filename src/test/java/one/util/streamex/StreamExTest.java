@@ -1433,19 +1433,15 @@ public class StreamExTest {
             assertEquals(Optional.of("aaa"), opt5);
         });
 
-        // When testing with JDK9, "dropWhile" must redirect the call to JDK 9
-        // dropWhile which propagates the "parallel" mode.
-        // When testing with JDK8, "dropWhile" is quasi-intermediate and
-        // "parallel" mode is not propagated.
-        boolean propagate = true;
+        // Test that in JDK9 operation is propagated to JDK dropWhile method.
+        boolean hasDropWhile = true;
         try {
             Stream.class.getDeclaredMethod("dropWhile", Predicate.class);
         } catch (NoSuchMethodException e) {
-            propagate = false;
+            hasDropWhile = false;
         }
-        StreamEx<String> input = StreamEx.of("aaa", "b", "cccc");
-        input.dropWhile(x -> x.length() > 1).parallel();
-        assertEquals(propagate, input.isParallel());
+        Spliterator<String> spliterator = StreamEx.of("aaa", "b", "cccc").dropWhile(x -> x.length() > 1).spliterator();
+        assertEquals(hasDropWhile, !spliterator.getClass().getSimpleName().equals("TDOfRef"));
     }
 
     @Test
@@ -1470,8 +1466,8 @@ public class StreamExTest {
         Set<String> expected = IntStreamEx.range(100).mapToObj(String::valueOf).toSet();
         List<String> expectedList = IntStreamEx.range(100).mapToObj(String::valueOf).toList();
         streamEx(strings::stream, supplier -> {
-            assertEquals(expected, supplier.get().toFlatCollection(Function.identity(), HashSet::new));
-            assertEquals(expectedList, supplier.get().toFlatList(Function.identity()));
+            assertEquals(expected, supplier.get().toFlatCollection(x -> x, HashSet::new));
+            assertEquals(expectedList, supplier.get().toFlatList(x -> x));
         });
     }
 
