@@ -89,6 +89,7 @@
               <sourcepath>${project.build.sourceDirectory};${project.build.directory}/jdk</sourcepath>
               <excludePackageNames>java.util.stream</excludePackageNames>
               <additionalparam>-Xdoclint:none</additionalparam>
+              <noqualifier>all</noqualifier>
               <quiet>true</quiet>
             </configuration>
           </execution>
@@ -128,24 +129,15 @@
             <phase>package</phase>
             <configuration>
               <target>
-                <property name="token.S"><![CDATA[<code>S</code>]]></property>
-                <property name="token.StreamEx"><![CDATA[<code><a href="StreamEx.html" title="class in ${project.package}">StreamEx</a>&lt;<a href="StreamEx.html" title="type parameter in StreamEx">T</a>&gt;</code>]]></property>
-                <property name="token.EntryStream"><![CDATA[<code><a href="EntryStream.html" title="class in ${project.package}">EntryStream</a>&lt;<a href="EntryStream.html" title="type parameter in EntryStream">K</a>,<a href="EntryStream.html" title="type parameter in EntryStream">V</a>&gt;</code>]]></property>
-                <property name="token.S.Raw"><![CDATA[public&nbsp;S&nbsp;]]></property>
-                <property name="token.StreamEx.Raw"><![CDATA[public&nbsp;StreamEx&lt;T&gt;&nbsp;]]></property>
-                <property name="token.EntryStream.Raw"><![CDATA[public&nbsp;EntryStream&lt;K,V&gt;&nbsp;]]></property>
+                <property name="token.SPLTR"><![CDATA[SPLTR]]></property>
+                <property name="token.SpliteratorT"><![CDATA[Spliterator&lt;T&gt;]]></property>
+                <property name="token.SpliteratorKV"><![CDATA[Spliterator&lt;Map.Entry&lt;K, V&gt;&gt;]]></property>
                 <replace
                   file="${project.build.directory}/apidocs/${project.package.path}/EntryStream.html"
-                  token="${token.S}" value="${token.EntryStream}" />
-                <replace
-                  file="${project.build.directory}/apidocs/${project.package.path}/EntryStream.html"
-                  token="${token.S.Raw}" value="${token.EntryStream.Raw}" />
+                  token="${token.SPLTR}" value="${token.SpliteratorKV}" />
                 <replace
                   file="${project.build.directory}/apidocs/${project.package.path}/StreamEx.html"
-                  token="${token.S}" value="${token.StreamEx}" />
-                <replace
-                  file="${project.build.directory}/apidocs/${project.package.path}/StreamEx.html"
-                  token="${token.S.Raw}" value="${token.StreamEx.Raw}" />
+                  token="${token.SPLTR}" value="${token.SpliteratorT}" />
                 <jar
                   destfile="${project.build.directory}/${project.build.finalName}-javadoc.jar"
                   update="true">

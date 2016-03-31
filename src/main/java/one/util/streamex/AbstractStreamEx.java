@@ -51,7 +51,15 @@ import java.util.stream.Collector.Characteristics;
 
 import static one.util.streamex.StreamExInternals.*;
 
-/* package */abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> extends
+/**
+ * Base class providing common functionality for {@link StreamEx} and {@link EntryStream}. 
+ * 
+ * @author Tagir Valeev
+ *
+ * @param <T> the type of the stream elements
+ * @param <S> the type of of the stream extending {@code AbstractStreamEx}
+ */
+public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> extends
         BaseStreamEx<T, Stream<T>, Spliterator<T>, S> implements Stream<T>, Iterable<T> {
     private static final class TDOfRef<T> extends AbstractSpliterator<T> implements Consumer<T> {
         private final Predicate<? super T> predicate;
@@ -1668,5 +1676,12 @@ import static one.util.streamex.StreamExInternals.*;
             return callWhile(predicate, IDX_DROP_WHILE);
         }
         return supply(new AbstractStreamEx.TDOfRef<>(spliterator(), true, false, predicate));
+    }
+
+    // Necessary to generate proper JavaDoc
+    @SuppressWarnings("unchecked")
+    @Override
+    public <U> U chain(Function<? super S, U> mapper) {
+        return mapper.apply((S)this);
     }
 }
