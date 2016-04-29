@@ -5,7 +5,8 @@ Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 ### 0.6.1
 
 * [#90] Changed: `AbstractStreamEx` class (which shares common functionality of `StreamEx` and `EntryStream`) is public now.
-* 
+* [#92] Added: `IntStreamEx.of(InputStream)`.
+* [#93] Added: `IntStreamEx.asByteInputStream()`.
 
 ### 0.6.0
 Warning: this release introduces some changes which may break backwards compatibility.

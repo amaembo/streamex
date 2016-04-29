@@ -811,6 +811,44 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
         return collect(BitSet::new, BitSet::set, BitSet::or);
     }
 
+    /**
+     * Returns an {@code InputStream} lazily populated from the current
+     * {@code IntStreamEx}.
+     * 
+     * <p>
+     * Note that only the least-significant byte of every number encountered in
+     * this stream is preserved in the resulting {@code InputStream}, other
+     * bytes are silently lost. Thus it's a caller responsibility to check
+     * whether this may cause problems.
+     * 
+     * <p>
+     * This is a terminal operation.
+     * 
+     * <p>
+     * When the resulting {@code InputStream} is closed, this
+     * {@code IntStreamEx} is closed as well.
+     *
+     * @return a new {@code InputStream}.
+     * @see #of(InputStream)
+     * @since 0.6.1
+     */
+    public InputStream asByteInputStream() {
+        Spliterator.OfInt spltr = spliterator();
+        return new InputStream() {
+            private int last;
+
+            @Override
+            public int read() {
+                return spltr.tryAdvance((int val) -> last = val) ? (last & 0xFF) : -1;
+            }
+
+            @Override
+            public void close() {
+                IntStreamEx.this.close();
+            }
+        };
+    }
+
     @Override
     public int reduce(int identity, IntBinaryOperator op) {
         if (context.fjp != null)
@@ -1985,8 +2023,8 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * The resulting stream contains int values between 0 and 255 (0xFF)
      * inclusive, as they are returned by the {@link InputStream#read()} method.
      * If you want to get <code>byte</code> values (e.g. -1 instead of 255),
-     * simply cast the stream elements like <code>.map(b -> (byte)b)</code>. The
-     * terminal -1 value is excluded from the resulting stream.
+     * simply cast the stream elements like <code>.map(b -&gt; (byte)b)</code>.
+     * The terminal -1 value is excluded from the resulting stream.
      * 
      * <p>
      * If the underlying {@code InputStream} throws an {@link IOException}
@@ -2001,6 +2039,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * 
      * @param is an {@code InputStream} to create an {@code IntStreamEx} on.
      * @return the new stream
+     * @see #asByteInputStream()
      * @since 0.6.1
      */
     public static IntStreamEx of(InputStream is) {

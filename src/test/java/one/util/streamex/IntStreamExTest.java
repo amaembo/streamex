@@ -16,6 +16,8 @@
 package one.util.streamex;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -31,6 +33,7 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.IntBinaryOperator;
@@ -750,5 +753,23 @@ public class IntStreamExTest {
         try(IntStream s = IntStreamEx.of(new ByteArrayInputStream(data))) {
             assertEquals(278, s.sum());
         }
+    }
+    
+    @Test
+    public void testAsInputStream() throws IOException {
+        AtomicBoolean flag = new AtomicBoolean(false);
+        InputStream is = IntStreamEx.range(256).onClose(() -> flag.set(true)).asByteInputStream();
+        byte[] data = new byte[256];
+        assertEquals(2, is.skip(2));
+        assertEquals(254, is.read(data));
+        assertEquals(-1, is.read());
+        for(int i=0; i<254; i++) {
+            assertEquals((byte)(i+2), data[i]);
+        }
+        assertEquals(0, data[254]);
+        assertEquals(0, data[255]);
+        assertFalse(flag.get());
+        is.close();
+        assertTrue(flag.get());
     }
 }

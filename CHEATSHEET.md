@@ -229,6 +229,12 @@ What I want | How to get it
 Perform operation on every adjacent pair of elements | `StreamEx.forPairs()`
 Perform operation on entry key and value using `BiConsumer` | `EntryStream.forKeyValue()`
 
+### misc
+
+What I want | How to get it
+--- | ---
+Convert `IntStreamEx` to `InputStream` | `IntStreamEx.asByteInputStream()`
+
 ## Collectors
 
 ### Basic collectors
