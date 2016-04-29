@@ -13,13 +13,14 @@
  * [partial reduction](#partial-reduction)
  * [concatenate](#concatenate)
  * [peek](#peek)
- * [misc](#misc)
+ * [misc](#misc-intermediate-operations)
 * [New terminal operations](#new-terminal-operations)
  * [Collector shortcuts](#collector-shortcuts)
  * [Search](#search)
  * [Folding](#folding)
  * [Primitive operations](#primitive-operations)
  * [forEach-like operations](#foreach-like-operations)
+ * [misc](#misc-terminal-operations)
 * [Collectors](#collectors)
  * [Basic collectors](#basic-collectors)
  * [Adaptor collectors](#adaptor-collectors)
@@ -166,7 +167,7 @@ Peek only entry values | `EntryStream.peekValues()`
 Peek entry keys and values using `BiConsumer` | `EntryStream.peekKeyValue()`
 Peek only first or last stream element | `any.peekFirst()/peekLast()`
 
-### misc
+### misc intermediate operations
 
 What I want | How to get it
 --- | ---
@@ -229,7 +230,7 @@ What I want | How to get it
 Perform operation on every adjacent pair of elements | `StreamEx.forPairs()`
 Perform operation on entry key and value using `BiConsumer` | `EntryStream.forKeyValue()`
 
-### misc
+### misc terminal operations
 
 What I want | How to get it
 --- | ---
