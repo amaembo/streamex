@@ -15,6 +15,7 @@
  */
 package one.util.streamex;
 
+import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -738,5 +739,16 @@ public class IntStreamExTest {
         Scanner sc = new Scanner("1 2 3 4 20000000000 test");
         assertArrayEquals(new int[] {1, 2, 3, 4}, scannerInts(sc).stream().toArray());
         assertEquals("20000000000", sc.next());
+    }
+    
+    @Test
+    public void testOfInputStream() {
+        byte[] data = new byte[] { 5, 3, 10, 1, 4, -1 };
+        try(IntStream s = IntStreamEx.of(new ByteArrayInputStream(data))) {
+            assertEquals(22, s.map(b -> (byte)b).sum());
+        }
+        try(IntStream s = IntStreamEx.of(new ByteArrayInputStream(data))) {
+            assertEquals(278, s.sum());
+        }
     }
 }

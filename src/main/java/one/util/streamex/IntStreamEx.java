@@ -15,6 +15,9 @@
  */
 package one.util.streamex;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -1972,6 +1975,57 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
     public static IntStreamEx of(short[] array, int startInclusive, int endExclusive) {
         rangeCheck(array.length, startInclusive, endExclusive);
         return of(new RangeBasedSpliterator.OfShort(startInclusive, endExclusive, array));
+    }
+
+    /**
+     * Returns a sequential ordered {@code IntStreamEx} backed by the content of
+     * given {@link InputStream}.
+     * 
+     * <p>
+     * The resulting stream contains int values between 0 and 255 (0xFF)
+     * inclusive, as they are returned by the {@link InputStream#read()} method.
+     * If you want to get <code>byte</code> values (e.g. -1 instead of 255),
+     * simply cast the stream elements like <code>.map(b -> (byte)b)</code>. The
+     * terminal -1 value is excluded from the resulting stream.
+     * 
+     * <p>
+     * If the underlying {@code InputStream} throws an {@link IOException}
+     * during the stream traversal, it will be rethrown as
+     * {@link UncheckedIOException}.
+     * 
+     * <p>
+     * When the returned {@code IntStreamEx} is closed the original
+     * {@code InputStream} is closed as well. If {@link InputStream#close()}
+     * method throws an {@code IOException}, it will be rethrown as
+     * {@link UncheckedIOException}.
+     * 
+     * @param is an {@code InputStream} to create an {@code IntStreamEx} on.
+     * @return the new stream
+     * @since 0.6.1
+     */
+    public static IntStreamEx of(InputStream is) {
+        Spliterator.OfInt spliterator = new AbstractIntSpliterator(Long.MAX_VALUE, Spliterator.ORDERED
+            | Spliterator.NONNULL) {
+            @Override
+            public boolean tryAdvance(IntConsumer action) {
+                try {
+                    int next = is.read();
+                    if (next == -1)
+                        return false;
+                    action.accept(next);
+                    return true;
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
+        };
+        return of(spliterator).onClose(() -> {
+            try {
+                is.close();
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        });
     }
 
     /**

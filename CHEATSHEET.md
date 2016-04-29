@@ -68,6 +68,7 @@ Stream of random numbers | `IntStreamEx/LongStreamEx/DoubleStreamEx.of(Random, .
 Stream of `CharSequence` symbols | `IntStreamEx.ofChars()/ofCodePoints()`
 Stream of `BitSet` true bits | `IntStreamEx.of(BitSet)`
 Stream of lines from file or `Reader` | `StreamEx.ofLines()`
+Stream of bytes from the `InputStream` | `IntStreamEx.of(InputStream)`
 
 ## New intermediate operations
 
