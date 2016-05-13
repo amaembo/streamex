@@ -481,4 +481,11 @@ public class DoubleStreamExTest {
         assertArrayEquals(new double[] {1, 2.5, 3, -4.6}, scannerDoubles(sc).stream().toArray(), 0.0);
         assertEquals("test", sc.next());
     }
+
+    @Test
+    public void testPrefix() {
+        assertArrayEquals(new double[] { 1, 3, 6, 10, 20 }, DoubleStreamEx.of(1, 2, 3, 4, 10).prefix(Double::sum).toArray(), 0.0);
+        assertEquals(OptionalDouble.of(10), DoubleStreamEx.of(1, 2, 3, 4, 10).prefix(Double::sum).findFirst(x -> x > 7));
+        assertEquals(OptionalDouble.empty(), DoubleStreamEx.of(1, 2, 3, 4, 10).prefix(Double::sum).findFirst(x -> x > 20));
+    }
 }

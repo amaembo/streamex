@@ -578,4 +578,11 @@ public class LongStreamExTest {
         assertArrayEquals(new long[] {1, 2, 3, 4, 20000000000L}, scannerLongs(sc).stream().toArray());
         assertEquals("test", sc.next());
     }
+
+    @Test
+    public void testPrefix() {
+        assertArrayEquals(new long[] { 1, 3, 6, 10, 20 }, LongStreamEx.of(1, 2, 3, 4, 10).prefix(Long::sum).toArray());
+        assertEquals(OptionalLong.of(10), LongStreamEx.of(1, 2, 3, 4, 10).prefix(Long::sum).findFirst(x -> x > 7));
+        assertEquals(OptionalLong.empty(), LongStreamEx.of(1, 2, 3, 4, 10).prefix(Long::sum).findFirst(x -> x > 20));
+    }
 }

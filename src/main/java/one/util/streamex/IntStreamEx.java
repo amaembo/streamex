@@ -1866,6 +1866,10 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
         return delegate(new PairSpliterator.PSOfInt((a, b) -> a, mapper, spliterator(), PairSpliterator.MODE_MAP_LAST));
     }
 
+    public IntStreamEx prefix(IntBinaryOperator op) {
+        return delegate(new PrefixOps.OfInt(spliterator(), op));
+    }
+
     // Necessary to generate proper JavaDoc
     // does not add overhead as it appears in bytecode anyways as bridge method
     @Override

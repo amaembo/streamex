@@ -1632,6 +1632,10 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
         return delegate(new LongStreamEx.TDOfLong(spliterator(), true, false, predicate));
     }
 
+    public LongStreamEx prefix(LongBinaryOperator op) {
+        return delegate(new PrefixOps.OfLong(spliterator(), op));
+    }
+
     // Necessary to generate proper JavaDoc
     // does not add overhead as it appears in bytecode anyways as bridge method
     @Override

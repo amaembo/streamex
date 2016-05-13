@@ -1572,6 +1572,10 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
         return delegate(new DoubleStreamEx.TDOfDouble(spliterator(), true, false, predicate));
     }
 
+    public DoubleStreamEx prefix(DoubleBinaryOperator op) {
+        return delegate(new PrefixOps.OfDouble(spliterator(), op));
+    }
+
     // Necessary to generate proper JavaDoc
     // does not add overhead as it appears in bytecode anyways as bridge method
     @Override
