@@ -1775,4 +1775,40 @@ public class StreamExTest {
         assertEquals(asList("six"), fromQueue(queue, "STOP").toList());
         assertEquals(asList(), fromQueue(queue, "STOP").toList());
     }
+
+    @Test
+    public void testPrefix() {
+        List<String> input = asList("a", "b", "c", "d", "e");
+        streamEx(input::stream, s -> assertEquals(asList("a", "ab", "abc", "abcd", "abcde"), s.get().prefix(
+            String::concat).toList()));
+        streamEx(input::stream, s -> assertEquals(Optional.of("abcd"), s.get().prefix(String::concat).findFirst(
+            str -> str.length() > 3)));
+
+        streamEx(input::stream, s -> assertEquals(asList("a", "ab", "abc", "abcd", "abcde"), s.get().prefix2(
+            String::concat).toList()));
+        streamEx(input::stream, s -> assertEquals(Optional.of("abcd"), s.get().prefix2(String::concat).findFirst(
+            str -> str.length() > 3)));
+
+        streamEx(() -> StreamEx.constant("a", 5), s -> assertEquals(new HashSet<>(asList("a", "aa", "aaa", "aaaa",
+            "aaaaa")), s.get().prefix2(String::concat).toSet()));
+        streamEx(() -> StreamEx.constant("a", 5), s -> assertEquals(Optional.of("aaaaa"), s.get().prefix2(
+            String::concat).findFirst(str -> str.length() > 4)));
+        
+        streamEx(input::stream, s -> assertEquals(asList("a", "ab", "abc", "abcd", "abcde"), s.get().prefix3(
+            String::concat).toList()));
+        streamEx(input::stream, s -> assertEquals(Optional.of("abcd"), s.get().prefix3(String::concat).findFirst(
+            str -> str.length() > 3)));
+        
+        streamEx(() -> StreamEx.constant("a", 5), s -> assertEquals(new HashSet<>(asList("a", "aa", "aaa", "aaaa",
+                "aaaaa")), s.get().prefix3(String::concat).toSet()));
+        streamEx(() -> StreamEx.constant("a", 5), s -> assertEquals(Optional.of("aaaaa"), s.get().prefix3(
+            String::concat).findFirst(str -> str.length() > 4)));
+        
+        streamEx(() -> StreamEx.constant(100L, 10000), s -> assertEquals(5000500000L,
+            (long) s.get().prefix(Long::sum).reduce(0L, Long::sum)));
+        streamEx(() -> StreamEx.constant(100L, 10000), s -> assertEquals(5000500000L,
+            (long) s.get().prefix2(Long::sum).reduce(0L, Long::sum)));
+        streamEx(() -> StreamEx.constant(100L, 10000), s -> assertEquals(5000500000L,
+            (long) s.get().prefix3(Long::sum).reduce(0L, Long::sum)));
+    }
 }

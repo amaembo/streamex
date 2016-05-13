@@ -1677,7 +1677,24 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
         }
         return supply(new AbstractStreamEx.TDOfRef<>(spliterator(), true, false, predicate));
     }
+    
+    public S prefix(BinaryOperator<T> op) {
+        Spliterator<T> spltr = spliterator();
+        return supply(new PrefixOps.OfRef<>(spltr, op));
+    }
 
+    public S prefix2(BinaryOperator<T> op) {
+        Spliterator<T> spltr = spliterator();
+        return supply(spltr.hasCharacteristics(Spliterator.ORDERED) ? new PrefixOps.OfRef<>(spltr, op)
+                : new PrefixOps.OfUnordRef<>(spltr, op));
+    }
+
+    public S prefix3(BinaryOperator<T> op) {
+        Spliterator<T> spltr = spliterator();
+        return supply(spltr.hasCharacteristics(Spliterator.ORDERED) ? new PrefixOps.OfRef<>(spltr, op)
+                : new PrefixOps.OfUnordRef3<>(spltr, op));
+    }
+    
     // Necessary to generate proper JavaDoc
     @SuppressWarnings("unchecked")
     @Override
