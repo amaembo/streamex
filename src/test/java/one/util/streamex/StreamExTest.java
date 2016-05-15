@@ -1791,5 +1791,8 @@ public class StreamExTest {
         
         streamEx(() -> StreamEx.constant(100L, 10000), s -> assertEquals(5000500000L,
             (long) s.get().prefix(Long::sum).reduce(0L, Long::sum)));
+
+        streamEx(() -> IntStreamEx.range(10000).boxed().unordered(), s -> assertEquals(49995000, s.get().prefix(
+            Integer::sum).mapToInt(Integer::intValue).max().getAsInt()));
     }
 }

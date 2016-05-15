@@ -1392,14 +1392,14 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     }
 
     /**
-     * Produces a collection containing cumulative results of applying the
+     * Produces a list containing cumulative results of applying the
      * accumulation function going left to right using given seed value.
      * 
      * <p>
      * This is a terminal operation.
      * 
      * <p>
-     * The result {@link List} is guaranteed to be mutable.
+     * The resulting {@link List} is guaranteed to be mutable.
      * 
      * <p>
      * For parallel stream it's not guaranteed that accumulator will always be
@@ -1432,14 +1432,14 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     }
 
     /**
-     * Produces a collection containing cumulative results of applying the
+     * Produces a list containing cumulative results of applying the
      * accumulation function going left to right.
      * 
      * <p>
      * This is a terminal operation.
      * 
      * <p>
-     * The result {@link List} is guaranteed to be mutable.
+     * The resulting {@link List} is guaranteed to be mutable.
      * 
      * <p>
      * For parallel stream it's not guaranteed that accumulator will always be
@@ -1460,6 +1460,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      *         size as this stream.
      * @see #foldLeft(BinaryOperator)
      * @see #scanRight(BinaryOperator)
+     * @see #prefix(BinaryOperator)
      * @since 0.4.0
      */
     public List<T> scanLeft(BinaryOperator<T> accumulator) {
@@ -1474,14 +1475,14 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     }
 
     /**
-     * Produces a collection containing cumulative results of applying the
+     * Produces a list containing cumulative results of applying the
      * accumulation function going right to left using given seed value.
      * 
      * <p>
      * This is a terminal operation.
      * 
      * <p>
-     * The result {@link List} is guaranteed to be mutable.
+     * The resulting {@link List} is guaranteed to be mutable.
      * 
      * <p>
      * For parallel stream it's not guaranteed that accumulator will always be
@@ -1678,6 +1679,34 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
         return supply(new AbstractStreamEx.TDOfRef<>(spliterator(), true, false, predicate));
     }
     
+    /**
+     * Returns a stream containing cumulative results of applying the
+     * accumulation function going left to right.
+     * 
+     * <p>
+     * This is a stateful <a
+     * href="package-summary.html#StreamOps">quasi-intermediate</a> operation.
+     *
+     * <p>
+     * This operation resembles {@link #scanLeft(BinaryOperator)}, but unlike
+     * {@code scanLeft} this operation is intermediate and accumulation function
+     * must be associative.
+     * 
+     * <p>
+     * This method cannot take all the advantages of parallel streams as it must
+     * process elements strictly left to right. Using an unordered source or
+     * removing the ordering constraint with {@link #unordered()} may improve
+     * the parallel processing speed.
+     *
+     * @param op an <a
+     *        href="package-summary.html#Associativity">associative</a>, <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function for computing the next element based on the previous one
+     * @return the new stream.
+     * @see #scanLeft(BinaryOperator)
+     * @since 0.6.1
+     */
     public S prefix(BinaryOperator<T> op) {
         Spliterator<T> spltr = spliterator();
         return supply(spltr.hasCharacteristics(Spliterator.ORDERED) ? new PrefixOps.OfRef<>(spltr, op)
