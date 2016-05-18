@@ -25,7 +25,7 @@ import java.util.function.Consumer;
 
 import static one.util.streamex.StreamExInternals.*;
 
-/* package */final class DistinctSpliterator<T> extends Box<T> implements Spliterator<T>, Consumer<T> {
+/* package */final class DistinctSpliterator<T> extends Box<T> implements Spliterator<T> {
     private final Spliterator<T> source;
     private AtomicLong nullCounter;
     private Map<T, Long> counts;

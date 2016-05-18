@@ -24,7 +24,7 @@ import java.util.function.Function;
 
 import static one.util.streamex.StreamExInternals.*;
 
-/* package */final class CollapseSpliterator<T, R> extends Box<T> implements Spliterator<R>, Consumer<T> {
+/* package */final class CollapseSpliterator<T, R> extends Box<T> implements Spliterator<R> {
     private final Spliterator<T> source;
     private final CollapseSpliterator<T, R> root; // used as lock
     private R acc;

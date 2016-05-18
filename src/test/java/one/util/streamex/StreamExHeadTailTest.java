@@ -330,6 +330,21 @@ public class StreamExHeadTailTest {
         }, () -> finisher.apply(buf));
     }
     
+    static <T> UnaryOperator<StreamEx<T>> moveToEnd(Predicate<T> pred) {
+        return stream -> moveToEnd(stream, pred, new ArrayList<>());
+    }
+    
+    private static <T> StreamEx<T> moveToEnd(StreamEx<T> input, Predicate<T> pred, List<T> buf) {
+        return input.headTail((head, tail) -> {
+            if(pred.test(head)) {
+                buf.add(head);
+                return moveToEnd(tail, pred, buf);
+            } else {
+                return moveToEnd(tail, pred, buf).prepend(head);
+            }
+        }, buf::stream);
+    }
+    
     // ///////////////////////
     // Terminal ops
 
@@ -433,6 +448,9 @@ public class StreamExHeadTailTest {
         
         assertEquals(asList(0, 1, 2, 3, 3), StreamEx.of(0, 1, 4, 2, 10, 3, 5, 10, 3, 15).chain(
             limitSorted(Comparator.<Integer> naturalOrder(), 5)).toList());
+        
+        assertEquals(asList(1, 3, 7, 9, 2, 4, 11, 17, 5, 10), 
+            StreamEx.of(1, 3, 5, 7, 9, 2, 4, 10, 11, 17).chain(moveToEnd(x -> x % 5 == 0)).toList());
     }
 
     @Test
