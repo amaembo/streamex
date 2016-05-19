@@ -301,8 +301,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public EntryStream<K, V> append(K key, V value) {
-        return appendSpliterator(null, Arrays.<Entry<K, V>> asList(new SimpleImmutableEntry<>(key, value))
-                .spliterator());
+        return appendSpliterator(null, Collections.<Entry<K, V>> singleton(
+            new SimpleImmutableEntry<>(key, value)).spliterator());
     }
 
     /**
