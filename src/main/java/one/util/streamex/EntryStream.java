@@ -28,6 +28,7 @@ import java.util.Objects;
 import java.util.Spliterator;
 import java.util.Map.Entry;
 import java.util.SortedMap;
+import java.util.Spliterators;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -301,8 +302,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public EntryStream<K, V> append(K key, V value) {
-        return appendSpliterator(null, Arrays.<Entry<K, V>> asList(new SimpleImmutableEntry<>(key, value))
-                .spliterator());
+        return appendSpliterator(null, new ConstSpliterator.OfRef<>(new SimpleImmutableEntry<>(key, value), 1, true));
     }
 
     /**
@@ -321,8 +321,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.3
      */
     public EntryStream<K, V> append(K k1, V v1, K k2, V v2) {
-        return appendSpliterator(null, Arrays.<Entry<K, V>> asList(new SimpleImmutableEntry<>(k1, v1),
-            new SimpleImmutableEntry<>(k2, v2)).spliterator());
+        @SuppressWarnings("unchecked")
+        SimpleImmutableEntry<K, V>[] array = new SimpleImmutableEntry[] { new SimpleImmutableEntry<>(k1, v1),
+                new SimpleImmutableEntry<>(k2, v2) };
+        return appendSpliterator(null, Spliterators.spliterator(array, Spliterator.ORDERED));
     }
 
     /**
@@ -343,8 +345,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.3
      */
     public EntryStream<K, V> append(K k1, V v1, K k2, V v2, K k3, V v3) {
-        return appendSpliterator(null, Arrays.<Entry<K, V>> asList(new SimpleImmutableEntry<>(k1, v1),
-            new SimpleImmutableEntry<>(k2, v2), new SimpleImmutableEntry<>(k3, v3)).spliterator());
+        @SuppressWarnings("unchecked")
+        SimpleImmutableEntry<K, V>[] array = new SimpleImmutableEntry[] { new SimpleImmutableEntry<>(k1, v1),
+                new SimpleImmutableEntry<>(k2, v2), new SimpleImmutableEntry<>(k3, v3) };
+        return appendSpliterator(null, Spliterators.spliterator(array, Spliterator.ORDERED));
     }
 
     /**
@@ -401,8 +405,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.3
      */
     public EntryStream<K, V> prepend(K k1, V v1, K k2, V v2) {
-        return prependSpliterator(null, Arrays.<Entry<K, V>> asList(new SimpleImmutableEntry<>(k1, v1),
-            new SimpleImmutableEntry<>(k2, v2)).spliterator());
+        @SuppressWarnings("unchecked")
+        SimpleImmutableEntry<K, V>[] array = new SimpleImmutableEntry[] { new SimpleImmutableEntry<>(k1, v1),
+                new SimpleImmutableEntry<>(k2, v2) };
+        return prependSpliterator(null, Spliterators.spliterator(array, Spliterator.ORDERED));
     }
 
     /**
@@ -424,8 +430,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.3
      */
     public EntryStream<K, V> prepend(K k1, V v1, K k2, V v2, K k3, V v3) {
-        return prependSpliterator(null, Arrays.<Entry<K, V>> asList(new SimpleImmutableEntry<>(k1, v1),
-            new SimpleImmutableEntry<>(k2, v2), new SimpleImmutableEntry<>(k3, v3)).spliterator());
+        @SuppressWarnings("unchecked")
+        SimpleImmutableEntry<K, V>[] array = new SimpleImmutableEntry[] { new SimpleImmutableEntry<>(k1, v1),
+                new SimpleImmutableEntry<>(k2, v2), new SimpleImmutableEntry<>(k3, v3) };
+        return prependSpliterator(null, Spliterators.spliterator(array, Spliterator.ORDERED));
     }
 
     /**
