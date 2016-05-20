@@ -331,20 +331,27 @@ public class StreamExHeadTailTest {
     }
     
     static <T> UnaryOperator<StreamEx<T>> moveToEnd(Predicate<T> pred) {
-        return stream -> moveToEnd(stream, pred, new ArrayList<>());
+        return stream -> moveToEnd(stream, pred, Stream.builder());
     }
     
-    private static <T> StreamEx<T> moveToEnd(StreamEx<T> input, Predicate<T> pred, List<T> buf) {
-        return input.headTail((head, tail) -> {
-            if(pred.test(head)) {
-                buf.add(head);
-                return moveToEnd(tail, pred, buf);
-            } else {
-                return moveToEnd(tail, pred, buf).prepend(head);
-            }
-        }, buf::stream);
+    private static <T> StreamEx<T> moveToEnd(StreamEx<T> input, Predicate<T> pred, Stream.Builder<T> buf) {
+        return input.headTail((head, tail) -> 
+            pred.test(head) ? moveToEnd(tail, pred, buf.add(head)) : moveToEnd(tail, pred, buf).prepend(head), 
+            buf::build);
     }
     
+    static <T> UnaryOperator<StreamEx<T>> moveToEndOrMap(Predicate<T> pred, UnaryOperator<T> mapper) {
+        return stream -> moveToEndOrMap(stream, pred, mapper, Stream.builder());
+    }
+
+    private static <T> StreamEx<T> moveToEndOrMap(StreamEx<T> input, Predicate<T> pred, UnaryOperator<T> mapper, Stream.Builder<T> buf) {
+        return input.headTail((head, tail) -> 
+            pred.test(head) 
+                ? moveToEndOrMap(tail, pred, mapper, buf.add(head)) 
+                : moveToEndOrMap(tail, pred, mapper, buf).prepend(mapper.apply(head)), 
+            buf::build);
+    }
+
     // ///////////////////////
     // Terminal ops
 
@@ -451,6 +458,10 @@ public class StreamExHeadTailTest {
         
         assertEquals(asList(1, 3, 7, 9, 2, 4, 11, 17, 5, 10), 
             StreamEx.of(1, 3, 5, 7, 9, 2, 4, 10, 11, 17).chain(moveToEnd(x -> x % 5 == 0)).toList());
+        assertEquals(asList(2, 4, 8, 10, 3, 5, 12, 18, 5, 10), 
+            StreamEx.of(1, 3, 5, 7, 9, 2, 4, 10, 11, 17).chain(moveToEndOrMap(x -> x % 5 == 0, x -> x + 1)).toList());
+        assertEquals(asList(11, 21, 41, 51, 30),
+            StreamEx.of(10, 20, 30, 40, 50).chain(moveToEndOrMap(x -> x == 30, x -> x + 1)).toList());
     }
 
     @Test
