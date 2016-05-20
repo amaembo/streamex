@@ -1032,8 +1032,6 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      *        values associated with the same key, as supplied to
      *        {@link Map#merge(Object, Object, BiFunction)}
      * @return a {@code Map} containing the elements of this stream
-     * @throws IllegalStateException if duplicate key was encountered in the
-     *         stream
      * @see Collectors#toMap(Function, Function)
      * @see Collectors#toConcurrentMap(Function, Function)
      * @since 0.1.0
@@ -1152,8 +1150,6 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      *        values associated with the same key, as supplied to
      *        {@link Map#merge(Object, Object, BiFunction)}
      * @return a {@code SortedMap} containing the elements of this stream
-     * @throws IllegalStateException if duplicate key was encountered in the
-     *         stream
      * @see Collectors#toMap(Function, Function)
      * @see Collectors#toConcurrentMap(Function, Function)
      * @since 0.1.0
