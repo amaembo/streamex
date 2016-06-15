@@ -1239,6 +1239,27 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return collect(Collectors.groupingBy(keyMapper, mapping));
     }
 
+    /**
+     * Returns a {@link Map} where elements of this stream with the same key are
+     * grouped together. The resulting {@code Map} keys are the keys of this
+     * stream entries and the corresponding values are combined using the
+     * provided downstream collector. The {@code Map} is created using
+     * the provided supplier function.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
+     *
+     * @param <A> the intermediate accumulation type of the downstream collector
+     * @param <D> the result type of the downstream reduction
+     * @param <M> the type of the resulting {@code Map}
+     * @param mapSupplier a function which returns a new, empty {@code Map} into
+     *        which the results will be inserted
+     * @param downstream a {@code Collector} implementing the downstream
+     *        reduction
+     * @return a {@code Map} containing the elements of this stream
+     * @see Collectors#groupingBy(Function, Supplier, Collector)
+     */
     @SuppressWarnings("unchecked")
     public <A, D, M extends Map<K, D>> M grouping(Supplier<M> mapSupplier, Collector<? super V, A, D> downstream) {
         Function<Entry<K, V>, K> keyMapper = Entry::getKey;
@@ -1251,10 +1272,51 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return collect(Collectors.groupingBy(keyMapper, mapSupplier, mapping));
     }
 
+    /**
+     * Returns a {@link Map} where elements of this stream with the same key are
+     * grouped together. The resulting {@code Map} keys are the keys of this
+     * stream entries and the values are the collections of the corresponding
+     * values. The collections are created by the provided factory.
+     *
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code Map} object returned. If more control over
+     * the returned {@code Map} is required, use
+     * {@link #groupingTo(Supplier, Supplier)}.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
+     *
+     * @param <C> the type of the resulting {@code Collection}
+     * @param collectionFactory a {@code Supplier} which returns a new, empty
+     *        {@code Collection} of the appropriate type
+     * @return a {@code Map} containing the elements of this stream
+     * @see Collectors#toCollection(Supplier)
+     */
     public <C extends Collection<V>> Map<K, C> groupingTo(Supplier<C> collectionFactory) {
         return grouping(Collectors.toCollection(collectionFactory));
     }
 
+    /**
+     * Returns a {@link Map} where elements of this stream with the same key are
+     * grouped together. The resulting {@code Map} keys are the keys of this
+     * stream entries and the values are the collections of the corresponding
+     * values. The collections are created by the provided factory.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
+     *
+     * @param <C> the type of the resulting {@code Collection}
+     * @param <M> the type of the resulting {@code Map}
+     * @param mapSupplier a function which returns a new, empty {@code Map} into
+     *        which the results will be inserted
+     * @param collectionFactory a {@code Supplier} which returns a new, empty
+     *        {@code Collection} of the appropriate type
+     * @return a {@code Map} containing the elements of this stream
+     * @see Collectors#toCollection(Supplier)
+     */
     public <C extends Collection<V>, M extends Map<K, C>> M groupingTo(Supplier<M> mapSupplier,
             Supplier<C> collectionFactory) {
         return grouping(mapSupplier, Collectors.toCollection(collectionFactory));
