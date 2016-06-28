@@ -497,16 +497,18 @@ public class IntStreamExTest {
                             : Character.toLowerCase(c2)).charsToString());
         assertArrayEquals(IntStreamEx.range(9999).toArray(), dropLast(IntStreamEx.range(10000)).toArray());
 
-        int data[] = new Random(1).ints(1000, 1, 1000).toArray();
-        int[] expected = new int[data.length - 1];
-        int lastSquare = data[0] * data[0];
-        for (int i = 0; i < expected.length; i++) {
-            int newSquare = data[i + 1] * data[i + 1];
-            expected[i] = newSquare - lastSquare;
-            lastSquare = newSquare;
-        }
-        int[] result = IntStreamEx.of(data).map(x -> x * x).pairMap((a, b) -> b - a).toArray();
-        assertArrayEquals(expected, result);
+        withRandom(r -> {
+            int data[] = r.ints(1000, 1, 1000).toArray();
+            int[] expected = new int[data.length - 1];
+            int lastSquare = data[0] * data[0];
+            for (int i = 0; i < expected.length; i++) {
+                int newSquare = data[i + 1] * data[i + 1];
+                expected[i] = newSquare - lastSquare;
+                lastSquare = newSquare;
+            }
+            int[] result = IntStreamEx.of(data).map(x -> x * x).pairMap((a, b) -> b - a).toArray();
+            assertArrayEquals(expected, result);
+        });
 
         assertEquals(1, IntStreamEx.range(1000).map(x -> x * x).pairMap((a, b) -> b - a).pairMap((a, b) -> b - a)
                 .distinct().count());

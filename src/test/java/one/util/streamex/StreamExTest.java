@@ -68,8 +68,6 @@ import java.util.stream.Stream;
 import one.util.streamex.IntStreamEx;
 import one.util.streamex.MoreCollectors;
 import one.util.streamex.StreamEx;
-import one.util.streamex.TestHelpers.StreamExSupplier;
-
 import org.junit.FixMethodOrder;
 import org.junit.Rule;
 import org.junit.Test;
@@ -527,31 +525,27 @@ public class StreamExTest {
 
     @Test
     public void testMinMax() {
-        Random random = new Random(1);
-        List<String> data = IntStreamEx.of(random, 1000, 1, 100).mapToObj(
-            len -> IntStreamEx.constant(random.nextInt('z' - 'a' + 1) + 'a', len).charsToString()).toList();
-        String minStr = null, maxStr = null;
-        for (String str : data) {
-            if (minStr == null || minStr.length() > str.length())
-                minStr = str;
-            if (maxStr == null || maxStr.length() < str.length())
-                maxStr = str;
-        }
-        for (StreamExSupplier<String> supplier : streamEx(data::stream)) {
-            assertEquals(supplier.toString(), maxStr, supplier.get().max(Comparator.comparingInt(String::length)).get());
-            assertEquals(supplier.toString(), maxStr, supplier.get().maxByInt(String::length).get());
-            assertEquals(supplier.toString(), maxStr, supplier.get().maxByLong(String::length).get());
-            assertEquals(supplier.toString(), maxStr, supplier.get().maxByDouble(String::length).get());
-            assertEquals(supplier.toString(), maxStr, supplier.get().maxBy(String::length).get());
+        withRandom(random -> {
+            List<String> data = IntStreamEx.of(random, 1000, 1, 100).mapToObj(
+                len -> IntStreamEx.constant(random.nextInt('z' - 'a' + 1) + 'a', len).charsToString()).toList();
+            String minStr = Collections.min(data, Comparator.comparingInt(String::length)), maxStr = Collections.max(
+                data, Comparator.comparingInt(String::length));
+            streamEx(data::stream, supplier -> {
+                assertEquals(supplier.toString(), maxStr, supplier.get().max(Comparator.comparingInt(String::length)).get());
+                assertEquals(supplier.toString(), maxStr, supplier.get().maxByInt(String::length).get());
+                assertEquals(supplier.toString(), maxStr, supplier.get().maxByLong(String::length).get());
+                assertEquals(supplier.toString(), maxStr, supplier.get().maxByDouble(String::length).get());
+                assertEquals(supplier.toString(), maxStr, supplier.get().maxBy(String::length).get());
 
-            assertEquals(supplier.toString(), maxStr, supplier.get().min(
-                Comparator.comparingInt(String::length).reversed()).get());
-            assertEquals(supplier.toString(), minStr, supplier.get().minByInt(String::length).get());
-            assertEquals(supplier.toString(), minStr, supplier.get().minByLong(String::length).get());
-            assertEquals(supplier.toString(), minStr, supplier.get().minByDouble(String::length).get());
-            assertEquals(supplier.toString(), minStr, supplier.get().minBy(String::length).get());
-        }
-        assertFalse(StreamEx.<String> empty().minByInt(String::length).isPresent());
+                assertEquals(supplier.toString(), maxStr, supplier.get().min(
+                    Comparator.comparingInt(String::length).reversed()).get());
+                assertEquals(supplier.toString(), minStr, supplier.get().minByInt(String::length).get());
+                assertEquals(supplier.toString(), minStr, supplier.get().minByLong(String::length).get());
+                assertEquals(supplier.toString(), minStr, supplier.get().minByDouble(String::length).get());
+                assertEquals(supplier.toString(), minStr, supplier.get().minBy(String::length).get());
+            });
+            assertFalse(StreamEx.<String> empty().minByInt(String::length).isPresent());
+        });
     }
 
     @Test
@@ -588,18 +582,19 @@ public class StreamExTest {
         assertEquals("a,b,c", StreamEx.of("a", "b", "c").joining(","));
         assertEquals("[1;2;3]", StreamEx.of(1, 2, 3).joining(";", "[", "]"));
 
-        Random r = new Random(1);
-        List<Integer> input1 = IntStreamEx.of(r, 1000, 0, 1000).boxed().toList();
-        List<String> input2 = IntStreamEx.of(r, 1000, 0, 1000).mapToObj(String::valueOf).toList();
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < input1.size(); i++) {
-            if (sb.length() > 0)
-                sb.append(',');
-            sb.append(input1.get(i)).append(':').append(input2.get(i));
-        }
-        String expected = sb.toString();
-        assertEquals(expected, StreamEx.zip(input1, input2, (i, s) -> i + ":" + s).joining(","));
-        assertEquals(expected, StreamEx.zip(input1, input2, (i, s) -> i + ":" + s).parallel().joining(","));
+        withRandom(r -> {
+            List<Integer> input1 = IntStreamEx.of(r, 1000, 0, 1000).boxed().toList();
+            List<String> input2 = IntStreamEx.of(r, 1000, 0, 1000).mapToObj(String::valueOf).toList();
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < input1.size(); i++) {
+                if (sb.length() > 0)
+                    sb.append(',');
+                sb.append(input1.get(i)).append(':').append(input2.get(i));
+            }
+            String expected = sb.toString();
+            assertEquals(expected, StreamEx.zip(input1, input2, (i, s) -> i + ":" + s).joining(","));
+            assertEquals(expected, StreamEx.zip(input1, input2, (i, s) -> i + ":" + s).parallel().joining(","));
+        });
     }
 
     @Test
@@ -728,7 +723,7 @@ public class StreamExTest {
             }
         }
         streamEx(() -> new Random(1).ints(1000, 0, 100).sorted().boxed(), supplier -> assertEquals(expected, supplier
-                .get().distinct(15).pairMap((a, b) -> b - a).toList()));
+            .get().distinct(15).pairMap((a, b) -> b - a).toList()));
     }
 
     private <T extends Comparable<? super T>> boolean isSorted(Collection<T> c) {
@@ -767,14 +762,17 @@ public class StreamExTest {
                 .groupingBy(Function.identity(), Collectors.counting()));
         assertEquals(Collections.singletonMap(1, 1999L), IntStreamEx.range(2000).parallel().boxed().pairMap(
             (a, b) -> b - a).groupingBy(Function.identity(), Collectors.counting()));
-        Integer[] data = new Random(1).ints(1000, 1, 1000).boxed().toArray(Integer[]::new);
-        Double[] expected = new Double[data.length - 1];
-        for (int i = 0; i < expected.length; i++)
-            expected[i] = (data[i + 1] - data[i]) * 1.23;
-        Double[] result = StreamEx.of(data).parallel().pairMap((a, b) -> (b - a) * 1.23).toArray(Double[]::new);
-        assertArrayEquals(expected, result);
-        result = StreamEx.of(data).pairMap((a, b) -> (b - a) * 1.23).toArray(Double[]::new);
-        assertArrayEquals(expected, result);
+        
+        withRandom(r -> {
+            Integer[] data = r.ints(1000, 1, 1000).boxed().toArray(Integer[]::new);
+            Double[] expected = new Double[data.length - 1];
+            for (int i = 0; i < expected.length; i++)
+                expected[i] = (data[i + 1] - data[i]) * 1.23;
+            Double[] result = StreamEx.of(data).parallel().pairMap((a, b) -> (b - a) * 1.23).toArray(Double[]::new);
+            assertArrayEquals(expected, result);
+            result = StreamEx.of(data).pairMap((a, b) -> (b - a) * 1.23).toArray(Double[]::new);
+            assertArrayEquals(expected, result);
+        });
 
         // Find all numbers where the integer preceded a larger value.
         Collection<Integer> numbers = asList(10, 1, 15, 30, 2, 6);
@@ -784,7 +782,7 @@ public class StreamExTest {
         // Check whether stream is sorted
         assertTrue(isSorted(asList("a", "bb", "bb", "c")));
         assertFalse(isSorted(asList("a", "bb", "bb", "bba", "bb", "c")));
-        assertTrue(isSorted(IntStreamEx.of(new Random(1)).boxed().distinct().limit(1000).toCollection(TreeSet::new)));
+        withRandom(r -> assertTrue(isSorted(IntStreamEx.of(r).boxed().distinct().limit(1000).toCollection(TreeSet::new))));
 
         // Find first element which violates the sorting
         assertEquals("bba", firstMisplaced(asList("a", "bb", "bb", "bba", "bb", "c")).get());
@@ -826,9 +824,11 @@ public class StreamExTest {
 
     @Test
     public void testScanLeftPairMap() {
-        int[] random = IntStreamEx.of(new Random(1), 1000).toArray();
-        List<Integer> scanLeft = IntStreamEx.of(random).boxed().parallel().scanLeft(0, Integer::sum);
-        assertArrayEquals(random, IntStreamEx.of(scanLeft).parallel().pairMap((a, b) -> (b - a)).toArray());
+        withRandom(r -> {
+            int[] random = IntStreamEx.of(r, 1000).toArray();
+            List<Integer> scanLeft = IntStreamEx.of(random).boxed().parallel().scanLeft(0, Integer::sum);
+            assertArrayEquals(random, IntStreamEx.of(scanLeft).parallel().pairMap((a, b) -> (b - a)).toArray());
+        });
     }
 
     @Test
@@ -996,30 +996,31 @@ public class StreamExTest {
 
     @Test
     public void testCollapseEmptyLines() {
-        Random r = new Random(1);
-        for (int i = 0; i < 100; i++) {
-            List<String> input = IntStreamEx.range(r.nextInt(i + 1)).mapToObj(
-                n -> r.nextBoolean() ? "" : String.valueOf(n)).toList();
-            List<String> resultSpliterator = StreamEx.of(input).collapse(
-                (str1, str2) -> str1.isEmpty() && str2.isEmpty()).toList();
-            List<String> resultSpliteratorParallel = StreamEx.of(input).parallel().collapse(
-                (str1, str2) -> str1.isEmpty() && str2.isEmpty()).toList();
-            List<String> expected = new ArrayList<>();
-            boolean lastSpace = false;
-            for (String str : input) {
-                if (str.isEmpty()) {
-                    if (!lastSpace) {
+        withRandom(r -> {
+            repeat(100, i -> {
+                List<String> input = IntStreamEx.range(r.nextInt(i + 1)).mapToObj(
+                    n -> r.nextBoolean() ? "" : String.valueOf(n)).toList();
+                List<String> resultSpliterator = StreamEx.of(input).collapse(
+                    (str1, str2) -> str1.isEmpty() && str2.isEmpty()).toList();
+                List<String> resultSpliteratorParallel = StreamEx.of(input).parallel().collapse(
+                    (str1, str2) -> str1.isEmpty() && str2.isEmpty()).toList();
+                List<String> expected = new ArrayList<>();
+                boolean lastSpace = false;
+                for (String str : input) {
+                    if (str.isEmpty()) {
+                        if (!lastSpace) {
+                            expected.add(str);
+                        }
+                        lastSpace = true;
+                    } else {
                         expected.add(str);
+                        lastSpace = false;
                     }
-                    lastSpace = true;
-                } else {
-                    expected.add(str);
-                    lastSpace = false;
                 }
-            }
-            assertEquals("#" + i, expected, resultSpliterator);
-            assertEquals("#" + i, expected, resultSpliteratorParallel);
-        }
+                assertEquals(expected, resultSpliterator);
+                assertEquals(expected, resultSpliteratorParallel);
+            });
+        });
     }
 
     static class Interval {
@@ -1050,68 +1051,70 @@ public class StreamExTest {
 
     @Test
     public void testCollapseIntervals() {
-        Random r = new Random(1);
-        for (int i = 0; i < 100; i++) {
-            int size = r.nextInt(i * 5 + 1);
-            int[] input = IntStreamEx.of(r, size, 0, size * 3 / 2 + 2).toArray();
-            String result = IntStreamEx.of(input).sorted().boxed().distinct().map(Interval::new).collapse(
-                Interval::adjacent, Interval::merge).joining(" & ");
-            String resultIntervalMap = IntStreamEx.of(input).sorted().boxed().distinct().intervalMap(
-                (a, b) -> b - a == 1, Interval::new).joining(" & ");
-            String resultIntervalMapParallel = IntStreamEx.of(input).sorted().boxed().distinct().intervalMap(
-                (a, b) -> b - a == 1, Interval::new).parallel().joining(" & ");
-            String resultParallel = IntStreamEx.of(input).parallel().sorted().boxed().distinct().map(Interval::new)
-                    .collapse(Interval::adjacent, Interval::merge).joining(" & ");
-            String resultParallel2 = IntStreamEx.of(input).sorted().boxed().distinct().map(Interval::new).collapse(
-                Interval::adjacent, Interval::merge).parallel().joining(" & ");
-            String resultCollector = IntStreamEx.of(input).sorted().boxed().distinct().map(Interval::new).collapse(
-                Interval::adjacent, Collectors.reducing(Interval::merge)).map(Optional::get).parallel().joining(" & ");
-            int[] sorted = Arrays.copyOf(input, input.length);
-            Arrays.sort(sorted);
-            List<String> expected = new ArrayList<>();
-            Interval last = null;
-            for (int num : sorted) {
-                if (last != null) {
-                    if (last.to == num)
-                        continue;
-                    if (last.to == num - 1) {
-                        last = new Interval(last.from, num);
-                        continue;
+        withRandom(r -> {
+            repeat(100, i -> {
+                int size = r.nextInt(i * 5 + 1);
+                int[] input = IntStreamEx.of(r, size, 0, size * 3 / 2 + 2).toArray();
+                String result = IntStreamEx.of(input).sorted().boxed().distinct().map(Interval::new).collapse(
+                    Interval::adjacent, Interval::merge).joining(" & ");
+                String resultIntervalMap = IntStreamEx.of(input).sorted().boxed().distinct().intervalMap(
+                    (a, b) -> b - a == 1, Interval::new).joining(" & ");
+                String resultIntervalMapParallel = IntStreamEx.of(input).sorted().boxed().distinct().intervalMap(
+                    (a, b) -> b - a == 1, Interval::new).parallel().joining(" & ");
+                String resultParallel = IntStreamEx.of(input).parallel().sorted().boxed().distinct().map(Interval::new)
+                        .collapse(Interval::adjacent, Interval::merge).joining(" & ");
+                String resultParallel2 = IntStreamEx.of(input).sorted().boxed().distinct().map(Interval::new).collapse(
+                    Interval::adjacent, Interval::merge).parallel().joining(" & ");
+                String resultCollector = IntStreamEx.of(input).sorted().boxed().distinct().map(Interval::new).collapse(
+                    Interval::adjacent, Collectors.reducing(Interval::merge)).map(Optional::get).parallel().joining(" & ");
+                int[] sorted = Arrays.copyOf(input, input.length);
+                Arrays.sort(sorted);
+                List<String> expected = new ArrayList<>();
+                Interval last = null;
+                for (int num : sorted) {
+                    if (last != null) {
+                        if (last.to == num)
+                            continue;
+                        if (last.to == num - 1) {
+                            last = new Interval(last.from, num);
+                            continue;
+                        }
+                        expected.add(last.toString());
                     }
-                    expected.add(last.toString());
+                    last = new Interval(num);
                 }
-                last = new Interval(num);
-            }
-            if (last != null)
-                expected.add(last.toString());
-            String expectedStr = String.join(" & ", expected);
-            assertEquals("#" + i, expectedStr, result);
-            assertEquals("#" + i, expectedStr, resultParallel);
-            assertEquals("#" + i, expectedStr, resultParallel2);
-            assertEquals("#" + i, expectedStr, resultIntervalMap);
-            assertEquals("#" + i, expectedStr, resultIntervalMapParallel);
-            assertEquals("#" + i, expectedStr, resultCollector);
-        }
+                if (last != null)
+                    expected.add(last.toString());
+                String expectedStr = String.join(" & ", expected);
+                assertEquals(expectedStr, result);
+                assertEquals(expectedStr, resultParallel);
+                assertEquals(expectedStr, resultParallel2);
+                assertEquals(expectedStr, resultIntervalMap);
+                assertEquals(expectedStr, resultIntervalMapParallel);
+                assertEquals(expectedStr, resultCollector);
+            });
+        });
     }
 
     @Test
     public void testCollapseDistinct() {
-        Random r = new Random(1);
-        for (int i = 0; i < 100; i++) {
-            int size = r.nextInt(i * 5 + 1);
-            List<Integer> input = IntStreamEx.of(r, size, 0, size * 3 / 2 + 2).boxed().sorted().toList();
-            List<Integer> distinct = StreamEx.of(input).collapse(Integer::equals).toList();
-            List<Integer> distinctCollector = StreamEx.of(input).collapse(Integer::equals, MoreCollectors.first()).map(
-                Optional::get).toList();
-            List<Integer> distinctParallel = StreamEx.of(input).parallel().collapse(Integer::equals).toList();
-            List<Integer> distinctCollectorParallel = StreamEx.of(input).parallel().collapse(Integer::equals,
-                MoreCollectors.first()).map(Optional::get).toList();
-            List<Integer> expected = input.stream().distinct().collect(Collectors.toList());
-            assertEquals(expected, distinct);
-            assertEquals(expected, distinctParallel);
-            assertEquals(expected, distinctCollector);
-            assertEquals(expected, distinctCollectorParallel);
-        }
+        withRandom(r -> {
+            repeat(100, i -> {
+                int size = r.nextInt(i * 5 - 4);
+                List<Integer> input = IntStreamEx.of(r, size, 0, size * 3 / 2 + 2).boxed().sorted().toList();
+                List<Integer> distinct = StreamEx.of(input).collapse(Integer::equals).toList();
+                List<Integer> distinctCollector = StreamEx.of(input).collapse(Integer::equals, MoreCollectors.first()).map(
+                    Optional::get).toList();
+                List<Integer> distinctParallel = StreamEx.of(input).parallel().collapse(Integer::equals).toList();
+                List<Integer> distinctCollectorParallel = StreamEx.of(input).parallel().collapse(Integer::equals,
+                    MoreCollectors.first()).map(Optional::get).toList();
+                List<Integer> expected = input.stream().distinct().collect(Collectors.toList());
+                assertEquals(expected, distinct);
+                assertEquals(expected, distinctParallel);
+                assertEquals(expected, distinctCollector);
+                assertEquals(expected, distinctCollectorParallel);
+            });
+        });
     }
 
     @Test
@@ -1164,27 +1167,28 @@ public class StreamExTest {
 
     @Test
     public void testGroupRunsRandom() {
-        Random r = new Random(1);
-        List<Integer> input = IntStreamEx.of(r, 1000, 1, 100).sorted().boxed().toList();
-        List<List<Integer>> res1 = StreamEx.of(input).groupRuns(Integer::equals).toList();
-        List<List<Integer>> res1p = StreamEx.of(input).parallel().groupRuns(Integer::equals).toList();
-        List<List<Integer>> expected = new ArrayList<>();
-        List<Integer> last = null;
-        for (Integer num : input) {
-            if (last != null) {
-                if (last.get(last.size() - 1).equals(num)) {
-                    last.add(num);
-                    continue;
+        withRandom(r -> {
+            List<Integer> input = IntStreamEx.of(r, 1000, 1, 100).sorted().boxed().toList();
+            List<List<Integer>> res1 = StreamEx.of(input).groupRuns(Integer::equals).toList();
+            List<List<Integer>> res1p = StreamEx.of(input).parallel().groupRuns(Integer::equals).toList();
+            List<List<Integer>> expected = new ArrayList<>();
+            List<Integer> last = null;
+            for (Integer num : input) {
+                if (last != null) {
+                    if (last.get(last.size() - 1).equals(num)) {
+                        last.add(num);
+                        continue;
+                    }
+                    expected.add(last);
                 }
-                expected.add(last);
+                last = new ArrayList<>();
+                last.add(num);
             }
-            last = new ArrayList<>();
-            last.add(num);
-        }
-        if (last != null)
-            expected.add(last);
-        assertEquals(expected, res1);
-        assertEquals(expected, res1p);
+            if (last != null)
+                expected.add(last);
+            assertEquals(expected, res1);
+            assertEquals(expected, res1p);
+        });
     }
 
     @Test
@@ -1271,20 +1275,22 @@ public class StreamExTest {
 
     @Test
     public void testRunLengthsSorted() {
-        int[] input = IntStreamEx.of(new Random(1), 1000, 1, 20).sorted().toArray();
-        Map<Integer, Long> expected = new HashMap<>();
-        long len = 1;
-        for (int i = 0; i < input.length - 1; i++) {
-            if (input[i] == input[i + 1]) {
-                len++;
-            } else {
-                expected.put(input[i], len);
-                len = 1;
+        withRandom(r -> {
+            int[] input = IntStreamEx.of(r, 1000, 1, 20).sorted().toArray();
+            Map<Integer, Long> expected = new HashMap<>();
+            long len = 1;
+            for (int i = 0; i < input.length - 1; i++) {
+                if (input[i] == input[i + 1]) {
+                    len++;
+                } else {
+                    expected.put(input[i], len);
+                    len = 1;
+                }
             }
-        }
-        expected.put(input[input.length - 1], len);
-        assertEquals(expected, IntStreamEx.of(input).sorted().boxed().runLengths().toMap());
-        assertEquals(expected, IntStreamEx.of(input).parallel().sorted().boxed().runLengths().toMap());
+            expected.put(input[input.length - 1], len);
+            assertEquals(expected, IntStreamEx.of(input).sorted().boxed().runLengths().toMap());
+            assertEquals(expected, IntStreamEx.of(input).parallel().sorted().boxed().runLengths().toMap());
+        });
     }
 
     /*
@@ -1298,23 +1304,25 @@ public class StreamExTest {
 
     @Test
     public void testSegmentLength() {
-        int[] input = IntStreamEx.of(new Random(1), 1000, -10, 100).toArray();
-        // get maximal count of consecutive positive numbers
-        long res = segmentLength(IntStreamEx.of(input), x -> x > 0);
-        long resParallel = segmentLength(IntStreamEx.of(input).parallel(), x -> x > 0);
-        long expected = 0;
-        long cur = 0;
-        for (int i = 0; i < input.length - 1; i++) {
-            if (input[i] > 0 && input[i + 1] > 0)
-                cur++;
-            else {
-                if (cur > expected)
-                    expected = cur;
-                cur = 1;
+        withRandom(r -> {
+            int[] input = IntStreamEx.of(r, 1000, -10, 100).toArray();
+            // get maximal count of consecutive positive numbers
+            long res = segmentLength(IntStreamEx.of(input), x -> x > 0);
+            long resParallel = segmentLength(IntStreamEx.of(input).parallel(), x -> x > 0);
+            long expected = 0;
+            long cur = 0;
+            for (int i = 0; i < input.length - 1; i++) {
+                if (input[i] > 0 && input[i + 1] > 0)
+                    cur++;
+                else {
+                    if (cur > expected)
+                        expected = cur;
+                    cur = 1;
+                }
             }
-        }
-        assertEquals(expected, res);
-        assertEquals(expected, resParallel);
+            assertEquals(expected, res);
+            assertEquals(expected, resParallel);
+        });
     }
 
     private static final class SeqList extends AbstractList<Integer> {
@@ -1446,16 +1454,17 @@ public class StreamExTest {
 
     @Test
     public void testOfPairs() {
-        Random r = new Random(1);
-        Point[] pts = StreamEx.generate(() -> new Point(r.nextDouble(), r.nextDouble())).limit(100).toArray(
-            Point[]::new);
-        double expected = StreamEx.of(pts).cross(pts).mapKeyValue(Point::distance).mapToDouble(Double::doubleValue)
-                .max().getAsDouble();
-        double[] allDist = IntStreamEx.ofIndices(pts).flatMapToDouble(
-            i1 -> StreamEx.of(pts, i1 + 1, pts.length).mapToDouble(pt -> pt.distance(pts[i1]))).toArray();
-        streamEx(() -> StreamEx.ofPairs(pts, Point::distance), supplier -> {
-            assertEquals(expected, supplier.get().mapToDouble(Double::doubleValue).max().getAsDouble(), 0.0);
-            assertArrayEquals(allDist, supplier.get().mapToDouble(Double::doubleValue).toArray(), 0.0);
+        withRandom(r -> {
+            Point[] pts = StreamEx.generate(() -> new Point(r.nextDouble(), r.nextDouble())).limit(100).toArray(
+                Point[]::new);
+            double expected = StreamEx.of(pts).cross(pts).mapKeyValue(Point::distance).mapToDouble(Double::doubleValue)
+                    .max().getAsDouble();
+            double[] allDist = IntStreamEx.ofIndices(pts).flatMapToDouble(
+                i1 -> StreamEx.of(pts, i1 + 1, pts.length).mapToDouble(pt -> pt.distance(pts[i1]))).toArray();
+            streamEx(() -> StreamEx.ofPairs(pts, Point::distance), supplier -> {
+                assertEquals(expected, supplier.get().mapToDouble(Double::doubleValue).max().getAsDouble(), 0.0);
+                assertArrayEquals(allDist, supplier.get().mapToDouble(Double::doubleValue).toArray(), 0.0);
+            });
         });
     }
 
@@ -1649,16 +1658,17 @@ public class StreamExTest {
         streamEx(() -> StreamEx.split("", ','), s -> assertEquals(asList(""), s.get().toList()));
         streamEx(() -> StreamEx.split(",,,,,,,,,", ','), s -> assertEquals(0, s.get().count()));
 
-        Random r = new Random(1);
-        repeat(10, iter -> {
-            StringBuilder source = new StringBuilder(IntStreamEx.of(r, 0, 3).limit(r.nextInt(10000)).elements(
-                new int[] { ',', 'a', 'b' }).charsToString());
-            String[] expected = source.toString().split(",");
-            String[] expectedFull = source.toString().split(",", -1);
-            streamEx(() -> StreamEx.split(source, ','),
-                s -> assertArrayEquals(expected, s.get().toArray(String[]::new)));
-            streamEx(() -> StreamEx.split(source, ',', false), s -> assertArrayEquals(expectedFull, s.get().toArray(
-                String[]::new)));
+        withRandom(r -> {
+            repeat(10, iter -> {
+                StringBuilder source = new StringBuilder(IntStreamEx.of(r, 0, 3).limit(r.nextInt(10000)).elements(
+                    new int[] { ',', 'a', 'b' }).charsToString());
+                String[] expected = source.toString().split(",");
+                String[] expectedFull = source.toString().split(",", -1);
+                streamEx(() -> StreamEx.split(source, ','),
+                    s -> assertArrayEquals(expected, s.get().toArray(String[]::new)));
+                streamEx(() -> StreamEx.split(source, ',', false), s -> assertArrayEquals(expectedFull, s.get().toArray(
+                    String[]::new)));
+            });
         });
     }
 

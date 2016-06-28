@@ -117,27 +117,22 @@ public class CollapseSpliteratorTest {
     }
 
     private void multiSplit(Supplier<Spliterator<Integer>> inputSpliterator) throws AssertionError {
-        Random r = new Random(1);
-        for (int n = 1; n < 100; n++) {
-            Spliterator<Integer> spliterator = new CollapseSpliterator<>(Objects::equals, Function.identity(),
-                    StreamExInternals.selectFirst(), StreamExInternals.selectFirst(), inputSpliterator.get());
-            List<Integer> result = new ArrayList<>();
-            List<Spliterator<Integer>> spliterators = new ArrayList<>();
-            spliterators.add(spliterator);
-            for (int i = 0; i < 8; i++) {
-                Spliterator<Integer> split = spliterators.get(r.nextInt(spliterators.size())).trySplit();
-                if (split != null)
-                    spliterators.add(split);
-            }
-            Collections.shuffle(spliterators, r);
-            for (int i = 0; i < spliterators.size(); i++) {
-                try {
-                    spliterators.get(i).forEachRemaining(result::add);
-                } catch (AssertionError e) {
-                    throw new AssertionError("at #" + i, e);
+        withRandom(r -> {
+            repeat(100, n -> {
+                Spliterator<Integer> spliterator = new CollapseSpliterator<>(Objects::equals, Function.identity(),
+                        StreamExInternals.selectFirst(), StreamExInternals.selectFirst(), inputSpliterator.get());
+                List<Integer> result = new ArrayList<>();
+                List<Spliterator<Integer>> spliterators = new ArrayList<>();
+                spliterators.add(spliterator);
+                for (int i = 0; i < 8; i++) {
+                    Spliterator<Integer> split = spliterators.get(r.nextInt(spliterators.size())).trySplit();
+                    if (split != null)
+                        spliterators.add(split);
                 }
-            }
-            assertEquals("#" + n, 6, result.size());
-        }
+                Collections.shuffle(spliterators, r);
+                repeat(spliterators.size(), i -> spliterators.get(i-1).forEachRemaining(result::add));
+                assertEquals(6, result.size());
+            });
+        });
     }
 }

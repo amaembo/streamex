@@ -31,7 +31,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Random;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -545,13 +544,14 @@ public class EntryStreamTest {
 
     @Test
     public void testOfPairs() {
-        Random r = new Random(1);
-        Point[] pts = StreamEx.generate(() -> new Point(r.nextDouble(), r.nextDouble())).limit(100).toArray(
-            Point[]::new);
-        double expected = StreamEx.of(pts).cross(pts).mapKeyValue(Point::distance).mapToDouble(Double::doubleValue)
-                .max().getAsDouble();
-        entryStream(() -> EntryStream.ofPairs(pts), supplier -> assertEquals(expected, supplier.get().mapKeyValue(
-            Point::distance).mapToDouble(Double::doubleValue).max().getAsDouble(), 0.0));
+        withRandom(r -> {
+            Point[] pts = StreamEx.generate(() -> new Point(r.nextDouble(), r.nextDouble())).limit(100).toArray(
+                Point[]::new);
+            double expected = StreamEx.of(pts).cross(pts).mapKeyValue(Point::distance).mapToDouble(Double::doubleValue)
+                    .max().getAsDouble();
+            entryStream(() -> EntryStream.ofPairs(pts), supplier -> assertEquals(expected, supplier.get().mapKeyValue(
+                Point::distance).mapToDouble(Double::doubleValue).max().getAsDouble(), 0.0));
+        });
     }
 
     @Test

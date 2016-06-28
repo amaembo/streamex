@@ -25,6 +25,7 @@ import one.util.streamex.PermutationSpliterator;
 
 import org.junit.Test;
 
+import static one.util.streamex.TestHelpers.*;
 import static org.junit.Assert.*;
 
 public class PermutationSpliteratorTest {
@@ -89,12 +90,13 @@ public class PermutationSpliteratorTest {
 
     @Test
     public void testSplit3Random() {
-        Random r = new Random(1);
-        for (int i = 0; i < 100; i++) {
-            List<String> strings = new ArrayList<>();
-            collectRandomSplit(new PermutationSpliterator(3), r, strings);
-            assertEquals(String.valueOf(i), PERMUTATIONS_3, String.join(",", strings));
-        }
+        withRandom(r -> {
+            repeat(100, i -> {
+                List<String> strings = new ArrayList<>();
+                collectRandomSplit(new PermutationSpliterator(3), r, strings);
+                assertEquals(String.valueOf(i), PERMUTATIONS_3, String.join(",", strings));
+            });
+        });
     }
 
     @Test
@@ -112,11 +114,12 @@ public class PermutationSpliteratorTest {
 
     @Test
     public void testSplit4Random() {
-        Random r = new Random(1);
-        for (int i = 0; i < 100; i++) {
-            List<String> strings = new ArrayList<>();
-            collectRandomSplit(new PermutationSpliterator(4), r, strings);
-            assertEquals(String.valueOf(i), PERMUTATIONS_4, String.join(",", strings));
-        }
+        withRandom(r -> {
+            repeat(100, i -> {
+                List<String> strings = new ArrayList<>();
+                collectRandomSplit(new PermutationSpliterator(4), r, strings);
+                assertEquals(String.valueOf(i), PERMUTATIONS_4, String.join(",", strings));
+            });
+        });
     }
 }

@@ -19,7 +19,6 @@ import static one.util.streamex.TestHelpers.*;
 import static org.junit.Assert.*;
 
 import java.util.Arrays;
-import java.util.Random;
 import java.util.Spliterator;
 
 import org.junit.Test;
@@ -50,14 +49,15 @@ public class CharSpliteratorTest {
         // fixed in StreamEx.split
         checkSpliterator("split", Arrays.asList(), () -> new CharSpliterator("", ',', true));
         checkSpliterator("split", Arrays.asList(""), () -> new CharSpliterator("", ',', false));
-        Random r = new Random(1);
-        String[] inputs = { ",", "abcd,e,f,gh,,,i,j,kl,,,,,,", ",", "abcdasdfgsdfgsdfgsdfgsdfgsdgdfsgs",
-                "abcdasdfgsdfgsdfgsdfgsdfgsdgdfsgs,", "abcdasdfgs,dfgsdfgsdfgsdfgsdgdfsgs",
-                "abcd,e,f,gh,,,i,j,kl,,,,,,x", "abcd,e,f,gh,,,i,j,kl,,,,,,x,",
-                IntStreamEx.of(r, 0, 3).limit(r.nextInt(1000)).elements(new int[] { ',', 'a', 'b' }).charsToString() };
-        for (String input : inputs) {
-            checkSpliterator(input, Arrays.asList(input.split(",")), () -> new CharSpliterator(input, ',', true));
-            checkSpliterator(input, Arrays.asList(input.split(",", -1)), () -> new CharSpliterator(input, ',', false));
-        }
+        withRandom(r -> {
+            String[] inputs = { ",", "abcd,e,f,gh,,,i,j,kl,,,,,,", ",", "abcdasdfgsdfgsdfgsdfgsdfgsdgdfsgs",
+                    "abcdasdfgsdfgsdfgsdfgsdfgsdgdfsgs,", "abcdasdfgs,dfgsdfgsdfgsdfgsdgdfsgs",
+                    "abcd,e,f,gh,,,i,j,kl,,,,,,x", "abcd,e,f,gh,,,i,j,kl,,,,,,x,",
+                    IntStreamEx.of(r, 0, 3).limit(r.nextInt(1000)).elements(new int[] { ',', 'a', 'b' }).charsToString() };
+            for (String input : inputs) {
+                checkSpliterator(input, Arrays.asList(input.split(",")), () -> new CharSpliterator(input, ',', true));
+                checkSpliterator(input, Arrays.asList(input.split(",", -1)), () -> new CharSpliterator(input, ',', false));
+            }
+        });
     }
 }

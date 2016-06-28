@@ -15,13 +15,13 @@
  */
 package one.util.streamex;
 
+import static one.util.streamex.TestHelpers.*;
 import static org.junit.Assert.*;
 
 import java.util.HashMap;
 import java.util.LongSummaryStatistics;
 import java.util.Map;
 import java.util.OptionalLong;
-import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
@@ -77,18 +77,20 @@ public class LongCollectorTest {
 
     @Test
     public void testSummarizing() {
-        long[] data = LongStreamEx.of(new Random(1), 1000, 1, Long.MAX_VALUE).toArray();
-        LongSummaryStatistics expected = LongStream.of(data).summaryStatistics();
-        LongSummaryStatistics statistics = LongStreamEx.of(data).collect(LongCollector.summarizing());
-        assertEquals(expected.getCount(), statistics.getCount());
-        assertEquals(expected.getSum(), statistics.getSum());
-        assertEquals(expected.getMax(), statistics.getMax());
-        assertEquals(expected.getMin(), statistics.getMin());
-        statistics = LongStreamEx.of(data).parallel().collect(LongCollector.summarizing());
-        assertEquals(expected.getCount(), statistics.getCount());
-        assertEquals(expected.getSum(), statistics.getSum());
-        assertEquals(expected.getMax(), statistics.getMax());
-        assertEquals(expected.getMin(), statistics.getMin());
+        withRandom(r -> {
+            long[] data = LongStreamEx.of(r, 1000, 1, Long.MAX_VALUE).toArray();
+            LongSummaryStatistics expected = LongStream.of(data).summaryStatistics();
+            LongSummaryStatistics statistics = LongStreamEx.of(data).collect(LongCollector.summarizing());
+            assertEquals(expected.getCount(), statistics.getCount());
+            assertEquals(expected.getSum(), statistics.getSum());
+            assertEquals(expected.getMax(), statistics.getMax());
+            assertEquals(expected.getMin(), statistics.getMin());
+            statistics = LongStreamEx.of(data).parallel().collect(LongCollector.summarizing());
+            assertEquals(expected.getCount(), statistics.getCount());
+            assertEquals(expected.getSum(), statistics.getSum());
+            assertEquals(expected.getMax(), statistics.getMax());
+            assertEquals(expected.getMin(), statistics.getMin());
+        });
     }
 
     @Test

@@ -37,7 +37,6 @@ import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.Random;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -141,21 +140,23 @@ public class MoreCollectorsTest {
                 .comparingInt(String::length)));
         checkCollectorEmpty("maxAllJoin", "", maxAllJoin);
 
-        List<Integer> ints = IntStreamEx.of(new Random(1), 10000, 1, 1000).boxed().toList();
-        List<Integer> expectedMax = getMaxAll(ints, Comparator.naturalOrder());
-        List<Integer> expectedMin = getMaxAll(ints, Comparator.reverseOrder());
-        Collector<Integer, ?, SimpleEntry<Integer, Long>> downstream = MoreCollectors.pairing(MoreCollectors.first(),
-            Collectors.counting(), (opt, cnt) -> new AbstractMap.SimpleEntry<>(opt.get(), cnt));
+        withRandom(r -> {
+            List<Integer> ints = IntStreamEx.of(r, 10000, 1, 1000).boxed().toList();
+            List<Integer> expectedMax = getMaxAll(ints, Comparator.naturalOrder());
+            List<Integer> expectedMin = getMaxAll(ints, Comparator.reverseOrder());
+            Collector<Integer, ?, SimpleEntry<Integer, Long>> downstream = MoreCollectors.pairing(MoreCollectors.first(),
+                Collectors.counting(), (opt, cnt) -> new AbstractMap.SimpleEntry<>(opt.get(), cnt));
 
-        checkCollector("maxAll", expectedMax, ints::stream, MoreCollectors.maxAll(Integer::compare));
-        checkCollector("minAll", expectedMin, ints::stream, MoreCollectors.minAll());
-        checkCollector("entry", new SimpleEntry<>(expectedMax.get(0), (long) expectedMax.size()), ints::stream,
-            MoreCollectors.maxAll(downstream));
-        checkCollector("entry", new SimpleEntry<>(expectedMin.get(0), (long) expectedMin.size()), ints::stream,
-            MoreCollectors.minAll(downstream));
+            checkCollector("maxAll", expectedMax, ints::stream, MoreCollectors.maxAll(Integer::compare));
+            checkCollector("minAll", expectedMin, ints::stream, MoreCollectors.minAll());
+            checkCollector("entry", new SimpleEntry<>(expectedMax.get(0), (long) expectedMax.size()), ints::stream,
+                MoreCollectors.maxAll(downstream));
+            checkCollector("entry", new SimpleEntry<>(expectedMin.get(0), (long) expectedMin.size()), ints::stream,
+                MoreCollectors.minAll(downstream));
+        });
 
         Integer a = new Integer(1), b = new Integer(1), c = new Integer(1000), d = new Integer(1000);
-        ints = IntStreamEx.range(10, 100).boxed().append(a, c).prepend(b, d).toList();
+        List<Integer> ints = IntStreamEx.range(10, 100).boxed().append(a, c).prepend(b, d).toList();
         streamEx(ints::stream, supplier -> {
             List<Integer> list = supplier.get().collect(MoreCollectors.maxAll());
             assertEquals(2, list.size());
@@ -240,23 +241,25 @@ public class MoreCollectorsTest {
 
     @Test
     public void testGreatest() {
-        List<Integer> ints = IntStreamEx.of(new Random(1), 1000, 1, 1000).boxed().toList();
-        List<Integer> sorted = StreamEx.of(ints).sorted().toList();
-        List<Integer> revSorted = StreamEx.of(ints).reverseSorted().toList();
-        Comparator<Integer> byString = Comparator.comparing(String::valueOf);
-        checkShortCircuitCollector("least(0)", Collections.emptyList(), 0, ints::stream, MoreCollectors.least(0));
-        checkCollector("least(5)", sorted.subList(0, 5), ints::stream, MoreCollectors.least(5));
-        checkCollector("least(20)", sorted.subList(0, 20), ints::stream, MoreCollectors.least(20));
-        checkCollector("least(MAX)", sorted, ints::stream, MoreCollectors.least(Integer.MAX_VALUE));
-        checkCollector("least(byString, 20)", StreamEx.of(ints).sorted(byString).limit(20).toList(), ints::stream,
-            MoreCollectors.least(byString, 20));
+        withRandom(r -> {
+            List<Integer> ints = IntStreamEx.of(r, 1000, 1, 1000).boxed().toList();
+            List<Integer> sorted = StreamEx.of(ints).sorted().toList();
+            List<Integer> revSorted = StreamEx.of(ints).reverseSorted().toList();
+            Comparator<Integer> byString = Comparator.comparing(String::valueOf);
+            checkShortCircuitCollector("least(0)", Collections.emptyList(), 0, ints::stream, MoreCollectors.least(0));
+            checkCollector("least(5)", sorted.subList(0, 5), ints::stream, MoreCollectors.least(5));
+            checkCollector("least(20)", sorted.subList(0, 20), ints::stream, MoreCollectors.least(20));
+            checkCollector("least(MAX)", sorted, ints::stream, MoreCollectors.least(Integer.MAX_VALUE));
+            checkCollector("least(byString, 20)", StreamEx.of(ints).sorted(byString).limit(20).toList(), ints::stream,
+                MoreCollectors.least(byString, 20));
 
-        checkShortCircuitCollector("greatest(0)", Collections.emptyList(), 0, ints::stream, MoreCollectors.greatest(0));
-        checkCollector("greatest(5)", revSorted.subList(0, 5), ints::stream, MoreCollectors.greatest(5));
-        checkCollector("greatest(20)", revSorted.subList(0, 20), ints::stream, MoreCollectors.greatest(20));
-        checkCollector("greatest(MAX)", revSorted, ints::stream, MoreCollectors.greatest(Integer.MAX_VALUE));
-        checkCollector("greatest(byString, 20)", StreamEx.of(ints).reverseSorted(byString).limit(20).toList(),
-            ints::stream, MoreCollectors.greatest(byString, 20));
+            checkShortCircuitCollector("greatest(0)", Collections.emptyList(), 0, ints::stream, MoreCollectors.greatest(0));
+            checkCollector("greatest(5)", revSorted.subList(0, 5), ints::stream, MoreCollectors.greatest(5));
+            checkCollector("greatest(20)", revSorted.subList(0, 20), ints::stream, MoreCollectors.greatest(20));
+            checkCollector("greatest(MAX)", revSorted, ints::stream, MoreCollectors.greatest(Integer.MAX_VALUE));
+            checkCollector("greatest(byString, 20)", StreamEx.of(ints).reverseSorted(byString).limit(20).toList(),
+                ints::stream, MoreCollectors.greatest(byString, 20));
+        });
 
         Supplier<Stream<Integer>> s = () -> IntStreamEx.range(100).boxed();
         checkCollector("1", IntStreamEx.range(1).boxed().toList(), s, MoreCollectors.least(1));
@@ -274,21 +277,23 @@ public class MoreCollectorsTest {
 
     @Test
     public void testMinIndex() {
-        List<Integer> ints = IntStreamEx.of(new Random(1), 1000, 5, 47).boxed().toList();
-        long expectedMin = IntStreamEx.ofIndices(ints).minBy(ints::get).getAsInt();
-        long expectedMax = IntStreamEx.ofIndices(ints).maxBy(ints::get).getAsInt();
-        long expectedMinString = IntStreamEx.ofIndices(ints).minBy(i -> String.valueOf(ints.get(i))).getAsInt();
-        long expectedMaxString = IntStreamEx.ofIndices(ints).maxBy(i -> String.valueOf(ints.get(i))).getAsInt();
-        Comparator<Integer> cmp = Comparator.comparing(String::valueOf);
-        checkCollector("minIndex", OptionalLong.of(expectedMin), ints::stream, MoreCollectors.minIndex());
-        checkCollector("maxIndex", OptionalLong.of(expectedMax), ints::stream, MoreCollectors.maxIndex());
-        checkCollector("minIndex", OptionalLong.of(expectedMinString), ints::stream, MoreCollectors.minIndex(cmp));
-        checkCollector("maxIndex", OptionalLong.of(expectedMaxString), ints::stream, MoreCollectors.maxIndex(cmp));
-        Supplier<Stream<String>> supplier = () -> ints.stream().map(Object::toString);
-        checkCollector("minIndex", OptionalLong.of(expectedMinString), supplier, MoreCollectors.minIndex());
-        checkCollector("maxIndex", OptionalLong.of(expectedMaxString), supplier, MoreCollectors.maxIndex());
-        checkCollectorEmpty("minIndex", OptionalLong.empty(), MoreCollectors.<String> minIndex());
-        checkCollectorEmpty("maxIndex", OptionalLong.empty(), MoreCollectors.<String> maxIndex());
+        withRandom(r -> {
+            List<Integer> ints = IntStreamEx.of(r, 1000, 5, 47).boxed().toList();
+            long expectedMin = IntStreamEx.ofIndices(ints).minBy(ints::get).getAsInt();
+            long expectedMax = IntStreamEx.ofIndices(ints).maxBy(ints::get).getAsInt();
+            long expectedMinString = IntStreamEx.ofIndices(ints).minBy(i -> String.valueOf(ints.get(i))).getAsInt();
+            long expectedMaxString = IntStreamEx.ofIndices(ints).maxBy(i -> String.valueOf(ints.get(i))).getAsInt();
+            Comparator<Integer> cmp = Comparator.comparing(String::valueOf);
+            checkCollector("minIndex", OptionalLong.of(expectedMin), ints::stream, MoreCollectors.minIndex());
+            checkCollector("maxIndex", OptionalLong.of(expectedMax), ints::stream, MoreCollectors.maxIndex());
+            checkCollector("minIndex", OptionalLong.of(expectedMinString), ints::stream, MoreCollectors.minIndex(cmp));
+            checkCollector("maxIndex", OptionalLong.of(expectedMaxString), ints::stream, MoreCollectors.maxIndex(cmp));
+            Supplier<Stream<String>> supplier = () -> ints.stream().map(Object::toString);
+            checkCollector("minIndex", OptionalLong.of(expectedMinString), supplier, MoreCollectors.minIndex());
+            checkCollector("maxIndex", OptionalLong.of(expectedMaxString), supplier, MoreCollectors.maxIndex());
+            checkCollectorEmpty("minIndex", OptionalLong.empty(), MoreCollectors.<String> minIndex());
+            checkCollectorEmpty("maxIndex", OptionalLong.empty(), MoreCollectors.<String> maxIndex());
+        });
     }
 
     @Test
@@ -356,12 +361,14 @@ public class MoreCollectorsTest {
 
     @Test
     public void testToBooleanArray() {
-        List<Integer> input = IntStreamEx.of(new Random(1), 1000, 1, 100).boxed().toList();
-        boolean[] expected = new boolean[input.size()];
-        for (int i = 0; i < expected.length; i++)
-            expected[i] = input.get(i) > 50;
-        streamEx(input::stream, supplier -> assertArrayEquals(expected, supplier.get().collect(
-            MoreCollectors.toBooleanArray(x -> x > 50))));
+        withRandom(r -> {
+            List<Integer> input = IntStreamEx.of(r, 1000, 1, 100).boxed().toList();
+            boolean[] expected = new boolean[input.size()];
+            for (int i = 0; i < expected.length; i++)
+                expected[i] = input.get(i) > 50;
+            streamEx(input::stream, supplier -> assertArrayEquals(expected, supplier.get().collect(
+                MoreCollectors.toBooleanArray(x -> x > 50))));
+        });
     }
 
     @Test
@@ -696,29 +703,29 @@ public class MoreCollectorsTest {
         checkCollector("dominators", expected, () -> input.stream().sorted(), MoreCollectors.dominators((a, b) -> b
                 .startsWith(a)));
 
-        Random r = new Random(1);
+        withRandom(r -> {
+            List<String> longInput = StreamEx.generate(
+                () -> IntStreamEx.of(r, r.nextInt(10) + 3, 'a', 'z').mapToObj(ch -> (char) ch).joining("/", "", "/"))
+                    .limit(1000).toList();
 
-        List<String> longInput = StreamEx.generate(
-            () -> IntStreamEx.of(r, r.nextInt(10) + 3, 'a', 'z').mapToObj(ch -> (char) ch).joining("/", "", "/"))
-                .limit(1000).toList();
-
-        List<String> tmp = StreamEx.of(longInput).sorted().toList();
-        List<String> result = new ArrayList<>();
-        String curr, last;
-        curr = last = null;
-        Iterator<String> it = tmp.iterator();
-        while (it.hasNext()) {
-            String oldLast = last;
-            last = curr;
-            curr = it.next();
-            if (last != null && curr.startsWith(last)) {
-                curr = last;
-                last = oldLast;
-            } else
-                result.add(curr);
-        }
-        checkCollector("dominatorsLong", result, () -> longInput.stream().sorted(), MoreCollectors
-                .dominators((a, b) -> b.startsWith(a)));
+            List<String> tmp = StreamEx.of(longInput).sorted().toList();
+            List<String> result = new ArrayList<>();
+            String curr, last;
+            curr = last = null;
+            Iterator<String> it = tmp.iterator();
+            while (it.hasNext()) {
+                String oldLast = last;
+                last = curr;
+                curr = it.next();
+                if (last != null && curr.startsWith(last)) {
+                    curr = last;
+                    last = oldLast;
+                } else
+                    result.add(curr);
+            }
+            checkCollector("dominatorsLong", result, () -> longInput.stream().sorted(), MoreCollectors
+                    .dominators((a, b) -> b.startsWith(a)));
+        });
     }
 
     @Test
@@ -727,16 +734,18 @@ public class MoreCollectorsTest {
         List<Integer> result = asList(1, 3, 4, 7, 10);
         checkCollector("increasing", result, () -> IntStreamEx.of(input).boxed(), MoreCollectors
                 .dominators((a, b) -> a >= b));
-        int[] longInput = new Random(1).ints(10000, 0, 1000000).toArray();
-        List<Integer> longResult = new ArrayList<>();
-        int curMax = -1;
-        for (int val : longInput) {
-            if (val > curMax) {
-                curMax = val;
-                longResult.add(curMax);
+        withRandom(r -> {
+            int[] longInput = r.ints(10000, 0, 1000000).toArray();
+            List<Integer> longResult = new ArrayList<>();
+            int curMax = -1;
+            for (int val : longInput) {
+                if (val > curMax) {
+                    curMax = val;
+                    longResult.add(curMax);
+                }
             }
-        }
-        checkCollector("increasingLong", longResult, () -> IntStreamEx.of(longInput).boxed(), MoreCollectors
-                .dominators((a, b) -> a >= b));
+            checkCollector("increasingLong", longResult, () -> IntStreamEx.of(longInput).boxed(), MoreCollectors
+                    .dominators((a, b) -> a >= b));
+        });
     }
 }

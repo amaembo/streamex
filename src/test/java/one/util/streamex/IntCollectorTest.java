@@ -15,13 +15,13 @@
  */
 package one.util.streamex;
 
+import static one.util.streamex.TestHelpers.*;
 import static org.junit.Assert.*;
 
 import java.util.BitSet;
 import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -73,15 +73,17 @@ public class IntCollectorTest {
         assertEquals(3725, (int) IntStreamEx.range(100).atLeast(50).collect(IntCollector.summing()));
         assertEquals(3725, (int) IntStreamEx.range(100).parallel().atLeast(50).collect(IntCollector.summing()));
 
-        int[] input = IntStreamEx.of(new Random(1), 10000, 1, 1000).toArray();
-        Map<Boolean, Integer> expected = IntStream.of(input).boxed().collect(
-            Collectors.partitioningBy(i -> i % 2 == 0, Collectors.summingInt(Integer::intValue)));
-        Map<Boolean, Integer> sumEvenOdd = IntStreamEx.of(input).collect(
-            IntCollector.partitioningBy(i -> i % 2 == 0, IntCollector.summing()));
-        assertEquals(expected, sumEvenOdd);
-        sumEvenOdd = IntStreamEx.of(input).parallel().collect(
-            IntCollector.partitioningBy(i -> i % 2 == 0, IntCollector.summing()));
-        assertEquals(expected, sumEvenOdd);
+        withRandom(r -> {
+            int[] input = IntStreamEx.of(r, 10000, 1, 1000).toArray();
+            Map<Boolean, Integer> expected = IntStream.of(input).boxed().collect(
+                Collectors.partitioningBy(i -> i % 2 == 0, Collectors.summingInt(Integer::intValue)));
+            Map<Boolean, Integer> sumEvenOdd = IntStreamEx.of(input).collect(
+                IntCollector.partitioningBy(i -> i % 2 == 0, IntCollector.summing()));
+            assertEquals(expected, sumEvenOdd);
+            sumEvenOdd = IntStreamEx.of(input).parallel().collect(
+                IntCollector.partitioningBy(i -> i % 2 == 0, IntCollector.summing()));
+            assertEquals(expected, sumEvenOdd);
+        });
     }
 
     @Test
@@ -99,18 +101,20 @@ public class IntCollectorTest {
 
     @Test
     public void testSummarizing() {
-        int[] data = IntStreamEx.of(new Random(1), 1000, 1, Integer.MAX_VALUE).toArray();
-        IntSummaryStatistics expected = IntStream.of(data).summaryStatistics();
-        IntSummaryStatistics statistics = IntStreamEx.of(data).collect(IntCollector.summarizing());
-        assertEquals(expected.getCount(), statistics.getCount());
-        assertEquals(expected.getSum(), statistics.getSum());
-        assertEquals(expected.getMax(), statistics.getMax());
-        assertEquals(expected.getMin(), statistics.getMin());
-        statistics = IntStreamEx.of(data).parallel().collect(IntCollector.summarizing());
-        assertEquals(expected.getCount(), statistics.getCount());
-        assertEquals(expected.getSum(), statistics.getSum());
-        assertEquals(expected.getMax(), statistics.getMax());
-        assertEquals(expected.getMin(), statistics.getMin());
+        withRandom(r -> {
+            int[] data = IntStreamEx.of(r, 1000, 1, Integer.MAX_VALUE).toArray();
+            IntSummaryStatistics expected = IntStream.of(data).summaryStatistics();
+            IntSummaryStatistics statistics = IntStreamEx.of(data).collect(IntCollector.summarizing());
+            assertEquals(expected.getCount(), statistics.getCount());
+            assertEquals(expected.getSum(), statistics.getSum());
+            assertEquals(expected.getMax(), statistics.getMax());
+            assertEquals(expected.getMin(), statistics.getMin());
+            statistics = IntStreamEx.of(data).parallel().collect(IntCollector.summarizing());
+            assertEquals(expected.getCount(), statistics.getCount());
+            assertEquals(expected.getSum(), statistics.getSum());
+            assertEquals(expected.getMax(), statistics.getMax());
+            assertEquals(expected.getMin(), statistics.getMin());
+        });
     }
 
     @Test
@@ -157,12 +161,14 @@ public class IntCollectorTest {
 
     @Test
     public void testSumBySign() {
-        int[] input = new Random(1).ints(2000, -1000, 1000).toArray();
-        Map<Boolean, Integer> sums = IntStreamEx.of(input).collect(
-            IntCollector.partitioningBy(i -> i > 0, IntCollector.summing()));
-        Map<Boolean, Integer> sumsBoxed = IntStream.of(input).boxed().collect(
-            Collectors.partitioningBy(i -> i > 0, Collectors.summingInt(Integer::intValue)));
-        assertEquals(sumsBoxed, sums);
+        withRandom(r -> {
+            int[] input = r.ints(2000, -1000, 1000).toArray();
+            Map<Boolean, Integer> sums = IntStreamEx.of(input).collect(
+                IntCollector.partitioningBy(i -> i > 0, IntCollector.summing()));
+            Map<Boolean, Integer> sumsBoxed = IntStream.of(input).boxed().collect(
+                Collectors.partitioningBy(i -> i > 0, Collectors.summingInt(Integer::intValue)));
+            assertEquals(sumsBoxed, sums);
+        });
     }
 
     @Test
@@ -187,13 +193,15 @@ public class IntCollectorTest {
 
     @Test
     public void testByDigit() {
-        int[] input = new Random(1).ints(2000, -1000, 1000).toArray();
-        IntCollector<?, Map<Integer, List<Integer>>> collector = IntCollector.groupingBy(i -> i % 10, IntCollector
-                .of(Collectors.toList()));
-        Map<Integer, List<Integer>> groups = IntStreamEx.of(input).collect(collector);
-        Map<Integer, List<Integer>> groupsBoxed = IntStream.of(input).boxed().collect(
-            Collectors.groupingBy(i -> i % 10));
-        assertEquals(groupsBoxed, groups);
+        withRandom(r -> {
+            int[] input = r.ints(2000, -1000, 1000).toArray();
+            IntCollector<?, Map<Integer, List<Integer>>> collector = IntCollector.groupingBy(i -> i % 10, IntCollector
+                    .of(Collectors.toList()));
+            Map<Integer, List<Integer>> groups = IntStreamEx.of(input).collect(collector);
+            Map<Integer, List<Integer>> groupsBoxed = IntStream.of(input).boxed().collect(
+                Collectors.groupingBy(i -> i % 10));
+            assertEquals(groupsBoxed, groups);
+        });
     }
 
     @Test

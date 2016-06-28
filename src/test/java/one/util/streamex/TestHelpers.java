@@ -119,6 +119,36 @@ public class TestHelpers {
         return StreamEx.of(Mode.values()).map(mode -> new StreamExSupplier<>(base, mode)).toList();
     }
 
+    /**
+     * Run the consumer once feeding it with RNG initialized with auto-generated seed
+     * adding the seed value to every failed assertion message
+     * 
+     * @param seed random seed to use
+     * @param cons consumer to run
+     */
+    static void withRandom(Consumer<Random> cons) {
+        long seed = ThreadLocalRandom.current().nextLong();
+        withRandom(seed, cons);
+    }
+
+    /**
+     * Run the consumer once feeding it with RNG initialized with given seed
+     * adding the seed value to every failed assertion message
+     * 
+     * @param seed random seed to use
+     * @param cons consumer to run
+     */
+    static void withRandom(long seed, Consumer<Random> cons) {
+        Random random = new Random(seed);
+        withMessage("Using new Random("+seed+")", () -> cons.accept(random));
+    }
+    
+    /**
+     * Run the runnable automatically adding given message to every failed assertion
+     * 
+     * @param message message to prepend
+     * @param r runnable to run
+     */
     static void withMessage(String message, Runnable r) {
         try {
             r.run();
@@ -261,7 +291,8 @@ public class TestHelpers {
      * Tests whether spliterators produced by given supplier produce the
      * expected result under various splittings
      * 
-     * This test is single-threaded and its results are stable
+     * This test is single-threaded. Its behavior is randomized, but random seed
+     * will be printed in case of failure, so the results could be reproduced
      */
     static <T> void checkSpliterator(String msg, List<T> expected, Supplier<Spliterator<T>> supplier) {
         List<T> seq = new ArrayList<>();
@@ -315,58 +346,59 @@ public class TestHelpers {
         }
 
         // Test trySplit
-        Random r = new Random(1);
-        for (int n = 1; n < 500; n++) {
-            Spliterator<T> spliterator = supplier.get();
-            List<Spliterator<T>> spliterators = new ArrayList<>();
-            spliterators.add(spliterator);
-            int p = r.nextInt(10) + 2;
-            for (int i = 0; i < p; i++) {
-                int idx = r.nextInt(spliterators.size());
-                Spliterator<T> split = spliterators.get(idx).trySplit();
-                if (split != null)
-                    spliterators.add(idx, split);
-            }
-            List<Integer> order = IntStreamEx.ofIndices(spliterators).boxed().toList();
-            Collections.shuffle(order, r);
-            List<T> list = StreamEx.of(order).mapToEntry(idx -> {
-                Spliterator<T> s = spliterators.get(idx);
-                Stream.Builder<T> builder = Stream.builder();
-                s.forEachRemaining(builder);
-                assertFalse(msg, s.tryAdvance(t -> fail(msg + ": Advance called with " + t)));
-                s.forEachRemaining(t -> fail(msg + ": Advance called with " + t));
-                return builder.build();
-            }).sortedBy(Entry::getKey).values().flatMap(Function.identity()).toList();
-            assertEquals(msg + ":#" + n, expected, list);
-        }
-        for (int n = 1; n < 500; n++) {
-            Spliterator<T> spliterator = supplier.get();
-            List<Spliterator<T>> spliterators = new ArrayList<>();
-            spliterators.add(spliterator);
-            int p = r.nextInt(30) + 2;
-            for (int i = 0; i < p; i++) {
-                int idx = r.nextInt(spliterators.size());
-                Spliterator<T> split = spliterators.get(idx).trySplit();
-                if (split != null)
-                    spliterators.add(idx, split);
-            }
-            List<List<T>> results = StreamEx.<List<T>> generate(() -> new ArrayList<>()).limit(spliterators.size())
-                    .toList();
-            int count = spliterators.size();
-            while (count > 0) {
-                int i;
-                do {
-                    i = r.nextInt(spliterators.size());
-                    spliterator = spliterators.get(i);
-                } while (spliterator == null);
-                if (!spliterator.tryAdvance(results.get(i)::add)) {
-                    spliterators.set(i, null);
-                    count--;
+        withRandom(r -> {
+            repeat(500, n -> {
+                Spliterator<T> spliterator = supplier.get();
+                List<Spliterator<T>> spliterators = new ArrayList<>();
+                spliterators.add(spliterator);
+                int p = r.nextInt(10) + 2;
+                for (int i = 0; i < p; i++) {
+                    int idx = r.nextInt(spliterators.size());
+                    Spliterator<T> split = spliterators.get(idx).trySplit();
+                    if (split != null)
+                        spliterators.add(idx, split);
                 }
-            }
-            List<T> list = StreamEx.of(results).flatMap(List::stream).toList();
-            assertEquals(msg + ":#" + n, expected, list);
-        }
+                List<Integer> order = IntStreamEx.ofIndices(spliterators).boxed().toList();
+                Collections.shuffle(order, r);
+                List<T> list = StreamEx.of(order).mapToEntry(idx -> {
+                    Spliterator<T> s = spliterators.get(idx);
+                    Stream.Builder<T> builder = Stream.builder();
+                    s.forEachRemaining(builder);
+                    assertFalse(msg, s.tryAdvance(t -> fail(msg + ": Advance called with " + t)));
+                    s.forEachRemaining(t -> fail(msg + ": Advance called with " + t));
+                    return builder.build();
+                }).sortedBy(Entry::getKey).values().flatMap(Function.identity()).toList();
+                assertEquals(msg, expected, list);
+            });
+            repeat(500, n -> {
+                Spliterator<T> spliterator = supplier.get();
+                List<Spliterator<T>> spliterators = new ArrayList<>();
+                spliterators.add(spliterator);
+                int p = r.nextInt(30) + 2;
+                for (int i = 0; i < p; i++) {
+                    int idx = r.nextInt(spliterators.size());
+                    Spliterator<T> split = spliterators.get(idx).trySplit();
+                    if (split != null)
+                        spliterators.add(idx, split);
+                }
+                List<List<T>> results = StreamEx.<List<T>> generate(() -> new ArrayList<>()).limit(spliterators.size())
+                        .toList();
+                int count = spliterators.size();
+                while (count > 0) {
+                    int i;
+                    do {
+                        i = r.nextInt(spliterators.size());
+                        spliterator = spliterators.get(i);
+                    } while (spliterator == null);
+                    if (!spliterator.tryAdvance(results.get(i)::add)) {
+                        spliterators.set(i, null);
+                        count--;
+                    }
+                }
+                List<T> list = StreamEx.of(results).flatMap(List::stream).toList();
+                assertEquals(msg, expected, list);
+            });
+        });
     }
 
     static void checkIllegalStateException(Runnable r, String key, String value1, String value2) {
