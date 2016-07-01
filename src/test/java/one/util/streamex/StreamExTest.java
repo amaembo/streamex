@@ -1805,4 +1805,26 @@ public class StreamExTest {
         streamEx(() -> IntStreamEx.range(10000).boxed().unordered(), s -> assertEquals(49995000, s.get().prefix(
             Integer::sum).mapToInt(Integer::intValue).max().getAsInt()));
     }
+    
+    /**
+     * Returns maximal stream value short-circuiting when stopValue is reached
+     * @param stream stream to process
+     * @param comparator comparator to compare stream values
+     * @param stopValue value to short-circuit at
+     * @return optional describing maximal value or empty optional if input stream is empty
+     */
+    static <T> Optional<T> maxWithStop(StreamEx<T> stream, Comparator<T> comparator, T stopValue) {
+        return stream.prefix(BinaryOperator.maxBy(comparator)).takeWhileInclusive(Predicate.isEqual(stopValue).negate())
+                .collect(MoreCollectors.last());
+    }
+    
+    @Test
+    public void testMaxWithStop() {
+        // Infinite stream, stop is reached
+        assertEquals(Optional.of(1000), maxWithStop(IntStreamEx.of(new Random(1), 0, 1001).boxed(), Comparator
+                .naturalOrder(), 1000));
+        // FInite stream, stop is not reached
+        assertEquals(Optional.of(999), maxWithStop(IntStreamEx.of(new Random(1), 10000, 0, 1000).boxed(), Comparator
+                .naturalOrder(), 1000));
+    }
 }
