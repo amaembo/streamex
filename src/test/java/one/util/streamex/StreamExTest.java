@@ -750,6 +750,7 @@ public class StreamExTest {
     @Test
     public void testPairMap() {
         assertEquals(0, StreamEx.<String> empty().pairMap(String::concat).count());
+        assertEquals(Optional.empty(), StreamEx.<String> empty().pairMap(String::concat).max(Comparator.naturalOrder()));
         assertArrayEquals(new Object[0], StreamEx.<String> empty().pairMap(String::concat).toArray());
         assertEquals(0, StreamEx.of("a").pairMap(String::concat).count());
         assertEquals(asList("aa", "aa", "aa"), StreamEx.generate(() -> "a").pairMap(String::concat).limit(3).toList());
