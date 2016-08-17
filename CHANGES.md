@@ -5,6 +5,7 @@ Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 ### 0.6.2
 
 * [#104] Added: `StreamEx.ofReversed()`.
+* [#105] Added: `MoreCollectors.minMax()`.
 
 ### 0.6.1
 

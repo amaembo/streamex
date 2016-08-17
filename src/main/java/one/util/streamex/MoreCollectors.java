@@ -275,6 +275,33 @@ public final class MoreCollectors {
     }
 
     /**
+     * Returns a {@code Collector} which finds the minimal and maximal element
+     * according to the supplied comparator, then applies finisher function to
+     * them producing the final result.
+     * 
+     * <p>
+     * This collector produces stable result for ordered stream: if several
+     * minimal or maximal elements appear, the collector always selects the
+     * first encountered.
+     * 
+     * <p>
+     * If there are no input elements, the finisher method is not called and
+     * empty {@code Optional} is returned. Otherwise the finisher result is
+     * wrapped into {@code Optional}.
+     * 
+     * @param comparator comparator which is used to find minimal and maximal
+     *        element
+     * @param finisher a {@link BiFunction} which takes minimal and maximal
+     *        element and produces the final result.
+     * @return a {@code Collector} which finds minimal and maximal elements.
+     */
+    public static <T, R> Collector<T, ?, Optional<R>> minMax(Comparator<? super T> comparator,
+            BiFunction<? super T, ? super T, ? extends R> finisher) {
+        return pairing(Collectors.minBy(comparator), Collectors.maxBy(comparator),
+            (min, max) -> min.isPresent() ? Optional.of(finisher.apply(min.get(), max.get())) : Optional.empty());
+    }
+
+    /**
      * Returns a {@code Collector} which finds all the elements which are equal
      * to each other and bigger than any other element according to the
      * specified {@link Comparator}. The found elements are reduced using the

@@ -256,6 +256,7 @@ Get the given number of first or last elements in the `List` | `MoreCollectors.h
 Get the given number of greatest/least elements according to the given `Comparator` or natural order | `MoreCollectors.greatest()/least()`
 Get all the maximal or minimal elements according to the given `Comparator` or natural order | `MoreCollectors.maxAll()/minAll()`
 Get the index of maximal or minimal element according to the given `Comparator` or natural order | `MoreCollectors.minIndex()/maxIndex()`
+Get both maximal and minimal stream element according to the given `Comparator` | `MoreCollectors.minMax()`
 Get the intersection of input collections | `MoreCollectors.intersecting()`
 Get the result bitwise-and operation | `MoreCollectors.andingInt()/andingLong()`
 Join the elements into string with possible limit to the string length (adding ellipsis if necessary) | `Joining.with()`
