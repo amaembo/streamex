@@ -172,16 +172,6 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     }
 
     <R, A> R rawCollect(Collector<? super T, A, R> collector) {
-        if (spliterator != null && !isParallel()) {
-            Objects.requireNonNull(collector.combiner());
-            A acc = collectSpltr(collector.supplier(), collector.accumulator());
-            if(collector.characteristics().contains(Characteristics.IDENTITY_FINISH)) {
-                @SuppressWarnings("unchecked")
-                R result = (R)acc;
-                return result;
-            }
-            return collector.finisher().apply(acc);
-        }
         if (context.fjp != null)
             return context.terminate(collector, stream()::collect);
         return stream().collect(collector);
@@ -213,20 +203,6 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
             result = new TailConcatSpliterator<>(left, right);
         context = context.combine(other);
         return supply(result);
-    }
-
-    private <U> U reduceSpltr(U identity, BiFunction<U, ? super T, U> accumulator) {
-        Objects.requireNonNull(accumulator);
-        Box<U> result = new Box<>(identity);
-        spliterator().forEachRemaining(e -> result.a = accumulator.apply(result.a, e));
-        return result.a;
-    }
-
-    private <R> R collectSpltr(Supplier<R> supplier, BiConsumer<R, ? super T> accumulator) {
-        Objects.requireNonNull(accumulator);
-        R acc = supplier.get();
-        spliterator().forEachRemaining(e -> accumulator.accept(acc, e));
-        return acc;
     }
 
     abstract S supply(Stream<T> stream);
@@ -412,9 +388,6 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
 
     @Override
     public T reduce(T identity, BinaryOperator<T> accumulator) {
-        if (spliterator != null && !isParallel()) {
-            return reduceSpltr(identity, accumulator);
-        }
         if (context.fjp != null)
             return context.terminate(() -> stream().reduce(identity, accumulator));
         return stream().reduce(identity, accumulator);
@@ -422,13 +395,6 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
 
     @Override
     public Optional<T> reduce(BinaryOperator<T> accumulator) {
-        if (spliterator != null && !isParallel()) {
-            Objects.requireNonNull(accumulator);
-            Box<T> result = new Box<>(none());
-            spliterator().forEachRemaining(e -> result.a = 
-                    result.a == NONE ? e : accumulator.apply(result.a, e));
-            return result.a == NONE ? Optional.empty() : Optional.of(result.a);
-        }
         if (context.fjp != null)
             return context.terminate(accumulator, stream()::reduce);
         return stream().reduce(accumulator);
@@ -436,10 +402,6 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
 
     @Override
     public <U> U reduce(U identity, BiFunction<U, ? super T, U> accumulator, BinaryOperator<U> combiner) {
-        if (spliterator != null && !isParallel()) {
-            Objects.requireNonNull(combiner);
-            return reduceSpltr(identity, accumulator);
-        }
         if (context.fjp != null)
             return context.terminate(() -> stream().reduce(identity, accumulator, combiner));
         return stream().reduce(identity, accumulator, combiner);
@@ -447,10 +409,6 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
 
     @Override
     public <R> R collect(Supplier<R> supplier, BiConsumer<R, ? super T> accumulator, BiConsumer<R, R> combiner) {
-        if (spliterator != null && !isParallel()) {
-            Objects.requireNonNull(combiner);
-            return collectSpltr(supplier, accumulator);
-        }
         if (context.fjp != null)
             return context.terminate(() -> stream().collect(supplier, accumulator, combiner));
         return stream().collect(supplier, accumulator, combiner);
@@ -522,15 +480,6 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
 
     @Override
     public boolean anyMatch(Predicate<? super T> predicate) {
-        if (spliterator != null && !isParallel()) {
-            Spliterator<T> spltr = spliterator();
-            boolean[] b = new boolean[1];
-            while(spltr.tryAdvance(e -> b[0] = predicate.test(e))) {
-                if(b[0])
-                    return true;
-            }
-            return false;
-        }
         if (context.fjp != null)
             return context.terminate(predicate, stream()::anyMatch);
         return stream().anyMatch(predicate);
@@ -538,15 +487,6 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
 
     @Override
     public boolean allMatch(Predicate<? super T> predicate) {
-        if (spliterator != null && !isParallel()) {
-            Spliterator<T> spltr = spliterator();
-            boolean[] b = new boolean[1];
-            while(spltr.tryAdvance(e -> b[0] = predicate.test(e))) {
-                if(!b[0])
-                    return false;
-            }
-            return true;
-        }
         if (context.fjp != null)
             return context.terminate(predicate, stream()::allMatch);
         return stream().allMatch(predicate);
@@ -559,10 +499,6 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
 
     @Override
     public Optional<T> findFirst() {
-        if (spliterator != null && !isParallel()) {
-            Box<T> result = new Box<>();
-            return spliterator().tryAdvance(result) ? Optional.of(result.a) : Optional.empty();
-        }
         if (context.fjp != null)
             return context.terminate(stream()::findFirst);
         return stream().findFirst();
@@ -570,8 +506,6 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
 
     @Override
     public Optional<T> findAny() {
-        if (spliterator != null && !isParallel())
-            return findFirst();
         if (context.fjp != null)
             return context.terminate(stream()::findAny);
         return stream().findAny();
