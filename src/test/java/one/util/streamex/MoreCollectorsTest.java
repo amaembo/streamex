@@ -754,8 +754,10 @@ public class MoreCollectorsTest {
         List<String> input = asList("abc", "a", "asdf", "gdasa", "gffsd", "sfgs", "b", "c", "dsgs");
         checkCollector("minMax", Optional.of("agdasa"), input::stream, MoreCollectors.minMax(Comparator
                 .comparingInt(String::length), String::concat));
-        checkCollectorEmpty("minMax", Optional.empty(), MoreCollectors.minMax(Comparator.naturalOrder(), (min, max) -> {
-            throw new IllegalStateException("Should not be called");
-        }));
+        Collector<String, ?, Optional<Object>> collector = MoreCollectors.minMax(Comparator.naturalOrder(),
+            (min, max) -> {
+                throw new IllegalStateException("Should not be called");
+            });
+        checkCollectorEmpty("minMax", Optional.empty(), collector);
     }
 }
