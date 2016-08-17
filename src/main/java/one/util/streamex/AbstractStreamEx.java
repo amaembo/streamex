@@ -131,6 +131,35 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
             this.cur = t;
         }
     }
+    
+    static class ReduceSink<T, U> implements Consumer<T> {
+        U res;
+        final BiFunction<U, ? super T, U> accumulator;
+        
+        ReduceSink(U identity, BiFunction<U, ? super T, U> accumulator) {
+            this.res = identity;
+            this.accumulator = Objects.requireNonNull(accumulator);
+        }
+        
+        @Override
+        public void accept(T e) {
+            res = accumulator.apply(res, e);
+        }
+    }
+
+    static class PredicateSink<T> implements Consumer<T> {
+        boolean res;
+        final Predicate<? super T> predicate;
+        
+        PredicateSink(Predicate<? super T> predicate) {
+            this.predicate = predicate;
+        }
+        
+        @Override
+        public void accept(T e) {
+            res = predicate.test(e);
+        }
+    }
 
     @SuppressWarnings("unchecked")
     AbstractStreamEx(Stream<? extends T> stream, StreamContext context) {
@@ -213,13 +242,6 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
             result = new TailConcatSpliterator<>(left, right);
         context = context.combine(other);
         return supply(result);
-    }
-
-    private <U> U reduceSpltr(U identity, BiFunction<U, ? super T, U> accumulator) {
-        Objects.requireNonNull(accumulator);
-        Box<U> result = new Box<>(identity);
-        spliterator().forEachRemaining(e -> result.a = accumulator.apply(result.a, e));
-        return result.a;
     }
 
     private <R> R collectSpltr(Supplier<R> supplier, BiConsumer<R, ? super T> accumulator) {
@@ -413,7 +435,9 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     @Override
     public T reduce(T identity, BinaryOperator<T> accumulator) {
         if (spliterator != null && !isParallel()) {
-            return reduceSpltr(identity, accumulator);
+            ReduceSink<T, T> result;
+            spliterator().forEachRemaining(result = new ReduceSink<>(identity, accumulator));
+            return result.res;
         }
         if (context.fjp != null)
             return context.terminate(() -> stream().reduce(identity, accumulator));
@@ -438,7 +462,9 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     public <U> U reduce(U identity, BiFunction<U, ? super T, U> accumulator, BinaryOperator<U> combiner) {
         if (spliterator != null && !isParallel()) {
             Objects.requireNonNull(combiner);
-            return reduceSpltr(identity, accumulator);
+            ReduceSink<T, U> result;
+            spliterator().forEachRemaining(result = new ReduceSink<>(identity, accumulator));
+            return result.res;
         }
         if (context.fjp != null)
             return context.terminate(() -> stream().reduce(identity, accumulator, combiner));
@@ -524,9 +550,9 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     public boolean anyMatch(Predicate<? super T> predicate) {
         if (spliterator != null && !isParallel()) {
             Spliterator<T> spltr = spliterator();
-            boolean[] b = new boolean[1];
-            while(spltr.tryAdvance(e -> b[0] = predicate.test(e))) {
-                if(b[0])
+            PredicateSink<T> sink = new PredicateSink<>(predicate);
+            while (spltr.tryAdvance(sink)) {
+                if (sink.res)
                     return true;
             }
             return false;
@@ -540,9 +566,9 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     public boolean allMatch(Predicate<? super T> predicate) {
         if (spliterator != null && !isParallel()) {
             Spliterator<T> spltr = spliterator();
-            boolean[] b = new boolean[1];
-            while(spltr.tryAdvance(e -> b[0] = predicate.test(e))) {
-                if(!b[0])
+            PredicateSink<T> sink = new PredicateSink<>(predicate);
+            while (spltr.tryAdvance(sink)) {
+                if (!sink.res)
                     return false;
             }
             return true;
