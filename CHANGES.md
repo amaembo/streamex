@@ -2,6 +2,10 @@
 
 Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 
+### 0.6.2
+
+* [#104] Added: `StreamEx.ofReversed()`.
+
 ### 0.6.1
 
 * [#90] Changed: `AbstractStreamEx` class (which shares common functionality of `StreamEx` and `EntryStream`) is public now.

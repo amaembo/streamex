@@ -1840,6 +1840,35 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
+     * Returns a sequential {@code StreamEx} which elements are elements of
+     * given list in descending order.
+     * 
+     * <p>
+     * The list elements are accessed using {@link List#get(int)}, so the list
+     * should provide fast random access. The list is assumed to be unmodifiable
+     * during the stream operations.
+     *
+     * @param list list to get the elements from
+     * @return the new stream
+     */
+    public static <T> StreamEx<T> ofReversed(List<? extends T> list) {
+        int size = list.size();
+        return IntStreamEx.ofIndices(list).mapToObj(idx -> list.get(size - idx - 1));
+    }
+
+    /**
+     * Returns a sequential {@code StreamEx} which elements are elements of
+     * given array in descending order.
+     * 
+     * @param array array to get the elements from
+     * @return the new stream
+     */
+    public static <T> StreamEx<T> ofReversed(T[] array) {
+        int size = array.length;
+        return IntStreamEx.ofIndices(array).mapToObj(idx -> array[size - idx - 1]);
+    }
+    
+    /**
      * Returns an {@link StreamEx} object which wraps given {@link Stream}.
      * 
      * <p>

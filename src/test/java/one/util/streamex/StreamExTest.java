@@ -123,6 +123,9 @@ public class StreamExTest {
         assertEquals(asList(), StreamEx.of(asList().iterator()).toList());
         assertEquals(asList(), StreamEx.of(asList().iterator()).parallel().toList());
         assertEquals(asList("a", "b"), StreamEx.of(new Vector<>(asList("a", "b")).elements()).toList());
+        
+        assertEquals(asList("a", "b", "c", "d"), StreamEx.ofReversed(asList("d", "c", "b", "a")).toList());
+        assertEquals(asList("a", "b", "c", "d"), StreamEx.ofReversed(new String[] {"d", "c", "b", "a"}).toList());
     }
 
     @Test
