@@ -103,13 +103,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return new StreamEx<>(spliterator, context);
     }
 
-    private static <T> StreamEx<T> flatTraverse(Stream<T> src, Function<T, Stream<T>> streamProvider) {
-        return StreamEx.of(src).flatMap(t -> {
-            Stream<T> result = streamProvider.apply(t);
-            return result == null ? Stream.of(t) : flatTraverse(result, streamProvider).prepend(t);
-        });
-    }
-
     /**
      * Returns a stream consisting of the elements of this stream which are
      * instances of given class.
@@ -2616,7 +2609,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see #ofTree(Object, Class, Function)
      */
     public static <T> StreamEx<T> ofTree(T root, Function<T, Stream<T>> mapper) {
-        TreeSpliterator<T> spliterator = new TreeSpliterator<>(root, mapper);
+        TreeSpliterator<T, T> spliterator = new TreeSpliterator.Plain<>(root, mapper);
         return new StreamEx<>(spliterator, StreamContext.SEQUENTIAL.onClose(spliterator::close));
     }
 

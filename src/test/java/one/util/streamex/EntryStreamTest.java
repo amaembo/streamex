@@ -31,6 +31,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -575,10 +576,32 @@ public class EntryStreamTest {
         entryStream(base, supplier -> assertEquals("{1=[aa, ggg], 2=[ddd], 3=[bbbb, cc, e, fff]}", supplier.get()
                 .selectValues(String.class).grouping(TreeMap::new).toString()));
 
+        Set<Integer> set = new HashSet<>();
+        try(EntryStream<Integer, String> stream = EntryStream.ofTree("", (Integer depth, String str) -> depth >= 3 ? null : Stream.of("a", "b")
+                .map(str::concat).onClose(() -> set.add(depth)))) {
+            assertEquals(15, stream.count());
+        }
+        assertEquals(StreamEx.of(0, 1, 2).toSet(), set);
+        boolean catched = false;
+        try(EntryStream<Integer, String> stream = EntryStream.ofTree("", (Integer depth, String str) -> depth >= 3 ? null : Stream.of("a", "b")
+                .map(str::concat).onClose(() -> {throw new IllegalArgumentException(String.valueOf(depth));}))) {
+            stream.count();
+        }
+        catch(IllegalArgumentException iae) {
+            catched = true;
+            assertEquals("2", iae.getMessage());
+            assertEquals(2, iae.getSuppressed().length);
+            assertEquals("1", iae.getSuppressed()[0].getMessage());
+            assertEquals("0", iae.getSuppressed()[1].getMessage());
+        }
+        assertTrue(catched);
+        
         entryStream(() -> EntryStream.ofTree("", (Integer depth, String str) -> depth >= 3 ? null : Stream.of("a", "b")
                 .map(str::concat)), supplier -> {
             assertEquals(asList("", "a", "aa", "aaa", "aab", "ab", "aba", "abb", "b", "ba", "baa", "bab", "bb", "bba",
                 "bbb"), supplier.get().values().toList());
+            assertTrue(supplier.get().values().has("bbb"));
+            assertFalse(supplier.get().values().has("ccc"));
             assertEquals(asList("a", "b", "aa", "ab", "ba", "bb", "aaa", "aab", "aba", "abb", "baa", "bab", "bba",
                 "bbb"), supplier.get().sorted(Entry.comparingByKey()).values().without("").toList());
         });

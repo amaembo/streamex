@@ -15,53 +15,51 @@
  */
 package one.util.streamex;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
+import java.util.List;import java.util.Map.Entry;
 import java.util.Spliterator;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
 import one.util.streamex.StreamExInternals.PairBox;
 
+import static one.util.streamex.StreamExInternals.*;
+
 /**
  * @author Tagir Valeev
  *
  */
-/* package */ class TreeSpliterator<T> implements Spliterator<T>, Consumer<T> {
-    private T cur;
-    private ArrayList<PairBox<Spliterator<T>, Stream<T>>> spliterators; 
-    private final Function<T, Stream<T>> mapper;
+/* package */ abstract class TreeSpliterator<T, U> implements Spliterator<U>, Consumer<T> {
+    T cur;
+    List<PairBox<Spliterator<T>, Stream<T>>> spliterators; 
 
-    TreeSpliterator(T root, Function<T, Stream<T>> mapper) {
+    TreeSpliterator(T root) {
         this.cur = root;
-        this.mapper = mapper;
     }
-
-    @Override
-    public boolean tryAdvance(Consumer<? super T> action) {
+    
+    boolean advance() {
         List<PairBox<Spliterator<T>, Stream<T>>> spltrs = spliterators;
         if(spltrs == null) {
             spliterators = new ArrayList<>();
-            return processOne(action);
+            return true;
         }
-        int lastIdx = spltrs.size()-1;
-        while(lastIdx >= 0) {
+        for(int lastIdx = spltrs.size()-1; lastIdx >= 0; lastIdx--) {
             PairBox<Spliterator<T>, Stream<T>> pair = spltrs.get(lastIdx);
             Spliterator<T> spltr = pair.a;
             if(spltr.tryAdvance(this)) {
-                return processOne(action);
+                return true;
             }
             pair.b.close();
-            spltrs.remove(lastIdx--);
+            spltrs.remove(lastIdx);
         }
         return false;
     }
 
-    private boolean processOne(Consumer<? super T> action) {
-        T e = this.cur;
-        action.accept(e);
-        Stream<T> stream = mapper.apply(e);
+    boolean append(Stream<T> stream) {
         if(stream != null) {
             spliterators.add(new PairBox<>(stream.spliterator(), stream));
         }
@@ -69,41 +67,11 @@ import one.util.streamex.StreamExInternals.PairBox;
     }
 
     @Override
-    public Spliterator<T> trySplit() {
-        // TODO Auto-generated method stub
+    public Spliterator<U> trySplit() {
+        // TODO Support parallelization (at least for one level)
         return null;
     }
     
-    static class Acceptor<T> implements Consumer<T> {
-        private final Consumer<? super T> action;
-        private final Function<T, Stream<T>> mapper;
-        
-        public Acceptor(Consumer<? super T> action, Function<T, Stream<T>> mapper) {
-            super();
-            this.action = action;
-            this.mapper = mapper;
-        }
-
-        @Override
-        public void accept(T t) {
-            action.accept(t);
-            try(Stream<T> stream = mapper.apply(t)) {
-                if(stream != null) {
-                    stream.spliterator().forEachRemaining(this);
-                }
-            }
-        }
-    }
-    
-    @Override
-    public void forEachRemaining(Consumer<? super T> action) {
-        if(spliterators != null) {
-            Spliterator.super.forEachRemaining(action);
-        } else {
-            new Acceptor<>(action, mapper).accept(cur);
-        }
-    }
-
     @Override
     public long estimateSize() {
         return Long.MAX_VALUE;
@@ -136,6 +104,106 @@ import one.util.streamex.StreamExInternals.PairBox;
                 throw (RuntimeException)t;
             if(t instanceof Error)
                 throw (Error)t;
+        }
+    }
+    
+    static class Acceptor<T> implements Consumer<T> {
+        private final Consumer<? super T> action;
+        private final Function<T, Stream<T>> mapper;
+        
+        public Acceptor(Consumer<? super T> action, Function<T, Stream<T>> mapper) {
+            this.action = action;
+            this.mapper = mapper;
+        }
+    
+        @Override
+        public void accept(T t) {
+            action.accept(t);
+            try(Stream<T> stream = mapper.apply(t)) {
+                if(stream != null) {
+                    stream.spliterator().forEachRemaining(this);
+                }
+            }
+        }
+    }
+
+    static class Plain<T> extends TreeSpliterator<T, T> {
+        private final Function<T, Stream<T>> mapper;
+
+        Plain(T root, Function<T, Stream<T>> mapper) {
+            super(root);
+            this.mapper = mapper;
+        }
+
+        @Override
+        public boolean tryAdvance(Consumer<? super T> action) {
+            if(!advance())
+                return false;
+            T e = this.cur;
+            action.accept(e);
+            return append(mapper.apply(e));
+        }
+    
+        @Override
+        public void forEachRemaining(Consumer<? super T> action) {
+            if(spliterators != null) {
+                super.forEachRemaining(action);
+            } else {
+                spliterators = Collections.emptyList();
+                new Acceptor<>(action, mapper).accept(cur);
+            }
+        }
+    }
+    
+    static class DepthAcceptor<T> implements Consumer<T> {
+        private final Consumer<? super Entry<Integer, T>> action;
+        private final BiFunction<Integer, T, Stream<T>> mapper;
+        private Integer depth = 0;
+        
+        public DepthAcceptor(Consumer<? super Entry<Integer, T>> action, BiFunction<Integer, T, Stream<T>> mapper) {
+            this.action = action;
+            this.mapper = mapper;
+        }
+    
+        @Override
+        public void accept(T t) {
+            action.accept(new AbstractMap.SimpleImmutableEntry<>(depth, t));
+            try(Stream<T> stream = mapper.apply(depth, t)) {
+                if(stream != null) {
+                    depth++;
+                    stream.spliterator().forEachRemaining(this);
+                    depth--;
+                }
+            }
+        }
+    }
+
+    static class Depth<T> extends TreeSpliterator<T, Entry<Integer, T>> {
+        private final BiFunction<Integer, T, Stream<T>> mapper;
+
+        Depth(T root, BiFunction<Integer, T, Stream<T>> mapper) {
+            super(root);
+            this.mapper = mapper;
+        }
+
+        @Override
+        public boolean tryAdvance(Consumer<? super Entry<Integer, T>> action) {
+            if(!advance())
+                return false;
+            T e = this.cur;
+            int depth = spliterators.size();
+            action.accept(new ObjIntBox<>(e, depth));
+            return append(mapper.apply(depth, e));
+        }
+
+        @Override
+        public void forEachRemaining(Consumer<? super Entry<Integer, T>> action) {
+            if(spliterators != null) {
+                super.forEachRemaining(action);
+            } else {
+                spliterators = Collections.emptyList();
+                new DepthAcceptor<>(action, mapper).accept(cur);
+            }
         }
     }
 }

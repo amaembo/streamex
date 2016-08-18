@@ -972,6 +972,8 @@ public class StreamExTest {
             assertEquals(Optional.empty(), s.get().findFirst(tn -> tn.title.contains("C1")).map(tn -> tn.title));
         });
         
+        r.flatStream().close(); // should not fail
+        
         List<Consumer<StreamEx<TreeNode>>> tests = Arrays.<Consumer<StreamEx<TreeNode>>>asList(
             stream -> assertEquals(Optional.empty(), stream.findFirst(tn -> tn.title.contains("abc"))),
             stream -> assertEquals(Optional.of("grandB1"), stream.findFirst(tn -> tn.title.contains("B1")).map(tn -> tn.title)),
@@ -1018,7 +1020,7 @@ public class StreamExTest {
             }
             assertTrue(catched);
         }
-
+        
         streamEx(() -> StreamEx.ofTree("", (String str) -> str.length() >= 3 ? null : Stream.of("a", "b").map(
             str::concat)), supplier -> {
             assertEquals(Arrays.asList("", "a", "aa", "aaa", "aab", "ab", "aba", "abb", "b", "ba", "baa", "bab", "bb",

@@ -1800,16 +1800,6 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return ofPairs(Arrays.asList(array));
     }
 
-    static <T> Stream<Entry<Integer, T>> flatTraverse(Stream<Entry<Integer, T>> src,
-            BiFunction<Integer, T, Stream<T>> streamProvider) {
-        return src.flatMap(entry -> {
-            Integer depth = entry.getKey();
-            Stream<T> result = streamProvider.apply(depth, entry.getValue());
-            return result == null ? Stream.of(entry) : Stream.concat(Stream.of(entry), flatTraverse(result
-                    .map(t -> new ObjIntBox<>(t, depth + 1)), streamProvider));
-        });
-    }
-
     /**
      * Return a new {@link EntryStream} containing all the nodes of tree-like
      * data structure in entry values along with the corresponding tree depths
@@ -1831,10 +1821,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @see #ofTree(Object, Class, BiFunction)
      */
     public static <T> EntryStream<Integer, T> ofTree(T root, BiFunction<Integer, T, Stream<T>> mapper) {
-        Stream<T> rootStream = mapper.apply(0, root);
-        Stream<Entry<Integer, T>> base = Stream.of(new ObjIntBox<>(root, 0));
-        return rootStream == null ? of(base) : of(flatTraverse(rootStream.map(t -> new ObjIntBox<>(t, 1)), mapper))
-                .prepend(base);
+        TreeSpliterator<T, Entry<Integer, T>> spliterator = new TreeSpliterator.Depth<>(root, mapper);
+        return new EntryStream<>(spliterator, StreamContext.SEQUENTIAL.onClose(spliterator::close));
     }
 
     /**
