@@ -53,7 +53,7 @@ public class CharSpliteratorTest {
             String[] inputs = { ",", "abcd,e,f,gh,,,i,j,kl,,,,,,", ",", "abcdasdfgsdfgsdfgsdfgsdfgsdgdfsgs",
                     "abcdasdfgsdfgsdfgsdfgsdfgsdgdfsgs,", "abcdasdfgs,dfgsdfgsdfgsdfgsdgdfsgs",
                     "abcd,e,f,gh,,,i,j,kl,,,,,,x", "abcd,e,f,gh,,,i,j,kl,,,,,,x,",
-                    IntStreamEx.of(r, 0, 3).limit(r.nextInt(1000)).elements(new int[] { ',', 'a', 'b' }).charsToString() };
+                    IntStreamEx.of(r, 0, 3).limit(r.nextInt(1000)+1).elements(new int[] { ',', 'a', 'b' }).charsToString() };
             for (String input : inputs) {
                 checkSpliterator(input, Arrays.asList(input.split(",")), () -> new CharSpliterator(input, ',', true));
                 checkSpliterator(input, Arrays.asList(input.split(",", -1)), () -> new CharSpliterator(input, ',', false));
