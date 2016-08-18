@@ -55,6 +55,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BinaryOperator;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntPredicate;
 import java.util.function.Predicate;
@@ -68,6 +69,7 @@ import java.util.stream.Stream;
 import one.util.streamex.IntStreamEx;
 import one.util.streamex.MoreCollectors;
 import one.util.streamex.StreamEx;
+
 import org.junit.FixMethodOrder;
 import org.junit.Rule;
 import org.junit.Test;
@@ -963,8 +965,59 @@ public class StreamExTest {
         r.add(new CompositeNode("childA").add(new TreeNode("grandA1")).add(new TreeNode("grandA2")));
         r.add(new CompositeNode("childB").add(new TreeNode("grandB1")));
         r.add(new TreeNode("childC"));
-        assertEquals("root,childA,grandA1,grandA2,childB,grandB1,childC", r.flatStream().joining(","));
-        assertEquals("root,childA,grandA1,grandA2,childB,grandB1,childC", r.flatStream().parallel().joining(","));
+        
+        streamEx(r::flatStream, s -> {
+            assertEquals("root,childA,grandA1,grandA2,childB,grandB1,childC", s.get().joining(","));
+            assertEquals(Optional.of("grandB1"), s.get().findFirst(tn -> tn.title.contains("B1")).map(tn -> tn.title));
+            assertEquals(Optional.empty(), s.get().findFirst(tn -> tn.title.contains("C1")).map(tn -> tn.title));
+        });
+        
+        List<Consumer<StreamEx<TreeNode>>> tests = Arrays.<Consumer<StreamEx<TreeNode>>>asList(
+            stream -> assertEquals(Optional.empty(), stream.findFirst(tn -> tn.title.contains("abc"))),
+            stream -> assertEquals(Optional.of("grandB1"), stream.findFirst(tn -> tn.title.contains("B1")).map(tn -> tn.title)),
+            stream -> assertEquals(7, stream.count())
+            );
+        for(Consumer<StreamEx<TreeNode>> test : tests) {
+            Set<String> set = new HashSet<>();
+            try(StreamEx<TreeNode> closableTree = StreamEx.ofTree(r, CompositeNode.class, cn -> cn.elements().onClose(
+                () -> set.add(cn.title)))) {
+                test.accept(closableTree);
+            }
+            assertEquals(set, StreamEx.of("root", "childA", "childB").toSet());
+            boolean catched = false;
+            try (StreamEx<TreeNode> closableTree = StreamEx.ofTree(r, CompositeNode.class, cn -> cn.elements().onClose(
+                () -> {
+                    if (!cn.title.equals("childA"))
+                        throw new IllegalArgumentException(cn.title);
+                }))) {
+                test.accept(closableTree);
+            }
+            catch(IllegalArgumentException ex) {
+                catched = true;
+                assertEquals("childB", ex.getMessage());
+                assertEquals(1, ex.getSuppressed().length);
+                assertTrue(ex.getSuppressed()[0] instanceof IllegalArgumentException);
+                assertEquals("root", ex.getSuppressed()[0].getMessage());
+            }
+            assertTrue(catched);
+
+            catched = false;
+            try (StreamEx<TreeNode> closableTree = StreamEx.ofTree(r, CompositeNode.class, cn -> cn.elements().onClose(
+                () -> {
+                    if (!cn.title.equals("childA"))
+                        throw new InternalError(cn.title);
+                }))) {
+                test.accept(closableTree);
+            }
+            catch(InternalError ex) {
+                catched = true;
+                assertEquals("childB", ex.getMessage());
+                assertEquals(1, ex.getSuppressed().length);
+                assertTrue(ex.getSuppressed()[0] instanceof InternalError);
+                assertEquals("root", ex.getSuppressed()[0].getMessage());
+            }
+            assertTrue(catched);
+        }
 
         streamEx(() -> StreamEx.ofTree("", (String str) -> str.length() >= 3 ? null : Stream.of("a", "b").map(
             str::concat)), supplier -> {

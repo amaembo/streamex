@@ -2616,8 +2616,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see #ofTree(Object, Class, Function)
      */
     public static <T> StreamEx<T> ofTree(T root, Function<T, Stream<T>> mapper) {
-        Stream<T> rootStream = mapper.apply(root);
-        return rootStream == null ? of(root) : flatTraverse(rootStream, mapper).prepend(root);
+        TreeSpliterator<T> spliterator = new TreeSpliterator<>(root, mapper);
+        return new StreamEx<>(spliterator, StreamContext.SEQUENTIAL.onClose(spliterator::close));
     }
 
     /**
