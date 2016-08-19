@@ -4,6 +4,7 @@ Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 
 ### 0.6.2
 
+* [#17] Optimized: `StreamEx.ofTree`, `EntryStream.ofTree`.
 * [#104] Added: `StreamEx.ofReversed()`.
 * [#105] Added: `MoreCollectors.minMax()`.
 

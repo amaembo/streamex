@@ -1046,8 +1046,8 @@ public class StreamExTest {
                 () -> {
                     if (!cn.title.equals("childA"))
                         throw new InternalError(cn.title);
-                })).parallel()) {
-                test.accept(closableTree);
+                }))) {
+                test.accept(closableTree.parallel());
             }
             catch(InternalError ex) {
                 catched = true;
