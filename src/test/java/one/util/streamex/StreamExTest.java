@@ -949,6 +949,14 @@ public class StreamExTest {
         public Stream<TreeNode> elements() {
             return nodes.stream();
         }
+        
+        static CompositeNode createTestData() {
+            CompositeNode r = new CompositeNode("root");
+            r.add(new CompositeNode("childA").add(new TreeNode("grandA1")).add(new TreeNode("grandA2")));
+            r.add(new CompositeNode("childB").add(new TreeNode("grandB1")));
+            r.add(new TreeNode("childC"));
+            return r;
+        }
     }
 
     @Test
@@ -961,16 +969,29 @@ public class StreamExTest {
         assertEquals("aa,bbbb,cc,ddd,e,fff,ggg", ofTree.select(String.class).joining(","));
         assertEquals(14, StreamEx.ofTree(input, List.class, List::stream).select(List.class).mapToInt(List::size).sum());
 
-        CompositeNode r = new CompositeNode("root");
-        r.add(new CompositeNode("childA").add(new TreeNode("grandA1")).add(new TreeNode("grandA2")));
-        r.add(new CompositeNode("childB").add(new TreeNode("grandB1")));
-        r.add(new TreeNode("childC"));
+        CompositeNode r = CompositeNode.createTestData();
         
         streamEx(r::flatStream, s -> {
             assertEquals("root,childA,grandA1,grandA2,childB,grandB1,childC", s.get().joining(","));
             assertEquals(Optional.of("grandB1"), s.get().findFirst(tn -> tn.title.contains("B1")).map(tn -> tn.title));
             assertEquals(Optional.empty(), s.get().findFirst(tn -> tn.title.contains("C1")).map(tn -> tn.title));
         });
+        
+        streamEx(() -> StreamEx.ofTree("", (String str) -> str.length() >= 3 ? null : Stream.of("a", "b").map(
+            str::concat)), supplier -> {
+            assertEquals(Arrays.asList("", "a", "aa", "aaa", "aab", "ab", "aba", "abb", "b", "ba", "baa", "bab", "bb",
+                "bba", "bbb"), supplier.get().toList());
+            assertEquals(Arrays.asList("a", "b", "aa", "ab", "ba", "bb", "aaa", "aab", "aba", "abb", "baa", "bab",
+                "bba", "bbb"), supplier.get().sortedByInt(String::length).without("").toList());
+        });
+        
+        assertEquals(1000001, StreamEx.ofTree("x",
+            s -> s.equals("x") ? IntStreamEx.range(1000000).mapToObj(String::valueOf) : null).parallel().count());
+    }
+
+    @Test
+    public void testOfTreeClose() {
+        CompositeNode r = CompositeNode.createTestData();
         
         r.flatStream().close(); // should not fail
         
@@ -1019,17 +1040,26 @@ public class StreamExTest {
                 assertEquals("root", ex.getSuppressed()[0].getMessage());
             }
             assertTrue(catched);
-        }
-        
-        streamEx(() -> StreamEx.ofTree("", (String str) -> str.length() >= 3 ? null : Stream.of("a", "b").map(
-            str::concat)), supplier -> {
-            assertEquals(Arrays.asList("", "a", "aa", "aaa", "aab", "ab", "aba", "abb", "b", "ba", "baa", "bab", "bb",
-                "bba", "bbb"), supplier.get().toList());
-            assertEquals(Arrays.asList("a", "b", "aa", "ab", "ba", "bb", "aaa", "aab", "aba", "abb", "baa", "bab",
-                "bba", "bbb"), supplier.get().sortedByInt(String::length).without("").toList());
-        });
-    }
 
+            catched = false;
+            try (StreamEx<TreeNode> closableTree = StreamEx.ofTree(r, CompositeNode.class, cn -> cn.elements().onClose(
+                () -> {
+                    if (!cn.title.equals("childA"))
+                        throw new InternalError(cn.title);
+                })).parallel()) {
+                test.accept(closableTree);
+            }
+            catch(InternalError ex) {
+                catched = true;
+                assertEquals(1, ex.getSuppressed().length);
+                assertTrue(ex.getSuppressed()[0] instanceof InternalError);
+                assertEquals(StreamEx.of("childB", "root").toSet(), StreamEx.of(ex.getMessage(),
+                    ex.getSuppressed()[0].getMessage()).toSet());
+            }
+            assertTrue(catched);
+        }
+    }
+    
     @Test
     public void testCross() {
         assertEquals("a-1, a-2, a-3, b-1, b-2, b-3, c-1, c-2, c-3", StreamEx.of("a", "b", "c").cross(1, 2, 3).join("-")

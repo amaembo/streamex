@@ -35,6 +35,8 @@ import static one.util.streamex.StreamExInternals.*;
 /* package */ abstract class TreeSpliterator<T, U> extends CloneableSpliterator<U, TreeSpliterator<T, U>> implements Consumer<T> {
     T cur;
     List<PairBox<Spliterator<T>, Stream<T>>> spliterators;
+    Runnable closeHandler = null;
+    long size = Long.MAX_VALUE;
 
     TreeSpliterator(T root) {
         this.cur = root;
@@ -75,8 +77,10 @@ import static one.util.streamex.StreamExInternals.*;
         if(spliterators == null) {
             spliterators = new ArrayList<>();
             Stream<T> stream = getStart();
-            if(stream != null)
-                spliterators.add(new PairBox<>(stream.spliterator(), stream));
+            if(stream != null) {
+                spliterators.add(new PairBox<>(stream.parallel().spliterator(), null));
+                closeHandler = stream::close;
+            }
             return new ConstSpliterator.OfRef<>(getStartElement(), 1, true);
         }
         int size = spliterators.size();
@@ -87,14 +91,17 @@ import static one.util.streamex.StreamExInternals.*;
         if(prefix == null)
             return null;
         TreeSpliterator<T, U> clone = doClone();
+        clone.size /= 2;
+        this.size -= clone.size;
         clone.spliterators = new ArrayList<>();
         clone.spliterators.add(new PairBox<>(prefix, null));
+        closeHandler = StreamContext.compose(closeHandler, clone::close);
         return clone;
     }
     
     @Override
     public long estimateSize() {
-        return Long.MAX_VALUE;
+        return size;
     }
 
     @Override
@@ -112,7 +119,19 @@ import static one.util.streamex.StreamExInternals.*;
             Throwable t = null;
             for(int i=spliterators.size()-1; i>=0; i--) {
                 try {
-                    spliterators.get(i).b.close();
+                    Stream<T> stream = spliterators.get(i).b;
+                    if(stream != null)
+                        stream.close();
+                } catch (Error | RuntimeException e) {
+                    if(t == null)
+                        t = e;
+                    else
+                        t.addSuppressed(e);
+                }
+            }
+            if(closeHandler != null) {
+                try {
+                    closeHandler.run();
                 } catch (Error | RuntimeException e) {
                     if(t == null)
                         t = e;

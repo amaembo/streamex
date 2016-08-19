@@ -87,10 +87,7 @@ import static one.util.streamex.StreamExInternals.*;
 
     StreamContext onClose(Runnable r) {
         StreamContext context = detach();
-        if (context.closeHandler == null)
-            context.closeHandler = r;
-        else
-            context.closeHandler = compose(context.closeHandler, r);
+        context.closeHandler = compose(context.closeHandler, r);
         return context;
     }
 
@@ -102,7 +99,9 @@ import static one.util.streamex.StreamExInternals.*;
         }
     }
 
-    private static Runnable compose(Runnable r1, Runnable r2) {
+    static Runnable compose(Runnable r1, Runnable r2) {
+        if(r1 == null)
+            return r2;
         return () -> {
             try {
                 r1.run();
