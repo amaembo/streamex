@@ -1362,13 +1362,12 @@ public class StreamExTest {
 
     @Test
     public void testSegmentLength() {
-        withRandom(r -> {
-            int[] input = IntStreamEx.of(r, 1000, -10, 100).toArray();
+        Consumer<int[]> test = input -> {
             // get maximal count of consecutive positive numbers
             long res = segmentLength(IntStreamEx.of(input), x -> x > 0);
             long resParallel = segmentLength(IntStreamEx.of(input).parallel(), x -> x > 0);
             long expected = 0;
-            long cur = 0;
+            long cur = input[0] > 0 ? 1 : 0;
             for (int i = 0; i < input.length - 1; i++) {
                 if (input[i] > 0 && input[i + 1] > 0)
                     cur++;
@@ -1378,9 +1377,14 @@ public class StreamExTest {
                     cur = 1;
                 }
             }
+            if(cur > expected)
+                expected = cur;
             assertEquals(expected, res);
             assertEquals(expected, resParallel);
-        });
+        };
+        withRandom(r -> repeat(100, n -> test.accept(IntStreamEx.of(r, 1000, -10, 100).toArray())));
+        test.accept(new int[] { 1, 2, 3, -1 });
+        test.accept(new int[] { -1, 1, 2, -1, 1, 2, 3 });
     }
 
     private static final class SeqList extends AbstractList<Integer> {
