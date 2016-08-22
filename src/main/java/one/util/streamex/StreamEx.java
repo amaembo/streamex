@@ -2598,6 +2598,14 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * Return a new {@link StreamEx} containing all the nodes of tree-like data
      * structure in depth-first order.
      * 
+     * <p>
+     * The streams created by mapper may be automatically
+     * {@link java.util.stream.BaseStream#close() closed} after its contents
+     * already consumed and unnecessary anymore. It's not guaranteed that all
+     * created streams will be closed during the stream terminal operation. If
+     * it's necessary to close all the created streams, call the {@code close()}
+     * method of the resulting stream returned by {@code ofTree()}.
+     * 
      * @param <T> the type of tree nodes
      * @param root root node of the tree
      * @param mapper a non-interfering, stateless function to apply to each tree
@@ -2616,6 +2624,14 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     /**
      * Return a new {@link StreamEx} containing all the nodes of tree-like data
      * structure in depth-first order.
+     * 
+     * <p>
+     * The streams created by mapper may be automatically
+     * {@link java.util.stream.BaseStream#close() closed} after its contents
+     * already consumed and unnecessary anymore. It's not guaranteed that all
+     * created streams will be closed during the stream terminal operation. If
+     * it's necessary to close all the created streams, call the {@code close()}
+     * method of the resulting stream returned by {@code ofTree()}.
      * 
      * @param <T> the base type of tree nodes
      * @param <TT> the sub-type of composite tree nodes which may have children
