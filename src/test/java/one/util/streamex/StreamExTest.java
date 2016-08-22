@@ -964,10 +964,12 @@ public class StreamExTest {
         String inputSimple = "bbb";
         List<Object> input = asList("aa", null, asList(asList("bbbb", "cc", null, asList()), "ddd", asList("e"),
             asList("fff")), "ggg");
-        assertEquals("bbb", StreamEx.ofTree(inputSimple, List.class, List::stream).select(String.class).joining(","));
-        StreamEx<Object> ofTree = StreamEx.ofTree(input, List.class, List::stream);
+        @SuppressWarnings("unchecked")
+        Function<Object, Stream<Object>> generator = o -> o instanceof List ? ((List<Object>) o).stream() : null;
+        assertEquals("bbb", StreamEx.ofTree(inputSimple, generator).select(String.class).joining(","));
+        StreamEx<Object> ofTree = StreamEx.ofTree(input, generator);
         assertEquals("aa,bbbb,cc,ddd,e,fff,ggg", ofTree.select(String.class).joining(","));
-        assertEquals(14, StreamEx.ofTree(input, List.class, List::stream).select(List.class).mapToInt(List::size).sum());
+        assertEquals(14, StreamEx.ofTree(input, generator).select(List.class).mapToInt(List::size).sum());
 
         CompositeNode r = CompositeNode.createTestData();
         
