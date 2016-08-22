@@ -1055,8 +1055,10 @@ public class StreamExTest {
                 catched = true;
                 assertEquals(1, ex.getSuppressed().length);
                 assertTrue(ex.getSuppressed()[0] instanceof InternalError);
-                assertEquals(StreamEx.of("childB", "root").toSet(), StreamEx.of(ex.getMessage(),
-                    ex.getSuppressed()[0].getMessage()).toSet());
+                Set<String> msgSet = StreamEx.of(ex.getMessage(),
+                    ex.getSuppressed()[0].getMessage()).toSet();
+                assertTrue(msgSet.contains("root"));
+                assertTrue(msgSet.contains("childB") || msgSet.contains("java.lang.InternalError: childB"));
             }
             assertTrue(catched);
         }
