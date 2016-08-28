@@ -18,6 +18,7 @@ package one.util.streamex;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.nio.Buffer;
 import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -2110,6 +2111,27 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      */
     public static IntStreamEx of(Integer[] array) {
         return seq(Arrays.stream(array).mapToInt(Integer::intValue));
+    }
+    
+    /**
+     * Returns a sequential ordered {@code IntStreamEx} whose elements are the
+     * values in the supplied {@link java.nio.IntBuffer}.
+     * 
+     * <p>
+     * The resulting stream covers only a portion of {@code IntBuffer} content
+     * which starts with {@linkplain Buffer#position() position} (inclusive) and
+     * ends with {@linkplain Buffer#limit() limit} (exclusive). Changes in position
+     * and limit after the stream creation don't affect the stream.
+     * 
+     * <p>
+     * The resulting stream does not change the internal {@code IntBuffer} state.
+     * 
+     * @param buf
+     * @return the new stream
+     * @since 0.6.2
+     */
+    public static IntStreamEx of(java.nio.IntBuffer buf) {
+        return range(buf.position(), buf.limit()).map(buf::get);
     }
 
     /**

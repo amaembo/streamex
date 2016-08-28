@@ -15,6 +15,7 @@
  */
 package one.util.streamex;
 
+import java.nio.Buffer;
 import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Collection;
@@ -1731,6 +1732,27 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      */
     public static LongStreamEx of(Long[] array) {
         return seq(Arrays.stream(array).mapToLong(Long::longValue));
+    }
+
+    /**
+     * Returns a sequential ordered {@code LongStreamEx} whose elements are the
+     * values in the supplied {@link java.nio.LongBuffer}.
+     * 
+     * <p>
+     * The resulting stream covers only a portion of {@code LongBuffer} content
+     * which starts with {@linkplain Buffer#position() position} (inclusive) and
+     * ends with {@linkplain Buffer#limit() limit} (exclusive). Changes in position
+     * and limit after the stream creation don't affect the stream.
+     * 
+     * <p>
+     * The resulting stream does not change the internal {@code LongBuffer} state.
+     * 
+     * @param buf
+     * @return the new stream
+     * @since 0.6.2
+     */
+    public static LongStreamEx of(java.nio.LongBuffer buf) {
+        return IntStreamEx.range(buf.position(), buf.limit()).mapToLong(buf::get);
     }
 
     /**

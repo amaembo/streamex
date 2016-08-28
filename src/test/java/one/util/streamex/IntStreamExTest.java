@@ -18,6 +18,7 @@ package one.util.streamex;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -112,6 +113,16 @@ public class IntStreamExTest {
         assertArrayEquals(new int[] { 1, 3, 5 }, IntStreamEx.of(bs).toArray());
 
         assertArrayEquals(new int[] { 2, 4, 6 }, IntStreamEx.of(new Integer[] { 2, 4, 6 }).toArray());
+    }
+    
+    @Test
+    public void testOfIntBuffer() {
+        int[] data = IntStreamEx.range(100).toArray();
+        assertArrayEquals(data, IntStreamEx.of(IntBuffer.wrap(data)).toArray());
+        assertArrayEquals(IntStreamEx.range(50, 70).toArray(), IntStreamEx.of(IntBuffer.wrap(data, 50, 20)).toArray());
+        assertArrayEquals(data, IntStreamEx.of(IntBuffer.wrap(data)).parallel().toArray());
+        assertArrayEquals(IntStreamEx.range(50, 70).toArray(), IntStreamEx.of(IntBuffer.wrap(data, 50, 20)).parallel()
+                .toArray());
     }
     
     @Test

@@ -15,6 +15,7 @@
  */
 package one.util.streamex;
 
+import java.nio.Buffer;
 import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Collection;
@@ -1671,6 +1672,27 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      */
     public static DoubleStreamEx of(Double[] array) {
         return seq(Arrays.stream(array).mapToDouble(Double::doubleValue));
+    }
+
+    /**
+     * Returns a sequential ordered {@code DoubleStreamEx} whose elements are the
+     * values in the supplied {@link java.nio.DoubleBuffer}.
+     * 
+     * <p>
+     * The resulting stream covers only a portion of {@code DoubleBuffer} content
+     * which starts with {@linkplain Buffer#position() position} (inclusive) and
+     * ends with {@linkplain Buffer#limit() limit} (exclusive). Changes in position
+     * and limit after the stream creation don't affect the stream.
+     * 
+     * <p>
+     * The resulting stream does not change the internal {@code DoubleBuffer} state.
+     * 
+     * @param buf
+     * @return the new stream
+     * @since 0.6.2
+     */
+    public static DoubleStreamEx of(java.nio.DoubleBuffer buf) {
+        return IntStreamEx.range(buf.position(), buf.limit()).mapToDouble(buf::get);
     }
 
     /**

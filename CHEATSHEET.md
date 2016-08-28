@@ -71,6 +71,9 @@ Stream of `CharSequence` symbols | `IntStreamEx.ofChars()/ofCodePoints()`
 Stream of `BitSet` true bits | `IntStreamEx.of(BitSet)`
 Stream of lines from file or `Reader` | `StreamEx.ofLines()`
 Stream of bytes from the `InputStream` | `IntStreamEx.of(InputStream)`
+Stream of ints from the `IntBuffer` | `IntStreamEx.of(IntBuffer)`
+Stream of longs from the `LongBuffer` | `LongStreamEx.of(LongBuffer)`
+Stream of doubles from the `DoubleBuffer` | `DoubleStreamEx.of(DoubleBuffer)`
 
 ## New intermediate operations
 

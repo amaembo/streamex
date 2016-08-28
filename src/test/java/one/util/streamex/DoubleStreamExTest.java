@@ -15,6 +15,7 @@
  */
 package one.util.streamex;
 
+import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -91,6 +92,17 @@ public class DoubleStreamExTest {
         assertArrayEquals(new double[] { 2, 4, 6 }, DoubleStreamEx.of(new Double[] { 2.0, 4.0, 6.0 }).toArray(), 0.0);
     }
 
+    @Test
+    public void testOfDoubleBuffer() {
+        double[] data = LongStreamEx.range(100).asDoubleStream().toArray();
+        assertArrayEquals(data, DoubleStreamEx.of(DoubleBuffer.wrap(data)).toArray(), 0.0);
+        assertArrayEquals(LongStreamEx.range(50, 70).asDoubleStream().toArray(), DoubleStreamEx.of(DoubleBuffer.wrap(
+            data, 50, 20)).toArray(), 0.0);
+        assertArrayEquals(data, DoubleStreamEx.of(DoubleBuffer.wrap(data)).parallel().toArray(), 0.0);
+        assertArrayEquals(LongStreamEx.range(50, 70).asDoubleStream().toArray(), DoubleStreamEx.of(DoubleBuffer.wrap(
+            data, 50, 20)).parallel().toArray(), 0.0);
+    }
+    
     @Test
     public void testIterate() {
         assertArrayEquals(new double[] { 1, 2, 4, 8, 16 }, DoubleStreamEx.iterate(1, x -> x * 2).limit(5).toArray(),

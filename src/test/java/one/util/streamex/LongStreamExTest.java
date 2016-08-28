@@ -15,6 +15,7 @@
  */
 package one.util.streamex;
 
+import java.nio.LongBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -92,6 +93,16 @@ public class LongStreamExTest {
                 .parallel().toArray());
 
         assertArrayEquals(new long[] { 2, 4, 6 }, LongStreamEx.of(new Long[] { 2L, 4L, 6L }).toArray());
+    }
+    
+    @Test
+    public void testOfLongBuffer() {
+        long[] data = LongStreamEx.range(100).toArray();
+        assertArrayEquals(data, LongStreamEx.of(LongBuffer.wrap(data)).toArray());
+        assertArrayEquals(LongStreamEx.range(50, 70).toArray(), LongStreamEx.of(LongBuffer.wrap(data, 50, 20)).toArray());
+        assertArrayEquals(data, LongStreamEx.of(LongBuffer.wrap(data)).parallel().toArray());
+        assertArrayEquals(LongStreamEx.range(50, 70).toArray(), LongStreamEx.of(LongBuffer.wrap(data, 50, 20)).parallel()
+                .toArray());
     }
     
     @Test
