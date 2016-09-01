@@ -71,8 +71,8 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
         private long cur;
 
         TDOfLong(Spliterator.OfLong source, boolean drop, boolean inclusive, LongPredicate predicate) {
-            super(source.estimateSize(), source.characteristics()
-                & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL | DISTINCT));
+            super(source.estimateSize(), source.characteristics() & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL
+                | DISTINCT));
             this.drop = drop;
             this.predicate = predicate;
             this.inclusive = inclusive;
@@ -336,15 +336,16 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a>.
      *
-     * @param mapper a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param mapper a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        function to apply to the first element
      * @return the new stream
      * @since 0.4.1
      */
     public LongStreamEx mapFirst(LongUnaryOperator mapper) {
-        return delegate(new PairSpliterator.PSOfLong((a, b) -> b, mapper, spliterator(), PairSpliterator.MODE_MAP_FIRST));
+        return delegate(new PairSpliterator.PSOfLong((a, b) -> b, mapper, spliterator(),
+                PairSpliterator.MODE_MAP_FIRST));
     }
 
     /**
@@ -359,15 +360,16 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * The mapper function is called at most once. It could be not called at all
      * if the stream is empty or there is short-circuiting operation downstream.
      *
-     * @param mapper a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param mapper a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        function to apply to the last element
      * @return the new stream
      * @since 0.4.1
      */
     public LongStreamEx mapLast(LongUnaryOperator mapper) {
-        return delegate(new PairSpliterator.PSOfLong((a, b) -> a, mapper, spliterator(), PairSpliterator.MODE_MAP_LAST));
+        return delegate(new PairSpliterator.PSOfLong((a, b) -> a, mapper, spliterator(),
+                PairSpliterator.MODE_MAP_LAST));
     }
 
     @Override
@@ -404,8 +406,8 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      */
     public <K, V> EntryStream<K, V> mapToEntry(LongFunction<? extends K> keyMapper,
             LongFunction<? extends V> valueMapper) {
-        return new EntryStream<>(stream().mapToObj(
-            t -> new AbstractMap.SimpleImmutableEntry<>(keyMapper.apply(t), valueMapper.apply(t))), context);
+        return new EntryStream<>(stream().mapToObj(t -> new AbstractMap.SimpleImmutableEntry<>(keyMapper.apply(t),
+                valueMapper.apply(t))), context);
     }
 
     @Override
@@ -494,9 +496,9 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * This is a <a href="package-summary.html#StreamOps">stateful intermediate
      * operation</a>.
      *
-     * @param comparator a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param comparator a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        {@code Comparator} to be used to compare stream elements
      * @return the new stream
      */
@@ -533,9 +535,9 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * operation</a>.
      *
      * @param <V> the type of the {@code Comparable} sort key
-     * @param keyExtractor a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param keyExtractor a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        function to be used to extract sorting keys
      * @return the new stream
      */
@@ -555,9 +557,9 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * This is a <a href="package-summary.html#StreamOps">stateful intermediate
      * operation</a>.
      *
-     * @param keyExtractor a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param keyExtractor a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        function to be used to extract sorting keys
      * @return the new stream
      */
@@ -577,9 +579,9 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * This is a <a href="package-summary.html#StreamOps">stateful intermediate
      * operation</a>.
      *
-     * @param keyExtractor a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param keyExtractor a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        function to be used to extract sorting keys
      * @return the new stream
      */
@@ -599,9 +601,9 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * This is a <a href="package-summary.html#StreamOps">stateful intermediate
      * operation</a>.
      *
-     * @param keyExtractor a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param keyExtractor a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        function to be used to extract sorting keys
      * @return the new stream
      */
@@ -637,9 +639,10 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * <p>
      * This method exists mainly to support debugging.
      *
-     * @param action a <a href="package-summary.html#NonInterference">
-     *        non-interfering</a> action to perform on the first stream element
-     *        as it is consumed from the stream
+     * @param action a
+     *        <a href="package-summary.html#NonInterference"> non-interfering
+     *        </a> action to perform on the first stream element as it is
+     *        consumed from the stream
      * @return the new stream
      * @since 0.6.0
      */
@@ -673,9 +676,10 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * <p>
      * This method exists mainly to support debugging.
      *
-     * @param action a <a href="package-summary.html#NonInterference">
-     *        non-interfering</a> action to perform on the first stream element
-     *        as it is consumed from the stream
+     * @param action a
+     *        <a href="package-summary.html#NonInterference"> non-interfering
+     *        </a> action to perform on the first stream element as it is
+     *        consumed from the stream
      * @return the new stream
      * @since 0.6.0
      */
@@ -685,7 +689,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
             return x;
         });
     }
-    
+
     @Override
     public LongStreamEx limit(long maxSize) {
         return new LongStreamEx(stream().limit(maxSize), context);
@@ -819,9 +823,9 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * For parallel stream it's not guaranteed that accumulator will always be
      * executed in the same thread.
      *
-     * @param accumulator a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param accumulator a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        function for incorporating an additional element into a result
      * @return the result of the folding
      * @see #foldLeft(long, LongBinaryOperator)
@@ -868,9 +872,9 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * executed in the same thread.
      *
      * @param seed the starting value
-     * @param accumulator a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param accumulator a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        function for incorporating an additional element into a result
      * @return the result of the folding
      * @see #reduce(long, LongBinaryOperator)
@@ -898,9 +902,9 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * This method cannot take all the advantages of parallel streams as it must
      * process elements strictly left to right.
      *
-     * @param accumulator a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param accumulator a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        function for incorporating an additional element into a result
      * @return the array where the first element is the first element of this
      *         stream and every successor element is the result of applying
@@ -914,8 +918,8 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
         Spliterator.OfLong spliterator = spliterator();
         long size = spliterator.getExactSizeIfKnown();
         LongBuffer buf = new LongBuffer(size >= 0 && size <= Integer.MAX_VALUE ? (int) size : INITIAL_SIZE);
-        delegate(spliterator).forEachOrdered(
-            i -> buf.add(buf.size == 0 ? i : accumulator.applyAsLong(buf.data[buf.size - 1], i)));
+        delegate(spliterator).forEachOrdered(i -> buf.add(buf.size == 0 ? i
+                : accumulator.applyAsLong(buf.data[buf.size - 1], i)));
         return buf.toArray();
     }
 
@@ -935,9 +939,9 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * process elements strictly left to right.
      *
      * @param seed the starting value
-     * @param accumulator a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param accumulator a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        function for incorporating an additional element into a result
      * @return the array where the first element is the seed and every successor
      *         element is the result of applying accumulator function to the
@@ -988,8 +992,8 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
     public <A, R> R collect(LongCollector<A, R> collector) {
         if (collector.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH))
             return (R) collect(collector.supplier(), collector.longAccumulator(), collector.merger());
-        return collector.finisher().apply(
-            collect(collector.supplier(), collector.longAccumulator(), collector.merger()));
+        return collector.finisher().apply(collect(collector.supplier(), collector.longAccumulator(), collector
+                .merger()));
     }
 
     @Override
@@ -1306,9 +1310,9 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * <p>
      * This is a short-circuiting terminal operation.
      *
-     * @param predicate a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param predicate a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        predicate which returned value should match
      * @return an {@code OptionalLong} describing the first matching element of
      *         this stream, or an empty {@code OptionalLong} if there's no
@@ -1341,9 +1345,9 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * on the same source may not return the same result. (If a stable result is
      * desired, use {@link #findFirst(LongPredicate)} instead.)
      *
-     * @param predicate a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param predicate a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        predicate which returned value should match
      * @return an {@code OptionalLong} describing some matching element of this
      *         stream, or an empty {@code OptionalLong} if there's no matching
@@ -1382,9 +1386,9 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * <p>
      * This is a short-circuiting terminal operation.
      *
-     * @param predicate a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param predicate a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        predicate which returned value should match
      * @return an {@code OptionalLong} describing the index of the first
      *         matching element of this stream, or an empty {@code OptionalLong}
@@ -1555,8 +1559,8 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * first element which does not match the given predicate is found.
      * 
      * <p>
-     * This is a short-circuiting stateful operation. It can be either <a
-     * href="package-summary.html#StreamOps">intermediate or
+     * This is a short-circuiting stateful operation. It can be either
+     * <a href="package-summary.html#StreamOps">intermediate or
      * quasi-intermediate</a>. When using with JDK 1.9 or higher it calls the
      * corresponding JDK 1.9 implementation. When using with JDK 1.8 it uses own
      * implementation.
@@ -1610,8 +1614,8 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * predicate is true for all stream elements, an empty stream is returned.
      * 
      * <p>
-     * This is a stateful operation. It can be either <a
-     * href="package-summary.html#StreamOps">intermediate or
+     * This is a stateful operation. It can be either
+     * <a href="package-summary.html#StreamOps">intermediate or
      * quasi-intermediate</a>. When using with JDK 1.9 or higher it calls the
      * corresponding JDK 1.9 implementation. When using with JDK 1.8 it uses own
      * implementation.
@@ -1638,8 +1642,9 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * accumulation function going left to right.
      * 
      * <p>
-     * This is a stateful <a
-     * href="package-summary.html#StreamOps">quasi-intermediate</a> operation.
+     * This is a stateful
+     * <a href="package-summary.html#StreamOps">quasi-intermediate</a>
+     * operation.
      *
      * <p>
      * This operation resembles {@link #scanLeft(LongBinaryOperator)}, but
@@ -1652,10 +1657,9 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * removing the ordering constraint with {@link #unordered()} may improve
      * the parallel processing speed.
      *
-     * @param op an <a
-     *        href="package-summary.html#Associativity">associative</a>, <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param op an <a href="package-summary.html#Associativity">associative</a>
+     *        , <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        function for computing the next element based on the previous one
      * @return the new stream.
      * @see #scanLeft(LongBinaryOperator)
@@ -1741,13 +1745,14 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * <p>
      * The resulting stream covers only a portion of {@code LongBuffer} content
      * which starts with {@linkplain Buffer#position() position} (inclusive) and
-     * ends with {@linkplain Buffer#limit() limit} (exclusive). Changes in position
-     * and limit after the stream creation don't affect the stream.
+     * ends with {@linkplain Buffer#limit() limit} (exclusive). Changes in
+     * position and limit after the stream creation don't affect the stream.
      * 
      * <p>
-     * The resulting stream does not change the internal {@code LongBuffer} state.
+     * The resulting stream does not change the internal {@code LongBuffer}
+     * state.
      * 
-     * @param buf
+     * @param buf the {@code LongBuffer} to create a stream from
      * @return the new stream
      * @since 0.6.2
      */
@@ -1769,8 +1774,8 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @since 0.0.8
      */
     public static LongStreamEx of(LongStream stream) {
-        return stream instanceof LongStreamEx ? (LongStreamEx) stream : new LongStreamEx(stream, StreamContext
-                .of(stream));
+        return stream instanceof LongStreamEx ? (LongStreamEx) stream
+                : new LongStreamEx(stream, StreamContext.of(stream));
     }
 
     /**
@@ -2182,7 +2187,8 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @since 0.2.1
      */
     public static LongStreamEx zip(long[] first, long[] second, LongBinaryOperator mapper) {
-        return of(new RangeBasedSpliterator.ZipLong(0, checkLength(first.length, second.length), mapper, first, second));
+        return of(new RangeBasedSpliterator.ZipLong(0, checkLength(first.length, second.length), mapper, first,
+                second));
     }
 
     /**

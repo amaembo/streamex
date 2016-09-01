@@ -78,8 +78,8 @@ public final class MoreCollectors {
     private static <T, U> Collector<T, ?, U> empty(Supplier<U> supplier) {
         return new CancellableCollectorImpl<>(() -> NONE, (acc, t) -> {
             // empty
-            }, selectFirst(), acc -> supplier.get(), acc -> true, EnumSet.of(Characteristics.UNORDERED,
-                Characteristics.CONCURRENT));
+        }, selectFirst(), acc -> supplier.get(), acc -> true, EnumSet.of(Characteristics.UNORDERED,
+            Characteristics.CONCURRENT));
     }
 
     private static <T> Collector<T, ?, List<T>> empty() {
@@ -130,8 +130,8 @@ public final class MoreCollectors {
      * new {@code EnumSet}.
      *
      * <p>
-     * This method returns a <a
-     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * This method returns a
+     * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a>: it may not process all the elements if the resulting set
      * contains all possible enum values.
      * 
@@ -189,13 +189,13 @@ public final class MoreCollectors {
      * @since 0.3.8
      */
     public static <T> Collector<T, ?, List<T>> distinctBy(Function<? super T, ?> mapper) {
-        return Collector.<T, Map<Object, T>, List<T>> of(LinkedHashMap::new, (map, t) -> map.putIfAbsent(mapper
-                .apply(t), t), (m1, m2) -> {
-            for (Entry<Object, T> e : m2.entrySet()) {
-                m1.putIfAbsent(e.getKey(), e.getValue());
-            }
-            return m1;
-        }, map -> new ArrayList<>(map.values()));
+        return Collector.<T, Map<Object, T>, List<T>> of(LinkedHashMap::new, (map, t) -> map.putIfAbsent(mapper.apply(
+            t), t), (m1, m2) -> {
+                for (Entry<Object, T> e : m2.entrySet()) {
+                    m1.putIfAbsent(e.getKey(), e.getValue());
+                }
+                return m1;
+            }, map -> new ArrayList<>(map.values()));
     }
 
     /**
@@ -217,8 +217,8 @@ public final class MoreCollectors {
      * collectors using the supplied finisher function.
      * 
      * <p>
-     * This method returns a <a
-     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * This method returns a
+     * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a> if both downstream collectors are short-circuiting. The
      * collection might stop when both downstream collectors report that the
      * collection is complete.
@@ -288,7 +288,9 @@ public final class MoreCollectors {
      * If there are no input elements, the finisher method is not called and
      * empty {@code Optional} is returned. Otherwise the finisher result is
      * wrapped into {@code Optional}.
-     * 
+     *
+     * @param <T> the type of the input elements
+     * @param <R> the type of the result wrapped into {@code Optional}
      * @param comparator comparator which is used to find minimal and maximal
      *        element
      * @param finisher a {@link BiFunction} which takes minimal and maximal
@@ -297,8 +299,8 @@ public final class MoreCollectors {
      */
     public static <T, R> Collector<T, ?, Optional<R>> minMax(Comparator<? super T> comparator,
             BiFunction<? super T, ? super T, ? extends R> finisher) {
-        return pairing(Collectors.minBy(comparator), Collectors.maxBy(comparator),
-            (min, max) -> min.isPresent() ? Optional.of(finisher.apply(min.get(), max.get())) : Optional.empty());
+        return pairing(Collectors.minBy(comparator), Collectors.maxBy(comparator), (min, max) -> min.isPresent()
+                ? Optional.of(finisher.apply(min.get(), max.get())) : Optional.empty());
     }
 
     /**
@@ -489,8 +491,8 @@ public final class MoreCollectors {
      * contains exactly one element.
      * 
      * <p>
-     * This method returns a <a
-     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * This method returns a
+     * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a>.
      * 
      * @param <T> the type of the input elements
@@ -500,11 +502,10 @@ public final class MoreCollectors {
      * @since 0.4.0
      */
     public static <T> Collector<T, ?, Optional<T>> onlyOne() {
-        return new CancellableCollectorImpl<T, Box<Optional<T>>, Optional<T>>(Box::new,
-                (box, t) -> box.a = box.a == null ? Optional.of(t) : Optional.empty(),
-                (box1, box2) -> box1.a == null ? box2 : box2.a == null ? box1 : new Box<>(Optional.empty()),
-                box -> box.a == null ? Optional.empty() : box.a, box -> box.a != null && !box.a.isPresent(),
-                UNORDERED_CHARACTERISTICS);
+        return new CancellableCollectorImpl<T, Box<Optional<T>>, Optional<T>>(Box::new, (box,
+                t) -> box.a = box.a == null ? Optional.of(t) : Optional.empty(), (box1, box2) -> box1.a == null ? box2
+                        : box2.a == null ? box1 : new Box<>(Optional.empty()), box -> box.a == null ? Optional.empty()
+                                : box.a, box -> box.a != null && !box.a.isPresent(), UNORDERED_CHARACTERISTICS);
     }
 
     /**
@@ -512,8 +513,8 @@ public final class MoreCollectors {
      * if any.
      * 
      * <p>
-     * This method returns a <a
-     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * This method returns a
+     * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a>.
      * 
      * <p>
@@ -552,8 +553,8 @@ public final class MoreCollectors {
      * the first stream elements into the {@link List}.
      *
      * <p>
-     * This method returns a <a
-     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * This method returns a
+     * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a>.
      * 
      * <p>
@@ -853,8 +854,8 @@ public final class MoreCollectors {
      * equivalent to collecting an empty stream with the same collector.
      * 
      * <p>
-     * This method returns a <a
-     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * This method returns a
+     * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a> if the downstream collector is short-circuiting. The
      * collection might stop when for every possible enum key the downstream
      * collection is known to be finished.
@@ -900,8 +901,8 @@ public final class MoreCollectors {
      * to collecting an empty stream with the same collector.
      * 
      * <p>
-     * This method returns a <a
-     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * This method returns a
+     * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a> if the downstream collector is short-circuiting. The
      * collection might stop when for every possible key from the domain the
      * downstream collection is known to be finished.
@@ -945,8 +946,8 @@ public final class MoreCollectors {
      * equivalent to collecting an empty stream with the same collector.
      * 
      * <p>
-     * This method returns a <a
-     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * This method returns a
+     * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a> if the downstream collector is short-circuiting. The
      * collection might stop when for every possible key from the domain the
      * downstream collection is known to be finished.
@@ -1021,8 +1022,8 @@ public final class MoreCollectors {
      * thread-safety of the {@code Set} returned.
      *
      * <p>
-     * This method returns a <a
-     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * This method returns a
+     * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a>: it may not process all the elements if the resulting
      * intersection is empty.
      * 
@@ -1055,8 +1056,8 @@ public final class MoreCollectors {
      * 
      * <p>
      * Unlike {@link Collectors#collectingAndThen(Collector, Function)} this
-     * method returns a <a
-     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * method returns a
+     * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a> if the downstream collector is short-circuiting.
      *
      * @param <T> the type of the input elements
@@ -1077,7 +1078,7 @@ public final class MoreCollectors {
         if (finished != null) {
             return new CancellableCollectorImpl<>(downstream.supplier(), downstream.accumulator(), downstream
                     .combiner(), downstream.finisher().andThen(finisher), finished, downstream.characteristics()
-                    .contains(Characteristics.UNORDERED) ? UNORDERED_CHARACTERISTICS : NO_CHARACTERISTICS);
+                            .contains(Characteristics.UNORDERED) ? UNORDERED_CHARACTERISTICS : NO_CHARACTERISTICS);
         }
         return Collectors.collectingAndThen(downstream, finisher);
     }
@@ -1091,8 +1092,8 @@ public final class MoreCollectors {
      * 
      * <p>
      * Unlike {@link Collectors#partitioningBy(Predicate, Collector)} this
-     * method returns a <a
-     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * method returns a
+     * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a> if the downstream collector is short-circuiting.
      * 
      * @param <T> the type of the input elements
@@ -1111,9 +1112,9 @@ public final class MoreCollectors {
         Predicate<A> finished = finished(downstream);
         if (finished != null) {
             BiConsumer<A, ? super T> accumulator = downstream.accumulator();
-            return BooleanMap.partialCollector(downstream).asCancellable(
-                (map, t) -> accumulator.accept(predicate.test(t) ? map.trueValue : map.falseValue, t),
-                map -> finished.test(map.trueValue) && finished.test(map.falseValue));
+            return BooleanMap.partialCollector(downstream).asCancellable((map, t) -> accumulator.accept(predicate.test(
+                t) ? map.trueValue : map.falseValue, t), map -> finished.test(map.trueValue) && finished.test(
+                    map.falseValue));
         }
         return Collectors.partitioningBy(predicate, downstream);
     }
@@ -1125,8 +1126,8 @@ public final class MoreCollectors {
      *
      * <p>
      * Unlike {@link Collectors#mapping(Function, Collector)} this method
-     * returns a <a
-     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * returns a
+     * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a> if the downstream collector is short-circuiting.
      * 
      * @param <T> the type of the input elements
@@ -1190,9 +1191,9 @@ public final class MoreCollectors {
      * 
      * <p>
      * This method is similar to {@code Collectors.flatMapping} method which
-     * appears in JDK 9. However when downstream collector is <a
-     * href="package-summary.html#ShortCircuitReduction">short-circuiting</a>,
-     * this method will also return a short-circuiting collector.
+     * appears in JDK 9. However when downstream collector is
+     * <a href="package-summary.html#ShortCircuitReduction">short-circuiting</a>
+     * , this method will also return a short-circuiting collector.
      * 
      * @param <T> the type of the input elements
      * @param <U> type of elements accepted by downstream collector
@@ -1207,8 +1208,8 @@ public final class MoreCollectors {
      *         collector
      * @since 0.4.1
      */
-    public static <T, U, A, R> Collector<T, ?, R> flatMapping(
-            Function<? super T, ? extends Stream<? extends U>> mapper, Collector<? super U, A, R> downstream) {
+    public static <T, U, A, R> Collector<T, ?, R> flatMapping(Function<? super T, ? extends Stream<? extends U>> mapper,
+            Collector<? super U, A, R> downstream) {
         BiConsumer<A, ? super U> downstreamAccumulator = downstream.accumulator();
         Predicate<A> finished = finished(downstream);
         if (finished != null) {
@@ -1246,7 +1247,8 @@ public final class MoreCollectors {
      * stream is used, instead.)
      * 
      * <p>
-     * This method behaves like {@code flatMapping(mapper, Collectors.toList())}.
+     * This method behaves like {@code flatMapping(mapper, Collectors.toList())}
+     * .
      * 
      * <p>
      * There are no guarantees on the type, mutability, serializability, or
@@ -1260,7 +1262,8 @@ public final class MoreCollectors {
      *         elements and collects the flat mapped results to the {@code List}
      * @since 0.6.0
      */
-    public static <T, U> Collector<T, ?, List<U>> flatMapping(Function<? super T, ? extends Stream<? extends U>> mapper) {
+    public static <T, U> Collector<T, ?, List<U>> flatMapping(
+            Function<? super T, ? extends Stream<? extends U>> mapper) {
         return flatMapping(mapper, Collectors.toList());
     }
 
@@ -1269,8 +1272,8 @@ public final class MoreCollectors {
      * specified downstream collector which match given predicate.
      *
      * <p>
-     * This method returns a <a
-     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * This method returns a
+     * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a> if downstream collector is short-circuiting.
      * 
      * <p>
@@ -1281,9 +1284,9 @@ public final class MoreCollectors {
      *
      * <p>
      * This method is similar to {@code Collectors.filtering} method which
-     * appears in JDK 9. However when downstream collector is <a
-     * href="package-summary.html#ShortCircuitReduction">short-circuiting</a>,
-     * this method will also return a short-circuiting collector.
+     * appears in JDK 9. However when downstream collector is
+     * <a href="package-summary.html#ShortCircuitReduction">short-circuiting</a>
+     * , this method will also return a short-circuiting collector.
      * 
      * @param <T> the type of the input elements
      * @param <A> intermediate accumulation type of the downstream collector
@@ -1296,7 +1299,8 @@ public final class MoreCollectors {
      * @see #pairing(Collector, Collector, BiFunction)
      * @since 0.4.0
      */
-    public static <T, A, R> Collector<T, ?, R> filtering(Predicate<? super T> predicate, Collector<T, A, R> downstream) {
+    public static <T, A, R> Collector<T, ?, R> filtering(Predicate<? super T> predicate,
+            Collector<T, A, R> downstream) {
         BiConsumer<A, T> downstreamAccumulator = downstream.accumulator();
         BiConsumer<A, T> accumulator = (acc, t) -> {
             if (predicate.test(t))
@@ -1307,8 +1311,8 @@ public final class MoreCollectors {
             return new CancellableCollectorImpl<>(downstream.supplier(), accumulator, downstream.combiner(), downstream
                     .finisher(), finished, downstream.characteristics());
         }
-        return Collector.of(downstream.supplier(), accumulator, downstream.combiner(), downstream.finisher(),
-            downstream.characteristics().toArray(new Characteristics[0]));
+        return Collector.of(downstream.supplier(), accumulator, downstream.combiner(), downstream.finisher(), downstream
+                .characteristics().toArray(new Characteristics[0]));
     }
 
     /**
@@ -1341,8 +1345,8 @@ public final class MoreCollectors {
      * present, the result is empty {@link OptionalInt}.
      *
      * <p>
-     * This method returns a <a
-     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * This method returns a
+     * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a>: it may not process all the elements if the result is zero.
      * 
      * @param <T> the type of the input elements
@@ -1375,8 +1379,8 @@ public final class MoreCollectors {
      * present, the result is empty {@link OptionalLong}.
      *
      * <p>
-     * This method returns a <a
-     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * This method returns a
+     * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a>: it may not process all the elements if the result is zero.
      * 
      * @param <T> the type of the input elements
@@ -1410,16 +1414,16 @@ public final class MoreCollectors {
      *
      * <p>
      * The returned {@code Collector} handles specially Unicode surrogate pairs:
-     * the returned prefix may end with <a
-     * href="http://www.unicode.org/glossary/#high_surrogate_code_unit"> Unicode
-     * high-surrogate code unit</a> only if it's not succeeded by <a
-     * href="http://www.unicode.org/glossary/#low_surrogate_code_unit"> Unicode
-     * low-surrogate code unit</a> in any of the input sequences. Normally the
-     * ending high-surrogate code unit is removed from the prefix.
+     * the returned prefix may end with
+     * <a href="http://www.unicode.org/glossary/#high_surrogate_code_unit">
+     * Unicode high-surrogate code unit</a> only if it's not succeeded by
+     * <a href="http://www.unicode.org/glossary/#low_surrogate_code_unit">
+     * Unicode low-surrogate code unit</a> in any of the input sequences.
+     * Normally the ending high-surrogate code unit is removed from the prefix.
      * 
      * <p>
-     * This method returns a <a
-     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * This method returns a
+     * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a>: it may not process all the elements if the common prefix
      * is empty.
      * 
@@ -1436,8 +1440,8 @@ public final class MoreCollectors {
                     acc.b = t.length();
                 for (int i = 0; i < acc.b; i++) {
                     if (acc.a.charAt(i) != t.charAt(i)) {
-                        if (i > 0 && Character.isHighSurrogate(t.charAt(i - 1))
-                            && (Character.isLowSurrogate(t.charAt(i)) || Character.isLowSurrogate(acc.a.charAt(i))))
+                        if (i > 0 && Character.isHighSurrogate(t.charAt(i - 1)) && (Character.isLowSurrogate(t.charAt(
+                            i)) || Character.isLowSurrogate(acc.a.charAt(i))))
                             i--;
                         acc.b = i;
                         break;
@@ -1462,16 +1466,16 @@ public final class MoreCollectors {
      *
      * <p>
      * The returned {@code Collector} handles specially Unicode surrogate pairs:
-     * the returned suffix may start with <a
-     * href="http://www.unicode.org/glossary/#low_surrogate_code_unit"> Unicode
-     * low-surrogate code unit</a> only if it's not preceded by <a
-     * href="http://www.unicode.org/glossary/#high_surrogate_code_unit"> Unicode
-     * high-surrogate code unit</a> in any of the input sequences. Normally the
-     * starting low-surrogate code unit is removed from the suffix.
+     * the returned suffix may start with
+     * <a href="http://www.unicode.org/glossary/#low_surrogate_code_unit">
+     * Unicode low-surrogate code unit</a> only if it's not preceded by
+     * <a href="http://www.unicode.org/glossary/#high_surrogate_code_unit">
+     * Unicode high-surrogate code unit</a> in any of the input sequences.
+     * Normally the starting low-surrogate code unit is removed from the suffix.
      * 
      * <p>
-     * This method returns a <a
-     * href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * This method returns a
+     * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a>: it may not process all the elements if the common suffix
      * is empty.
      * 
@@ -1490,10 +1494,8 @@ public final class MoreCollectors {
                     acc.b = blen;
                 for (int i = 0; i < acc.b; i++) {
                     if (acc.a.charAt(alen - 1 - i) != t.charAt(blen - 1 - i)) {
-                        if (i > 0
-                            && Character.isLowSurrogate(t.charAt(blen - i))
-                            && (Character.isHighSurrogate(t.charAt(blen - 1 - i)) || Character.isHighSurrogate(acc.a
-                                    .charAt(alen - 1 - i))))
+                        if (i > 0 && Character.isLowSurrogate(t.charAt(blen - i)) && (Character.isHighSurrogate(t
+                                .charAt(blen - 1 - i)) || Character.isHighSurrogate(acc.a.charAt(alen - 1 - i))))
                             i--;
                         acc.b = i;
                         break;

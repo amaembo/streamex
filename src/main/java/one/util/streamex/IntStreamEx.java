@@ -2120,13 +2120,14 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * <p>
      * The resulting stream covers only a portion of {@code IntBuffer} content
      * which starts with {@linkplain Buffer#position() position} (inclusive) and
-     * ends with {@linkplain Buffer#limit() limit} (exclusive). Changes in position
-     * and limit after the stream creation don't affect the stream.
+     * ends with {@linkplain Buffer#limit() limit} (exclusive). Changes in
+     * position and limit after the stream creation don't affect the stream.
      * 
      * <p>
-     * The resulting stream does not change the internal {@code IntBuffer} state.
+     * The resulting stream does not change the internal {@code IntBuffer}
+     * state.
      * 
-     * @param buf
+     * @param buf the {@code IntBuffer} to create a stream from
      * @return the new stream
      * @since 0.6.2
      */

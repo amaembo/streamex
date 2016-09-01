@@ -1841,6 +1841,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * should provide fast random access. The list is assumed to be unmodifiable
      * during the stream operations.
      *
+     * @param <T> the type of stream elements
      * @param list list to get the elements from
      * @return the new stream
      */
@@ -1853,6 +1854,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * Returns a sequential {@code StreamEx} which elements are elements of
      * given array in descending order.
      * 
+     * @param <T> the type of stream elements
      * @param array array to get the elements from
      * @return the new stream
      */
