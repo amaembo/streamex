@@ -1516,16 +1516,16 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
     }
 
     /**
-     * Returns a {@link String} which contains the results of calling
-     * {@link String#valueOf(long)} on each element of this stream, separated by
-     * the specified delimiter, in encounter order.
+     * Returns a {@link String} which is the concatenation of the results of
+     * calling {@link String#valueOf(long)} on each element of this stream,
+     * separated by the specified delimiter, in encounter order.
      *
      * <p>
      * This is a terminal operation.
      * 
      * @param delimiter the delimiter to be used between each element
-     * @return a {@code String}. For empty input stream empty String is
-     *         returned.
+     * @return the result of concatenation. For empty input stream empty String
+     *         is returned.
      * @since 0.3.1
      */
     public String joining(CharSequence delimiter) {
@@ -1533,10 +1533,10 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
     }
 
     /**
-     * Returns a {@link String} which contains the results of calling
-     * {@link String#valueOf(long)} on each element of this stream, separated by
-     * the specified delimiter, with the specified prefix and suffix in
-     * encounter order.
+     * Returns a {@link String} which is the concatenation of the results of
+     * calling {@link String#valueOf(long)} on each element of this stream,
+     * separated by the specified delimiter, with the specified prefix and
+     * suffix in encounter order.
      *
      * <p>
      * This is a terminal operation.
@@ -1546,8 +1546,8 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      *        the joined result
      * @param suffix the sequence of characters to be used at the end of the
      *        joined result
-     * @return a {@code String}. For empty input stream empty String is
-     *         returned.
+     * @return the result of concatenation. For empty input stream
+     *         {@code prefix + suffix} is returned.
      * @since 0.3.1
      */
     public String joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {

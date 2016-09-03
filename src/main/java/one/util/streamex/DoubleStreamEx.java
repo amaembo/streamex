@@ -71,8 +71,8 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
         private double cur;
 
         TDOfDouble(Spliterator.OfDouble source, boolean drop, boolean inclusive, DoublePredicate predicate) {
-            super(source.estimateSize(), source.characteristics()
-                & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL | DISTINCT));
+            super(source.estimateSize(), source.characteristics() & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL
+                | DISTINCT));
             this.drop = drop;
             this.predicate = predicate;
             this.inclusive = inclusive;
@@ -268,9 +268,9 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a>.
      *
-     * @param mapper a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param mapper a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        function to apply to the first element
      * @return the new stream
      * @since 0.4.1
@@ -292,9 +292,9 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * The mapper function is called at most once. It could be not called at all
      * if the stream is empty or there is short-circuiting operation downstream.
      *
-     * @param mapper a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param mapper a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        function to apply to the last element
      * @return the new stream
      * @since 0.4.1
@@ -338,8 +338,8 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      */
     public <K, V> EntryStream<K, V> mapToEntry(DoubleFunction<? extends K> keyMapper,
             DoubleFunction<? extends V> valueMapper) {
-        return new EntryStream<>(stream().mapToObj(
-            t -> new AbstractMap.SimpleImmutableEntry<>(keyMapper.apply(t), valueMapper.apply(t))), context);
+        return new EntryStream<>(stream().mapToObj(t -> new AbstractMap.SimpleImmutableEntry<>(keyMapper.apply(t),
+                valueMapper.apply(t))), context);
     }
 
     @Override
@@ -428,9 +428,9 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * This is a <a href="package-summary.html#StreamOps">stateful intermediate
      * operation</a>.
      * 
-     * @param comparator a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param comparator a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        {@code Comparator} to be used to compare stream elements
      * @return the new stream
      */
@@ -470,9 +470,9 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * operation</a>.
      *
      * @param <V> the type of the {@code Comparable} sort key
-     * @param keyExtractor a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param keyExtractor a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        function to be used to extract sorting keys
      * @return the new stream
      */
@@ -492,9 +492,9 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * This is a <a href="package-summary.html#StreamOps">stateful intermediate
      * operation</a>.
      *
-     * @param keyExtractor a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param keyExtractor a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        function to be used to extract sorting keys
      * @return the new stream
      */
@@ -514,9 +514,9 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * This is a <a href="package-summary.html#StreamOps">stateful intermediate
      * operation</a>.
      *
-     * @param keyExtractor a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param keyExtractor a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        function to be used to extract sorting keys
      * @return the new stream
      */
@@ -536,9 +536,9 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * This is a <a href="package-summary.html#StreamOps">stateful intermediate
      * operation</a>.
      *
-     * @param keyExtractor a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param keyExtractor a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        function to be used to extract sorting keys
      * @return the new stream
      */
@@ -574,9 +574,10 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * <p>
      * This method exists mainly to support debugging.
      *
-     * @param action a <a href="package-summary.html#NonInterference">
-     *        non-interfering</a> action to perform on the first stream element
-     *        as it is consumed from the stream
+     * @param action a
+     *        <a href="package-summary.html#NonInterference"> non-interfering
+     *        </a> action to perform on the first stream element as it is
+     *        consumed from the stream
      * @return the new stream
      * @since 0.6.0
      */
@@ -610,9 +611,10 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * <p>
      * This method exists mainly to support debugging.
      *
-     * @param action a <a href="package-summary.html#NonInterference">
-     *        non-interfering</a> action to perform on the first stream element
-     *        as it is consumed from the stream
+     * @param action a
+     *        <a href="package-summary.html#NonInterference"> non-interfering
+     *        </a> action to perform on the first stream element as it is
+     *        consumed from the stream
      * @return the new stream
      * @since 0.6.0
      */
@@ -782,9 +784,9 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * For parallel stream it's not guaranteed that accumulator will always be
      * executed in the same thread.
      *
-     * @param accumulator a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param accumulator a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        function for incorporating an additional element into a result
      * @return the result of the folding
      * @see #foldLeft(double, DoubleBinaryOperator)
@@ -831,9 +833,9 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * executed in the same thread.
      *
      * @param seed the starting value
-     * @param accumulator a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param accumulator a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        function for incorporating an additional element into a result
      * @return the result of the folding
      * @see #reduce(double, DoubleBinaryOperator)
@@ -861,9 +863,9 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * This method cannot take all the advantages of parallel streams as it must
      * process elements strictly left to right.
      *
-     * @param accumulator a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param accumulator a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        function for incorporating an additional element into a result
      * @return the array where the first element is the first element of this
      *         stream and every successor element is the result of applying
@@ -877,8 +879,8 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
         Spliterator.OfDouble spliterator = spliterator();
         double size = spliterator.getExactSizeIfKnown();
         DoubleBuffer buf = new DoubleBuffer(size >= 0 && size <= Integer.MAX_VALUE ? (int) size : INITIAL_SIZE);
-        delegate(spliterator).forEachOrdered(
-            i -> buf.add(buf.size == 0 ? i : accumulator.applyAsDouble(buf.data[buf.size - 1], i)));
+        delegate(spliterator).forEachOrdered(i -> buf.add(buf.size == 0 ? i
+                : accumulator.applyAsDouble(buf.data[buf.size - 1], i)));
         return buf.toArray();
     }
 
@@ -898,9 +900,9 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * process elements strictly left to right.
      *
      * @param seed the starting value
-     * @param accumulator a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param accumulator a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        function for incorporating an additional element into a result
      * @return the array where the first element is the seed and every successor
      *         element is the result of applying accumulator function to the
@@ -951,8 +953,8 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
     public <A, R> R collect(DoubleCollector<A, R> collector) {
         if (collector.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH))
             return (R) collect(collector.supplier(), collector.doubleAccumulator(), collector.merger());
-        return collector.finisher().apply(
-            collect(collector.supplier(), collector.doubleAccumulator(), collector.merger()));
+        return collector.finisher().apply(collect(collector.supplier(), collector.doubleAccumulator(), collector
+                .merger()));
     }
 
     @Override
@@ -1270,9 +1272,9 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * <p>
      * This is a short-circuiting terminal operation.
      *
-     * @param predicate a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param predicate a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        predicate which returned value should match
      * @return an {@code OptionalDouble} describing the first matching element
      *         of this stream, or an empty {@code OptionalDouble} if there's no
@@ -1305,9 +1307,9 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * on the same source may not return the same result. (If a stable result is
      * desired, use {@link #findFirst(DoublePredicate)} instead.)
      *
-     * @param predicate a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param predicate a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        predicate which returned value should match
      * @return an {@code OptionalDouble} describing some matching element of
      *         this stream, or an empty {@code OptionalDouble} if there's no
@@ -1327,9 +1329,9 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * <p>
      * This is a short-circuiting terminal operation.
      *
-     * @param predicate a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param predicate a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        predicate which returned value should match
      * @return an {@code OptionalLong} describing the index of the first
      *         matching element of this stream, or an empty {@code OptionalLong}
@@ -1452,16 +1454,16 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
     }
 
     /**
-     * Returns a {@link String} which contains the results of calling
-     * {@link String#valueOf(double)} on each element of this stream, separated
-     * by the specified delimiter, in encounter order.
+     * Returns a {@link String} which is the concatenation of the results of
+     * calling {@link String#valueOf(double)} on each element of this stream,
+     * separated by the specified delimiter, in encounter order.
      *
      * <p>
      * This is a terminal operation.
      * 
      * @param delimiter the delimiter to be used between each element
-     * @return a {@code String}. For empty input stream empty String is
-     *         returned.
+     * @return the result of concatenation. For empty input stream empty String
+     *         is returned.
      * @since 0.3.1
      */
     public String joining(CharSequence delimiter) {
@@ -1469,10 +1471,10 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
     }
 
     /**
-     * Returns a {@link String} which contains the results of calling
-     * {@link String#valueOf(double)} on each element of this stream, separated
-     * by the specified delimiter, with the specified prefix and suffix in
-     * encounter order.
+     * Returns a {@link String} which is the concatenation of the results of
+     * calling {@link String#valueOf(double)} on each element of this stream,
+     * separated by the specified delimiter, with the specified prefix and
+     * suffix in encounter order.
      *
      * <p>
      * This is a terminal operation.
@@ -1482,8 +1484,8 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      *        the joined result
      * @param suffix the sequence of characters to be used at the end of the
      *        joined result
-     * @return a {@code String}. For empty input stream empty String is
-     *         returned.
+     * @return the result of concatenation. For empty input stream
+     *         {@code prefix + suffix} is returned.
      * @since 0.3.1
      */
     public String joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
@@ -1495,8 +1497,8 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * first element which does not match the given predicate is found.
      * 
      * <p>
-     * This is a short-circuiting stateful operation. It can be either <a
-     * href="package-summary.html#StreamOps">intermediate or
+     * This is a short-circuiting stateful operation. It can be either
+     * <a href="package-summary.html#StreamOps">intermediate or
      * quasi-intermediate</a>. When using with JDK 1.9 or higher it calls the
      * corresponding JDK 1.9 implementation. When using with JDK 1.8 it uses own
      * implementation.
@@ -1550,8 +1552,8 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * predicate is true for all stream elements, an empty stream is returned.
      * 
      * <p>
-     * This is a stateful operation. It can be either <a
-     * href="package-summary.html#StreamOps">intermediate or
+     * This is a stateful operation. It can be either
+     * <a href="package-summary.html#StreamOps">intermediate or
      * quasi-intermediate</a>. When using with JDK 1.9 or higher it calls the
      * corresponding JDK 1.9 implementation. When using with JDK 1.8 it uses own
      * implementation.
@@ -1578,8 +1580,9 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * accumulation function going left to right.
      * 
      * <p>
-     * This is a stateful <a
-     * href="package-summary.html#StreamOps">quasi-intermediate</a> operation.
+     * This is a stateful
+     * <a href="package-summary.html#StreamOps">quasi-intermediate</a>
+     * operation.
      *
      * <p>
      * This operation resembles {@link #scanLeft(DoubleBinaryOperator)}, but
@@ -1592,10 +1595,9 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * removing the ordering constraint with {@link #unordered()} may improve
      * the parallel processing speed.
      *
-     * @param op an <a
-     *        href="package-summary.html#Associativity">associative</a>, <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param op an <a href="package-summary.html#Associativity">associative</a>
+     *        , <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        function for computing the next element based on the previous one
      * @return the new stream.
      * @see #scanLeft(DoubleBinaryOperator)
@@ -1742,8 +1744,8 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @since 0.0.8
      */
     public static DoubleStreamEx of(DoubleStream stream) {
-        return stream instanceof DoubleStreamEx ? (DoubleStreamEx) stream : new DoubleStreamEx(stream, StreamContext
-                .of(stream));
+        return stream instanceof DoubleStreamEx ? (DoubleStreamEx) stream
+                : new DoubleStreamEx(stream, StreamContext.of(stream));
     }
 
     /**
@@ -1869,7 +1871,8 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      *         given origin (inclusive) and bound (exclusive)
      * @see Random#doubles(long, double, double)
      */
-    public static DoubleStreamEx of(Random random, long streamSize, double randomNumberOrigin, double randomNumberBound) {
+    public static DoubleStreamEx of(Random random, long streamSize, double randomNumberOrigin,
+            double randomNumberBound) {
         return seq(random.doubles(streamSize, randomNumberOrigin, randomNumberBound));
     }
 

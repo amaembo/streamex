@@ -687,43 +687,43 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
-     * Returns a {@link String} which contains the results of calling
-     * {@link String#valueOf(Object)} on each element of this stream in
-     * encounter order.
+     * Returns a {@link String} which is the concatenation of the results
+     * of calling {@link String#valueOf(Object)} on each element of this stream
+     * in encounter order.
      *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
      * operation.
      * 
-     * @return a {@code String}. For empty input stream empty String is
-     *         returned.
+     * @return the result of concatenation. For empty input stream empty String
+     *         is returned.
      */
     public String joining() {
         return map(String::valueOf).rawCollect(Collectors.joining());
     }
 
     /**
-     * Returns a {@link String} which contains the results of calling
-     * {@link String#valueOf(Object)} on each element of this stream, separated
-     * by the specified delimiter, in encounter order.
+     * Returns a {@link String} which is the concatenation of the results
+     * of calling {@link String#valueOf(Object)} on each element of this stream,
+     * separated by the specified delimiter, in encounter order.
      *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
      * operation.
      * 
      * @param delimiter the delimiter to be used between each element
-     * @return a {@code String}. For empty input stream empty String is
-     *         returned.
+     * @return the result of concatenation. For empty input stream empty String
+     *         is returned.
      */
     public String joining(CharSequence delimiter) {
         return map(String::valueOf).rawCollect(Collectors.joining(delimiter));
     }
 
     /**
-     * Returns a {@link String} which contains the results of calling
-     * {@link String#valueOf(Object)} on each element of this stream, separated
-     * by the specified delimiter, with the specified prefix and suffix in
-     * encounter order.
+     * Returns a {@link String} which is the concatenation of the results
+     * of calling {@link String#valueOf(Object)} on each element of this stream,
+     * separated by the specified delimiter, with the specified prefix and
+     * suffix in encounter order.
      *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
@@ -734,8 +734,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *        the joined result
      * @param suffix the sequence of characters to be used at the end of the
      *        joined result
-     * @return a {@code String}. For empty input stream empty String is
-     *         returned.
+     * @return the result of concatenation. For empty input stream
+     *         {@code prefix + suffix} is returned.
      */
     public String joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return map(String::valueOf).rawCollect(Collectors.joining(delimiter, prefix, suffix));
