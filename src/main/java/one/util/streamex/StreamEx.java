@@ -19,6 +19,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.UncheckedIOException;
+import java.lang.reflect.Array;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -739,6 +740,62 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public String joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return map(String::valueOf).rawCollect(Collectors.joining(delimiter, prefix, suffix));
+    }
+
+    /**
+     * Returns an array containing all the stream elements using the supplied
+     * element type class to allocate an array.
+     * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
+     * 
+     * @param <A> the element type of the resulting array
+     * @param elementClass the type of array elements
+     * @return an array containing the elements in this stream
+     * @throws ArrayStoreException if the runtime type of the array returned
+     *         from the array generator is not a supertype of the runtime type
+     *         of every element in this stream
+     * @see #toArray(java.util.function.IntFunction)
+     * @since 0.6.3
+     */
+    @SuppressWarnings("unchecked")
+    public <A> A[] toArray(Class<A> elementClass) {
+        return stream().toArray(size -> (A[])Array.newInstance(elementClass, size));
+    }
+
+    /**
+     * Returns an array containing all the stream elements. If the stream
+     * happens to contain no elements, the supplied empty array is returned
+     * instead. Otherwise the new array is allocated which element type is the
+     * same as the element type of supplied empty array.
+     * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
+     * 
+     * <p>
+     * This method is useful when the stream is expected to return empty arrays
+     * often, so the same instance of empty array (presumably declared in some
+     * static final field) can be reused.
+     * 
+     * @param <A> the element type of the resulting array
+     * @param emptyArray an empty array of the resulting type
+     * @return an array containing the elements in this stream or the passed
+     *         empty array if the stream is empty
+     * @throws ArrayStoreException if the runtime type of the array returned
+     *         from the array generator is not a supertype of the runtime type
+     *         of every element in this stream
+     * @see #toArray(java.util.function.IntFunction)
+     * @since 0.6.3
+     */
+    @SuppressWarnings("unchecked")
+    public <A> A[] toArray(A[] emptyArray) {
+        if(emptyArray.length != 0) {
+            throw new IllegalArgumentException("Empty array must be supplied");
+        }
+        return stream().toArray(size -> size == 0 ? emptyArray
+                : (A[]) Array.newInstance(emptyArray.getClass().getComponentType(), size));
     }
 
     /**

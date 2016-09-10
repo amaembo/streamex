@@ -250,6 +250,16 @@ public class StreamExTest {
         list.addAll(list2);
         assertEquals(asList(1, 2, 3, 4, 5, 6, 7), list);
     }
+    
+    @Test
+    public void testToArray() {
+        Number[] numbers = StreamEx.of(1, 2, 3).toArray(Number.class);
+        assertArrayEquals(new Number[] { 1, 2, 3 }, numbers);
+        assertEquals(Number.class, numbers.getClass().getComponentType());
+        Integer[] emptyArray = {};
+        assertSame(emptyArray, StreamEx.of(1, 2, 3).filter(x -> x > 3).toArray(emptyArray));
+        assertArrayEquals(new Integer[] { 1, 2, 3 }, StreamEx.of(1, 2, 3).remove(x -> x > 3).toArray(emptyArray));
+    }
 
     @Test
     public void testForEach() {

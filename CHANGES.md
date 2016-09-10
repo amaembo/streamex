@@ -2,6 +2,11 @@
 
 Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 
+### 0.6.3
+
+* [#111] Added: `StreamEx.toArray(elementClass)`
+* [#112] Added: `StreamEx.toArray(emptyArray)`
+
 ### 0.6.2
 
 * [#17] Optimized: `StreamEx.ofTree`, `EntryStream.ofTree`.
