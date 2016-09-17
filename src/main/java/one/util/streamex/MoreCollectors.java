@@ -1567,4 +1567,35 @@ public final class MoreCollectors {
             return acc1;
         });
     }
+
+    /**
+     * Adapts a {@link Collector} to work on {@link Optional} values.
+     * <p>
+     * If at least one item is {@link Optional#empty()} result will be also {@link Optional#empty()}
+     * and result will be a {@link Optional} of value produced by downstream collector otherwise.
+     * <p>
+     * This method returns a <a href="package-summary.html#ShortCircuitReduction">short-circuiting collector</a>:
+     * it may not process all the elements if some of them are {@link Optional#empty()}
+     * or if downstream collector is a short-circuiting collector.
+     *
+     * @param <T> the type of input {@link Optional} values
+     * @param <A> intermediate accumulation type of the downstream collector
+     * @param <R> result type of the downstream collector
+     * @param downstream a collector
+     * @return a collector which performs the action of the downstream collector on {@link Optional} values
+     */
+    public static <T, A, R> Collector<Optional<T>, ?, Optional<R>> optionals(Collector<T, A, R> downstream) {
+        Predicate<A> finished = finished(downstream);
+        Predicate<A> notFinished = finished == null ? a -> true : finished.negate();
+        return new CancellableCollectorImpl<>(
+                () -> new Box<>(Optional.of(downstream.supplier().get())),
+                (acc, t) -> {
+                    t.ifPresent(b -> acc.a.ifPresent(a -> downstream.accumulator().accept(a, b)));
+                    acc.a = t.isPresent() ? acc.a : Optional.empty();
+                },
+                (acc1, acc2) -> new Box<>(acc2.a.flatMap(a2 -> acc1.a.map(a1 -> downstream.combiner().apply(a1, a2)))),
+                acc -> acc.a.map(downstream.finisher()),
+                acc -> !acc.a.filter(notFinished).isPresent(),
+                NO_CHARACTERISTICS);
+    }
 }

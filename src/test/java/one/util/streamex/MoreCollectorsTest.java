@@ -760,4 +760,24 @@ public class MoreCollectorsTest {
             });
         checkCollectorEmpty("minMax", Optional.empty(), collector);
     }
+
+    @Test
+    public void testOptional() {
+        Supplier<Stream<Optional<Integer>>> allPresent = () ->
+                Stream.of(Optional.of(1), Optional.of(2), Optional.of(3), Optional.of(4), Optional.of(5));
+        checkShortCircuitCollector("optionals all present", Optional.of(asList(1, 2, 3, 4, 5)), 5, allPresent,
+                MoreCollectors.optionals(Collectors.toList()));
+
+        checkShortCircuitCollector("optionals all present, shirtCircuit downstream", Optional.of(asList(1, 2, 3)), 3,
+                allPresent, MoreCollectors.optionals(MoreCollectors.head(3)));
+
+        Supplier<Stream<Optional<Integer>>> someEmpty = () ->
+                Stream.of(Optional.of(1), Optional.of(2), Optional.of(3),  Optional.empty(), Optional.of(5));
+        checkShortCircuitCollector("optionals some empty", Optional.empty(), 4, someEmpty,
+                MoreCollectors.optionals(Collectors.toList()));
+
+        Supplier<Stream<Optional<Integer>>> noItems = Stream::empty;
+        checkShortCircuitCollector("optionals empty stream", Optional.of(Collections.emptyList()), 0, noItems,
+                MoreCollectors.optionals(Collectors.toList()));
+    }
 }
