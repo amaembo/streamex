@@ -1567,4 +1567,49 @@ public final class MoreCollectors {
             return acc1;
         });
     }
+
+    /**
+     * Returns a {@code Collector} witch performs downstream reduction if all elements satisfy the {@code Predicate}.
+     * The result is described as an {@code Optional<R>}.
+     * <p>
+     * This method returns a <a href="package-summary.html#ShortCircuitReduction">short-circuiting collector</a>:
+     * it may not process all the elements if some of items don't satisfy the predicate
+     * or if downstream collector is a short-circuiting collector.
+     *
+     * @param <T> the type of input elements
+     * @param <A> intermediate accumulation type of the downstream collector
+     * @param <R> result type of the downstream collector
+     * @param predicate  a non-interfering, stateless predicate to checks whether collector should proceed with element
+     * @param downstream a {@code Collector} implementing the downstream reduction
+     * @return a {@code Collector} witch performs downstream reduction if all elements satisfy the predicate
+     * @see Stream#allMatch(Predicate)
+     * @see AbstractStreamEx#dropWhile(Predicate)
+     * @see AbstractStreamEx#takeWhile(Predicate)
+     */
+    public static <T, A, R> Collector<T, ?, Optional<R>> ifAllMatch(Predicate<T> predicate, Collector<T, A, R> downstream) {
+        Predicate<A> finished = finished(downstream);
+        Supplier<A> supplier = downstream.supplier();
+        BiConsumer<A, T> accumulator = downstream.accumulator();
+        BinaryOperator<A> combiner = downstream.combiner();
+        return new CancellableCollectorImpl<>(
+                () -> new PairBox<>(supplier.get(), Boolean.TRUE),
+                (acc, t) -> {
+                    if (acc.b && predicate.test(t)) {
+                        accumulator.accept(acc.a, t);
+                    } else {
+                        acc.b = Boolean.FALSE;
+                    }
+                },
+                (acc1, acc2) -> {
+                    if (acc1.b && acc2.b) {
+                        acc1.a = combiner.apply(acc1.a, acc2.a);
+                    } else {
+                        acc1.b = Boolean.FALSE;
+                    }
+                    return acc1;
+                },
+                acc -> acc.b ? Optional.of(downstream.finisher().apply(acc.a)) : Optional.empty(),
+                finished == null ? acc -> !acc.b : acc -> !acc.b || finished.test(acc.a),
+                downstream.characteristics().contains(Characteristics.UNORDERED) ? UNORDERED_CHARACTERISTICS : NO_CHARACTERISTICS);
+    }
 }

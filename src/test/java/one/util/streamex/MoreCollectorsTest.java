@@ -760,4 +760,21 @@ public class MoreCollectorsTest {
             });
         checkCollectorEmpty("minMax", Optional.empty(), collector);
     }
+
+    @Test
+    public void testIfAllMatch() {
+        Supplier<Stream<Integer>> five = () -> IntStreamEx.range(5).boxed();
+        checkShortCircuitCollector("ifAllMatch: all match", Optional.of(asList(0, 1, 2, 3, 4)), 5, five,
+                MoreCollectors.ifAllMatch(i -> true, Collectors.toList()));
+
+        Supplier<Stream<Integer>> ints = () -> IntStreamEx.ints().boxed();
+        checkShortCircuitCollector("ifAllMatch: shirtCircuit downstream", Optional.of(asList(0, 1, 2)), 3, ints,
+                MoreCollectors.ifAllMatch(i -> true, MoreCollectors.head(3)), true);
+
+        checkShortCircuitCollector("ifAllMatch: some match", Optional.empty(), 11, ints,
+                MoreCollectors.ifAllMatch(i -> i < 10, Collectors.toList()), true);
+
+        checkShortCircuitCollector("ifAllMatch: empty stream", Optional.of(Collections.emptyList()), 0, Stream::empty,
+                MoreCollectors.ifAllMatch(i -> true, Collectors.toList()));
+    }
 }
