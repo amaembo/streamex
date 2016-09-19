@@ -277,3 +277,4 @@ Filter the input before passing to the collector | `MoreCollectors.filtering()`
 Map the input before passing to the collector | `MoreCollectors.mapping()`
 Flat-map the input before passing to the collector | `MoreCollectors.flatMapping()`
 Perform a custom final operation after the collection finishes | `MoreCollectors.collectingAndThen()`
+Perform a downstream collection if all elements satisfy the predicate | `MoreCollectors.ifAllMatch()`

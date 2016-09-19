@@ -1569,24 +1569,41 @@ public final class MoreCollectors {
     }
 
     /**
-     * Returns a {@code Collector} witch performs downstream reduction if all elements satisfy the {@code Predicate}.
-     * The result is described as an {@code Optional<R>}.
+     * Returns a {@code Collector} which performs downstream reduction if all
+     * elements satisfy the {@code Predicate}. The result is described as an
+     * {@code Optional<R>}.
+     * 
      * <p>
-     * This method returns a <a href="package-summary.html#ShortCircuitReduction">short-circuiting collector</a>:
-     * it may not process all the elements if some of items don't satisfy the predicate
-     * or if downstream collector is a short-circuiting collector.
+     * The resulting collector returns an empty optional if at least one input
+     * element does not satisfy the predicate. Otherwise it returns an optional
+     * which contains the result of the downstream collector.
+     * 
+     * <p>
+     * This method returns a
+     * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * collector</a>: it may not process all the elements if some of items don't
+     * satisfy the predicate or if downstream collector is a short-circuiting
+     * collector.
+     * 
+     * <p>
+     * It's guaranteed that the downstream collector is not called for elements
+     * which don't satisfy the predicate.
      *
      * @param <T> the type of input elements
      * @param <A> intermediate accumulation type of the downstream collector
      * @param <R> result type of the downstream collector
-     * @param predicate  a non-interfering, stateless predicate to checks whether collector should proceed with element
-     * @param downstream a {@code Collector} implementing the downstream reduction
-     * @return a {@code Collector} witch performs downstream reduction if all elements satisfy the predicate
+     * @param predicate a non-interfering, stateless predicate to checks whether
+     *        collector should proceed with element
+     * @param downstream a {@code Collector} implementing the downstream
+     *        reduction
+     * @return a {@code Collector} witch performs downstream reduction if all
+     *         elements satisfy the predicate
      * @see Stream#allMatch(Predicate)
      * @see AbstractStreamEx#dropWhile(Predicate)
      * @see AbstractStreamEx#takeWhile(Predicate)
      */
-    public static <T, A, R> Collector<T, ?, Optional<R>> ifAllMatch(Predicate<T> predicate, Collector<T, A, R> downstream) {
+    public static <T, A, R> Collector<T, ?, Optional<R>> ifAllMatch(Predicate<T> predicate,
+            Collector<T, A, R> downstream) {
         Predicate<A> finished = finished(downstream);
         Supplier<A> supplier = downstream.supplier();
         BiConsumer<A, T> accumulator = downstream.accumulator();
@@ -1610,6 +1627,7 @@ public final class MoreCollectors {
                 },
                 acc -> acc.b ? Optional.of(downstream.finisher().apply(acc.a)) : Optional.empty(),
                 finished == null ? acc -> !acc.b : acc -> !acc.b || finished.test(acc.a),
-                downstream.characteristics().contains(Characteristics.UNORDERED) ? UNORDERED_CHARACTERISTICS : NO_CHARACTERISTICS);
+                downstream.characteristics().contains(Characteristics.UNORDERED) ? UNORDERED_CHARACTERISTICS
+                        : NO_CHARACTERISTICS);
     }
 }
