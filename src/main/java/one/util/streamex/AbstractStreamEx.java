@@ -248,6 +248,10 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     public S filter(Predicate<? super T> predicate) {
         return supply(stream().filter(predicate));
     }
+    
+    public <U> S filter(Function<? super T, ? extends U> keyExtractor, Predicate<? super U> predicate) {
+        return supply(stream().filter(t -> predicate.test(keyExtractor.apply(t))));
+    }
 
     @Override
     public <R> StreamEx<R> flatMap(Function<? super T, ? extends Stream<? extends R>> mapper) {

@@ -1933,4 +1933,10 @@ public class StreamExTest {
         assertEquals(Optional.of(999), maxWithStop(IntStreamEx.of(new Random(1), 10000, 0, 1000).boxed(), Comparator
                 .naturalOrder(), 1000));
     }
+    
+    
+    @Test
+    public void testFilterWithExtractor(){
+        assertEquals(2L, StreamEx.of("", "a", "aa", "aaa").filter(String::length, length -> length > 1).count());
+    }
 }
