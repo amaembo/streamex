@@ -16,7 +16,9 @@
 package one.util.streamex;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -1135,10 +1137,37 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      *
      * @return a {@code List} containing the elements of this stream
      * @see Collectors#toList()
+     * @see #toImmutableList()
      */
     @SuppressWarnings("unchecked")
     public List<T> toList() {
         return new ArrayList<>((Collection<T>) new ArrayCollection(toArray(Object[]::new)));
+    }
+    
+    /**
+     * Returns an immutable {@link List} containing the elements of this stream.
+     * There's no guarantees on exact type of the returned {@code List}. The
+     * returned {@code List} is guaranteed to be serializable if all its
+     * elements are serializable.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @return a {@code List} containing the elements of this stream
+     * @see #toList()
+     * @since 0.6.3
+     */
+    @SuppressWarnings("unchecked")
+    public List<T> toImmutableList() {
+        Object[] array = toArray(Object[]::new);
+        switch(array.length) {
+        case 0:
+            return Collections.emptyList();
+        case 1:
+            return Collections.singletonList((T) array[0]);
+        default:
+            return Collections.unmodifiableList(Arrays.asList((T[]) array));
+        }
     }
 
     /**
@@ -1178,6 +1207,27 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      */
     public Set<T> toSet() {
         return rawCollect(Collectors.toSet());
+    }
+    
+    /**
+     * Returns an immutable {@link Set} containing the elements of this stream.
+     * There's no guarantees on exact type of the returned {@code Set}. In
+     * particular, no specific element order in the resulting set is guaranteed.
+     * The returned {@code Set} is guaranteed to be serializable if all its
+     * elements are serializable.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @return a {@code Set} containing the elements of this stream
+     * @see #toSet()
+     * @since 0.6.3
+     */
+    public Set<T> toImmutableSet() {
+        Set<T> result = toSet();
+        if (result.size() == 0)
+            return Collections.emptySet();
+        return Collections.unmodifiableSet(result);
     }
 
     /**

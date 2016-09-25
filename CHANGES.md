@@ -7,6 +7,7 @@ Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 * [#111] Added: `StreamEx.toArray(elementClass)`
 * [#112] Added: `StreamEx.toArray(emptyArray)`
 * [#116] Added: `MoreCollectors.ifAllMatch()`
+* [#119] Added: `AbstractStreamEx.toImmutableList()`, `AbstractStreamEx.toImmutableSet()`, `EntryStream.toImmutableMap()`
 
 ### 0.6.2
 

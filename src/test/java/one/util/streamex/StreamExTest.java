@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016 Tagir Valeev
+ * Copyright 2015, 2016 Tagir Vetaleev
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1932,5 +1932,47 @@ public class StreamExTest {
         // FInite stream, stop is not reached
         assertEquals(Optional.of(999), maxWithStop(IntStreamEx.of(new Random(1), 10000, 0, 1000).boxed(), Comparator
                 .naturalOrder(), 1000));
+    }
+    
+    @Test
+    public void testToImmutableList() {
+        List<Integer> expected = asList(1,2,3);
+        repeat(4, n -> {
+            streamEx(() -> IntStreamEx.range(4).atLeast(n).boxed(), s -> 
+            {
+                List<Integer> list = s.get().toImmutableList();
+                assertEquals(expected.subList(n-1, expected.size()), list);
+                try {
+                    list.add(0);
+                    fail("added");
+                } catch (UnsupportedOperationException e) {
+                    // expected
+                }
+                try {
+                    list.set(0, 0);
+                    fail("set");
+                } catch (UnsupportedOperationException e) {
+                    // expected
+                }
+            });
+        });
+    }
+
+    @Test
+    public void testToImmutableSet() {
+        List<Integer> expected = asList(1,2,3);
+        repeat(4, n -> {
+            streamEx(() -> IntStreamEx.range(4).atLeast(n).boxed(), s -> 
+            {
+                Set<Integer> set = s.get().toImmutableSet();
+                assertEquals(new HashSet<>(expected.subList(n-1, expected.size())), set);
+                try {
+                    set.add(-1);
+                    fail("added");
+                } catch (UnsupportedOperationException e) {
+                    // expected
+                }
+            });
+        });
     }
 }

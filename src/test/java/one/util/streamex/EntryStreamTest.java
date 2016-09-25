@@ -627,4 +627,24 @@ public class EntryStreamTest {
         assertEquals(EntryStream.of(1, "a", 2, "b", 3, "c").toList(), EntryStream.of(1, "a", 2, "b", 2, "b", 3, "c")
                 .chain(StreamEx::of).collapse(Objects::equals).toList());
     }
+    
+    @Test
+    public void testImmutableMap() {
+        repeat(4, n -> {
+            Map<Integer, Integer> expected = new HashMap<>();
+            for (int i = n; i < 4; i++)
+                expected.put(i, i);
+            streamEx(() -> IntStreamEx.range(4).atLeast(n).boxed(), s -> {
+                Map<Integer, Integer> map = s.get().mapToEntry(Function.identity()).toImmutableMap();
+                assertEquals(expected, map);
+                try {
+                    map.put(-1, -1);
+                    fail("added");
+                } catch (UnsupportedOperationException e) {
+                    // expected
+                }
+            });
+        });
+
+    }
 }

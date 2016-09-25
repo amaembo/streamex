@@ -96,7 +96,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     }
 
     static <K, V> Stream<Entry<K, V>> withValue(Stream<? extends K> s, V value) {
-        return s == null ? null : s.map(key -> new SimpleImmutableEntry<K, V>(key, value));
+        return s == null ? null : s.map(key -> new SimpleImmutableEntry<>(key, value));
     }
 
     static <K, V> Stream<Entry<K, V>> withKey(K key, Stream<? extends V> s) {
@@ -972,6 +972,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      *         (according to {@link Object#equals(Object)})
      * @see Collectors#toMap(Function, Function)
      * @see Collectors#toConcurrentMap(Function, Function)
+     * @see #toImmutableMap()
      */
     public Map<K, V> toMap() {
         Map<K, V> map = isParallel() ? new ConcurrentHashMap<>() : new HashMap<>();
@@ -979,6 +980,27 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return map;
     }
 
+    /**
+     * Returns an immutable {@link Map} containing the elements of this stream.
+     * There's no guarantees on exact type of the returned {@code Map}. In
+     * particular, no specific element order in the resulting {@code Map} is
+     * guaranteed. The returned {@code Map} is guaranteed to be serializable if
+     * all its elements are serializable.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @return a {@code Map} containing the elements of this stream
+     * @throws IllegalStateException if this stream contains duplicate keys
+     *         (according to {@link Object#equals(Object)})
+     * @see #toMap()
+     * @since 0.6.3
+     */
+    public Map<K, V> toImmutableMap() {
+        Map<K, V> map = toMap();
+        return map.isEmpty() ? Collections.emptyMap() : Collections.unmodifiableMap(map);
+    }
+    
     /**
      * Creates a {@link Map} containing the elements of this stream, then
      * performs finishing transformation and returns its result. There are no
