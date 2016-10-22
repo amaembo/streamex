@@ -367,6 +367,11 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * values.
      * 
      * <p>
+     * For example, writing {@code StreamEx.of(1, 2).cross("a", "b")}, you will
+     * have an ordered stream of the following entries: {@code [1, "a"], [1, "b"],
+     * [2, "a"], [2, "b"]}. 
+     * 
+     * <p>
      * This is an <a href="package-summary.html#StreamOps">intermediate</a>
      * operation.
      * 
