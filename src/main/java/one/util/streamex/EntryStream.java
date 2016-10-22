@@ -43,6 +43,9 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collector.Characteristics;
+
+import one.util.streamex.StreamExInternals.PairBox;
+
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -456,6 +459,31 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     public EntryStream<K, V> distinctKeys() {
         return distinct(Entry::getKey);
     }
+    
+    /**
+     * Returns a stream consisting of the elements of this stream which have
+     * distinct keys (according to object equality) which appear at least
+     * specified number of times in this stream.
+     *
+     * <p>
+     * This operation is not guaranteed to be stable: any entry with equal key
+     * can be selected for the output. However if this stream is ordered then
+     * order is preserved.
+     *
+     * <p>
+     * This is a stateful
+     * <a href="package-summary.html#StreamOps">quasi-intermediate</a>
+     * operation.
+     *
+     * @param atLeast minimal number of key occurrences required to select the
+     *        element. If atLeast is 1 or less, then this method is equivalent
+     *        to {@link #distinctKeys()}.
+     * @return the new stream
+     * @since 0.6.3
+     */
+    public EntryStream<K, V> distinctKeys(long atLeast) {
+        return of(map(t -> new PairBox<>(t, t.getKey())).distinct(atLeast).map(box -> box.a));
+    }
 
     /**
      * Returns a stream consisting of the elements of this stream which have
@@ -476,6 +504,31 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     public EntryStream<K, V> distinctValues() {
         return distinct(Entry::getValue);
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream which have
+     * distinct values (according to object equality) which appear at least
+     * specified number of times in this stream.
+     *
+     * <p>
+     * This operation is not guaranteed to be stable: any entry with equal value
+     * can be selected for the output. However if this stream is ordered then
+     * order is preserved.
+     *
+     * <p>
+     * This is a stateful
+     * <a href="package-summary.html#StreamOps">quasi-intermediate</a>
+     * operation.
+     *
+     * @param atLeast minimal number of value occurrences required to select the
+     *        element. If atLeast is 1 or less, then this method is equivalent
+     *        to {@link #distinctValues()}.
+     * @return the new stream
+     * @since 0.6.3
+     */
+    public EntryStream<K, V> distinctValues(long atLeast) {
+        return of(map(t -> new PairBox<>(t, t.getValue())).distinct(atLeast).map(box -> box.a));
     }
 
     /**

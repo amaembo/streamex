@@ -564,6 +564,14 @@ public class EntryStreamTest {
     }
 
     @Test
+    public void testDistinctKeysValuesAtLeast() {
+        entryStream(() -> EntryStream.of(1, "a", 1, "b", 2, "b", 2, "c", 1, "c", 3, "c"), s -> {
+            checkAsString("1->a;2->b;3->c", s.get().distinctKeys());
+            checkAsString("1->a;1->b;2->c", s.get().distinctValues());
+        });
+    }
+
+    @Test
     public void testOfTree() {
         entryStream(() -> EntryStream.ofTree("a", (Integer depth, String str) -> null), supplier -> checkAsString(
             "0->a", supplier.get()));
