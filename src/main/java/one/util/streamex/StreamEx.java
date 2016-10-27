@@ -961,6 +961,39 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             Function<? super T, ? extends V> valMapper, BinaryOperator<V> mergeFunction) {
         return rawCollect(Collectors.toMap(keyMapper, valMapper, mergeFunction, HashMap::new));
     }
+    
+    /**
+     * Drains the stream content into the supplied collection.
+     * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
+     * 
+     * <p>
+     * The stream content is added into the collection using either
+     * {@link Collection#add(Object)} or {@link Collection#addAll(Collection)}
+     * method.
+     * 
+     * @param collection a mutable collection to add new elements into
+     * @return the supplied collection, updated from this stream
+     * @since 0.6.3
+     */
+    public <C extends Collection<? super T>> C into(C collection) {
+        if (isParallel()) {
+            @SuppressWarnings("unchecked")
+            List<T> list = Arrays.asList((T[]) toArray());
+            collection.addAll(list);
+        } else {
+            Spliterator<T> spltr = spliterator();
+            if (collection instanceof ArrayList) {
+                long size = spltr.getExactSizeIfKnown();
+                if (size >= 0 && size < Integer.MAX_VALUE - collection.size())
+                    ((ArrayList<?>) collection).ensureCapacity((int) (collection.size() + size));
+            }
+            spltr.forEachRemaining(collection::add);
+        }
+        return collection;
+    }
 
     /**
      * Returns a {@link SortedMap} whose keys are elements from this stream and

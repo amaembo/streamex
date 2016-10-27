@@ -1179,6 +1179,33 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     public SortedMap<K, V> toSortedMap(BinaryOperator<V> mergeFunction) {
         return collect(Collectors.toMap(Entry::getKey, Entry::getValue, mergeFunction, TreeMap::new));
     }
+    
+    /**
+     * Drains the stream content into the supplied {@code Map}.
+     * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
+     * 
+     * @param map a mutable map to put the stream elements into
+     * @return the supplied map, updated from this stream
+     * @throws IllegalStateException if this stream contains duplicate keys, or
+     *         the stream contains the key which was already present in the map
+     *         (according to {@link Object#equals(Object)})
+     * @since 0.6.3
+     */
+    public <M extends Map<K, V>> M into(M map) {
+        Consumer<? super Entry<K, V>> cons = toMapConsumer(map);
+        if (isParallel()) {
+            if (map instanceof ConcurrentMap)
+                forEach(cons);
+            else
+                toMap().entrySet().forEach(cons);
+        } else {
+            spliterator().forEachRemaining(cons);
+        }
+        return map;
+    }
 
     /**
      * Returns a {@link Map} where elements of this stream with the same key are

@@ -645,6 +645,19 @@ public class EntryStreamTest {
                 }
             });
         });
-
+    }
+    
+    @Test
+    public void testInto() {
+        for(AbstractMap<String, Integer> m : Arrays.<AbstractMap<String, Integer>>asList(new HashMap<>(), new TreeMap<>(), new ConcurrentHashMap<>())) {
+            AbstractMap<String, Integer> res = EntryStream.of("a", 1, "b", 2, "c", 3).into(m);
+            assertSame(m, res);
+            assertEquals(EntryStream.of("a", 1, "b", 2, "c", 3).toMap(), m);
+            Map<String, Integer> res2 = EntryStream.of("d", 4, "e", 5).parallel().into(m);
+            assertSame(m, res2);
+            assertEquals(EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4, "e", 5).toMap(), m);
+            checkIllegalStateException(() -> EntryStream.of("x", 10, "c", 4).into(m), "c", "3", "4");
+            checkIllegalStateException(() -> EntryStream.of("y", 20, "d", 5).parallel().into(m), "d", "4", "5");
+        }
     }
 }

@@ -242,6 +242,8 @@ Perform operation on entry key and value using `BiConsumer` | `EntryStream.forKe
 What I want | How to get it
 --- | ---
 Convert `IntStreamEx` to `InputStream` | `IntStreamEx.asByteInputStream()`
+Drain stream content into the existing `Collection` | `StreamEx.into()`
+Drain stream content into the existing `Map` | `EntryStream.into()`
 
 ## Collectors
 

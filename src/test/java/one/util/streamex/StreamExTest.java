@@ -1975,4 +1975,36 @@ public class StreamExTest {
             });
         });
     }
+    
+    @Test
+    public void testInto() {
+        for(List<Number> list : asList(new ArrayList<Number>(), new LinkedList<Number>())) {
+            List<Number> res = StreamEx.of(1, 2, 3, 4).filter(x -> x < 4).into(list);
+            assertSame(list, res);
+            assertEquals(asList(1, 2, 3), list);
+            assertSame(list, StreamEx.of(4, 5, 6).into(list));
+            assertEquals(asList(1, 2, 3, 4, 5, 6), list);
+            assertSame(list, StreamEx.of(7, 8, 9, 10).parallel().into(list));
+            assertEquals(asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), list);
+        }
+        // a kind of mock object
+        Collection<String> c = new ArrayList<String>() {
+            private static final long serialVersionUID = 1L;
+            int size = Integer.MAX_VALUE - 10;
+            
+            @Override
+            public boolean add(String e) {
+                assertEquals("a", e);
+                size++;
+                return true;
+            }
+
+            @Override
+            public int size() {
+                return size;
+            }
+        };
+        assertSame(c, StreamEx.constant("a", 20).into(c));
+        assertEquals(Integer.MAX_VALUE+10, c.size());
+    }
 }
