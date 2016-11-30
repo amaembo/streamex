@@ -181,7 +181,7 @@ Execute custom-defined operation in fluent manner | `any.chain()`
 Work-around parallel stream skip bug prior to Java 8u60 | `any.skipOrdered()`
 Perform parallel stream computation using the custom `ForkJoinPool` | `any.parallel(pool)`
 Zip two streams together | `StreamEx.zipWith()`
-Get the stream of cumulative prefixes | `any.prefix()`
+Get the stream of cumulative prefixes | `any.prefix()`/`EntryStream.prefixKeys()`/`EntryStream.prefixValues()`
 
 ## New terminal operations
 

@@ -950,6 +950,64 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
             return pb1;
         }, spliterator()), context).mapToEntry(pb -> pb.a, pb -> finisher.apply(pb.b));
     }
+    
+    /**
+     * Returns a new {@code EntryStream} which values are the same as this
+     * stream values and keys are the results of applying the accumulation
+     * function to this stream keys, going left to right.
+     * 
+     * <p>
+     * This is a stateful
+     * <a href="package-summary.html#StreamOps">quasi-intermediate</a>
+     * operation.
+     *
+     * <p>
+     * This method cannot take all the advantages of parallel streams as it must
+     * process elements strictly left to right. Using an unordered source or
+     * removing the ordering constraint with {@link #unordered()} may improve
+     * the parallel processing speed.
+     *
+     * @param op an <a href="package-summary.html#Associativity">associative</a>
+     *        , <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
+     *        function for computing the next key based on the previous one
+     * @return the new stream.
+     * @see #prefix(BinaryOperator)
+     * @see #prefixValues(BinaryOperator)
+     * @since 0.6.4
+     */
+    public EntryStream<K, V> prefixKeys(BinaryOperator<K> op) {
+        return prefix((a, b) -> new SimpleImmutableEntry<>(op.apply(a.getKey(), b.getKey()), b.getValue()));
+    }
+
+    /**
+     * Returns a new {@code EntryStream} which keys are the same as this stream
+     * keys and values are the results of applying the accumulation function to
+     * this stream values, going left to right.
+     * 
+     * <p>
+     * This is a stateful
+     * <a href="package-summary.html#StreamOps">quasi-intermediate</a>
+     * operation.
+     *
+     * <p>
+     * This method cannot take all the advantages of parallel streams as it must
+     * process elements strictly left to right. Using an unordered source or
+     * removing the ordering constraint with {@link #unordered()} may improve
+     * the parallel processing speed.
+     *
+     * @param op an <a href="package-summary.html#Associativity">associative</a>
+     *        , <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
+     *        function for computing the next value based on the previous one
+     * @return the new stream.
+     * @see #prefix(BinaryOperator)
+     * @see #prefixKeys(BinaryOperator)
+     * @since 0.6.4
+     */
+    public EntryStream<K, V> prefixValues(BinaryOperator<V> op) {
+        return prefix((a, b) -> new SimpleImmutableEntry<>(b.getKey(), op.apply(a.getValue(), b.getValue())));
+    }
 
     /**
      * Returns a {@link Map} containing the elements of this stream. There are

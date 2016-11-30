@@ -660,4 +660,16 @@ public class EntryStreamTest {
             checkIllegalStateException(() -> EntryStream.of("y", 20, "d", 5).parallel().into(m), "d", "4", "5");
         }
     }
+    
+    @Test
+    public void testPrefixKeys() {
+        Map<String, Integer> map = EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4).prefixValues(Integer::sum).toMap();
+        assertEquals(EntryStream.of("a", 1, "b", 3, "c", 6, "d", 10).toMap(), map);
+    }
+    
+    @Test
+    public void testPrefixValues() {
+        Map<String, Integer> map = EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4).prefixKeys(String::concat).toMap();
+        assertEquals(EntryStream.of("a", 1, "ab", 2, "abc", 3, "abcd", 4).toMap(), map);
+    }
 }

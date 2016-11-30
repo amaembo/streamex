@@ -2,6 +2,9 @@
 
 Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 
+### 0.6.4
+* [#128] Added: `EntryStream.prefixKeys`, `EntryStream.prefixValues`
+
 ### 0.6.3
 
 * [#111] Added: `StreamEx.toArray(elementClass)`
