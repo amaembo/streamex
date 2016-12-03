@@ -3,8 +3,8 @@ package one.util.streamex;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 
-final class PermutationSpliterator implements Spliterator<int[]> {
-    private static final long[] factorials = new long[] { 1L, 1L, 2L, 6L, 24L, 120L, 720L, 5040L, 40320L, 362880L,
+/* package */ final class PermutationSpliterator implements Spliterator<int[]> {
+    private static final long[] factorials = { 1L, 1L, 2L, 6L, 24L, 120L, 720L, 5040L, 40320L, 362880L,
             3628800L, 39916800L, 479001600L, 6227020800L, 87178291200L, 1307674368000L, 20922789888000L,
             355687428096000L, 6402373705728000L, 121645100408832000L, 2432902008176640000L };
 
@@ -24,7 +24,7 @@ final class PermutationSpliterator implements Spliterator<int[]> {
         this.fence = this.remainingSize = factorials[length];
     }
 
-    public PermutationSpliterator(int[] startValue, long fence, long remainingSize) {
+    private PermutationSpliterator(int[] startValue, long fence, long remainingSize) {
         this.value = startValue;
         this.fence = fence;
         this.remainingSize = remainingSize;
@@ -37,21 +37,39 @@ final class PermutationSpliterator implements Spliterator<int[]> {
         int[] value = this.value;
         action.accept(value.clone());
         if (--remainingSize > 0) {
-            int r = value.length - 1, k = r - 1;
-            while (value[k] > value[k + 1])
-                k--;
-            int vk = value[k], l = r;
-            while (vk > value[l])
-                l--;
-            value[k] = value[l];
-            value[l] = vk;
-            for (k++; k < r; k++, r--) {
-                int tmp = value[k];
-                value[k] = value[r];
-                value[r] = tmp;
-            }
+            step(value);
         }
         return true;
+    }
+    
+    @Override
+    public void forEachRemaining(Consumer<? super int[]> action) {
+        long rs = remainingSize;
+        if (rs == 0) 
+            return;
+        remainingSize = 0;
+        int[] value = this.value;
+        action.accept(value.clone());
+        while (--rs > 0) {
+            step(value);
+            action.accept(value.clone());
+        }
+    }
+
+    private static void step(int[] value) {
+        int r = value.length - 1, k = r - 1;
+        while (value[k] > value[k + 1])
+            k--;
+        int vk = value[k], l = r;
+        while (vk > value[l])
+            l--;
+        value[k] = value[l];
+        value[l] = vk;
+        for (k++; k < r; k++, r--) {
+            int tmp = value[k];
+            value[k] = value[r];
+            value[r] = tmp;
+        }
     }
 
     @Override
@@ -61,7 +79,7 @@ final class PermutationSpliterator implements Spliterator<int[]> {
         int[] newValue = value.clone();
         long used = -1L; // clear bit = used position
         long newRemainingSize = remainingSize / 2;
-        long newPos = fence - remainingSize + newRemainingSize;
+        long newPos = fence - (remainingSize -= newRemainingSize);
         long s = newPos;
         for (int i = 0; i < value.length; i++) {
             long f = factorials[value.length - i - 1];
@@ -75,9 +93,7 @@ final class PermutationSpliterator implements Spliterator<int[]> {
             used &= ~(1 << idx);
             value[i] = idx;
         }
-        PermutationSpliterator prefixSpliterator = new PermutationSpliterator(newValue, newPos, newRemainingSize);
-        remainingSize -= newRemainingSize;
-        return prefixSpliterator;
+        return new PermutationSpliterator(newValue, newPos, newRemainingSize);
     }
 
     @Override
@@ -87,7 +103,6 @@ final class PermutationSpliterator implements Spliterator<int[]> {
 
     @Override
     public int characteristics() {
-        return ORDERED | NONNULL | IMMUTABLE | SIZED | SUBSIZED;
+        return ORDERED | DISTINCT | NONNULL | IMMUTABLE | SIZED | SUBSIZED;
     }
-
 }
