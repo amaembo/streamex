@@ -3,6 +3,7 @@
 Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 
 ### 0.6.4
+* [#127] Added: `StreamEx.filterBy`
 * [#128] Added: `EntryStream.prefixKeys`, `EntryStream.prefixValues`
 
 ### 0.6.3
