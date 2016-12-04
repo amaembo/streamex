@@ -119,6 +119,8 @@ import java.util.stream.BaseStream;
     @SuppressWarnings("unchecked")
     public S parallel(ForkJoinPool fjp) {
         context = context.parallel(fjp);
+        if (stream != null)
+            stream = stream.parallel();
         return (S) this;
     }
 
