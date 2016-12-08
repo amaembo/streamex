@@ -2013,4 +2013,10 @@ public class StreamExTest {
         assertEquals(3, StreamEx.of("a", "bb", "c", "e", "ddd").filterBy(String::length, 1).count());
         assertEquals(2, StreamEx.of("a", "bb", "c", "e", "ddd").filterBy(x -> x.length() > 1 ? null : x, null).count());
     }
+    
+    @Test
+    public void testRemoveBy() {
+        assertEquals(2, StreamEx.of("a", "bb", "c", "e", "ddd").removeBy(String::length, 1).count());
+        assertEquals(3, StreamEx.of("a", "bb", "c", "e", "ddd").removeBy(x -> x.length() > 1 ? null : x, null).count());
+    }
 }

@@ -85,6 +85,7 @@ Remove nulls | `StreamEx/EntryStream.nonNull()`
 Remove entries which keys or values are null | `EntryStream.nonNullKeys()/nonNullValues()`
 Remove elements by predicate | `any.remove()`
 Remove given elements | `StreamEx/IntStreamEx/LongStreamEx.without()`
+Remove by value extracted by supplied mapper function | `StreamEx.removeBy()`
 Leave only elements greater/less/at least/at most given value | `IntStreamEx/LongStreamEx/DoubleStreamEx.greater()/atLeast()/less()/atMost()`
 Filter by value extracted by supplied mapper function | `StreamEx.filterBy()`
 Filter entries which keys or values satisfy the predicate | `EntryStream.filterKeys()/filterValues()`

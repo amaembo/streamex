@@ -148,6 +148,33 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
+     * Returns a stream consisting of the elements of this stream except those
+     * for which the supplied mapper function returns the given value.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate
+     * operation</a>.
+     * 
+     * <p>
+     * This method behaves like
+     * {@code filter(t -> !Objects.equals(value, mapper.apply(t)))}.
+     *
+     * @param mapper a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
+     *        function which is applied to the stream element and its returned
+     *        value is compared with the supplied value.
+     * @param value a value the mapper function must not return to pass the
+     *        filter.
+     * @return the new stream
+     * @since 0.6.4
+     * @see #remove(Predicate)
+     */
+    public <K> StreamEx<T> removeBy(Function<? super T, ? extends K> mapper, K value) {
+        return value == null ? filter(t -> mapper.apply(t) != null) : filter(t -> !value.equals(mapper.apply(t)));
+    }
+    
+    /**
      * Returns an {@link EntryStream} consisting of the {@link Entry} objects
      * which keys are elements of this stream and values are results of applying
      * the given function to the elements of this stream.
