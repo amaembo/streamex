@@ -104,6 +104,12 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return new StreamEx<>(spliterator, context);
     }
 
+    @Override
+    public StreamEx<T> nonNull() {
+        // this overload is useful to make Eclipse external Null annotations working
+        return super.nonNull();
+    }
+
     /**
      * Returns a stream consisting of the elements of this stream which are
      * instances of given class.
