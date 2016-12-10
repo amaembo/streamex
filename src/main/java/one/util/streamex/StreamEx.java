@@ -139,6 +139,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * This method behaves like
      * {@code filter(t -> Objects.equals(value, mapper.apply(t)))}.
      *
+     * @param <K> type of the value returned by mapper function.
      * @param mapper a
      *        <a href="package-summary.html#NonInterference">non-interfering
      *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
@@ -165,6 +166,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * This method behaves like
      * {@code filter(t -> !Objects.equals(value, mapper.apply(t)))}.
      *
+     * @param <K> type of the value returned by mapper function.
      * @param mapper a
      *        <a href="package-summary.html#NonInterference">non-interfering
      *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
@@ -1033,6 +1035,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * {@link Collection#add(Object)} or {@link Collection#addAll(Collection)}
      * method.
      * 
+     * @param <C> type of the resulting collection
      * @param collection a mutable collection to add new elements into
      * @return the supplied collection, updated from this stream
      * @since 0.6.3

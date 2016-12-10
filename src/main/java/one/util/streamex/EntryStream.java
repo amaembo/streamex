@@ -1245,6 +1245,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
      * operation.
      * 
+     * @param <M> type of the resulting map
      * @param map a mutable map to put the stream elements into
      * @return the supplied map, updated from this stream
      * @throws IllegalStateException if this stream contains duplicate keys, or
