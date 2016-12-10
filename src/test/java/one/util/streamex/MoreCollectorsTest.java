@@ -154,11 +154,34 @@ public class MoreCollectorsTest {
             checkCollector("entry", new SimpleEntry<>(expectedMin.get(0), (long) expectedMin.size()), ints::stream,
                 MoreCollectors.minAll(downstream));
         });
+        
+        class MyNumber implements Comparable<MyNumber> {
+            int value;
+            
+            MyNumber(int value) {
+                this.value = value;
+            }
 
-        Integer a = new Integer(1), b = new Integer(1), c = new Integer(1000), d = new Integer(1000);
-        List<Integer> ints = IntStreamEx.range(10, 100).boxed().append(a, c).prepend(b, d).toList();
-        streamEx(ints::stream, supplier -> {
-            List<Integer> list = supplier.get().collect(MoreCollectors.maxAll());
+            @Override
+            public int hashCode() {
+                return value;
+            }
+
+            @Override
+            public boolean equals(Object obj) {
+                return obj instanceof MyNumber && ((MyNumber)obj).value == value;
+            }
+
+            @Override
+            public int compareTo(MyNumber o) {
+                return Integer.compare(value, o.value);
+            }
+        }
+
+        MyNumber a = new MyNumber(1), b = new MyNumber(1), c = new MyNumber(1000), d = new MyNumber(1000);
+        List<MyNumber> nums = IntStreamEx.range(10, 100).mapToObj(MyNumber::new).append(a, c).prepend(b, d).toList();
+        streamEx(nums::stream, supplier -> {
+            List<MyNumber> list = supplier.get().collect(MoreCollectors.maxAll());
             assertEquals(2, list.size());
             assertSame(d, list.get(0));
             assertSame(c, list.get(1));
