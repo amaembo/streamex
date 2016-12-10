@@ -37,8 +37,8 @@ import static one.util.streamex.StreamExInternals.*;
     private final BinaryOperator<A> combiner;
     private final Supplier<A> supplier;
     private volatile boolean localCancelled;
-    private OrderedCancellableSpliterator<T, A> prefix;
-    private OrderedCancellableSpliterator<T, A> suffix;
+    private volatile OrderedCancellableSpliterator<T, A> prefix;
+    private volatile OrderedCancellableSpliterator<T, A> suffix;
     private A payload;
 
     OrderedCancellableSpliterator(Spliterator<T> source, Supplier<A> supplier, BiConsumer<A, ? super T> accumulator,
