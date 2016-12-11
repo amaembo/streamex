@@ -66,6 +66,29 @@ import org.junit.runners.MethodSorters;
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class MoreCollectorsTest {
+    static class MyNumber implements Comparable<MyNumber> {
+        int value;
+        
+        MyNumber(int value) {
+            this.value = value;
+        }
+
+        @Override
+        public int hashCode() {
+            return value;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return obj instanceof MyNumber && ((MyNumber)obj).value == value;
+        }
+
+        @Override
+        public int compareTo(MyNumber o) {
+            return Integer.compare(value, o.value);
+        }
+    }
+
     @Test(expected = UnsupportedOperationException.class)
     public void testInstantiate() throws Throwable {
         Constructor<MoreCollectors> constructor = MoreCollectors.class.getDeclaredConstructor();
@@ -155,29 +178,6 @@ public class MoreCollectorsTest {
                 MoreCollectors.minAll(downstream));
         });
         
-        class MyNumber implements Comparable<MyNumber> {
-            int value;
-            
-            MyNumber(int value) {
-                this.value = value;
-            }
-
-            @Override
-            public int hashCode() {
-                return value;
-            }
-
-            @Override
-            public boolean equals(Object obj) {
-                return obj instanceof MyNumber && ((MyNumber)obj).value == value;
-            }
-
-            @Override
-            public int compareTo(MyNumber o) {
-                return Integer.compare(value, o.value);
-            }
-        }
-
         MyNumber a = new MyNumber(1), b = new MyNumber(1), c = new MyNumber(1000), d = new MyNumber(1000);
         List<MyNumber> nums = IntStreamEx.range(10, 100).mapToObj(MyNumber::new).append(a, c).prepend(b, d).toList();
         streamEx(nums::stream, supplier -> {
