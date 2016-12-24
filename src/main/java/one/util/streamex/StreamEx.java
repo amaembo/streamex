@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Map.Entry;
+import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.SortedMap;
@@ -1086,6 +1087,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Collectors#toMap(Function, Function)
      * @see Collectors#toConcurrentMap(Function, Function)
      * @see #toSortedMap(Function, Function)
+     * @see #toNavigableMap(Function)
      * @since 0.1.0
      */
     public <V> SortedMap<T, V> toSortedMap(Function<? super T, ? extends V> valMapper) {
@@ -1121,6 +1123,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Collectors#toMap(Function, Function)
      * @see Collectors#toConcurrentMap(Function, Function)
      * @see #toSortedMap(Function)
+     * @see #toNavigableMap(Function, Function)
      * @since 0.1.0
      */
     public <K, V> SortedMap<K, V> toSortedMap(Function<? super T, ? extends K> keyMapper,
@@ -1159,15 +1162,126 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *         equal to the key and combining them using the merge function
      *
      * @see Collectors#toMap(Function, Function, BinaryOperator)
-     * @see Collectors#toConcurrentMap(Function, Function, BinaryOperator)
      * @see #toSortedMap(Function, Function)
+     * @see #toNavigableMap(Function, Function, BinaryOperator)
      * @since 0.1.0
      */
     public <K, V> SortedMap<K, V> toSortedMap(Function<? super T, ? extends K> keyMapper,
             Function<? super T, ? extends V> valMapper, BinaryOperator<V> mergeFunction) {
         return rawCollect(Collectors.toMap(keyMapper, valMapper, mergeFunction, TreeMap::new));
     }
-
+    
+    /**
+     * Returns a {@link NavigableMap} whose keys are elements from this stream and
+     * values are the result of applying the provided mapping functions to the
+     * input elements.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
+     * 
+     * <p>
+     * If this stream contains duplicates (according to
+     * {@link Object#equals(Object)}), an {@code IllegalStateException} is
+     * thrown when the collection operation is performed.
+     *
+     * <p>
+     * For parallel stream the concurrent {@code NavigableMap} is created.
+     *
+     * <p>
+     * Returned {@code NavigableMap} is guaranteed to be modifiable.
+     *
+     * @param <V> the output type of the value mapping function
+     * @param valMapper a mapping function to produce values
+     * @return a {@code NavigableMap} whose keys are elements from this stream and
+     *         values are the result of applying mapping function to the input
+     *         elements
+     *
+     * @see Collectors#toMap(Function, Function)
+     * @see Collectors#toConcurrentMap(Function, Function)
+     * @see #toNavigableMap(Function, Function)
+     * @since 0.6.5
+     */
+    public <V> NavigableMap<T, V> toNavigableMap(Function<? super T, ? extends V> valMapper) {
+        return toNavigableMap(Function.identity(), valMapper);
+    }
+    
+    /**
+     * Returns a {@link NavigableMap} whose keys and values are the result of
+     * applying the provided mapping functions to the input elements.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
+     * 
+     * <p>
+     * If the mapped keys contains duplicates (according to
+     * {@link Object#equals(Object)}), an {@code IllegalStateException} is
+     * thrown when the collection operation is performed.
+     *
+     * <p>
+     * For parallel stream the concurrent {@code NavigableMap} is created.
+     *
+     * <p>
+     * Returned {@code NavigableMap} is guaranteed to be modifiable.
+     * 
+     * @param <K> the output type of the key mapping function
+     * @param <V> the output type of the value mapping function
+     * @param keyMapper a mapping function to produce keys
+     * @param valMapper a mapping function to produce values
+     * @return a {@code NavigableMap} whose keys and values are the result of
+     *         applying mapping functions to the input elements
+     *
+     * @see Collectors#toMap(Function, Function)
+     * @see Collectors#toConcurrentMap(Function, Function)
+     * @see #toNavigableMap(Function)
+     * @since 0.6.5
+     */
+    public <K, V> NavigableMap<K, V> toNavigableMap(Function<? super T, ? extends K> keyMapper,
+            Function<? super T, ? extends V> valMapper) {
+        NavigableMap<K, V> map = isParallel() ? new ConcurrentSkipListMap<>() : new TreeMap<>();
+        return toMapThrowing(keyMapper, valMapper, map);
+    }
+    
+    /**
+     * Returns a {@link NavigableMap} whose keys and values are the result of
+     * applying the provided mapping functions to the input elements.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
+     * 
+     * <p>
+     * If the mapped keys contains duplicates (according to
+     * {@link Object#equals(Object)}), the value mapping function is applied to
+     * each equal element, and the results are merged using the provided merging
+     * function.
+     *
+     * <p>
+     * Returned {@code NavigableMap} is guaranteed to be modifiable.
+     *
+     * @param <K> the output type of the key mapping function
+     * @param <V> the output type of the value mapping function
+     * @param keyMapper a mapping function to produce keys
+     * @param valMapper a mapping function to produce values
+     * @param mergeFunction a merge function, used to resolve collisions between
+     *        values associated with the same key, as supplied to
+     *        {@link Map#merge(Object, Object, BiFunction)}
+     * @return a {@code NavigableMap} whose keys are the result of applying a key
+     *         mapping function to the input elements, and whose values are the
+     *         result of applying a value mapping function to all input elements
+     *         equal to the key and combining them using the merge function
+     *
+     * @see Collectors#toMap(Function, Function, BinaryOperator)
+     * @see Collectors#toConcurrentMap(Function, Function, BinaryOperator)
+     * @see #toNavigableMap(Function, Function)
+     * @since 0.6.5
+     */
+    public <K, V> NavigableMap<K, V> toNavigableMap(Function<? super T, ? extends K> keyMapper,
+            Function<? super T, ? extends V> valMapper, BinaryOperator<V> mergeFunction) {
+        return rawCollect(Collectors.toMap(keyMapper, valMapper, mergeFunction, TreeMap::new));
+    }
+    
     /**
      * Returns a new {@code StreamEx} which is a concatenation of this stream
      * and the supplied values.

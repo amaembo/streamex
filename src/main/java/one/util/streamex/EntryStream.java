@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Spliterator;
 import java.util.Map.Entry;
+import java.util.NavigableMap;
 import java.util.SortedMap;
 import java.util.Spliterators;
 import java.util.TreeMap;
@@ -1195,16 +1196,13 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * For parallel stream the concurrent {@code SortedMap} is created.
      *
      * @return a {@code SortedMap} containing the elements of this stream
-     * @see Collectors#toMap(Function, Function)
-     * @see Collectors#toConcurrentMap(Function, Function)
+     * @see #toNavigableMap()
      * @throws IllegalStateException if this stream contains duplicate keys
      *         (according to {@link Object#equals(Object)})
      * @since 0.1.0
      */
     public SortedMap<K, V> toSortedMap() {
-        SortedMap<K, V> map = isParallel() ? new ConcurrentSkipListMap<>() : new TreeMap<>();
-        forEach(toMapConsumer(map));
-        return map;
+        return toNavigableMap();
     }
 
     /**
@@ -1230,11 +1228,71 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      *        values associated with the same key, as supplied to
      *        {@link Map#merge(Object, Object, BiFunction)}
      * @return a {@code SortedMap} containing the elements of this stream
-     * @see Collectors#toMap(Function, Function)
-     * @see Collectors#toConcurrentMap(Function, Function)
+     * @see #toNavigableMap(BinaryOperator)
      * @since 0.1.0
      */
     public SortedMap<K, V> toSortedMap(BinaryOperator<V> mergeFunction) {
+        return toNavigableMap(mergeFunction);
+    }
+    
+    
+    /**
+     * Returns a {@link NavigableMap} containing the elements of this stream.
+     * There are no guarantees on the type or serializability of the
+     * {@code NavigableMap} returned; if more control over the returned
+     * {@code Map} is required, use {@link #toCustomMap(Supplier)}.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
+     *
+     * <p>
+     * Returned {@code NavigableMap} is guaranteed to be modifiable.
+     *
+     * <p>
+     * For parallel stream the concurrent {@code NavigableMap} is created.
+     *
+     * @return a {@code NavigableMap} containing the elements of this stream
+     * @see Collectors#toMap(Function, Function)
+     * @see Collectors#toConcurrentMap(Function, Function)
+     * @throws IllegalStateException if this stream contains duplicate keys
+     *         (according to {@link Object#equals(Object)})
+     * @since 0.6.5
+     */
+    public NavigableMap<K, V> toNavigableMap() {
+        NavigableMap<K, V> map = isParallel() ? new ConcurrentSkipListMap<>() : new TreeMap<>();
+        forEach(toMapConsumer(map));
+        return map;
+    }
+
+    /**
+     * Returns a {@link NavigableMap} containing the elements of this stream.
+     * There are no guarantees on the type or serializability of the
+     * {@code NavigableMap} returned; if more control over the returned
+     * {@code Map} is required, use
+     * {@link #toCustomMap(BinaryOperator, Supplier)}.
+     *
+     * <p>
+     * If the mapped keys contains duplicates (according to
+     * {@link Object#equals(Object)}), the value mapping function is applied to
+     * each equal element, and the results are merged using the provided merging
+     * function.
+     * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
+     *
+     * <p>
+     * Returned {@code NavigableMap} is guaranteed to be modifiable.
+     *
+     * @param mergeFunction a merge function, used to resolve collisions between
+     *        values associated with the same key, as supplied to
+     *        {@link Map#merge(Object, Object, BiFunction)}
+     * @return a {@code NavigableMap} containing the elements of this stream
+     * @see Collectors#toMap(Function, Function)
+     * @since 0.6.5
+     */
+    public NavigableMap<K, V> toNavigableMap(BinaryOperator<V> mergeFunction) {
         return collect(Collectors.toMap(Entry::getKey, Entry::getValue, mergeFunction, TreeMap::new));
     }
     

@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.Map.Entry;
+import java.util.NavigableMap;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
@@ -320,9 +321,12 @@ public class EntryStreamTest {
             assertEquals(expected, map);
             SortedMap<Integer, String> sortedMap = fn.apply(supplier).toSortedMap(String::concat);
             assertEquals(expected, sortedMap);
+            NavigableMap<Integer, String> navigableMap = fn.apply(supplier).toNavigableMap(String::concat);
+            assertEquals(expected, navigableMap);
 
             checkIllegalStateException(() -> fn.apply(supplier).toMap(), "2", "dd", "bb");
             checkIllegalStateException(() -> fn.apply(supplier).toSortedMap(), "2", "dd", "bb");
+            checkIllegalStateException(() -> fn.apply(supplier).toNavigableMap(), "2", "dd", "bb");
             checkIllegalStateException(() -> fn.apply(supplier).toCustomMap(HashMap::new), "2", "dd", "bb");
         });
 
