@@ -598,10 +598,41 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     public <R> StreamEx<R> flatCollection(Function<? super T, ? extends Collection<? extends R>> mapper) {
         return flatMap(t -> {
             Collection<? extends R> c = mapper.apply(t);
-            return c == null ? null : c.stream();
+            return c == null ? null : StreamEx.of(c.spliterator());
         });
     }
 
+    /**
+     * Returns a stream consisting of the results of replacing each element of
+     * this stream with the contents of a mapped array produced by applying
+     * the provided mapping function to each element. (If a mapped array is
+     * {@code null} nothing is added for given element to the resulting stream.)
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate
+     * operation</a>.
+     *
+     * <p>
+     * The {@code flatArray()} operation has the effect of applying a
+     * one-to-many transformation to the elements of the stream, and then
+     * flattening the resulting elements into a new stream.
+     *
+     * @param <R> The element type of the new stream
+     * @param mapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to each element which produces an
+     *        array of new values
+     * @return the new stream
+     * @since 0.6.5
+     */
+    public <R> StreamEx<R> flatArray(Function<? super T, ? extends R[]> mapper) {
+        return flatMap(t -> {
+            R[] a = mapper.apply(t);
+            return a == null ? null : StreamEx.of(Arrays.spliterator(a));
+        });
+    }
+    
     /**
      * Returns a stream consisting of the elements of this stream that don't
      * match the given predicate.

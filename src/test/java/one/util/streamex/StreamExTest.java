@@ -492,6 +492,15 @@ public class StreamExTest {
     }
 
     @Test
+    public void testFlatArray() {
+        Map<Integer, String[]> data = new LinkedHashMap<>();
+        data.put(1, new String[] {"a", "b"});
+        data.put(2, new String[] {"c", "d"});
+        data.put(3, null);
+        assertEquals(asList("a", "b", "c", "d"), StreamEx.of(data.entrySet()).flatArray(Entry::getValue).toList());
+    }
+    
+    @Test
     public void testAppend() {
         assertEquals(asList("a", "b", "c", "d", "e"), StreamEx.of("a", "b", "c", "dd").remove(s -> s.length() > 1)
                 .append("d", "e").toList());
