@@ -30,7 +30,6 @@ import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator.OfDouble;
-import java.util.Spliterators.AbstractDoubleSpliterator;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
 import java.util.function.DoubleBinaryOperator;
@@ -62,77 +61,6 @@ import static one.util.streamex.StreamExInternals.*;
  */
 public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterator.OfDouble, DoubleStreamEx> implements
         DoubleStream {
-    private static final class TDOfDouble extends AbstractDoubleSpliterator implements DoubleConsumer {
-        private final DoublePredicate predicate;
-        private final boolean drop;
-        private final boolean inclusive;
-        private boolean checked;
-        private final Spliterator.OfDouble source;
-        private double cur;
-
-        TDOfDouble(Spliterator.OfDouble source, boolean drop, boolean inclusive, DoublePredicate predicate) {
-            super(source.estimateSize(), source.characteristics() & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL
-                | DISTINCT));
-            this.drop = drop;
-            this.predicate = predicate;
-            this.inclusive = inclusive;
-            this.source = source;
-        }
-
-        @Override
-        public Comparator<? super Double> getComparator() {
-            return source.getComparator();
-        }
-
-        @Override
-        public boolean tryAdvance(DoubleConsumer action) {
-            if (drop) {
-                if (checked)
-                    return source.tryAdvance(action);
-                while (source.tryAdvance(this)) {
-                    if (!predicate.test(cur)) {
-                        checked = true;
-                        action.accept(cur);
-                        return true;
-                    }
-                }
-                return false;
-            }
-            if (!checked && source.tryAdvance(this) && (predicate.test(cur) || (checked = inclusive))) {
-                action.accept(cur);
-                return true;
-            }
-            checked = true;
-            return false;
-        }
-
-        @Override
-        public void forEachRemaining(DoubleConsumer action) {
-            if (drop) {
-                if (checked)
-                    source.forEachRemaining(action);
-                else {
-                    source.forEachRemaining((double e) -> {
-                        if (checked)
-                            action.accept(e);
-                        else {
-                            if (!predicate.test(e)) {
-                                checked = true;
-                                action.accept(e);
-                            }
-                        }
-                    });
-                }
-            } else
-                super.forEachRemaining(action);
-        }
-
-        @Override
-        public void accept(double t) {
-            this.cur = t;
-        }
-    }
-
     DoubleStreamEx(DoubleStream stream, StreamContext context) {
         super(stream, context);
     }
@@ -1519,7 +1447,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_TAKE_WHILE);
         }
-        return delegate(new DoubleStreamEx.TDOfDouble(spliterator(), false, false, predicate));
+        return delegate(new TakeDrop.TDOfDouble(spliterator(), false, false, predicate));
     }
 
     /**
@@ -1543,7 +1471,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      */
     public DoubleStreamEx takeWhileInclusive(DoublePredicate predicate) {
         Objects.requireNonNull(predicate);
-        return delegate(new DoubleStreamEx.TDOfDouble(spliterator(), false, true, predicate));
+        return delegate(new TakeDrop.TDOfDouble(spliterator(), false, true, predicate));
     }
 
     /**
@@ -1572,7 +1500,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_DROP_WHILE);
         }
-        return delegate(new DoubleStreamEx.TDOfDouble(spliterator(), true, false, predicate));
+        return delegate(new TakeDrop.TDOfDouble(spliterator(), true, false, predicate));
     }
 
     /**

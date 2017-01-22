@@ -69,77 +69,6 @@ import static one.util.streamex.StreamExInternals.*;
  * @author Tagir Valeev
  */
 public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.OfInt, IntStreamEx> implements IntStream {
-    private static final class TDOfInt extends AbstractIntSpliterator implements IntConsumer {
-        private final IntPredicate predicate;
-        private final boolean drop;
-        private final boolean inclusive;
-        private boolean checked;
-        private final Spliterator.OfInt source;
-        private int cur;
-
-        TDOfInt(Spliterator.OfInt source, boolean drop, boolean inclusive, IntPredicate predicate) {
-            super(source.estimateSize(), source.characteristics() & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL
-                | DISTINCT));
-            this.drop = drop;
-            this.predicate = predicate;
-            this.inclusive = inclusive;
-            this.source = source;
-        }
-
-        @Override
-        public Comparator<? super Integer> getComparator() {
-            return source.getComparator();
-        }
-
-        @Override
-        public boolean tryAdvance(IntConsumer action) {
-            if (drop) {
-                if (checked)
-                    return source.tryAdvance(action);
-                while (source.tryAdvance(this)) {
-                    if (!predicate.test(cur)) {
-                        checked = true;
-                        action.accept(cur);
-                        return true;
-                    }
-                }
-                return false;
-            }
-            if (!checked && source.tryAdvance(this) && (predicate.test(cur) || (checked = inclusive))) {
-                action.accept(cur);
-                return true;
-            }
-            checked = true;
-            return false;
-        }
-
-        @Override
-        public void forEachRemaining(IntConsumer action) {
-            if (drop) {
-                if (checked)
-                    source.forEachRemaining(action);
-                else {
-                    source.forEachRemaining((int e) -> {
-                        if (checked)
-                            action.accept(e);
-                        else {
-                            if (!predicate.test(e)) {
-                                checked = true;
-                                action.accept(e);
-                            }
-                        }
-                    });
-                }
-            } else
-                super.forEachRemaining(action);
-        }
-
-        @Override
-        public void accept(int t) {
-            this.cur = t;
-        }
-    }
-
     IntStreamEx(IntStream stream, StreamContext context) {
         super(stream, context);
     }
@@ -1772,7 +1701,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_TAKE_WHILE);
         }
-        return delegate(new IntStreamEx.TDOfInt(spliterator(), false, false, predicate));
+        return delegate(new TakeDrop.TDOfInt(spliterator(), false, false, predicate));
     }
 
     /**
@@ -1796,7 +1725,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      */
     public IntStreamEx takeWhileInclusive(IntPredicate predicate) {
         Objects.requireNonNull(predicate);
-        return delegate(new IntStreamEx.TDOfInt(spliterator(), false, true, predicate));
+        return delegate(new TakeDrop.TDOfInt(spliterator(), false, true, predicate));
     }
 
     /**
@@ -1825,7 +1754,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_DROP_WHILE);
         }
-        return delegate(new IntStreamEx.TDOfInt(spliterator(), true, false, predicate));
+        return delegate(new TakeDrop.TDOfInt(spliterator(), true, false, predicate));
     }
 
     /**

@@ -29,7 +29,6 @@ import java.util.OptionalLong;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
-import java.util.Spliterators.AbstractSpliterator;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -63,77 +62,6 @@ import static one.util.streamex.StreamExInternals.*;
  */
 public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> extends
         BaseStreamEx<T, Stream<T>, Spliterator<T>, S> implements Stream<T>, Iterable<T> {
-    private static final class TDOfRef<T> extends AbstractSpliterator<T> implements Consumer<T> {
-        private final Predicate<? super T> predicate;
-        private final boolean drop;
-        private final boolean inclusive;
-        private boolean checked;
-        private final Spliterator<T> source;
-        private T cur;
-
-        TDOfRef(Spliterator<T> source, boolean drop, boolean inclusive, Predicate<? super T> predicate) {
-            super(source.estimateSize(), source.characteristics()
-                & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL | DISTINCT));
-            this.drop = drop;
-            this.predicate = predicate;
-            this.inclusive = inclusive;
-            this.source = source;
-        }
-
-        @Override
-        public Comparator<? super T> getComparator() {
-            return source.getComparator();
-        }
-
-        @Override
-        public boolean tryAdvance(Consumer<? super T> action) {
-            if (drop) {
-                if (checked)
-                    return source.tryAdvance(action);
-                while (source.tryAdvance(this)) {
-                    if (!predicate.test(cur)) {
-                        checked = true;
-                        action.accept(cur);
-                        return true;
-                    }
-                }
-                return false;
-            }
-            if (!checked && source.tryAdvance(this) && (predicate.test(cur) || (checked = inclusive))) {
-                action.accept(cur);
-                return true;
-            }
-            checked = true;
-            return false;
-        }
-
-        @Override
-        public void forEachRemaining(Consumer<? super T> action) {
-            if (drop) {
-                if (checked)
-                    source.forEachRemaining(action);
-                else {
-                    source.forEachRemaining(e -> {
-                        if (checked)
-                            action.accept(e);
-                        else {
-                            if (!predicate.test(e)) {
-                                checked = true;
-                                action.accept(e);
-                            }
-                        }
-                    });
-                }
-            } else
-                super.forEachRemaining(action);
-        }
-
-        @Override
-        public void accept(T t) {
-            this.cur = t;
-        }
-    }
-
     @SuppressWarnings("unchecked")
     AbstractStreamEx(Stream<? extends T> stream, StreamContext context) {
         super((Stream<T>)stream, context);
@@ -1704,7 +1632,10 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_TAKE_WHILE);
         }
-        return supply(new AbstractStreamEx.TDOfRef<>(spliterator(), false, false, predicate));
+        Spliterator<T> spltr = spliterator();
+        return supply(
+            spltr.hasCharacteristics(Spliterator.ORDERED) ? new TakeDrop.TDOfRef<>(spltr, false, false, predicate)
+                    : new TakeDrop.UnorderedTDOfRef<>(spltr, false, false, predicate));
     }
 
     /**
@@ -1728,7 +1659,10 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      */
     public S takeWhileInclusive(Predicate<? super T> predicate) {
         Objects.requireNonNull(predicate);
-        return supply(new AbstractStreamEx.TDOfRef<>(spliterator(), false, true, predicate));
+        Spliterator<T> spltr = spliterator();
+        return supply(
+            spltr.hasCharacteristics(Spliterator.ORDERED) ? new TakeDrop.TDOfRef<>(spltr, false, true, predicate)
+                    : new TakeDrop.UnorderedTDOfRef<>(spltr, false, true, predicate));
     }
 
     /**
@@ -1757,7 +1691,10 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_DROP_WHILE);
         }
-        return supply(new AbstractStreamEx.TDOfRef<>(spliterator(), true, false, predicate));
+        Spliterator<T> spltr = spliterator();
+        return supply(
+            spltr.hasCharacteristics(Spliterator.ORDERED) ? new TakeDrop.TDOfRef<>(spltr, true, false, predicate)
+                    : new TakeDrop.UnorderedTDOfRef<>(spltr, true, false, predicate));
     }
     
     /**

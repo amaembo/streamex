@@ -30,7 +30,6 @@ import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator.OfLong;
-import java.util.Spliterators.AbstractLongSpliterator;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -62,77 +61,6 @@ import static one.util.streamex.StreamExInternals.*;
  */
 public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfLong, LongStreamEx> implements
         LongStream {
-    private static final class TDOfLong extends AbstractLongSpliterator implements LongConsumer {
-        private final LongPredicate predicate;
-        private final boolean drop;
-        private final boolean inclusive;
-        private boolean checked;
-        private final Spliterator.OfLong source;
-        private long cur;
-
-        TDOfLong(Spliterator.OfLong source, boolean drop, boolean inclusive, LongPredicate predicate) {
-            super(source.estimateSize(), source.characteristics() & (ORDERED | SORTED | CONCURRENT | IMMUTABLE | NONNULL
-                | DISTINCT));
-            this.drop = drop;
-            this.predicate = predicate;
-            this.inclusive = inclusive;
-            this.source = source;
-        }
-
-        @Override
-        public Comparator<? super Long> getComparator() {
-            return source.getComparator();
-        }
-
-        @Override
-        public boolean tryAdvance(LongConsumer action) {
-            if (drop) {
-                if (checked)
-                    return source.tryAdvance(action);
-                while (source.tryAdvance(this)) {
-                    if (!predicate.test(cur)) {
-                        checked = true;
-                        action.accept(cur);
-                        return true;
-                    }
-                }
-                return false;
-            }
-            if (!checked && source.tryAdvance(this) && (predicate.test(cur) || (checked = inclusive))) {
-                action.accept(cur);
-                return true;
-            }
-            checked = true;
-            return false;
-        }
-
-        @Override
-        public void forEachRemaining(LongConsumer action) {
-            if (drop) {
-                if (checked)
-                    source.forEachRemaining(action);
-                else {
-                    source.forEachRemaining((long e) -> {
-                        if (checked)
-                            action.accept(e);
-                        else {
-                            if (!predicate.test(e)) {
-                                checked = true;
-                                action.accept(e);
-                            }
-                        }
-                    });
-                }
-            } else
-                super.forEachRemaining(action);
-        }
-
-        @Override
-        public void accept(long t) {
-            this.cur = t;
-        }
-    }
-
     LongStreamEx(LongStream stream, StreamContext context) {
         super(stream, context);
     }
@@ -1581,7 +1509,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_TAKE_WHILE);
         }
-        return delegate(new LongStreamEx.TDOfLong(spliterator(), false, false, predicate));
+        return delegate(new TakeDrop.TDOfLong(spliterator(), false, false, predicate));
     }
 
     /**
@@ -1605,7 +1533,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      */
     public LongStreamEx takeWhileInclusive(LongPredicate predicate) {
         Objects.requireNonNull(predicate);
-        return delegate(new LongStreamEx.TDOfLong(spliterator(), false, true, predicate));
+        return delegate(new TakeDrop.TDOfLong(spliterator(), false, true, predicate));
     }
 
     /**
@@ -1634,7 +1562,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
         if (JDK9_METHODS != null) {
             return callWhile(predicate, IDX_DROP_WHILE);
         }
-        return delegate(new LongStreamEx.TDOfLong(spliterator(), true, false, predicate));
+        return delegate(new TakeDrop.TDOfLong(spliterator(), true, false, predicate));
     }
 
     /**

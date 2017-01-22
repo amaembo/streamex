@@ -1597,6 +1597,25 @@ public class StreamExTest {
         Spliterator<String> spliterator = StreamEx.of("aaa", "b", "cccc").dropWhile(x -> x.length() > 1).spliterator();
         assertEquals(hasDropWhile, !spliterator.getClass().getSimpleName().equals("TDOfRef"));
     }
+    
+    @Test
+    public void testTakeDropUnordered() {
+        repeat(10, n -> {
+            withRandom(rnd -> {
+                List<Boolean> data = IntStreamEx.of(rnd, n*100, 0, rnd.nextInt(10)+2).mapToObj(x -> x != 0).toList();
+                List<Boolean> sorted = StreamEx.of(data).sorted().toList();
+                streamEx(() -> data.stream().unordered(), s -> {
+                    assertFalse(StreamEx.of(s.get().takeWhile(b -> b).toList()).has(false));
+                    assertEquals(1L, StreamEx.of(s.get().takeWhileInclusive(b -> b).toList()).without(true).count());
+                    assertTrue(s.get().dropWhile(b -> true).toList().isEmpty());
+                    assertTrue(s.get().takeWhile(b -> false).toList().isEmpty());
+                    assertEquals(1L, s.get().takeWhileInclusive(b -> false).count());
+                    assertEquals(sorted, s.get().dropWhile(b -> false).sorted().toList());
+                    assertEquals(sorted, s.get().takeWhileInclusive(b -> true).sorted().toList());
+                });
+            });    
+        });
+    }
 
     @Test
     public void testOfPairs() {
