@@ -1607,11 +1607,13 @@ public class StreamExTest {
                 streamEx(() -> data.stream().unordered(), s -> {
                     assertFalse(StreamEx.of(s.get().takeWhile(b -> b).toList()).has(false));
                     assertEquals(1L, StreamEx.of(s.get().takeWhileInclusive(b -> b).toList()).without(true).count());
-                    assertTrue(s.get().dropWhile(b -> true).toList().isEmpty());
-                    assertTrue(s.get().takeWhile(b -> false).toList().isEmpty());
+                    assertEquals(0L, s.get().dropWhile(b -> true).count());
+                    assertEquals(0L, s.get().takeWhile(b -> false).count());
                     assertEquals(1L, s.get().takeWhileInclusive(b -> false).count());
-                    assertEquals(sorted, s.get().dropWhile(b -> false).sorted().toList());
-                    assertEquals(sorted, s.get().takeWhileInclusive(b -> true).sorted().toList());
+                    List<Boolean> dropNone = s.get().dropWhile(b -> false).sorted().toList();
+                    assertEquals(sorted, dropNone);
+                    List<Boolean> takeAll = s.get().takeWhileInclusive(b -> true).sorted().toList();
+                    assertEquals(sorted, takeAll);
                 });
             });    
         });
