@@ -4,7 +4,7 @@
 
   <groupId>one.util</groupId>
   <artifactId>streamex</artifactId>
-  <version>0.6.5-SNAPSHOT</version>
+  <version>0.6.5</version>
   <packaging>jar</packaging>
 
   <name>StreamEx</name>

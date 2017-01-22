@@ -130,7 +130,7 @@ To use from maven add this snippet to the pom.xml `dependencies` section:
 <dependency>
   <groupId>one.util</groupId>
   <artifactId>streamex</artifactId>
-  <version>0.6.4</version>
+  <version>0.6.5</version>
 </dependency>
 ```
 
