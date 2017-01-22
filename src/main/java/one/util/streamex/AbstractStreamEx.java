@@ -1618,7 +1618,9 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * 
      * <p>
      * While this operation is quite cheap for sequential stream, it can be
-     * quite expensive on parallel pipelines.
+     * quite expensive on parallel pipelines. Using unordered source or making it
+     * explicitly unordered with {@link #unordered()} call may improve the parallel
+     * processing performance if semantics permit.
      * 
      * @param predicate a non-interfering, stateless predicate to apply to
      *        elements.
@@ -1649,7 +1651,9 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * 
      * <p>
      * While this operation is quite cheap for sequential stream, it can be
-     * quite expensive on parallel pipelines.
+     * quite expensive on parallel pipelines. Using unordered source or making it
+     * explicitly unordered with {@link #unordered()} call may improve the parallel
+     * processing performance if semantics permit.
      * 
      * @param predicate a non-interfering, stateless predicate to apply to
      *        elements.
@@ -1679,7 +1683,9 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * 
      * <p>
      * While this operation is quite cheap for sequential stream, it can be
-     * quite expensive on parallel pipelines.
+     * quite expensive on parallel pipelines. Using unordered source or making it
+     * explicitly unordered with {@link #unordered()} call may improve the parallel
+     * processing performance if semantics permit.
      * 
      * @param predicate a non-interfering, stateless predicate to apply to
      *        elements.

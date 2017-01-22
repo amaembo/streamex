@@ -5,6 +5,7 @@ Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 ### 0.6.5
 * [#137] Added: `StreamEx.toNavigableMap()`, `EntryStream.toNavigableMap()`
 * [#141] Added: `StreamEx.flatArray()`, `EntryStream.flatArray()`
+* [#143] Optimized: `AbstractStreamEx.takeWhile/takeWhileInclusive/dropWhile` for parallel unordered case.
 
 ### 0.6.4
 * [#132] Fixed: `StreamEx.parallel(fjp)` does not parallelize underlying Java Stream if it already exists
