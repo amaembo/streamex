@@ -19,6 +19,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.invoke.MethodType;
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -104,8 +105,20 @@ import java.util.stream.Stream;
                 fields.add(abstractPipelineClass.getDeclaredField("sourceStage"));
                 fields.add(abstractPipelineClass.getDeclaredField("sourceCloseAction"));
                 fields.add(Class.forName("java.util.Spliterators$IteratorSpliterator").getDeclaredField("it"));
-                for (Field f : fields)
-                    f.setAccessible(true);
+                try {
+                    // Work-around Java 9 security model
+                    Field unsafeField = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
+                    unsafeField.setAccessible(true);
+                    sun.misc.Unsafe U = (sun.misc.Unsafe)unsafeField.get(null);
+                    Field override = AccessibleObject.class.getDeclaredField("override");
+                    long offset = U.objectFieldOffset(override);
+                    for (Field f : fields) {
+                        U.putBoolean(f, offset, true);
+                    }
+                } catch (LinkageError | ReflectiveOperationException | SecurityException ex) {
+                    for (Field f : fields)
+                        f.setAccessible(true);
+                }
                 return null;
             });
         } catch (PrivilegedActionException e) {
