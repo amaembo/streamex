@@ -382,6 +382,25 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
         return new StreamEx<>(stream().mapToObj(mapper).flatMap(Function.identity()), context);
     }
 
+    /**
+     * Returns a new stream containing all the elements of the original stream interspersed with
+     * given delimiter.
+     * 
+     * <p>
+     * For example, {@code IntStreamEx.of(1, 2, 3).intersperse(4)} will yield a stream containing
+     * five elements: 1, 4, 2, 4, 3.
+     * 
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate operation</a>.
+     * 
+     * @param delimiter a delimiter to be inserted between each pair of elements
+     * @return the new stream
+     * @since 0.6.6
+     */
+    public IntStreamEx intersperse(int delimiter) {
+        return new IntStreamEx(stream().flatMap(s -> IntStreamEx.of(delimiter, s)).skip(1), context);
+    }
+
     @Override
     public IntStreamEx distinct() {
         return new IntStreamEx(stream().distinct(), context);

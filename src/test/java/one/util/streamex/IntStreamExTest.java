@@ -792,4 +792,11 @@ public class IntStreamExTest {
         assertEquals(OptionalInt.of(10), IntStreamEx.of(1, 2, 3, 4, 10).prefix(Integer::sum).findFirst(x -> x > 7));
         assertEquals(OptionalInt.empty(), IntStreamEx.of(1, 2, 3, 4, 10).prefix(Integer::sum).findFirst(x -> x > 20));
     }
+    
+    @Test
+    public void testIntersperse() {
+        assertArrayEquals(new int[] { 1, 0, 10, 0, 100, 0, 1000 }, IntStreamEx.of(1, 10, 100, 1000).intersperse(0)
+                .toArray());
+        assertEquals(0L, IntStreamEx.empty().intersperse(1).count());
+    }
 }

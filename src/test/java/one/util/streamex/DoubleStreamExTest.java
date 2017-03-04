@@ -500,4 +500,11 @@ public class DoubleStreamExTest {
         assertEquals(OptionalDouble.of(10), DoubleStreamEx.of(1, 2, 3, 4, 10).prefix(Double::sum).findFirst(x -> x > 7));
         assertEquals(OptionalDouble.empty(), DoubleStreamEx.of(1, 2, 3, 4, 10).prefix(Double::sum).findFirst(x -> x > 20));
     }
+    
+    @Test
+    public void testIntersperse() {
+        assertArrayEquals(new double[] { 1, 0, 10, 0, 100, 0, 1000 }, DoubleStreamEx.of(1, 10, 100, 1000).intersperse(0)
+                .toArray(), 0.0);
+        assertEquals(0L, IntStreamEx.empty().intersperse(1).count());
+    }
 }

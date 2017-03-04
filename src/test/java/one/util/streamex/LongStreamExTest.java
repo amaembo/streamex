@@ -596,4 +596,11 @@ public class LongStreamExTest {
         assertEquals(OptionalLong.of(10), LongStreamEx.of(1, 2, 3, 4, 10).prefix(Long::sum).findFirst(x -> x > 7));
         assertEquals(OptionalLong.empty(), LongStreamEx.of(1, 2, 3, 4, 10).prefix(Long::sum).findFirst(x -> x > 20));
     }
+    
+    @Test
+    public void testIntersperse() {
+        assertArrayEquals(new long[] { 1, 0, 10, 0, 100, 0, 1000 }, LongStreamEx.of(1, 10, 100, 1000).intersperse(0)
+                .toArray());
+        assertEquals(0L, IntStreamEx.empty().intersperse(1).count());
+    }
 }

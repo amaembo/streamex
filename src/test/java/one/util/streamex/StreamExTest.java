@@ -2083,4 +2083,11 @@ public class StreamExTest {
         assertEquals(2, StreamEx.of("a", "bb", "c", "e", "ddd").removeBy(String::length, 1).count());
         assertEquals(3, StreamEx.of("a", "bb", "c", "e", "ddd").removeBy(x -> x.length() > 1 ? null : x, null).count());
     }
+    
+    @Test
+    public void testIntersperse() {
+        List<String> expected = asList("a", "--", "b", "--", "c", "--", "d", "--", "e");
+        streamEx(asList("a", "b", "c", "d", "e")::stream, s -> assertEquals(expected, s.get().intersperse("--").toList()));
+        assertEquals(Collections.emptyList(), StreamEx.empty().intersperse("xyz").toList());
+    }
 }

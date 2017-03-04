@@ -401,6 +401,25 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
         return new StreamEx<>(stream().mapToObj(mapper).flatMap(Function.identity()), context);
     }
 
+    /**
+     * Returns a new stream containing all the elements of the original stream interspersed with
+     * given delimiter.
+     * 
+     * <p>
+     * For example, {@code LongStreamEx.of(1, 2, 3).intersperse(4)} will yield a stream containing
+     * five elements: 1, 4, 2, 4, 3.
+     * 
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate operation</a>.
+     * 
+     * @param delimiter a delimiter to be inserted between each pair of elements
+     * @return the new stream
+     * @since 0.6.6
+     */
+    public LongStreamEx intersperse(int delimiter) {
+        return new LongStreamEx(stream().flatMap(s -> LongStreamEx.of(delimiter, s)).skip(1), context);
+    }
+
     @Override
     public LongStreamEx distinct() {
         return new LongStreamEx(stream().distinct(), context);

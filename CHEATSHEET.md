@@ -185,6 +185,7 @@ Work-around parallel stream skip bug prior to Java 8u60 | `any.skipOrdered()`
 Perform parallel stream computation using the custom `ForkJoinPool` | `any.parallel(pool)`
 Zip two streams together | `StreamEx.zipWith()`
 Get the stream of cumulative prefixes | `any.prefix()`/`EntryStream.prefixKeys()`/`EntryStream.prefixValues()`
+Intersperse the stream with given delimiters | `any.intersperse()`
 
 ## New terminal operations
 
