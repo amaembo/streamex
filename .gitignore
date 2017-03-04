@@ -3,7 +3,6 @@
 # IntelliJ IDEA
 .idea/dictionaries/
 *.iml
-.idea
 
 # Mac OS/X
 .DS_Store
