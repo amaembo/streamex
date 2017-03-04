@@ -15,51 +15,26 @@
  */
 package one.util.streamex;
 
-import static one.util.streamex.TestHelpers.*;
-import static org.junit.Assert.*;
-import static java.util.Arrays.asList;
+import one.util.streamex.StreamExInternals.BooleanMap;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.AbstractMap;
+import java.util.*;
 import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.OptionalInt;
-import java.util.OptionalLong;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.LongStream;
-import java.util.stream.Stream;
+import java.util.stream.*;
 import java.util.stream.Collector.Characteristics;
 
-import one.util.streamex.EntryStream;
-import one.util.streamex.IntStreamEx;
-import one.util.streamex.Joining;
-import one.util.streamex.LongStreamEx;
-import one.util.streamex.MoreCollectors;
-import one.util.streamex.StreamEx;
-import one.util.streamex.StreamExInternals.BooleanMap;
-
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
+import static java.util.Arrays.asList;
+import static one.util.streamex.TestHelpers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Tagir Valeev
@@ -115,7 +90,7 @@ public class MoreCollectorsTest {
 
     @Test
     public void testEmpty() {
-        List<Integer> list = asList(1, 2, 3).stream().collect(MoreCollectors.head(0));
+        List<Integer> list = Stream.of(1, 2, 3).collect(MoreCollectors.head(0));
         assertTrue(list.isEmpty());
     }
 
@@ -282,6 +257,8 @@ public class MoreCollectorsTest {
             checkCollector("greatest(MAX)", revSorted, ints::stream, MoreCollectors.greatest(Integer.MAX_VALUE));
             checkCollector("greatest(byString, 20)", StreamEx.of(ints).reverseSorted(byString).limit(20).toList(),
                 ints::stream, MoreCollectors.greatest(byString, 20));
+            checkCollector("greatest(byString, 30)", StreamEx.of(ints).reverseSorted(byString).limit(30).toList(),
+                ints::stream, MoreCollectors.greatest(byString, 30));
         });
 
         Supplier<Stream<Integer>> s = () -> IntStreamEx.range(100).boxed();
@@ -735,11 +712,10 @@ public class MoreCollectorsTest {
             List<String> result = new ArrayList<>();
             String curr, last;
             curr = last = null;
-            Iterator<String> it = tmp.iterator();
-            while (it.hasNext()) {
+            for (String next : tmp) {
                 String oldLast = last;
                 last = curr;
-                curr = it.next();
+                curr = next;
                 if (last != null && curr.startsWith(last)) {
                     curr = last;
                     last = oldLast;

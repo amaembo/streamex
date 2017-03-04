@@ -23,7 +23,6 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-import one.util.streamex.StreamExInternals.CloneableSpliterator;
 import static one.util.streamex.StreamExInternals.*;
 
 /**

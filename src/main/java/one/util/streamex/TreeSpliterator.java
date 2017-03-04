@@ -25,7 +25,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import one.util.streamex.StreamExInternals.PairBox;
 import static one.util.streamex.StreamExInternals.*;
 
 /**
@@ -35,7 +34,7 @@ import static one.util.streamex.StreamExInternals.*;
 /* package */ abstract class TreeSpliterator<T, U> extends CloneableSpliterator<U, TreeSpliterator<T, U>> implements Consumer<T> {
     T cur;
     List<PairBox<Spliterator<T>, Stream<T>>> spliterators;
-    Runnable closeHandler = null;
+    private Runnable closeHandler = null;
     long size = Long.MAX_VALUE;
 
     TreeSpliterator(T root) {
@@ -45,7 +44,7 @@ import static one.util.streamex.StreamExInternals.*;
     boolean advance() {
         List<PairBox<Spliterator<T>, Stream<T>>> spltrs = spliterators;
         if(spltrs == null) {
-            spltrs = spliterators = new ArrayList<>();
+            spliterators = new ArrayList<>();
             return true;
         }
         for(int lastIdx = spltrs.size()-1; lastIdx >= 0; lastIdx--) {

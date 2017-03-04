@@ -23,7 +23,6 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import one.util.streamex.StreamExInternals.TailSpliterator;
 import static one.util.streamex.StreamExInternals.*;
 
 /**

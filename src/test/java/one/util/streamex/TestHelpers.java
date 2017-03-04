@@ -15,19 +15,10 @@
  */
 package one.util.streamex;
 
-import static one.util.streamex.StreamExInternals.*;
-import static org.junit.Assert.*;
+import org.junit.ComparisonFailure;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Random;
-import java.util.Spliterator;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Spliterators;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -40,16 +31,15 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.junit.ComparisonFailure;
-
-import one.util.streamex.IntStreamEx;
-import one.util.streamex.StreamEx;
+import static one.util.streamex.StreamExInternals.TailSpliterator;
+import static one.util.streamex.StreamExInternals.finished;
+import static org.junit.Assert.*;
 
 /**
  * @author Tagir Valeev
  */
 public class TestHelpers {
-    static enum Mode {
+    enum Mode {
         NORMAL, SPLITERATOR, PARALLEL, APPEND, PREPEND, RANDOM
     }
 
@@ -123,7 +113,6 @@ public class TestHelpers {
      * Run the consumer once feeding it with RNG initialized with auto-generated seed
      * adding the seed value to every failed assertion message
      * 
-     * @param seed random seed to use
      * @param cons consumer to run
      */
     static void withRandom(Consumer<Random> cons) {
@@ -149,7 +138,7 @@ public class TestHelpers {
      * @param message message to prepend
      * @param r runnable to run
      */
-    static void withMessage(String message, Runnable r) {
+    private static void withMessage(String message, Runnable r) {
         try {
             r.run();
         } catch (ComparisonFailure cmp) {
@@ -180,7 +169,7 @@ public class TestHelpers {
     }
 
     static <T> void emptyStreamEx(Class<T> clazz, Consumer<StreamExSupplier<T>> consumer) {
-        streamEx(() -> Stream.<T> empty(), consumer);
+        streamEx(Stream::<T>empty, consumer);
     }
 
     static <K, V> void entryStream(Supplier<Stream<Map.Entry<K, V>>> base, Consumer<EntryStreamSupplier<K, V>> consumer) {
@@ -381,7 +370,7 @@ public class TestHelpers {
                     if (split != null)
                         spliterators.add(idx, split);
                 }
-                List<List<T>> results = StreamEx.<List<T>> generate(() -> new ArrayList<>()).limit(spliterators.size())
+                List<List<T>> results = StreamEx.<List<T>> generate(ArrayList::new).limit(spliterators.size())
                         .toList();
                 int count = spliterators.size();
                 while (count > 0) {

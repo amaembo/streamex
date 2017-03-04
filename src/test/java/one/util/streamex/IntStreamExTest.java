@@ -19,21 +19,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.IntBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.OptionalInt;
-import java.util.PrimitiveIterator;
+import java.util.*;
 import java.util.PrimitiveIterator.OfInt;
-import java.util.Random;
-import java.util.Scanner;
-import java.util.Set;
-import java.util.Spliterator;
-import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -284,7 +271,7 @@ public class IntStreamExTest {
         assertTrue(IntStreamEx.of(1).parallel().isParallel());
         assertFalse(IntStreamEx.of(1).parallel().sequential().isParallel());
         AtomicInteger i = new AtomicInteger();
-        try (IntStreamEx s = IntStreamEx.of(1).onClose(() -> i.incrementAndGet())) {
+        try (IntStreamEx s = IntStreamEx.of(1).onClose(i::incrementAndGet)) {
             assertEquals(1, s.count());
         }
         assertEquals(1, i.get());
@@ -314,7 +301,7 @@ public class IntStreamExTest {
         assertFalse(iterator.hasNext());
 
         List<Integer> list = new ArrayList<>();
-        IntStreamEx.range(10).parallel().forEachOrdered(x -> list.add(x));
+        IntStreamEx.range(10).parallel().forEachOrdered(list::add);
         assertEquals(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9), list);
 
         assertTrue(IntStreamEx.empty().noneMatch(x -> true));
@@ -460,10 +447,8 @@ public class IntStreamExTest {
         checkEmpty(s -> s.maxBy(Integer::valueOf), s -> s.maxByInt(x -> x), s -> s.maxByLong(x -> x), s -> s
                 .maxByDouble(x -> x), s -> s.minBy(Integer::valueOf), s -> s.minByInt(x -> x),
             s -> s.minByLong(x -> x), s -> s.minByDouble(x -> x));
-        assertEquals(9, IntStreamEx.range(5, 12).max((a, b) -> String.valueOf(a).compareTo(String.valueOf(b)))
-                .getAsInt());
-        assertEquals(10, IntStreamEx.range(5, 12).min((a, b) -> String.valueOf(a).compareTo(String.valueOf(b)))
-                .getAsInt());
+        assertEquals(9, IntStreamEx.range(5, 12).max(Comparator.comparing(String::valueOf)).getAsInt());
+        assertEquals(10, IntStreamEx.range(5, 12).min(Comparator.comparing(String::valueOf)).getAsInt());
         assertEquals(9, IntStreamEx.range(5, 12).maxBy(String::valueOf).getAsInt());
         assertEquals(10, IntStreamEx.range(5, 12).minBy(String::valueOf).getAsInt());
         assertEquals(5, IntStreamEx.range(5, 12).maxByDouble(x -> 1.0 / x).getAsInt());
@@ -684,11 +669,10 @@ public class IntStreamExTest {
         String str = "testString";
         assertEquals("TestString", IntStreamEx.ofCodePoints(str).mapFirst(Character::toUpperCase).codePointsToString());
 
-        streamEx(() -> StreamEx.of(1, 2, 3, 4, 5), s -> {
-            assertArrayEquals(new int[] { -3, 2, 3, 4, 9 }, s.get().mapToInt(Integer::intValue).mapFirst(x -> x - 2)
-                    .mapLast(x -> x + 2).mapFirst(x -> x - 2)
-                    .mapLast(x -> x + 2).toArray());
-        });
+        streamEx(() -> StreamEx.of(1, 2, 3, 4, 5), s ->
+                assertArrayEquals(new int[] { -3, 2, 3, 4, 9 }, s.get().mapToInt(Integer::intValue)
+                        .mapFirst(x -> x - 2).mapLast(x -> x + 2)
+                        .mapFirst(x -> x - 2).mapLast(x -> x + 2).toArray()));
     }
 
     @Test

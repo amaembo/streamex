@@ -51,7 +51,6 @@ import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import one.util.streamex.StreamExInternals.Box;
 import static one.util.streamex.StreamExInternals.*;
 
 /**
@@ -489,7 +488,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @return the new stream
      */
     public <V extends Comparable<? super V>> LongStreamEx sortedBy(LongFunction<V> keyExtractor) {
-        return sorted(Comparator.comparing(i -> keyExtractor.apply(i)));
+        return sorted(Comparator.comparing(keyExtractor::apply));
     }
 
     /**
@@ -511,7 +510,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @return the new stream
      */
     public LongStreamEx sortedByInt(LongToIntFunction keyExtractor) {
-        return sorted(Comparator.comparingInt(i -> keyExtractor.applyAsInt(i)));
+        return sorted(Comparator.comparingInt(keyExtractor::applyAsInt));
     }
 
     /**
@@ -533,7 +532,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @return the new stream
      */
     public LongStreamEx sortedByLong(LongUnaryOperator keyExtractor) {
-        return sorted(Comparator.comparingLong(i -> keyExtractor.applyAsLong(i)));
+        return sorted(Comparator.comparingLong(keyExtractor::applyAsLong));
     }
 
     /**
@@ -555,7 +554,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @return the new stream
      */
     public LongStreamEx sortedByDouble(LongToDoubleFunction keyExtractor) {
-        return sorted(Comparator.comparingDouble(i -> keyExtractor.applyAsDouble(i)));
+        return sorted(Comparator.comparingDouble(keyExtractor::applyAsDouble));
     }
 
     @Override

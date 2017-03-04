@@ -74,18 +74,16 @@ public class AverageLongTest {
 
     @Test
     public void testCombine() {
-        withRandom(r -> {
-            repeat(100, i -> {
-                AverageLong avg1 = new AverageLong();
-                AverageLong avg2 = new AverageLong();
-                long[] set1 = r.longs(100).toArray();
-                long[] set2 = r.longs(100).toArray();
-                double expected = LongStreamEx.of(set1).append(set2).boxed().collect(getBigIntegerAverager()).getAsDouble();
-                LongStream.of(set1).forEach(avg1::accept);
-                LongStream.of(set2).forEach(avg2::accept);
-                assertEquals(expected, avg1.combine(avg2).result().getAsDouble(), Math.abs(expected / 1e14));
-            });
-        });
+        withRandom(r -> repeat(100, i -> {
+            AverageLong avg1 = new AverageLong();
+            AverageLong avg2 = new AverageLong();
+            long[] set1 = r.longs(100).toArray();
+            long[] set2 = r.longs(100).toArray();
+            double expected = LongStreamEx.of(set1).append(set2).boxed().collect(getBigIntegerAverager()).getAsDouble();
+            LongStream.of(set1).forEach(avg1::accept);
+            LongStream.of(set2).forEach(avg2::accept);
+            assertEquals(expected, avg1.combine(avg2).result().getAsDouble(), Math.abs(expected / 1e14));
+        }));
     }
 
     @Test
@@ -106,8 +104,7 @@ public class AverageLongTest {
                 .empty()
                 : OptionalDouble.of(new BigDecimal(sum).divide(BigDecimal.valueOf(cnt), MathContext.DECIMAL64)
                         .doubleValue());
-        Collector<Long, ?, OptionalDouble> averager = MoreCollectors.pairing(Collectors.reducing(BigInteger.ZERO,
-            BigInteger::valueOf, (BigInteger b1, BigInteger b2) -> b1.add(b2)), Collectors.counting(), finisher);
-        return averager;
+        return MoreCollectors.pairing(Collectors.reducing(BigInteger.ZERO,
+            BigInteger::valueOf, BigInteger::add), Collectors.counting(), finisher);
     }
 }

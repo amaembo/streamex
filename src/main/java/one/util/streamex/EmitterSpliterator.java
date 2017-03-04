@@ -28,9 +28,9 @@ import java.util.stream.Stream;
 
 /* package */final class EmitterSpliterator<T> extends Spliterators.AbstractSpliterator<T> implements Consumer<T> {
     StreamEx.Emitter<T> e;
-    Spliterator<T> buf;
-    int vals;
-    Consumer<? super T> cons;
+    private Spliterator<T> buf;
+    private int vals;
+    private Consumer<? super T> cons;
 
     EmitterSpliterator(StreamEx.Emitter<T> e) {
         super(Long.MAX_VALUE, Spliterator.ORDERED | Spliterator.IMMUTABLE);

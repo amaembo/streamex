@@ -153,8 +153,7 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
         case LENGTH_GRAPHEMES:
             BreakIterator bi = BreakIterator.getCharacterInstance();
             bi.setText(str);
-            int count = limit,
-            end = 0;
+            int count = limit, end;
             while (true) {
                 end = bi.next();
                 if (end == BreakIterator.DONE)
@@ -297,7 +296,7 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
      * Returns a {@code Collector} which behaves like this collector, but sets
      * the maximal length of the resulting string to the specified number of
      * UTF-16 characters (or Unicode code units). This setting overwrites any
-     * limit previously set by {@link #maxChars(int)},
+     * limit previously set by {@code maxChars(int)},
      * {@link #maxCodePoints(int)} or {@link #maxGraphemes(int)} call.
      * 
      * <p>
@@ -325,7 +324,7 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
      * Returns a {@code Collector} which behaves like this collector, but sets
      * the maximal number of Unicode code points of the resulting string. This
      * setting overwrites any limit previously set by {@link #maxChars(int)},
-     * {@link #maxCodePoints(int)} or {@link #maxGraphemes(int)} call.
+     * {@code maxCodePoints(int)} or {@link #maxGraphemes(int)} call.
      * 
      * <p>
      * The {@code String} produced by the resulting collector is guaranteed to
@@ -351,7 +350,7 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
      * Returns a {@code Collector} which behaves like this collector, but sets
      * the maximal number of grapheme clusters. This setting overwrites any
      * limit previously set by {@link #maxChars(int)},
-     * {@link #maxCodePoints(int)} or {@link #maxGraphemes(int)} call.
+     * {@link #maxCodePoints(int)} or {@code maxGraphemes(int)} call.
      * 
      * <p>
      * The grapheme cluster is defined in <a

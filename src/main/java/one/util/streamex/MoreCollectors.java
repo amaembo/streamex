@@ -49,7 +49,6 @@ import java.util.stream.Collector.Characteristics;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import one.util.streamex.StreamExInternals.Box;
 import static one.util.streamex.StreamExInternals.*;
 
 /**
@@ -1488,14 +1487,14 @@ public final class MoreCollectors {
                 acc.a = t;
                 acc.b = t.length();
             } else if (acc.b > 0) {
-                int alen = acc.a.length();
-                int blen = t.length();
-                if (blen < acc.b)
-                    acc.b = blen;
+                int aLen = acc.a.length();
+                int bLen = t.length();
+                if (bLen < acc.b)
+                    acc.b = bLen;
                 for (int i = 0; i < acc.b; i++) {
-                    if (acc.a.charAt(alen - 1 - i) != t.charAt(blen - 1 - i)) {
-                        if (i > 0 && Character.isLowSurrogate(t.charAt(blen - i)) && (Character.isHighSurrogate(t
-                                .charAt(blen - 1 - i)) || Character.isHighSurrogate(acc.a.charAt(alen - 1 - i))))
+                    if (acc.a.charAt(aLen - 1 - i) != t.charAt(bLen - 1 - i)) {
+                        if (i > 0 && Character.isLowSurrogate(t.charAt(bLen - i)) && (Character.isHighSurrogate(t
+                                .charAt(bLen - 1 - i)) || Character.isHighSurrogate(acc.a.charAt(aLen - 1 - i))))
                             i--;
                         acc.b = i;
                         break;

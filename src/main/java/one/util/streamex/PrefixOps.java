@@ -32,8 +32,6 @@ import java.util.function.IntConsumer;
 import java.util.function.LongBinaryOperator;
 import java.util.function.LongConsumer;
 
-import one.util.streamex.StreamExInternals.CloneableSpliterator;
-
 /**
  * @author Tagir Valeev
  */

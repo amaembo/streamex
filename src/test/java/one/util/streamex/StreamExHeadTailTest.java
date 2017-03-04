@@ -357,7 +357,7 @@ public class StreamExHeadTailTest {
 
     // Returns either the first stream element matching the predicate or just
     // the first element if nothing matches
-    static <T> T firstMatchingOrFirst(StreamEx<T> stream, Predicate<T> predicate) {
+    private static <T> T firstMatchingOrFirst(StreamEx<T> stream, Predicate<T> predicate) {
         return stream.headTail((head, tail) -> tail.prepend(head).filter(predicate).append(head)).findFirst().get();
     }
 
@@ -367,7 +367,7 @@ public class StreamExHeadTailTest {
     @Test
     public void testHeadTailRecursive() {
         streamEx(() -> StreamEx.iterate(2, x -> x + 1), s -> assertEquals(asList(2, 3, 5, 7, 11, 13, 17, 19, 23, 29,
-            31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97), s.get().chain(str -> sieve(str)).takeWhile(
+            31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97), s.get().chain(StreamExHeadTailTest::sieve).takeWhile(
             x -> x < 100).toList()));
 
         emptyStreamEx(Integer.class, s -> {

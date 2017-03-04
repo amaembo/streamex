@@ -47,9 +47,7 @@ public class UnorderedCancellableSpliteratorTest {
 
         @Override
         public boolean equals(Object obj) {
-            if (obj == null || getClass() != obj.getClass())
-                return false;
-            return value == ((BoxedInteger) obj).value;
+            return obj != null && getClass() == obj.getClass() && value == ((BoxedInteger) obj).value;
         }
     }
 

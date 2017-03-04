@@ -572,8 +572,8 @@ import java.util.stream.Stream;
             };
             Supplier<StringBuilder> supplier = StringBuilder::new;
             if (hasPS)
-                return new PartialCollector<>(supplier, merger, sb -> new StringBuilder().append(prefix).append(sb)
-                        .append(suffix).toString(), NO_CHARACTERISTICS);
+                return new PartialCollector<>(supplier, merger, sb -> String.valueOf(prefix) + sb +
+                        suffix, NO_CHARACTERISTICS);
             return new PartialCollector<>(supplier, merger, StringBuilder::toString, NO_CHARACTERISTICS);
         }
     }
@@ -590,9 +590,9 @@ import java.util.stream.Stream;
         private final Predicate<A> finished;
         private final Set<Characteristics> characteristics;
 
-        public CancellableCollectorImpl(Supplier<A> supplier, BiConsumer<A, T> accumulator, BinaryOperator<A> combiner,
-                Function<A, R> finisher, Predicate<A> finished,
-                Set<java.util.stream.Collector.Characteristics> characteristics) {
+        CancellableCollectorImpl(Supplier<A> supplier, BiConsumer<A, T> accumulator, BinaryOperator<A> combiner,
+                                 Function<A, R> finisher, Predicate<A> finished,
+                                 Set<java.util.stream.Collector.Characteristics> characteristics) {
             this.supplier = supplier;
             this.accumulator = accumulator;
             this.combiner = combiner;
@@ -635,8 +635,8 @@ import java.util.stream.Stream;
     static final class IntCollectorImpl<A, R> extends BaseCollector<Integer, A, R> implements IntCollector<A, R> {
         private final ObjIntConsumer<A> intAccumulator;
 
-        public IntCollectorImpl(Supplier<A> supplier, ObjIntConsumer<A> intAccumulator, BiConsumer<A, A> merger,
-                Function<A, R> finisher, Set<Characteristics> characteristics) {
+        IntCollectorImpl(Supplier<A> supplier, ObjIntConsumer<A> intAccumulator, BiConsumer<A, A> merger,
+                         Function<A, R> finisher, Set<Characteristics> characteristics) {
             super(supplier, merger, finisher, characteristics);
             this.intAccumulator = intAccumulator;
         }
@@ -650,8 +650,8 @@ import java.util.stream.Stream;
     static final class LongCollectorImpl<A, R> extends BaseCollector<Long, A, R> implements LongCollector<A, R> {
         private final ObjLongConsumer<A> longAccumulator;
 
-        public LongCollectorImpl(Supplier<A> supplier, ObjLongConsumer<A> longAccumulator, BiConsumer<A, A> merger,
-                Function<A, R> finisher, Set<Characteristics> characteristics) {
+        LongCollectorImpl(Supplier<A> supplier, ObjLongConsumer<A> longAccumulator, BiConsumer<A, A> merger,
+                          Function<A, R> finisher, Set<Characteristics> characteristics) {
             super(supplier, merger, finisher, characteristics);
             this.longAccumulator = longAccumulator;
         }
@@ -665,8 +665,8 @@ import java.util.stream.Stream;
     static final class DoubleCollectorImpl<A, R> extends BaseCollector<Double, A, R> implements DoubleCollector<A, R> {
         private final ObjDoubleConsumer<A> doubleAccumulator;
 
-        public DoubleCollectorImpl(Supplier<A> supplier, ObjDoubleConsumer<A> doubleAccumulator,
-                BiConsumer<A, A> merger, Function<A, R> finisher, Set<Characteristics> characteristics) {
+        DoubleCollectorImpl(Supplier<A> supplier, ObjDoubleConsumer<A> doubleAccumulator,
+                            BiConsumer<A, A> merger, Function<A, R> finisher, Set<Characteristics> characteristics) {
             super(supplier, merger, finisher, characteristics);
             this.doubleAccumulator = doubleAccumulator;
         }
@@ -728,9 +728,7 @@ import java.util.stream.Stream;
 
         @Override
         public boolean equals(Object obj) {
-            if (obj == null || obj.getClass() != PairBox.class)
-                return false;
-            return Objects.equals(b, ((PairBox<?, ?>) obj).b);
+            return obj != null && obj.getClass() == PairBox.class && Objects.equals(b, ((PairBox<?, ?>) obj).b);
         }
     }
 
@@ -963,7 +961,7 @@ import java.util.stream.Stream;
      *
      * @param <T>
      */
-    static interface TailSpliterator<T> extends Spliterator<T> {
+    interface TailSpliterator<T> extends Spliterator<T> {
         /**
          * Either advances by one element feeding it to consumer and returns
          * this or returns tail spliterator (this spliterator becomes invalid
@@ -1063,6 +1061,7 @@ import java.util.stream.Stream;
         }
     }
 
+    @SuppressWarnings("unchecked")
     static <A> Predicate<A> finished(Collector<?, A, ?> collector) {
         if (collector instanceof CancellableCollector)
             return ((CancellableCollector<?, A, ?>) collector).finished();

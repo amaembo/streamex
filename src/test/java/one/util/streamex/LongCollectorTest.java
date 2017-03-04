@@ -154,17 +154,17 @@ public class LongCollectorTest {
 
     @Test
     public void testAsCollector() {
-        assertEquals(10000499500l, (long) LongStream.range(10000000, 10001000).boxed().collect(LongCollector.summing()));
-        assertEquals(10000499500l, (long) LongStream.range(10000000, 10001000).boxed().parallel().collect(
+        assertEquals(10000499500L, (long) LongStream.range(10000000, 10001000).boxed().collect(LongCollector.summing()));
+        assertEquals(10000499500L, (long) LongStream.range(10000000, 10001000).boxed().parallel().collect(
             LongCollector.summing()));
         assertEquals(1000, (long) LongStream.range(0, 1000).boxed().collect(LongCollector.counting()));
     }
 
     @Test
     public void testAdaptor() {
-        assertEquals(10000499500l, (long) LongStreamEx.range(10000000, 10001000).collect(
+        assertEquals(10000499500L, (long) LongStreamEx.range(10000000, 10001000).collect(
             LongCollector.of(LongCollector.summing())));
-        assertEquals(10000499500l, (long) LongStreamEx.range(10000000, 10001000).collect(
+        assertEquals(10000499500L, (long) LongStreamEx.range(10000000, 10001000).collect(
             LongCollector.of(Collectors.summingLong(Long::longValue))));
     }
 

@@ -16,17 +16,8 @@
 package one.util.streamex;
 
 import java.nio.DoubleBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.OptionalDouble;
-import java.util.Scanner;
+import java.util.*;
 import java.util.PrimitiveIterator.OfDouble;
-import java.util.Random;
-import java.util.Spliterator;
-import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.DoubleBinaryOperator;
@@ -120,7 +111,7 @@ public class DoubleStreamExTest {
         assertTrue(DoubleStreamEx.of(1).parallel().isParallel());
         assertFalse(DoubleStreamEx.of(1).parallel().sequential().isParallel());
         AtomicInteger i = new AtomicInteger();
-        try (DoubleStreamEx s = DoubleStreamEx.of(1).onClose(() -> i.incrementAndGet())) {
+        try (DoubleStreamEx s = DoubleStreamEx.of(1).onClose(i::incrementAndGet)) {
             assertEquals(1, s.count());
         }
         assertEquals(1, i.get());
@@ -219,6 +210,8 @@ public class DoubleStreamExTest {
                 .toArray(), 0.0);
         assertArrayEquals(new double[] { 1, 3, -1 }, DoubleStreamEx.of(1, 5, 3, 4, -1, Double.POSITIVE_INFINITY)
                 .atMost(3).toArray(), 0.0);
+        assertArrayEquals(new double[] { 1, 3, 4, -1 }, DoubleStreamEx.of(1, 5, 3, 4, -1, Double.POSITIVE_INFINITY)
+                .atMost(4).toArray(), 0.0);
     }
 
     @Test
@@ -268,9 +261,9 @@ public class DoubleStreamExTest {
             s -> s.maxByDouble(x -> x), s -> s.minBy(Double::valueOf), s -> s.minByInt(x -> (int) x), s -> s
                     .minByLong(x -> (long) x), s -> s.minByDouble(x -> x));
         assertEquals(9, IntStreamEx.range(5, 12).asDoubleStream().max(
-            (a, b) -> String.valueOf(a).compareTo(String.valueOf(b))).getAsDouble(), 0.0);
+                Comparator.comparing(String::valueOf)).getAsDouble(), 0.0);
         assertEquals(10, IntStreamEx.range(5, 12).asDoubleStream().min(
-            (a, b) -> String.valueOf(a).compareTo(String.valueOf(b))).getAsDouble(), 0.0);
+                Comparator.comparing(String::valueOf)).getAsDouble(), 0.0);
         assertEquals(9, IntStreamEx.range(5, 12).asDoubleStream().maxBy(String::valueOf).getAsDouble(), 0.0);
         assertEquals(10, IntStreamEx.range(5, 12).asDoubleStream().minBy(String::valueOf).getAsDouble(), 0.0);
         assertEquals(5, IntStreamEx.range(5, 12).asDoubleStream().maxByDouble(x -> 1.0 / x).getAsDouble(), 0.0);
@@ -478,7 +471,7 @@ public class DoubleStreamExTest {
 
     // Reads numbers from scanner stopping when non-number is encountered
     // leaving scanner in known state
-    public static DoubleStreamEx scannerDoubles(Scanner sc) {
+    private static DoubleStreamEx scannerDoubles(Scanner sc) {
         return DoubleStreamEx.produce(action -> {
             if(sc.hasNextDouble())
                 action.accept(sc.nextDouble());

@@ -77,7 +77,8 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
         return StreamSupport.stream(spliterator, context.parallel);
     }
 
-    final S callWhile(Predicate<? super T> predicate, int methodId) {
+    @SuppressWarnings("unchecked")
+    private S callWhile(Predicate<? super T> predicate, int methodId) {
         try {
             return supply((Stream<T>) JDK9_METHODS[IDX_STREAM][methodId].invokeExact(stream(), predicate));
         } catch (Error | RuntimeException e) {

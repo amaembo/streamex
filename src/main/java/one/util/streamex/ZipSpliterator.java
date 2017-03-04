@@ -101,13 +101,13 @@ import static one.util.streamex.StreamExInternals.*;
                     {
                         @SuppressWarnings("unchecked")
                         U[] array = (U[]) new Object[(int) (rightSize-leftSize)];
-                        leftSize += drainTo(array, left);
+                        drainTo(array, left);
                         leftPrefix = new TailConcatSpliterator<>(leftPrefix, Spliterators.spliterator(array, characteristics()));
                     } else
                     {
                         @SuppressWarnings("unchecked")
                         V[] array = (V[]) new Object[(int) (leftSize-rightSize)];
-                        rightSize += drainTo(array, right);
+                        drainTo(array, right);
                         rightPrefix = new TailConcatSpliterator<>(rightPrefix, Spliterators.spliterator(array, characteristics()));
                     }
                     this.trySplit = false;

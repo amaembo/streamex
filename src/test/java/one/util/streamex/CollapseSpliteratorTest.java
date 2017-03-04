@@ -117,22 +117,20 @@ public class CollapseSpliteratorTest {
     }
 
     private void multiSplit(Supplier<Spliterator<Integer>> inputSpliterator) throws AssertionError {
-        withRandom(r -> {
-            repeat(100, n -> {
-                Spliterator<Integer> spliterator = new CollapseSpliterator<>(Objects::equals, Function.identity(),
-                        StreamExInternals.selectFirst(), StreamExInternals.selectFirst(), inputSpliterator.get());
-                List<Integer> result = new ArrayList<>();
-                List<Spliterator<Integer>> spliterators = new ArrayList<>();
-                spliterators.add(spliterator);
-                for (int i = 0; i < 8; i++) {
-                    Spliterator<Integer> split = spliterators.get(r.nextInt(spliterators.size())).trySplit();
-                    if (split != null)
-                        spliterators.add(split);
-                }
-                Collections.shuffle(spliterators, r);
-                repeat(spliterators.size(), i -> spliterators.get(i-1).forEachRemaining(result::add));
-                assertEquals(6, result.size());
-            });
-        });
+        withRandom(r -> repeat(100, n -> {
+            Spliterator<Integer> spliterator = new CollapseSpliterator<>(Objects::equals, Function.identity(),
+                    StreamExInternals.selectFirst(), StreamExInternals.selectFirst(), inputSpliterator.get());
+            List<Integer> result = new ArrayList<>();
+            List<Spliterator<Integer>> spliterators = new ArrayList<>();
+            spliterators.add(spliterator);
+            for (int i = 0; i < 8; i++) {
+                Spliterator<Integer> split = spliterators.get(r.nextInt(spliterators.size())).trySplit();
+                if (split != null)
+                    spliterators.add(split);
+            }
+            Collections.shuffle(spliterators, r);
+            repeat(spliterators.size(), i -> spliterators.get(i-1).forEachRemaining(result::add));
+            assertEquals(6, result.size());
+        }));
     }
 }

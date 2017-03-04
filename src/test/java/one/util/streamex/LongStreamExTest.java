@@ -16,16 +16,8 @@
 package one.util.streamex;
 
 import java.nio.LongBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.OptionalLong;
-import java.util.Scanner;
+import java.util.*;
 import java.util.PrimitiveIterator.OfLong;
-import java.util.Random;
-import java.util.Spliterator;
-import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
@@ -232,7 +224,7 @@ public class LongStreamExTest {
         assertTrue(LongStreamEx.of(1).parallel().isParallel());
         assertFalse(LongStreamEx.of(1).parallel().sequential().isParallel());
         AtomicInteger i = new AtomicInteger();
-        try (LongStreamEx s = LongStreamEx.of(1).onClose(() -> i.incrementAndGet())) {
+        try (LongStreamEx s = LongStreamEx.of(1).onClose(i::incrementAndGet)) {
             assertEquals(1, s.count());
         }
         assertEquals(1, i.get());
@@ -390,9 +382,9 @@ public class LongStreamExTest {
         checkEmpty(s -> s.maxBy(Long::valueOf), s -> s.maxByInt(x -> (int) x), s -> s.maxByLong(x -> x), s -> s
                 .maxByDouble(x -> x), s -> s.minBy(Long::valueOf), s -> s.minByInt(x -> (int) x), s -> s
                 .minByLong(x -> x), s -> s.minByDouble(x -> x));
-        assertEquals(9, LongStreamEx.range(5, 12).max((a, b) -> String.valueOf(a).compareTo(String.valueOf(b)))
+        assertEquals(9, LongStreamEx.range(5, 12).max(Comparator.comparing(String::valueOf))
                 .getAsLong());
-        assertEquals(10, LongStreamEx.range(5, 12).min((a, b) -> String.valueOf(a).compareTo(String.valueOf(b)))
+        assertEquals(10, LongStreamEx.range(5, 12).min(Comparator.comparing(String::valueOf))
                 .getAsLong());
         assertEquals(9, LongStreamEx.range(5, 12).maxBy(String::valueOf).getAsLong());
         assertEquals(10, LongStreamEx.range(5, 12).minBy(String::valueOf).getAsLong());
@@ -448,8 +440,8 @@ public class LongStreamExTest {
     @Test
     public void testMapToEntry() {
         Map<Long, List<Long>> result = LongStreamEx.range(10).mapToEntry(x -> x % 2, x -> x).grouping();
-        assertEquals(Arrays.asList(0l, 2l, 4l, 6l, 8l), result.get(0l));
-        assertEquals(Arrays.asList(1l, 3l, 5l, 7l, 9l), result.get(1l));
+        assertEquals(Arrays.asList(0L, 2L, 4L, 6L, 8L), result.get(0L));
+        assertEquals(Arrays.asList(1L, 3L, 5L, 7L, 9L), result.get(1L));
     }
 
     @Test

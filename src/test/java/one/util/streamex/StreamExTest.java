@@ -55,12 +55,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.BinaryOperator;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.IntPredicate;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.function.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -192,7 +187,7 @@ public class StreamExTest {
         assertTrue(StreamEx.of("a").parallel().isParallel());
         assertFalse(StreamEx.of("a").parallel().sequential().isParallel());
         AtomicInteger i = new AtomicInteger();
-        try (Stream<String> s = StreamEx.of("a").onClose(() -> i.incrementAndGet())) {
+        try (Stream<String> s = StreamEx.of("a").onClose(i::incrementAndGet)) {
             assertEquals(1, s.count());
         }
         assertEquals(1, i.get());
@@ -579,7 +574,7 @@ public class StreamExTest {
         assertEquals(asList("a", "cc", "bbb"), StreamEx.of(data).sortedByInt(String::length).toList());
         assertEquals(asList("a", "cc", "bbb"), StreamEx.of(data).sortedByLong(String::length).toList());
         assertEquals(asList("a", "cc", "bbb"), StreamEx.of(data).sortedByDouble(String::length).toList());
-        assertEquals(asList("a", "cc", "bbb"), StreamEx.of(data).sortedBy(s -> s.length()).toList());
+        assertEquals(asList("a", "cc", "bbb"), StreamEx.of(data).sortedBy(String::length).toList());
     }
 
     @Test
@@ -690,10 +685,8 @@ public class StreamExTest {
     @Test
     public void testFoldRight() {
         assertEquals(";c;b;a", StreamEx.of("a", "b", "c").parallel().foldRight("", (u, v) -> v + ";" + u));
-        assertEquals("{a={bb={ccc={}}}}", StreamEx.of("a", "bb", "ccc").foldRight(Collections.emptyMap(), (String v,
-                Map<String, Object> acc) -> Collections.singletonMap(v, acc)).toString());
-        assertEquals("{a={bb={ccc={}}}}", StreamEx.of("a", "bb", "ccc").parallel().foldRight(Collections.emptyMap(), (
-                String v, Map<String, Object> acc) -> Collections.singletonMap(v, acc)).toString());
+        assertEquals("{a={bb={ccc={}}}}", StreamEx.of("a", "bb", "ccc").foldRight(Collections.emptyMap(), (BiFunction<String, Map<String, Object>, Map<String, Object>>) Collections::singletonMap).toString());
+        assertEquals("{a={bb={ccc={}}}}", StreamEx.of("a", "bb", "ccc").parallel().foldRight(Collections.emptyMap(), (BiFunction<String, Map<String, Object>, Map<String, Object>>) Collections::singletonMap).toString());
     }
 
     @Test
@@ -892,7 +885,7 @@ public class StreamExTest {
     @Test
     public void testPairMapCapitalization() {
         assertEquals("Test Capitalization Stream", IntStreamEx.ofChars("test caPiTaliZation streaM").parallel().prepend(
-            0).mapToObj(c -> Character.valueOf((char) c)).pairMap((c1, c2) -> !Character.isLetter(c1) && Character
+            0).mapToObj(c -> (char) c).pairMap((c1, c2) -> !Character.isLetter(c1) && Character
                     .isLetter(c2) ? Character.toTitleCase(c2) : Character.toLowerCase(c2)).joining());
     }
 
@@ -1136,31 +1129,29 @@ public class StreamExTest {
 
     @Test
     public void testCollapseEmptyLines() {
-        withRandom(r -> {
-            repeat(100, i -> {
-                List<String> input = IntStreamEx.range(r.nextInt(i + 1)).mapToObj(n -> r.nextBoolean() ? ""
-                        : String.valueOf(n)).toList();
-                List<String> resultSpliterator = StreamEx.of(input).collapse((str1, str2) -> str1.isEmpty() && str2
-                        .isEmpty()).toList();
-                List<String> resultSpliteratorParallel = StreamEx.of(input).parallel().collapse((str1, str2) -> str1
-                        .isEmpty() && str2.isEmpty()).toList();
-                List<String> expected = new ArrayList<>();
-                boolean lastSpace = false;
-                for (String str : input) {
-                    if (str.isEmpty()) {
-                        if (!lastSpace) {
-                            expected.add(str);
-                        }
-                        lastSpace = true;
-                    } else {
+        withRandom(r -> repeat(100, i -> {
+            List<String> input = IntStreamEx.range(r.nextInt(i + 1)).mapToObj(n -> r.nextBoolean() ? ""
+                    : String.valueOf(n)).toList();
+            List<String> resultSpliterator = StreamEx.of(input).collapse((str1, str2) -> str1.isEmpty() && str2
+                    .isEmpty()).toList();
+            List<String> resultSpliteratorParallel = StreamEx.of(input).parallel().collapse((str1, str2) -> str1
+                    .isEmpty() && str2.isEmpty()).toList();
+            List<String> expected = new ArrayList<>();
+            boolean lastSpace = false;
+            for (String str : input) {
+                if (str.isEmpty()) {
+                    if (!lastSpace) {
                         expected.add(str);
-                        lastSpace = false;
                     }
+                    lastSpace = true;
+                } else {
+                    expected.add(str);
+                    lastSpace = false;
                 }
-                assertEquals(expected, resultSpliterator);
-                assertEquals(expected, resultSpliteratorParallel);
-            });
-        });
+            }
+            assertEquals(expected, resultSpliterator);
+            assertEquals(expected, resultSpliteratorParallel);
+        }));
     }
 
     static class Interval {
@@ -1191,71 +1182,67 @@ public class StreamExTest {
 
     @Test
     public void testCollapseIntervals() {
-        withRandom(r -> {
-            repeat(100, i -> {
-                int size = r.nextInt(i * 5 + 1);
-                int[] input = IntStreamEx.of(r, size, 0, size * 3 / 2 + 2).toArray();
-                String result = IntStreamEx.of(input).sorted().boxed().distinct().map(Interval::new).collapse(
-                    Interval::adjacent, Interval::merge).joining(" & ");
-                String resultIntervalMap = IntStreamEx.of(input).sorted().boxed().distinct().intervalMap((a, b) -> b
-                    - a == 1, Interval::new).joining(" & ");
-                String resultIntervalMapParallel = IntStreamEx.of(input).sorted().boxed().distinct().intervalMap((a,
-                        b) -> b - a == 1, Interval::new).parallel().joining(" & ");
-                String resultParallel = IntStreamEx.of(input).parallel().sorted().boxed().distinct().map(Interval::new)
-                        .collapse(Interval::adjacent, Interval::merge).joining(" & ");
-                String resultParallel2 = IntStreamEx.of(input).sorted().boxed().distinct().map(Interval::new).collapse(
-                    Interval::adjacent, Interval::merge).parallel().joining(" & ");
-                String resultCollector = IntStreamEx.of(input).sorted().boxed().distinct().map(Interval::new).collapse(
-                    Interval::adjacent, Collectors.reducing(Interval::merge)).map(Optional::get).parallel().joining(
-                        " & ");
-                int[] sorted = Arrays.copyOf(input, input.length);
-                Arrays.sort(sorted);
-                List<String> expected = new ArrayList<>();
-                Interval last = null;
-                for (int num : sorted) {
-                    if (last != null) {
-                        if (last.to == num)
-                            continue;
-                        if (last.to == num - 1) {
-                            last = new Interval(last.from, num);
-                            continue;
-                        }
-                        expected.add(last.toString());
+        withRandom(r -> repeat(100, i -> {
+            int size = r.nextInt(i * 5 + 1);
+            int[] input = IntStreamEx.of(r, size, 0, size * 3 / 2 + 2).toArray();
+            String result = IntStreamEx.of(input).sorted().boxed().distinct().map(Interval::new).collapse(
+                Interval::adjacent, Interval::merge).joining(" & ");
+            String resultIntervalMap = IntStreamEx.of(input).sorted().boxed().distinct().intervalMap((a, b) -> b
+                - a == 1, Interval::new).joining(" & ");
+            String resultIntervalMapParallel = IntStreamEx.of(input).sorted().boxed().distinct().intervalMap((a,
+                    b) -> b - a == 1, Interval::new).parallel().joining(" & ");
+            String resultParallel = IntStreamEx.of(input).parallel().sorted().boxed().distinct().map(Interval::new)
+                    .collapse(Interval::adjacent, Interval::merge).joining(" & ");
+            String resultParallel2 = IntStreamEx.of(input).sorted().boxed().distinct().map(Interval::new).collapse(
+                Interval::adjacent, Interval::merge).parallel().joining(" & ");
+            String resultCollector = IntStreamEx.of(input).sorted().boxed().distinct().map(Interval::new).collapse(
+                Interval::adjacent, Collectors.reducing(Interval::merge)).map(Optional::get).parallel().joining(
+                    " & ");
+            int[] sorted = Arrays.copyOf(input, input.length);
+            Arrays.sort(sorted);
+            List<String> expected = new ArrayList<>();
+            Interval last = null;
+            for (int num : sorted) {
+                if (last != null) {
+                    if (last.to == num)
+                        continue;
+                    if (last.to == num - 1) {
+                        last = new Interval(last.from, num);
+                        continue;
                     }
-                    last = new Interval(num);
-                }
-                if (last != null)
                     expected.add(last.toString());
-                String expectedStr = String.join(" & ", expected);
-                assertEquals(expectedStr, result);
-                assertEquals(expectedStr, resultParallel);
-                assertEquals(expectedStr, resultParallel2);
-                assertEquals(expectedStr, resultIntervalMap);
-                assertEquals(expectedStr, resultIntervalMapParallel);
-                assertEquals(expectedStr, resultCollector);
-            });
-        });
+                }
+                last = new Interval(num);
+            }
+            if (last != null)
+                expected.add(last.toString());
+            String expectedStr = String.join(" & ", expected);
+            assertEquals(expectedStr, result);
+            assertEquals(expectedStr, resultParallel);
+            assertEquals(expectedStr, resultParallel2);
+            assertEquals(expectedStr, resultIntervalMap);
+            assertEquals(expectedStr, resultIntervalMapParallel);
+            assertEquals(expectedStr, resultCollector);
+        }));
     }
 
     @Test
     public void testCollapseDistinct() {
-        withRandom(r -> {
-            repeat(100, i -> {
-                int size = r.nextInt(i * 5 - 4);
-                List<Integer> input = IntStreamEx.of(r, size, 0, size * 3 / 2 + 2).boxed().sorted().toList();
-                List<Integer> distinct = StreamEx.of(input).collapse(Integer::equals).toList();
-                List<Integer> distinctCollector = StreamEx.of(input).collapse(Integer::equals, MoreCollectors.first())
-                        .map(Optional::get).toList();
-                List<Integer> distinctParallel = StreamEx.of(input).parallel().collapse(Integer::equals).toList();
-                List<Integer> distinctCollectorParallel = StreamEx.of(input).parallel().collapse(Integer::equals,
-                    MoreCollectors.first()).map(Optional::get).toList();
-                List<Integer> expected = input.stream().distinct().collect(Collectors.toList());
-                assertEquals(expected, distinct);
-                assertEquals(expected, distinctParallel);
-                assertEquals(expected, distinctCollector);
-                assertEquals(expected, distinctCollectorParallel);
-            });
-        });
+        withRandom(r -> repeat(100, i -> {
+            int size = r.nextInt(i * 5 - 4);
+            List<Integer> input = IntStreamEx.of(r, size, 0, size * 3 / 2 + 2).boxed().sorted().toList();
+            List<Integer> distinct = StreamEx.of(input).collapse(Integer::equals).toList();
+            List<Integer> distinctCollector = StreamEx.of(input).collapse(Integer::equals, MoreCollectors.first())
+                    .map(Optional::get).toList();
+            List<Integer> distinctParallel = StreamEx.of(input).parallel().collapse(Integer::equals).toList();
+            List<Integer> distinctCollectorParallel = StreamEx.of(input).parallel().collapse(Integer::equals,
+                MoreCollectors.first()).map(Optional::get).toList();
+            List<Integer> expected = input.stream().distinct().collect(Collectors.toList());
+            assertEquals(expected, distinct);
+            assertEquals(expected, distinctParallel);
+            assertEquals(expected, distinctCollector);
+            assertEquals(expected, distinctCollectorParallel);
+        }));
     }
 
     @Test
@@ -1600,23 +1587,21 @@ public class StreamExTest {
     
     @Test
     public void testTakeDropUnordered() {
-        repeat(10, n -> {
-            withRandom(rnd -> {
-                List<Boolean> data = IntStreamEx.of(rnd, n*100, 0, rnd.nextInt(10)+2).mapToObj(x -> x != 0).toList();
-                List<Boolean> sorted = StreamEx.of(data).sorted().toList();
-                streamEx(() -> data.stream().unordered(), s -> {
-                    assertFalse(StreamEx.of(s.get().takeWhile(b -> b).toList()).has(false));
-                    assertEquals(1L, StreamEx.of(s.get().takeWhileInclusive(b -> b).toList()).without(true).count());
-                    assertEquals(0L, s.get().dropWhile(b -> true).count());
-                    assertEquals(0L, s.get().takeWhile(b -> false).count());
-                    assertEquals(1L, s.get().takeWhileInclusive(b -> false).count());
-                    List<Boolean> dropNone = s.get().dropWhile(b -> false).sorted().toList();
-                    assertEquals(sorted, dropNone);
-                    List<Boolean> takeAll = s.get().takeWhileInclusive(b -> true).sorted().toList();
-                    assertEquals(sorted, takeAll);
-                });
-            });    
-        });
+        repeat(10, n -> withRandom(rnd -> {
+            List<Boolean> data = IntStreamEx.of(rnd, n*100, 0, rnd.nextInt(10)+2).mapToObj(x -> x != 0).toList();
+            List<Boolean> sorted = StreamEx.of(data).sorted().toList();
+            streamEx(() -> data.stream().unordered(), s -> {
+                assertFalse(StreamEx.of(s.get().takeWhile(b -> b).toList()).has(false));
+                assertEquals(1L, StreamEx.of(s.get().takeWhileInclusive(b -> b).toList()).without(true).count());
+                assertEquals(0L, s.get().dropWhile(b -> true).count());
+                assertEquals(0L, s.get().takeWhile(b -> false).count());
+                assertEquals(1L, s.get().takeWhileInclusive(b -> false).count());
+                List<Boolean> dropNone = s.get().dropWhile(b -> false).sorted().toList();
+                assertEquals(sorted, dropNone);
+                List<Boolean> takeAll = s.get().takeWhileInclusive(b -> true).sorted().toList();
+                assertEquals(sorted, takeAll);
+            });
+        }));
     }
 
     @Test
@@ -1702,8 +1687,7 @@ public class StreamExTest {
 
     @Test
     public void testIndexOf() {
-        List<Integer> input = IntStreamEx.range(100).boxed().toList();
-        input.addAll(input);
+        List<Integer> input = IntStreamEx.range(100).append(IntStreamEx.range(100)).boxed().toList();
         AtomicInteger counter = new AtomicInteger();
         assertEquals(10, StreamEx.of(input).peek(t -> counter.incrementAndGet()).indexOf(10).getAsLong());
         assertEquals(11, counter.get());
@@ -1827,18 +1811,16 @@ public class StreamExTest {
         streamEx(() -> StreamEx.split("", ','), s -> assertEquals(asList(""), s.get().toList()));
         streamEx(() -> StreamEx.split(",,,,,,,,,", ','), s -> assertEquals(0, s.get().count()));
 
-        withRandom(r -> {
-            repeat(10, iter -> {
-                StringBuilder source = new StringBuilder(IntStreamEx.of(r, 0, 3).limit(r.nextInt(10000)).elements(
-                    new int[] { ',', 'a', 'b' }).charsToString());
-                String[] expected = source.toString().split(",");
-                String[] expectedFull = source.toString().split(",", -1);
-                streamEx(() -> StreamEx.split(source, ','), s -> assertArrayEquals(expected, s.get().toArray(
-                    String[]::new)));
-                streamEx(() -> StreamEx.split(source, ',', false), s -> assertArrayEquals(expectedFull, s.get().toArray(
-                    String[]::new)));
-            });
-        });
+        withRandom(r -> repeat(10, iter -> {
+            StringBuilder source = new StringBuilder(IntStreamEx.of(r, 0, 3).limit(r.nextInt(10000)).elements(
+                new int[] { ',', 'a', 'b' }).charsToString());
+            String[] expected = source.toString().split(",");
+            String[] expectedFull = source.toString().split(",", -1);
+            streamEx(() -> StreamEx.split(source, ','), s -> assertArrayEquals(expected, s.get().toArray(
+                String[]::new)));
+            streamEx(() -> StreamEx.split(source, ',', false), s -> assertArrayEquals(expectedFull, s.get().toArray(
+                String[]::new)));
+        }));
     }
 
     @Test
@@ -1905,7 +1887,7 @@ public class StreamExTest {
 
     // Adapt spliterator to produce
     public static <T> StreamEx<T> fromSpliterator(Spliterator<T> spltr) {
-        return StreamEx.produce(action -> spltr.tryAdvance(action));
+        return StreamEx.produce((Predicate<Consumer<? super T>>) spltr::tryAdvance);
     }
 
     // Adapt iterator to produce
@@ -2003,41 +1985,37 @@ public class StreamExTest {
     @Test
     public void testToImmutableList() {
         List<Integer> expected = asList(1, 2, 3);
-        repeat(4, n -> {
-            streamEx(() -> IntStreamEx.range(4).atLeast(n).boxed(), s -> {
-                List<Integer> list = s.get().toImmutableList();
-                assertEquals(expected.subList(n - 1, expected.size()), list);
-                try {
-                    list.add(0);
-                    fail("added");
-                } catch (UnsupportedOperationException e) {
-                    // expected
-                }
-                try {
-                    list.set(0, 0);
-                    fail("set");
-                } catch (UnsupportedOperationException e) {
-                    // expected
-                }
-            });
-        });
+        repeat(4, n -> streamEx(() -> IntStreamEx.range(4).atLeast(n).boxed(), s -> {
+            List<Integer> list = s.get().toImmutableList();
+            assertEquals(expected.subList(n - 1, expected.size()), list);
+            try {
+                list.add(0);
+                fail("added");
+            } catch (UnsupportedOperationException e) {
+                // expected
+            }
+            try {
+                list.set(0, 0);
+                fail("set");
+            } catch (UnsupportedOperationException e) {
+                // expected
+            }
+        }));
     }
 
     @Test
     public void testToImmutableSet() {
         List<Integer> expected = asList(1, 2, 3);
-        repeat(4, n -> {
-            streamEx(() -> IntStreamEx.range(4).atLeast(n).boxed(), s -> {
-                Set<Integer> set = s.get().toImmutableSet();
-                assertEquals(new HashSet<>(expected.subList(n - 1, expected.size())), set);
-                try {
-                    set.add(-1);
-                    fail("added");
-                } catch (UnsupportedOperationException e) {
-                    // expected
-                }
-            });
-        });
+        repeat(4, n -> streamEx(() -> IntStreamEx.range(4).atLeast(n).boxed(), s -> {
+            Set<Integer> set = s.get().toImmutableSet();
+            assertEquals(new HashSet<>(expected.subList(n - 1, expected.size())), set);
+            try {
+                set.add(-1);
+                fail("added");
+            } catch (UnsupportedOperationException e) {
+                // expected
+            }
+        }));
     }
 
     @Test
@@ -2069,6 +2047,7 @@ public class StreamExTest {
             }
         };
         assertSame(c, StreamEx.constant("a", 20).into(c));
+        //noinspection NumericOverflow
         assertEquals(Integer.MAX_VALUE + 10, c.size());
     }
 

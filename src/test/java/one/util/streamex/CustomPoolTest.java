@@ -195,6 +195,7 @@ public class CustomPoolTest {
         List<Integer> res = new ArrayList<>();
         IntStreamEx.of(1, 5, 10, Integer.MAX_VALUE).parallel(pool).peek(this::checkThread).map(x -> x * 2)
                 .forEachOrdered(res::add);
+        //noinspection NumericOverflow
         assertEquals(Arrays.asList(2, 10, 20, Integer.MAX_VALUE * 2), res);
         assertArrayEquals(new int[] { 1, 3, 6, 10 }, IntStreamEx.of(1, 2, 3, 4).parallel(pool).peek(this::checkThread)
                 .scanLeft((a, b) -> {

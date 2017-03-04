@@ -122,8 +122,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.2
      */
     public StreamEx<String> join(CharSequence delimiter) {
-        return map(entry -> new StringBuilder().append(entry.getKey()).append(delimiter).append(entry.getValue())
-                .toString());
+        return map(entry -> String.valueOf(entry.getKey()) + delimiter + entry.getValue());
     }
 
     /**
@@ -144,8 +143,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.2
      */
     public StreamEx<String> join(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
-        return map(entry -> new StringBuilder(prefix).append(entry.getKey()).append(delimiter).append(entry.getValue())
-                .append(suffix).toString());
+        return map(entry -> String.valueOf(prefix) + entry.getKey() + delimiter + entry.getValue() + suffix);
     }
 
     /**

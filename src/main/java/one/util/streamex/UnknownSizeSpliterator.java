@@ -40,6 +40,7 @@ import static one.util.streamex.StreamExInternals.*;
         }
         if (it == null)
             return stream;
+        //noinspection ResultOfMethodCallIgnored
         stream.spliterator(); // consume stream
         return StreamSupport.stream(new USOfRef<>(it), stream.isParallel()).onClose(stream::close);
     }
