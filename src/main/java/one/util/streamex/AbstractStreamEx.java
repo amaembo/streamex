@@ -15,39 +15,10 @@
  */
 package one.util.streamex;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.OptionalLong;
-import java.util.Set;
-import java.util.Spliterator;
-import java.util.Spliterators;
+import java.util.*;
 import java.util.concurrent.ForkJoinPool;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.BinaryOperator;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.IntFunction;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.function.ToDoubleFunction;
-import java.util.function.ToIntFunction;
-import java.util.function.ToLongFunction;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
-import java.util.stream.IntStream;
-import java.util.stream.LongStream;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
+import java.util.function.*;
+import java.util.stream.*;
 import java.util.stream.Collector.Characteristics;
 
 import static one.util.streamex.StreamExInternals.*;
@@ -75,17 +46,6 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     @Override
     final Stream<T> createStream() {
         return StreamSupport.stream(spliterator, context.parallel);
-    }
-
-    @SuppressWarnings("unchecked")
-    private S callWhile(Predicate<? super T> predicate, int methodId) {
-        try {
-            return supply((Stream<T>) JDK9_METHODS[IDX_STREAM][methodId].invokeExact(stream(), predicate));
-        } catch (Error | RuntimeException e) {
-            throw e;
-        } catch (Throwable e) {
-            throw new InternalError(e);
-        }
     }
 
     final <K, V, M extends Map<K, V>> M toMapThrowing(Function<? super T, ? extends K> keyMapper,
@@ -1651,13 +1611,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      */
     public S takeWhile(Predicate<? super T> predicate) {
         Objects.requireNonNull(predicate);
-        if (JDK9_METHODS != null) {
-            return callWhile(predicate, IDX_TAKE_WHILE);
-        }
-        Spliterator<T> spltr = spliterator();
-        return supply(
-            spltr.hasCharacteristics(Spliterator.ORDERED) ? new TakeDrop.TDOfRef<>(spltr, false, false, predicate)
-                    : new TakeDrop.UnorderedTDOfRef<>(spltr, false, false, predicate));
+        return VER_SPEC.callWhile(this, predicate, false);
     }
 
     /**
@@ -1686,7 +1640,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
         Spliterator<T> spltr = spliterator();
         return supply(
             spltr.hasCharacteristics(Spliterator.ORDERED) ? new TakeDrop.TDOfRef<>(spltr, false, true, predicate)
-                    : new TakeDrop.UnorderedTDOfRef<>(spltr, false, true, predicate));
+                    : new TakeDrop.UnorderedTDOfRef<T>(spltr, false, true, predicate));
     }
 
     /**
@@ -1714,13 +1668,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      */
     public S dropWhile(Predicate<? super T> predicate) {
         Objects.requireNonNull(predicate);
-        if (JDK9_METHODS != null) {
-            return callWhile(predicate, IDX_DROP_WHILE);
-        }
-        Spliterator<T> spltr = spliterator();
-        return supply(
-            spltr.hasCharacteristics(Spliterator.ORDERED) ? new TakeDrop.TDOfRef<>(spltr, true, false, predicate)
-                    : new TakeDrop.UnorderedTDOfRef<>(spltr, true, false, predicate));
+        return VER_SPEC.callWhile(this, predicate, true);
     }
     
     /**
@@ -1754,7 +1702,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     public S prefix(BinaryOperator<T> op) {
         Spliterator<T> spltr = spliterator();
         return supply(spltr.hasCharacteristics(Spliterator.ORDERED) ? new PrefixOps.OfRef<>(spltr, op)
-                : new PrefixOps.OfUnordRef<>(spltr, op));
+                : new PrefixOps.OfUnordRef<T>(spltr, op));
     }
 
     // Necessary to generate proper JavaDoc

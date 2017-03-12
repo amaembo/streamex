@@ -16,40 +16,12 @@
 package one.util.streamex;
 
 import java.nio.Buffer;
-import java.util.AbstractMap;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.DoubleSummaryStatistics;
-import java.util.Objects;
-import java.util.OptionalDouble;
-import java.util.OptionalLong;
-import java.util.PrimitiveIterator;
-import java.util.Random;
-import java.util.Spliterator;
-import java.util.Spliterators;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator.OfDouble;
 import java.util.concurrent.ForkJoinPool;
-import java.util.function.BiConsumer;
-import java.util.function.DoubleBinaryOperator;
-import java.util.function.DoubleConsumer;
-import java.util.function.DoubleFunction;
-import java.util.function.DoublePredicate;
-import java.util.function.DoubleSupplier;
-import java.util.function.DoubleToIntFunction;
-import java.util.function.DoubleToLongFunction;
-import java.util.function.DoubleUnaryOperator;
-import java.util.function.Function;
-import java.util.function.ObjDoubleConsumer;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.stream.Collector;
-import java.util.stream.DoubleStream;
-import java.util.stream.IntStream;
-import java.util.stream.LongStream;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
+import java.util.function.*;
+import java.util.stream.*;
 
 import static one.util.streamex.StreamExInternals.*;
 
@@ -77,19 +49,8 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
         return new DoubleStreamEx(stream, StreamContext.SEQUENTIAL);
     }
 
-    private DoubleStreamEx delegate(Spliterator.OfDouble spliterator) {
+    final DoubleStreamEx delegate(Spliterator.OfDouble spliterator) {
         return new DoubleStreamEx(spliterator, context);
-    }
-
-    private DoubleStreamEx callWhile(DoublePredicate predicate, int methodId) {
-        try {
-            return new DoubleStreamEx((DoubleStream) JDK9_METHODS[IDX_DOUBLE_STREAM][methodId].invokeExact(stream(),
-                predicate), context);
-        } catch (Error | RuntimeException e) {
-            throw e;
-        } catch (Throwable e) {
-            throw new InternalError(e);
-        }
     }
 
     @Override
@@ -1461,11 +1422,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @see #dropWhile(DoublePredicate)
      */
     public DoubleStreamEx takeWhile(DoublePredicate predicate) {
-        Objects.requireNonNull(predicate);
-        if (JDK9_METHODS != null) {
-            return callWhile(predicate, IDX_TAKE_WHILE);
-        }
-        return delegate(new TakeDrop.TDOfDouble(spliterator(), false, false, predicate));
+        return VER_SPEC.callWhile(this, Objects.requireNonNull(predicate), false);
     }
 
     /**
@@ -1514,11 +1471,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @since 0.3.6
      */
     public DoubleStreamEx dropWhile(DoublePredicate predicate) {
-        Objects.requireNonNull(predicate);
-        if (JDK9_METHODS != null) {
-            return callWhile(predicate, IDX_DROP_WHILE);
-        }
-        return delegate(new TakeDrop.TDOfDouble(spliterator(), true, false, predicate));
+        return VER_SPEC.callWhile(this, Objects.requireNonNull(predicate), true);
     }
 
     /**

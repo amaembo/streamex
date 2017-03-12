@@ -15,6 +15,10 @@
  */
 package one.util.streamex;
 
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,24 +27,13 @@ import java.util.*;
 import java.util.PrimitiveIterator.OfInt;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
-import java.util.function.IntBinaryOperator;
-import java.util.function.IntFunction;
-import java.util.function.IntToDoubleFunction;
-import java.util.function.IntToLongFunction;
-import java.util.function.IntUnaryOperator;
-import java.util.function.Supplier;
+import java.util.function.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.IntStream.Builder;
 import java.util.stream.StreamSupport;
 
 import static one.util.streamex.TestHelpers.*;
-
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
-
 import static org.junit.Assert.*;
 
 /**
@@ -383,6 +376,7 @@ public class IntStreamExTest {
                 .atLeast(3).toArray());
         assertArrayEquals(new int[] { 1, -1 }, IntStreamEx.of(1, 5, 3, 4, -1, Integer.MAX_VALUE).less(3).toArray());
         assertArrayEquals(new int[] { 1, 3, -1 }, IntStreamEx.of(1, 5, 3, 4, -1, Integer.MAX_VALUE).atMost(3).toArray());
+        assertArrayEquals(new int[] { 1, 3, 4, -1 }, IntStreamEx.of(1, 5, 3, 4, -1, Integer.MAX_VALUE).atMost(4).toArray());
     }
 
     @Test

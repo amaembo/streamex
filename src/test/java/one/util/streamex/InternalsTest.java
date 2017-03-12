@@ -15,18 +15,14 @@
  */
 package one.util.streamex;
 
-import java.lang.invoke.MethodHandle;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Stream;
-
 import org.junit.Test;
 
-import static one.util.streamex.StreamExInternals.*;
+import java.lang.invoke.MethodHandle;
+import java.util.*;
+import java.util.stream.Stream;
+
+import static one.util.streamex.StreamExInternals.ArrayCollection;
+import static one.util.streamex.StreamExInternals.PartialCollector;
 import static org.junit.Assert.*;
 
 /**
@@ -58,7 +54,7 @@ public class InternalsTest {
 
     @Test
     public void testJdk9Basics() {
-        MethodHandle[][] jdk9Methods = initJdk9Methods();
+        MethodHandle[][] jdk9Methods = Java9Specific.initJdk9Methods();
         if (Stream.of(Stream.class.getMethods()).anyMatch(m -> m.getName().equals("takeWhile")))
             assertNotNull(jdk9Methods);
         else

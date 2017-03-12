@@ -15,10 +15,6 @@
  */
 package one.util.streamex;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodHandles.Lookup;
-import java.lang.invoke.MethodType;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -28,47 +24,14 @@ import java.nio.ByteOrder;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
-import java.util.AbstractCollection;
-import java.util.AbstractMap;
-import java.util.AbstractSet;
-import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Deque;
-import java.util.EnumSet;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.OptionalDouble;
-import java.util.OptionalInt;
-import java.util.OptionalLong;
-import java.util.Set;
-import java.util.Spliterator;
-import java.util.function.BiConsumer;
-import java.util.function.BinaryOperator;
-import java.util.function.Consumer;
-import java.util.function.DoublePredicate;
-import java.util.function.Function;
-import java.util.function.IntPredicate;
-import java.util.function.LongPredicate;
-import java.util.function.ObjDoubleConsumer;
-import java.util.function.ObjIntConsumer;
-import java.util.function.ObjLongConsumer;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.function.*;
 import java.util.stream.BaseStream;
 import java.util.stream.Collector;
 import java.util.stream.Collector.Characteristics;
-import java.util.stream.DoubleStream;
-import java.util.stream.IntStream;
-import java.util.stream.LongStream;
-import java.util.stream.Stream;
 
 /* package */final class StreamExInternals {
-    static final boolean IS_JDK9 = System.getProperty("java.version", "").compareTo("1.9") >= 0;
-    static final MethodHandle[][] JDK9_METHODS = IS_JDK9 ? initJdk9Methods() : null;
     static final int INITIAL_SIZE = 128;
     static final Function<int[], Integer> UNBOX_INT = box -> box[0];
     static final Function<long[], Long> UNBOX_LONG = box -> box[0];
@@ -79,17 +42,13 @@ import java.util.stream.Stream;
     static final Set<Characteristics> UNORDERED_ID_CHARACTERISTICS = EnumSet.of(Characteristics.UNORDERED,
         Characteristics.IDENTITY_FINISH);
     static final Set<Characteristics> ID_CHARACTERISTICS = EnumSet.of(Characteristics.IDENTITY_FINISH);
-    static final int IDX_STREAM = 0;
-    static final int IDX_INT_STREAM = 1;
-    static final int IDX_LONG_STREAM = 2;
-    static final int IDX_DOUBLE_STREAM = 3;
-    static final int IDX_TAKE_WHILE = 0;
-    static final int IDX_DROP_WHILE = 1;
 
     static final Field SOURCE_SPLITERATOR;
     static final Field SOURCE_STAGE;
     static final Field SOURCE_CLOSE_ACTION;
     static final Field SPLITERATOR_ITERATOR;
+    static final VersionSpecific VER_SPEC = System.getProperty("java.version", "")
+            .compareTo("1.9") > 0 ? new Java9Specific() : new VersionSpecific();
 
     static {
         Deque<Field> fields = new ArrayDeque<>();
@@ -128,25 +87,6 @@ import java.util.stream.Stream;
         SOURCE_STAGE = fields.poll();
         SOURCE_CLOSE_ACTION = fields.poll();
         SPLITERATOR_ITERATOR = fields.poll();
-    }
-
-    static MethodHandle[][] initJdk9Methods() {
-        Lookup lookup = MethodHandles.publicLookup();
-        MethodType[] types = { MethodType.methodType(Stream.class, Predicate.class),
-                MethodType.methodType(IntStream.class, IntPredicate.class),
-                MethodType.methodType(LongStream.class, LongPredicate.class),
-                MethodType.methodType(DoubleStream.class, DoublePredicate.class) };
-        MethodHandle[][] methods = new MethodHandle[types.length][];
-        try {
-            int i = 0;
-            for (MethodType type : types) {
-                methods[i++] = new MethodHandle[] { lookup.findVirtual(type.returnType(), "takeWhile", type),
-                        lookup.findVirtual(type.returnType(), "dropWhile", type) };
-            }
-        } catch (NoSuchMethodException | IllegalAccessException e) {
-            return null;
-        }
-        return methods;
     }
 
     static final class ByteBuffer {

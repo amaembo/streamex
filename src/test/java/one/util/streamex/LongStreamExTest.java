@@ -15,27 +15,20 @@
  */
 package one.util.streamex;
 
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
+
 import java.nio.LongBuffer;
 import java.util.*;
 import java.util.PrimitiveIterator.OfLong;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Function;
-import java.util.function.LongBinaryOperator;
-import java.util.function.LongConsumer;
-import java.util.function.LongFunction;
-import java.util.function.LongToDoubleFunction;
-import java.util.function.LongToIntFunction;
-import java.util.function.LongUnaryOperator;
-import java.util.function.Supplier;
+import java.util.function.*;
 import java.util.stream.LongStream;
 import java.util.stream.LongStream.Builder;
 
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
-
-import static one.util.streamex.TestHelpers.*;
+import static one.util.streamex.TestHelpers.checkSpliterator;
 import static org.junit.Assert.*;
 
 /**
@@ -86,7 +79,7 @@ public class LongStreamExTest {
 
         assertArrayEquals(new long[] { 2, 4, 6 }, LongStreamEx.of(new Long[] { 2L, 4L, 6L }).toArray());
     }
-    
+
     @Test
     public void testOfLongBuffer() {
         long[] data = LongStreamEx.range(100).toArray();
@@ -96,7 +89,7 @@ public class LongStreamExTest {
         assertArrayEquals(LongStreamEx.range(50, 70).toArray(), LongStreamEx.of(LongBuffer.wrap(data, 50, 20)).parallel()
                 .toArray());
     }
-    
+
     @Test
     public void testIterate() {
         assertArrayEquals(new long[] { 1, 2, 4, 8, 16 }, LongStreamEx.iterate(1, x -> x * 2).limit(5).toArray());
@@ -261,7 +254,7 @@ public class LongStreamExTest {
         assertFalse(LongStreamEx.of(1).noneMatch(x -> true));
         assertTrue(LongStreamEx.of(1).noneMatch(x -> false));
     }
-    
+
     @Test
     public void testForEach() {
         List<Long> list = new ArrayList<>();
@@ -335,6 +328,7 @@ public class LongStreamExTest {
             Long.MAX_VALUE).toArray());
         assertArrayEquals(new long[] { 1, -1 }, LongStreamEx.of(1, 5, 3, 4, -1, Long.MAX_VALUE).less(3).toArray());
         assertArrayEquals(new long[] { 1, 3, -1 }, LongStreamEx.of(1, 5, 3, 4, -1, Long.MAX_VALUE).atMost(3).toArray());
+        assertArrayEquals(new long[] { 1, 3, 4, -1 }, LongStreamEx.of(1, 5, 3, 4, -1, Long.MAX_VALUE).atMost(4).toArray());
     }
 
     @Test
@@ -469,7 +463,7 @@ public class LongStreamExTest {
         assertEquals(2, LongStreamEx.of(1, 3, 2).takeWhileInclusive(i -> i < 3).count());
         assertEquals(3, LongStreamEx.of(1, 2, 3).takeWhileInclusive(i -> i < 100).count());
     }
-    
+
     @Test
     public void testDropWhile() {
         assertArrayEquals(new long[] { 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 }, LongStreamEx.range(100).dropWhile(
@@ -519,19 +513,19 @@ public class LongStreamExTest {
     @Test
     public void testPeekFirst() {
         long[] input = {1, 10, 100, 1000};
-        
+
         AtomicLong firstElement = new AtomicLong();
         assertArrayEquals(new long[] {10, 100, 1000}, LongStreamEx.of(input).peekFirst(firstElement::set).skip(1).toArray());
         assertEquals(1, firstElement.get());
 
         assertArrayEquals(new long[] {10, 100, 1000}, LongStreamEx.of(input).skip(1).peekFirst(firstElement::set).toArray());
         assertEquals(10, firstElement.get());
-        
+
         firstElement.set(-1);
         assertArrayEquals(new long[] {}, LongStreamEx.of(input).skip(4).peekFirst(firstElement::set).toArray());
         assertEquals(-1, firstElement.get());
     }
-    
+
     @Test
     public void testPeekLast() {
         long[] input = {1, 10, 100, 1000};
@@ -542,14 +536,14 @@ public class LongStreamExTest {
         assertArrayEquals(new long[] { 1, 10, 100 }, LongStreamEx.of(input).less(1000).peekLast(lastElement::set)
                 .limit(3).toArray());
         assertEquals(100, lastElement.get());
-        
+
         assertArrayEquals(input, LongStreamEx.of(input).peekLast(lastElement::set).limit(4).toArray());
         assertEquals(1000, lastElement.get());
-        
+
         assertArrayEquals(new long[] {1, 10, 100}, LongStreamEx.of(input).limit(3).peekLast(lastElement::set).toArray());
         assertEquals(100, lastElement.get());
     }
-    
+
     @Test
     public void testScanLeft() {
         assertArrayEquals(new long[] { 0, 1, 3, 6, 10, 15, 21, 28, 36, 45 }, LongStreamEx.range(10).scanLeft(Long::sum));
@@ -588,7 +582,7 @@ public class LongStreamExTest {
         assertEquals(OptionalLong.of(10), LongStreamEx.of(1, 2, 3, 4, 10).prefix(Long::sum).findFirst(x -> x > 7));
         assertEquals(OptionalLong.empty(), LongStreamEx.of(1, 2, 3, 4, 10).prefix(Long::sum).findFirst(x -> x > 20));
     }
-    
+
     @Test
     public void testIntersperse() {
         assertArrayEquals(new long[] { 1, 0, 10, 0, 100, 0, 1000 }, LongStreamEx.of(1, 10, 100, 1000).intersperse(0)
