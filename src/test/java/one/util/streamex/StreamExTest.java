@@ -277,6 +277,12 @@ public class StreamExTest {
         assertArrayEquals(new double[] { 0, 0, 1, 0, 0, 1, 0, 0 }, StreamEx.of("111", "222", "333").flatMapToDouble(
             s -> s.chars().mapToDouble(ch -> ch - '0')).pairMap((a, b) -> b - a).toArray(), 0.0);
     }
+    
+    @Test
+    public void testFlatMapFromCollection() {
+        assertArrayEquals(new String[] {"1", "1", "1", "2", "2", "2"}, StreamEx.of("111", "222").map(s -> s.split(""))
+                .flatMapFromCollection(Arrays::asList).toArray(String.class));
+    }
 
     @Test
     public void testAndThen() {

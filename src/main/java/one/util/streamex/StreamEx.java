@@ -368,6 +368,33 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             return x;
         });
     }
+    
+    /**
+     * Returns a stream consisting of the results of replacing each element of
+     * this stream with the contents of stream produced by sequential transforming
+     * each element to collection with provided mapping function and then to a stream
+     * with {@link java.util.Collection#stream() stream()} method.  
+     * Each mapped stream is {@link java.util.stream.BaseStream#close() closed} 
+     * after its contents have been placed into this stream. (If a mapped stream
+     * is {@code null} an empty stream is used, instead.)
+     *
+     * <p>This is an <a href="package-summary.html#StreamOps">intermediate
+     * operation</a>.
+     * 
+     * <p>
+     * This is a shortcut for
+     * {@code map(mapToCollection).flatMap(Collection::stream)}
+     *
+     * @param <R> The element type of the new stream
+     * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *               <a href="package-summary.html#Statelessness">stateless</a>
+     *               function to apply to each element which produces a collection
+     *               of new values
+     * @return the new stream
+     */
+    public <R> StreamEx<R> flatMapFromCollection(Function<? super T, ? extends Collection<? extends R>> mapper) {
+        return new StreamEx<>(stream().map(mapper).flatMap(Collection::stream), context);
+    }
 
     /**
      * Creates a new {@code EntryStream} populated from entries of maps produced
