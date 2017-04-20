@@ -2,6 +2,6 @@ language: java
 install:
   - mvn install -DskipTests=true -Dgpg.skip=true -B -V
 jdk:
-  - oraclejdk8
+  - oraclejdk9
 after_success:
   - mvn jacoco:report coveralls:report
