@@ -4,7 +4,7 @@ dist:
 addons:
   apt:
     packages:
-      - oracle-java9-installer
+      - openjdk-9-source
 jdk:
   - oraclejdk9
 install:
