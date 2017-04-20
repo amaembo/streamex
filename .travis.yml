@@ -1,7 +1,13 @@
 language: java
-install:
-  - mvn install -DskipTests=true -Dgpg.skip=true -B -V
+dist:
+  - trusty
+addons:
+  apt:
+    packages:
+      - oracle-java9-installer
 jdk:
   - oraclejdk9
+install:
+  - mvn install -DskipTests=true -Dgpg.skip=true -B -V
 after_success:
   - mvn jacoco:report coveralls:report
