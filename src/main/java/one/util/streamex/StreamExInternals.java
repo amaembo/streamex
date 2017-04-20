@@ -30,6 +30,7 @@ import java.util.function.*;
 import java.util.stream.BaseStream;
 import java.util.stream.Collector;
 import java.util.stream.Collector.Characteristics;
+import java.util.stream.IntStream;
 
 /* package */final class StreamExInternals {
     static final int INITIAL_SIZE = 128;
@@ -47,8 +48,20 @@ import java.util.stream.Collector.Characteristics;
     static final Field SOURCE_STAGE;
     static final Field SOURCE_CLOSE_ACTION;
     static final Field SPLITERATOR_ITERATOR;
-    static final VersionSpecific VER_SPEC = System.getProperty("java.version", "")
-            .compareTo("1.9") > 0 ? new Java9Specific() : new VersionSpecific();
+
+    static final VersionSpecific VER_SPEC = new VersionSpecific();
+
+    static abstract class VerSpec {
+        abstract <T, S extends AbstractStreamEx<T, S>> S callWhile(AbstractStreamEx<T, S> stream, Predicate<? super T> predicate, boolean drop);
+
+        abstract IntStreamEx callWhile(IntStreamEx stream, IntPredicate predicate, boolean drop);
+
+        abstract LongStreamEx callWhile(LongStreamEx stream, LongPredicate predicate, boolean drop);
+
+        abstract DoubleStreamEx callWhile(DoubleStreamEx stream, DoublePredicate predicate, boolean drop);
+
+        abstract IntStream ofChars(CharSequence seq);
+    }
 
     static {
         Deque<Field> fields = new ArrayDeque<>();

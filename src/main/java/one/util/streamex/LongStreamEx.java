@@ -1484,7 +1484,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @see #dropWhile(LongPredicate)
      */
     public LongStreamEx takeWhile(LongPredicate predicate) {
-        return VER_SPEC.callWhile(this, Objects.requireNonNull(predicate), false);
+        return VersionSpecific.INSTANCE.callWhile(this, Objects.requireNonNull(predicate), false);
     }
 
     /**
@@ -1533,7 +1533,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @since 0.3.6
      */
     public LongStreamEx dropWhile(LongPredicate predicate) {
-        return VER_SPEC.callWhile(this, Objects.requireNonNull(predicate), true);
+        return VersionSpecific.INSTANCE.callWhile(this, Objects.requireNonNull(predicate), true);
     }
 
     /**

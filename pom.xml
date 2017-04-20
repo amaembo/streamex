@@ -60,6 +60,27 @@
             <arg>-Xlint:all</arg>
           </compilerArgs>
         </configuration>
+        <executions>
+          <execution>
+            <id>default-compile</id>
+            <goals><goal>compile</goal></goals>
+            <phase>compile</phase>
+            <configuration>
+              <excludes><exclude>META-INF/**/*.java</exclude></excludes>
+            </configuration>
+          </execution>
+          <execution>
+            <id>java9-compile</id>
+            <goals><goal>compile</goal></goals>
+            <phase>compile</phase>
+            <configuration>
+              <source>1.9</source>
+              <target>1.9</target>
+              <includes><include>META-INF/versions/9/**/*.java</include></includes>
+              <outputDirectory>${project.build.directory}/classes/META-INF/versions/9</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -76,6 +97,7 @@
             </goals>
             <configuration>
               <quiet>true</quiet>
+              <excludePackageNames>META-INF</excludePackageNames>
             </configuration>
           </execution>
           <execution>
@@ -87,7 +109,7 @@
             </goals>
             <configuration>
               <sourcepath>${project.build.sourceDirectory};${project.build.directory}/jdk</sourcepath>
-              <excludePackageNames>java.util.stream</excludePackageNames>
+              <excludePackageNames>java.util.stream:META-INF</excludePackageNames>
               <additionalparam>-Xdoclint:none</additionalparam>
               <noqualifier>all</noqualifier>
               <quiet>true</quiet>
@@ -186,6 +208,7 @@
             <Bundle-SymbolicName>${project.package}</Bundle-SymbolicName>
             <Bundle-Name>${project.name}</Bundle-Name>
             <Export-Package>${project.package}</Export-Package>
+            <Multi-Release>true</Multi-Release>
           </instructions>
         </configuration>
       </plugin>
@@ -225,6 +248,38 @@
         </executions>
       </plugin>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.19.1</version>
+        <executions>
+          <execution>
+            <id>default-test</id>
+            <phase>test</phase>
+            <goals><goal>test</goal></goals>
+            <configuration>
+              <reportsDirectory>${project.build.directory}/surefire-reports/java8</reportsDirectory>
+            </configuration>
+          </execution>
+          <execution>
+            <id>java9-test</id>
+            <phase>test</phase>
+            <goals><goal>test</goal></goals>
+            <configuration>
+              <classesDirectory>${project.build.outputDirectory}/META-INF/versions/9</classesDirectory>
+              <additionalClasspathElements>
+                <additionalClasspathElement>${project.build.outputDirectory}</additionalClasspathElement>
+              </additionalClasspathElements>
+              <reportsDirectory>${project.build.directory}/surefire-reports/java9</reportsDirectory>
+            </configuration>
+          </execution>
+        </executions>
+        <configuration>
+          <serverId>ossrh</serverId>
+          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+          <autoReleaseAfterClose>true</autoReleaseAfterClose>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
         <version>0.7.8</version>
@@ -241,6 +296,9 @@
             <goals>
               <goal>report</goal>
             </goals>
+            <configuration>
+              <excludes><exclude>${project.package.path}/VersionSpecific.class</exclude></excludes>
+            </configuration>
           </execution>
           <execution>
             <id>default-check</id>

@@ -1573,16 +1573,6 @@ public class StreamExTest {
             Optional<String> opt5 = s.get().dropWhile(x -> x.length() > 5).findFirst();
             assertEquals(Optional.of("aaa"), opt5);
         });
-
-        // Test that in JDK9 operation is propagated to JDK dropWhile method.
-        boolean hasDropWhile = true;
-        try {
-            Stream.class.getDeclaredMethod("dropWhile", Predicate.class);
-        } catch (NoSuchMethodException e) {
-            hasDropWhile = false;
-        }
-        Spliterator<String> spliterator = StreamEx.of("aaa", "b", "cccc").dropWhile(x -> x.length() > 1).spliterator();
-        assertEquals(hasDropWhile, !spliterator.getClass().getSimpleName().equals("TDOfRef"));
     }
     
     @Test

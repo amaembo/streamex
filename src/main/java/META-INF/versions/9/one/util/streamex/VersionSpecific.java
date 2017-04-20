@@ -15,17 +15,18 @@
  */
 package one.util.streamex;
 
-import java.nio.CharBuffer;
-import java.util.Spliterator;
 import java.util.function.DoublePredicate;
 import java.util.function.IntPredicate;
 import java.util.function.LongPredicate;
 import java.util.function.Predicate;
+import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
 
 /**
  * @author Tagir Valeev
  */
 /* package */ class VersionSpecific {
-    static final StreamExInternals.VerSpec INSTANCE = new Java8Specific();
+    static final StreamExInternals.VerSpec INSTANCE = new Java9Specific();
 }

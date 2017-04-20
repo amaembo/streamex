@@ -1422,7 +1422,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @see #dropWhile(DoublePredicate)
      */
     public DoubleStreamEx takeWhile(DoublePredicate predicate) {
-        return VER_SPEC.callWhile(this, Objects.requireNonNull(predicate), false);
+        return VersionSpecific.INSTANCE.callWhile(this, Objects.requireNonNull(predicate), false);
     }
 
     /**
@@ -1471,7 +1471,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @since 0.3.6
      */
     public DoubleStreamEx dropWhile(DoublePredicate predicate) {
-        return VER_SPEC.callWhile(this, Objects.requireNonNull(predicate), true);
+        return VersionSpecific.INSTANCE.callWhile(this, Objects.requireNonNull(predicate), true);
     }
 
     /**
