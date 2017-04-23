@@ -1,10 +1,12 @@
 language: java
+sudo:
+  - false
 dist:
   - trusty
 addons:
   apt:
     packages:
-      - openjdk-9-source
+      - oracle-java9-installer
 jdk:
   - oraclejdk9
 install:
