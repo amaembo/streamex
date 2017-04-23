@@ -10,6 +10,6 @@ addons:
 jdk:
   - oraclejdk9
 install:
-  - mvn install -DskipTests=true -Dgpg.skip=true -B -V
+  - mvn install -DskipTests=true -Dgpg.skip=true -B -V -U
 after_success:
   - mvn jacoco:report coveralls:report
