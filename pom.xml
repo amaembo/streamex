@@ -120,7 +120,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <sourcepath>${project.build.sourceDirectory};${project.build.directory}/jdk</sourcepath>
+              <sourcepath>${project.build.sourceDirectory};${project.build.directory}/jdk/java.base</sourcepath>
               <excludePackageNames>java.util.stream:META-INF</excludePackageNames>
               <additionalparam>-Xdoclint:none</additionalparam>
               <noqualifier>all</noqualifier>
@@ -145,9 +145,12 @@
                   value="${java.home}/../src.zip" />
                 <available property="src.zip" file="${java.home}/src.zip"
                   value="${java.home}/src.zip" />
+                <available property="src.zip" file="${java.home}/lib/src.zip"
+                  value="${java.home}/lib/src.zip" />
                 <unzip src="${src.zip}" dest="${project.build.directory}/jdk">
                   <patternset>
-                    <include name="java/util/stream/**/*.java" />
+                    <!--include name="java/util/stream/**/*.java" /-->
+                    <include name="java.base/java/util/stream/**/*.java" />
                   </patternset>
                 </unzip>
               </target>
