@@ -2,6 +2,7 @@
 Enhancing Java 8 Streams.
 
 [![Maven Central](https://img.shields.io/maven-central/v/one.util/streamex.svg)](https://maven-badges.herokuapp.com/maven-central/one.util/streamex/)
+[![Javadocs](https://www.javadoc.io/badge/one.util/streamex.svg)](https://www.javadoc.io/doc/one.util/streamex)
 [![Build Status](https://travis-ci.org/amaembo/streamex.png?branch=master)](https://travis-ci.org/amaembo/streamex)
 [![Coverage Status](https://coveralls.io/repos/amaembo/streamex/badge.svg?branch=master&service=github)](https://coveralls.io/github/amaembo/streamex?branch=master)
 
