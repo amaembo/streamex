@@ -79,7 +79,7 @@
               <source>1.9</source>
               <target>1.9</target>
               <useIncrementalCompilation>false</useIncrementalCompilation>
-              <compileSourceRoots>${project.build.sourceDirectory}/META-INF/versions/9</compileSourceRoots>
+              <compileSourceRoots><compileSourceRoot>${project.build.sourceDirectory}/META-INF/versions/9</compileSourceRoot></compileSourceRoots>
               <outputDirectory>${project.build.directory}/classes/META-INF/versions/9</outputDirectory>
             </configuration>
           </execution>
@@ -91,7 +91,7 @@
               <source>1.9</source>
               <target>1.9</target>
               <useIncrementalCompilation>false</useIncrementalCompilation>
-              <compileSourceRoots>${project.build.sourceDirectory}/../module</compileSourceRoots>
+              <compileSourceRoots><compileSourceRoot>${project.build.sourceDirectory}/../module</compileSourceRoot></compileSourceRoots>
               <outputDirectory>${project.build.directory}/classes/META-INF/versions/9</outputDirectory>
             </configuration>
           </execution>
