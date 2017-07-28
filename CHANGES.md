@@ -2,8 +2,7 @@
 
 Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 
-### 0.8
-* [#150] API refactoring and improvements: 
+### 0.8: API refactoring and improvements:
 * Rename:
  		flatMapToKey/flatMapToValue/mapToKey/mapToValue
 	To:
