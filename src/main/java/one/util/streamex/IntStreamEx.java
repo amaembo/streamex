@@ -628,8 +628,8 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * Consumes space proportional to the number of elements skipped.
      *
      * <p>
-     * For example, {@code DoubleStreamEx.of(1d, 2d, 3d).skipLast(1)} will yield a stream containing
-     * two elements: 1d, 2d.
+     * For example, {@code IntStreamEx.of(1, 2, 3).skipLast(1)} will yield a stream containing
+     * two elements: 1, 2.
      *
      * <p>
      * This is an <a href="package-summary.html#StreamOps">quasi-intermediate operation</a>.
