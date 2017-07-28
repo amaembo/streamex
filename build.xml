@@ -43,9 +43,6 @@
 		<delete includeEmptyDirs="true">
 			<fileset dir="${build.classes.dir}" includes="**/*" />
 		</delete>
-		<delete includeEmptyDirs="true">
-			<fileset dir="${dist.dir}" includes="**/*" />
-		</delete>
 	</target>
 
 	<target name="prepare">
@@ -63,6 +60,12 @@
 	<target name="jar" depends="compile" description="Build the distribution .jar file">
 		<delete file="${dist.dir}/${project-name}-${version}.jar" />
 		<jar filesetmanifest="merge" jarfile="${dist.dir}/${project-name}-${version}.jar" basedir="${build.classes.dir}" />
+	</target>
+
+	<!-- Some of this can probably be moved to common-build... -->
+	<target name="jar-scr" description="Build the src .jar file">
+		<delete file="$${dist.dir}/${project-name}-${version}-sources.jar" />
+		<jar filesetmanifest="merge" jarfile="${dist.dir}/${project-name}-${version}-sources.jar" basedir="${src.dir}" />
 	</target>
 
 </project>
