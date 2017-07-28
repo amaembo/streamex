@@ -305,6 +305,24 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
 
     /**
      * Returns an {@link EntryStream} consisting of the {@link Entry} objects
+     * which keys are elements of this stream and values are results of applying
+     * the given function to the elements of this stream.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
+     * operation.
+     *
+     * @param <V> The {@code Entry} value type
+     * @param valueMapper a non-interfering, stateless function to apply to each
+     *        element
+     * @return the new stream
+     */
+    public <K, V> EntryStream<K, V> mapToEntry(Function<? super T, ? extends Map.Entry<K, V>> mapper) {
+        return new EntryStream<>(stream().map(e -> mapper.apply(e)), context);
+    }
+
+    /**
+     * Returns an {@link EntryStream} consisting of the {@link Entry} objects
      * which keys and values are results of applying the given functions to the
      * elements of this stream.
      *
