@@ -1373,7 +1373,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      *         is returned.
      * @since 0.3.1
      */
-    public String joining(CharSequence delimiter) {
+    public String join(CharSequence delimiter) {
         return collect(DoubleCollector.joining(delimiter));
     }
 
@@ -1395,7 +1395,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      *         {@code prefix + suffix} is returned.
      * @since 0.3.1
      */
-    public String joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
+    public String join(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return collect(DoubleCollector.joining(delimiter, prefix, suffix));
     }
 

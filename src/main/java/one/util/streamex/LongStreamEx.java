@@ -1435,7 +1435,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      *         is returned.
      * @since 0.3.1
      */
-    public String joining(CharSequence delimiter) {
+    public String join(CharSequence delimiter) {
         return collect(LongCollector.joining(delimiter));
     }
 
@@ -1457,7 +1457,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      *         {@code prefix + suffix} is returned.
      * @since 0.3.1
      */
-    public String joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
+    public String join(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return collect(LongCollector.joining(delimiter, prefix, suffix));
     }
 

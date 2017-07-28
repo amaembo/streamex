@@ -1622,7 +1622,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      *         is returned.
      * @since 0.3.1
      */
-    public String joining(CharSequence delimiter) {
+    public String join(CharSequence delimiter) {
         return collect(IntCollector.joining(delimiter));
     }
 
@@ -1644,7 +1644,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      *         {@code prefix + suffix} is returned.
      * @since 0.3.1
      */
-    public String joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
+    public String join(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return collect(IntCollector.joining(delimiter, prefix, suffix));
     }
 

@@ -79,7 +79,7 @@ public class MoreCollectorsTest {
     public void testToArray() {
         List<String> input = asList("a", "bb", "c", "", "cc", "eee", "bb", "ddd");
         streamEx(input::stream, supplier -> {
-            Map<Integer, String[]> result = supplier.get().groupingBy(String::length, HashMap::new,
+            Map<Integer, String[]> result = supplier.get().groupTo(String::length, HashMap::new,
                 MoreCollectors.toArray(String[]::new));
             assertArrayEquals(new String[] { "" }, result.get(0));
             assertArrayEquals(new String[] { "a", "c" }, result.get(1));
@@ -98,7 +98,7 @@ public class MoreCollectorsTest {
     public void testDistinctCount() {
         List<String> input = asList("a", "bb", "c", "cc", "eee", "bb", "bc", "ddd");
         streamEx(input::stream, supplier -> {
-            Map<String, Integer> result = supplier.get().groupingBy(s -> s.substring(0, 1), HashMap::new,
+            Map<String, Integer> result = supplier.get().groupTo(s -> s.substring(0, 1), HashMap::new,
                 MoreCollectors.distinctCount(String::length));
             assertEquals(1, (int) result.get("a"));
             assertEquals(1, (int) result.get("b"));
@@ -112,7 +112,7 @@ public class MoreCollectorsTest {
     public void testDistinctBy() {
         List<String> input = asList("a", "bb", "c", "cc", "eee", "bb", "bc", "ddd", "ca", "ce", "cf", "ded", "dump");
         streamEx(input::stream, supplier -> {
-            Map<String, List<String>> result = supplier.get().groupingBy(s -> s.substring(0, 1), HashMap::new,
+            Map<String, List<String>> result = supplier.get().groupTo(s -> s.substring(0, 1), HashMap::new,
                 MoreCollectors.distinctBy(String::length));
             assertEquals(asList("a"), result.get("a"));
             assertEquals(asList("bb"), result.get("b"));
@@ -522,7 +522,7 @@ public class MoreCollectorsTest {
             "c", null).append("c", asList("gg"), "b", null, "a", asList("hh")).toList();
         {
             Map<String, List<String>> expected = EntryStream.of(list.stream()).flatMapValues(
-                l -> l == null ? null : l.stream()).grouping();
+                l -> l == null ? null : l.stream()).groupTo();
             checkCollector("flatMappingCombine", expected, list::stream, Collectors.groupingBy(Entry::getKey,
                 MoreCollectors.flatMapping(valuesStream, Collectors.toList())));
             AtomicInteger openClose = new AtomicInteger();
@@ -705,7 +705,7 @@ public class MoreCollectorsTest {
 
         withRandom(r -> {
             List<String> longInput = StreamEx.generate(
-                () -> IntStreamEx.of(r, r.nextInt(10) + 3, 'a', 'z').mapToObj(ch -> (char) ch).joining("/", "", "/"))
+                () -> IntStreamEx.of(r, r.nextInt(10) + 3, 'a', 'z').mapToObj(ch -> (char) ch).join("/", "", "/"))
                     .limit(1000).toList();
 
             List<String> tmp = StreamEx.of(longInput).sorted().toList();

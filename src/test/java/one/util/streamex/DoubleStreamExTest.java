@@ -139,7 +139,7 @@ public class DoubleStreamExTest {
         assertArrayEquals(new double[] { 4, 2, 0, -2, -4 }, DoubleStreamEx.zip(new double[] { 5, 4, 3, 2, 1 },
             new double[] { 1, 2, 3, 4, 5 }, (a, b) -> a - b).toArray(), 0.0);
         assertEquals("1.0; 0.5; 0.25; 0.125", DoubleStreamEx.of(1.0, 0.5, 0.25, 0.125).mapToObj(String::valueOf)
-                .joining("; "));
+                .join("; "));
         List<Double> list = new ArrayList<>();
         DoubleStreamEx.of(1.0, 0.5, 0.25, 0.125).forEach(list::add);
         assertEquals(Arrays.asList(1.0, 0.5, 0.25, 0.125), list);
@@ -168,7 +168,7 @@ public class DoubleStreamExTest {
         assertArrayEquals(new int[] { 1, 5, 2, 3, 3, 2, 0, 9 }, DoubleStreamEx.of(1.5, 2.3, 3.2, 0.9).flatMapToInt(
             x -> IntStreamEx.of((int) Math.floor(x), (int) (Math.round(10 * (x - Math.floor(x)))))).toArray());
         assertEquals("1:.:5:2:2:.:3:3:.:2:0:.:9", DoubleStreamEx.of(1.5, 22.3, 3.2, 0.9).flatMapToObj(
-            x -> StreamEx.split(String.valueOf(x), "")).joining(":"));
+            x -> StreamEx.split(String.valueOf(x), "")).join(":"));
 
         assertArrayEquals(new double[] { 0.0, 0.0, 1.0, 0.0, 1.0, 2.0 }, DoubleStreamEx.of(1, 2, 3).flatMap(
             x -> IntStreamEx.range((int) x).asDoubleStream()).toArray(), 0.0);
@@ -337,16 +337,16 @@ public class DoubleStreamExTest {
 
     @Test
     public void testJoining() {
-        assertEquals("0.4,5.0,3.6,4.8", DoubleStreamEx.of(0.4, 5.0, 3.6, 4.8).joining(","));
-        assertEquals("0.4,5.0,3.6,4.8", DoubleStreamEx.of(0.4, 5.0, 3.6, 4.8).parallel().joining(","));
-        assertEquals("[0.4,5.0,3.6,4.8]", DoubleStreamEx.of(0.4, 5.0, 3.6, 4.8).joining(",", "[", "]"));
-        assertEquals("[0.4,5.0,3.6,4.8]", DoubleStreamEx.of(0.4, 5.0, 3.6, 4.8).parallel().joining(",", "[", "]"));
+        assertEquals("0.4,5.0,3.6,4.8", DoubleStreamEx.of(0.4, 5.0, 3.6, 4.8).join(","));
+        assertEquals("0.4,5.0,3.6,4.8", DoubleStreamEx.of(0.4, 5.0, 3.6, 4.8).parallel().join(","));
+        assertEquals("[0.4,5.0,3.6,4.8]", DoubleStreamEx.of(0.4, 5.0, 3.6, 4.8).join(",", "[", "]"));
+        assertEquals("[0.4,5.0,3.6,4.8]", DoubleStreamEx.of(0.4, 5.0, 3.6, 4.8).parallel().join(",", "[", "]"));
     }
 
     @Test
     public void testMapToEntry() {
         Map<Integer, List<Double>> map = DoubleStreamEx.of(0.3, 0.5, 1.3, 0.7, 1.9, 2.1).mapToEntry(x -> (int) x,
-            x -> x).grouping();
+            x -> x).groupTo();
         assertEquals(Arrays.asList(0.3, 0.5, 0.7), map.get(0));
         assertEquals(Arrays.asList(1.3, 1.9), map.get(1));
         assertEquals(Arrays.asList(2.1), map.get(2));

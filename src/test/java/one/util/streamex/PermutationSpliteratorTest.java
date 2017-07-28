@@ -35,7 +35,7 @@ public class PermutationSpliteratorTest {
 
     private List<String> collect(Spliterator<int[]> spliterator) {
         List<String> strings = new ArrayList<>();
-        spliterator.forEachRemaining(i -> strings.add(IntStreamEx.of(i).mapToObj(String::valueOf).joining()));
+        spliterator.forEachRemaining(i -> strings.add(IntStreamEx.of(i).mapToObj(String::valueOf).join()));
         return strings;
     }
 
@@ -44,7 +44,7 @@ public class PermutationSpliteratorTest {
             return;
         int n = r.nextInt((int) spliterator.estimateSize()) + 1;
         for (int i = 0; i < n; i++) {
-            if (!spliterator.tryAdvance(is -> strings.add(IntStreamEx.of(is).mapToObj(String::valueOf).joining())))
+            if (!spliterator.tryAdvance(is -> strings.add(IntStreamEx.of(is).mapToObj(String::valueOf).join())))
                 return;
         }
         Spliterator<int[]> prefix = spliterator.trySplit();

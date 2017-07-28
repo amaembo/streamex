@@ -349,7 +349,7 @@ public class TestHelpers {
                 }
                 List<Integer> order = IntStreamEx.ofIndices(spliterators).boxed().toList();
                 Collections.shuffle(order, r);
-                List<T> list = StreamEx.of(order).mapToEntry(idx -> {
+                List<T> list = StreamEx.of(order).mapToEntry(idx -> idx, idx -> {
                     Spliterator<T> s = spliterators.get(idx);
                     Stream.Builder<T> builder = Stream.builder();
                     s.forEachRemaining(builder);
