@@ -1,0 +1,68 @@
+<!-- Abacus ant built script -->
+
+<project name="streamex" default="jar" basedir=".">
+
+	<!-- Give user a chance to override without editing this file
+       (and without typing -D each time it compiles it) -->
+	<property file="build.properties" />
+
+	<path id="build.class.path">
+		<pathelement location="${build.classes.dir}" />
+		<fileset dir="${lib.dir}">
+			<include name="*.jar" />
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+
+	<patternset id="support.files">
+		<include name="**/*.jpg" />
+		<include name="**/*.gif" />
+		<include name="**/*.dtd" />
+		<include name="**/*.xsd" />
+		<include name="**/*.xml" />
+		<include name="**/*.xslt" />
+		<include name="**/*.wsdl" />
+
+		<!-- exclude everything we don't want in the jar -->
+		<exclude name="${build.dir}/**/*" />
+		<exclude name="${docs.dir}/**/*" />
+		<exclude name="classes/**/*" />
+		<exclude name="**/*.properties" />
+		<exclude name="**/*.ccf" />
+		<exclude name="**/*.cfg.xml" />
+		<exclude name="**/ehcache.xml" />
+		<exclude name="build.xml" />
+		<exclude name="build.properties" />
+	</patternset>
+
+	<tstamp>
+		<format property="current.date" pattern="yyyyMMdd" />
+	</tstamp>
+
+	<target name="clean">
+		<delete includeEmptyDirs="true">
+			<fileset dir="${build.classes.dir}" includes="**/*" />
+		</delete>
+		<delete includeEmptyDirs="true">
+			<fileset dir="${dist.dir}" includes="**/*" />
+		</delete>
+	</target>
+
+	<target name="prepare">
+		<mkdir dir="${build.classes.dir}" />
+	</target>
+
+	<target name="compile" depends="clean,prepare" description="Compile the Java source code">
+		<available classname="org.eclipse.core.launcher.Main" property="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter" classpath="${java.class.path}" />
+
+		<javac srcdir="${src.dir}" destdir="${build.classes.dir}" classpathref="build.class.path" debug="off" source="1.8" target="1.8">
+		</javac>
+	</target>
+
+	<!-- Some of this can probably be moved to common-build... -->
+	<target name="jar" depends="compile" description="Build the distribution .jar file">
+		<delete file="${dist.dir}/${project-name}-${version}.jar" />
+		<jar filesetmanifest="merge" jarfile="${dist.dir}/${project-name}-${version}.jar" basedir="${build.classes.dir}" excludes="${non-abacus.classes}, ${android.classes}" />
+	</target>
+
+</project>
