@@ -500,4 +500,14 @@ public class DoubleStreamExTest {
                 .toArray(), 0.0);
         assertEquals(0L, IntStreamEx.empty().intersperse(1).count());
     }
+
+    @Test
+    public void testSkipLast() {
+        Supplier<DoubleStreamEx> s = () -> DoubleStreamEx.of(1d, 2d, 3d);
+        assertArrayEquals(new double[] {1d, 2d}, s.get().skipLast(1).toArray(), 0.0);
+        assertArrayEquals(new double[0], s.get().skipLast(3).toArray(), 0.0);
+        assertArrayEquals(new double[0], s.get().skipLast(4).toArray(), 0.0);
+        assertArrayEquals(new double[0], s.get().skipLast(10).toArray(), 0.0);
+        assertArrayEquals(new double[0], DoubleStreamEx.empty().skipLast(10).toArray(), 0.0);
+    }
 }

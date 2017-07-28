@@ -268,6 +268,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      *
      * @param n the non-negative number of elements to leave off the end of the stream.
      * @return the new, sequential stream
+     * @throws IllegalArgumentException if {@code n} is negative or {@link Integer#MAX_VALUE}
      * @since 0.6.7
      */
     public S skipLast(int n) {
