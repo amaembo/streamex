@@ -19,10 +19,10 @@ Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 * Add groupBy to StreamEx/EntryStreamEx
 * Push up flatMapToEntry/mapToEntry from StreamEx to AbstractStreamEx
 * Change:
- 		<K, T> EntryStream<K, T> mapToEntry(Function<? super T, K> mapper)
+ 		EntryStream<K, T> mapToEntry(Function<? super T, K> mapper)
  	To:
- 		<K, V> EntryStream<K, V> mapToEntry(Function<? super T, ? extends Map.Entry<K, V>> mapper)
-* Change*:
+ 		EntryStream<K, V> mapToEntry(Function<? super T, ? extends Map.Entry<K, V>> mapper)
+* Change***:
 		mapLastOrElse(Function<? super T, ? extends R> notLastMapper, Function<? super T, ? extends R> lastMapper)
  	To:
  		mapLastOrElse(Function<? super T, ? extends R> lastMapper, Function<? super T, ? extends R> notLastMapper)
