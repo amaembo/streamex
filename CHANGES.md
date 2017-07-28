@@ -4,24 +4,24 @@ Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 
 ### 0.8
 * [#150] API refactoring and improvements: 
-         a) Rename:
-         		flatMapToKey/flatMapToValue/mapToKey/mapToValue
-         	To:
-         		flatMapKeys/flatMapValues/mapKeys/mapValues
-         c) Rename 				
-         		flatMapKeyValue/mapKeyValue/filterKeyValue/removeKeyValue/peekKeyVale/forKeyValue 
-         	To:
-         		flatMap/map/filter/remove/peek/forEach
-         c) Rename 
-         		grouping/groupingBy/groupingTo/joining
-         	To:
-         		groupTo/join
-         d) Add groupBy to StreamEx/EntryStreamEx
-         e) Push up flatMapToEntry/mapToEntry from StreamEx to AbstractStreamEx
-         f) Change:
-         		<K, T> EntryStream<K, T> mapToEntry(Function<? super T, K> mapper)
-         	To:
-         		<K, V> EntryStream<K, V> mapToEntry(Function<? super T, ? extends Map.Entry<K, V>> mapper) 
+* Rename:
+ 		flatMapToKey/flatMapToValue/mapToKey/mapToValue
+	To:
+ 		flatMapKeys/flatMapValues/mapKeys/mapValues
+* Rename 				
+ 		flatMapKeyValue/mapKeyValue/filterKeyValue/removeKeyValue/peekKeyVale/forKeyValue 
+ 	To:
+ 		flatMap/map/filter/remove/peek/forEach
+* Rename 
+ 		grouping/groupingBy/groupingTo/joining
+ 	To:
+ 		groupTo/join
+* Add groupBy to StreamEx/EntryStreamEx
+* Push up flatMapToEntry/mapToEntry from StreamEx to AbstractStreamEx
+* Change:
+ 		<K, T> EntryStream<K, T> mapToEntry(Function<? super T, K> mapper)
+ 	To:
+ 		<K, V> EntryStream<K, V> mapToEntry(Function<? super T, ? extends Map.Entry<K, V>> mapper) 
 
 ### 0.6.6
 * [#145] Added: `intersperse` method for all stream types.
