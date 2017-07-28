@@ -1,4 +1,4 @@
-<!-- Abacus ant built script -->
+<!-- StreamEx ant built script -->
 
 <project name="streamex" default="jar" basedir=".">
 
@@ -55,14 +55,14 @@
 	<target name="compile" depends="clean,prepare" description="Compile the Java source code">
 		<available classname="org.eclipse.core.launcher.Main" property="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter" classpath="${java.class.path}" />
 
-		<javac srcdir="${src.dir}" destdir="${build.classes.dir}" classpathref="build.class.path" debug="off" source="1.8" target="1.8">
+		<javac srcdir="${src.dir}" destdir="${build.classes.dir}" classpathref="build.class.path" debug="on" source="1.8" target="1.8">
 		</javac>
 	</target>
 
 	<!-- Some of this can probably be moved to common-build... -->
 	<target name="jar" depends="compile" description="Build the distribution .jar file">
 		<delete file="${dist.dir}/${project-name}-${version}.jar" />
-		<jar filesetmanifest="merge" jarfile="${dist.dir}/${project-name}-${version}.jar" basedir="${build.classes.dir}" excludes="${non-abacus.classes}, ${android.classes}" />
+		<jar filesetmanifest="merge" jarfile="${dist.dir}/${project-name}-${version}.jar" basedir="${build.classes.dir}" />
 	</target>
 
 </project>
