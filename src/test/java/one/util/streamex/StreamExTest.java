@@ -920,10 +920,10 @@ public class StreamExTest {
     @Test
     public void testForPairs() {
         List<Node> nodes = StreamEx.of("one", "two", "three", "four").map(Node::new).toList();
-        StreamEx.of(nodes).forPairs(Node::link);
+        StreamEx.of(nodes).forEachPair(Node::link);
         assertEquals("four:three:two:one", nodes.get(0).toString());
         nodes = StreamEx.of("one", "two", "three", "four").map(Node::new).toList();
-        StreamEx.of(nodes).parallel().forPairs(Node::link);
+        StreamEx.of(nodes).parallel().forEachPair(Node::link);
         assertEquals("four:three:two:one", nodes.get(0).toString());
     }
 
@@ -1741,9 +1741,9 @@ public class StreamExTest {
     @Test
     public void testMapLastOrElse() {
         streamEx(asList("red", "green", "blue", "orange")::stream, s -> assertEquals("red, green, blue, or orange!", s
-                .get().mapLastOrElse(str -> str + ", ", str -> "or " + str + "!").join()));
+                .get().mapLastOrElse(str -> "or " + str + "!", str -> str + ", ").join()));
         streamEx(asList("red", "green", "blue", "orange")::stream, s -> assertEquals(
-            "|- red\n|- green\n|- blue\n\\- orange", s.get().mapLastOrElse("|- "::concat, "\\- "::concat).join(
+            "|- red\n|- green\n|- blue\n\\- orange", s.get().mapLastOrElse("\\- "::concat, "|- "::concat).join(
                 "\n")));
     }
 

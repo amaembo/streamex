@@ -2020,6 +2020,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.1
      */
     public static <K, V> EntryStream<K, V> zip(List<K> keys, List<V> values) {
+        if ((keys == null || keys.size() == 0) && (values == null || values.size() == 0)) {
+            return EntryStream.empty();            
+        }
+
         return of(new RangeBasedSpliterator.ZipRef<>(0, checkLength(keys.size(), values.size()),
                 SimpleImmutableEntry<K, V>::new, keys, values));
     }
@@ -2038,6 +2042,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.1
      */
     public static <K, V> EntryStream<K, V> zip(K[] keys, V[] values) {
+        if ((keys == null || keys.length == 0) && (values == null || values.length == 0)) {
+            return EntryStream.empty();            
+        }
+
         return zip(Arrays.asList(keys), Arrays.asList(values));
     }
 

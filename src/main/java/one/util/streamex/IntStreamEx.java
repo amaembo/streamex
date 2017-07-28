@@ -158,7 +158,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @see #remove(IntPredicate)
      */
     public IntStreamEx without(int... values) {
-        if (values.length == 0)
+        if (values == null || values.length == 0)
             return this;
         if (values.length == 1)
             return without(values[0]);
@@ -1423,7 +1423,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @return the new stream
      */
     public IntStreamEx append(int... values) {
-        if (values.length == 0)
+        if (values == null || values.length == 0)
             return this;
         return new IntStreamEx(IntStream.concat(stream(), IntStream.of(values)), context);
     }
@@ -1455,7 +1455,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @return the new stream
      */
     public IntStreamEx prepend(int... values) {
-        if (values.length == 0)
+        if (values == null || values.length == 0)
             return this;
         return new IntStreamEx(IntStream.concat(IntStream.of(values), stream()), context);
     }

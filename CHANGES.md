@@ -3,6 +3,7 @@
 Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 
 ### 0.8: API refactoring and improvements:
+* Improve Null Safety
 * Rename:
  		flatMapToKey/flatMapToValue/mapToKey/mapToValue
 	To:
@@ -20,7 +21,11 @@ Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 * Change:
  		<K, T> EntryStream<K, T> mapToEntry(Function<? super T, K> mapper)
  	To:
- 		<K, V> EntryStream<K, V> mapToEntry(Function<? super T, ? extends Map.Entry<K, V>> mapper) 
+ 		<K, V> EntryStream<K, V> mapToEntry(Function<? super T, ? extends Map.Entry<K, V>> mapper)
+* Change:
+		mapLastOrElse(Function<? super T, ? extends R> notLastMapper, Function<? super T, ? extends R> lastMapper)
+ 	To:
+ 		mapLastOrElse(Function<? super T, ? extends R> lastMapper, Function<? super T, ? extends R> notLastMapper)
 
 ### 0.6.6
 * [#145] Added: `intersperse` method for all stream types.

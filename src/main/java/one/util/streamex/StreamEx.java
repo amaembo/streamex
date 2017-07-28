@@ -236,22 +236,22 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a>.
-     *
-     * @param <R> The element type of the new stream element
-     * @param notLastMapper a
-     *        <a href="package-summary.html#NonInterference">non-interfering
-     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
-     *        function to apply to all elements except the last one.
      * @param lastMapper a
      *        <a href="package-summary.html#NonInterference">non-interfering
      *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        function to apply to the last element
+     * @param notLastMapper a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to all elements except the last one.
+     *
+     * @param <R> The element type of the new stream element
      * @return the new stream
      * @since 0.6.0
      * @see #mapFirst(Function)
      */
-    public <R> StreamEx<R> mapLastOrElse(Function<? super T, ? extends R> notLastMapper,
-            Function<? super T, ? extends R> lastMapper) {
+    public <R> StreamEx<R> mapLastOrElse(Function<? super T, ? extends R> lastMapper,
+            Function<? super T, ? extends R> notLastMapper) {
         return new StreamEx<>(new PairSpliterator.PSOfRef<>(lastMapper, notLastMapper, spliterator(), false), context);
     }
 
@@ -355,7 +355,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     @SuppressWarnings("unchecked")
     public <V> EntryStream<T, V> cross(V... other) {
-        if (other.length == 0)
+        if (other == null || other.length == 0)
             return new EntryStream<>(Spliterators.emptySpliterator(), context);
         if (other.length == 1)
             return mapToEntry(e -> e, e -> other[0]);
@@ -383,7 +383,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.2.3
      */
     public <V> EntryStream<T, V> cross(Collection<? extends V> other) {
-        if (other.isEmpty())
+        if (other == null || other.isEmpty())
             return new EntryStream<>(Spliterators.emptySpliterator(), context);
         return cross(t -> of(other));
     }
@@ -1458,6 +1458,23 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
 
     /**
      * Returns a new {@code StreamEx} which is a concatenation of this stream
+     * and the supplied value.
+     * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a> with <a href="package-summary.html#TSO">tail-stream
+     * optimization</a>.
+     * 
+     * @param value the value to append to the stream
+     * @return the new stream
+     * @since 0.5.4
+     */
+    public StreamEx<T> append(T value) {
+        return appendSpliterator(null, new ConstSpliterator.OfRef<>(value, 1, true));
+    }
+
+    /**
+     * Returns a new {@code StreamEx} which is a concatenation of this stream
      * and the supplied values.
      * 
      * <p>
@@ -1472,24 +1489,11 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     @SafeVarargs
     public final StreamEx<T> append(T... values) {
-        return appendSpliterator(null, Spliterators.spliterator(values, Spliterator.ORDERED));
-    }
+        if (values == null || values.length == 0) {
+            return this;
+        }
 
-    /**
-     * Returns a new {@code StreamEx} which is a concatenation of this stream
-     * and the supplied value.
-     * 
-     * <p>
-     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
-     * operation</a> with <a href="package-summary.html#TSO">tail-stream
-     * optimization</a>.
-     * 
-     * @param value the value to append to the stream
-     * @return the new stream
-     * @since 0.5.4
-     */
-    public StreamEx<T> append(T value) {
-        return appendSpliterator(null, new ConstSpliterator.OfRef<>(value, 1, true));
+        return appendSpliterator(null, Spliterators.spliterator(values, Spliterator.ORDERED));
     }
 
     /**
@@ -1508,27 +1512,11 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.2.1
      */
     public StreamEx<T> append(Collection<? extends T> collection) {
-        return appendSpliterator(null, collection.spliterator());
-    }
+        if (collection == null || collection.size() == 0) {
+            return this;
+        }
 
-    /**
-     * Returns a new {@code StreamEx} which is a concatenation of supplied
-     * values and this stream.
-     * 
-     * <p>
-     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
-     * operation</a> with <a href="package-summary.html#TSO">tail-stream
-     * optimization</a>.
-     * 
-     * <p>
-     * May return this if no values are supplied.
-     * 
-     * @param values the values to prepend to the stream
-     * @return the new stream
-     */
-    @SafeVarargs
-    public final StreamEx<T> prepend(T... values) {
-        return prependSpliterator(null, Spliterators.spliterator(values, Spliterator.ORDERED));
+        return appendSpliterator(null, collection.spliterator());
     }
 
     /**
@@ -1549,6 +1537,30 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
+     * Returns a new {@code StreamEx} which is a concatenation of supplied
+     * values and this stream.
+     * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a> with <a href="package-summary.html#TSO">tail-stream
+     * optimization</a>.
+     * 
+     * <p>
+     * May return this if no values are supplied.
+     * 
+     * @param values the values to prepend to the stream
+     * @return the new stream
+     */
+    @SafeVarargs
+    public final StreamEx<T> prepend(T... values) {
+        if (values == null || values.length == 0) {
+            return this;
+        }
+
+        return prependSpliterator(null, Spliterators.spliterator(values, Spliterator.ORDERED));
+    }
+
+    /**
      * Returns a new {@code StreamEx} which is a concatenation of the stream
      * created from supplied collection and this stream.
      * 
@@ -1565,6 +1577,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.2.1
      */
     public StreamEx<T> prepend(Collection<? extends T> collection) {
+        if (collection == null || collection.size() == 0) {
+            return this;
+        }
+
         return prependSpliterator(null, collection.spliterator());
     }
 
@@ -1641,7 +1657,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     @SafeVarargs
     public final StreamEx<T> without(T... values) {
-        if (values.length == 0)
+        if (values == null || values.length == 0)
             return this;
         if (values.length == 1)
             return without(values[0]);
@@ -1747,7 +1763,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @param action a non-interfering action to perform on the elements
      * @since 0.2.2
      */
-    public void forPairs(BiConsumer<? super T, ? super T> action) {
+    public void forEachPair(BiConsumer<? super T, ? super T> action) {
         pairMap((a, b) -> {
             action.accept(a, b);
             return null;

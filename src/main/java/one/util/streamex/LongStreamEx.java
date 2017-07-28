@@ -138,7 +138,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @see #remove(LongPredicate)
      */
     public LongStreamEx without(long... values) {
-        if (values.length == 0)
+        if (values == null || values.length == 0)
             return this;
         if (values.length == 1)
             return without(values[0]);
@@ -1349,7 +1349,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @return the new stream
      */
     public LongStreamEx append(long... values) {
-        if (values.length == 0)
+        if (values == null || values.length == 0)
             return this;
         return new LongStreamEx(LongStream.concat(stream(), LongStream.of(values)), context);
     }
@@ -1381,7 +1381,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @return the new stream
      */
     public LongStreamEx prepend(long... values) {
-        if (values.length == 0)
+        if (values == null || values.length == 0)
             return this;
         return new LongStreamEx(LongStream.concat(LongStream.of(values), stream()), context);
     }

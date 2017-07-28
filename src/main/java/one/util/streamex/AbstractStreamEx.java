@@ -172,7 +172,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     public <R> StreamEx<R> flatCollection(Function<? super T, ? extends Collection<? extends R>> mapper) {
         return flatMap(t -> {
             Collection<? extends R> c = mapper.apply(t);
-            return c == null ? null : StreamEx.of(c.spliterator());
+            return c == null ? StreamEx.empty() : StreamEx.of(c.spliterator());
         });
     }
 
@@ -203,7 +203,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     public <R> StreamEx<R> flatArray(Function<? super T, ? extends R[]> mapper) {
         return flatMap(t -> {
             R[] a = mapper.apply(t);
-            return a == null ? null : StreamEx.of(Arrays.spliterator(a));
+            return a == null ? StreamEx.empty() : StreamEx.of(Arrays.spliterator(a));
         });
     }
 
@@ -243,7 +243,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     public <K, V> EntryStream<K, V> flatMapToEntry(Function<? super T, ? extends Map<K, V>> mapper) {
         return new EntryStream<>(stream().flatMap(e -> {
             Map<K, V> s = mapper.apply(e);
-            return s == null ? null : s.entrySet().stream();
+            return s == null ? StreamEx.empty() : s.entrySet().stream();
         }), context);
     }
 
