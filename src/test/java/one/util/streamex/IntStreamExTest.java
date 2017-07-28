@@ -777,4 +777,14 @@ public class IntStreamExTest {
                 .toArray());
         assertEquals(0L, IntStreamEx.empty().intersperse(1).count());
     }
+
+    @Test
+    public void testSkipLast() {
+        Supplier<IntStreamEx> s = () -> IntStreamEx.of(1, 2, 3);
+        assertArrayEquals(new int[] {1, 2}, s.get().skipLast(1).toArray());
+        assertArrayEquals(new int[0], s.get().skipLast(3).toArray());
+        assertArrayEquals(new int[0], s.get().skipLast(4).toArray());
+        assertArrayEquals(new int[0], s.get().skipLast(10).toArray());
+        assertArrayEquals(new int[0], IntStreamEx.empty().skipLast(10).toArray());
+    }
 }

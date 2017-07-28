@@ -606,13 +606,13 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
             return this;
 
         BlockingDeque<Double> buffer = new LinkedBlockingDeque<>(n + 1);
-        Spliterator<Double> source = this.spliterator();
+        Spliterator.OfDouble source = this.spliterator();
 
         return delegate(new Spliterator.OfDouble() {
 
             @Override
             public boolean tryAdvance(DoubleConsumer action) {
-                while (buffer.remainingCapacity() > 0 && source.tryAdvance(buffer::offer)) { }
+                while (buffer.remainingCapacity() > 0 && source.tryAdvance((DoubleConsumer) buffer::offer)) { }
                 if (buffer.size() > n) {
                     action.accept(buffer.poll());
                     return true;
