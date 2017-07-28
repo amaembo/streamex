@@ -18,10 +18,10 @@ Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
  		`groupTo/join/forEachPair`
 * Add `groupBy` to `StreamEx/EntryStreamEx`
 * Push up `flatMapToEntry/mapToEntry` from `StreamEx` to `AbstractStreamEx`
-* Change:
- 		`EntryStream<K, T> mapToEntry(Function<? super T, K> mapper)`
+* Rename `EntryStream<T, V> mapToEntry(Function<? super T, ? extends V> valueMapper)`		
  	To:
- 		`EntryStream<K, V> mapToEntry(Function<? super T, ? extends Map.Entry<K, V>> mapper)`
+ 		`EntryStream<T, V> mapToEntryByVal(Function<? super T, ? extends V> valueMapper)`
+* Add `EntryStream<K, T> mapToEntryByKey(Function<? super T, K> keyMapper)`
 * Change***:
 		`mapLastOrElse(Function<? super T, ? extends R> notLastMapper, Function<? super T, ? extends R> lastMapper)`
  	To:

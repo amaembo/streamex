@@ -1427,12 +1427,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return a {@code Map} containing the elements of this stream
      * @see Collectors#groupingBy(Function, Collector)
      */
-    @SuppressWarnings("resource")
     public <A, D> EntryStream<K, D> groupBy(Collector<? super V, A, D> downstream) {
         final Map<K, D> m = groupTo(downstream);
 
-        return new StreamEx<>(context.parallel ? m.entrySet().parallelStream() : m.entrySet().stream(), context)
-                .mapToEntry(Function.identity());
+        return new EntryStream<>(context.parallel ? m.entrySet().parallelStream() : m.entrySet().stream(), context);
     }
 
     /**
@@ -1456,12 +1454,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return a {@code Map} containing the elements of this stream
      * @see Collectors#groupingBy(Function, Supplier, Collector)
      */
-    @SuppressWarnings("resource")
     public <A, D> EntryStream<K, D> groupBy(Supplier<Map<K, D>> mapSupplier, Collector<? super V, A, D> downstream) {
         final Map<K, D> m = groupTo(mapSupplier, downstream);
 
-        return new StreamEx<>(context.parallel ? m.entrySet().parallelStream() : m.entrySet().stream(), context)
-                .mapToEntry(Function.identity());
+        return new EntryStream<>(context.parallel ? m.entrySet().parallelStream() : m.entrySet().stream(), context);
     }
 
     /**
