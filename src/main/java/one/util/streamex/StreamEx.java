@@ -2042,6 +2042,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     @SafeVarargs
     public static <T> StreamEx<T> of(T... elements) {
+        if (elements == null || elements.length == 0) {
+            return StreamEx.empty();
+        }
+        
         return of(Arrays.spliterator(elements));
     }
 
@@ -2062,6 +2066,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Arrays#stream(Object[], int, int)
      */
     public static <T> StreamEx<T> of(T[] array, int startInclusive, int endExclusive) {
+        if ((array == null || array.length == 0) && (startInclusive == 0 && endExclusive == 0)) {
+            return StreamEx.empty();
+        }
+        
         return of(Arrays.spliterator(array, startInclusive, endExclusive));
     }
 
@@ -2076,6 +2084,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Collection#stream()
      */
     public static <T> StreamEx<T> of(Collection<? extends T> collection) {
+        if (collection == null || collection.size() == 0) {
+            return StreamEx.empty();
+        }
+        
         return of(collection.spliterator());
     }
 
@@ -2093,6 +2105,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return the new stream
      */
     public static <T> StreamEx<T> ofReversed(List<? extends T> list) {
+        if (list == null || list.size() == 0) {
+            return StreamEx.empty();
+        }
+        
         int size = list.size();
         return IntStreamEx.ofIndices(list).mapToObj(idx -> list.get(size - idx - 1));
     }
@@ -2106,6 +2122,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return the new stream
      */
     public static <T> StreamEx<T> ofReversed(T[] array) {
+        if (array == null || array.length == 0) {
+            return StreamEx.empty();
+        }
+        
         int size = array.length;
         return IntStreamEx.ofIndices(array).mapToObj(idx -> array[size - idx - 1]);
     }
@@ -2365,6 +2385,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Map#keySet()
      */
     public static <T> StreamEx<T> ofKeys(Map<T, ?> map) {
+        if (map == null || map.size() == 0) {
+            return StreamEx.empty();
+        }
+        
         return of(map.keySet().spliterator());
     }
 
@@ -2382,6 +2406,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Map#keySet()
      */
     public static <T, V> StreamEx<T> ofKeys(Map<T, V> map, Predicate<? super V> valueFilter) {
+        if (map == null || map.size() == 0) {
+            return StreamEx.empty();
+        }
+        
         return EntryStream.of(map).filterValues(valueFilter).keys();
     }
 
@@ -2397,6 +2425,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Map#values()
      */
     public static <T> StreamEx<T> ofValues(Map<?, T> map) {
+        if (map == null || map.size() == 0) {
+            return StreamEx.empty();
+        }
+        
         return of(map.values().spliterator());
     }
 
@@ -2414,6 +2446,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Map#values()
      */
     public static <K, T> StreamEx<T> ofValues(Map<K, T> map, Predicate<? super K> keyFilter) {
+        if (map == null || map.size() == 0) {
+            return StreamEx.empty();
+        }
+        
         return EntryStream.of(map).filterKeys(keyFilter).values();
     }
 
@@ -2466,7 +2502,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Pattern#splitAsStream(CharSequence)
      */
     public static StreamEx<String> split(CharSequence str, Pattern pattern) {
-        if (str.length() == 0)
+        if (str == null || str.length() == 0)
             return of("");
         return of(UnknownSizeSpliterator.optimize(pattern.splitAsStream(str)));
     }
@@ -2488,7 +2524,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see #split(CharSequence, char)
      */
     public static StreamEx<String> split(CharSequence str, String regex) {
-        if (str.length() == 0)
+        if (str == null || str.length() == 0)
             return of("");
         if (regex.isEmpty()) {
             return IntStreamEx.ofChars(str).mapToObj(ch -> new String(new char[] { (char) ch }));
@@ -2557,7 +2593,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.5.1
      */
     public static StreamEx<String> split(CharSequence str, char delimiter, boolean trimEmpty) {
-        if (str.length() == 0)
+        if (str == null || str.length() == 0)
             return of("");
         return of(new CharSpliterator(str, delimiter, trimEmpty));
     }
