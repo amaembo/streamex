@@ -1602,6 +1602,10 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @return the new stream
      */
     public static LongStreamEx of(long... elements) {
+        if (elements == null || elements.length == 0) {
+            return empty();
+        }
+
         return of(Arrays.spliterator(elements));
     }
 
@@ -1621,6 +1625,11 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @see Arrays#stream(long[], int, int)
      */
     public static LongStreamEx of(long[] array, int startInclusive, int endExclusive) {
+        if ((array == null || array.length == 0) && (startInclusive == 0 && endExclusive == 0)) {
+            return empty();
+        }
+
+        rangeCheck(array.length, startInclusive, endExclusive);
         return of(Arrays.spliterator(array, startInclusive, endExclusive));
     }
 
@@ -1634,6 +1643,10 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @since 0.5.0
      */
     public static LongStreamEx of(Long[] array) {
+        if (array == null || array.length == 0) {
+            return empty();
+        }
+
         return seq(Arrays.stream(array).mapToLong(Long::longValue));
     }
 
@@ -1732,6 +1745,10 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @see Collection#stream()
      */
     public static LongStreamEx of(Collection<Long> collection) {
+        if (collection == null || collection.size() == 0) {
+            return empty();
+        }
+
         return seq(collection.stream().mapToLong(Long::longValue));
     }
 

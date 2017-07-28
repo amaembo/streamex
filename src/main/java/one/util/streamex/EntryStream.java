@@ -1588,6 +1588,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return a new {@code EntryStream}
      */
     public static <K, V> EntryStream<K, V> of(Map<K, V> map) {
+        if (map == null || map.size() == 0) {
+            return empty();
+        }
+
         return of(map.entrySet().stream());
     }
 
@@ -1606,6 +1610,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.3
      */
     public static <V> EntryStream<Integer, V> of(List<V> list) {
+        if (list == null || list.size() == 0) {
+            return empty();
+        }
+
         return EntryStream.of(new RangeBasedSpliterator.AsEntry<>(list));
     }
 
@@ -1619,6 +1627,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.3
      */
     public static <V> EntryStream<Integer, V> of(V[] array) {
+        if (array == null || array.length == 0) {
+            return empty();
+        }
+
         return of(Arrays.asList(array));
     }
 
@@ -1937,6 +1949,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.3.6
      */
     public static <T> EntryStream<T, T> ofPairs(List<T> list) {
+        if (list == null || list.size() == 0) {
+            return empty();
+        }
+
         return of(new PairPermutationSpliterator<>(list, SimpleImmutableEntry<T, T>::new));
     }
 
@@ -1961,6 +1977,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.3.6
      */
     public static <T> EntryStream<T, T> ofPairs(T[] array) {
+        if (array == null || array.length == 0) {
+            return empty();
+        }
+
         return ofPairs(Arrays.asList(array));
     }
 

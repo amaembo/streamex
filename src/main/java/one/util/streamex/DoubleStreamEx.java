@@ -1540,6 +1540,10 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @return the new stream
      */
     public static DoubleStreamEx of(double... elements) {
+        if (elements == null || elements.length == 0) {
+            return empty();
+        }
+
         return of(Arrays.spliterator(elements));
     }
 
@@ -1559,6 +1563,11 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @see Arrays#stream(double[], int, int)
      */
     public static DoubleStreamEx of(double[] array, int startInclusive, int endExclusive) {
+        if ((array == null || array.length == 0) && (startInclusive == 0 && endExclusive == 0)) {
+            return empty();
+        }
+
+        rangeCheck(array.length, startInclusive, endExclusive);
         return of(Arrays.spliterator(array, startInclusive, endExclusive));
     }
 
@@ -1572,6 +1581,10 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @since 0.5.0
      */
     public static DoubleStreamEx of(Double[] array) {
+        if (array == null || array.length == 0) {
+            return empty();
+        }
+
         return seq(Arrays.stream(array).mapToDouble(Double::doubleValue));
     }
 
@@ -1607,6 +1620,10 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @since 0.2.0
      */
     public static DoubleStreamEx of(float... elements) {
+        if (elements == null || elements.length == 0) {
+            return empty();
+        }
+
         return of(elements, 0, elements.length);
     }
 
@@ -1625,6 +1642,10 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @since 0.2.0
      */
     public static DoubleStreamEx of(float[] array, int startInclusive, int endExclusive) {
+        if ((array == null || array.length == 0) && (startInclusive == 0 && endExclusive == 0)) {
+            return empty();
+        }
+
         rangeCheck(array.length, startInclusive, endExclusive);
         return of(new RangeBasedSpliterator.OfFloat(startInclusive, endExclusive, array));
     }
@@ -1702,6 +1723,10 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @see Collection#stream()
      */
     public static DoubleStreamEx of(Collection<Double> collection) {
+        if (collection == null || collection.size() == 0) {
+            return empty();
+        }
+
         return seq(collection.stream().mapToDouble(Double::doubleValue));
     }
 
