@@ -2,6 +2,9 @@
 
 Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 
+### 0.6.7
+* Added: `skipLast` method for all Stream types.
+
 ### 0.6.6
 * [#145] Added: `intersperse` method for all stream types.
 

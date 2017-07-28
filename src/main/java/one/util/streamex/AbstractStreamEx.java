@@ -16,7 +16,9 @@
 package one.util.streamex;
 
 import java.util.*;
+import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.*;
 import java.util.stream.*;
 import java.util.stream.Collector.Characteristics;
@@ -250,6 +252,60 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     @Override
     public S skip(long n) {
         return supply(stream().skip(n));
+    }
+
+    /**
+     * Returns a new, non-splittable, sequential stream containing
+     * all the elements of the original stream except the last n elements.
+     * Consumes space proportional to the number of elements skipped.
+     *
+     * <p>
+     * For example, {@code StreamEx.of("a", "b", "c").skipLast(1)} will yield a stream containing
+     * two elements: a, b.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">quasi-intermediate operation</a>.
+     *
+     * @param n the non-negative number of elements to leave off the end of the stream.
+     * @return the new, sequential stream
+     * @since 0.6.7
+     */
+    public S skipLast(int n) {
+        if (n < 0 || n == Integer.MAX_VALUE)
+            throw new IllegalArgumentException(Long.toString(n));
+        if (n == 0)
+            return supply(this);
+
+        BlockingDeque<T> buffer = new LinkedBlockingDeque<>(n + 1);
+        Spliterator<T> source = this.spliterator();
+
+        return supply(StreamEx.of(new Spliterator<T>() {
+
+            @Override
+            public boolean tryAdvance(Consumer<? super T> action) {
+                while (buffer.remainingCapacity() > 0 && source.tryAdvance(buffer::offer)) { }
+                if (buffer.size() > n) {
+                    action.accept(buffer.poll());
+                    return true;
+                }
+                return false;
+            }
+
+            @Override
+            public Spliterator<T> trySplit() {
+                return null;
+            }
+
+            @Override
+            public long estimateSize() {
+                return source.estimateSize() - n;
+            }
+
+            @Override
+            public int characteristics() {
+                return source.characteristics();
+            }
+        })).sequential();
     }
 
     @Override

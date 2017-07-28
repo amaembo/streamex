@@ -97,6 +97,7 @@ Select entries which keys or values are instances of given class | `EntryStream.
 Take stream elements while the condition is true | `any.takeWhile()`
 Take stream elements while the condition is true including first violating element | `any.takeWhileInclusive()`
 Skip stream elements while the condition is true | `any.dropWhile()`
+Skip the last n elements | `any.skipLast()`
 
 ### mapping
 
