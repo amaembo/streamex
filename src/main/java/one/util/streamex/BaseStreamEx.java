@@ -97,10 +97,6 @@ import java.util.stream.BaseStream;
         return (S) this;
     }
 
-    public S parallel(int threadNum) {
-        return parallel(new ForkJoinPool(threadNum));
-    }
-
     /**
      * Returns an equivalent stream that is parallel and bound to the supplied
      * {@link ForkJoinPool}.
