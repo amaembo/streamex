@@ -2750,6 +2750,12 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
         return of(new RangeBasedSpliterator.ZipInt(0, checkLength(first.length, second.length), mapper, first, second));
     }
 
+    public static IntStreamEx concat(int[] a, int[] b) {
+        final IntStreamEx s = of(a);
+        
+        return s.append(b);
+    }
+
     /**
      * A helper interface to build a new stream by emitting elements and
      * creating new emitters in a chain.

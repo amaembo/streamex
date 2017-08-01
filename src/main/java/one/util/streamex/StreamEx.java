@@ -236,6 +236,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a>.
+     * 
      * @param lastMapper a
      *        <a href="package-summary.html#NonInterference">non-interfering
      *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
@@ -411,10 +412,11 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
-     * Returns a {@code StreamEx<Map.Entry<K, List<T>>>} whose keys are the values resulting from
-     * applying the classification function to the input elements, and whose
-     * corresponding values are {@code List}s containing the input elements
-     * which map to the associated key under the classification function.
+     * Returns a {@code StreamEx<Map.Entry<K, List<T>>>} whose keys are the
+     * values resulting from applying the classification function to the input
+     * elements, and whose corresponding values are {@code List}s containing the
+     * input elements which map to the associated key under the classification
+     * function.
      *
      * <p>
      * There are no guarantees on the type, mutability or serializability of the
@@ -439,10 +441,11 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
-     * Returns a {@code StreamEx<Map.Entry<K, D>>} whose keys are the values resulting from applying
-     * the classification function to the input elements, and whose
-     * corresponding values are the result of reduction of the input elements
-     * which map to the associated key under the classification function.
+     * Returns a {@code StreamEx<Map.Entry<K, D>>} whose keys are the values
+     * resulting from applying the classification function to the input
+     * elements, and whose corresponding values are the result of reduction of
+     * the input elements which map to the associated key under the
+     * classification function.
      *
      * <p>
      * There are no guarantees on the type, mutability or serializability of the
@@ -471,10 +474,11 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
-     * Returns a {@code StreamEx<Map.Entry<K, D>>} whose keys are the values resulting from applying
-     * the classification function to the input elements, and whose
-     * corresponding values are the result of reduction of the input elements
-     * which map to the associated key under the classification function.
+     * Returns a {@code StreamEx<Map.Entry<K, D>>} whose keys are the values
+     * resulting from applying the classification function to the input
+     * elements, and whose corresponding values are the result of reduction of
+     * the input elements which map to the associated key under the
+     * classification function.
      *
      * <p>
      * The {@code Map} will be created using the provided factory function.
@@ -496,18 +500,20 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see #groupTo(Function)
      * @see Collectors#groupingBy(Function, Supplier, Collector)
      * @see Collectors#groupingByConcurrent(Function, Supplier, Collector)
-     */ 
-    public <K, D> StreamEx<Map.Entry<K, D>> groupBy(Function<? super T, ? extends K> classifier, Supplier<Map<K, D>> mapFactory,
-            Collector<? super T, ?, D> downstream) {
+     */
+    public <K, D> StreamEx<Map.Entry<K, D>> groupBy(Function<? super T, ? extends K> classifier,
+            Supplier<Map<K, D>> mapFactory, Collector<? super T, ?, D> downstream) {
         final Map<K, D> m = groupTo(classifier, mapFactory, downstream);
 
-        return new StreamEx<>(context.parallel ? m.entrySet().parallelStream() : m.entrySet().stream(), context);}
+        return new StreamEx<>(context.parallel ? m.entrySet().parallelStream() : m.entrySet().stream(), context);
+    }
 
     /**
-     * Returns a {@code StreamEx<Map.Entry<K, C>>} whose keys are the values resulting from applying
-     * the classification function to the input elements, and whose
-     * corresponding values are the collections of the input elements which map
-     * to the associated key under the classification function.
+     * Returns a {@code StreamEx<Map.Entry<K, C>>} whose keys are the values
+     * resulting from applying the classification function to the input
+     * elements, and whose corresponding values are the collections of the input
+     * elements which map to the associated key under the classification
+     * function.
      *
      * <p>
      * There are no guarantees on the type, mutability or serializability of the
@@ -539,10 +545,11 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
-     * Returns a {@code StreamEx<Map.Entry<K, C>>} whose keys are the values resulting from applying
-     * the classification function to the input elements, and whose
-     * corresponding values are the collections of the input elements which map
-     * to the associated key under the classification function.
+     * Returns a {@code StreamEx<Map.Entry<K, C>>} whose keys are the values
+     * resulting from applying the classification function to the input
+     * elements, and whose corresponding values are the collections of the input
+     * elements which map to the associated key under the classification
+     * function.
      *
      * <p>
      * The {@code Map} will be created using the provided factory function.
@@ -576,8 +583,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
-     * Returns a {@code StreamEx<Map.Entry<Boolean, List<T>>>} which contains two partitions of
-     * the input elements according to a {@code Predicate}.
+     * Returns a {@code StreamEx<Map.Entry<Boolean, List<T>>>} which contains
+     * two partitions of the input elements according to a {@code Predicate}.
      *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
@@ -604,9 +611,9 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
-     * Returns a {@code StreamEx<Map.Entry<Boolean, D>>} which contains two partitions of the
-     * input elements according to a {@code Predicate}, which are reduced
-     * according to the supplied {@code Collector}.
+     * Returns a {@code StreamEx<Map.Entry<Boolean, D>>} which contains two
+     * partitions of the input elements according to a {@code Predicate}, which
+     * are reduced according to the supplied {@code Collector}.
      *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
@@ -632,15 +639,16 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Collectors#partitioningBy(Predicate, Collector)
      * @since 0.2.2
      */
-    public <D> StreamEx<Map.Entry<Boolean, D>> partitionBy(Predicate<? super T> predicate, Collector<? super T, ?, D> downstream) {
+    public <D> StreamEx<Map.Entry<Boolean, D>> partitionBy(Predicate<? super T> predicate,
+            Collector<? super T, ?, D> downstream) {
         final Map<Boolean, D> m = partitionTo(predicate, downstream);
 
         return new StreamEx<>(context.parallel ? m.entrySet().parallelStream() : m.entrySet().stream(), context);
     }
 
     /**
-     * Returns a {@code StreamEx<Map.Entry<Boolean, C>>} which contains two partitions of the
-     * input elements according to a {@code Predicate}.
+     * Returns a {@code StreamEx<Map.Entry<Boolean, C>>} which contains two
+     * partitions of the input elements according to a {@code Predicate}.
      *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
@@ -1198,40 +1206,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
-     * Drains the stream content into the supplied collection.
-     * 
-     * <p>
-     * This is a <a href="package-summary.html#StreamOps">terminal</a>
-     * operation.
-     * 
-     * <p>
-     * The stream content is added into the collection using either
-     * {@link Collection#add(Object)} or {@link Collection#addAll(Collection)}
-     * method.
-     * 
-     * @param <C> type of the resulting collection
-     * @param collection a mutable collection to add new elements into
-     * @return the supplied collection, updated from this stream
-     * @since 0.6.3
-     */
-    public <C extends Collection<? super T>> C into(C collection) {
-        if (isParallel()) {
-            @SuppressWarnings("unchecked")
-            List<T> list = Arrays.asList((T[]) toArray());
-            collection.addAll(list);
-        } else {
-            Spliterator<T> spltr = spliterator();
-            if (collection instanceof ArrayList) {
-                long size = spltr.getExactSizeIfKnown();
-                if (size >= 0 && size < Integer.MAX_VALUE - collection.size())
-                    ((ArrayList<?>) collection).ensureCapacity((int) (collection.size() + size));
-            }
-            spltr.forEachRemaining(collection::add);
-        }
-        return collection;
-    }
-
-    /**
      * Returns a {@link SortedMap} whose keys are elements from this stream and
      * values are the result of applying the provided mapping functions to the
      * input elements.
@@ -1454,6 +1428,40 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public <K, V> NavigableMap<K, V> toNavigableMap(Function<? super T, ? extends K> keyMapper,
             Function<? super T, ? extends V> valMapper, BinaryOperator<V> mergeFunction) {
         return rawCollect(Collectors.toMap(keyMapper, valMapper, mergeFunction, TreeMap::new));
+    }
+
+    /**
+     * Drains the stream content into the supplied collection.
+     * 
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
+     * 
+     * <p>
+     * The stream content is added into the collection using either
+     * {@link Collection#add(Object)} or {@link Collection#addAll(Collection)}
+     * method.
+     * 
+     * @param <C> type of the resulting collection
+     * @param collection a mutable collection to add new elements into
+     * @return the supplied collection, updated from this stream
+     * @since 0.6.3
+     */
+    public <C extends Collection<? super T>> C into(C collection) {
+        if (isParallel()) {
+            @SuppressWarnings("unchecked")
+            List<T> list = Arrays.asList((T[]) toArray());
+            collection.addAll(list);
+        } else {
+            Spliterator<T> spltr = spliterator();
+            if (collection instanceof ArrayList) {
+                long size = spltr.getExactSizeIfKnown();
+                if (size >= 0 && size < Integer.MAX_VALUE - collection.size())
+                    ((ArrayList<?>) collection).ensureCapacity((int) (collection.size() + size));
+            }
+            spltr.forEachRemaining(collection::add);
+        }
+        return collection;
     }
 
     /**
@@ -2223,6 +2231,53 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         spliterator.context = context = context.detach();
         return new StreamEx<>(spliterator, context);
     }
+    
+    /**
+     * Always run sequentially, even under parallel Streams.
+     * 
+     * @param size
+     * @return
+     * @throws IllegalArgumentException if size < 1.
+     */
+    public StreamEx<StreamEx<T>> split(int size) {
+        return splitToList(size).map(l -> StreamEx.of(l));
+    }
+    
+    /**
+     * Always run sequentially, even under parallel Streams.
+     * 
+     * @param size
+     * @return
+     * @throws IllegalArgumentException if size < 1.
+     */
+    public StreamEx<List<T>> splitToList(int size) {
+        if (size < 1) {
+            throw new IllegalArgumentException("size must be bigger than 0, can't be: " + size);
+        }
+        
+        final StreamEx<List<T>> s = of(new Iterator<List<T>>() {
+            private final Iterator<T> iter = StreamEx.this.iterator();
+            
+            @Override
+            public boolean hasNext() {
+                return iter.hasNext();
+            }
+
+            @Override
+            public List<T> next() {
+                final List<T> list = new ArrayList<>(Math.min(256, size));
+                list.add(iter.next());
+                
+                while (iter.hasNext() && list.size() < size) {
+                    list.add(iter.next());
+                }
+                
+                return list;
+            }            
+        });
+        
+        return new StreamEx<>(this.context.parallel ? s.parallel() : s, this.context);
+    }
 
     /**
      * Returns an empty sequential {@code StreamEx}.
@@ -2242,8 +2297,72 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @return a singleton sequential stream
      * @see Stream#of(Object)
      */
-    public static <T> StreamEx<T> of(T element) {
+    public static <T> StreamEx<T> just(T element) {
         return of(new ConstSpliterator.OfRef<>(element, 1, true));
+    }
+
+    public static StreamEx<Character> of(char[] elements) {
+        return IntStreamEx.of(elements).mapToObj(i -> Character.valueOf((char) i));
+    }
+
+    public static StreamEx<Character> of(char[] elements, int startInclusive, int endExclusive) {
+        return IntStreamEx.of(elements, startInclusive, endExclusive).mapToObj(i -> Character.valueOf((char) i));
+    }
+
+    public static StreamEx<Byte> of(byte[] elements) {
+        return IntStreamEx.of(elements).mapToObj(i -> Byte.valueOf((byte) i));
+    }
+
+    public static StreamEx<Byte> of(byte[] elements, int startInclusive, int endExclusive) {
+        return IntStreamEx.of(elements, startInclusive, endExclusive).mapToObj(i -> Byte.valueOf((byte) i));
+    }
+
+    public static StreamEx<Short> of(short[] elements) {
+        return IntStreamEx.of(elements).mapToObj(i -> Short.valueOf((short) i));
+    }
+
+    public static StreamEx<Short> of(short[] elements, int startInclusive, int endExclusive) {
+        return IntStreamEx.of(elements, startInclusive, endExclusive).mapToObj(i -> Short.valueOf((short) i));
+    }
+
+    public static StreamEx<Integer> of(int[] elements) {
+        return IntStreamEx.of(elements).boxed();
+    }
+
+    public static StreamEx<Integer> of(int[] elements, int startInclusive, int endExclusive) {
+        return IntStreamEx.of(elements, startInclusive, endExclusive).boxed();
+    }
+
+    public static StreamEx<Long> of(long[] elements) {
+        return LongStreamEx.of(elements).boxed();
+    }
+
+    public static StreamEx<Long> of(long[] elements, int startInclusive, int endExclusive) {
+        return LongStreamEx.of(elements, startInclusive, endExclusive).boxed();
+    }
+
+    public static StreamEx<Float> of(float[] elements) {
+        return DoubleStreamEx.of(elements).mapToObj(i -> Float.valueOf((float) i));
+    }
+
+    public static StreamEx<Float> of(float[] elements, int startInclusive, int endExclusive) {
+        return DoubleStreamEx.of(elements, startInclusive, endExclusive).mapToObj(i -> Float.valueOf((float) i));
+    }
+
+    public static StreamEx<Double> of(double[] elements) {
+        return DoubleStreamEx.of(elements).boxed();
+    }
+
+    public static StreamEx<Double> of(double[] elements, int startInclusive, int endExclusive) {
+        return DoubleStreamEx.of(elements, startInclusive, endExclusive).boxed();
+    }
+
+    public static StreamEx<Character> ofChars(CharSequence seq) {
+        return IntStreamEx.ofChars(seq).mapToObj(i -> Character.valueOf((char) i));
+    }
+
+    public static StreamEx<Character> ofCodePoints(CharSequence seq) {
+        return IntStreamEx.ofCodePoints(seq).mapToObj(i -> Character.valueOf((char) i));
     }
 
     /**
@@ -2441,7 +2560,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.1.1
      */
     public static <T> StreamEx<T> of(Optional<? extends T> optional) {
-        return optional.isPresent() ? of(optional.get()) : empty();
+        return optional.isPresent() ? just(optional.get()) : empty();
     }
 
     /**
@@ -2455,7 +2574,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.1.1
      */
     public static <T> StreamEx<T> ofNullable(T element) {
-        return element == null ? empty() : of(element);
+        return element == null ? empty() : just(element);
     }
 
     /**
@@ -2718,7 +2837,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public static StreamEx<String> split(CharSequence str, Pattern pattern) {
         if (str == null || str.length() == 0)
-            return of("");
+            return just("");
         return of(UnknownSizeSpliterator.optimize(pattern.splitAsStream(str)));
     }
 
@@ -2740,7 +2859,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public static StreamEx<String> split(CharSequence str, String regex) {
         if (str == null || str.length() == 0)
-            return of("");
+            return just("");
         if (regex.isEmpty()) {
             return IntStreamEx.ofChars(str).mapToObj(ch -> new String(new char[] { (char) ch }));
         }
@@ -2810,7 +2929,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public static StreamEx<String> split(CharSequence str, char delimiter, boolean trimEmpty) {
         if (str == null || str.length() == 0)
-            return of("");
+            return just("");
         return of(new CharSpliterator(str, delimiter, trimEmpty));
     }
 
@@ -3298,7 +3417,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public static <T, U> StreamEx<U> cartesianProduct(Collection<? extends Collection<T>> source, U identity,
             BiFunction<U, ? super T, U> accumulator) {
         if (source.isEmpty())
-            return of(identity);
+            return just(identity);
         return of(new CrossSpliterator.Reducing<>(source, identity, accumulator));
     }
 
@@ -3382,8 +3501,20 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public static <T, U> StreamEx<U> cartesianPower(int n, Collection<T> source, U identity,
             BiFunction<U, ? super T, U> accumulator) {
         if (n == 0)
-            return of(identity);
+            return just(identity);
         return of(new CrossSpliterator.Reducing<>(Collections.nCopies(n, source), identity, accumulator));
+    }
+
+    public static <T> StreamEx<T> concat(T[] a, T[] b) {
+        final StreamEx<T> s = of(a);
+        
+        return s.append(b);
+    }
+
+    public static <T> StreamEx<T> concat(Collection<? extends T> a, Collection<? extends T> b) {
+        final StreamEx<T> s = of(a);
+        
+        return s.append(b);
     }
 
     /**

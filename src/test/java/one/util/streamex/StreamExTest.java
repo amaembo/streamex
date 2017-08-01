@@ -89,12 +89,12 @@ public class StreamExTest {
         assertEquals(asList(), StreamEx.empty().toList());
         // double test is intended
         assertEquals(asList(), StreamEx.empty().toList());
-        assertEquals(asList("a"), StreamEx.of("a").toList());
+        assertEquals(asList("a"), StreamEx.just("a").toList());
         assertEquals(asList("a"), StreamEx.of(Optional.of("a")).toList());
         assertEquals(asList(), StreamEx.of(Optional.ofNullable(null)).toList());
         assertEquals(asList(), StreamEx.ofNullable(null).toList());
         assertEquals(asList("a"), StreamEx.ofNullable("a").toList());
-        assertEquals(asList((String) null), StreamEx.of((String) null).toList());
+        assertEquals(asList((String) null), StreamEx.just((String) null).toList());
         assertEquals(asList("a", "b"), StreamEx.of("a", "b").toList());
         assertEquals(asList("a", "b"), StreamEx.of(asList("a", "b")).toList());
         assertEquals(asList("a", "b"), StreamEx.of(asList("a", "b").stream()).toList());
@@ -183,23 +183,23 @@ public class StreamExTest {
 
     @Test
     public void testBasics() {
-        assertFalse(StreamEx.of("a").isParallel());
-        assertTrue(StreamEx.of("a").parallel().isParallel());
-        assertFalse(StreamEx.of("a").parallel().sequential().isParallel());
+        assertFalse(StreamEx.just("a").isParallel());
+        assertTrue(StreamEx.just("a").parallel().isParallel());
+        assertFalse(StreamEx.just("a").parallel().sequential().isParallel());
         AtomicInteger i = new AtomicInteger();
-        try (Stream<String> s = StreamEx.of("a").onClose(i::incrementAndGet)) {
+        try (Stream<String> s = StreamEx.just("a").onClose(i::incrementAndGet)) {
             assertEquals(1, s.count());
         }
         assertEquals(1, i.get());
         assertEquals(asList(1, 2), StreamEx.of("a", "bb").map(String::length).toList());
         assertFalse(StreamEx.empty().findAny().isPresent());
-        assertEquals("a", StreamEx.of("a").findAny().get());
+        assertEquals("a", StreamEx.just("a").findAny().get());
         assertFalse(StreamEx.empty().findFirst().isPresent());
         assertEquals("a", StreamEx.of("a", "b").findFirst().get());
         assertEquals(asList("b", "c"), StreamEx.of("a", "b", "c").skip(1).toList());
 
         AtomicBoolean b = new AtomicBoolean(false);
-        try (Stream<String> stream = StreamEx.of("a").onClose(() -> b.set(true))) {
+        try (Stream<String> stream = StreamEx.just("a").onClose(() -> b.set(true))) {
             assertFalse(b.get());
             assertEquals(1, stream.count());
             assertFalse(b.get());
@@ -530,7 +530,7 @@ public class StreamExTest {
         assertArrayEquals(new Object[] { 1, 2, 3, 1, 1 }, StreamEx.constant(1, Long.MAX_VALUE - 1).prepend(1, 2, 3)
                 .limit(5).toArray());
 
-        assertEquals(asList(4, 3, 2, 1), StreamEx.of(1).prepend(2).prepend(StreamEx.of(3).prepend(4)).toList());
+        assertEquals(asList(4, 3, 2, 1), StreamEx.just(1).prepend(2).prepend(StreamEx.just(3).prepend(4)).toList());
 
         StreamEx<Integer> s = StreamEx.of(1, 2, 3);
         assertSame(s, s.prepend());
@@ -548,9 +548,9 @@ public class StreamExTest {
     @Test
     public void testPrependTSO() {
         List<Integer> expected = IntStreamEx.rangeClosed(19999, 0, -1).boxed().toList();
-        assertEquals(expected, IntStreamEx.range(20000).mapToObj(StreamEx::of).reduce(StreamEx::prepend).get()
+        assertEquals(expected, IntStreamEx.range(20000).mapToObj(StreamEx::just).reduce(StreamEx::prepend).get()
                 .toList());
-        assertEquals(expected, IntStreamEx.range(20000).parallel().mapToObj(StreamEx::of).reduce(StreamEx::prepend)
+        assertEquals(expected, IntStreamEx.range(20000).parallel().mapToObj(StreamEx::just).reduce(StreamEx::prepend)
                 .get().toList());
     }
 
@@ -803,7 +803,7 @@ public class StreamExTest {
     public void testPairMap() {
         assertEquals(0, StreamEx.<String> empty().pairMap(String::concat).count());
         assertArrayEquals(new Object[0], StreamEx.<String> empty().pairMap(String::concat).toArray());
-        assertEquals(0, StreamEx.of("a").pairMap(String::concat).count());
+        assertEquals(0, StreamEx.just("a").pairMap(String::concat).count());
         assertEquals(asList("aa", "aa", "aa"), StreamEx.generate(() -> "a").pairMap(String::concat).limit(3).toList());
         AtomicBoolean flag = new AtomicBoolean();
         assertFalse(flag.get());
@@ -1722,10 +1722,10 @@ public class StreamExTest {
             assertEquals(asList(4, 343, 997), s.get().filter(x -> x == 0 || x == 343 || x == 999).mapFirst(x -> x + 2)
                     .mapFirst(x -> x + 2).mapLast(x -> x - 2).toList());
         });
-        Supplier<Stream<Integer>> base = () -> IntStreamEx.rangeClosed(49, 0, -1).boxed().foldLeft(StreamEx.of(0), (
+        Supplier<Stream<Integer>> base = () -> IntStreamEx.rangeClosed(49, 0, -1).boxed().foldLeft(StreamEx.just(0), (
                 stream, i) -> stream.prepend(i).mapFirst(x -> x + 2));
         streamEx(base, s -> assertEquals(IntStreamEx.range(2, 52).boxed().append(0).toList(), s.get().toList()));
-        base = () -> IntStreamEx.range(50).boxed().foldLeft(StreamEx.of(0), (stream, i) -> stream.append(i).mapLast(
+        base = () -> IntStreamEx.range(50).boxed().foldLeft(StreamEx.just(0), (stream, i) -> stream.append(i).mapLast(
             x -> x + 2));
         streamEx(base, s -> assertEquals(IntStreamEx.range(2, 52).boxed().prepend(0).toList(), s.get().toList()));
         streamEx(asList("red", "green", "blue", "orange")::stream, s -> assertEquals("red, green, blue, or orange", s
@@ -2067,5 +2067,13 @@ public class StreamExTest {
         List<String> expected = asList("a", "--", "b", "--", "c", "--", "d", "--", "e");
         streamEx(asList("a", "b", "c", "d", "e")::stream, s -> assertEquals(expected, s.get().intersperse("--").toList()));
         assertEquals(Collections.emptyList(), StreamEx.empty().intersperse("xyz").toList());
+    }
+    
+    @Test
+    public void test_split() {
+        IntStreamEx.range(0, 10).boxed().splitToList(3).forEach(System.out::println);
+        String str = IntStreamEx.range(0, 10).boxed().split(3).map(s -> s.join(", ", "[", "]")).join("-");
+        System.out.println(str);
+        assertEquals("[0, 1, 2]-[3, 4, 5]-[6, 7, 8]-[9]", str);
     }
 }
