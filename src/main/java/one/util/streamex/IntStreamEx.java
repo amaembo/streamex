@@ -2752,7 +2752,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
 
     public static IntStreamEx concat(int[] a, int[] b) {
         final IntStreamEx s = of(a);
-        
+
         return s.append(b);
     }
 

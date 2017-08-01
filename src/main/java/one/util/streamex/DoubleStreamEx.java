@@ -2038,7 +2038,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
 
     public static DoubleStreamEx concat(double[] a, double[] b) {
         final DoubleStreamEx s = of(a);
-        
+
         return s.append(b);
     }
 

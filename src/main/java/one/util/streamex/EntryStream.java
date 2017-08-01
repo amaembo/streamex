@@ -2174,4 +2174,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
             BiFunction<Integer, TT, Stream<T>> mapper) {
         return ofTree(root, (d, t) -> collectionClass.isInstance(t) ? mapper.apply(d, (TT) t) : null);
     }
+    
+    public static <K, V> EntryStream<K, V> concat(Map<K, V> a, Map<K, V> b) {
+        final EntryStream<K, V> s = of(a);
+
+        return s.append(b);
+    }
 }

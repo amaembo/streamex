@@ -3507,13 +3507,13 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
 
     public static <T> StreamEx<T> concat(T[] a, T[] b) {
         final StreamEx<T> s = of(a);
-        
+
         return s.append(b);
     }
 
     public static <T> StreamEx<T> concat(Collection<? extends T> a, Collection<? extends T> b) {
         final StreamEx<T> s = of(a);
-        
+
         return s.append(b);
     }
 

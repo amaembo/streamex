@@ -2109,7 +2109,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
 
     public static LongStreamEx concat(long[] a, long[] b) {
         final LongStreamEx s = of(a);
-        
+
         return s.append(b);
     }
 
