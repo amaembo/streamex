@@ -281,7 +281,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      *        element
      * @return the new stream
      */
-    public <K> EntryStream<K, T> mapToEntryByKey(Function<? super T, ? extends K> keyMapper) {
+    public <K> EntryStream<K, T> mapToEntryKey(Function<? super T, ? extends K> keyMapper) {
         return new EntryStream<>(stream().map(e -> new AbstractMap.SimpleImmutableEntry<>(keyMapper.apply(e), e)), context);
     }
     
@@ -299,7 +299,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      *        element
      * @return the new stream
      */
-    public <V> EntryStream<T, V> mapToEntryByVal(Function<? super T, ? extends V> valueMapper) {
+    public <V> EntryStream<T, V> mapToEntryValue(Function<? super T, ? extends V> valueMapper) {
         return new EntryStream<>(stream().map(e -> new AbstractMap.SimpleImmutableEntry<>(e, valueMapper.apply(e))), context);
     }
 

@@ -20,8 +20,8 @@ Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 * Push up `flatMapToEntry/mapToEntry` from `StreamEx` to `AbstractStreamEx`
 * Rename `EntryStream<T, V> mapToEntry(Function<? super T, ? extends V> valueMapper)`		
  	To:
- 		`EntryStream<T, V> mapToEntryByVal(Function<? super T, ? extends V> valueMapper)`
-* Add `EntryStream<K, T> mapToEntryByKey(Function<? super T, K> keyMapper)`
+ 		`EntryStream<T, V> mapToEntryValue(Function<? super T, ? extends V> valueMapper)`
+* Add `EntryStream<K, T> mapToEntryKey(Function<? super T, K> keyMapper)`
 * Change***:
 		`mapLastOrElse(Function<? super T, ? extends R> notLastMapper, Function<? super T, ? extends R> lastMapper)`
  	To:
