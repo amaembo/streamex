@@ -2,7 +2,7 @@
 Enhancing Java 8 Streams.
 
 [![Maven Central](https://img.shields.io/maven-central/v/com.landawn/streamex.svg)](https://maven-badges.herokuapp.com/maven-central/com.landawn/streamex/)
-[![Javadocs](https://www.javadoc.io/badge/com.landawn/streamex.svg)](https://www.javadoc.io/doc/com.landawn/streamex)
+[![Javadocs](https://www.javadoc.io/badge/one.util/streamex.svg)](https://www.javadoc.io/doc/com.landawn/streamex)
 
 This library defines four classes: `StreamEx`, `IntStreamEx`, `LongStreamEx`, `DoubleStreamEx`
 which are fully compatible with Java 8 stream classes and provide many additional useful methods.
