@@ -66,6 +66,21 @@
 	<target name="jar-scr" description="Build the src .jar file">
 		<delete file="$${dist.dir}/${project-name}-${version}-sources.jar" />
 		<jar filesetmanifest="merge" jarfile="${dist.dir}/${project-name}-${version}-sources.jar" basedir="${src.dir}" />
+	</target>	
+
+	<target name="javadoc" description="Compile the Javadoc API documentation to dist dir">
+		<delete dir="${docs.dir}/${project-name}-${version}-javadoc" />
+		<mkdir dir="${docs.dir}/${project-name}-${version}-javadoc" />
+		<javadoc packagenames="Abacus" access="public" destdir="${docs.dir}/${project-name}-${version}-javadoc" use="true" protected="false" version="true" windowtitle="${project-name} API Documentation" Overview="${docs}/${project-name}-${version}-javadoc/package.html" doctitle="${project-name} API Documentation" Locale="en_US" link="${javadoc}">
+			<packageset dir="${src.dir}" defaultexcludes="yes">
+				<include name="one/util/streamex" />
+			</packageset>
+			<fileset dir="${src.dir}" defaultexcludes="yes">
+				<include name="one/util/streamex/StreamEx.java" />
+			</fileset>
+		</javadoc>		
+
+		<jar filesetmanifest="merge" jarfile="${dist.dir}/${project-name}-${version}-javadoc.jar" basedir="${docs.dir}/${project-name}-${version}-javadoc" />
 	</target>
 
 </project>
