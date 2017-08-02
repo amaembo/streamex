@@ -138,7 +138,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @see #remove(LongPredicate)
      */
     public LongStreamEx without(long... values) {
-        if (values.length == 0)
+        if (values == null || values.length == 0)
             return this;
         if (values.length == 1)
             return without(values[0]);
@@ -1349,7 +1349,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @return the new stream
      */
     public LongStreamEx append(long... values) {
-        if (values.length == 0)
+        if (values == null || values.length == 0)
             return this;
         return new LongStreamEx(LongStream.concat(stream(), LongStream.of(values)), context);
     }
@@ -1381,7 +1381,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @return the new stream
      */
     public LongStreamEx prepend(long... values) {
-        if (values.length == 0)
+        if (values == null || values.length == 0)
             return this;
         return new LongStreamEx(LongStream.concat(LongStream.of(values), stream()), context);
     }
@@ -1435,7 +1435,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      *         is returned.
      * @since 0.3.1
      */
-    public String joining(CharSequence delimiter) {
+    public String join(CharSequence delimiter) {
         return collect(LongCollector.joining(delimiter));
     }
 
@@ -1457,7 +1457,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      *         {@code prefix + suffix} is returned.
      * @since 0.3.1
      */
-    public String joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
+    public String join(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return collect(LongCollector.joining(delimiter, prefix, suffix));
     }
 
@@ -1602,6 +1602,10 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @return the new stream
      */
     public static LongStreamEx of(long... elements) {
+        if (elements == null || elements.length == 0) {
+            return empty();
+        }
+
         return of(Arrays.spliterator(elements));
     }
 
@@ -1621,6 +1625,11 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @see Arrays#stream(long[], int, int)
      */
     public static LongStreamEx of(long[] array, int startInclusive, int endExclusive) {
+        if ((array == null || array.length == 0) && (startInclusive == 0 && endExclusive == 0)) {
+            return empty();
+        }
+
+        rangeCheck(array.length, startInclusive, endExclusive);
         return of(Arrays.spliterator(array, startInclusive, endExclusive));
     }
 
@@ -1634,6 +1643,10 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @since 0.5.0
      */
     public static LongStreamEx of(Long[] array) {
+        if (array == null || array.length == 0) {
+            return empty();
+        }
+
         return seq(Arrays.stream(array).mapToLong(Long::longValue));
     }
 
@@ -1732,6 +1745,10 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @see Collection#stream()
      */
     public static LongStreamEx of(Collection<Long> collection) {
+        if (collection == null || collection.size() == 0) {
+            return empty();
+        }
+
         return seq(collection.stream().mapToLong(Long::longValue));
     }
 
@@ -2088,6 +2105,12 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
     public static LongStreamEx zip(long[] first, long[] second, LongBinaryOperator mapper) {
         return of(new RangeBasedSpliterator.ZipLong(0, checkLength(first.length, second.length), mapper, first,
                 second));
+    }
+
+    public static LongStreamEx concat(long[] a, long[] b) {
+        final LongStreamEx s = of(a);
+
+        return s.append(b);
     }
 
     /**

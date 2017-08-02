@@ -34,15 +34,15 @@ public class TreeSpliteratorTest {
         List<String> expected = Arrays.asList("", "a", "aa", "aaa", "aaaa", "aaab", "aab", "aaba", "aabb", "ab", "aba",
             "abaa", "abab", "abb", "abba", "abbb", "b", "ba", "baa", "baaa", "baab", "bab", "baba", "babb", "bb", "bba",
             "bbaa", "bbab", "bbb", "bbba", "bbbb");
-        checkSpliterator("tree", expected, () -> new TreeSpliterator.Plain<String>("", s -> s.length() == 4 ? null
+        checkSpliterator("tree", expected, () -> new TreeSpliterator.Plain<>("", s -> s.length() == 4 ? null
                 : Stream.of("a", "b").map(s::concat)));
     }
 
     @Test
     public void testDepthSpliterator() {
         List<Entry<Integer, String>> expected = StreamEx.of("", "a", "aa", "ab", "ac", "b", "ba", "bb", "bc", "c", "ca",
-            "cb", "cc").mapToEntry(String::length).invert().toList();
-        checkSpliterator("tree", expected, () -> new TreeSpliterator.Depth<String>("", (depth, s) -> depth == 2 ? null
+            "cb", "cc").mapToEntry(e -> e, String::length).invert().toList();
+        checkSpliterator("tree", expected, () -> new TreeSpliterator.Depth<>("", (depth, s) -> depth == 2 ? null
                 : Stream.of("a", "b", "c").map(s::concat)));
     }
 }

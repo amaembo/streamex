@@ -271,11 +271,11 @@ public class LongStreamExTest {
                     .toArray());
 
         String expected = LongStreamEx.range(200).boxed().flatMap(
-            i -> LongStreamEx.range(0, i).<String> mapToObj(j -> i + ":" + j)).joining("/");
+            i -> LongStreamEx.range(0, i).<String> mapToObj(j -> i + ":" + j)).join("/");
         String res = LongStreamEx.range(200).flatMapToObj(i -> LongStreamEx.range(i).mapToObj(j -> i + ":" + j))
-                .joining("/");
+                .join("/");
         String parallel = LongStreamEx.range(200).parallel().flatMapToObj(
-            i -> LongStreamEx.range(i).mapToObj(j -> i + ":" + j)).joining("/");
+            i -> LongStreamEx.range(i).mapToObj(j -> i + ":" + j)).join("/");
         assertEquals(expected, res);
         assertEquals(expected, parallel);
 
@@ -425,15 +425,15 @@ public class LongStreamExTest {
 
     @Test
     public void testJoining() {
-        assertEquals("0,1,2,3,4,5,6,7,8,9", LongStreamEx.range(10).joining(","));
-        assertEquals("0,1,2,3,4,5,6,7,8,9", LongStreamEx.range(10).parallel().joining(","));
-        assertEquals("[0,1,2,3,4,5,6,7,8,9]", LongStreamEx.range(10).joining(",", "[", "]"));
-        assertEquals("[0,1,2,3,4,5,6,7,8,9]", LongStreamEx.range(10).parallel().joining(",", "[", "]"));
+        assertEquals("0,1,2,3,4,5,6,7,8,9", LongStreamEx.range(10).join(","));
+        assertEquals("0,1,2,3,4,5,6,7,8,9", LongStreamEx.range(10).parallel().join(","));
+        assertEquals("[0,1,2,3,4,5,6,7,8,9]", LongStreamEx.range(10).join(",", "[", "]"));
+        assertEquals("[0,1,2,3,4,5,6,7,8,9]", LongStreamEx.range(10).parallel().join(",", "[", "]"));
     }
 
     @Test
     public void testMapToEntry() {
-        Map<Long, List<Long>> result = LongStreamEx.range(10).mapToEntry(x -> x % 2, x -> x).grouping();
+        Map<Long, List<Long>> result = LongStreamEx.range(10).mapToEntry(x -> x % 2, x -> x).groupTo();
         assertEquals(Arrays.asList(0L, 2L, 4L, 6L, 8L), result.get(0L));
         assertEquals(Arrays.asList(1L, 3L, 5L, 7L, 9L), result.get(1L));
     }

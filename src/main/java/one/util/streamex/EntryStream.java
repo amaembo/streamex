@@ -160,9 +160,9 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * operation</a>.
      *
      * @param <KK> The type of new keys
-     * @param mapper a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param mapper a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        function to apply to each key which produces a stream of new keys
      * @return the new stream
      */
@@ -183,17 +183,18 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * operation</a>.
      *
      * @param <KK> The type of new keys
-     * @param mapper a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param mapper a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        function to apply to each key and value which produces a stream of
      *        new keys
      * @return the new stream
      * @since 0.5.2
      */
-    public <KK> EntryStream<KK, V> flatMapToKey(BiFunction<? super K, ? super V, ? extends Stream<? extends KK>> mapper) {
-        return new EntryStream<>(
-                stream().flatMap(e -> withValue(mapper.apply(e.getKey(), e.getValue()), e.getValue())), context);
+    public <KK> EntryStream<KK, V> flatMapKeys(
+            BiFunction<? super K, ? super V, ? extends Stream<? extends KK>> mapper) {
+        return new EntryStream<>(stream().flatMap(e -> withValue(mapper.apply(e.getKey(), e.getValue()), e.getValue())),
+                context);
     }
 
     /**
@@ -210,9 +211,9 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * operation</a>.
      *
      * @param <VV> The type of new values
-     * @param mapper a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param mapper a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        function to apply to each value which produces a stream of new
      *        values
      * @return the new stream
@@ -234,20 +235,19 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * operation</a>.
      *
      * @param <VV> The type of new values
-     * @param mapper a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
+     * @param mapper a
+     *        <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        function to apply to each key and value which produces a stream of
      *        new values
      * @return the new stream
      * @since 0.5.2
      */
-    public <VV> EntryStream<K, VV> flatMapToValue(
+    public <VV> EntryStream<K, VV> flatMapValues(
             BiFunction<? super K, ? super V, ? extends Stream<? extends VV>> mapper) {
         return new EntryStream<>(stream().flatMap(e -> withKey(e.getKey(), mapper.apply(e.getKey(), e.getValue()))),
                 context);
     }
-
     /**
      * Returns a stream consisting of the results of replacing each element of
      * this stream with the contents of a mapped stream produced by applying the
@@ -265,7 +265,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      * @since 0.3.0
      */
-    public <R> StreamEx<R> flatMapKeyValue(BiFunction<? super K, ? super V, ? extends Stream<? extends R>> mapper) {
+    public <R> StreamEx<R> flatMap(BiFunction<? super K, ? super V, ? extends Stream<? extends R>> mapper) {
         return this.<R> flatMap(toFunction(mapper));
     }
 
@@ -491,43 +491,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      */
     public <KK> EntryStream<KK, V> mapKeys(Function<? super K, ? extends KK> keyMapper) {
-        return new EntryStream<>(stream().map(
-            e -> new SimpleImmutableEntry<>(keyMapper.apply(e.getKey()), e.getValue())), context);
-    }
-
-    /**
-     * Returns an {@code EntryStream} consisting of the entries whose keys are
-     * left unchanged and values are modified by applying the given function.
-     *
-     * <p>
-     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
-     * operation.
-     *
-     * @param <VV> The type of the values of the new stream
-     * @param valueMapper a non-interfering, stateless function to apply to each
-     *        value
-     * @return the new stream
-     */
-    public <VV> EntryStream<K, VV> mapValues(Function<? super V, ? extends VV> valueMapper) {
-        return new EntryStream<>(stream().map(
-            e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e.getValue()))), context);
-    }
-
-    /**
-     * Returns a {@link StreamEx} consisting of the results of applying the
-     * given function to the keys and values of this stream.
-     *
-     * <p>
-     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
-     * operation.
-     *
-     * @param <R> The element type of the new stream
-     * @param mapper a non-interfering, stateless function to apply to key and
-     *        value of each {@link Entry} in this stream
-     * @return the new stream
-     */
-    public <R> StreamEx<R> mapKeyValue(BiFunction<? super K, ? super V, ? extends R> mapper) {
-        return this.<R> map(toFunction(mapper));
+        return new EntryStream<>(stream().map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e.getKey()), e
+                .getValue())), context);
     }
 
     /**
@@ -544,9 +509,27 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      * @since 0.3.0
      */
-    public <KK> EntryStream<KK, V> mapToKey(BiFunction<? super K, ? super V, ? extends KK> keyMapper) {
-        return new EntryStream<>(stream().map(
-            e -> new SimpleImmutableEntry<>(keyMapper.apply(e.getKey(), e.getValue()), e.getValue())), context);
+    public <KK> EntryStream<KK, V> mapKeys(BiFunction<? super K, ? super V, ? extends KK> keyMapper) {
+        return new EntryStream<>(stream().map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e.getKey(), e.getValue()),
+                e.getValue())), context);
+    }
+
+    /**
+     * Returns an {@code EntryStream} consisting of the entries whose keys are
+     * left unchanged and values are modified by applying the given function.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
+     * operation.
+     *
+     * @param <VV> The type of the values of the new stream
+     * @param valueMapper a non-interfering, stateless function to apply to each
+     *        value
+     * @return the new stream
+     */
+    public <VV> EntryStream<K, VV> mapValues(Function<? super V, ? extends VV> valueMapper) {
+        return new EntryStream<>(stream().map(e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e
+                .getValue()))), context);
     }
 
     /**
@@ -563,11 +546,28 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      * @since 0.3.0
      */
-    public <VV> EntryStream<K, VV> mapToValue(BiFunction<? super K, ? super V, ? extends VV> valueMapper) {
-        return new EntryStream<>(stream().map(
-            e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e.getKey(), e.getValue()))), context);
+    public <VV> EntryStream<K, VV> mapValues(BiFunction<? super K, ? super V, ? extends VV> valueMapper) {
+        return new EntryStream<>(stream().map(e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e.getKey(),
+            e.getValue()))), context);
     }
 
+    /**
+     * Returns a {@link StreamEx} consisting of the results of applying the
+     * given function to the keys and values of this stream.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
+     * operation.
+     *
+     * @param <R> The element type of the new stream
+     * @param mapper a non-interfering, stateless function to apply to key and
+     *        value of each {@link Entry} in this stream
+     * @return the new stream
+     */
+    public <R> StreamEx<R> map(BiFunction<? super K, ? super V, ? extends R> mapper) {
+        return this.<R> map(toFunction(mapper));
+    }
+    
     /**
      * Returns a stream consisting of the {@link Entry} objects which keys are
      * the values of this stream elements and vice versa.
@@ -628,7 +628,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      * @since 0.3.0
      */
-    public EntryStream<K, V> filterKeyValue(BiPredicate<? super K, ? super V> predicate) {
+    public EntryStream<K, V> filter(BiPredicate<? super K, ? super V> predicate) {
         return filter(e -> predicate.test(e.getKey(), e.getValue()));
     }
 
@@ -678,9 +678,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      * @since 0.6.0
      */
-    public EntryStream<K, V> removeKeyValue(BiPredicate<? super K, ? super V> predicate) {
-        return filterKeyValue(predicate.negate());
+    public EntryStream<K, V> remove(BiPredicate<? super K, ? super V> predicate) {
+        return filter(predicate.negate());
     }
+
 
     /**
      * Returns a stream consisting of the elements of this stream which key is
@@ -812,7 +813,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return the new stream
      * @since 0.2.3
      */
-    public EntryStream<K, V> peekKeyValue(BiConsumer<? super K, ? super V> action) {
+    public EntryStream<K, V> peek(BiConsumer<? super K, ? super V> action) {
         return peek(toConsumer(action));
     }
 
@@ -842,6 +843,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return map(Entry::getValue);
     }
 
+    public StreamEx<Map.Entry<K, V>> entries() {
+        return map(Function.identity());
+    }
+
     /**
      * Merge series of adjacent stream entries with equal keys grouping the
      * corresponding values into {@code List}.
@@ -863,9 +868,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @see StreamEx#groupRuns(BiPredicate)
      * @since 0.5.5
      */
+    @SuppressWarnings("resource")
     public EntryStream<K, List<V>> collapseKeys() {
-        return new StreamEx<>(new CollapseSpliterator<Entry<K, V>, PairBox<K, List<V>>>(equalKeys(),
-                e -> new PairBox<>(e.getKey(), Collections.singletonList(e.getValue())), (pb, e) -> {
+        return new StreamEx<>(new CollapseSpliterator<Entry<K, V>, PairBox<K, List<V>>>(equalKeys(), e -> new PairBox<>(
+                e.getKey(), Collections.singletonList(e.getValue())), (pb, e) -> {
                     if (!(pb.b instanceof ArrayList)) {
                         V old = pb.b.get(0);
                         pb.b = new ArrayList<>();
@@ -932,6 +938,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @see StreamEx#collapse(BiPredicate, Collector)
      * @since 0.5.5
      */
+    @SuppressWarnings("resource")
     public <A, R> EntryStream<K, R> collapseKeys(Collector<? super V, A, R> collector) {
         Supplier<A> supplier = collector.supplier();
         BiConsumer<A, ? super V> accumulator = collector.accumulator();
@@ -949,7 +956,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
             return pb1;
         }, spliterator()), context).mapToEntry(pb -> pb.a, pb -> finisher.apply(pb.b));
     }
-    
+
     /**
      * Returns a new {@code EntryStream} which values are the same as this
      * stream values and keys are the results of applying the accumulation
@@ -1057,7 +1064,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         Map<K, V> map = toMap();
         return map.isEmpty() ? Collections.emptyMap() : Collections.unmodifiableMap(map);
     }
-    
+
     /**
      * Creates a {@link Map} containing the elements of this stream, then
      * performs finishing transformation and returns its result. There are no
@@ -1232,8 +1239,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     public SortedMap<K, V> toSortedMap(BinaryOperator<V> mergeFunction) {
         return toNavigableMap(mergeFunction);
     }
-    
-    
+
     /**
      * Returns a {@link NavigableMap} containing the elements of this stream.
      * There are no guarantees on the type or serializability of the
@@ -1293,7 +1299,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     public NavigableMap<K, V> toNavigableMap(BinaryOperator<V> mergeFunction) {
         return collect(Collectors.toMap(Entry::getKey, Entry::getValue, mergeFunction, TreeMap::new));
     }
-    
+
     /**
      * Drains the stream content into the supplied {@code Map}.
      * 
@@ -1323,15 +1329,16 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     }
 
     /**
-     * Returns a {@link Map} where elements of this stream with the same key are
-     * grouped together. The resulting {@code Map} keys are the keys of this
-     * stream entries and the values are the lists of the corresponding values.
+     * Returns a {@link EntryStream<K, List<V>>} where elements of this stream
+     * with the same key are grouped together. The resulting {@code Map} keys
+     * are the keys of this stream entries and the values are the lists of the
+     * corresponding values.
      * 
      * <p>
      * There are no guarantees on the type, mutability, serializability, or
      * thread-safety of the {@code Map} or {@code List} objects returned. If
      * more control over the returned {@code Map} is required, use
-     * {@link #grouping(Supplier)}. If more control over the lists required, use
+     * {@link #groupTo(Supplier)}. If more control over the lists required, use
      * {@link #groupingTo(Supplier)}.
      *
      * <p>
@@ -1341,8 +1348,139 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return a {@code Map} containing the elements of this stream
      * @see Collectors#groupingBy(Function)
      */
-    public Map<K, List<V>> grouping() {
-        return grouping(Collectors.toList());
+    public EntryStream<K, List<V>> groupBy() {
+        return groupBy(Collectors.toList());
+    }
+
+    /**
+     * Returns a {@link EntryStream<K, List<V>>} where elements of this stream
+     * with the same key are grouped together. The resulting {@code Map} keys
+     * are the keys of this stream entries and the values are the lists of the
+     * corresponding values. The {@code Map} is created using the provided
+     * supplier function.
+     * 
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code List} objects returned. If more control over
+     * the lists required, use {@link #groupingTo(Supplier)}.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
+     *
+     * @param <M> the type of the resulting {@code Map}
+     * @param mapSupplier a function which returns a new, empty {@code Map} into
+     *        which the results will be inserted
+     * @return a {@code Map} containing the elements of this stream
+     * @see #groupTo(Supplier, Collector)
+     * @see #groupTo(Supplier, Supplier)
+     */
+    public EntryStream<K, List<V>> groupBy(Supplier<Map<K, List<V>>> mapSupplier) {
+        return groupBy(mapSupplier, Collectors.toList());
+    }
+
+    /**
+     * Returns a {@link EntryStream<K, C>} where elements of this stream with
+     * the same key are grouped together. The resulting {@code Map} keys are the
+     * keys of this stream entries and the values are the collections of the
+     * corresponding values. The collections are created by the provided
+     * factory.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
+     *
+     * @param <C> the type of the resulting {@code Collection}
+     * @param <M> the type of the resulting {@code Map}
+     * @param mapSupplier a function which returns a new, empty {@code Map} into
+     *        which the results will be inserted
+     * @param collectionFactory a {@code Supplier} which returns a new, empty
+     *        {@code Collection} of the appropriate type
+     * @return a {@code Map} containing the elements of this stream
+     * @see Collectors#toCollection(Supplier)
+     */
+    public <C extends Collection<V>> EntryStream<K, C> groupBy(Supplier<Map<K, C>> mapSupplier,
+            Supplier<C> collectionFactory) {
+        return groupBy(mapSupplier, Collectors.toCollection(collectionFactory));
+    }
+
+    /**
+     * Returns a {@link Map} where elements of this stream with the same key are
+     * grouped together. The resulting {@code Map} keys are the keys of this
+     * stream entries and the corresponding values are combined using the
+     * provided downstream collector.
+     * 
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code Map} object returned. If more control over
+     * the returned {@code Map} is required, use
+     * {@link #groupTo(Supplier, Collector)}.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
+     *
+     * @param <A> the intermediate accumulation type of the downstream collector
+     * @param <D> the result type of the downstream reduction
+     * @param downstream a {@code Collector} implementing the downstream
+     *        reduction
+     * @return a {@code Map} containing the elements of this stream
+     * @see Collectors#groupingBy(Function, Collector)
+     */
+    public <A, D> EntryStream<K, D> groupBy(Collector<? super V, A, D> downstream) {
+        final Map<K, D> m = groupTo(downstream);
+
+        return new EntryStream<>(context.parallel ? m.entrySet().parallelStream() : m.entrySet().stream(), context);
+    }
+
+    /**
+     * Returns a {@link Map} where elements of this stream with the same key are
+     * grouped together. The resulting {@code Map} keys are the keys of this
+     * stream entries and the corresponding values are combined using the
+     * provided downstream collector. The {@code Map} is created using the
+     * provided supplier function.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
+     *
+     * @param <A> the intermediate accumulation type of the downstream collector
+     * @param <D> the result type of the downstream reduction
+     * @param <M> the type of the resulting {@code Map}
+     * @param mapSupplier a function which returns a new, empty {@code Map} into
+     *        which the results will be inserted
+     * @param downstream a {@code Collector} implementing the downstream
+     *        reduction
+     * @return a {@code Map} containing the elements of this stream
+     * @see Collectors#groupingBy(Function, Supplier, Collector)
+     */
+    public <A, D> EntryStream<K, D> groupBy(Supplier<Map<K, D>> mapSupplier, Collector<? super V, A, D> downstream) {
+        final Map<K, D> m = groupTo(mapSupplier, downstream);
+
+        return new EntryStream<>(context.parallel ? m.entrySet().parallelStream() : m.entrySet().stream(), context);
+    }
+
+    /**
+     * Returns a {@link Map} where elements of this stream with the same key are
+     * grouped together. The resulting {@code Map} keys are the keys of this
+     * stream entries and the values are the lists of the corresponding values.
+     * 
+     * <p>
+     * There are no guarantees on the type, mutability, serializability, or
+     * thread-safety of the {@code Map} or {@code List} objects returned. If
+     * more control over the returned {@code Map} is required, use
+     * {@link #groupTo(Supplier)}. If more control over the lists required, use
+     * {@link #groupingTo(Supplier)}.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
+     *
+     * @return a {@code Map} containing the elements of this stream
+     * @see Collectors#groupingBy(Function)
+     */
+    public Map<K, List<V>> groupTo() {
+        return groupTo(Collectors.toList());
     }
 
     /**
@@ -1364,11 +1502,35 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @param mapSupplier a function which returns a new, empty {@code Map} into
      *        which the results will be inserted
      * @return a {@code Map} containing the elements of this stream
-     * @see #grouping(Supplier, Collector)
-     * @see #groupingTo(Supplier, Supplier)
+     * @see #groupTo(Supplier, Collector)
+     * @see #groupTo(Supplier, Supplier)
      */
-    public <M extends Map<K, List<V>>> M grouping(Supplier<M> mapSupplier) {
-        return grouping(mapSupplier, Collectors.toList());
+    public <M extends Map<K, List<V>>> M groupTo(Supplier<M> mapSupplier) {
+        return groupTo(mapSupplier, Collectors.toList());
+    }
+
+    /**
+     * Returns a {@link Map} where elements of this stream with the same key are
+     * grouped together. The resulting {@code Map} keys are the keys of this
+     * stream entries and the values are the collections of the corresponding
+     * values. The collections are created by the provided factory.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
+     *
+     * @param <C> the type of the resulting {@code Collection}
+     * @param <M> the type of the resulting {@code Map}
+     * @param mapSupplier a function which returns a new, empty {@code Map} into
+     *        which the results will be inserted
+     * @param collectionFactory a {@code Supplier} which returns a new, empty
+     *        {@code Collection} of the appropriate type
+     * @return a {@code Map} containing the elements of this stream
+     * @see Collectors#toCollection(Supplier)
+     */
+    public <C extends Collection<V>, M extends Map<K, C>> M groupTo(Supplier<M> mapSupplier,
+            Supplier<C> collectionFactory) {
+        return groupTo(mapSupplier, Collectors.toCollection(collectionFactory));
     }
 
     /**
@@ -1381,7 +1543,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * There are no guarantees on the type, mutability, serializability, or
      * thread-safety of the {@code Map} object returned. If more control over
      * the returned {@code Map} is required, use
-     * {@link #grouping(Supplier, Collector)}.
+     * {@link #groupTo(Supplier, Collector)}.
      *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
@@ -1394,7 +1556,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return a {@code Map} containing the elements of this stream
      * @see Collectors#groupingBy(Function, Collector)
      */
-    public <A, D> Map<K, D> grouping(Collector<? super V, A, D> downstream) {
+    public <A, D> Map<K, D> groupTo(Collector<? super V, A, D> downstream) {
         Function<Entry<K, V>, K> keyMapper = Entry::getKey;
         Collector<Entry<K, V>, ?, D> mapping = Collectors.mapping(Entry::getValue, downstream);
         if (isParallel() && downstream.characteristics().contains(Characteristics.UNORDERED)) {
@@ -1407,8 +1569,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * Returns a {@link Map} where elements of this stream with the same key are
      * grouped together. The resulting {@code Map} keys are the keys of this
      * stream entries and the corresponding values are combined using the
-     * provided downstream collector. The {@code Map} is created using
-     * the provided supplier function.
+     * provided downstream collector. The {@code Map} is created using the
+     * provided supplier function.
      *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
@@ -1425,65 +1587,15 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @see Collectors#groupingBy(Function, Supplier, Collector)
      */
     @SuppressWarnings("unchecked")
-    public <A, D, M extends Map<K, D>> M grouping(Supplier<M> mapSupplier, Collector<? super V, A, D> downstream) {
+    public <A, D, M extends Map<K, D>> M groupTo(Supplier<M> mapSupplier, Collector<? super V, A, D> downstream) {
         Function<Entry<K, V>, K> keyMapper = Entry::getKey;
         Collector<Entry<K, V>, ?, D> mapping = Collectors.mapping(Entry::getValue, downstream);
-        if (isParallel() && downstream.characteristics().contains(Characteristics.UNORDERED)
-            && mapSupplier.get() instanceof ConcurrentMap) {
+        if (isParallel() && downstream.characteristics().contains(Characteristics.UNORDERED) && mapSupplier
+                .get() instanceof ConcurrentMap) {
             return (M) collect(Collectors.groupingByConcurrent(keyMapper,
                 (Supplier<? extends ConcurrentMap<K, D>>) mapSupplier, mapping));
         }
         return collect(Collectors.groupingBy(keyMapper, mapSupplier, mapping));
-    }
-
-    /**
-     * Returns a {@link Map} where elements of this stream with the same key are
-     * grouped together. The resulting {@code Map} keys are the keys of this
-     * stream entries and the values are the collections of the corresponding
-     * values. The collections are created by the provided factory.
-     *
-     * <p>
-     * There are no guarantees on the type, mutability, serializability, or
-     * thread-safety of the {@code Map} object returned. If more control over
-     * the returned {@code Map} is required, use
-     * {@link #groupingTo(Supplier, Supplier)}.
-     *
-     * <p>
-     * This is a <a href="package-summary.html#StreamOps">terminal</a>
-     * operation.
-     *
-     * @param <C> the type of the resulting {@code Collection}
-     * @param collectionFactory a {@code Supplier} which returns a new, empty
-     *        {@code Collection} of the appropriate type
-     * @return a {@code Map} containing the elements of this stream
-     * @see Collectors#toCollection(Supplier)
-     */
-    public <C extends Collection<V>> Map<K, C> groupingTo(Supplier<C> collectionFactory) {
-        return grouping(Collectors.toCollection(collectionFactory));
-    }
-
-    /**
-     * Returns a {@link Map} where elements of this stream with the same key are
-     * grouped together. The resulting {@code Map} keys are the keys of this
-     * stream entries and the values are the collections of the corresponding
-     * values. The collections are created by the provided factory.
-     *
-     * <p>
-     * This is a <a href="package-summary.html#StreamOps">terminal</a>
-     * operation.
-     *
-     * @param <C> the type of the resulting {@code Collection}
-     * @param <M> the type of the resulting {@code Map}
-     * @param mapSupplier a function which returns a new, empty {@code Map} into
-     *        which the results will be inserted
-     * @param collectionFactory a {@code Supplier} which returns a new, empty
-     *        {@code Collection} of the appropriate type
-     * @return a {@code Map} containing the elements of this stream
-     * @see Collectors#toCollection(Supplier)
-     */
-    public <C extends Collection<V>, M extends Map<K, C>> M groupingTo(Supplier<M> mapSupplier,
-            Supplier<C> collectionFactory) {
-        return grouping(mapSupplier, Collectors.toCollection(collectionFactory));
     }
 
     /**
@@ -1505,7 +1617,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @param action a non-interfering action to perform on the key and value
      * @see #forEach(java.util.function.Consumer)
      */
-    public void forKeyValue(BiConsumer<? super K, ? super V> action) {
+    public void forEach(BiConsumer<? super K, ? super V> action) {
         forEach(toConsumer(action));
     }
 
@@ -1588,6 +1700,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return a new {@code EntryStream}
      */
     public static <K, V> EntryStream<K, V> of(Map<K, V> map) {
+        if (map == null || map.size() == 0) {
+            return empty();
+        }
+
         return of(map.entrySet().stream());
     }
 
@@ -1606,6 +1722,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.3
      */
     public static <V> EntryStream<Integer, V> of(List<V> list) {
+        if (list == null || list.size() == 0) {
+            return empty();
+        }
+
         return EntryStream.of(new RangeBasedSpliterator.AsEntry<>(list));
     }
 
@@ -1619,6 +1739,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.3
      */
     public static <V> EntryStream<Integer, V> of(V[] array) {
+        if (array == null || array.length == 0) {
+            return empty();
+        }
+
         return of(Arrays.asList(array));
     }
 
@@ -1712,7 +1836,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     public static <K, V> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5) {
         return of(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
-            new SimpleImmutableEntry<>(k3, v3), new SimpleImmutableEntry<>(k4, v4), new SimpleImmutableEntry<>(k5, v5)));
+            new SimpleImmutableEntry<>(k3, v3), new SimpleImmutableEntry<>(k4, v4), new SimpleImmutableEntry<>(k5,
+                    v5)));
     }
 
     /**
@@ -1798,7 +1923,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
             K k7, V v7, K k8, V v8) {
         return of(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
             new SimpleImmutableEntry<>(k3, v3), new SimpleImmutableEntry<>(k4, v4), new SimpleImmutableEntry<>(k5, v5),
-            new SimpleImmutableEntry<>(k6, v6), new SimpleImmutableEntry<>(k7, v7), new SimpleImmutableEntry<>(k8, v8)));
+            new SimpleImmutableEntry<>(k6, v6), new SimpleImmutableEntry<>(k7, v7), new SimpleImmutableEntry<>(k8,
+                    v8)));
     }
 
     /**
@@ -1890,6 +2016,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.1
      */
     public static <K, V> EntryStream<K, V> zip(List<K> keys, List<V> values) {
+        if ((keys == null || keys.size() == 0) && (values == null || values.size() == 0)) {
+            return EntryStream.empty();            
+        }
+
         return of(new RangeBasedSpliterator.ZipRef<>(0, checkLength(keys.size(), values.size()),
                 SimpleImmutableEntry<K, V>::new, keys, values));
     }
@@ -1908,6 +2038,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.2.1
      */
     public static <K, V> EntryStream<K, V> zip(K[] keys, V[] values) {
+        if ((keys == null || keys.length == 0) && (values == null || values.length == 0)) {
+            return EntryStream.empty();            
+        }
+
         return zip(Arrays.asList(keys), Arrays.asList(values));
     }
 
@@ -1937,6 +2071,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.3.6
      */
     public static <T> EntryStream<T, T> ofPairs(List<T> list) {
+        if (list == null || list.size() == 0) {
+            return empty();
+        }
+
         return of(new PairPermutationSpliterator<>(list, SimpleImmutableEntry<T, T>::new));
     }
 
@@ -1961,6 +2099,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.3.6
      */
     public static <T> EntryStream<T, T> ofPairs(T[] array) {
+        if (array == null || array.length == 0) {
+            return empty();
+        }
+
         return ofPairs(Arrays.asList(array));
     }
 
@@ -2031,5 +2173,11 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     public static <T, TT extends T> EntryStream<Integer, T> ofTree(T root, Class<TT> collectionClass,
             BiFunction<Integer, TT, Stream<T>> mapper) {
         return ofTree(root, (d, t) -> collectionClass.isInstance(t) ? mapper.apply(d, (TT) t) : null);
+    }
+    
+    public static <K, V> EntryStream<K, V> concat(Map<K, V> a, Map<K, V> b) {
+        final EntryStream<K, V> s = of(a);
+
+        return s.append(b);
     }
 }

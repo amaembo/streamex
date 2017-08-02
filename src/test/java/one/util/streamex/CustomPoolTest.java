@@ -60,12 +60,12 @@ public class CustomPoolTest {
 
     @Test(expected = IllegalStateException.class)
     public void testCheckThreadSequential() {
-        StreamEx.of("a", "b").peek(this::checkThread).joining();
+        StreamEx.of("a", "b").peek(this::checkThread).join();
     }
 
     @Test(expected = IllegalStateException.class)
     public void testCheckThreadParallel() {
-        StreamEx.of("a", "b").parallel().peek(this::checkThread).joining();
+        StreamEx.of("a", "b").parallel().peek(this::checkThread).join();
     }
 
     @Test
@@ -73,7 +73,7 @@ public class CustomPoolTest {
         StreamEx.of("a", "b", "c").parallel(pool).forEach(this::checkThread);
         assertEquals(Arrays.asList(1, 2), StreamEx.of("a", "bb").parallel(pool).peek(this::checkThread).map(
             String::length).toList());
-        assertEquals("a", StreamEx.of("a").parallel(pool).peek(this::checkThread).findAny().get());
+        assertEquals("a", StreamEx.just("a").parallel(pool).peek(this::checkThread).findAny().get());
         assertEquals("a", StreamEx.of("a", "b").parallel(pool).peek(this::checkThread).findFirst().get());
         assertTrue(StreamEx.of("a", "b").parallel(pool).peek(this::checkThread).anyMatch("a"::equals));
         assertFalse(StreamEx.of("a", "b").parallel(pool).peek(this::checkThread).allMatch("a"::equals));
@@ -297,7 +297,7 @@ public class CustomPoolTest {
             t -> counter.incrementAndGet()).collect(MoreCollectors.onlyOne()));
         assertTrue(counter.get() < 10000);
         counter.set(0);
-        assertEquals(Optional.empty(), IntStreamEx.range(0, 10000).boxed().mapToEntry(x -> x).parallel(pool).peek(
+        assertEquals(Optional.empty(), IntStreamEx.range(0, 10000).boxed().mapToEntry(x -> x, x -> x).parallel(pool).peek(
             this::checkThread).peek(t -> counter.incrementAndGet()).collect(MoreCollectors.onlyOne()));
         assertTrue(counter.get() < 10000);
     }

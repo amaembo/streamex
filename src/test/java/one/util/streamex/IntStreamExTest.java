@@ -309,10 +309,10 @@ public class IntStreamExTest {
             vals).flatMapToLong(idx -> Arrays.stream(vals[idx])).toArray());
         String expected = IntStream.range(0, 200).boxed().flatMap(
             i -> IntStream.range(0, i).<String> mapToObj(j -> i + ":" + j)).collect(Collectors.joining("/"));
-        String res = IntStreamEx.range(200).flatMapToObj(i -> IntStreamEx.range(i).mapToObj(j -> i + ":" + j)).joining(
+        String res = IntStreamEx.range(200).flatMapToObj(i -> IntStreamEx.range(i).mapToObj(j -> i + ":" + j)).join(
             "/");
         String parallel = IntStreamEx.range(200).parallel().flatMapToObj(
-            i -> IntStreamEx.range(i).mapToObj(j -> i + ":" + j)).joining("/");
+            i -> IntStreamEx.range(i).mapToObj(j -> i + ":" + j)).join("/");
         assertEquals(expected, res);
         assertEquals(expected, parallel);
 
@@ -478,9 +478,9 @@ public class IntStreamExTest {
         assertEquals(0, IntStreamEx.range(0).pairMap(Integer::sum).count());
         assertEquals(0, IntStreamEx.range(1).pairMap(Integer::sum).count());
         assertEquals(Collections.singletonMap(1, 9999L), IntStreamEx.range(10000).pairMap((a, b) -> b - a).boxed()
-                .groupingBy(Function.identity(), Collectors.counting()));
+                .groupTo(Function.identity(), Collectors.counting()));
         assertEquals(Collections.singletonMap(1, 9999L), IntStreamEx.range(10000).parallel().pairMap((a, b) -> b - a)
-                .boxed().groupingBy(Function.identity(), Collectors.counting()));
+                .boxed().groupTo(Function.identity(), Collectors.counting()));
         assertEquals("Test Capitalization Stream", IntStreamEx.ofChars("test caPiTaliZation streaM").parallel()
                 .prepend(0).pairMap(
                     (c1, c2) -> !Character.isLetter(c1) && Character.isLetter(c2) ? Character.toTitleCase(c2)
@@ -544,15 +544,15 @@ public class IntStreamExTest {
 
     @Test
     public void testJoining() {
-        assertEquals("0,1,2,3,4,5,6,7,8,9", IntStreamEx.range(10).joining(","));
-        assertEquals("0,1,2,3,4,5,6,7,8,9", IntStreamEx.range(10).parallel().joining(","));
-        assertEquals("[0,1,2,3,4,5,6,7,8,9]", IntStreamEx.range(10).joining(",", "[", "]"));
-        assertEquals("[0,1,2,3,4,5,6,7,8,9]", IntStreamEx.range(10).parallel().joining(",", "[", "]"));
+        assertEquals("0,1,2,3,4,5,6,7,8,9", IntStreamEx.range(10).join(","));
+        assertEquals("0,1,2,3,4,5,6,7,8,9", IntStreamEx.range(10).parallel().join(","));
+        assertEquals("[0,1,2,3,4,5,6,7,8,9]", IntStreamEx.range(10).join(",", "[", "]"));
+        assertEquals("[0,1,2,3,4,5,6,7,8,9]", IntStreamEx.range(10).parallel().join(",", "[", "]"));
     }
 
     @Test
     public void testMapToEntry() {
-        Map<Integer, List<Integer>> result = IntStreamEx.range(10).mapToEntry(x -> x % 2, x -> x).grouping();
+        Map<Integer, List<Integer>> result = IntStreamEx.range(10).mapToEntry(x -> x % 2, x -> x).groupTo();
         assertEquals(Arrays.asList(0, 2, 4, 6, 8), result.get(0));
         assertEquals(Arrays.asList(1, 3, 5, 7, 9), result.get(1));
     }

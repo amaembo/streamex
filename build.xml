@@ -1,0 +1,86 @@
+<!-- StreamEx ant built script -->
+
+<project name="streamex" default="jar" basedir=".">
+
+	<!-- Give user a chance to override without editing this file
+       (and without typing -D each time it compiles it) -->
+	<property file="build.properties" />
+
+	<path id="build.class.path">
+		<pathelement location="${build.classes.dir}" />
+		<fileset dir="${lib.dir}">
+			<include name="*.jar" />
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+
+	<patternset id="support.files">
+		<include name="**/*.jpg" />
+		<include name="**/*.gif" />
+		<include name="**/*.dtd" />
+		<include name="**/*.xsd" />
+		<include name="**/*.xml" />
+		<include name="**/*.xslt" />
+		<include name="**/*.wsdl" />
+
+		<!-- exclude everything we don't want in the jar -->
+		<exclude name="${build.dir}/**/*" />
+		<exclude name="${docs.dir}/**/*" />
+		<exclude name="classes/**/*" />
+		<exclude name="**/*.properties" />
+		<exclude name="**/*.ccf" />
+		<exclude name="**/*.cfg.xml" />
+		<exclude name="**/ehcache.xml" />
+		<exclude name="build.xml" />
+		<exclude name="build.properties" />
+	</patternset>
+
+	<tstamp>
+		<format property="current.date" pattern="yyyyMMdd" />
+	</tstamp>
+
+	<target name="clean">
+		<delete includeEmptyDirs="true">
+			<fileset dir="${build.classes.dir}" includes="**/*" />
+		</delete>
+	</target>
+
+	<target name="prepare">
+		<mkdir dir="${build.classes.dir}" />
+	</target>
+
+	<target name="compile" depends="clean,prepare" description="Compile the Java source code">
+		<available classname="org.eclipse.core.launcher.Main" property="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter" classpath="${java.class.path}" />
+
+		<javac srcdir="${src.dir}" destdir="${build.classes.dir}" classpathref="build.class.path" debug="on" source="1.8" target="1.8">
+		</javac>
+	</target>
+
+	<!-- Some of this can probably be moved to common-build... -->
+	<target name="jar" depends="compile" description="Build the distribution .jar file">
+		<delete file="${dist.dir}/${project-name}-${version}.jar" />
+		<jar filesetmanifest="merge" jarfile="${dist.dir}/${project-name}-${version}.jar" basedir="${build.classes.dir}" />
+	</target>
+
+	<!-- Some of this can probably be moved to common-build... -->
+	<target name="jar-scr" description="Build the src .jar file">
+		<delete file="$${dist.dir}/${project-name}-${version}-sources.jar" />
+		<jar filesetmanifest="merge" jarfile="${dist.dir}/${project-name}-${version}-sources.jar" basedir="${src.dir}" />
+	</target>	
+
+	<target name="javadoc" description="Compile the Javadoc API documentation to dist dir">
+		<delete dir="${docs.dir}/${project-name}-${version}-javadoc" />
+		<mkdir dir="${docs.dir}/${project-name}-${version}-javadoc" />
+		<javadoc packagenames="Abacus" access="public" destdir="${docs.dir}/${project-name}-${version}-javadoc" use="true" protected="false" version="true" windowtitle="${project-name} API Documentation" Overview="${docs}/${project-name}-${version}-javadoc/package.html" doctitle="${project-name} API Documentation" Locale="en_US" link="${javadoc}">
+			<packageset dir="${src.dir}" defaultexcludes="yes">
+				<include name="one/util/streamex" />
+			</packageset>
+			<fileset dir="${src.dir}" defaultexcludes="yes">
+				<include name="one/util/streamex/StreamEx.java" />
+			</fileset>
+		</javadoc>		
+
+		<jar filesetmanifest="merge" jarfile="${dist.dir}/${project-name}-${version}-javadoc.jar" basedir="${docs.dir}/${project-name}-${version}-javadoc" />
+	</target>
+
+</project>

@@ -2,6 +2,37 @@
 
 Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 
+### 0.8: API refactoring and improvements:
+* Improve Null Safety
+* Rename:
+ 		`flatMapToKey/flatMapToValue/mapToKey/mapToValue`
+	To:
+ 		`flatMapKeys/flatMapValues/mapKeys/mapValues`
+* Rename 				
+ 		`flatMapKeyValue/mapKeyValue/filterKeyValue/removeKeyValue/peekKeyVale/forKeyValue`
+ 	To:
+ 		`flatMap/map/filter/remove/peek/forEach`
+* Rename 
+ 		`grouping/groupingBy/groupingTo/joining/forPairs`
+ 	To:
+ 		`groupTo/join/forEachPair`
+* Rename `of(T element)` to `just(T element)`
+* Add `StreamEx.of(boolean[])/StreamEx.of(byte[])/...`
+* Add `groupBy` to `StreamEx/EntryStreamEx`
+* Push up `flatMapToEntry/mapToEntry` from `StreamEx` to `AbstractStreamEx`
+* Rename `EntryStream<T, V> mapToEntry(Function<? super T, ? extends V> valueMapper)`		
+ 	To:
+ 		`EntryStream<T, V> mapToEntryValue(Function<? super T, ? extends V> valueMapper)`
+* Add `EntryStream<K, T> mapToEntryKey(Function<? super T, K> keyMapper)`
+* Change***:
+		`mapLastOrElse(Function<? super T, ? extends R> notLastMapper, Function<? super T, ? extends R> lastMapper)`
+ 	To:
+ 		`mapLastOrElse(Function<? super T, ? extends R> lastMapper, Function<? super T, ? extends R> notLastMapper)`
+
+* Add `StreamEx<T> concat(T[] a, T[] b)`, `StreamEx<T> concat(Collection<? extends T> a, Collection<? extends T> b)`, `IntStreamEx concat(int[] a, int[] b)`, `LongStreamEx concat(long[] a, long[] b)` and `DoubleStreamEx concat(double[] a, double[] b)`
+
+* Add `StreamEx<StreamEx<T>> split(int size)` and `StreamEx<List<T>> splitToList(int size)`
+
 ### 0.6.6
 * [#145] Added: `intersperse` method for all stream types.
 

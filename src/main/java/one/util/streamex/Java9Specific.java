@@ -61,7 +61,6 @@ import java.util.stream.Stream;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     <T, S extends AbstractStreamEx<T, S>> S callWhile(AbstractStreamEx<T, S> stream, Predicate<? super T> predicate, boolean drop) {
         try {
             return stream.supply((Stream<T>) JDK9_METHODS[IDX_STREAM][drop ? IDX_DROP_WHILE : IDX_TAKE_WHILE]

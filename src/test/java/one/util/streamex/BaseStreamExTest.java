@@ -68,7 +68,7 @@ public class BaseStreamExTest {
             .append(4)
             .onClose(() -> closeHandlers.add("After append"))
             .prepend(Stream.of(5).onClose(() -> closeHandlers.add("Prepended Stream")))
-            .prepend(StreamEx.of(6).onClose(() -> closeHandlers.add("Prepended StreamEx")));
+            .prepend(StreamEx.just(6).onClose(() -> closeHandlers.add("Prepended StreamEx")));
         assertEquals(Arrays.asList(6, 5, 6, 10, 4), stream.toList());
         assertTrue(closeHandlers.isEmpty());
         stream.close();
@@ -92,7 +92,7 @@ public class BaseStreamExTest {
             .append(4)
             .onClose(ex.apply("After append"))
             .prepend(Stream.of(5).onClose(ex.apply("Prepended Stream")))
-            .prepend(StreamEx.of(6).onClose(ex.apply("Prepended StreamEx")));
+            .prepend(StreamEx.just(6).onClose(ex.apply("Prepended StreamEx")));
         assertEquals(Arrays.asList(6, 5, 6, 10, 4), stream.toList());
         try {
             stream.close();

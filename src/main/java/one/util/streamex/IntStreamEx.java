@@ -158,7 +158,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @see #remove(IntPredicate)
      */
     public IntStreamEx without(int... values) {
-        if (values.length == 0)
+        if (values == null || values.length == 0)
             return this;
         if (values.length == 1)
             return without(values[0]);
@@ -1423,7 +1423,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @return the new stream
      */
     public IntStreamEx append(int... values) {
-        if (values.length == 0)
+        if (values == null || values.length == 0)
             return this;
         return new IntStreamEx(IntStream.concat(stream(), IntStream.of(values)), context);
     }
@@ -1455,7 +1455,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @return the new stream
      */
     public IntStreamEx prepend(int... values) {
-        if (values.length == 0)
+        if (values == null || values.length == 0)
             return this;
         return new IntStreamEx(IntStream.concat(IntStream.of(values), stream()), context);
     }
@@ -1622,7 +1622,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      *         is returned.
      * @since 0.3.1
      */
-    public String joining(CharSequence delimiter) {
+    public String join(CharSequence delimiter) {
         return collect(IntCollector.joining(delimiter));
     }
 
@@ -1644,7 +1644,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      *         {@code prefix + suffix} is returned.
      * @since 0.3.1
      */
-    public String joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
+    public String join(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return collect(IntCollector.joining(delimiter, prefix, suffix));
     }
 
@@ -1832,6 +1832,10 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @return the new stream
      */
     public static IntStreamEx of(int... elements) {
+        if (elements == null || elements.length == 0) {
+            return empty();
+        }
+
         return of(Arrays.spliterator(elements));
     }
 
@@ -1851,6 +1855,11 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @see Arrays#stream(int[], int, int)
      */
     public static IntStreamEx of(int[] array, int startInclusive, int endExclusive) {
+        if ((array == null || array.length == 0) && (startInclusive == 0 && endExclusive == 0)) {
+            return empty();
+        }
+
+        rangeCheck(array.length, startInclusive, endExclusive);
         return of(Arrays.spliterator(array, startInclusive, endExclusive));
     }
 
@@ -1863,6 +1872,10 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.2.0
      */
     public static IntStreamEx of(byte... elements) {
+        if (elements == null || elements.length == 0) {
+            return empty();
+        }
+
         return of(elements, 0, elements.length);
     }
 
@@ -1881,6 +1894,10 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.2.0
      */
     public static IntStreamEx of(byte[] array, int startInclusive, int endExclusive) {
+        if ((array == null || array.length == 0) && (startInclusive == 0 && endExclusive == 0)) {
+            return empty();
+        }
+
         rangeCheck(array.length, startInclusive, endExclusive);
         return of(new RangeBasedSpliterator.OfByte(startInclusive, endExclusive, array));
     }
@@ -1894,6 +1911,10 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.2.0
      */
     public static IntStreamEx of(char... elements) {
+        if (elements == null || elements.length == 0) {
+            return empty();
+        }
+
         return of(elements, 0, elements.length);
     }
 
@@ -1912,6 +1933,10 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.2.0
      */
     public static IntStreamEx of(char[] array, int startInclusive, int endExclusive) {
+        if ((array == null || array.length == 0) && (startInclusive == 0 && endExclusive == 0)) {
+            return empty();
+        }
+
         rangeCheck(array.length, startInclusive, endExclusive);
         return of(new RangeBasedSpliterator.OfChar(startInclusive, endExclusive, array));
     }
@@ -1925,6 +1950,10 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.2.0
      */
     public static IntStreamEx of(short... elements) {
+        if (elements == null || elements.length == 0) {
+            return empty();
+        }
+
         return of(elements, 0, elements.length);
     }
 
@@ -1943,6 +1972,10 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.2.0
      */
     public static IntStreamEx of(short[] array, int startInclusive, int endExclusive) {
+        if ((array == null || array.length == 0) && (startInclusive == 0 && endExclusive == 0)) {
+            return empty();
+        }
+
         rangeCheck(array.length, startInclusive, endExclusive);
         return of(new RangeBasedSpliterator.OfShort(startInclusive, endExclusive, array));
     }
@@ -2009,6 +2042,10 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.5.0
      */
     public static IntStreamEx of(Integer[] array) {
+        if (array == null || array.length == 0) {
+            return empty();
+        }
+
         return seq(Arrays.stream(array).mapToInt(Integer::intValue));
     }
 
@@ -2045,6 +2082,10 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.1.1
      */
     public static <T> IntStreamEx ofIndices(List<T> list) {
+        if (list == null || list.size() == 0) {
+            return empty();
+        }
+
         return range(list.size());
     }
 
@@ -2064,6 +2105,10 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.1.1
      */
     public static <T> IntStreamEx ofIndices(List<T> list, Predicate<T> predicate) {
+        if (list == null || list.size() == 0) {
+            return empty();
+        }
+
         return seq(IntStream.range(0, list.size()).filter(i -> predicate.test(list.get(i))));
     }
 
@@ -2078,6 +2123,10 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.1.1
      */
     public static <T> IntStreamEx ofIndices(T[] array) {
+        if (array == null || array.length == 0) {
+            return empty();
+        }
+
         return range(array.length);
     }
 
@@ -2092,6 +2141,10 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.1.1
      */
     public static <T> IntStreamEx ofIndices(T[] array, Predicate<T> predicate) {
+        if (array == null || array.length == 0) {
+            return empty();
+        }
+
         return seq(IntStream.range(0, array.length).filter(i -> predicate.test(array[i])));
     }
 
@@ -2105,6 +2158,10 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.1.1
      */
     public static IntStreamEx ofIndices(int[] array) {
+        if (array == null || array.length == 0) {
+            return empty();
+        }
+
         return range(array.length);
     }
 
@@ -2118,6 +2175,10 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.1.1
      */
     public static IntStreamEx ofIndices(int[] array, IntPredicate predicate) {
+        if (array == null || array.length == 0) {
+            return empty();
+        }
+
         return seq(IntStream.range(0, array.length).filter(i -> predicate.test(array[i])));
     }
 
@@ -2131,6 +2192,10 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.1.1
      */
     public static IntStreamEx ofIndices(long[] array) {
+        if (array == null || array.length == 0) {
+            return empty();
+        }
+
         return range(array.length);
     }
 
@@ -2144,6 +2209,10 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.1.1
      */
     public static IntStreamEx ofIndices(long[] array, LongPredicate predicate) {
+        if (array == null || array.length == 0) {
+            return empty();
+        }
+
         return seq(IntStream.range(0, array.length).filter(i -> predicate.test(array[i])));
     }
 
@@ -2157,6 +2226,10 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.1.1
      */
     public static IntStreamEx ofIndices(double[] array) {
+        if (array == null || array.length == 0) {
+            return empty();
+        }
+
         return range(array.length);
     }
 
@@ -2170,6 +2243,10 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.1.1
      */
     public static IntStreamEx ofIndices(double[] array, DoublePredicate predicate) {
+        if (array == null || array.length == 0) {
+            return empty();
+        }
+
         return seq(IntStream.range(0, array.length).filter(i -> predicate.test(array[i])));
     }
 
@@ -2265,6 +2342,10 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @see Collection#stream()
      */
     public static IntStreamEx of(Collection<Integer> collection) {
+        if (collection == null || collection.size() == 0) {
+            return empty();
+        }
+
         return seq(collection.stream().mapToInt(Integer::intValue));
     }
 
@@ -2346,6 +2427,10 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @see CharSequence#chars()
      */
     public static IntStreamEx ofChars(CharSequence seq) {
+        if (seq == null || seq.length() == 0) {
+            return empty();
+        }
+
         return of(VER_SPEC.ofChars(seq));
     }
 
@@ -2367,6 +2452,10 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @see CharSequence#codePoints()
      */
     public static IntStreamEx ofCodePoints(CharSequence seq) {
+        if (seq == null || seq.length() == 0) {
+            return empty();
+        }
+
         return of(seq.codePoints());
     }
 
@@ -2659,6 +2748,12 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      */
     public static IntStreamEx zip(int[] first, int[] second, IntBinaryOperator mapper) {
         return of(new RangeBasedSpliterator.ZipInt(0, checkLength(first.length, second.length), mapper, first, second));
+    }
+
+    public static IntStreamEx concat(int[] a, int[] b) {
+        final IntStreamEx s = of(a);
+
+        return s.append(b);
     }
 
     /**

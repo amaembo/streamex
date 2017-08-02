@@ -40,13 +40,13 @@ public class StreamExApiTest {
     @Test
     public void testAppend() {
         List<String> input = asList("a", "b", "c");
-        assertEquals(input, input.stream().map(StreamEx::of).reduce(StreamEx::append).get().toList());
+        assertEquals(input, input.stream().map(StreamEx::just).reduce(StreamEx::append).get().toList());
     }
     
     @Test
     public void testPrepend() {
         List<String> input = asList("a", "b", "c");
         List<String> expected = asList("c", "b", "a");
-        assertEquals(expected, input.stream().map(StreamEx::of).reduce(StreamEx::prepend).get().toList());
+        assertEquals(expected, input.stream().map(StreamEx::just).reduce(StreamEx::prepend).get().toList());
     }
 }

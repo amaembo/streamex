@@ -16,6 +16,7 @@
 package one.util.streamex;
 
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.*;
 import java.util.stream.*;
@@ -145,6 +146,107 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
         return new StreamEx<>(stream().flatMap(mapper), context);
     }
 
+    /**
+     * Returns a stream consisting of the results of replacing each element of
+     * this stream with the contents of a mapped collection produced by applying
+     * the provided mapping function to each element. (If a mapped collection is
+     * {@code null} nothing is added for given element to the resulting stream.)
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate
+     * operation</a>.
+     *
+     * <p>
+     * The {@code flatCollection()} operation has the effect of applying a
+     * one-to-many transformation to the elements of the stream, and then
+     * flattening the resulting elements into a new stream.
+     *
+     * @param <R> The element type of the new stream
+     * @param mapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to each element which produces a
+     *        {@link Collection} of new values
+     * @return the new stream
+     */
+    public <R> StreamEx<R> flatCollection(Function<? super T, ? extends Collection<? extends R>> mapper) {
+        return flatMap(t -> {
+            Collection<? extends R> c = mapper.apply(t);
+            return c == null ? StreamEx.empty() : StreamEx.of(c.spliterator());
+        });
+    }
+
+    /**
+     * Returns a stream consisting of the results of replacing each element of
+     * this stream with the contents of a mapped array produced by applying
+     * the provided mapping function to each element. (If a mapped array is
+     * {@code null} nothing is added for given element to the resulting stream.)
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate
+     * operation</a>.
+     *
+     * <p>
+     * The {@code flatArray()} operation has the effect of applying a
+     * one-to-many transformation to the elements of the stream, and then
+     * flattening the resulting elements into a new stream.
+     *
+     * @param <R> The element type of the new stream
+     * @param mapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to each element which produces an
+     *        array of new values
+     * @return the new stream
+     * @since 0.6.5
+     */
+    public <R> StreamEx<R> flatArray(Function<? super T, ? extends R[]> mapper) {
+        return flatMap(t -> {
+            R[] a = mapper.apply(t);
+            return a == null ? StreamEx.empty() : StreamEx.of(Arrays.spliterator(a));
+        });
+    }
+
+    @Override
+    public IntStreamEx flatMapToInt(Function<? super T, ? extends IntStream> mapper) {
+        return new IntStreamEx(stream().flatMapToInt(mapper), context);
+    }
+
+    @Override
+    public LongStreamEx flatMapToLong(Function<? super T, ? extends LongStream> mapper) {
+        return new LongStreamEx(stream().flatMapToLong(mapper), context);
+    }
+
+    @Override
+    public DoubleStreamEx flatMapToDouble(Function<? super T, ? extends DoubleStream> mapper) {
+        return new DoubleStreamEx(stream().flatMapToDouble(mapper), context);
+    }
+
+    /**
+     * Creates a new {@code EntryStream} populated from entries of maps produced
+     * by supplied mapper function which is applied to the every element of this
+     * stream.
+     * 
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
+     * operation.
+     * 
+     * @param <K> the type of {@code Map} keys.
+     * @param <V> the type of {@code Map} values.
+     * @param mapper a non-interfering, stateless function to apply to each
+     *        element which produces a {@link Map} of the entries corresponding
+     *        to the single element of the current stream. The mapper function
+     *        may return null or empty {@code Map} if no mapping should
+     *        correspond to some element.
+     * @return the new {@code EntryStream}
+     */
+    public <K, V> EntryStream<K, V> flatMapToEntry(Function<? super T, ? extends Map<K, V>> mapper) {
+        return new EntryStream<>(stream().flatMap(e -> {
+            Map<K, V> s = mapper.apply(e);
+            return s == null ? StreamEx.empty() : s.entrySet().stream();
+        }), context);
+    }
+
     @Override
     public <R> StreamEx<R> map(Function<? super T, ? extends R> mapper) {
         return new StreamEx<>(stream().map(mapper), context);
@@ -165,21 +267,82 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
         return new DoubleStreamEx(stream().mapToDouble(mapper), context);
     }
 
-    @Override
-    public IntStreamEx flatMapToInt(Function<? super T, ? extends IntStream> mapper) {
-        return new IntStreamEx(stream().flatMapToInt(mapper), context);
+    /**
+     * Returns an {@link EntryStream} consisting of the {@link Entry} objects
+     * which keys are elements of this stream and values are results of applying
+     * the given function to the elements of this stream.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
+     * operation.
+     *
+     * @param <V> The {@code Entry} value type
+     * @param keyMapper a non-interfering, stateless function to apply to each
+     *        element
+     * @return the new stream
+     */
+    public <K> EntryStream<K, T> mapToEntryKey(Function<? super T, ? extends K> keyMapper) {
+        return new EntryStream<>(stream().map(e -> new AbstractMap.SimpleImmutableEntry<>(keyMapper.apply(e), e)), context);
+    }
+    
+    /**
+     * Returns an {@link EntryStream} consisting of the {@link Entry} objects
+     * which keys are elements of this stream and values are results of applying
+     * the given function to the elements of this stream.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
+     * operation.
+     *
+     * @param <V> The {@code Entry} value type
+     * @param valueMapper a non-interfering, stateless function to apply to each
+     *        element
+     * @return the new stream
+     */
+    public <V> EntryStream<T, V> mapToEntryValue(Function<? super T, ? extends V> valueMapper) {
+        return new EntryStream<>(stream().map(e -> new AbstractMap.SimpleImmutableEntry<>(e, valueMapper.apply(e))), context);
     }
 
-    @Override
-    public LongStreamEx flatMapToLong(Function<? super T, ? extends LongStream> mapper) {
-        return new LongStreamEx(stream().flatMapToLong(mapper), context);
+    /**
+     * Returns an {@link EntryStream} consisting of the {@link Entry} objects
+     * which keys are elements of this stream and values are results of applying
+     * the given function to the elements of this stream.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
+     * operation.
+     *
+     * @param <V> The {@code Entry} value type
+     * @param valueMapper a non-interfering, stateless function to apply to each
+     *        element
+     * @return the new stream
+     */
+    public <K, V> EntryStream<K, V> mapToEntry(Function<? super T, ? extends Map.Entry<K, V>> mapper) {
+        return new EntryStream<>(stream().map(e -> mapper.apply(e)), context);
     }
 
-    @Override
-    public DoubleStreamEx flatMapToDouble(Function<? super T, ? extends DoubleStream> mapper) {
-        return new DoubleStreamEx(stream().flatMapToDouble(mapper), context);
+    /**
+     * Returns an {@link EntryStream} consisting of the {@link Entry} objects
+     * which keys and values are results of applying the given functions to the
+     * elements of this stream.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
+     * operation.
+     *
+     * @param <K> The {@code Entry} key type
+     * @param <V> The {@code Entry} value type
+     * @param keyMapper a non-interfering, stateless function to apply to each
+     *        element
+     * @param valueMapper a non-interfering, stateless function to apply to each
+     *        element
+     * @return the new stream
+     */
+    public <K, V> EntryStream<K, V> mapToEntry(Function<? super T, ? extends K> keyMapper,
+            Function<? super T, ? extends V> valueMapper) {
+        return new EntryStream<>(stream()
+                .map(e -> new AbstractMap.SimpleImmutableEntry<>(keyMapper.apply(e), valueMapper.apply(e))), context);
     }
-
     /**
      * Returns a new stream containing all the elements of the original stream interspersed with
      * given delimiter.
@@ -332,6 +495,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a> is passed, this operation becomes short-circuiting as well.
      */
+    @SuppressWarnings("resource")
     @Override
     public <R, A> R collect(Collector<? super T, A, R> collector) {
         Predicate<A> finished = finished(collector);
@@ -480,67 +644,6 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
         }, acc -> acc[0] < 0 ? OptionalLong.empty() : OptionalLong.of(acc[0]), acc -> acc[0] >= 0, NO_CHARACTERISTICS));
     }
 
-    /**
-     * Returns a stream consisting of the results of replacing each element of
-     * this stream with the contents of a mapped collection produced by applying
-     * the provided mapping function to each element. (If a mapped collection is
-     * {@code null} nothing is added for given element to the resulting stream.)
-     *
-     * <p>
-     * This is an <a href="package-summary.html#StreamOps">intermediate
-     * operation</a>.
-     *
-     * <p>
-     * The {@code flatCollection()} operation has the effect of applying a
-     * one-to-many transformation to the elements of the stream, and then
-     * flattening the resulting elements into a new stream.
-     *
-     * @param <R> The element type of the new stream
-     * @param mapper a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
-     *        function to apply to each element which produces a
-     *        {@link Collection} of new values
-     * @return the new stream
-     */
-    public <R> StreamEx<R> flatCollection(Function<? super T, ? extends Collection<? extends R>> mapper) {
-        return flatMap(t -> {
-            Collection<? extends R> c = mapper.apply(t);
-            return c == null ? null : StreamEx.of(c.spliterator());
-        });
-    }
-
-    /**
-     * Returns a stream consisting of the results of replacing each element of
-     * this stream with the contents of a mapped array produced by applying
-     * the provided mapping function to each element. (If a mapped array is
-     * {@code null} nothing is added for given element to the resulting stream.)
-     *
-     * <p>
-     * This is an <a href="package-summary.html#StreamOps">intermediate
-     * operation</a>.
-     *
-     * <p>
-     * The {@code flatArray()} operation has the effect of applying a
-     * one-to-many transformation to the elements of the stream, and then
-     * flattening the resulting elements into a new stream.
-     *
-     * @param <R> The element type of the new stream
-     * @param mapper a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
-     *        function to apply to each element which produces an
-     *        array of new values
-     * @return the new stream
-     * @since 0.6.5
-     */
-    public <R> StreamEx<R> flatArray(Function<? super T, ? extends R[]> mapper) {
-        return flatMap(t -> {
-            R[] a = mapper.apply(t);
-            return a == null ? null : StreamEx.of(Arrays.spliterator(a));
-        });
-    }
-    
     /**
      * Returns a stream consisting of the elements of this stream that don't
      * match the given predicate.
@@ -1640,7 +1743,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
         Spliterator<T> spltr = spliterator();
         return supply(
             spltr.hasCharacteristics(Spliterator.ORDERED) ? new TakeDrop.TDOfRef<>(spltr, false, true, predicate)
-                    : new TakeDrop.UnorderedTDOfRef<T>(spltr, false, true, predicate));
+                    : new TakeDrop.UnorderedTDOfRef<>(spltr, false, true, predicate));
     }
 
     /**
@@ -1702,7 +1805,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     public S prefix(BinaryOperator<T> op) {
         Spliterator<T> spltr = spliterator();
         return supply(spltr.hasCharacteristics(Spliterator.ORDERED) ? new PrefixOps.OfRef<>(spltr, op)
-                : new PrefixOps.OfUnordRef<T>(spltr, op));
+                : new PrefixOps.OfUnordRef<>(spltr, op));
     }
 
     // Necessary to generate proper JavaDoc

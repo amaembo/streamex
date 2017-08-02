@@ -84,6 +84,73 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
     }
 
     /**
+     * Returns true if this stream contains the specified value
+     *
+     * <p>
+     * This is a short-circuiting terminal operation.
+     * 
+     * @param value the value too look for in the stream
+     * @return true if this stream contains the specified value
+     * @see LongStream#anyMatch(LongPredicate)
+     */
+    public boolean has(double value) {
+        return anyMatch(x -> x == value);
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream that don't
+     * equal to the given value.
+     *
+     * <p>
+     * This is an intermediate operation.
+     *
+     * @param value the value to remove from the stream.
+     * @return the new stream
+     * @since 0.2.2
+     * @see #without(long...)
+     * @see #remove(LongPredicate)
+     */
+    public DoubleStreamEx without(double value) {
+        return filter(val -> val != value);
+    }
+
+    /**
+     * Returns a stream consisting of the elements of this stream that don't
+     * equal to any of the supplied values.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
+     * operation. May return itself if no values were supplied.
+     * 
+     * <p>
+     * Current implementation scans the supplied values linearly for every
+     * stream element.
+     * 
+     * <p>
+     * If the {@code values} array is changed between calling this method and
+     * finishing the stream traversal, then the result of the stream traversal
+     * is undefined: changes may or may not be taken into account.
+     *
+     * @param values the values to remove from the stream.
+     * @return the new stream
+     * @since 0.5.5
+     * @see #without(long)
+     * @see #remove(LongPredicate)
+     */
+    public DoubleStreamEx without(double... values) {
+        if (values == null || values.length == 0)
+            return this;
+        if (values.length == 1)
+            return without(values[0]);
+        return filter(x -> {
+            for (double val : values) {
+                if (x == val)
+                    return false;
+            }
+            return true;
+        });
+    }
+    /**
      * Returns a stream consisting of the elements of this stream that strictly
      * greater than the specified value.
      *
@@ -1287,7 +1354,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @return the new stream
      */
     public DoubleStreamEx append(double... values) {
-        if (values.length == 0)
+        if (values == null || values.length == 0)
             return this;
         return new DoubleStreamEx(DoubleStream.concat(stream(), DoubleStream.of(values)), context);
     }
@@ -1319,7 +1386,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @return the new stream
      */
     public DoubleStreamEx prepend(double... values) {
-        if (values.length == 0)
+        if (values == null || values.length == 0)
             return this;
         return new DoubleStreamEx(DoubleStream.concat(DoubleStream.of(values), stream()), context);
     }
@@ -1373,7 +1440,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      *         is returned.
      * @since 0.3.1
      */
-    public String joining(CharSequence delimiter) {
+    public String join(CharSequence delimiter) {
         return collect(DoubleCollector.joining(delimiter));
     }
 
@@ -1395,7 +1462,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      *         {@code prefix + suffix} is returned.
      * @since 0.3.1
      */
-    public String joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
+    public String join(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return collect(DoubleCollector.joining(delimiter, prefix, suffix));
     }
 
@@ -1540,6 +1607,10 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @return the new stream
      */
     public static DoubleStreamEx of(double... elements) {
+        if (elements == null || elements.length == 0) {
+            return empty();
+        }
+
         return of(Arrays.spliterator(elements));
     }
 
@@ -1559,6 +1630,11 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @see Arrays#stream(double[], int, int)
      */
     public static DoubleStreamEx of(double[] array, int startInclusive, int endExclusive) {
+        if ((array == null || array.length == 0) && (startInclusive == 0 && endExclusive == 0)) {
+            return empty();
+        }
+
+        rangeCheck(array.length, startInclusive, endExclusive);
         return of(Arrays.spliterator(array, startInclusive, endExclusive));
     }
 
@@ -1572,6 +1648,10 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @since 0.5.0
      */
     public static DoubleStreamEx of(Double[] array) {
+        if (array == null || array.length == 0) {
+            return empty();
+        }
+
         return seq(Arrays.stream(array).mapToDouble(Double::doubleValue));
     }
 
@@ -1607,6 +1687,10 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @since 0.2.0
      */
     public static DoubleStreamEx of(float... elements) {
+        if (elements == null || elements.length == 0) {
+            return empty();
+        }
+
         return of(elements, 0, elements.length);
     }
 
@@ -1625,6 +1709,10 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @since 0.2.0
      */
     public static DoubleStreamEx of(float[] array, int startInclusive, int endExclusive) {
+        if ((array == null || array.length == 0) && (startInclusive == 0 && endExclusive == 0)) {
+            return empty();
+        }
+
         rangeCheck(array.length, startInclusive, endExclusive);
         return of(new RangeBasedSpliterator.OfFloat(startInclusive, endExclusive, array));
     }
@@ -1702,6 +1790,10 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @see Collection#stream()
      */
     public static DoubleStreamEx of(Collection<Double> collection) {
+        if (collection == null || collection.size() == 0) {
+            return empty();
+        }
+
         return seq(collection.stream().mapToDouble(Double::doubleValue));
     }
 
@@ -1943,6 +2035,13 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
         return of(new RangeBasedSpliterator.ZipDouble(0, checkLength(first.length, second.length), mapper, first,
                 second));
     }
+
+    public static DoubleStreamEx concat(double[] a, double[] b) {
+        final DoubleStreamEx s = of(a);
+
+        return s.append(b);
+    }
+
 
     /**
      * A helper interface to build a new stream by emitting elements and

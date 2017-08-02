@@ -1,10 +1,8 @@
-# StreamEx 0.6.5
+# StreamEx 0.8
 Enhancing Java 8 Streams.
 
-[![Maven Central](https://img.shields.io/maven-central/v/one.util/streamex.svg)](https://maven-badges.herokuapp.com/maven-central/one.util/streamex/)
-[![Javadocs](https://www.javadoc.io/badge/one.util/streamex.svg)](https://www.javadoc.io/doc/one.util/streamex)
-[![Build Status](https://travis-ci.org/amaembo/streamex.png?branch=master)](https://travis-ci.org/amaembo/streamex)
-[![Coverage Status](https://coveralls.io/repos/amaembo/streamex/badge.svg?branch=master&service=github)](https://coveralls.io/github/amaembo/streamex?branch=master)
+[![Maven Central](https://img.shields.io/maven-central/v/com.landawn/streamex.svg)](https://maven-badges.herokuapp.com/maven-central/com.landawn/streamex/)
+[![Javadocs](https://www.javadoc.io/badge/one.util/streamex.svg)](https://www.javadoc.io/doc/com.landawn/streamex)
 
 This library defines four classes: `StreamEx`, `IntStreamEx`, `LongStreamEx`, `DoubleStreamEx`
 which are fully compatible with Java 8 stream classes and provide many additional useful methods.
@@ -12,7 +10,7 @@ Also `EntryStream` class is provided which represents the stream of map entries 
 additional functionality for this case. Finally there are some new useful collectors defined in `MoreCollectors`
 class as well as primitive collectors concept.
 
-Full API documentation is available [here](http://amaembo.github.io/streamex/javadoc/).
+Full API documentation is available [here](https://www.javadoc.io/doc/com.landawn/streamex).
 
 Take a look at the [Cheatsheet](CHEATSHEET.md) for brief introduction to the StreamEx!
 
@@ -32,8 +30,8 @@ should not be significantly slower than the standard way (and sometimes it's eve
 Collector shortcut methods (toList, toSet, groupingBy, joining, etc.)
 ```java
 List<String> userNames = StreamEx.of(users).map(User::getName).toList();
-Map<Role, List<User>> role2users = StreamEx.of(users).groupingBy(User::getRole);
-StreamEx.of(1,2,3).joining("; "); // "1; 2; 3"
+Map<Role, List<User>> role2users = StreamEx.of(users).groupTo(User::getRole);
+StreamEx.of(1,2,3).join("; "); // "1; 2; 3"
 ```
 
 Selecting stream elements of specific type
@@ -77,7 +75,7 @@ public Set<String> getEnabledRoleNames() {
 Operating on key-value pairs:
 ```java
 public Map<String, List<String>> invert(Map<String, List<String>> map) {
-    return EntryStream.of(map).flatMapValues(List::stream).invert().grouping();
+    return EntryStream.of(map).flatMapValues(List::stream).invert().groupTo();
 }
 
 public Map<String, String> stringMap(Map<Object, Object> map) {
@@ -121,7 +119,7 @@ This project is licensed under [Apache License, version 2.0](https://www.apache.
 
 ### Installation
 
-Releases are available in [Maven Central](https://repo1.maven.org/maven2/one/util/streamex/)
+Releases are available in [Maven Central](https://repo1.maven.org/maven2/com/landawn/streamex/)
 
 Before updating StreamEx check the [migration notes](MIGRATION.md) and full list of [changes](CHANGES.md).
 
@@ -129,9 +127,9 @@ To use from maven add this snippet to the pom.xml `dependencies` section:
 
 ```xml
 <dependency>
-  <groupId>one.util</groupId>
+  <groupId>com.landawn</groupId>
   <artifactId>streamex</artifactId>
-  <version>0.6.5</version>
+  <version>0.8</version>
 </dependency>
 ```
 
