@@ -1,8 +1,8 @@
 # StreamEx 0.8
 Enhancing Java 8 Streams.
 
-[![Maven Central](https://img.shields.io/maven-central/v/one.util/streamex.svg)](https://maven-badges.herokuapp.com/maven-central/com.landawn/streamex/)
-[![Javadocs](https://www.javadoc.io/badge/one.util/streamex.svg)](https://www.javadoc.io/doc/com.landawn/streamex)
+[![Maven Central](https://img.shields.io/maven-central/v/com.landawn/streamex.svg)](https://maven-badges.herokuapp.com/maven-central/com.landawn/streamex/)
+[![Javadocs](https://www.javadoc.io/badge/com.landawn/streamex.svg)](https://www.javadoc.io/doc/com.landawn/streamex)
 
 This library defines four classes: `StreamEx`, `IntStreamEx`, `LongStreamEx`, `DoubleStreamEx`
 which are fully compatible with Java 8 stream classes and provide many additional useful methods.
@@ -10,7 +10,7 @@ Also `EntryStream` class is provided which represents the stream of map entries 
 additional functionality for this case. Finally there are some new useful collectors defined in `MoreCollectors`
 class as well as primitive collectors concept.
 
-Full API documentation is available [here](http://amaembo.github.io/streamex/javadoc/).
+Full API documentation is available [here](https://www.javadoc.io/doc/com.landawn/streamex).
 
 Take a look at the [Cheatsheet](CHEATSHEET.md) for brief introduction to the StreamEx!
 
@@ -119,7 +119,7 @@ This project is licensed under [Apache License, version 2.0](https://www.apache.
 
 ### Installation
 
-Releases are available in [Maven Central](https://repo1.maven.org/maven2/one/util/streamex/)
+Releases are available in [Maven Central](https://repo1.maven.org/maven2/com/landawn/streamex/)
 
 Before updating StreamEx check the [migration notes](MIGRATION.md) and full list of [changes](CHANGES.md).
 
