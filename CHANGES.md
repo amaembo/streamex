@@ -17,7 +17,7 @@ Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
  	To:
  		`groupTo/join/forEachPair`
 * Rename `of(T element)` to `just(T element)`
-* Add StreamEx.of(boolean[])/StreamEx.of(byte[])/...
+* Add `StreamEx.of(boolean[])/StreamEx.of(byte[])/...`
 * Add `groupBy` to `StreamEx/EntryStreamEx`
 * Push up `flatMapToEntry/mapToEntry` from `StreamEx` to `AbstractStreamEx`
 * Rename `EntryStream<T, V> mapToEntry(Function<? super T, ? extends V> valueMapper)`		
