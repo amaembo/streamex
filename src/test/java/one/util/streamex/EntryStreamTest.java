@@ -121,6 +121,12 @@ public class EntryStreamTest {
     }
 
     @Test
+    public void testGenerate() {
+        entryStream(() -> EntryStream.generate(() -> "a", () -> 1).limit(10),
+                es -> assertEquals("a-1,a-1,a-1,a-1,a-1,a-1,a-1,a-1,a-1,a-1", es.get().join("-").joining(",")));
+    }
+
+    @Test
     public void testSequential() {
         EntryStream<String, Integer> stream = EntryStream.of(createMap());
         assertFalse(stream.isParallel());

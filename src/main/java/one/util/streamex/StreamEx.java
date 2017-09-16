@@ -2673,6 +2673,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @param s the {@code Supplier} of generated elements
      * @return a new infinite sequential unordered {@code StreamEx}
      * @see Stream#generate(Supplier)
+     * @see EntryStream#generate(Supplier, Supplier)
      */
     public static <T> StreamEx<T> generate(Supplier<T> s) {
         return new StreamEx<>(Stream.generate(s), StreamContext.SEQUENTIAL);

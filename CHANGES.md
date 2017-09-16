@@ -4,6 +4,7 @@ Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 
 ### 0.6.6
 * [#145] Added: `intersperse` method for all stream types.
+* [#144] Added: `EntryStream.generate`
 
 ### 0.6.5
 * [#137] Added: `StreamEx.toNavigableMap()`, `EntryStream.toNavigableMap()`
