@@ -2069,4 +2069,27 @@ public class StreamExTest {
         streamEx(asList("a", "b", "c", "d", "e")::stream, s -> assertEquals(expected, s.get().intersperse("--").toList()));
         assertEquals(Collections.emptyList(), StreamEx.empty().intersperse("xyz").toList());
     }
+
+    @Test
+    public void testIfEmpty() {
+        repeat(10, n -> streamEx(asList(1,2,3,4,5,6)::stream, s -> {
+            assertEquals("123456", s.get().ifEmpty(7,8,9).joining());
+            assertEquals("123456", s.get().filter(x -> x > 0).ifEmpty(7,8,9).joining());
+            assertEquals("6", s.get().filter(x -> x > 5).ifEmpty(7,8,9).joining());
+            assertEquals("789", s.get().filter(x -> x < 0).ifEmpty(7,8,9).joining());
+            assertEquals("123456", s.get().ifEmpty(s.get()).joining());
+            assertEquals("123456", s.get().filter(x -> x > 0).ifEmpty(s.get().filter(x -> x % 2 == 1)).joining());
+            assertEquals("135", s.get().filter(x -> x < 0).ifEmpty(s.get().filter(x -> x % 2 == 1)).joining());
+            assertEquals("", s.get().filter(x -> x < 0).ifEmpty(s.get().filter(x -> x < 0)).joining());
+
+            assertEquals(Optional.of(1), s.get().ifEmpty(7,8,9).findFirst());
+            assertEquals(Optional.of(1), s.get().filter(x -> x > 0).ifEmpty(7,8,9).findFirst());
+            assertEquals(Optional.of(6), s.get().filter(x -> x > 5).ifEmpty(7,8,9).findFirst());
+            assertEquals(Optional.of(7), s.get().filter(x -> x < 0).ifEmpty(7,8,9).findFirst());
+            assertEquals(Optional.of(1), s.get().ifEmpty(s.get()).findFirst());
+            assertEquals(Optional.of(1), s.get().filter(x -> x > 0).ifEmpty(s.get().filter(x -> x % 2 == 1)).findFirst());
+            assertEquals(Optional.of(1), s.get().filter(x -> x < 0).ifEmpty(s.get().filter(x -> x % 2 == 1)).findFirst());
+            assertEquals(Optional.empty(), s.get().filter(x -> x < 0).ifEmpty(s.get().filter(x -> x < 0)).findFirst());
+        }));
+    }
 }

@@ -96,6 +96,20 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
         return supply(result);
     }
 
+    @SuppressWarnings("unchecked")
+    S ifEmpty(Stream<? extends T> other, Spliterator<? extends T> right) {
+        if (right.getExactSizeIfKnown() == 0)
+            return (S) this;
+        Spliterator<T> left = spliterator();
+        Spliterator<T> result;
+        if (left.getExactSizeIfKnown() == 0)
+            result = (Spliterator<T>) right;
+        else
+            result = new IfEmptySpliterator<>(left, right);
+        context = context.combine(other);
+        return supply(result);
+    }
+
     abstract S supply(Stream<T> stream);
 
     abstract S supply(Spliterator<T> spliterator);
@@ -1062,6 +1076,29 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      */
     public S prepend(Stream<? extends T> other) {
         return prependSpliterator(other, other.spliterator());
+    }
+
+    /**
+     * Returns a stream which contents is the same as this stream, except the case when
+     * this stream is empty. In this case its contents is replaced with other stream contents.
+     *
+     * <p>
+     * The other stream will not be traversed if this stream is not empty.
+     *
+     * <p>
+     * If this stream is parallel and empty, the other stream is not guaranteed to be parallelized.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     *
+     * @param other other stream to replace the contents of this stream if this stream is empty.
+     * @return the stream which contents is replaced by other stream contents only if
+     * this stream is empty.
+     * @since 0.6.6
+     */
+    public S ifEmpty(Stream<? extends T> other) {
+        return ifEmpty(other, other.spliterator());
     }
 
     /**
