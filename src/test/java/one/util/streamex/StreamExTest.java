@@ -82,7 +82,7 @@ import static java.util.Arrays.asList;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class StreamExTest {
     @Rule
-    public TemporaryFolder tmp = new TemporaryFolder();
+    public final TemporaryFolder tmp = new TemporaryFolder();
 
     @Test
     public void testCreate() {
@@ -97,7 +97,7 @@ public class StreamExTest {
         assertEquals(asList((String) null), StreamEx.of((String) null).toList());
         assertEquals(asList("a", "b"), StreamEx.of("a", "b").toList());
         assertEquals(asList("a", "b"), StreamEx.of(asList("a", "b")).toList());
-        assertEquals(asList("a", "b"), StreamEx.of(asList("a", "b").stream()).toList());
+        assertEquals(asList("a", "b"), StreamEx.of(Stream.of("a", "b")).toList());
         assertEquals(asList("a", "b"), StreamEx.split("a,b", ",").toList());
         assertEquals(asList("a", "c", "d"), StreamEx.split("abcBd", Pattern.compile("b", Pattern.CASE_INSENSITIVE))
                 .toList());
@@ -499,7 +499,7 @@ public class StreamExTest {
     public void testAppend() {
         assertEquals(asList("a", "b", "c", "d", "e"), StreamEx.of("a", "b", "c", "dd").remove(s -> s.length() > 1)
                 .append("d", "e").toList());
-        assertEquals(asList("a", "b", "c", "d", "e"), StreamEx.of("a", "b", "c").append(asList("d", "e").stream())
+        assertEquals(asList("a", "b", "c", "d", "e"), StreamEx.of("a", "b", "c").append(Stream.of("d", "e"))
                 .toList());
         assertEquals(asList("a", "b", "c", "d", "e"), StreamEx.of("a", "b", "c").append(asList("d", "e")).toList());
 
@@ -522,7 +522,7 @@ public class StreamExTest {
             streamEx(supplier, s -> {
                 assertEquals(asList("d", "e", "a", "b", "c"), s.get().remove(str -> str.length() > 1).prepend("d", "e")
                         .toList());
-                assertEquals(asList("d", "e", "a", "b", "c", "dd"), s.get().prepend(asList("d", "e").stream())
+                assertEquals(asList("d", "e", "a", "b", "c", "dd"), s.get().prepend(Stream.of("d", "e"))
                         .toList());
                 assertEquals(asList("d", "e", "a", "b", "c", "dd"), s.get().prepend(asList("d", "e")).toList());
             });
@@ -787,7 +787,7 @@ public class StreamExTest {
     }
 
     static class Point {
-        double x, y;
+        final double x, y;
 
         Point(double x, double y) {
             this.x = x;
@@ -901,7 +901,7 @@ public class StreamExTest {
 
     static class Node {
         Node parent;
-        String name;
+        final String name;
 
         public Node(String name) {
             this.name = name;
@@ -964,7 +964,7 @@ public class StreamExTest {
     }
 
     static class TreeNode {
-        String title;
+        final String title;
 
         public TreeNode(String title) {
             this.title = title;
@@ -981,7 +981,7 @@ public class StreamExTest {
     }
 
     static class CompositeNode extends TreeNode {
-        List<TreeNode> nodes = new ArrayList<>();
+        final List<TreeNode> nodes = new ArrayList<>();
 
         public CompositeNode(String title) {
             super(title);

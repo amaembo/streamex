@@ -657,10 +657,6 @@ import java.util.stream.Collector.Characteristics;
             return new PairBox<>(a, a);
         }
 
-        public void setB(B b) {
-            this.b = b;
-        }
-
         @Override
         public int hashCode() {
             return b == null ? 0 : b.hashCode();

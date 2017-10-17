@@ -36,7 +36,7 @@ import static org.junit.Assert.*;
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class LongStreamExTest {
-    LongConsumer EMPTY = l -> {
+    final LongConsumer EMPTY = l -> {
         // nothing
     };
 
