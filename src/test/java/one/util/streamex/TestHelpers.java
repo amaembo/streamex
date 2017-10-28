@@ -285,6 +285,14 @@ public class TestHelpers {
      */
     static <T> void checkSpliterator(String msg, List<T> expected, Supplier<Spliterator<T>> supplier) {
         List<T> seq = new ArrayList<>();
+
+        // Test characteristics
+        Spliterator<T> forCharacteristics = supplier.get();
+        if(forCharacteristics.hasCharacteristics(Spliterator.SORTED)) {
+            forCharacteristics.getComparator(); // must not fail
+        }
+        assertTrue(forCharacteristics.estimateSize() >= 0);
+
         // Test forEachRemaining
         Spliterator<T> sequential = supplier.get();
         sequential.forEachRemaining(seq::add);

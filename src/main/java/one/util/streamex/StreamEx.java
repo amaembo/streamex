@@ -1371,6 +1371,23 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
+     * Returns a stream which contents is the same as this stream, except the case when
+     * this stream is empty. In this case its contents is replaced with supplied values.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     *
+     * @param values values to replace the contents of this stream if this stream is empty.
+     * @return the stream which contents is replaced by supplied values only if this stream is empty.
+     * @since 0.6.6
+     */
+    @SafeVarargs
+    public final StreamEx<T> ifEmpty(T... values) {
+        return ifEmpty(null, Spliterators.spliterator(values, Spliterator.ORDERED));
+    }
+
+    /**
      * Returns true if this stream contains the specified value.
      *
      * <p>

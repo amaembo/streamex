@@ -42,7 +42,7 @@ import static org.junit.Assert.*;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class MoreCollectorsTest {
     static class MyNumber implements Comparable<MyNumber> {
-        int value;
+        final int value;
         
         MyNumber(int value) {
             this.value = value;

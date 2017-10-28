@@ -48,7 +48,7 @@ import static org.junit.Assert.*;
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class CustomPoolTest {
-    ForkJoinPool pool = new ForkJoinPool(3);
+    final ForkJoinPool pool = new ForkJoinPool(3);
 
     private void checkThread(Object element) {
         Thread thread = Thread.currentThread();
