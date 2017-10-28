@@ -227,6 +227,40 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
         return supply(stream().map(t -> new PairBox<>(t, keyExtractor.apply(t))).distinct().map(box -> box.a));
     }
 
+    /**
+     * Returns a {@code StreamEx} consisting of the distinct elements (according
+     * to {@link Object#equals(Object)}) which appear at least specified number
+     * of times in this stream.
+     *
+     * <p>
+     * This operation is not guaranteed to be stable: any of equal elements can
+     * be selected for the output. However if this stream is ordered then order
+     * is preserved.
+     *
+     * <p>
+     * This is a stateful <a
+     * href="package-summary.html#StreamOps">quasi-intermediate</a> operation.
+     *
+     * @param atLeast minimal number of occurrences required to select the
+     *        element. If atLeast is 1 or less, then this method is equivalent
+     *        to {@link #distinct()}.
+     * @return the new stream
+     * @see #distinct()
+     * @since 0.3.1
+     */
+    public S distinct(long atLeast) {
+        if (atLeast <= 1)
+            return distinct();
+        Spliterator<T> spliterator = spliterator();
+        Spliterator<T> result;
+        if (spliterator.hasCharacteristics(Spliterator.DISTINCT))
+            // already distinct: cannot have any repeating elements
+            result = Spliterators.emptySpliterator();
+        else
+            result = new DistinctSpliterator<>(spliterator, atLeast);
+        return supply(result);
+    }
+
     @Override
     public S sorted() {
         return supply(stream().sorted());
