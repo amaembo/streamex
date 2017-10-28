@@ -519,7 +519,7 @@ public class EntryStreamTest {
         // code!
         Object[] interleavingArray = { "a", 1, "bb", 22, "ccc", 33 };
         Map<String, Integer> result = EntryStream.of(
-            StreamEx.of(interleavingArray).pairMap(SimpleEntry<Object, Object>::new)).selectKeys(String.class)
+            StreamEx.of(interleavingArray).pairMap(SimpleEntry::new)).selectKeys(String.class)
                 .selectValues(Integer.class).toMap();
         assertEquals(createMap(), result);
     }

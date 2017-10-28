@@ -33,10 +33,10 @@ public class WithFirstSpliteratorTest {
     public void testSpliterator() {
         checkSpliterator("withFirst", EntryStream.of(0, 0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5).toList(),
             () -> new WithFirstSpliterator<>(Stream.of(0, 1, 2, 3, 4, 5).spliterator(),
-                    AbstractMap.SimpleImmutableEntry<Integer, Integer>::new));
+                    AbstractMap.SimpleImmutableEntry::new));
         checkSpliterator("withFirstFlatMap", EntryStream.of(0, 0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5).toList(),
             () -> new WithFirstSpliterator<>(Stream.of(0, 2, 4).flatMap(x -> Stream.of(x, x + 1)).parallel()
-                    .spliterator(), AbstractMap.SimpleImmutableEntry<Integer, Integer>::new));
+                    .spliterator(), AbstractMap.SimpleImmutableEntry::new));
     }
     
     @Test

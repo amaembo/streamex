@@ -308,7 +308,7 @@ public class IntStreamExTest {
         assertArrayEquals(new long[] { 1, 2, 3, 2, 3, 4, 5, 4, Long.MAX_VALUE, Long.MIN_VALUE }, IntStreamEx.ofIndices(
             vals).flatMapToLong(idx -> Arrays.stream(vals[idx])).toArray());
         String expected = IntStream.range(0, 200).boxed().flatMap(
-            i -> IntStream.range(0, i).<String> mapToObj(j -> i + ":" + j)).collect(Collectors.joining("/"));
+            i -> IntStream.range(0, i).mapToObj(j -> i + ":" + j)).collect(Collectors.joining("/"));
         String res = IntStreamEx.range(200).flatMapToObj(i -> IntStreamEx.range(i).mapToObj(j -> i + ":" + j)).joining(
             "/");
         String parallel = IntStreamEx.range(200).parallel().flatMapToObj(
@@ -579,7 +579,7 @@ public class IntStreamExTest {
                 false)).skip(1).boxed().toSet());
         assertEquals(expected, IntStreamEx.of(
             StreamSupport.intStream(Spliterators.spliteratorUnknownSize(new HundredIterator(), Spliterator.ORDERED),
-                true)).skip(1).boxed().toCollection(HashSet<Integer>::new));
+                true)).skip(1).boxed().toCollection(HashSet::new));
         assertEquals(expected, IntStreamEx.of(
             StreamSupport.intStream(Spliterators.spliteratorUnknownSize(new HundredIterator(), Spliterator.ORDERED),
                 true)).skipOrdered(1).boxed().toSet());
@@ -588,7 +588,7 @@ public class IntStreamExTest {
                 | Spliterator.CONCURRENT), true)).skipOrdered(1).boxed().toSet());
         assertEquals(expected, IntStreamEx.of(
             StreamSupport.intStream(Spliterators.spliteratorUnknownSize(new HundredIterator(), Spliterator.ORDERED),
-                true)).unordered().skipOrdered(1).boxed().toCollection(HashSet<Integer>::new));
+                true)).unordered().skipOrdered(1).boxed().toCollection(HashSet::new));
 
         assertEquals(expected, IntStreamEx.iterate(0, i -> i + 1).skip(1).greater(0).limit(99).boxed().toSet());
         assertEquals(500, (int) IntStreamEx.iterate(0, i -> i + 1).skipOrdered(1).greater(0).boxed().parallel()

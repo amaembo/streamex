@@ -612,7 +612,7 @@ public final class MoreCollectors {
                 acc2.addFirst(acc1.pollLast());
             }
             return acc2;
-        }, ArrayList<T>::new);
+        }, ArrayList::new);
     }
 
     /**

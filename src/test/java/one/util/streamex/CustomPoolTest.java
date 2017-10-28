@@ -282,7 +282,7 @@ public class CustomPoolTest {
         IntStreamEx.range(200).parallel(pool).filter(i -> {
             checkThread(i);
             return i > 2;
-        }).boxed().pairMap(SimpleEntry<Integer, Integer>::new).forEach(p -> {
+        }).boxed().pairMap(SimpleEntry::new).forEach(p -> {
             checkThread(p);
             assertEquals(1, p.getValue() - p.getKey());
             assertTrue(p.getKey().toString(), bits.get(p.getKey()));

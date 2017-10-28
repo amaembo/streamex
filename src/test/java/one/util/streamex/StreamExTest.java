@@ -247,11 +247,11 @@ public class StreamExTest {
 
     @Test
     public void testAndThen() {
-        HashSet<String> set = StreamEx.of("a", "bb", "ccc").toListAndThen(HashSet<String>::new);
+        HashSet<String> set = StreamEx.of("a", "bb", "ccc").toListAndThen(HashSet::new);
         assertEquals(3, set.size());
         assertTrue(set.contains("bb"));
 
-        ArrayList<String> list = StreamEx.of("a", "bb", "ccc").toSetAndThen(ArrayList<String>::new);
+        ArrayList<String> list = StreamEx.of("a", "bb", "ccc").toSetAndThen(ArrayList::new);
         assertEquals(3, list.size());
         assertTrue(list.contains("bb"));
     }
@@ -822,7 +822,7 @@ public class StreamExTest {
     @Test
     public void testPairMapFlatMapBug() {
         Integer[][] input = { { 1 }, { 2, 3 }, { 4, 5, 6 }, { 7, 8 }, { 9 } };
-        streamEx(() -> StreamEx.of(input).<Integer> flatMap(Arrays::stream), supplier -> assertEquals(1L, supplier.get()
+        streamEx(() -> StreamEx.of(input).flatMap(Arrays::stream), supplier -> assertEquals(1L, supplier.get()
                 .pairMap((a, b) -> b - a).distinct().count()));
     }
 
@@ -1010,7 +1010,7 @@ public class StreamExTest {
 
         r.flatStream().close(); // should not fail
 
-        List<Consumer<StreamEx<TreeNode>>> tests = Arrays.<Consumer<StreamEx<TreeNode>>> asList(stream -> assertEquals(
+        List<Consumer<StreamEx<TreeNode>>> tests = Arrays.asList(stream -> assertEquals(
             Optional.empty(), stream.findFirst(tn -> tn.title.contains("abc"))), stream -> assertEquals(Optional.of(
                 "grandB1"), stream.findFirst(tn -> tn.title.contains("B1")).map(tn -> tn.title)),
             stream -> assertEquals(7, stream.count()));
@@ -1304,7 +1304,7 @@ public class StreamExTest {
     }
 
     private String format(StreamEx<Integer> ints) {
-        return ints.distinct().sorted().<String> intervalMap((i, j) -> j == i + 1, (i, j) -> j.equals(i) ? i.toString()
+        return ints.distinct().sorted().intervalMap((i, j) -> j == i + 1, (i, j) -> j.equals(i) ? i.toString()
                 : j == i + 1 ? i + "," + j : i + ".." + j).joining(",");
     }
 
@@ -1667,7 +1667,7 @@ public class StreamExTest {
                 assertEquals("#" + i, i, supplier.get().peek(t -> counter.incrementAndGet()).indexOf(x -> x == i)
                         .getAsLong());
             }
-            assertFalse(supplier.get().indexOf(""::equals).isPresent());
+            assertFalse(supplier.get().indexOf(x -> false).isPresent());
         });
     }
 

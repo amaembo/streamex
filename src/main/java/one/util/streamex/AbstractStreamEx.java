@@ -508,7 +508,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * @since 0.4.0
      */
     public OptionalLong indexOf(Predicate<? super T> predicate) {
-        return collect(new CancellableCollectorImpl<T, long[], OptionalLong>(() -> new long[] { -1 }, (acc, t) -> {
+        return collect(new CancellableCollectorImpl<>(() -> new long[]{-1}, (acc, t) -> {
             if (acc[0] < 0) {
                 if (predicate.test(t)) {
                     acc[0] = -acc[0] - 1;
@@ -1440,7 +1440,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * @since 0.4.0
      */
     public Optional<T> foldRight(BinaryOperator<T> accumulator) {
-        return this.<Optional<T>> toListAndThen(list -> {
+        return toListAndThen(list -> {
             if (list.isEmpty())
                 return Optional.empty();
             int i = list.size() - 1;

@@ -73,7 +73,7 @@ public class StreamExHeadTailTest {
 
     // Stream.filter (TSO)
     static <T> StreamEx<T> filter(StreamEx<T> input, Predicate<T> predicate) {
-        return input.<T> headTail((head, tail) -> predicate.test(head) ? filter(tail, predicate).prepend(head) : filter(tail, predicate));
+        return input.headTail((head, tail) -> predicate.test(head) ? filter(tail, predicate).prepend(head) : filter(tail, predicate));
     }
 
     // Stream.distinct
@@ -225,7 +225,7 @@ public class StreamExHeadTailTest {
     
     static <T> StreamEx<T> every3(StreamEx<T> input) {
         return input.headTail(
-            (first, tail1) -> tail1.<T>headTail(
+            (first, tail1) -> tail1.headTail(
                 (second, tail2) -> tail2.headTail(
                     (third, tail3) -> every3(tail3))).prepend(first));
     }
@@ -525,7 +525,7 @@ public class StreamExHeadTailTest {
         AtomicBoolean origClosed = new AtomicBoolean();
         AtomicBoolean internalClosed = new AtomicBoolean();
         AtomicBoolean finalClosed = new AtomicBoolean();
-        StreamEx<Integer> res = StreamEx.of(1, 2, 3).onClose(() -> origClosed.set(true)).<Integer> headTail(
+        StreamEx<Integer> res = StreamEx.of(1, 2, 3).onClose(() -> origClosed.set(true)).headTail(
             (head, stream) -> stream.onClose(() -> internalClosed.set(true)).map(x -> x + head)).onClose(
             () -> finalClosed.set(true));
         assertEquals(asList(3, 4), res.toList());

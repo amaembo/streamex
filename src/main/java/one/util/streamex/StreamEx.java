@@ -81,6 +81,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return new StreamEx<>(spliterator, context);
     }
 
+    @SuppressWarnings("EmptyMethod")
     @Override
     public StreamEx<T> nonNull() {
         // this overload is useful to make Eclipse external Null annotations working
@@ -1794,7 +1795,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public EntryStream<T, T> withFirst() {
         WithFirstSpliterator<T, Entry<T, T>> spliterator = new WithFirstSpliterator<>(spliterator(),
-                AbstractMap.SimpleImmutableEntry<T, T>::new);
+                SimpleImmutableEntry::new);
         return new EntryStream<>(spliterator, context);
     }
 
@@ -1872,7 +1873,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public <V> EntryStream<T, V> zipWith(Stream<V> other) {
         return new EntryStream<>(new ZipSpliterator<>(spliterator(), other.spliterator(),
-                AbstractMap.SimpleImmutableEntry<T, V>::new, true), context.combine(other));
+                SimpleImmutableEntry::new, true), context.combine(other));
     }
 
     /**

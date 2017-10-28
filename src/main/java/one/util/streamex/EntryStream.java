@@ -1891,7 +1891,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     public static <K, V> EntryStream<K, V> zip(List<K> keys, List<V> values) {
         return of(new RangeBasedSpliterator.ZipRef<>(0, checkLength(keys.size(), values.size()),
-                SimpleImmutableEntry<K, V>::new, keys, values));
+                SimpleImmutableEntry::new, keys, values));
     }
 
     /**
@@ -1937,7 +1937,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.3.6
      */
     public static <T> EntryStream<T, T> ofPairs(List<T> list) {
-        return of(new PairPermutationSpliterator<>(list, SimpleImmutableEntry<T, T>::new));
+        return of(new PairPermutationSpliterator<>(list, SimpleImmutableEntry::new));
     }
 
     /**
