@@ -2061,6 +2061,9 @@ public class StreamExTest {
             assertEquals(Optional.of(1), s.get().filter(x -> x > 0).ifEmpty(s.get().filter(x -> x % 2 == 1)).findFirst());
             assertEquals(Optional.of(1), s.get().filter(x -> x < 0).ifEmpty(s.get().filter(x -> x % 2 == 1)).findFirst());
             assertEquals(Optional.empty(), s.get().filter(x -> x < 0).ifEmpty(s.get().filter(x -> x < 0)).findFirst());
+
+            assertEquals(Optional.of(1), s.get().ifEmpty().findFirst());
+            assertEquals(Optional.of(1), StreamEx.empty().ifEmpty(s.get()).findFirst());
         }));
     }
 
