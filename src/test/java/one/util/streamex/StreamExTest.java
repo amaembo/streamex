@@ -1842,6 +1842,10 @@ public class StreamExTest {
                 .boxed()).mapKeyValue((name, idx) -> idx + ". " + name).toList()));
         streamEx(() -> IntStream.range(1, Integer.MAX_VALUE).boxed(), s -> assertEquals(expected, s.get().zipWith(input
                 .stream(), (idx, name) -> idx + ". " + name).toList()));
+        streamEx(input::stream, s -> assertEquals(expected, s.get().zipWith(IntStreamEx.ints())
+                .mapKeyValue((name, idx) -> (idx + 1) + ". " + name).toList()));
+        streamEx(input::stream, s -> assertEquals(expected, s.get()
+                .zipWith(IntStreamEx.ints(), (name, idx) -> (idx + 1) + ". " + name).toList()));
     }
 
     // Like Stream.generate(supplier)
@@ -1944,9 +1948,9 @@ public class StreamExTest {
         // Infinite stream, stop is reached
         assertEquals(Optional.of(1000), maxWithStop(IntStreamEx.of(new Random(1), 0, 1001).boxed(), Comparator
                 .naturalOrder(), 1000));
-        // FInite stream, stop is not reached
+        // Finite stream, stop is not reached
         assertEquals(Optional.of(999), maxWithStop(IntStreamEx.of(new Random(1), 10000, 0, 1000).boxed(), Comparator
-                .naturalOrder(), 1000));
+                .naturalOrder(), 1001));
     }
 
     @Test

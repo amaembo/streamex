@@ -2,6 +2,9 @@
 
 Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 
+### 0.6.7
+* [#76] Added: `StreamEx.zipWith` accepting `BaseStream` (so zipWith(IntStreamEx.ints()) works)
+
 ### 0.6.6
 * [#145] Added: `intersperse` method for all stream types.
 * [#144] Added: `EntryStream.generate`
