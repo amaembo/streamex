@@ -244,7 +244,7 @@ public class DoubleStreamExTest {
     }
 
     @SafeVarargs
-    private final void checkEmpty(Function<DoubleStreamEx, OptionalDouble>... fns) {
+    private static void checkEmpty(Function<DoubleStreamEx, OptionalDouble>... fns) {
         int i = 0;
         for (Function<DoubleStreamEx, OptionalDouble> fn : fns) {
             assertFalse("#" + i, fn.apply(DoubleStreamEx.empty()).isPresent());

@@ -168,7 +168,7 @@ public class MoreCollectorsTest {
         });
     }
 
-    private List<Integer> getMaxAll(List<Integer> ints, Comparator<Integer> c) {
+    private static List<Integer> getMaxAll(List<Integer> ints, Comparator<Integer> c) {
         List<Integer> expectedMax = null;
         for (Integer i : ints) {
             if (expectedMax == null || c.compare(i, expectedMax.get(0)) > 0) {

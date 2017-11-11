@@ -46,10 +46,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import one.util.streamex.EntryStream;
-import one.util.streamex.IntStreamEx;
-import one.util.streamex.MoreCollectors;
-import one.util.streamex.StreamEx;
 import one.util.streamex.StreamExTest.Point;
 
 import org.junit.FixMethodOrder;
@@ -61,11 +57,11 @@ import org.junit.runners.MethodSorters;
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class EntryStreamTest {
-    private void checkAsString(String expected, EntryStream<?, ?> stream) {
+    private static void checkAsString(String expected, EntryStream<?, ?> stream) {
         assertEquals(expected, stream.join("->").joining(";"));
     }
 
-    private Map<String, Integer> createMap() {
+    private static Map<String, Integer> createMap() {
         Map<String, Integer> data = new LinkedHashMap<>();
         data.put("a", 1);
         data.put("bb", 22);

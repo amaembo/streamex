@@ -425,7 +425,7 @@ public class IntStreamExTest {
     }
 
     @SafeVarargs
-    private final void checkEmpty(Function<IntStreamEx, OptionalInt>... fns) {
+    private static void checkEmpty(Function<IntStreamEx, OptionalInt>... fns) {
         int i = 0;
         for (Function<IntStreamEx, OptionalInt> fn : fns) {
             assertFalse("#" + i, fn.apply(IntStreamEx.empty()).isPresent());
@@ -469,7 +469,7 @@ public class IntStreamExTest {
         maxFns.forEach(fn -> assertEquals(120, fn.apply(s.get().parallel()).getAsInt()));
     }
 
-    private IntStreamEx dropLast(IntStreamEx s) {
+    private static IntStreamEx dropLast(IntStreamEx s) {
         return s.pairMap((a, b) -> a);
     }
 

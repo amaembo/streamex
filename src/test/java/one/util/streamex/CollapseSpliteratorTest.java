@@ -29,11 +29,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import one.util.streamex.CollapseSpliterator;
-import one.util.streamex.IntStreamEx;
-import one.util.streamex.StreamEx;
-import one.util.streamex.StreamExInternals;
-
 import org.junit.Test;
 
 import static one.util.streamex.TestHelpers.*;
@@ -102,7 +97,7 @@ public class CollapseSpliteratorTest {
         checkNonIdentity(IntStreamEx.range(3, 100).prepend(1).boxed().toList());
     }
 
-    private void checkNonIdentity(List<Integer> input) {
+    private static void checkNonIdentity(List<Integer> input) {
         checkSpliterator("collpase", () -> new CollapseSpliterator<Integer, Entry<Integer, Integer>>(
                 (a, b) -> (b - a == 1), a -> new AbstractMap.SimpleEntry<>(a, a),
                 (acc, a) -> new AbstractMap.SimpleEntry<>(acc.getKey(), a), (a, b) -> new AbstractMap.SimpleEntry<>(a
@@ -116,7 +111,7 @@ public class CollapseSpliteratorTest {
         multiSplit(() -> Stream.concat(Stream.empty(), input.parallelStream()).spliterator());
     }
 
-    private void multiSplit(Supplier<Spliterator<Integer>> inputSpliterator) throws AssertionError {
+    private static void multiSplit(Supplier<Spliterator<Integer>> inputSpliterator) throws AssertionError {
         withRandom(r -> repeat(100, n -> {
             Spliterator<Integer> spliterator = new CollapseSpliterator<>(Objects::equals, Function.identity(),
                     StreamExInternals.selectFirst(), StreamExInternals.selectFirst(), inputSpliterator.get());

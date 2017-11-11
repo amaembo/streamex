@@ -360,7 +360,7 @@ public class LongStreamExTest {
     }
 
     @SafeVarargs
-    private final void checkEmpty(Function<LongStreamEx, OptionalLong>... fns) {
+    private static void checkEmpty(Function<LongStreamEx, OptionalLong>... fns) {
         int i = 0;
         for (Function<LongStreamEx, OptionalLong> fn : fns) {
             assertFalse("#" + i, fn.apply(LongStreamEx.empty()).isPresent());

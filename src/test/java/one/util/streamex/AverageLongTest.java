@@ -31,9 +31,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
-import one.util.streamex.LongStreamEx;
-import one.util.streamex.MoreCollectors;
-
 import org.junit.Test;
 
 /**
@@ -99,7 +96,7 @@ public class AverageLongTest {
         });
     }
 
-    private Collector<Long, ?, OptionalDouble> getBigIntegerAverager() {
+    private static Collector<Long, ?, OptionalDouble> getBigIntegerAverager() {
         BiFunction<BigInteger, Long, OptionalDouble> finisher = (BigInteger sum, Long cnt) -> cnt == 0L ? OptionalDouble
                 .empty()
                 : OptionalDouble.of(new BigDecimal(sum).divide(BigDecimal.valueOf(cnt), MathContext.DECIMAL64)

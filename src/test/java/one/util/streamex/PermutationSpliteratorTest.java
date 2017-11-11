@@ -20,9 +20,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.Spliterator;
 
-import one.util.streamex.IntStreamEx;
-import one.util.streamex.PermutationSpliterator;
-
 import org.junit.Test;
 
 import static one.util.streamex.TestHelpers.*;
@@ -33,13 +30,13 @@ public class PermutationSpliteratorTest {
         + "2013,2031,2103,2130,2301,2310," + "3012,3021,3102,3120,3201,3210";
     private static final String PERMUTATIONS_3 = "012,021,102,120,201,210";
 
-    private List<String> collect(Spliterator<int[]> spliterator) {
+    private static List<String> collect(Spliterator<int[]> spliterator) {
         List<String> strings = new ArrayList<>();
         spliterator.forEachRemaining(i -> strings.add(IntStreamEx.of(i).mapToObj(String::valueOf).joining()));
         return strings;
     }
 
-    private void collectRandomSplit(Spliterator<int[]> spliterator, Random r, List<String> strings) {
+    private static void collectRandomSplit(Spliterator<int[]> spliterator, Random r, List<String> strings) {
         if (spliterator.estimateSize() == 0)
             return;
         int n = r.nextInt((int) spliterator.estimateSize()) + 1;
