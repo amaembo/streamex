@@ -88,7 +88,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return entry -> action.accept(entry.getKey(), entry.getValue());
     }
 
-    <M extends Map<K, V>> Consumer<? super Entry<K, V>> toMapConsumer(M map) {
+    static <K, V, M extends Map<K, V>> Consumer<? super Entry<K, V>> toMapConsumer(M map) {
         return entry -> addToMap(map, entry.getKey(), Objects.requireNonNull(entry.getValue()));
     }
 

@@ -54,7 +54,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
         return map;
     }
 
-    final <K, V, M extends Map<K, V>> void addToMap(M map, K key, V val) {
+    static <K, V, M extends Map<K, V>> void addToMap(M map, K key, V val) {
         V oldVal = map.putIfAbsent(key, val);
         if (oldVal != null) {
             throw new IllegalStateException("Duplicate entry for key '" + key + "' (attempt to merge values '" + oldVal
