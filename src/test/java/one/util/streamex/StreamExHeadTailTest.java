@@ -452,7 +452,8 @@ public class StreamExHeadTailTest {
         
         assertEquals(asList(5, 10, 1, 6, 7), skipLast(Stream.of(5, 10, 1, 6, 7, 15, -1, 10), 3).toList());
         assertEquals(asList(0, 3, 6, 9, 12, 15, 18), every3(IntStreamEx.range(20).boxed()).toList());
-        
+
+        //noinspection RedundantTypeArguments -- necessary for Javac 8u92
         assertEquals(asList(0, 1, 2, 3, 3), StreamEx.of(0, 1, 4, 2, 10, 3, 5, 10, 3, 15).chain(
             limitSorted(Comparator.<Integer> naturalOrder(), 5)).toList());
         
@@ -483,6 +484,7 @@ public class StreamExHeadTailTest {
             10000).reduce(Integer::sum).get());
         assertEquals(asList(50005000), skip(
             appendReduction(IntStreamEx.rangeClosed(1, 10000).boxed(), 0, Integer::sum), 10000).toList());
+        assertEquals(499501, mapFirst(IntStreamEx.range(1000).boxed(), x -> x + 1).mapToInt(x -> x).sum());
         AtomicInteger sum = new AtomicInteger();
         assertEquals(10000, peek(IntStreamEx.rangeClosed(1, 10000).boxed(), sum::addAndGet).count());
         assertEquals(50005000, sum.get());
