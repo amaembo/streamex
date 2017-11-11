@@ -89,6 +89,12 @@ import java.util.stream.Collector.Characteristics;
         SPLITERATOR_ITERATOR = fields.poll();
     }
 
+    static void checkNonNegative(String name, int value) {
+        if (value < 0) {
+            throw new IllegalArgumentException(name + " must be non-negative: " + value);
+        }
+    }
+
     static final class ByteBuffer {
         int size = 0;
         byte[] data;

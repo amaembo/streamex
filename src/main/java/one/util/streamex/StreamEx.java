@@ -2483,21 +2483,35 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * order.
      * 
      * @param length length of permutations array. Lengths bigger than 20 are
-     *        not supported currently.
+     *        not supported currently as resulting number of permutations will exceed
+     *        {@code Long.MAX_VALUE}.
      * @return new sequential {@code StreamEx} of possible permutations.
      * @since 0.2.2
+     * @throws IllegalArgumentException if length is negative or number of possible permutations exceeds
+     * {@code Long.MAX_VALUE}.
      */
     public static StreamEx<int[]> ofPermutations(int length) {
         return of(new PermutationSpliterator(length));
     }
 
+    /**
+     * Returns a new {@code StreamEx} of {@code int[]} arrays containing all the possible combinations of length {@code
+     * k} consisting of numbers from 0 to {@code n-1} in lexicographic order.
+     * <p>
+     * Example: {@code StreamEx.ofCombinations(3, 2)} returns the stream of three elements: {@code [0, 1]}, {@code [0,
+     * 2]} and {@code [1, 2]} in this order.
+     *
+     * @param n number of possible distinct elements
+     * @param k number of elements in each combination
+     * @return new sequential stream of possible combinations. Returns an empty stream if {@code k} is bigger
+     * than {@code n}.
+     * @throws IllegalArgumentException if n or k is negative or number of possible permutations exceeds {@code
+     *                                  Long.MAX_VALUE}.
+     * @since 0.6.7
+     */
     public static StreamEx<int[]> ofCombinations(int n, int k) {
-        if (k < 0) {
-            throw new IllegalArgumentException("k is negative: " + k);
-        }
-        if (n < 0) {
-            throw new IllegalArgumentException("n is negative: " + n);
-        }
+        checkNonNegative("k", k);
+        checkNonNegative("n", n);
         if (k > n) {
             return StreamEx.empty();
         }

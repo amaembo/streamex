@@ -213,8 +213,7 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
     }
 
     private Joining withLimit(int lenStrategy, int maxLength) {
-        if (maxLength < 0)
-            throw new IllegalArgumentException(maxLength + ": must be positive");
+        checkNonNegative("Length", maxLength);
         return new Joining(delimiter, ellipsis, prefix, suffix, cutStrategy, lenStrategy, maxLength);
     }
 

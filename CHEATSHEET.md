@@ -63,6 +63,7 @@ Stream of all possible pairs of array or `List` elements | `StreamEx/EntryStream
 Stream of all possible tuples of given length of `Collection` elements | `StreamEx.cartesianPower()`
 Stream of all possible tuples of given `Collection` of collections | `StreamEx.cartesianProduct()`
 Stream of permutations | `StreamEx.ofPermutations()`
+Stream of combinations | `StreamEx.ofCombinations()`
 Stream of array or `List` indices (with optional element filter) | `IntStreamEx.ofIndices()`
 Stream of range of integral values (with optional step parameter) | `IntStreamEx/LongStreamEx.range()/rangeClosed()`
 Stream of increasing `int` or `long` values | `IntStreamEx.ints()`/`LongStreamEx.longs()`

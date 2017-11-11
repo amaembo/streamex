@@ -29,8 +29,7 @@ import java.util.function.Consumer;
     private final long fence;
 
     public PermutationSpliterator(int length) {
-        if (length < 0)
-            throw new IllegalArgumentException("Length must be non-negative");
+        StreamExInternals.checkNonNegative("Length", length);
         if (length >= factorials.length)
             throw new IllegalArgumentException("Length " + length + " is bigger than " + factorials.length
                 + ": not supported");
