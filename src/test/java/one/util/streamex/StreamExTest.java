@@ -1,12 +1,12 @@
 /*
  * Copyright 2015, 2016 Tagir Vetaleev
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -2062,5 +2062,34 @@ public class StreamExTest {
             assertEquals(Optional.of(1), s.get().filter(x -> x < 0).ifEmpty(s.get().filter(x -> x % 2 == 1)).findFirst());
             assertEquals(Optional.empty(), s.get().filter(x -> x < 0).ifEmpty(s.get().filter(x -> x < 0)).findFirst());
         }));
+    }
+
+    @Test
+    public void testOfCombinations() {
+        List<String> expectedN5K3 = asList("[0, 1, 2]", "[0, 1, 3]", "[0, 1, 4]", "[0, 2, 3]", "[0, 2, 4]", "[0, 3, 4]", "[1, 2, 3]", "[1, 2, 4]", "[1, 3, 4]", "[2, 3, 4]");
+        List<String> expectedN5K2 = asList("[0, 1]", "[0, 2]", "[0, 3]", "[0, 4]", "[1, 2]", "[1, 3]", "[1, 4]", "[2, 3]", "[2, 4]", "[3, 4]");
+
+        streamEx(() -> StreamEx.ofCombinations(5, 3), s ->
+                assertEquals(expectedN5K3, s.get().map(Arrays::toString).collect(Collectors.toList())));
+        streamEx(() -> StreamEx.ofCombinations(20, 7), s ->
+                assertEquals(Optional.empty(), s.get().map(Arrays::toString).distinct(2).findFirst()));
+        streamEx(() -> StreamEx.ofCombinations(7, 20), s ->
+                assertEquals(Optional.empty(), s.get().map(Arrays::toString).findFirst()));
+        streamEx(() -> StreamEx.ofCombinations(5, 2), s ->
+                assertEquals(expectedN5K2, s.get().map(Arrays::toString).collect(Collectors.toList())));
+        streamEx(() -> StreamEx.ofCombinations(5, 0), s ->
+                assertEquals(asList("[]"), s.get().map(Arrays::toString).collect(Collectors.toList())));
+        streamEx(() -> StreamEx.ofCombinations(5, 5), s ->
+                assertEquals(asList("[0, 1, 2, 3, 4]"), s.get().map(Arrays::toString).collect(Collectors.toList())));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testOfCombinationsNegativeN() {
+        StreamEx.ofCombinations(-1, 0);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testOfCombinationsNegativeK() {
+        StreamEx.ofCombinations(0, -1);
     }
 }

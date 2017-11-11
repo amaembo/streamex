@@ -2491,6 +2491,28 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return of(new PermutationSpliterator(length));
     }
 
+    public static StreamEx<int[]> ofCombinations(int n, int k) {
+        if (k < 0) {
+            throw new IllegalArgumentException("k is negative: " + k);
+        }
+        if (n < 0) {
+            throw new IllegalArgumentException("n is negative: " + n);
+        }
+        if (k > n) {
+            return StreamEx.empty();
+        }
+        if (k == 0) {
+            return StreamEx.of(new int[0]);
+        }
+        long size = CombinationSpliterator.cnk(n, k);
+        int[] value = new int[k];
+        for (int i = 0; i < k; i++) {
+            value[i] = i;
+        }
+
+        return StreamEx.of(new CombinationSpliterator(n, size, 0, value));
+    }
+
     /**
      * Creates a stream from the given input sequence around matches of the
      * given pattern.
