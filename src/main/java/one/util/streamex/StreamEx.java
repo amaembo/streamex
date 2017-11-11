@@ -2505,7 +2505,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @param k number of elements in each combination
      * @return new sequential stream of possible combinations. Returns an empty stream if {@code k} is bigger
      * than {@code n}.
-     * @throws IllegalArgumentException if n or k is negative or number of possible permutations exceeds {@code
+     * @throws IllegalArgumentException if n or k is negative or number of possible combinations exceeds {@code
      *                                  Long.MAX_VALUE}.
      * @since 0.6.7
      */
