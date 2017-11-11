@@ -113,7 +113,7 @@ public class StreamExTest {
         assertEquals(input, StreamEx.ofLines(f.toPath(), StandardCharsets.UTF_16).toList());
     }
 
-    private Reader getReader() {
+    private static Reader getReader() {
         return new BufferedReader(new StringReader("a\nb"));
     }
 
@@ -745,11 +745,11 @@ public class StreamExTest {
                 .get().distinct(15).pairMap((a, b) -> b - a).toList()));
     }
 
-    private <T extends Comparable<? super T>> boolean isSorted(Collection<T> c) {
+    private static <T extends Comparable<? super T>> boolean isSorted(Collection<T> c) {
         return StreamEx.of(c).parallel().pairMap(Comparable::compareTo).allMatch(r -> r <= 0);
     }
 
-    private <T extends Comparable<? super T>> Optional<T> firstMisplaced(Collection<T> c) {
+    private static <T extends Comparable<? super T>> Optional<T> firstMisplaced(Collection<T> c) {
         return StreamEx.of(c).parallel().pairMap((a, b) -> a.compareTo(b) > 0 ? a : null).nonNull().findFirst();
     }
 
@@ -826,7 +826,7 @@ public class StreamExTest {
                 .pairMap((a, b) -> b - a).distinct().count()));
     }
 
-    private double interpolate(Point[] points, double x) {
+    private static double interpolate(Point[] points, double x) {
         return StreamEx.of(points).parallel().pairMap((p1, p2) -> p1.x <= x && p2.x >= x ? (x - p1.x) / (p2.x - p1.x)
             * (p2.y - p1.y) + p1.y : null).nonNull().findAny().orElse(Double.NaN);
     }
@@ -1303,12 +1303,12 @@ public class StreamExTest {
                     .groupRuns((a, b) -> !start.matcher(b).find()).toList()));
     }
 
-    private String format(StreamEx<Integer> ints) {
+    private static String format(StreamEx<Integer> ints) {
         return ints.distinct().sorted().intervalMap((i, j) -> j == i + 1, (i, j) -> j.equals(i) ? i.toString()
                 : j == i + 1 ? i + "," + j : i + ".." + j).joining(",");
     }
 
-    private String formatNaive(int[] input) {
+    private static String formatNaive(int[] input) {
         StringBuilder msg = new StringBuilder();
         int[] data = IntStreamEx.of(input).sorted().distinct().toArray();
         int endNum;
@@ -1392,7 +1392,7 @@ public class StreamExTest {
      * Returns longest input stream segment for which the predicate holds (like
      * the corresponding Scala method)
      */
-    private long segmentLength(IntStreamEx source, IntPredicate predicate) {
+    private static long segmentLength(IntStreamEx source, IntPredicate predicate) {
         return source.mapToObj(predicate::test).runLengths().removeKeys(Boolean.FALSE::equals).mapToLong(
             Entry::getValue).max().orElse(0);
     }
