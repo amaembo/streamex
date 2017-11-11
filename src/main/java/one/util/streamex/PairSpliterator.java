@@ -43,7 +43,7 @@ import static one.util.streamex.StreamExInternals.*;
     static final int MODE_MAP_FIRST_OR_ELSE = 3;
     static final int MODE_MAP_LAST_OR_ELSE = 4;
     
-    static Sink<?> EMPTY = new Sink<>(null);
+    static final Sink<?> EMPTY = new Sink<>(null);
     // Common lock for all the derived spliterators
     final Object lock = new Object();
     final int mode;

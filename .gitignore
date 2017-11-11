@@ -2,7 +2,6 @@
 
 # IntelliJ IDEA
 .idea/dictionaries/
-*.iml
 
 # Mac OS/X
 .DS_Store

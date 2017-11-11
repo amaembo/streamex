@@ -128,6 +128,7 @@ public class IntCollectorTest {
             IntCollector.toShortArray()));
     }
 
+    @SuppressWarnings("SuspiciousMethodCalls")
     @Test
     public void testPartitioning() {
         int[] expectedEven = IntStream.range(0, 1000).map(i -> i * 2).toArray();

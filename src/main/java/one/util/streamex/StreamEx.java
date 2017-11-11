@@ -81,6 +81,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return new StreamEx<>(spliterator, context);
     }
 
+    @SuppressWarnings("EmptyMethod")
     @Override
     public StreamEx<T> nonNull() {
         // this overload is useful to make Eclipse external Null annotations working
@@ -1371,6 +1372,23 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
+     * Returns a stream which contents is the same as this stream, except the case when
+     * this stream is empty. In this case its contents is replaced with supplied values.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     *
+     * @param values values to replace the contents of this stream if this stream is empty.
+     * @return the stream which contents is replaced by supplied values only if this stream is empty.
+     * @since 0.6.6
+     */
+    @SafeVarargs
+    public final StreamEx<T> ifEmpty(T... values) {
+        return ifEmpty(null, Spliterators.spliterator(values, Spliterator.ORDERED));
+    }
+
+    /**
      * Returns true if this stream contains the specified value.
      *
      * <p>
@@ -1470,40 +1488,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     @SuppressWarnings("unchecked")
     public StreamEx<T> reverseSorted() {
         return sorted((Comparator<? super T>) Comparator.reverseOrder());
-    }
-
-    /**
-     * Returns a {@code StreamEx} consisting of the distinct elements (according
-     * to {@link Object#equals(Object)}) which appear at least specified number
-     * of times in this stream.
-     *
-     * <p>
-     * This operation is not guaranteed to be stable: any of equal elements can
-     * be selected for the output. However if this stream is ordered then order
-     * is preserved.
-     *
-     * <p>
-     * This is a stateful <a
-     * href="package-summary.html#StreamOps">quasi-intermediate</a> operation.
-     *
-     * @param atLeast minimal number of occurrences required to select the
-     *        element. If atLeast is 1 or less, then this method is equivalent
-     *        to {@link #distinct()}.
-     * @return the new stream
-     * @see #distinct()
-     * @since 0.3.1
-     */
-    public StreamEx<T> distinct(long atLeast) {
-        if (atLeast <= 1)
-            return distinct();
-        Spliterator<T> spliterator = spliterator();
-        Spliterator<T> result;
-        if (spliterator.hasCharacteristics(Spliterator.DISTINCT))
-            // already distinct: cannot have any repeating elements
-            result = Spliterators.emptySpliterator();
-        else
-            result = new DistinctSpliterator<>(spliterator, atLeast);
-        return supply(result);
     }
 
     /**
@@ -1811,7 +1795,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public EntryStream<T, T> withFirst() {
         WithFirstSpliterator<T, Entry<T, T>> spliterator = new WithFirstSpliterator<>(spliterator(),
-                AbstractMap.SimpleImmutableEntry<T, T>::new);
+                SimpleImmutableEntry::new);
         return new EntryStream<>(spliterator, context);
     }
 
@@ -1889,7 +1873,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public <V> EntryStream<T, V> zipWith(Stream<V> other) {
         return new EntryStream<>(new ZipSpliterator<>(spliterator(), other.spliterator(),
-                AbstractMap.SimpleImmutableEntry<T, V>::new, true), context.combine(other));
+                SimpleImmutableEntry::new, true), context.combine(other));
     }
 
     /**
@@ -2673,6 +2657,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @param s the {@code Supplier} of generated elements
      * @return a new infinite sequential unordered {@code StreamEx}
      * @see Stream#generate(Supplier)
+     * @see EntryStream#generate(Supplier, Supplier)
      */
     public static <T> StreamEx<T> generate(Supplier<T> s) {
         return new StreamEx<>(Stream.generate(s), StreamContext.SEQUENTIAL);

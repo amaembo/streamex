@@ -15,40 +15,17 @@
  */
 package one.util.streamex;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.UncheckedIOException;
+import org.junit.FixMethodOrder;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.junit.runners.MethodSorters;
+
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.AbstractList;
-import java.util.AbstractMap;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.NavigableMap;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Queue;
-import java.util.Random;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.Spliterator;
-import java.util.TreeSet;
-import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
@@ -62,19 +39,9 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import one.util.streamex.IntStreamEx;
-import one.util.streamex.MoreCollectors;
-import one.util.streamex.StreamEx;
-
-import org.junit.FixMethodOrder;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runners.MethodSorters;
-
+import static java.util.Arrays.asList;
 import static one.util.streamex.TestHelpers.*;
 import static org.junit.Assert.*;
-import static java.util.Arrays.asList;
 
 /**
  * @author Tagir Valeev
@@ -82,7 +49,7 @@ import static java.util.Arrays.asList;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class StreamExTest {
     @Rule
-    public TemporaryFolder tmp = new TemporaryFolder();
+    public final TemporaryFolder tmp = new TemporaryFolder();
 
     @Test
     public void testCreate() {
@@ -97,7 +64,7 @@ public class StreamExTest {
         assertEquals(asList((String) null), StreamEx.of((String) null).toList());
         assertEquals(asList("a", "b"), StreamEx.of("a", "b").toList());
         assertEquals(asList("a", "b"), StreamEx.of(asList("a", "b")).toList());
-        assertEquals(asList("a", "b"), StreamEx.of(asList("a", "b").stream()).toList());
+        assertEquals(asList("a", "b"), StreamEx.of(Stream.of("a", "b")).toList());
         assertEquals(asList("a", "b"), StreamEx.split("a,b", ",").toList());
         assertEquals(asList("a", "c", "d"), StreamEx.split("abcBd", Pattern.compile("b", Pattern.CASE_INSENSITIVE))
                 .toList());
@@ -280,11 +247,11 @@ public class StreamExTest {
 
     @Test
     public void testAndThen() {
-        HashSet<String> set = StreamEx.of("a", "bb", "ccc").toListAndThen(HashSet<String>::new);
+        HashSet<String> set = StreamEx.of("a", "bb", "ccc").toListAndThen(HashSet::new);
         assertEquals(3, set.size());
         assertTrue(set.contains("bb"));
 
-        ArrayList<String> list = StreamEx.of("a", "bb", "ccc").toSetAndThen(ArrayList<String>::new);
+        ArrayList<String> list = StreamEx.of("a", "bb", "ccc").toSetAndThen(ArrayList::new);
         assertEquals(3, list.size());
         assertTrue(list.contains("bb"));
     }
@@ -499,7 +466,7 @@ public class StreamExTest {
     public void testAppend() {
         assertEquals(asList("a", "b", "c", "d", "e"), StreamEx.of("a", "b", "c", "dd").remove(s -> s.length() > 1)
                 .append("d", "e").toList());
-        assertEquals(asList("a", "b", "c", "d", "e"), StreamEx.of("a", "b", "c").append(asList("d", "e").stream())
+        assertEquals(asList("a", "b", "c", "d", "e"), StreamEx.of("a", "b", "c").append(Stream.of("d", "e"))
                 .toList());
         assertEquals(asList("a", "b", "c", "d", "e"), StreamEx.of("a", "b", "c").append(asList("d", "e")).toList());
 
@@ -522,7 +489,7 @@ public class StreamExTest {
             streamEx(supplier, s -> {
                 assertEquals(asList("d", "e", "a", "b", "c"), s.get().remove(str -> str.length() > 1).prepend("d", "e")
                         .toList());
-                assertEquals(asList("d", "e", "a", "b", "c", "dd"), s.get().prepend(asList("d", "e").stream())
+                assertEquals(asList("d", "e", "a", "b", "c", "dd"), s.get().prepend(Stream.of("d", "e"))
                         .toList());
                 assertEquals(asList("d", "e", "a", "b", "c", "dd"), s.get().prepend(asList("d", "e")).toList());
             });
@@ -787,7 +754,7 @@ public class StreamExTest {
     }
 
     static class Point {
-        double x, y;
+        final double x, y;
 
         Point(double x, double y) {
             this.x = x;
@@ -855,7 +822,7 @@ public class StreamExTest {
     @Test
     public void testPairMapFlatMapBug() {
         Integer[][] input = { { 1 }, { 2, 3 }, { 4, 5, 6 }, { 7, 8 }, { 9 } };
-        streamEx(() -> StreamEx.of(input).<Integer> flatMap(Arrays::stream), supplier -> assertEquals(1L, supplier.get()
+        streamEx(() -> StreamEx.of(input).flatMap(Arrays::stream), supplier -> assertEquals(1L, supplier.get()
                 .pairMap((a, b) -> b - a).distinct().count()));
     }
 
@@ -901,7 +868,7 @@ public class StreamExTest {
 
     static class Node {
         Node parent;
-        String name;
+        final String name;
 
         public Node(String name) {
             this.name = name;
@@ -964,7 +931,7 @@ public class StreamExTest {
     }
 
     static class TreeNode {
-        String title;
+        final String title;
 
         public TreeNode(String title) {
             this.title = title;
@@ -981,7 +948,7 @@ public class StreamExTest {
     }
 
     static class CompositeNode extends TreeNode {
-        List<TreeNode> nodes = new ArrayList<>();
+        final List<TreeNode> nodes = new ArrayList<>();
 
         public CompositeNode(String title) {
             super(title);
@@ -1043,7 +1010,7 @@ public class StreamExTest {
 
         r.flatStream().close(); // should not fail
 
-        List<Consumer<StreamEx<TreeNode>>> tests = Arrays.<Consumer<StreamEx<TreeNode>>> asList(stream -> assertEquals(
+        List<Consumer<StreamEx<TreeNode>>> tests = Arrays.asList(stream -> assertEquals(
             Optional.empty(), stream.findFirst(tn -> tn.title.contains("abc"))), stream -> assertEquals(Optional.of(
                 "grandB1"), stream.findFirst(tn -> tn.title.contains("B1")).map(tn -> tn.title)),
             stream -> assertEquals(7, stream.count()));
@@ -1337,7 +1304,7 @@ public class StreamExTest {
     }
 
     private String format(StreamEx<Integer> ints) {
-        return ints.distinct().sorted().<String> intervalMap((i, j) -> j == i + 1, (i, j) -> j.equals(i) ? i.toString()
+        return ints.distinct().sorted().intervalMap((i, j) -> j == i + 1, (i, j) -> j.equals(i) ? i.toString()
                 : j == i + 1 ? i + "," + j : i + ".." + j).joining(",");
     }
 
@@ -1700,7 +1667,7 @@ public class StreamExTest {
                 assertEquals("#" + i, i, supplier.get().peek(t -> counter.incrementAndGet()).indexOf(x -> x == i)
                         .getAsLong());
             }
-            assertFalse(supplier.get().indexOf(""::equals).isPresent());
+            assertFalse(supplier.get().indexOf(x -> false).isPresent());
         });
     }
 
@@ -2068,6 +2035,29 @@ public class StreamExTest {
         List<String> expected = asList("a", "--", "b", "--", "c", "--", "d", "--", "e");
         streamEx(asList("a", "b", "c", "d", "e")::stream, s -> assertEquals(expected, s.get().intersperse("--").toList()));
         assertEquals(Collections.emptyList(), StreamEx.empty().intersperse("xyz").toList());
+    }
+
+    @Test
+    public void testIfEmpty() {
+        repeat(10, n -> streamEx(asList(1,2,3,4,5,6)::stream, s -> {
+            assertEquals("123456", s.get().ifEmpty(7,8,9).joining());
+            assertEquals("123456", s.get().filter(x -> x > 0).ifEmpty(7,8,9).joining());
+            assertEquals("6", s.get().filter(x -> x > 5).ifEmpty(7,8,9).joining());
+            assertEquals("789", s.get().filter(x -> x < 0).ifEmpty(7,8,9).joining());
+            assertEquals("123456", s.get().ifEmpty(s.get()).joining());
+            assertEquals("123456", s.get().filter(x -> x > 0).ifEmpty(s.get().filter(x -> x % 2 == 1)).joining());
+            assertEquals("135", s.get().filter(x -> x < 0).ifEmpty(s.get().filter(x -> x % 2 == 1)).joining());
+            assertEquals("", s.get().filter(x -> x < 0).ifEmpty(s.get().filter(x -> x < 0)).joining());
+
+            assertEquals(Optional.of(1), s.get().ifEmpty(7,8,9).findFirst());
+            assertEquals(Optional.of(1), s.get().filter(x -> x > 0).ifEmpty(7,8,9).findFirst());
+            assertEquals(Optional.of(6), s.get().filter(x -> x > 5).ifEmpty(7,8,9).findFirst());
+            assertEquals(Optional.of(7), s.get().filter(x -> x < 0).ifEmpty(7,8,9).findFirst());
+            assertEquals(Optional.of(1), s.get().ifEmpty(s.get()).findFirst());
+            assertEquals(Optional.of(1), s.get().filter(x -> x > 0).ifEmpty(s.get().filter(x -> x % 2 == 1)).findFirst());
+            assertEquals(Optional.of(1), s.get().filter(x -> x < 0).ifEmpty(s.get().filter(x -> x % 2 == 1)).findFirst());
+            assertEquals(Optional.empty(), s.get().filter(x -> x < 0).ifEmpty(s.get().filter(x -> x < 0)).findFirst());
+        }));
     }
 
     @Test

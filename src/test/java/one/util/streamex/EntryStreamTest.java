@@ -121,6 +121,12 @@ public class EntryStreamTest {
     }
 
     @Test
+    public void testGenerate() {
+        entryStream(() -> EntryStream.generate(() -> "a", () -> 1).limit(10),
+                es -> assertEquals("a-1,a-1,a-1,a-1,a-1,a-1,a-1,a-1,a-1,a-1", es.get().join("-").joining(",")));
+    }
+
+    @Test
     public void testSequential() {
         EntryStream<String, Integer> stream = EntryStream.of(createMap());
         assertFalse(stream.isParallel());
@@ -513,7 +519,7 @@ public class EntryStreamTest {
         // code!
         Object[] interleavingArray = { "a", 1, "bb", 22, "ccc", 33 };
         Map<String, Integer> result = EntryStream.of(
-            StreamEx.of(interleavingArray).pairMap(SimpleEntry<Object, Object>::new)).selectKeys(String.class)
+            StreamEx.of(interleavingArray).pairMap(SimpleEntry::new)).selectKeys(String.class)
                 .selectValues(Integer.class).toMap();
         assertEquals(createMap(), result);
     }

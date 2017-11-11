@@ -187,6 +187,7 @@ Perform parallel stream computation using the custom `ForkJoinPool` | `any.paral
 Zip two streams together | `StreamEx.zipWith()`
 Get the stream of cumulative prefixes | `any.prefix()`/`EntryStream.prefixKeys()`/`EntryStream.prefixValues()`
 Intersperse the stream with given delimiters | `any.intersperse()`
+Replace the stream contents if the stream is empty | `StreamEx.ifEmpty()`/`EntryStream.ifEmpty()`
 
 ## New terminal operations
 

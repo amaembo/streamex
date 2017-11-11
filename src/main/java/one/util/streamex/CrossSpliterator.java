@@ -190,8 +190,7 @@ import java.util.stream.StreamSupport;
             if (i == 0 || collections[i - 1] == null || !advance(i - 1))
                 return false;
             spliterators[i] = collections[i].spliterator();
-            if (!spliterators[i].tryAdvance(action))
-                return false;
+            return spliterators[i].tryAdvance(action);
         }
         return true;
     }

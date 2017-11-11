@@ -36,7 +36,7 @@ import static org.junit.Assert.*;
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class LongStreamExTest {
-    LongConsumer EMPTY = l -> {
+    final LongConsumer EMPTY = l -> {
         // nothing
     };
 
@@ -271,7 +271,7 @@ public class LongStreamExTest {
                     .toArray());
 
         String expected = LongStreamEx.range(200).boxed().flatMap(
-            i -> LongStreamEx.range(0, i).<String> mapToObj(j -> i + ":" + j)).joining("/");
+            i -> LongStreamEx.range(0, i).mapToObj(j -> i + ":" + j)).joining("/");
         String res = LongStreamEx.range(200).flatMapToObj(i -> LongStreamEx.range(i).mapToObj(j -> i + ":" + j))
                 .joining("/");
         String parallel = LongStreamEx.range(200).parallel().flatMapToObj(

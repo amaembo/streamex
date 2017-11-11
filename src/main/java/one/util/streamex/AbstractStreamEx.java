@@ -98,6 +98,20 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
         return supply(result);
     }
 
+    @SuppressWarnings("unchecked")
+    S ifEmpty(Stream<? extends T> other, Spliterator<? extends T> right) {
+        if (right.getExactSizeIfKnown() == 0)
+            return (S) this;
+        Spliterator<T> left = spliterator();
+        Spliterator<T> result;
+        if (left.getExactSizeIfKnown() == 0)
+            result = (Spliterator<T>) right;
+        else
+            result = new IfEmptySpliterator<>(left, right);
+        context = context.combine(other);
+        return supply(result);
+    }
+
     abstract S supply(Stream<T> stream);
 
     abstract S supply(Spliterator<T> spliterator);
@@ -227,6 +241,40 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      */
     public S distinct(Function<? super T, ?> keyExtractor) {
         return supply(stream().map(t -> new PairBox<>(t, keyExtractor.apply(t))).distinct().map(box -> box.a));
+    }
+
+    /**
+     * Returns a {@code StreamEx} consisting of the distinct elements (according
+     * to {@link Object#equals(Object)}) which appear at least specified number
+     * of times in this stream.
+     *
+     * <p>
+     * This operation is not guaranteed to be stable: any of equal elements can
+     * be selected for the output. However if this stream is ordered then order
+     * is preserved.
+     *
+     * <p>
+     * This is a stateful <a
+     * href="package-summary.html#StreamOps">quasi-intermediate</a> operation.
+     *
+     * @param atLeast minimal number of occurrences required to select the
+     *        element. If atLeast is 1 or less, then this method is equivalent
+     *        to {@link #distinct()}.
+     * @return the new stream
+     * @see #distinct()
+     * @since 0.3.1
+     */
+    public S distinct(long atLeast) {
+        if (atLeast <= 1)
+            return distinct();
+        Spliterator<T> spliterator = spliterator();
+        Spliterator<T> result;
+        if (spliterator.hasCharacteristics(Spliterator.DISTINCT))
+            // already distinct: cannot have any repeating elements
+            result = Spliterators.emptySpliterator();
+        else
+            result = new DistinctSpliterator<>(spliterator, atLeast);
+        return supply(result);
     }
 
     @Override
@@ -517,7 +565,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * @since 0.4.0
      */
     public OptionalLong indexOf(Predicate<? super T> predicate) {
-        return collect(new CancellableCollectorImpl<T, long[], OptionalLong>(() -> new long[] { -1 }, (acc, t) -> {
+        return collect(new CancellableCollectorImpl<>(() -> new long[]{-1}, (acc, t) -> {
             if (acc[0] < 0) {
                 if (predicate.test(t)) {
                     acc[0] = -acc[0] - 1;
@@ -1122,6 +1170,29 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     }
 
     /**
+     * Returns a stream which contents is the same as this stream, except the case when
+     * this stream is empty. In this case its contents is replaced with other stream contents.
+     *
+     * <p>
+     * The other stream will not be traversed if this stream is not empty.
+     *
+     * <p>
+     * If this stream is parallel and empty, the other stream is not guaranteed to be parallelized.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
+     * operation</a>.
+     *
+     * @param other other stream to replace the contents of this stream if this stream is empty.
+     * @return the stream which contents is replaced by other stream contents only if
+     * this stream is empty.
+     * @since 0.6.6
+     */
+    public S ifEmpty(Stream<? extends T> other) {
+        return ifEmpty(other, other.spliterator());
+    }
+
+    /**
      * Returns a {@link List} containing the elements of this stream. The
      * returned {@code List} is guaranteed to be mutable, but there are no
      * guarantees on the type, serializability, or thread-safety; if more
@@ -1426,7 +1497,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * @since 0.4.0
      */
     public Optional<T> foldRight(BinaryOperator<T> accumulator) {
-        return this.<Optional<T>> toListAndThen(list -> {
+        return toListAndThen(list -> {
             if (list.isEmpty())
                 return Optional.empty();
             int i = list.size() - 1;

@@ -4,7 +4,7 @@
 
   <groupId>one.util</groupId>
   <artifactId>streamex</artifactId>
-  <version>0.6.7-SNAPSHOT</version>
+  <version>0.6.6</version>
   <packaging>jar</packaging>
 
   <name>StreamEx</name>
@@ -43,7 +43,7 @@
   <developers>
     <developer>
       <name>Tagir Valeev</name>
-      <email>lany@ngs.ru</email>
+      <email>amaembo@gmail.com</email>
     </developer>
   </developers>
 
@@ -186,6 +186,7 @@
             <Bundle-SymbolicName>${project.package}</Bundle-SymbolicName>
             <Bundle-Name>${project.name}</Bundle-Name>
             <Export-Package>${project.package}</Export-Package>
+            <Automatic-Module-Name>${project.package}</Automatic-Module-Name>
           </instructions>
         </configuration>
       </plugin>
