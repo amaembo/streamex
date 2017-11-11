@@ -589,4 +589,14 @@ public class LongStreamExTest {
                 .toArray());
         assertEquals(0L, IntStreamEx.empty().intersperse(1).count());
     }
+
+    @Test
+    public void testSkipLast() {
+        Supplier<LongStreamEx> s = () -> LongStreamEx.of(1L, 2L, 3L);
+        assertArrayEquals(new long[] {1L, 2L}, s.get().skipLast(1).toArray());
+        assertArrayEquals(new long[0], s.get().skipLast(3).toArray());
+        assertArrayEquals(new long[0], s.get().skipLast(4).toArray());
+        assertArrayEquals(new long[0], s.get().skipLast(10).toArray());
+        assertArrayEquals(new long[0], LongStreamEx.empty().skipLast(10).toArray());
+    }
 }

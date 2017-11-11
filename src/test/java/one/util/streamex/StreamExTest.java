@@ -2059,4 +2059,14 @@ public class StreamExTest {
             assertEquals(Optional.empty(), s.get().filter(x -> x < 0).ifEmpty(s.get().filter(x -> x < 0)).findFirst());
         }));
     }
+
+    @Test
+    public void testSkipLast() {
+        streamEx(asList("a", "b", "c")::stream, s -> assertEquals(asList("a", "b", "c"), s.get().skipLast(0).toList()));
+        streamEx(asList("a", "b", "c")::stream, s -> assertEquals(asList("a", "b"), s.get().skipLast(1).toList()));
+        streamEx(asList("a", "b", "c")::stream, s -> assertEquals(asList(), s.get().skipLast(3).toList()));
+        streamEx(asList("a", "b", "c")::stream, s -> assertEquals(asList(), s.get().skipLast(4).toList()));
+        streamEx(asList("a", "b", "c")::stream, s -> assertEquals(asList(), s.get().skipLast(10).toList()));
+        assertEquals(asList(), StreamEx.empty().skipLast(3).toList());
+    }
 }
