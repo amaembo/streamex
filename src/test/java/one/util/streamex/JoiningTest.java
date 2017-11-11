@@ -285,4 +285,21 @@ public class JoiningTest {
         checkShortCircuitCollector("maxSymbolsBeforeDelimiterPrefix", string, 0, input::stream, Joining.with(",").wrap(
             string, string).maxGraphemes(8).cutBeforeDelimiter());
     }
+
+    @Test
+    public void testMaxElements() {
+        List<String> input = Arrays.asList("one", "two", "three", "four");
+        checkShortCircuitCollector("maxElements", "", 0, StreamEx::empty, Joining.with(", ").maxElements(0));
+        checkShortCircuitCollector("maxElements", "...", 1, input::stream, Joining.with(", ").maxElements(0));
+        checkShortCircuitCollector("maxElements", "one, ...", 2, input::stream, Joining.with(", ").maxElements(1));
+        checkShortCircuitCollector("maxElements", "one, two, ...", 3, input::stream, Joining.with(", ").maxElements(2));
+        checkShortCircuitCollector("maxElements", "one, two, three, ...", 4, input::stream, Joining.with(", ").maxElements(3));
+        checkShortCircuitCollector("maxElements", "one, two, three, four", 4, input::stream, Joining.with(", ").maxElements(4));
+
+        checkShortCircuitCollector("maxElements", "...", 1, input::stream, Joining.with(", ").maxElements(0).cutBeforeDelimiter());
+        checkShortCircuitCollector("maxElements", "one...", 2, input::stream, Joining.with(", ").maxElements(1).cutBeforeDelimiter());
+        checkShortCircuitCollector("maxElements", "one, two...", 3, input::stream, Joining.with(", ").maxElements(2).cutBeforeDelimiter());
+        checkShortCircuitCollector("maxElements", "one, two, three...", 4, input::stream, Joining.with(", ").maxElements(3).cutBeforeDelimiter());
+        checkShortCircuitCollector("maxElements", "one, two, three, four", 4, input::stream, Joining.with(", ").maxElements(4).cutBeforeDelimiter());
+    }
 }

@@ -89,6 +89,7 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
     private static final int LENGTH_CHARS = 0;
     private static final int LENGTH_CODEPOINTS = 1;
     private static final int LENGTH_GRAPHEMES = 2;
+    private static final int LENGTH_ELEMENTS = 3;
 
     private final String delimiter, ellipsis, prefix, suffix;
     private final int cutStrategy, lenStrategy, maxLength;
@@ -107,28 +108,30 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
 
     private void init() {
         if (delimCount == -1) {
-            limit = maxLength - length(prefix) - length(suffix);
-            delimCount = length(delimiter);
+            limit = maxLength - length(prefix, false) - length(suffix, false);
+            delimCount = length(delimiter, false);
         }
     }
 
-    private int length(CharSequence s) {
+    private int length(CharSequence s, boolean content) {
         switch (lenStrategy) {
-        case LENGTH_CHARS:
-            return s.length();
-        case LENGTH_CODEPOINTS:
-            if (s instanceof String)
-                return ((String) s).codePointCount(0, s.length());
-            return (int) s.codePoints().count();
-        case LENGTH_GRAPHEMES:
-            BreakIterator bi = BreakIterator.getCharacterInstance();
-            bi.setText(s.toString());
-            int count = 0;
-            for (int end = bi.next(); end != BreakIterator.DONE; end = bi.next())
-                count++;
-            return count;
-        default:
-            throw new InternalError();
+            case LENGTH_CHARS:
+                return s.length();
+            case LENGTH_CODEPOINTS:
+                if (s instanceof String)
+                    return ((String) s).codePointCount(0, s.length());
+                return (int) s.codePoints().count();
+            case LENGTH_GRAPHEMES:
+                BreakIterator bi = BreakIterator.getCharacterInstance();
+                bi.setText(s.toString());
+                int count = 0;
+                for (int end = bi.next(); end != BreakIterator.DONE; end = bi.next())
+                    count++;
+                return count;
+            case LENGTH_ELEMENTS:
+                return content ? 1 : 0;
+            default:
+                throw new InternalError();
         }
     }
 
@@ -142,30 +145,32 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
             return pos;
         int endPos = str.length();
         switch (lenStrategy) {
-        case LENGTH_CHARS:
-            if (limit < str.length())
-                endPos = limit;
-            break;
-        case LENGTH_CODEPOINTS:
-            if (limit < str.codePointCount(0, str.length()))
-                endPos = str.offsetByCodePoints(0, limit);
-            break;
-        case LENGTH_GRAPHEMES:
-            BreakIterator bi = BreakIterator.getCharacterInstance();
-            bi.setText(str);
-            int count = limit, end;
-            while (true) {
-                end = bi.next();
-                if (end == BreakIterator.DONE)
-                    break;
-                if (--count == 0) {
-                    endPos = end;
-                    break;
+            case LENGTH_CHARS:
+                if (limit < str.length())
+                    endPos = limit;
+                break;
+            case LENGTH_CODEPOINTS:
+                if (limit < str.codePointCount(0, str.length()))
+                    endPos = str.offsetByCodePoints(0, limit);
+                break;
+            case LENGTH_GRAPHEMES:
+                BreakIterator bi = BreakIterator.getCharacterInstance();
+                bi.setText(str);
+                int count = limit, end;
+                while (true) {
+                    end = bi.next();
+                    if (end == BreakIterator.DONE)
+                        break;
+                    if (--count == 0) {
+                        endPos = end;
+                        break;
+                    }
                 }
-            }
-            break;
-        default:
-            throw new InternalError();
+                break;
+            case LENGTH_ELEMENTS:
+                break;
+            default:
+                throw new InternalError();
         }
         if (endPos < str.length()) {
             BreakIterator bi;
@@ -296,7 +301,8 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
      * the maximal length of the resulting string to the specified number of
      * UTF-16 characters (or Unicode code units). This setting overwrites any
      * limit previously set by {@code maxChars(int)},
-     * {@link #maxCodePoints(int)} or {@link #maxGraphemes(int)} call.
+     * {@link #maxCodePoints(int)}, {@link #maxGraphemes(int)} or
+     * {@link #maxElements(int)} call.
      * 
      * <p>
      * The {@code String} produced by the resulting collector is guaranteed to
@@ -323,7 +329,8 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
      * Returns a {@code Collector} which behaves like this collector, but sets
      * the maximal number of Unicode code points of the resulting string. This
      * setting overwrites any limit previously set by {@link #maxChars(int)},
-     * {@code maxCodePoints(int)} or {@link #maxGraphemes(int)} call.
+     * {@code maxCodePoints(int)}, {@link #maxGraphemes(int)} or
+     * {@link #maxElements(int)} call.
      * 
      * <p>
      * The {@code String} produced by the resulting collector is guaranteed to
@@ -348,8 +355,8 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
     /**
      * Returns a {@code Collector} which behaves like this collector, but sets
      * the maximal number of grapheme clusters. This setting overwrites any
-     * limit previously set by {@link #maxChars(int)},
-     * {@link #maxCodePoints(int)} or {@code maxGraphemes(int)} call.
+     * limit previously set by {@link #maxChars(int)}, {@link #maxCodePoints(int)},
+     * {@code maxGraphemes(int)} or {@link #maxElements(int)} call.
      * 
      * <p>
      * The grapheme cluster is defined in <a
@@ -374,6 +381,32 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
      */
     public Joining maxGraphemes(int limit) {
         return withLimit(LENGTH_GRAPHEMES, limit);
+    }
+
+    /**
+     * Returns a {@code Collector} which behaves like this collector, but sets
+     * the maximal number of elements to join. This setting overwrites any limit
+     * previously set by {@link #maxChars(int)}, {@link #maxCodePoints(int)} or
+     * {@link #maxGraphemes(int)} or {@code maxElements(int)} call.
+     * <p>
+     * The {@code String} produced by the resulting collector is guaranteed to
+     * have no more input elements than the specified limit. An ellipsis
+     * sequence (by default {@code "..."}) is used to designate whether the
+     * limit was reached. Use {@link #ellipsis(CharSequence)} to set custom
+     * ellipsis sequence. The cutting strategy is mostly irrelevant for this
+     * mode except {@link #cutBeforeDelimiter()}.
+     * <p>
+     * The collector returned by this method is <a href="package-summary.html#ShortCircuitReduction">short-circuiting</a>:
+     * it may not process all the input elements if the limit is reached.
+     *
+     * @param limit the maximal number of input elements in the resulting
+     *              String.
+     * @return a new {@code Collector} which will produce String no longer than
+     * given limit.
+     * @since 0.6.7
+     */
+    public Joining maxElements(int limit) {
+        return withLimit(LENGTH_ELEMENTS, limit);
     }
 
     /**
@@ -499,7 +532,7 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
                     acc.count += delimCount;
                 }
                 acc.chars += str.length();
-                acc.count += length(str);
+                acc.count += length(str, true);
                 acc.data.add(str);
             }
         };
@@ -546,10 +579,10 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
             return this::finisherNoOverflow;
         }
         init();
-        if (limit <= 0) {
+        if (limit <= 0 && lenStrategy != LENGTH_ELEMENTS) {
             char[] buf = new char[prefix.length() + suffix.length()];
             int pos = copyCut(buf, 0, prefix, maxLength, cutStrategy);
-            pos = copyCut(buf, pos, suffix, maxLength - length(prefix), cutStrategy);
+            pos = copyCut(buf, pos, suffix, maxLength - length(prefix, false), cutStrategy);
             String result = new String(buf, 0, pos);
             return acc -> result;
         }
@@ -559,14 +592,14 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
             char[] buf = new char[acc.chars + prefix.length() + suffix.length()];
             int size = acc.data.size();
             int pos = copy(buf, 0, prefix);
-            int ellipsisCount = length(ellipsis);
+            int ellipsisCount = length(ellipsis, false);
             int rest = limit - ellipsisCount;
             if (rest < 0) {
                 pos = copyCut(buf, pos, ellipsis, limit, CUT_ANYWHERE);
             } else {
                 for (int i = 0; i < size; i++) {
                     String s = acc.data.get(i).toString();
-                    int count = length(s);
+                    int count = length(s, true);
                     if (i > 0) {
                         if (cutStrategy == CUT_BEFORE_DELIMITER && delimCount + count > rest) {
                             break;
@@ -608,7 +641,7 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
         if (maxLength == -1)
             return null;
         init();
-        if (limit <= 0)
+        if (limit <= 0 && lenStrategy != LENGTH_ELEMENTS)
             return acc -> true;
         return acc -> acc.count > limit;
     }
