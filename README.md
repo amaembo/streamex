@@ -139,7 +139,7 @@ Add this snippet to the pom.xml `dependencies` section:
 
 #### Gradle 
 
-Add this nippert to the build.gradle `dependencies` section:
+Add this snippet to the build.gradle `dependencies` section:
 
 ```groovy
 implementation 'one.util:streamex:0.6.6'
