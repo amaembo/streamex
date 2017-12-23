@@ -903,6 +903,15 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
+     * @see #toMapByValue(Function)
+     * @deprecated As of version 0.6.7, replaced by {@link #toMapByValue(Function)}
+     */
+    @Deprecated
+    public <V> Map<T, V> toMap(Function<? super T, ? extends V> valMapper) {
+        return toMap(Function.identity(), valMapper);
+    }
+
+    /**
      * Returns a {@link Map} whose keys are elements from this stream and values
      * are the result of applying the provided mapping functions to the input
      * elements.
@@ -925,10 +934,40 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *         (according to {@link Object#equals(Object)})
      * @see Collectors#toMap(Function, Function)
      * @see Collectors#toConcurrentMap(Function, Function)
+     * @see #toMapByKey(Function)
      * @see #toMap(Function, Function)
      */
-    public <V> Map<T, V> toMap(Function<? super T, ? extends V> valMapper) {
+    public <V> Map<T, V> toMapByValue(Function<? super T, ? extends V> valMapper) {
         return toMap(Function.identity(), valMapper);
+    }
+
+    /**
+     * Returns a {@link Map} whose keys are the result of provided {@code keyMapper}
+     * mapping function and the values are the elements from this stream.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
+     *
+     * <p>
+     * Returned {@code Map} is guaranteed to be modifiable.
+     *
+     * <p>
+     * For parallel stream the concurrent {@code Map} is created.
+     *
+     * @param <K> the output type of the key mapping function
+     * @param keyMapper a mapping function to produce keys
+     * @return a {@code Map} whose keys are whose keys are the result of provided
+     *         key mapping function and the values are the elements from this stream.
+     * @throws IllegalStateException if this stream contains elements which are mapped
+     *         to duplicate keys (according to {@link Object#equals(Object)})
+     * @see Collectors#toMap(Function, Function)
+     * @see Collectors#toConcurrentMap(Function, Function)
+     * @see #toMapByValue(Function)
+     * @see #toMap(Function, Function)
+     */
+    public <K> Map<K, T> toMapByKey(Function<? super T, ? extends K> keyMapper) {
+        return toMap(keyMapper, Function.identity());
     }
 
     /**
