@@ -269,13 +269,19 @@ public class StreamExTest {
         expected2.put(3, "ccc");
 
         streamEx(() -> Stream.of("a", "bb", "ccc"), supplier -> {
+
+            @SuppressWarnings("deprecation")
             Map<String, Integer> map = supplier.get().toMap(String::length);
             assertEquals(supplier.get().isParallel(), map instanceof ConcurrentMap);
             assertEquals(expected, map);
 
+            assertMapIsModifiable(map, "dddd", 4);
+
             Map<Integer, String> map2 = supplier.get().toMap(String::length, Function.identity());
             assertEquals(supplier.get().isParallel(), map2 instanceof ConcurrentMap);
             assertEquals(expected2, map2);
+
+            assertMapIsModifiable(map2, 4, "dddd");
         });
 
         Map<Integer, String> expected3 = new HashMap<>();
@@ -288,6 +294,51 @@ public class StreamExTest {
 
             checkIllegalStateException(() -> supplier.get().toMap(String::length, Function.identity()), "2", "dd",
                 "bb");
+        });
+    }
+
+    @Test
+    public void testToMapByValue() {
+        Map<String, Integer> expected = new HashMap<>();
+        expected.put("a", 1);
+        expected.put("bb", 2);
+        expected.put("ccc", 3);
+
+        streamEx(() -> Stream.of("a", "bb", "ccc"), supplier -> {
+            Map<String, Integer> map = supplier.get().toMapByValue(String::length);
+            assertEquals(supplier.get().isParallel(), map instanceof ConcurrentMap);
+            assertEquals(expected, map);
+
+            assertMapIsModifiable(map, "dddd", 4);
+        });
+
+        streamEx(() -> Stream.of("a", "bb", "ccc", "bb"), supplier -> {
+            checkIllegalStateException(() -> supplier.get().toMapByValue(String::length), "bb", "2",
+                    "2");
+        });
+    }
+
+    @Test
+    public void testToMapByKey() {
+        Map<Integer, String> expected = new HashMap<>();
+        expected.put(1, "1_McQueen");
+        expected.put(2, "2_Mater");
+        expected.put(3, "3_Sally");
+
+        Function<String, Integer> stringToIdMapper = idName ->
+                Integer.valueOf(idName.substring(0, idName.indexOf("_")));
+
+        streamEx(() -> Stream.of("1_McQueen", "2_Mater", "3_Sally"), streamSupplier -> {
+            Map<Integer, String> map = streamSupplier.get().toMapByKey(stringToIdMapper);
+            assertEquals(streamSupplier.get().isParallel(), map instanceof ConcurrentMap);
+            assertEquals(expected, map);
+
+            assertMapIsModifiable(map, 4, "4_Mater");
+        });
+
+        streamEx(() -> Stream.of("1_McQueen", "2_Mater", "3_Sally", "2_Ramone"), supplier -> {
+            checkIllegalStateException(() -> supplier.get()
+                            .toMapByKey(stringToIdMapper), "2", "2_Mater", "2_Ramone");
         });
     }
 

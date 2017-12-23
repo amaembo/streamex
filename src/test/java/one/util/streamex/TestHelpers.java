@@ -415,4 +415,23 @@ public class TestHelpers {
                 fail("wrong exception message: " + exmsg);
         }
     }
+
+    /**
+     * Verify the map is modifiable, as described in the doc.
+     * <p>
+     * The assertion puts the key-value entry to the map, verifies the size is incremented
+     * and value is successfully fetched from the map.
+     *
+     * @param map        {@link Map} instance to verify (put a value)
+     * @param keyToPut   key to assign in the map. The key must be unique for this map
+     * @param valueToPut value to associate with the {@code keyToPut}
+     * @param <K>        type of map key
+     * @param <V>        type of map value
+     */
+    static <K, V> void assertMapIsModifiable(Map<K, V> map, K keyToPut, V valueToPut) {
+        final int initialSize = map.size();
+        map.put(keyToPut, valueToPut);
+        assertEquals(map.size(), initialSize + 1);
+        assertEquals(map.get(keyToPut), valueToPut);
+    }
 }
