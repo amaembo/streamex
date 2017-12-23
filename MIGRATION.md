@@ -2,6 +2,15 @@
 
 This document describes StreamEx changes which may break the backwards compatibility. For full list of changes see [CHANGES.md](CHANGES.md).
 
+<!---
+ TODO: finalize when adjusted with repository owner
+### 0.6.7
+
+Issue#167: Now `StreamEx.toMap(Function) is deprecated
+in a favour of `StreamEx.toMapByValue(Function).
+The implementation is not changed though.
+-->
+
 ### 0.6.0
 
 Issue#67: Now `StreamEx.withFirst()` as well as `StreamEx.withFirst(BinaryOperator)` include `(first, first)` pair. If you used these operations in StreamEx 0.5.3-0.5.5, you should update the existing code: replace `.withFirst()` with `.withFirst().skip(1)`.

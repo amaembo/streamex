@@ -6,6 +6,14 @@ Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 * [#76] Added: `StreamEx.zipWith` accepting `BaseStream` (so zipWith(IntStreamEx.ints()) works)
 * [#131] Added: `StreamEx.ofCombinations`
 * [#164] Added: `Joining.maxElements`
+<!---
+TODO: finalize when adjusted with repository owner
+* [#167]:
+    - Added: [`StreamEx.toMapByKey(Function)`](reference to diff or PR)
+and [`StreamEx.toMapByValue(Function)`](reference to diff or PR)
+    - deprecated `StreamEx.toMap(Function)` in a favour of
+    `StreamEx.toMapByValue(Function)`
+--->
 
 ### 0.6.6
 * [#145] Added: `intersperse` method for all stream types.
