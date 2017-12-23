@@ -125,7 +125,9 @@ Releases are available in [Maven Central](https://repo1.maven.org/maven2/one/uti
 
 Before updating StreamEx check the [migration notes](MIGRATION.md) and full list of [changes](CHANGES.md).
 
-To use from maven add this snippet to the pom.xml `dependencies` section:
+#### Maven
+
+Add this snippet to the pom.xml `dependencies` section:
 
 ```xml
 <dependency>
@@ -133,6 +135,14 @@ To use from maven add this snippet to the pom.xml `dependencies` section:
   <artifactId>streamex</artifactId>
   <version>0.6.6</version>
 </dependency>
+```
+
+#### Gradle 
+
+Add this snippet to the build.gradle `dependencies` section:
+
+```groovy
+implementation 'one.util:streamex:0.6.6'
 ```
 
 Pull requests are welcome.
