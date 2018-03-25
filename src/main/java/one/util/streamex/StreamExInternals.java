@@ -963,6 +963,42 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
+
+    static abstract class IntCloneableSpliterator<S extends IntCloneableSpliterator<?>> implements Spliterator.OfInt,
+            Cloneable {
+        @SuppressWarnings("unchecked")
+        S doClone() {
+            try {
+                return (S) this.clone();
+            } catch (CloneNotSupportedException e) {
+                throw new InternalError();
+            }
+        }
+    }
+
+    static abstract class DoubleCloneableSpliterator<S extends DoubleCloneableSpliterator<?>> implements Spliterator.OfDouble,
+            Cloneable {
+        @SuppressWarnings("unchecked")
+        S doClone() {
+            try {
+                return (S) this.clone();
+            } catch (CloneNotSupportedException e) {
+                throw new InternalError();
+            }
+        }
+    }   
+
+    static abstract class LongCloneableSpliterator<S extends LongCloneableSpliterator<?>> implements Spliterator.OfLong,
+            Cloneable {
+        @SuppressWarnings("unchecked")
+        S doClone() {
+            try {
+                return (S) this.clone();
+            } catch (CloneNotSupportedException e) {
+                throw new InternalError();
+            }
+        }
+    }   
     static ObjIntConsumer<StringBuilder> joinAccumulatorInt(CharSequence delimiter) {
         return (sb, i) -> (sb.length() > 0 ? sb.append(delimiter) : sb).append(i);
     }

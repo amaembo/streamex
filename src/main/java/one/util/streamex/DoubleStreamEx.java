@@ -322,6 +322,11 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
         return new DoubleStreamEx(stream().sorted(), context);
     }
 
+    public DoubleStreamEx withFirst(DoubleBinaryOperator mapper) {
+        DoubleWithFirstSpliterator spliterator = new DoubleWithFirstSpliterator(spliterator(), mapper);
+        return new DoubleStreamEx(spliterator, context);
+    }
+    
     /**
      * Returns a stream consisting of the elements of this stream sorted
      * according to the given comparator. Stream elements are boxed before
