@@ -936,7 +936,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * 
      * <p>
      * This method is equivalent to
-     * {@code min(Comparator.comparing(keyExtractor))}, but may work faster as
+     * {@code max(Comparator.comparing(keyExtractor))}, but may work faster as
      * keyExtractor function is applied only once per each input element.
      *
      * @param <V> the type of the comparable keys
