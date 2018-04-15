@@ -6,6 +6,7 @@ Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 * [#76] Added: `StreamEx.zipWith` accepting `BaseStream` (so zipWith(IntStreamEx.ints()) works)
 * [#131] Added: `StreamEx.ofCombinations`
 * [#164] Added: `Joining.maxElements`
+* [#179] Added: `MoreCollectors.onlyOne(Predicate)`
 
 ### 0.6.6
 * [#145] Added: `intersperse` method for all stream types.

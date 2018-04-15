@@ -490,6 +490,9 @@ public class MoreCollectorsTest {
             MoreCollectors.onlyOne());
         checkShortCircuitCollector("FilterNone", Optional.empty(), 0, () -> ints.stream().filter(x -> x % 110 == 0),
             MoreCollectors.onlyOne());
+        checkShortCircuitCollector("FilterSeveral", Optional.empty(), 40, ints::stream, MoreCollectors.onlyOne(x -> x % 20 == 0));
+        checkShortCircuitCollector("FilterOne", Optional.of(60), 100, ints::stream, MoreCollectors.onlyOne(x -> x % 60 == 0));
+        checkShortCircuitCollector("FilterNone", Optional.empty(), 100, ints::stream, MoreCollectors.onlyOne(x -> x % 110 == 0));
     }
 
     @Test
