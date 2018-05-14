@@ -972,7 +972,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * 
      * <p>
      * This method is equivalent to
-     * {@code min(Comparator.comparingInt(keyExtractor))}, but may work faster
+     * {@code max(Comparator.comparingInt(keyExtractor))}, but may work faster
      * as keyExtractor function is applied only once per each input element.
      *
      * @param keyExtractor a <a
@@ -1005,7 +1005,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * 
      * <p>
      * This method is equivalent to
-     * {@code min(Comparator.comparingLong(keyExtractor))}, but may work faster
+     * {@code max(Comparator.comparingLong(keyExtractor))}, but may work faster
      * as keyExtractor function is applied only once per each input element.
      *
      * @param keyExtractor a <a
@@ -1040,7 +1040,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * 
      * <p>
      * This method is equivalent to
-     * {@code min(Comparator.comparingDouble(keyExtractor))}, but may work
+     * {@code max(Comparator.comparingDouble(keyExtractor))}, but may work
      * faster as keyExtractor function is applied only once per each input
      * element.
      *
