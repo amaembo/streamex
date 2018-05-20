@@ -80,7 +80,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.10.4</version>
+        <version>3.0.0</version>
         <executions>
           <execution>
             <!-- This execution used just to run javadoc with doclint and 
@@ -104,7 +104,7 @@
             <configuration>
               <sourcepath>${project.build.sourceDirectory};${project.build.directory}/jdk</sourcepath>
               <excludePackageNames>java.util.stream</excludePackageNames>
-              <additionalparam>-Xdoclint:none</additionalparam>
+              <additionalOptions>-Xdoclint:none</additionalOptions>
               <noqualifier>all</noqualifier>
               <quiet>true</quiet>
             </configuration>
@@ -125,6 +125,8 @@
               <target>
                 <available property="src.zip" file="${java.home}/../src.zip"
                   value="${java.home}/../src.zip" />
+                <available property="src.zip" file="${java.home}/lib/src.zip"
+                  value="${java.home}/lib/src.zip" />
                 <available property="src.zip" file="${java.home}/src.zip"
                   value="${java.home}/src.zip" />
                 <unzip src="${src.zip}" dest="${project.build.directory}/jdk">
@@ -244,7 +246,7 @@
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
-        <version>0.7.8</version>
+        <version>0.8.1</version>
         <executions>
           <execution>
             <id>default-prepare-agent</id>
