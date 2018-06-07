@@ -303,15 +303,16 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * Returns a stream where only elements that are instances of the provided {@code clazz} are transformed using
      * {@code mapper} and other elements are left unmodified.
      *
-     * <p><p>
+     * <p>
+     *
      * Examples:
      * <p>
-     *   List< Object > objs = StreamEx.of(1, "a") <br>
-     *      .mapInstance(Integer.class, num -> num * 2) <br>
-     *      .mapInstance(String.class, str -> str + "_updated") <br>
+     *   List[Object] objs = StreamEx.of(1, "a") <br>
+     *      .mapInstance(Integer.class, num -&gt; num * 2) <br>
+     *      .mapInstance(String.class, str -&gt; str + "_updated") <br>
      *      .toList();
-     * <p><p>
-     *   List< Integer > ints = StreamEx.of(1, "2") <br>
+     * <p>
+     *   List[Integer] ints = StreamEx.of(1, "2") <br>
      *      .mapInstance(String.class, Integer::parseInt) <br>
      *      .select(Integer.class)
      *      .toList(); <br>
