@@ -321,7 +321,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @param <R> The element type of the new stream
      * @return The new stream
      */
-    public <R extends T> StreamEx<T> mapInstance(Class<R> clazz, Function<R, T> instanceMapper) {
+    public <R extends T> StreamEx<Object> mapInstance(Class<R> clazz, Function<R, ?> instanceMapper) {
         return map(element -> {
             if (clazz.isInstance(element)) {
                 return instanceMapper.apply(clazz.cast(element));

@@ -471,6 +471,25 @@ public class StreamExTest {
     }
 
     @Test
+    public void testMapInstanceAndSelectNonObjectStreams() {
+        class A {}
+        class B extends A {}
+        class C extends A {}
+
+        List<A> original = asList(new A(), new B(), new C());
+        List<String> expected = asList("a", "b", "c");
+
+        List<String> actual = StreamEx.<A>of(original)
+                .mapInstance(B.class, ignored -> "b")
+                .mapInstance(C.class, ignored -> "c")
+                .mapInstance(A.class, ignored -> "a")
+                .select(String.class)
+                .toList();
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
     public void testFlatCollection() {
         Map<Integer, List<String>> data = new LinkedHashMap<>();
         data.put(1, asList("a", "b"));
