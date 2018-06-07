@@ -445,6 +445,32 @@ public class StreamExTest {
     }
 
     @Test
+    public void testMapInstance() {
+        List<Object> original = asList(1, "a", 2, "b");
+        List<Object> expected = asList(2, "a_prime", 4, "b_prime");
+
+        List<Object> actual = StreamEx.of(original)
+                .mapInstance(String.class, str -> String.format("%s_prime", str))
+                .mapInstance(Integer.class, num -> num * 2)
+                .toList();
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testMapInstanceAndSelect() {
+        List<Object> original = asList(1, "2", 3, "4");
+        List<Integer> expected = asList(1, 2, 3, 4);
+
+        List<Integer> actual = StreamEx.of(original)
+                .mapInstance(String.class, Integer::parseInt)
+                .select(Integer.class)
+                .toList();
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
     public void testFlatCollection() {
         Map<Integer, List<String>> data = new LinkedHashMap<>();
         data.put(1, asList("a", "b"));
@@ -461,7 +487,7 @@ public class StreamExTest {
         data.put(3, null);
         assertEquals(asList("a", "b", "c", "d"), StreamEx.of(data.entrySet()).flatArray(Entry::getValue).toList());
     }
-    
+
     @Test
     public void testAppend() {
         assertEquals(asList("a", "b", "c", "d", "e"), StreamEx.of("a", "b", "c", "dd").remove(s -> s.length() > 1)
@@ -1551,7 +1577,7 @@ public class StreamExTest {
         Spliterator<String> spliterator = StreamEx.of("aaa", "b", "cccc").dropWhile(x -> x.length() > 1).spliterator();
         assertEquals(hasDropWhile, !spliterator.getClass().getSimpleName().equals("TDOfRef"));
     }
-    
+
     @Test
     public void testTakeDropUnordered() {
         repeat(10, n -> withRandom(rnd -> {
@@ -1931,7 +1957,7 @@ public class StreamExTest {
 
     /**
      * Returns maximal stream value short-circuiting when stopValue is reached
-     * 
+     *
      * @param stream stream to process
      * @param comparator comparator to compare stream values
      * @param stopValue value to short-circuit at
@@ -2033,7 +2059,7 @@ public class StreamExTest {
         assertEquals(2, StreamEx.of("a", "bb", "c", "e", "ddd").removeBy(String::length, 1).count());
         assertEquals(3, StreamEx.of("a", "bb", "c", "e", "ddd").removeBy(x -> x.length() > 1 ? null : x, null).count());
     }
-    
+
     @Test
     public void testIntersperse() {
         List<String> expected = asList("a", "--", "b", "--", "c", "--", "d", "--", "e");
