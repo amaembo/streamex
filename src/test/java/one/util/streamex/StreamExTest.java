@@ -479,7 +479,7 @@ public class StreamExTest {
         List<A> original = asList(new A(), new B(), new C());
         List<String> expected = asList("a", "b", "c");
 
-        List<String> actual = StreamEx.<A>of(original)
+        List<String> actual = StreamEx.of(original)
                 .mapInstance(B.class, ignored -> "b")
                 .mapInstance(C.class, ignored -> "c")
                 .mapInstance(A.class, ignored -> "a")
