@@ -471,7 +471,7 @@ public class StreamExTest {
     }
 
     @Test
-    public void testMapInstanceAndSelectNonObjectStreams() {
+    public void testMapInstanceAndSelectOrDefault() {
         class A {}
         class B extends A {}
         class C extends A {}
@@ -482,8 +482,7 @@ public class StreamExTest {
         List<String> actual = StreamEx.of(original)
                 .mapInstance(B.class, ignored -> "b")
                 .mapInstance(C.class, ignored -> "c")
-                .mapInstance(A.class, ignored -> "a")
-                .select(String.class)
+                .selectOrDefault(String.class, "a")
                 .toList();
 
         assertEquals(expected, actual);

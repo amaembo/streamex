@@ -107,6 +107,23 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
+     * Returns a stream consisting of the elements of this stream which are
+     * instances of given class, or the provided default value if a value is of a different type.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
+     * operation.
+     *
+     * @param <TT> a type of instances to select.
+     * @param clazz a class which instances should be selected
+     * @param defaultValue The default value to be returned in case values in the stream are not of type {@code clazz}
+     * @return the new stream
+     */
+    public <TT extends T> StreamEx<TT> selectOrDefault(Class<TT> clazz, TT defaultValue) {
+        return map(value -> clazz.isInstance(value) ? clazz.cast(value) : defaultValue);
+    }
+
+    /**
      * Returns a stream consisting of the elements of this stream for which the
      * supplied mapper function returns the given value.
      *
