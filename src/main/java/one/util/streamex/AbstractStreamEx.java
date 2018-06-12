@@ -614,7 +614,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      *        function to apply to each element which produces an
      *        array of new values
      * @return the new stream
-     * @since 0.6.5
+     * @since 0.6.8
      */
     public <R> StreamEx<R> flatOption(Function<? super T, ? extends Optional<? extends R>> mapper) {
         return new StreamEx<>(stream().flatMap(value -> StreamEx.of(mapper.apply(value))), context);
