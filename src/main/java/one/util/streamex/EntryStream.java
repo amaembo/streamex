@@ -193,8 +193,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @param mapper a <a
      *        href="package-summary.html#NonInterference">non-interfering </a>,
      *        <a href="package-summary.html#Statelessness">stateless</a>
-     *        function to apply to each key and value which produces a stream of
-     *        new keys
+     *        function to apply to each key and value which produces an optional key
      * @return the new stream
      * @since 0.6.8
      */
@@ -280,10 +279,10 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @param mapper a <a
      *        href="package-summary.html#NonInterference">non-interfering </a>,
      *        <a href="package-summary.html#Statelessness">stateless</a>
-     *        function to apply to each key and value which produces a stream of
-     *        new values
+     *        function to apply to each key and value which produces an optional
+     *        new value
      * @return the new stream
-     * @since 0.5.2
+     * @since 0.6.8
      */
     public <VV> EntryStream<K, VV> flatOptionToValue(
             BiFunction<? super K, ? super V, ? extends Optional<? extends VV>> mapper
@@ -326,7 +325,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @param mapper a non-interfering, stateless function to apply to each
      *        key-value pair which produces an optional new value
      * @return the new stream
-     * @since 0.3.0
+     * @since 0.6.8
      */
     public <R> StreamEx<R> flatOptionKeyValue(
             BiFunction<? super K, ? super V, ? extends Optional<? extends R>> mapper
