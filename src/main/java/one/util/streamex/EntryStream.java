@@ -16,50 +16,31 @@
 package one.util.streamex;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Spliterator;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.NavigableMap;
-import java.util.SortedMap;
-import java.util.Spliterators;
-import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.BiPredicate;
-import java.util.function.BinaryOperator;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.function.*;
 import java.util.stream.Collector;
 import java.util.stream.Collector.Characteristics;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static one.util.streamex.StreamExInternals.*;
+import static one.util.streamex.StreamExInternals.PairBox;
+import static one.util.streamex.StreamExInternals.checkLength;
 
 /**
  * A {@link Stream} of {@link Entry} objects which provides additional specific
  * functionality.
- * 
+ *
  * <p>
  * While {@code EntryStream} implements {@code Iterable}, it is not a
  * general-purpose {@code Iterable} as it supports only a single
  * {@code Iterator}; invoking the {@link #iterator iterator} method to obtain a
  * second or subsequent iterator throws {@code IllegalStateException}.
- * 
+ *
  * @author Tagir Valeev
  *
  * @param <K> the type of {@code Entry} keys
@@ -199,6 +180,33 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns an {@code EntryStream} consisting of the entries whose values are
      * results of replacing source values with the contents of a mapped stream
+     * produced by applying the provided mapping function and converting the
+     * resulting optional to a stream.
+     *
+     * Keys are left intact.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate
+     * operation</a>.
+     *
+     * @param <KK> The type of new keys
+     * @param mapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to each key and value which produces a stream of
+     *        new keys
+     * @return the new stream
+     * @since 0.6.8
+     */
+    public <KK> EntryStream<KK, V> flatOptionToKey(
+            BiFunction<? super K, ? super V, ? extends Optional<? extends KK>> mapper
+    ) {
+        return flatMapToKey((key, value) -> StreamEx.of(mapper.apply(key, value)));
+    }
+
+    /**
+     * Returns an {@code EntryStream} consisting of the entries whose values are
+     * results of replacing source values with the contents of a mapped stream
      * produced by applying the provided mapping function to each source value
      * and keys are left intact. Each mapped stream is
      * {@link java.util.stream.BaseStream#close() closed} after its contents
@@ -243,9 +251,44 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.5.2
      */
     public <VV> EntryStream<K, VV> flatMapToValue(
-            BiFunction<? super K, ? super V, ? extends Stream<? extends VV>> mapper) {
-        return new EntryStream<>(stream().flatMap(e -> withKey(e.getKey(), mapper.apply(e.getKey(), e.getValue()))),
-                context);
+            BiFunction<? super K, ? super V, ? extends Stream<? extends VV>> mapper
+    ) {
+        return new EntryStream<>(
+                stream().flatMap(e ->
+                        withKey(
+                                e.getKey(),
+                                mapper.apply(e.getKey(), e.getValue())
+                        )
+                ),
+                context
+        );
+    }
+
+    /**
+     * Returns an {@code EntryStream} consisting of the entries whose values are
+     * results of replacing source values with the contents of a mapped stream
+     * produced by applying the provided mapping function and converting the
+     * resulting optional to a stream.
+     *
+     * Keys are left intact.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate
+     * operation</a>.
+     *
+     * @param <VV> The type of new values
+     * @param mapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to each key and value which produces a stream of
+     *        new values
+     * @return the new stream
+     * @since 0.5.2
+     */
+    public <VV> EntryStream<K, VV> flatOptionToValue(
+            BiFunction<? super K, ? super V, ? extends Optional<? extends VV>> mapper
+    ) {
+        return flatMapToValue((key, value) -> StreamEx.of(mapper.apply(key, value)));
     }
 
     /**
@@ -270,16 +313,38 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     }
 
     /**
+     * Returns a stream consisting of the results of replacing each element of
+     * this stream with the contents of a mapped stream produced by applying
+     * the provided mapping function to each key-value pair and and converting
+     * the resulting optional to a stream.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
+     * operation.
+     *
+     * @param <R> The element type of the new stream
+     * @param mapper a non-interfering, stateless function to apply to each
+     *        key-value pair which produces an optional new value
+     * @return the new stream
+     * @since 0.3.0
+     */
+    public <R> StreamEx<R> flatOptionKeyValue(
+            BiFunction<? super K, ? super V, ? extends Optional<? extends R>> mapper
+    ) {
+        return this.flatOption(toFunction(mapper));
+    }
+
+    /**
      * Returns a new {@code EntryStream} which is a concatenation of this stream
      * and the stream created from the supplied map entries.
-     * 
+     *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a>.
-     * 
+     *
      * <p>
      * May return this if the supplied map is empty and non-concurrent.
-     * 
+     *
      * @param map the map to prepend to the stream
      * @return the new stream
      * @since 0.2.1
@@ -291,11 +356,11 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns a new {@code EntryStream} which is a concatenation of this stream
      * and the supplied key-value pair.
-     * 
+     *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a>.
-     * 
+     *
      * @param key the key of the new {@code Entry} to append to this stream
      * @param value the value of the new {@code Entry} to append to this stream
      * @return the new stream
@@ -307,11 +372,11 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns a new {@code EntryStream} which is a concatenation of this stream
      * and two supplied key-value pairs.
-     * 
+     *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a>.
-     * 
+     *
      * @param k1 the key of the first {@code Entry} to append to this stream
      * @param v1 the value of the first {@code Entry} to append to this stream
      * @param k2 the key of the second {@code Entry} to append to this stream
@@ -329,11 +394,11 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns a new {@code EntryStream} which is a concatenation of this stream
      * and three supplied key-value pairs.
-     * 
+     *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a>.
-     * 
+     *
      * @param k1 the key of the first {@code Entry} to append to this stream
      * @param v1 the value of the first {@code Entry} to append to this stream
      * @param k2 the key of the second {@code Entry} to append to this stream
@@ -353,15 +418,15 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns a new {@code EntryStream} which is a concatenation of the stream
      * created from the supplied map entries and this stream.
-     * 
+     *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a> with <a href="package-summary.html#TSO">tail-stream
      * optimization</a>.
-     * 
+     *
      * <p>
      * May return this if the supplied map is empty and non-concurrent.
-     * 
+     *
      * @param map the map to prepend to the stream
      * @return the new stream
      * @since 0.2.1
@@ -373,12 +438,12 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns a new {@code EntryStream} which is a concatenation of the
      * supplied key-value pair and this stream.
-     * 
+     *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a> with <a href="package-summary.html#TSO">tail-stream
      * optimization</a>.
-     * 
+     *
      * @param key the key of the new {@code Entry} to prepend to this stream
      * @param value the value of the new {@code Entry} to prepend to this stream
      * @return the new stream
@@ -390,12 +455,12 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns a new {@code EntryStream} which is a concatenation of two
      * supplied key-value pairs and this stream.
-     * 
+     *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a> with <a href="package-summary.html#TSO">tail-stream
      * optimization</a>.
-     * 
+     *
      * @param k1 the key of the first {@code Entry} to prepend to this stream
      * @param v1 the value of the first {@code Entry} to prepend to this stream
      * @param k2 the key of the second {@code Entry} to prepend to this stream
@@ -413,12 +478,12 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns a new {@code EntryStream} which is a concatenation of three
      * supplied key-value pairs and this stream.
-     * 
+     *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a> with <a href="package-summary.html#TSO">tail-stream
      * optimization</a>.
-     * 
+     *
      * @param k1 the key of the first {@code Entry} to prepend to this stream
      * @param v1 the value of the first {@code Entry} to prepend to this stream
      * @param k2 the key of the second {@code Entry} to prepend to this stream
@@ -845,18 +910,18 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Merge series of adjacent stream entries with equal keys grouping the
      * corresponding values into {@code List}.
-     * 
+     *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate</a>
      * partial reduction operation.
-     * 
+     *
      * <p>
      * There are no guarantees on the type, mutability, serializability, or
      * thread-safety of the {@code List} objects of the resulting stream.
      *
      * <p>
      * The key of the resulting entry is the key of the first merged entry.
-     * 
+     *
      * @return a new {@code EntryStream} which keys are the keys of the original
      *         stream and the values of adjacent entries with the same keys are
      *         grouped into {@code List}
@@ -887,11 +952,11 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Merge series of adjacent stream entries with equal keys combining the
      * corresponding values using the provided function.
-     * 
+     *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate</a>
      * partial reduction operation.
-     * 
+     *
      * <p>
      * The key of the resulting entry is the key of the first merged entry.
      *
@@ -914,11 +979,11 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Merge series of adjacent stream entries with equal keys combining the
      * corresponding values using the provided {@code Collector}.
-     * 
+     *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate</a>
      * partial reduction operation.
-     * 
+     *
      * <p>
      * The key of the resulting entry is the key of the first merged entry.
      *
@@ -949,12 +1014,12 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
             return pb1;
         }, spliterator()), context).mapToEntry(pb -> pb.a, pb -> finisher.apply(pb.b));
     }
-    
+
     /**
      * Returns a new {@code EntryStream} which values are the same as this
      * stream values and keys are the results of applying the accumulation
      * function to this stream keys, going left to right.
-     * 
+     *
      * <p>
      * This is a stateful
      * <a href="package-summary.html#StreamOps">quasi-intermediate</a>
@@ -983,7 +1048,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * Returns a new {@code EntryStream} which keys are the same as this stream
      * keys and values are the results of applying the accumulation function to
      * this stream values, going left to right.
-     * 
+     *
      * <p>
      * This is a stateful
      * <a href="package-summary.html#StreamOps">quasi-intermediate</a>
@@ -1057,7 +1122,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         Map<K, V> map = toMap();
         return map.isEmpty() ? Collections.emptyMap() : Collections.unmodifiableMap(map);
     }
-    
+
     /**
      * Creates a {@link Map} containing the elements of this stream, then
      * performs finishing transformation and returns its result. There are no
@@ -1099,7 +1164,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * {@link Object#equals(Object)}), the value mapping function is applied to
      * each equal element, and the results are merged using the provided merging
      * function.
-     * 
+     *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
      * operation.
@@ -1128,7 +1193,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * <p>
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
      * operation.
-     * 
+     *
      * @param <M> the type of the resulting map
      * @param mapSupplier a function which returns a new, empty {@code Map} into
      *        which the results will be inserted
@@ -1157,11 +1222,11 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * {@link Object#equals(Object)}), the value mapping function is applied to
      * each equal element, and the results are merged using the provided merging
      * function.
-     * 
+     *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
      * operation.
-     * 
+     *
      * @param <M> the type of the resulting map
      * @param mergeFunction a merge function, used to resolve collisions between
      *        values associated with the same key.
@@ -1214,7 +1279,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * {@link Object#equals(Object)}), the value mapping function is applied to
      * each equal element, and the results are merged using the provided merging
      * function.
-     * 
+     *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
      * operation.
@@ -1232,8 +1297,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     public SortedMap<K, V> toSortedMap(BinaryOperator<V> mergeFunction) {
         return toNavigableMap(mergeFunction);
     }
-    
-    
+
+
     /**
      * Returns a {@link NavigableMap} containing the elements of this stream.
      * There are no guarantees on the type or serializability of the
@@ -1275,7 +1340,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * {@link Object#equals(Object)}), the value mapping function is applied to
      * each equal element, and the results are merged using the provided merging
      * function.
-     * 
+     *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
      * operation.
@@ -1293,14 +1358,14 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     public NavigableMap<K, V> toNavigableMap(BinaryOperator<V> mergeFunction) {
         return collect(Collectors.toMap(Entry::getKey, Entry::getValue, mergeFunction, TreeMap::new));
     }
-    
+
     /**
      * Drains the stream content into the supplied {@code Map}.
-     * 
+     *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">terminal</a>
      * operation.
-     * 
+     *
      * @param <M> type of the resulting map
      * @param map a mutable map to put the stream elements into
      * @return the supplied map, updated from this stream
@@ -1326,7 +1391,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * Returns a {@link Map} where elements of this stream with the same key are
      * grouped together. The resulting {@code Map} keys are the keys of this
      * stream entries and the values are the lists of the corresponding values.
-     * 
+     *
      * <p>
      * There are no guarantees on the type, mutability, serializability, or
      * thread-safety of the {@code Map} or {@code List} objects returned. If
@@ -1350,7 +1415,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * grouped together. The resulting {@code Map} keys are the keys of this
      * stream entries and the values are the lists of the corresponding values.
      * The {@code Map} is created using the provided supplier function.
-     * 
+     *
      * <p>
      * There are no guarantees on the type, mutability, serializability, or
      * thread-safety of the {@code List} objects returned. If more control over
@@ -1376,7 +1441,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * grouped together. The resulting {@code Map} keys are the keys of this
      * stream entries and the corresponding values are combined using the
      * provided downstream collector.
-     * 
+     *
      * <p>
      * There are no guarantees on the type, mutability, serializability, or
      * thread-safety of the {@code Map} object returned. If more control over
@@ -1524,7 +1589,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns an {@code EntryStream} object which wraps given {@link Stream} of
      * {@link Entry} elements
-     * 
+     *
      * @param <K> the type of original stream keys
      * @param <V> the type of original stream values
      * @param stream original stream
@@ -1563,7 +1628,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * This method is roughly equivalent to
      * {@code EntryStream.of(Spliterators.spliteratorUnknownSize(iterator, ORDERED))}
      * , but may show better performance for parallel processing.
-     * 
+     *
      * <p>
      * Use this method only if you cannot provide better Stream source (like
      * {@code Collection} or {@code Spliterator}).
@@ -1581,7 +1646,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns an {@code EntryStream} object which contains the entries of
      * supplied {@code Map}.
-     * 
+     *
      * @param <K> the type of map keys
      * @param <V> the type of map values
      * @param map the map to create the stream from
@@ -1594,12 +1659,12 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns an {@code EntryStream} object whose keys are indices of given
      * list and the values are the corresponding list elements.
-     * 
+     *
      * <p>
      * The list elements are accessed using {@link List#get(int)}, so the list
      * should provide fast random access. The list is assumed to be unmodifiable
      * during the stream operations.
-     * 
+     *
      * @param <V> list element type
      * @param list list to create the stream from
      * @return a new {@code EntryStream}
@@ -1612,7 +1677,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns an {@code EntryStream} object whose keys are indices of given
      * array and the values are the corresponding array elements.
-     * 
+     *
      * @param <V> array element type
      * @param array array to create the stream from
      * @return a new {@code EntryStream}
@@ -1874,12 +1939,12 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns a sequential {@code EntryStream} containing {@code Entry} objects
      * composed from corresponding key and value in given two lists.
-     * 
+     *
      * <p>
      * The keys and values are accessed using {@link List#get(int)}, so the
      * lists should provide fast random access. The lists are assumed to be
      * unmodifiable during the stream operations.
-     * 
+     *
      * @param <K> the type of stream element keys
      * @param <V> the type of stream element values
      * @param keys the list of keys, assumed to be unmodified during use
@@ -1897,7 +1962,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns a sequential {@code EntryStream} containing {@code Entry} objects
      * composed from corresponding key and value in given two arrays.
-     * 
+     *
      * @param <K> the type of stream element keys
      * @param <V> the type of stream element values
      * @param keys the array of keys
@@ -1914,7 +1979,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns a sequential ordered {@code EntryStream} containing the possible
      * pairs of elements taken from the provided list.
-     * 
+     *
      * <p>
      * Both keys and values are taken from the input list. The index of the key
      * is always strictly less than the index of the value. The pairs in the
@@ -1924,7 +1989,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * {@code Map.Entry(list.get(0), list.get(2))} and
      * {@code Map.Entry(list.get(1), list.get(2))}. The number of elements in
      * the resulting stream is {@code list.size()*(list.size()+1L)/2}.
-     * 
+     *
      * <p>
      * The list values are accessed using {@link List#get(int)}, so the list
      * should provide fast random access. The list is assumed to be unmodifiable
@@ -1943,7 +2008,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns a sequential ordered {@code EntryStream} containing the possible
      * pairs of elements taken from the provided array.
-     * 
+     *
      * <p>
      * Both keys and values are taken from the input array. The index of the key
      * is always strictly less than the index of the value. The pairs in the
@@ -1953,7 +2018,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * {@code Map.Entry(array[0], array[2])} and
      * {@code Map.Entry(array[1], array[2])}. The number of elements in the
      * resulting stream is {@code array.length*(array.length+1L)/2}..
-     * 
+     *
      * @param <T> type of the array elements
      * @param array a array to take the elements from
      * @return a new {@code EntryStream}
@@ -1968,12 +2033,12 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * Return a new {@link EntryStream} containing all the nodes of tree-like
      * data structure in entry values along with the corresponding tree depths
      * in entry keys, in depth-first order.
-     * 
+     *
      * <p>
      * The keys of the returned stream are non-negative integer numbers. 0 is
      * used for the root node only, 1 is for root immediate children, 2 is for
      * their children and so on.
-     * 
+     *
      * <p>
      * The streams created by mapper may be automatically
      * {@link java.util.stream.BaseStream#close() closed} after its contents
@@ -1981,7 +2046,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * created streams will be closed during the stream terminal operation. If
      * it's necessary to close all the created streams, call the {@code close()}
      * method of the resulting stream returned by {@code ofTree()}.
-     * 
+     *
      * @param <T> the type of tree nodes
      * @param root root node of the tree
      * @param mapper a non-interfering, stateless function to apply to each tree
@@ -2001,12 +2066,12 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * Return a new {@link EntryStream} containing all the nodes of tree-like
      * data structure in entry values along with the corresponding tree depths
      * in entry keys, in depth-first order.
-     * 
+     *
      * <p>
      * The keys of the returned stream are non-negative integer numbers. 0 is
      * used for the root node only, 1 is for root immediate children, 2 is for
      * their children and so on.
-     * 
+     *
      * <p>
      * The streams created by mapper may be automatically
      * {@link java.util.stream.BaseStream#close() closed} after its contents
@@ -2014,7 +2079,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * created streams will be closed during the stream terminal operation. If
      * it's necessary to close all the created streams, call the {@code close()}
      * method of the resulting stream returned by {@code ofTree()}.
-     * 
+     *
      * @param <T> the base type of tree nodes
      * @param <TT> the sub-type of composite tree nodes which may have children
      * @param root root node of the tree

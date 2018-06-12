@@ -24,8 +24,8 @@ import java.util.stream.Collector.Characteristics;
 import static one.util.streamex.StreamExInternals.*;
 
 /**
- * Base class providing common functionality for {@link StreamEx} and {@link EntryStream}. 
- * 
+ * Base class providing common functionality for {@link StreamEx} and {@link EntryStream}.
+ *
  * @author Tagir Valeev
  *
  * @param <T> the type of the stream elements
@@ -197,14 +197,14 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Returns a new stream containing all the elements of the original stream interspersed with
      * given delimiter.
-     * 
+     *
      * <p>
      * For example, {@code StreamEx.of("a", "b", "c").intersperse("x")} will yield a stream containing
      * five elements: a, x, b, x, c.
-     * 
+     *
      * <p>
      * This is an <a href="package-summary.html#StreamOps">intermediate operation</a>.
-     * 
+     *
      * @param delimiter a delimiter to be inserted between each pair of elements
      * @return the new stream
      * @since 0.6.6
@@ -374,7 +374,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
 
     /**
      * {@inheritDoc}
-     * 
+     *
      * <p>
      * If special <a
      * href="package-summary.html#ShortCircuitReduction">short-circuiting
@@ -588,7 +588,38 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
             return a == null ? null : StreamEx.of(Arrays.spliterator(a));
         });
     }
-    
+
+    /**
+     * Returns a stream consisting of the results of replacing each element of
+     * this stream with the contents of the optional value produced by applying
+     * the provided mapping function to each element.
+     *
+     * <p>
+     * If the mapping function returns {@link Optional#empty()}, the original
+     * value will be removed from the resulting stream.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate
+     * operation</a>.
+     *
+     * <p>
+     * The {@code flatOption()} operation has the effect of applying a
+     * one-to-zero-or-one transformation to the elements of the stream, and then
+     * flattening the resulting elements into a new stream.
+     *
+     * @param <R> The element type of the new stream
+     * @param mapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to each element which produces an
+     *        array of new values
+     * @return the new stream
+     * @since 0.6.5
+     */
+    public <R> StreamEx<R> flatOption(Function<? super T, ? extends Optional<? extends R>> mapper) {
+        return new StreamEx<>(stream().flatMap(value -> StreamEx.of(mapper.apply(value))), context);
+    }
+
     /**
      * Returns a stream consisting of the elements of this stream that don't
      * match the given predicate.
@@ -793,7 +824,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      *
      * <p>
      * This is a terminal operation.
-     * 
+     *
      * <p>
      * This method is equivalent to
      * {@code min(Comparator.comparing(keyExtractor))}, but may work faster as
@@ -829,7 +860,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      *
      * <p>
      * This is a terminal operation.
-     * 
+     *
      * <p>
      * This method is equivalent to
      * {@code min(Comparator.comparingInt(keyExtractor))}, but may work faster
@@ -862,7 +893,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      *
      * <p>
      * This is a terminal operation.
-     * 
+     *
      * <p>
      * This method is equivalent to
      * {@code min(Comparator.comparingLong(keyExtractor))}, but may work faster
@@ -897,7 +928,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      *
      * <p>
      * This is a terminal operation.
-     * 
+     *
      * <p>
      * This method is equivalent to
      * {@code min(Comparator.comparingDouble(keyExtractor))}, but may work
@@ -933,7 +964,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      *
      * <p>
      * This is a terminal operation.
-     * 
+     *
      * <p>
      * This method is equivalent to
      * {@code max(Comparator.comparing(keyExtractor))}, but may work faster as
@@ -969,7 +1000,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      *
      * <p>
      * This is a terminal operation.
-     * 
+     *
      * <p>
      * This method is equivalent to
      * {@code max(Comparator.comparingInt(keyExtractor))}, but may work faster
@@ -1002,7 +1033,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      *
      * <p>
      * This is a terminal operation.
-     * 
+     *
      * <p>
      * This method is equivalent to
      * {@code max(Comparator.comparingLong(keyExtractor))}, but may work faster
@@ -1037,7 +1068,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      *
      * <p>
      * This is a terminal operation.
-     * 
+     *
      * <p>
      * This method is equivalent to
      * {@code max(Comparator.comparingDouble(keyExtractor))}, but may work
@@ -1077,10 +1108,10 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a> with <a href="package-summary.html#TSO">tail-stream
      * optimization</a>.
-     * 
+     *
      * <p>
      * May return this if the supplied stream is known to be empty.
-     * 
+     *
      * @param other the other stream
      * @return this stream appended by the other stream
      * @see Stream#concat(Stream, Stream)
@@ -1100,10 +1131,10 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a> with <a href="package-summary.html#TSO">tail-stream
      * optimization</a>.
-     * 
+     *
      * <p>
      * May return this if the supplied stream is known to be empty.
-     * 
+     *
      * @param other the other stream
      * @return this stream prepended by the other stream
      * @see Stream#concat(Stream, Stream)
@@ -1153,7 +1184,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     public List<T> toList() {
         return new ArrayList<>((Collection<T>) new ArrayCollection(toArray(Object[]::new)));
     }
-    
+
     /**
      * Returns an immutable {@link List} containing the elements of this stream.
      * There's no guarantees on exact type of the returned {@code List}. The
@@ -1185,7 +1216,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * performs finishing transformation and returns its result. There are no
      * guarantees on the type, serializability or thread-safety of the
      * {@code List} created.
-     * 
+     *
      * <p>
      * This is a terminal operation.
      *
@@ -1218,7 +1249,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     public Set<T> toSet() {
         return rawCollect(Collectors.toSet());
     }
-    
+
     /**
      * Returns an immutable {@link Set} containing the elements of this stream.
      * There's no guarantees on exact type of the returned {@code Set}. In
@@ -1245,7 +1276,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * performs finishing transformation and returns its result. There are no
      * guarantees on the type, serializability or thread-safety of the
      * {@code Set} created.
-     * 
+     *
      * <p>
      * This is a terminal operation.
      *
@@ -1282,7 +1313,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Folds the elements of this stream using the provided seed object and
      * accumulation function, going left to right. This is equivalent to:
-     * 
+     *
      * <pre>
      * {@code
      *     U result = seed;
@@ -1294,13 +1325,13 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      *
      * <p>
      * This is a terminal operation.
-     * 
+     *
      * <p>
      * This method cannot take all the advantages of parallel streams as it must
      * process elements strictly left to right. If your accumulator function is
      * associative and you can provide a combiner function, consider using
      * {@link #reduce(Object, BiFunction, BinaryOperator)} method.
-     * 
+     *
      * <p>
      * For parallel stream it's not guaranteed that accumulator will always be
      * executed in the same thread.
@@ -1326,7 +1357,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Folds the elements of this stream using the provided accumulation
      * function, going left to right. This is equivalent to:
-     * 
+     *
      * <pre>
      * {@code
      *     boolean foundAny = false;
@@ -1342,15 +1373,15 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      *     return foundAny ? Optional.of(result) : Optional.empty();
      * }
      * </pre>
-     * 
+     *
      * <p>
      * This is a terminal operation.
-     * 
+     *
      * <p>
      * This method cannot take all the advantages of parallel streams as it must
      * process elements strictly left to right. If your accumulator function is
      * associative, consider using {@link #reduce(BinaryOperator)} method.
-     * 
+     *
      * <p>
      * For parallel stream it's not guaranteed that accumulator will always be
      * executed in the same thread.
@@ -1374,10 +1405,10 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Folds the elements of this stream using the provided seed object and
      * accumulation function, going right to left.
-     * 
+     *
      * <p>
      * This is a terminal operation.
-     * 
+     *
      * <p>
      * As this method must process elements strictly right to left, it cannot
      * start processing till all the previous stream stages complete. Also it
@@ -1385,7 +1416,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * the stream natural order is left to right. If your accumulator function
      * is associative and you can provide a combiner function, consider using
      * {@link #reduce(Object, BiFunction, BinaryOperator)} method.
-     * 
+     *
      * <p>
      * For parallel stream it's not guaranteed that accumulator will always be
      * executed in the same thread.
@@ -1414,17 +1445,17 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Folds the elements of this stream using the provided accumulation
      * function, going right to left.
-     * 
+     *
      * <p>
      * This is a terminal operation.
-     * 
+     *
      * <p>
      * As this method must process elements strictly right to left, it cannot
      * start processing till all the previous stream stages complete. Also it
      * requires intermediate memory to store the whole content of the stream as
      * the stream natural order is left to right. If your accumulator function
      * is associative, consider using {@link #reduce(BinaryOperator)} method.
-     * 
+     *
      * <p>
      * For parallel stream it's not guaranteed that accumulator will always be
      * executed in the same thread.
@@ -1454,17 +1485,17 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Produces a list containing cumulative results of applying the
      * accumulation function going left to right using given seed value.
-     * 
+     *
      * <p>
      * This is a terminal operation.
-     * 
+     *
      * <p>
      * The resulting {@link List} is guaranteed to be mutable.
-     * 
+     *
      * <p>
      * For parallel stream it's not guaranteed that accumulator will always be
      * executed in the same thread.
-     * 
+     *
      * <p>
      * This method cannot take all the advantages of parallel streams as it must
      * process elements strictly left to right.
@@ -1494,17 +1525,17 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Produces a list containing cumulative results of applying the
      * accumulation function going left to right.
-     * 
+     *
      * <p>
      * This is a terminal operation.
-     * 
+     *
      * <p>
      * The resulting {@link List} is guaranteed to be mutable.
-     * 
+     *
      * <p>
      * For parallel stream it's not guaranteed that accumulator will always be
      * executed in the same thread.
-     * 
+     *
      * <p>
      * This method cannot take all the advantages of parallel streams as it must
      * process elements strictly left to right.
@@ -1537,17 +1568,17 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Produces a list containing cumulative results of applying the
      * accumulation function going right to left using given seed value.
-     * 
+     *
      * <p>
      * This is a terminal operation.
-     * 
+     *
      * <p>
      * The resulting {@link List} is guaranteed to be mutable.
-     * 
+     *
      * <p>
      * For parallel stream it's not guaranteed that accumulator will always be
      * executed in the same thread.
-     * 
+     *
      * <p>
      * This method cannot take all the advantages of parallel streams as it must
      * process elements strictly right to left.
@@ -1583,17 +1614,17 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Produces a collection containing cumulative results of applying the
      * accumulation function going right to left.
-     * 
+     *
      * <p>
      * This is a terminal operation.
-     * 
+     *
      * <p>
      * The result {@link List} is guaranteed to be mutable.
-     * 
+     *
      * <p>
      * For parallel stream it's not guaranteed that accumulator will always be
      * executed in the same thread.
-     * 
+     *
      * <p>
      * This method cannot take all the advantages of parallel streams as it must
      * process elements strictly right to left.
@@ -1641,7 +1672,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      *
      * <p>
      * Also it behaves much better with infinite streams processed in parallel.
-     * 
+     *
      * <p>
      * For sequential streams this method behaves exactly like
      * {@link #skip(long)}.
@@ -1659,20 +1690,20 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Returns a stream consisting of all elements from this stream until the
      * first element which does not match the given predicate is found.
-     * 
+     *
      * <p>
      * This is a short-circuiting stateful operation. It can be either <a
      * href="package-summary.html#StreamOps">intermediate or
      * quasi-intermediate</a>. When using with JDK 1.9 or higher it calls the
      * corresponding JDK 1.9 implementation. When using with JDK 1.8 it uses own
      * implementation.
-     * 
+     *
      * <p>
      * While this operation is quite cheap for sequential stream, it can be
      * quite expensive on parallel pipelines. Using unordered source or making it
      * explicitly unordered with {@link #unordered()} call may improve the parallel
      * processing performance if semantics permit.
-     * 
+     *
      * @param predicate a non-interfering, stateless predicate to apply to
      *        elements.
      * @return the new stream.
@@ -1689,17 +1720,17 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * Returns a stream consisting of all elements from this stream until the
      * first element which does not match the given predicate is found
      * (including the first mismatching element).
-     * 
+     *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a>.
-     * 
+     *
      * <p>
      * While this operation is quite cheap for sequential stream, it can be
      * quite expensive on parallel pipelines. Using unordered source or making it
      * explicitly unordered with {@link #unordered()} call may improve the parallel
      * processing performance if semantics permit.
-     * 
+     *
      * @param predicate a non-interfering, stateless predicate to apply to
      *        elements.
      * @return the new stream.
@@ -1718,20 +1749,20 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * Returns a stream consisting of all elements from this stream starting
      * from the first element which does not match the given predicate. If the
      * predicate is true for all stream elements, an empty stream is returned.
-     * 
+     *
      * <p>
      * This is a stateful operation. It can be either <a
      * href="package-summary.html#StreamOps">intermediate or
      * quasi-intermediate</a>. When using with JDK 1.9 or higher it calls the
      * corresponding JDK 1.9 implementation. When using with JDK 1.8 it uses own
      * implementation.
-     * 
+     *
      * <p>
      * While this operation is quite cheap for sequential stream, it can be
      * quite expensive on parallel pipelines. Using unordered source or making it
      * explicitly unordered with {@link #unordered()} call may improve the parallel
      * processing performance if semantics permit.
-     * 
+     *
      * @param predicate a non-interfering, stateless predicate to apply to
      *        elements.
      * @return the new stream.
@@ -1741,11 +1772,11 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
         Objects.requireNonNull(predicate);
         return VER_SPEC.callWhile(this, predicate, true);
     }
-    
+
     /**
      * Returns a stream containing cumulative results of applying the
      * accumulation function going left to right.
-     * 
+     *
      * <p>
      * This is a stateful <a
      * href="package-summary.html#StreamOps">quasi-intermediate</a> operation.
@@ -1754,7 +1785,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * This operation resembles {@link #scanLeft(BinaryOperator)}, but unlike
      * {@code scanLeft} this operation is intermediate and accumulation function
      * must be associative.
-     * 
+     *
      * <p>
      * This method cannot take all the advantages of parallel streams as it must
      * process elements strictly left to right. Using an unordered source or
