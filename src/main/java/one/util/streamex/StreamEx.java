@@ -322,16 +322,19 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * <p>
      *
      * Examples:
-     * <p>
-     *   List[Object] objs = StreamEx.of(1, "a") <br>
-     *      .mapInstance(Integer.class, num -&gt; num * 2) <br>
-     *      .mapInstance(String.class, str -&gt; str + "_updated") <br>
-     *      .toList();
-     * <p>
-     *   List[Integer] ints = StreamEx.of(1, "2") <br>
-     *      .mapInstance(String.class, Integer::parseInt) <br>
-     *      .select(Integer.class)
-     *      .toList(); <br>
+     * <pre>
+     * {@code
+     *  List<Object> objs = StreamEx.of(1, "a")
+     *     .mapInstance(Integer.class, num -> num * 2)
+     *     .mapInstance(String.class, str -> str + "_updated")
+     *     .toList();
+     *
+     *  List<Integer> ints = StreamEx.of(1, "2")
+     *     .mapInstance(String.class, Integer::parseInt)
+     *     .select(Integer.class)
+     *     .toList();
+     * }
+     * </pre>
      *
      * @param clazz The class whose instances we want to map
      * @param instanceMapper The mapping function for the elements that are instances of the provided class
