@@ -15,10 +15,9 @@
  */
 package one.util.streamex;
 
-import one.util.streamex.StreamExTest.Point;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
+import static one.util.streamex.TestHelpers.*;
+import static java.util.Arrays.asList;
+import static org.junit.Assert.*;
 
 import java.util.*;
 import java.util.AbstractMap.SimpleEntry;
@@ -33,9 +32,11 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static java.util.Arrays.asList;
-import static one.util.streamex.TestHelpers.*;
-import static org.junit.Assert.*;
+import one.util.streamex.StreamExTest.Point;
+
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
 /**
  * @author Tagir Valeev

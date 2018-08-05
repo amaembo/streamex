@@ -24,8 +24,8 @@ import java.util.stream.Collector.Characteristics;
 import static one.util.streamex.StreamExInternals.*;
 
 /**
- * Base class providing common functionality for {@link StreamEx} and {@link EntryStream}.
- *
+ * Base class providing common functionality for {@link StreamEx} and {@link EntryStream}. 
+ * 
  * @author Tagir Valeev
  *
  * @param <T> the type of the stream elements
@@ -197,14 +197,14 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Returns a new stream containing all the elements of the original stream interspersed with
      * given delimiter.
-     *
+     * 
      * <p>
      * For example, {@code StreamEx.of("a", "b", "c").intersperse("x")} will yield a stream containing
      * five elements: a, x, b, x, c.
-     *
+     * 
      * <p>
      * This is an <a href="package-summary.html#StreamOps">intermediate operation</a>.
-     *
+     * 
      * @param delimiter a delimiter to be inserted between each pair of elements
      * @return the new stream
      * @since 0.6.6
@@ -374,7 +374,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
 
     /**
      * {@inheritDoc}
-     *
+     * 
      * <p>
      * If special <a
      * href="package-summary.html#ShortCircuitReduction">short-circuiting

@@ -15,21 +15,27 @@
  */
 package one.util.streamex;
 
-import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.*;
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.function.*;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
+import java.util.function.BinaryOperator;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collector.Characteristics;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static one.util.streamex.StreamExInternals.PairBox;
-import static one.util.streamex.StreamExInternals.checkLength;
+import static one.util.streamex.StreamExInternals.*;
 
 /**
  * A {@link Stream} of {@link Entry} objects which provides additional specific
@@ -250,17 +256,9 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.5.2
      */
     public <VV> EntryStream<K, VV> flatMapToValue(
-            BiFunction<? super K, ? super V, ? extends Stream<? extends VV>> mapper
-    ) {
-        return new EntryStream<>(
-                stream().flatMap(e ->
-                        withKey(
-                                e.getKey(),
-                                mapper.apply(e.getKey(), e.getValue())
-                        )
-                ),
-                context
-        );
+            BiFunction<? super K, ? super V, ? extends Stream<? extends VV>> mapper) {
+        return new EntryStream<>(stream().flatMap(e -> withKey(e.getKey(), mapper.apply(e.getKey(), e.getValue()))),
+                context);
     }
 
     /**
