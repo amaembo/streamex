@@ -24,8 +24,8 @@ import java.util.stream.Collector.Characteristics;
 import static one.util.streamex.StreamExInternals.*;
 
 /**
- * Base class providing common functionality for {@link StreamEx} and {@link EntryStream}. 
- * 
+ * Base class providing common functionality for {@link StreamEx} and {@link EntryStream}.
+ *
  * @author Tagir Valeev
  *
  * @param <T> the type of the stream elements
@@ -197,14 +197,14 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Returns a new stream containing all the elements of the original stream interspersed with
      * given delimiter.
-     * 
+     *
      * <p>
      * For example, {@code StreamEx.of("a", "b", "c").intersperse("x")} will yield a stream containing
      * five elements: a, x, b, x, c.
-     * 
+     *
      * <p>
      * This is an <a href="package-summary.html#StreamOps">intermediate operation</a>.
-     * 
+     *
      * @param delimiter a delimiter to be inserted between each pair of elements
      * @return the new stream
      * @since 0.6.6
@@ -374,7 +374,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
 
     /**
      * {@inheritDoc}
-     * 
+     *
      * <p>
      * If special <a
      * href="package-summary.html#ShortCircuitReduction">short-circuiting
@@ -590,20 +590,20 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     }
 
     /**
-     * Returns a stream consisting of the results of replacing each element of
-     * this stream with the contents of the optional value produced by applying
-     * the provided mapping function to each element.
+     * Performs a mapping of the stream content to a partial function
+     * removing the elements to which the function is not applicable.
      *
      * <p>
      * If the mapping function returns {@link Optional#empty()}, the original
-     * value will be removed from the resulting stream.
+     * value will be removed from the resulting stream. The mapping function
+     * may not return null.
      *
      * <p>
      * This is an <a href="package-summary.html#StreamOps">intermediate
      * operation</a>.
      *
      * <p>
-     * The {@code flatOption()} operation has the effect of applying a
+     * The {@code mapPartial()} operation has the effect of applying a
      * one-to-zero-or-one transformation to the elements of the stream, and then
      * flattening the resulting elements into a new stream.
      *
@@ -611,13 +611,14 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * @param mapper a <a
      *        href="package-summary.html#NonInterference">non-interfering </a>,
      *        <a href="package-summary.html#Statelessness">stateless</a>
-     *        function to apply to each element which produces an
-     *        array of new values
+     *        partial function to apply to each element which returns a present optional
+     *        if it's applicable, or an empty optional otherwise
      * @return the new stream
      * @since 0.6.8
      */
-    public <R> StreamEx<R> flatOption(Function<? super T, ? extends Optional<? extends R>> mapper) {
-        return new StreamEx<>(stream().flatMap(value -> StreamEx.of(mapper.apply(value))), context);
+    public <R> StreamEx<R> mapPartial(Function<? super T, ? extends Optional<? extends R>> mapper) {
+        return new StreamEx<>(stream().map(value -> mapper.apply(value).orElse(null)).filter(Objects::nonNull),
+                context);
     }
 
     /**

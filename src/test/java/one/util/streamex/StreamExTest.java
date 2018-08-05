@@ -463,18 +463,14 @@ public class StreamExTest {
     }
 
     @Test
-    public void testFlatOption() {
+    public void testMapPartial() {
         Function<Integer, Optional<String>> literalOf = num -> num == 1
                 ? Optional.of("one")
                 : Optional.empty();
 
         List<Integer> original = asList(1, 2, 3, 4);
         List<String> expected = asList("one");
-        List<String> actual = StreamEx.of(original)
-                .flatOption(literalOf)
-                .toList();
-
-        assertEquals(expected, actual);
+        streamEx(original::stream, s -> assertEquals(expected, s.get().mapPartial(literalOf).toList()));
     }
 
     @Test

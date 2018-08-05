@@ -186,32 +186,6 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     /**
      * Returns an {@code EntryStream} consisting of the entries whose values are
      * results of replacing source values with the contents of a mapped stream
-     * produced by applying the provided mapping function and converting the
-     * resulting optional to a stream.
-     *
-     * Keys are left intact.
-     *
-     * <p>
-     * This is an <a href="package-summary.html#StreamOps">intermediate
-     * operation</a>.
-     *
-     * @param <KK> The type of new keys
-     * @param mapper a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
-     *        function to apply to each key and value which produces an optional key
-     * @return the new stream
-     * @since 0.6.8
-     */
-    public <KK> EntryStream<KK, V> flatOptionToKey(
-            BiFunction<? super K, ? super V, ? extends Optional<? extends KK>> mapper
-    ) {
-        return flatMapToKey((key, value) -> StreamEx.of(mapper.apply(key, value)));
-    }
-
-    /**
-     * Returns an {@code EntryStream} consisting of the entries whose values are
-     * results of replacing source values with the contents of a mapped stream
      * produced by applying the provided mapping function to each source value
      * and keys are left intact. Each mapped stream is
      * {@link java.util.stream.BaseStream#close() closed} after its contents
@@ -262,33 +236,6 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     }
 
     /**
-     * Returns an {@code EntryStream} consisting of the entries whose values are
-     * results of replacing source values with the contents of a mapped stream
-     * produced by applying the provided mapping function and converting the
-     * resulting optional to a stream.
-     *
-     * Keys are left intact.
-     *
-     * <p>
-     * This is an <a href="package-summary.html#StreamOps">intermediate
-     * operation</a>.
-     *
-     * @param <VV> The type of new values
-     * @param mapper a <a
-     *        href="package-summary.html#NonInterference">non-interfering </a>,
-     *        <a href="package-summary.html#Statelessness">stateless</a>
-     *        function to apply to each key and value which produces an optional
-     *        new value
-     * @return the new stream
-     * @since 0.6.8
-     */
-    public <VV> EntryStream<K, VV> flatOptionToValue(
-            BiFunction<? super K, ? super V, ? extends Optional<? extends VV>> mapper
-    ) {
-        return flatMapToValue((key, value) -> StreamEx.of(mapper.apply(key, value)));
-    }
-
-    /**
      * Returns a stream consisting of the results of replacing each element of
      * this stream with the contents of a mapped stream produced by applying the
      * provided mapping function to each key-value pair. Each mapped stream is
@@ -307,28 +254,6 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      */
     public <R> StreamEx<R> flatMapKeyValue(BiFunction<? super K, ? super V, ? extends Stream<? extends R>> mapper) {
         return this.<R> flatMap(toFunction(mapper));
-    }
-
-    /**
-     * Returns a stream consisting of the results of replacing each element of
-     * this stream with the contents of a mapped stream produced by applying
-     * the provided mapping function to each key-value pair and and converting
-     * the resulting optional to a stream.
-     *
-     * <p>
-     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
-     * operation.
-     *
-     * @param <R> The element type of the new stream
-     * @param mapper a non-interfering, stateless function to apply to each
-     *        key-value pair which produces an optional new value
-     * @return the new stream
-     * @since 0.6.8
-     */
-    public <R> StreamEx<R> flatOptionKeyValue(
-            BiFunction<? super K, ? super V, ? extends Optional<? extends R>> mapper
-    ) {
-        return this.flatOption(toFunction(mapper));
     }
 
     /**
@@ -584,12 +509,47 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * operation.
      *
      * @param <R> The element type of the new stream
-     * @param mapper a non-interfering, stateless function to apply to key and
+     * @param mapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a> function to apply to key and
      *        value of each {@link Entry} in this stream
      * @return the new stream
      */
     public <R> StreamEx<R> mapKeyValue(BiFunction<? super K, ? super V, ? extends R> mapper) {
         return this.<R> map(toFunction(mapper));
+    }
+
+    /**
+     * Performs a mapping of the stream keys and values to a partial function
+     * removing the elements to which the function is not applicable.
+     *
+     * <p>
+     * If the mapping function returns {@link Optional#empty()}, the original
+     * entry will be removed from the resulting stream. The mapping function
+     * may not return null.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate
+     * operation</a>.
+     *
+     * <p>
+     * The {@code mapKeyValuePartial()} operation has the effect of applying a
+     * one-to-zero-or-one transformation to the elements of the stream, and then
+     * flattening the resulting elements into a new stream.
+     *
+     * @param <R> The element type of the new stream
+     * @param mapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        partial function to apply to original keys and values which returns a present optional
+     *        if it's applicable, or an empty optional otherwise
+     * @return the new stream
+     * @since 0.6.8
+     */
+    public <R> StreamEx<R> mapKeyValuePartial(
+            BiFunction<? super K, ? super V, ? extends Optional<? extends R>> mapper
+    ) {
+        return mapPartial(toFunction(mapper));
     }
 
     /**
@@ -612,6 +572,43 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     }
 
     /**
+     * Performs a mapping of the stream content to a partial function
+     * removing the entries to which the function is not applicable.
+     *
+     * <p>
+     * If the mapping function returns an optional containing a new key,
+     * or {@link Optional#empty()} if function is not applicable to the entry.
+     * For successfully mapped keys the values are left intact. The mapping function
+     * may not return null.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate
+     * operation</a>.
+     *
+     * <p>
+     * The {@code mapToValuePartial()} operation has the effect of applying a
+     * one-to-zero-or-one transformation to the elements of the stream, and then
+     * flattening the resulting elements into a new stream.
+     *
+     * @param <KK>        The type of new keys
+     * @param keyMapper a <a
+     *                    href="package-summary.html#NonInterference">non-interfering </a>,
+     *                    <a href="package-summary.html#Statelessness">stateless</a>
+     *                    partial function to apply to original keys and values which returns a present optional
+     *                    if it's applicable, or an empty optional otherwise
+     * @return the new stream
+     * @since 0.6.8
+     */
+    public <KK> EntryStream<KK, V> mapToKeyPartial(BiFunction<? super K, ? super V, ? extends Optional<? extends KK>> keyMapper) {
+        return new EntryStream<>(stream().map(
+                e -> {
+                    KK mapping = keyMapper.apply(e.getKey(), e.getValue()).orElse(null);
+                    return mapping != null ? new SimpleImmutableEntry<>(mapping, e.getValue()) : null;
+                }
+        ).filter(Objects::nonNull), context);
+    }
+
+    /**
      * Returns an {@code EntryStream} consisting of the entries whose keys are
      * left unchanged and values are modified by applying the given function.
      *
@@ -628,6 +625,43 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     public <VV> EntryStream<K, VV> mapToValue(BiFunction<? super K, ? super V, ? extends VV> valueMapper) {
         return new EntryStream<>(stream().map(
             e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e.getKey(), e.getValue()))), context);
+    }
+
+    /**
+     * Performs a mapping of the stream content to a partial function
+     * removing the entries to which the function is not applicable.
+     *
+     * <p>
+     * If the mapping function returns an optional containing a new value,
+     * or {@link Optional#empty()} if function is not applicable to the entry.
+     * For successfully mapped values the keys are left intact. The mapping function
+     * may not return null.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate
+     * operation</a>.
+     *
+     * <p>
+     * The {@code mapToValuePartial()} operation has the effect of applying a
+     * one-to-zero-or-one transformation to the elements of the stream, and then
+     * flattening the resulting elements into a new stream.
+     *
+     * @param <VV>        The type of new values
+     * @param valueMapper a <a
+     *                    href="package-summary.html#NonInterference">non-interfering </a>,
+     *                    <a href="package-summary.html#Statelessness">stateless</a>
+     *                    partial function to apply to original keys and values which returns a present optional
+     *                    if it's applicable, or an empty optional otherwise
+     * @return the new stream
+     * @since 0.6.8
+     */
+    public <VV> EntryStream<K, VV> mapToValuePartial(BiFunction<? super K, ? super V, ? extends Optional<? extends VV>> valueMapper) {
+        return new EntryStream<>(stream().map(
+                e -> {
+                    VV mapping = valueMapper.apply(e.getKey(), e.getValue()).orElse(null);
+                    return mapping != null ? new SimpleImmutableEntry<>(e.getKey(), mapping) : null;
+                }
+        ).filter(Objects::nonNull), context);
     }
 
     /**

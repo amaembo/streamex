@@ -397,7 +397,7 @@ public class EntryStreamTest {
     }
 
     @Test
-    public void testFlatOptionToKey() {
+    public void testMapToKeyPartial() {
         Map<Integer, Integer> original = new HashMap<>();
         original.put(1, 1);
         original.put(2, 5);
@@ -410,7 +410,7 @@ public class EntryStreamTest {
         expected.put(16, 4);
 
         Map<Integer, Integer> actual = EntryStream.of(original)
-                .flatOptionToKey((key, value) -> {
+                .mapToKeyPartial((key, value) -> {
                     if (key.equals(value)) {
                         return Optional.of(key * value);
                     }
@@ -422,7 +422,7 @@ public class EntryStreamTest {
     }
 
     @Test
-    public void testFlatOptionToValue() {
+    public void testMapToValuePartial() {
         Map<Integer, Integer> original = new HashMap<>();
         original.put(1, 1);
         original.put(2, 5);
@@ -435,7 +435,7 @@ public class EntryStreamTest {
         expected.put(4, 16);
 
         Map<Integer, Integer> actual = EntryStream.of(original)
-                .flatOptionToValue((key, value) -> {
+                .mapToValuePartial((key, value) -> {
                     if (key.equals(value)) {
                         return Optional.of(key * value);
                     }
@@ -447,7 +447,7 @@ public class EntryStreamTest {
     }
 
     @Test
-    public void testFlatOptionKeyValue() {
+    public void testMapKeyValuePartial() {
         Map<Integer, Integer> original = new HashMap<>();
         original.put(1, 1);
         original.put(2, 5);
@@ -456,7 +456,7 @@ public class EntryStreamTest {
 
         List<Integer> expected = asList(1, 9, 16);
         List<Integer> actual = EntryStream.of(original)
-                .flatOptionKeyValue((key, value) -> {
+                .mapKeyValuePartial((key, value) -> {
                     if (key.equals(value)) {
                         return Optional.of(key * value);
                     }
