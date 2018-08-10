@@ -117,6 +117,11 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
         return anyMatch(x -> x == value);
     }
 
+    public IntStreamEx withFirst(IntBinaryOperator mapper) {
+        IntWithFirstSpliterator spliterator = new IntWithFirstSpliterator(spliterator(), mapper);
+        return new IntStreamEx(spliterator, context);
+    }
+    
     /**
      * Returns a stream consisting of the elements of this stream that don't
      * equal to the given value.

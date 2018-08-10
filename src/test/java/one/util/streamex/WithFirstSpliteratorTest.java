@@ -18,6 +18,13 @@ package one.util.streamex;
 import java.util.AbstractMap;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.function.DoubleBinaryOperator;
+import java.util.function.IntBinaryOperator;
+import java.util.function.LongBinaryOperator;
+import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
 import org.junit.Test;
@@ -37,6 +44,31 @@ public class WithFirstSpliteratorTest {
         checkSpliterator("withFirstFlatMap", EntryStream.of(0, 0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5).toList(),
             () -> new WithFirstSpliterator<>(Stream.of(0, 2, 4).flatMap(x -> Stream.of(x, x + 1)).parallel()
                     .spliterator(), AbstractMap.SimpleImmutableEntry::new));
+    }
+    
+    @Test
+    public void testSpliterator_primitives() {
+        IntBinaryOperator intAction = (i, j) -> i + j;
+        checkSpliterator("Integer withFirst", IntStream.of(2, 3, 4, 5, 6, 7).boxed().collect(Collectors.toList()),
+            () -> new IntWithFirstSpliterator(IntStreamEx.of(1, 2, 3, 4, 5, 6).spliterator(),intAction));
+        
+        checkSpliterator("Integer withFirstFlatMap", IntStream.of(2, 3, 4, 5, 6, 7).boxed().collect(Collectors.toList()),
+            () -> new IntWithFirstSpliterator(IntStreamEx.of(1, 3, 5).flatMap(x -> IntStream.of(x, x + 1)).parallel().spliterator(),intAction));
+
+        LongBinaryOperator longAction = (i, j) -> i + j;
+        checkSpliterator("Long withFirst", LongStream.of(2, 3, 4, 5, 6, 7).boxed().collect(Collectors.toList()),
+            () -> new LongWithFirstSpliterator(LongStreamEx.of(1, 2, 3, 4, 5, 6).spliterator(),longAction));
+
+        checkSpliterator("Long withFirstFlatMap", LongStream.of(2, 3, 4, 5, 6, 7).boxed().collect(Collectors.toList()),
+            () -> new LongWithFirstSpliterator(LongStreamEx.of(1, 3, 5).flatMap(x -> LongStream.of(x, x + 1)).parallel().spliterator(),longAction));
+        
+        DoubleBinaryOperator doubleAction = (i, j) -> i + j;
+        checkSpliterator("Double withFirst", DoubleStream.of(2, 3, 4, 5, 6).boxed().collect(Collectors.toList()),
+            () -> new DoubleWithFirstSpliterator(DoubleStreamEx.of(1, 2, 3, 4, 5).spliterator(),doubleAction));
+        
+        checkSpliterator("Double withFirstFlatMap", DoubleStream.of(2, 3, 4, 5, 6, 7).boxed().collect(Collectors.toList()),
+            () -> new DoubleWithFirstSpliterator(DoubleStreamEx.of(1, 3, 5).flatMap(x -> DoubleStream.of(x, x + 1)).parallel().spliterator(),doubleAction));
+        
     }
     
     @Test

@@ -114,6 +114,10 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
         return filter(val -> val != value);
     }
 
+    public LongStreamEx withFirst(LongBinaryOperator mapper) {
+        LongWithFirstSpliterator spliterator = new LongWithFirstSpliterator(spliterator(), mapper);
+        return new LongStreamEx(spliterator, context);
+    }
     /**
      * Returns a stream consisting of the elements of this stream that don't
      * equal to any of the supplied values.
