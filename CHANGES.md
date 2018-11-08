@@ -2,6 +2,9 @@
 
 Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 
+### 0.6.8
+* [#183] Added: `StreamEx.mapPartial`, `EntryStream.mapToKeyPartial/mapToValuePartial/mapKeyValuePartial`
+
 ### 0.6.7
 * [#76] Added: `StreamEx.zipWith` accepting `BaseStream` (so zipWith(IntStreamEx.ints()) works)
 * [#131] Added: `StreamEx.ofCombinations`

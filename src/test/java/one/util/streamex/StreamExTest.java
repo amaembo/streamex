@@ -461,7 +461,18 @@ public class StreamExTest {
         data.put(3, null);
         assertEquals(asList("a", "b", "c", "d"), StreamEx.of(data.entrySet()).flatArray(Entry::getValue).toList());
     }
-    
+
+    @Test
+    public void testMapPartial() {
+        Function<Integer, Optional<String>> literalOf = num -> num == 1
+                ? Optional.of("one")
+                : Optional.empty();
+
+        List<Integer> original = asList(1, 2, 3, 4);
+        List<String> expected = asList("one");
+        streamEx(original::stream, s -> assertEquals(expected, s.get().mapPartial(literalOf).toList()));
+    }
+
     @Test
     public void testAppend() {
         assertEquals(asList("a", "b", "c", "d", "e"), StreamEx.of("a", "b", "c", "dd").remove(s -> s.length() > 1)
@@ -1551,7 +1562,7 @@ public class StreamExTest {
         Spliterator<String> spliterator = StreamEx.of("aaa", "b", "cccc").dropWhile(x -> x.length() > 1).spliterator();
         assertEquals(hasDropWhile, !spliterator.getClass().getSimpleName().equals("TDOfRef"));
     }
-    
+
     @Test
     public void testTakeDropUnordered() {
         repeat(10, n -> withRandom(rnd -> {
@@ -1931,7 +1942,7 @@ public class StreamExTest {
 
     /**
      * Returns maximal stream value short-circuiting when stopValue is reached
-     * 
+     *
      * @param stream stream to process
      * @param comparator comparator to compare stream values
      * @param stopValue value to short-circuit at
@@ -2033,7 +2044,7 @@ public class StreamExTest {
         assertEquals(2, StreamEx.of("a", "bb", "c", "e", "ddd").removeBy(String::length, 1).count());
         assertEquals(3, StreamEx.of("a", "bb", "c", "e", "ddd").removeBy(x -> x.length() > 1 ? null : x, null).count());
     }
-    
+
     @Test
     public void testIntersperse() {
         List<String> expected = asList("a", "--", "b", "--", "c", "--", "d", "--", "e");

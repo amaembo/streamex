@@ -19,23 +19,9 @@ import static one.util.streamex.TestHelpers.*;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
 
-import java.util.AbstractMap;
+import java.util.*;
 import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 import java.util.Map.Entry;
-import java.util.NavigableMap;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -411,6 +397,76 @@ public class EntryStreamTest {
     }
 
     @Test
+    public void testMapToKeyPartial() {
+        Map<Integer, Integer> original = new HashMap<>();
+        original.put(1, 1);
+        original.put(2, 5);
+        original.put(3, 3);
+        original.put(4, 4);
+
+        Map<Integer, Integer> expected = new HashMap<>();
+        expected.put(1, 1);
+        expected.put(9, 3);
+        expected.put(16, 4);
+
+        Map<Integer, Integer> actual = EntryStream.of(original)
+                .mapToKeyPartial((key, value) -> {
+                    if (key.equals(value)) {
+                        return Optional.of(key * value);
+                    }
+                    return Optional.empty();
+                }).toMap();
+
+        assertEquals(expected, actual);
+
+    }
+
+    @Test
+    public void testMapToValuePartial() {
+        Map<Integer, Integer> original = new HashMap<>();
+        original.put(1, 1);
+        original.put(2, 5);
+        original.put(3, 3);
+        original.put(4, 4);
+
+        Map<Integer, Integer> expected = new HashMap<>();
+        expected.put(1, 1);
+        expected.put(3, 9);
+        expected.put(4, 16);
+
+        Map<Integer, Integer> actual = EntryStream.of(original)
+                .mapToValuePartial((key, value) -> {
+                    if (key.equals(value)) {
+                        return Optional.of(key * value);
+                    }
+                    return Optional.empty();
+                }).toMap();
+
+        assertEquals(expected, actual);
+
+    }
+
+    @Test
+    public void testMapKeyValuePartial() {
+        Map<Integer, Integer> original = new HashMap<>();
+        original.put(1, 1);
+        original.put(2, 5);
+        original.put(3, 3);
+        original.put(4, 4);
+
+        List<Integer> expected = asList(1, 9, 16);
+        List<Integer> actual = EntryStream.of(original)
+                .mapKeyValuePartial((key, value) -> {
+                    if (key.equals(value)) {
+                        return Optional.of(key * value);
+                    }
+                    return Optional.empty();
+                }).toList();
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
     public void testGrouping() {
         Map<String, Integer> data = new LinkedHashMap<>();
         data.put("ab", 1);
@@ -601,7 +657,7 @@ public class EntryStreamTest {
             assertEquals("0", iae.getSuppressed()[1].getMessage());
         }
         assertTrue(catched);
-        
+
         entryStream(() -> EntryStream.ofTree("", (Integer depth, String str) -> depth >= 3 ? null : Stream.of("a", "b")
                 .map(str::concat)), supplier -> {
             assertEquals(asList("", "a", "aa", "aaa", "aab", "ab", "aba", "abb", "b", "ba", "baa", "bab", "bb", "bba",
@@ -627,13 +683,13 @@ public class EntryStreamTest {
         assertEquals(asList(asList("a", "b", "c"), asList("d", "e", "f"), asList("g", "h", "i"), asList("j")),
             IntStreamEx.ints().flatMapToObj(i -> StreamEx.constant(i, 3)).zipWith(s).collapseKeys().values().toList());
     }
-    
+
     @Test
     public void testChain() {
         assertEquals(EntryStream.of(1, "a", 2, "b", 3, "c").toList(), EntryStream.of(1, "a", 2, "b", 2, "b", 3, "c")
                 .chain(StreamEx::of).collapse(Objects::equals).toList());
     }
-    
+
     @Test
     public void testImmutableMap() {
         repeat(4, n -> {
@@ -652,7 +708,7 @@ public class EntryStreamTest {
             });
         });
     }
-    
+
     @Test
     public void testInto() {
         for(AbstractMap<String, Integer> m : Arrays.<AbstractMap<String, Integer>>asList(new HashMap<>(), new TreeMap<>(), new ConcurrentHashMap<>())) {
@@ -666,13 +722,13 @@ public class EntryStreamTest {
             checkIllegalStateException(() -> EntryStream.of("y", 20, "d", 5).parallel().into(m), "d", "4", "5");
         }
     }
-    
+
     @Test
     public void testPrefixKeys() {
         Map<String, Integer> map = EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4).prefixValues(Integer::sum).toMap();
         assertEquals(EntryStream.of("a", 1, "b", 3, "c", 6, "d", 10).toMap(), map);
     }
-    
+
     @Test
     public void testPrefixValues() {
         Map<String, Integer> map = EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4).prefixKeys(String::concat).toMap();
