@@ -2352,7 +2352,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
     /**
      * Returns an {@code IntStreamEx} of code point values from the supplied
      * {@link CharSequence}. Any surrogate pairs encountered in the sequence are
-     * combined as if by {@linkplain Character#toCodePoint
+     * combined as if by {@linkplain Character#toCodePoint(char, char)
      * Character.toCodePoint} and the result is passed to the stream. Any other
      * code units, including ordinary BMP characters, unpaired surrogates, and
      * undefined code units, are zero-extended to {@code int} values which are
