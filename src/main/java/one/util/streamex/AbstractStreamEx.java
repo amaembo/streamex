@@ -1683,6 +1683,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * @throws IllegalArgumentException if {@code n} is negative
      * @see #skip(long)
      * @since 0.3.2
+     * @deprecated Unnecessary for JDK newer than 8u60 (use {@link #skip(long)}). Will be removed in future versions.
      */
     public S skipOrdered(long n) {
         return supply((isParallel() ? StreamSupport.stream(spliterator(), false) : stream()).skip(n).spliterator());

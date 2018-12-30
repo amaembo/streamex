@@ -573,6 +573,7 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @throws IllegalArgumentException if {@code n} is negative
      * @see #skip(long)
      * @since 0.3.2
+     * @deprecated Unnecessary for JDK newer than 8u60 (use {@link #skip(long)}). Will be removed in future versions.
      */
     public DoubleStreamEx skipOrdered(long n) {
         Spliterator.OfDouble spliterator = (isParallel() ? StreamSupport.doubleStream(spliterator(), false) : stream())

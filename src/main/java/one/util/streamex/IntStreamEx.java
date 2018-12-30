@@ -613,6 +613,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @throws IllegalArgumentException if {@code n} is negative
      * @see #skip(long)
      * @since 0.3.2
+     * @deprecated Unnecessary for JDK newer than 8u60 (use {@link #skip(long)}). Will be removed in future versions.
      */
     public IntStreamEx skipOrdered(long n) {
         Spliterator.OfInt spliterator = (isParallel() ? StreamSupport.intStream(spliterator(), false) : stream()).skip(

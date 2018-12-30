@@ -638,6 +638,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @throws IllegalArgumentException if {@code n} is negative
      * @see #skip(long)
      * @since 0.3.2
+     * @deprecated Unnecessary for JDK newer than 8u60 (use {@link #skip(long)}). Will be removed in future versions.
      */
     public LongStreamEx skipOrdered(long n) {
         Spliterator.OfLong spliterator = (isParallel() ? StreamSupport.longStream(spliterator(), false) : stream())
