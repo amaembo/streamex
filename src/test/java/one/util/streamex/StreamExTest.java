@@ -138,9 +138,6 @@ public class StreamExTest {
         assertEquals(expectedSet, actualSet);
         actualSet = StreamEx.ofLines(new StringReader(input)).skipOrdered(1).parallel().toSet();
         assertEquals(expectedSet, actualSet);
-
-        assertFalse(StreamEx.ofLines(new StringReader(input)).spliterator().getClass().getSimpleName().endsWith(
-            "IteratorSpliterator"));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -1764,10 +1761,6 @@ public class StreamExTest {
 
     @Test
     public void testSplit() {
-        assertFalse(StreamEx.split("str", "abcd").spliterator().getClass().getSimpleName().endsWith(
-            "IteratorSpliterator"));
-        assertFalse(StreamEx.split("str", Pattern.compile("abcd")).spliterator().getClass().getSimpleName().endsWith(
-            "IteratorSpliterator"));
         streamEx(() -> StreamEx.split("", "abcd"), s -> assertEquals(1, s.get().count()));
         streamEx(() -> StreamEx.split("", Pattern.compile("abcd")), s -> assertEquals(1, s.get().count()));
         streamEx(() -> StreamEx.split("ab.cd...", '.'), s -> assertEquals("ab|cd", s.get().joining("|")));

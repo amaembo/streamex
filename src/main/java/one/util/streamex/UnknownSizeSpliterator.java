@@ -33,34 +33,6 @@ import static one.util.streamex.StreamExInternals.*;
     static final int BATCH_UNIT = 1 << 10; // batch array size increment
     static final int MAX_BATCH = 1 << 25; // max batch array size;
 
-    /**
-     * Optimize the stream created on IteratorSpliterator replacing it with
-     * UnknownSizeSpliterator.
-     * 
-     * @param stream original stream
-     * @return either original or optimized stream
-     */
-    @SuppressWarnings("unchecked")
-    static <T> Stream<T> optimize(Stream<T> stream) {
-        if (SOURCE_SPLITERATOR == null || SPLITERATOR_ITERATOR == null)
-            return stream;
-        Iterator<T> it = null;
-        try {
-            Spliterator<T> spliterator = (Spliterator<T>) SOURCE_SPLITERATOR.get(stream);
-            if (spliterator != null && !spliterator.hasCharacteristics(SIZED)
-                && spliterator.getClass().getName().equals("java.util.Spliterators$IteratorSpliterator")) {
-                it = (Iterator<T>) SPLITERATOR_ITERATOR.get(spliterator);
-            }
-        } catch (IllegalArgumentException | IllegalAccessException e) {
-            // ignore
-        }
-        if (it == null)
-            return stream;
-        //noinspection ResultOfMethodCallIgnored
-        stream.spliterator(); // consume stream
-        return StreamSupport.stream(new USOfRef<>(it), stream.isParallel()).onClose(stream::close);
-    }
-
     I it;
     int index, fence;
     long est = Long.MAX_VALUE;

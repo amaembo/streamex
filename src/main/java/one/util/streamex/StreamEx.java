@@ -1522,7 +1522,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * operation.
      *
      * <p>
-     * The behavior of this operation is explicitly nondeterministic. For
+     * The behavior of this operation is explicitly non-deterministic. For
      * parallel stream pipelines, this operation does <em>not</em> guarantee to
      * respect the encounter order of the stream, as doing so would sacrifice
      * the benefit of parallelism. For any given element, the action may be
@@ -2184,7 +2184,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public static <T> StreamEx<T> of(Stream<T> stream) {
         if (stream instanceof AbstractStreamEx) {
-            @SuppressWarnings("unchecked")
             AbstractStreamEx<T, ?> ase = (AbstractStreamEx<T, ?>) stream;
             if (ase.spliterator != null)
                 return new StreamEx<>(ase.spliterator(), ase.context);
@@ -2313,7 +2312,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see BufferedReader#lines()
      */
     public static StreamEx<String> ofLines(BufferedReader reader) {
-        return of(UnknownSizeSpliterator.optimize(reader.lines()));
+        return new StreamEx<>(reader.lines(), StreamContext.SEQUENTIAL);
     }
 
     /**
@@ -2348,7 +2347,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public static StreamEx<String> ofLines(Reader reader) {
         if (reader instanceof BufferedReader)
             return ofLines((BufferedReader) reader);
-        return of(UnknownSizeSpliterator.optimize(new BufferedReader(reader).lines()));
+        return ofLines(new BufferedReader(reader));
     }
 
     /**
@@ -2378,7 +2377,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Files#lines(Path)
      */
     public static StreamEx<String> ofLines(Path path) throws IOException {
-        return of(UnknownSizeSpliterator.optimize(Files.lines(path)));
+        return of(Files.lines(path));
     }
 
     /**
@@ -2411,7 +2410,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.5.0
      */
     public static StreamEx<String> ofLines(Path path, Charset charset) throws IOException {
-        return of(UnknownSizeSpliterator.optimize(Files.lines(path, charset)));
+        return of(Files.lines(path, charset));
     }
 
     /**
@@ -2564,7 +2563,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public static StreamEx<String> split(CharSequence str, Pattern pattern) {
         if (str.length() == 0)
             return of("");
-        return of(UnknownSizeSpliterator.optimize(pattern.splitAsStream(str)));
+        return new StreamEx<>(pattern.splitAsStream(str), StreamContext.SEQUENTIAL);
     }
 
     /**
@@ -2599,7 +2598,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
                 return split(str, ch);
             }
         }
-        return of(UnknownSizeSpliterator.optimize(Pattern.compile(regex).splitAsStream(str)));
+        return new StreamEx<>(Pattern.compile(regex).splitAsStream(str), StreamContext.SEQUENTIAL);
     }
 
     /**

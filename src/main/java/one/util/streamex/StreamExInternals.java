@@ -43,51 +43,8 @@ import java.util.stream.Collector.Characteristics;
         Characteristics.IDENTITY_FINISH);
     static final Set<Characteristics> ID_CHARACTERISTICS = EnumSet.of(Characteristics.IDENTITY_FINISH);
 
-    static final Field SOURCE_SPLITERATOR;
-    static final Field SOURCE_STAGE;
-    static final Field SOURCE_CLOSE_ACTION;
-    static final Field SPLITERATOR_ITERATOR;
     static final VersionSpecific VER_SPEC = System.getProperty("java.version", "")
             .compareTo("1.9") > 0 ? new Java9Specific() : new VersionSpecific();
-
-    static {
-        Deque<Field> fields = new ArrayDeque<>();
-        /*
-         * Fields accessed via reflection are used only for reading and only to
-         * make some performance optimizations decisions. They must be never
-         * written and absence of these fields should not break anything.
-         */
-        try {
-            AccessController.doPrivileged((PrivilegedExceptionAction<Void>) () -> {
-                Class<?> abstractPipelineClass = Class.forName("java.util.stream.AbstractPipeline");
-                fields.add(abstractPipelineClass.getDeclaredField("sourceSpliterator"));
-                fields.add(abstractPipelineClass.getDeclaredField("sourceStage"));
-                fields.add(abstractPipelineClass.getDeclaredField("sourceCloseAction"));
-                fields.add(Class.forName("java.util.Spliterators$IteratorSpliterator").getDeclaredField("it"));
-                try {
-                    // Work-around Java 9 security model
-                    Field unsafeField = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
-                    unsafeField.setAccessible(true);
-                    sun.misc.Unsafe U = (sun.misc.Unsafe)unsafeField.get(null);
-                    Field override = AccessibleObject.class.getDeclaredField("override");
-                    long offset = U.objectFieldOffset(override);
-                    for (Field f : fields) {
-                        U.putBoolean(f, offset, true);
-                    }
-                } catch (LinkageError | ReflectiveOperationException | SecurityException ex) {
-                    for (Field f : fields)
-                        f.setAccessible(true);
-                }
-                return null;
-            });
-        } catch (PrivilegedActionException e) {
-            fields.clear();
-        }
-        SOURCE_SPLITERATOR = fields.poll();
-        SOURCE_STAGE = fields.poll();
-        SOURCE_CLOSE_ACTION = fields.poll();
-        SPLITERATOR_ITERATOR = fields.poll();
-    }
 
     static void checkNonNegative(String name, int value) {
         if (value < 0) {
@@ -1008,17 +965,6 @@ import java.util.stream.Collector.Characteristics;
     @SuppressWarnings("unchecked")
     static <T> T none() {
         return (T) NONE;
-    }
-
-    static boolean mustCloseStream(BaseStream<?, ?> target) {
-        try {
-            if (SOURCE_STAGE != null && SOURCE_CLOSE_ACTION != null
-                && SOURCE_CLOSE_ACTION.get(SOURCE_STAGE.get(target)) == null)
-                return false;
-        } catch (IllegalArgumentException | IllegalAccessException e) {
-            // ignore
-        }
-        return true;
     }
 
     static <T> int drainTo(T[] array, Spliterator<T> spliterator) {

@@ -20,8 +20,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.BaseStream;
 
-import static one.util.streamex.StreamExInternals.*;
-
 /**
  * This class controls stream execution mode (parallel/sequential), custom FJP
  * and close handlers.
@@ -132,8 +130,6 @@ import static one.util.streamex.StreamExInternals.*;
     static StreamContext of(BaseStream<?, ?> stream) {
         if (stream instanceof BaseStreamEx)
             return ((BaseStreamEx<?, ?, ?, ?>) stream).context;
-        if (mustCloseStream(stream))
-            return new StreamContext(stream.isParallel()).onClose(stream::close);
-        return stream.isParallel() ? PARALLEL : SEQUENTIAL;
+        return new StreamContext(stream.isParallel()).onClose(stream::close);
     }
 }
