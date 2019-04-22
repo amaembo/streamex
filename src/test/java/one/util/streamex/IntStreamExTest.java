@@ -572,32 +572,6 @@ public class IntStreamExTest {
     }
 
     @Test
-    public void testRecreate() {
-        Set<Integer> expected = IntStreamEx.range(1, 100).boxed().toSet();
-        assertEquals(expected, IntStreamEx.of(
-            StreamSupport.intStream(Spliterators.spliteratorUnknownSize(new HundredIterator(), Spliterator.ORDERED),
-                false)).skip(1).boxed().toSet());
-        assertEquals(expected, IntStreamEx.of(
-            StreamSupport.intStream(Spliterators.spliteratorUnknownSize(new HundredIterator(), Spliterator.ORDERED),
-                true)).skip(1).boxed().toCollection(HashSet::new));
-        assertEquals(expected, IntStreamEx.of(
-            StreamSupport.intStream(Spliterators.spliteratorUnknownSize(new HundredIterator(), Spliterator.ORDERED),
-                true)).skipOrdered(1).boxed().toSet());
-        assertEquals(expected, IntStreamEx.of(
-            StreamSupport.intStream(Spliterators.spliterator(new HundredIterator(), 100, Spliterator.ORDERED
-                | Spliterator.CONCURRENT), true)).skipOrdered(1).boxed().toSet());
-        assertEquals(expected, IntStreamEx.of(
-            StreamSupport.intStream(Spliterators.spliteratorUnknownSize(new HundredIterator(), Spliterator.ORDERED),
-                true)).unordered().skipOrdered(1).boxed().toCollection(HashSet::new));
-
-        assertEquals(expected, IntStreamEx.iterate(0, i -> i + 1).skip(1).greater(0).limit(99).boxed().toSet());
-        assertEquals(500, (int) IntStreamEx.iterate(0, i -> i + 1).skipOrdered(1).greater(0).boxed().parallel()
-                .findAny(i -> i == 500).get());
-        assertEquals(expected, IntStreamEx.iterate(0, i -> i + 1).skipOrdered(1).greater(0).limit(99).boxed()
-                .parallel().toSet());
-    }
-
-    @Test
     public void testTakeWhile() {
         assertArrayEquals(IntStreamEx.range(100).toArray(), IntStreamEx.iterate(0, i -> i + 1).takeWhile(i -> i < 100)
                 .toArray());

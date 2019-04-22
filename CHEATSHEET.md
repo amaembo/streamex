@@ -183,7 +183,6 @@ What I want | How to get it
 Extract first stream element and use it to alternate the rest of the stream | `StreamEx.headTail()`
 Define almost any custom intermediate operation recursively | `StreamEx.headTail()`
 Execute custom-defined operation in fluent manner | `any.chain()`
-Work-around parallel stream skip bug prior to Java 8u60 | `any.skipOrdered()`
 Perform parallel stream computation using the custom `ForkJoinPool` | `any.parallel(pool)`
 Zip two streams together | `StreamEx.zipWith()`
 Get the stream of cumulative prefixes | `any.prefix()`/`EntryStream.prefixKeys()`/`EntryStream.prefixValues()`

@@ -439,14 +439,6 @@ public class LongStreamExTest {
     }
 
     @Test
-    public void testRecreate() {
-        assertEquals(500, (long) LongStreamEx.iterate(0, i -> i + 1).skipOrdered(1).greater(0).boxed().parallel()
-                .findAny(i -> i == 500).get());
-        assertEquals(500, (long) LongStreamEx.iterate(0, i -> i + 1).parallel().skipOrdered(1).greater(0).boxed()
-                .findAny(i -> i == 500).get());
-    }
-
-    @Test
     public void testTakeWhile() {
         assertArrayEquals(LongStreamEx.range(100).toArray(), LongStreamEx.iterate(0, i -> i + 1)
                 .takeWhile(i -> i < 100).toArray());

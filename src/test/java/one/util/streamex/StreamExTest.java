@@ -133,11 +133,6 @@ public class StreamExTest {
         assertEquals(expectedSet, actualSet);
         actualSet = StreamEx.ofLines(new StringReader(input)).skip(1).parallel().toCollection(HashSet::new);
         assertEquals(expectedSet, actualSet);
-
-        actualSet = StreamEx.ofLines(new StringReader(input)).parallel().skipOrdered(1).toSet();
-        assertEquals(expectedSet, actualSet);
-        actualSet = StreamEx.ofLines(new StringReader(input)).skipOrdered(1).parallel().toSet();
-        assertEquals(expectedSet, actualSet);
     }
 
     @Test(expected = IllegalArgumentException.class)

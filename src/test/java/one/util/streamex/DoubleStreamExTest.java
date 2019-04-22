@@ -353,14 +353,6 @@ public class DoubleStreamExTest {
     }
 
     @Test
-    public void testRecreate() {
-        assertEquals(500, DoubleStreamEx.iterate(0, i -> i + 1).skipOrdered(1).greater(0).boxed().parallel().findAny(
-            i -> i == 500).get(), 0.0);
-        assertEquals(500, DoubleStreamEx.iterate(0, i -> i + 1).parallel().skipOrdered(1).greater(0).boxed().findAny(
-            i -> i == 500).get(), 0.0);
-    }
-
-    @Test
     public void testTakeWhile() {
         assertArrayEquals(LongStreamEx.range(100).asDoubleStream().toArray(), DoubleStreamEx.iterate(0, i -> i + 1)
                 .takeWhile(i -> i < 100).toArray(), 0.0);

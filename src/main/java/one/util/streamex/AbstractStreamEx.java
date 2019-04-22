@@ -1653,43 +1653,6 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     }
 
     /**
-     * Returns a stream consisting of the remaining elements of this stream
-     * after discarding the first {@code n} elements of the stream even if the
-     * stream is unordered. If this stream contains fewer than {@code n}
-     * elements then an empty stream will be returned.
-     *
-     * <p>
-     * This is a stateful <a
-     * href="package-summary.html#StreamOps">quasi-intermediate</a> operation.
-     * Unlike {@link #skip(long)} it skips the first elements even if the stream
-     * is unordered. The main purpose of this method is to workaround the
-     * problem of skipping the first elements from non-sized source with further
-     * parallel processing and unordered terminal operation (such as
-     * {@link #forEach(Consumer)}). For example,
-     * {@code StreamEx.ofLines(br).skip(1).parallel().toSet()} will skip
-     * arbitrary line, but
-     * {@code StreamEx.ofLines(br).skipOrdered(1).parallel().toSet()} will skip
-     * the first one. This problem was fixed in OracleJDK 8u60.
-     *
-     * <p>
-     * Also it behaves much better with infinite streams processed in parallel.
-     *
-     * <p>
-     * For sequential streams this method behaves exactly like
-     * {@link #skip(long)}.
-     *
-     * @param n the number of leading elements to skip
-     * @return the new stream
-     * @throws IllegalArgumentException if {@code n} is negative
-     * @see #skip(long)
-     * @since 0.3.2
-     * @deprecated Unnecessary for JDK newer than 8u60 (use {@link #skip(long)}). Will be removed in future versions.
-     */
-    public S skipOrdered(long n) {
-        return supply((isParallel() ? StreamSupport.stream(spliterator(), false) : stream()).skip(n).spliterator());
-    }
-
-    /**
      * Returns a stream consisting of all elements from this stream until the
      * first element which does not match the given predicate is found.
      *

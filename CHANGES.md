@@ -5,6 +5,7 @@ Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 ### 0.7.0
 * [#193] Removed optimizations which rely on internal implementation details of Stream API (unwrap IteratorSpliterator;
   do not delegate to Stream::close when unnecessary)
+* [#194] Removed: `skipOrdered`.
 
 ### 0.6.8
 * [#183] Added: `StreamEx.mapPartial`, `EntryStream.mapToKeyPartial/mapToValuePartial/mapKeyValuePartial`
