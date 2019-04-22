@@ -221,7 +221,12 @@ public final class MoreCollectors {
      * collector</a> if both downstream collectors are short-circuiting. The
      * collection might stop when both downstream collectors report that the
      * collection is complete.
-     *
+     * 
+     * <p>
+     * This collector is similar to the {@code teeing} collector available since
+     * JDK 12. The only difference is that this collector correctly combines 
+     * short-circuiting collectors.
+     * 
      * @param <T> the type of the input elements
      * @param <A1> the intermediate accumulation type of the first collector
      * @param <A2> the intermediate accumulation type of the second collector
