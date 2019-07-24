@@ -549,7 +549,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     public <R> StreamEx<R> mapKeyValuePartial(
             BiFunction<? super K, ? super V, ? extends Optional<? extends R>> mapper
     ) {
-        return mapPartial(toFunction(mapper));
+        return this.<R>mapPartial(toFunction(mapper));
     }
 
     /**
