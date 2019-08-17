@@ -47,7 +47,7 @@
  * {@link one.util.streamex.StreamEx.Emitter}, {@link one.util.streamex.IntStreamEx.IntEmitter}, {@link one.util.streamex.LongStreamEx.LongEmitter}, {@link one.util.streamex.DoubleStreamEx.DoubleEmitter}: 
  * helper interfaces to create custom stream sources.
  *
- * <h2><a name="StreamOps">Stream operations and pipelines</a></h2>
+ * <h2><a id="StreamOps">Stream operations and pipelines</a></h2>
  * <p>StreamEx operations are divided into <em>intermediate</em>, <em>quasi-intermediate</em> and
  * <em>terminal</em> operations, and are combined to form <em>stream
  * pipelines</em>.  For more information about <em>intermediate</em> and <em>terminal</em> see the {@linkplain java.util.stream Stream API} documentation.
@@ -67,7 +67,7 @@
  * operation, then unordered mode is not propagated through it, so the operations prior to the quasi-intermediate operation 
  * (including the quasi-intermediate operation itself) will remain ordered.
  * 
- * <h3><a name="TSO">Tail stream optimization</a></h3>
+ * <h3><a id="TSO">Tail stream optimization</a></h3>
  *
  * A few quasi-intermediate operations are tail-stream optimized (TSO) which is important when using 
  * {@link one.util.streamex.StreamEx#headTail(java.util.function.BiFunction) headTail}
@@ -76,15 +76,15 @@
  * removes the TSO-compatible operation from the pipeline shortening the call stack.
  * This allows writing many recursively defined operations which consume constant amount of the call stack and the heap.
  *
- * <h3><a name="NonInterference">Non-interference</a></h3>
+ * <h3><a id="NonInterference">Non-interference</a></h3>
  * 
  * The function is called non-interfering if it does not modify the stream source. For more information see the {@linkplain java.util.stream Stream API} documentation.
  *
- * <h3><a name="Statelessness">Stateless behaviors</a></h3>
+ * <h3><a id="Statelessness">Stateless behaviors</a></h3>
  * 
  * The function is called stateless if its result does not depend on any state which may be changed during the stream execution. For more information see the {@linkplain java.util.stream Stream API} documentation.
  *
- * <h2><a name="Reduction">Reduction operations</a></h2>
+ * <h2><a id="Reduction">Reduction operations</a></h2>
  * 
  * <p>
  * A <em>reduction</em> operation takes a sequence of input elements and combines them into a single summary result. For more information see the {@linkplain java.util.stream Stream API} documentation.
@@ -94,7 +94,7 @@
  * can be safely used for parallel streams, but the absence of associativity may lead to the performance drawback. Use them only if you cannot provide
  * an associative reduction function.   
  * 
- * <h3><a name="MutableReduction">Mutable reduction</a></h3>
+ * <h3><a id="MutableReduction">Mutable reduction</a></h3>
  *
  * <p>
  * A <em>mutable reduction operation</em> accumulates input elements into a
@@ -110,7 +110,7 @@
  * <p>
  * Also StreamEx library defines a number of collectors absent in JDK. See {@link one.util.streamex.MoreCollectors} class.
  *
- * <h3><a name="ShortCircuitReduction">Short circuiting reduction</a></h3>
+ * <h3><a id="ShortCircuitReduction">Short circuiting reduction</a></h3>
  * 
  * <p>
  * While Stream API has some <em>short-circuiting</em> operations which may process only some of input elements (in particular may allow to process an infinite stream in finite time),
@@ -149,7 +149,7 @@
  * Currently there's no public API to create user-defined short-circuiting collectors. 
  * Also there are no short-circuiting collectors for primitive streams.
  *
- * <h3><a name="Associativity">Associativity</a></h3>
+ * <h3><a id="Associativity">Associativity</a></h3>
  *
  * An operator or function {@code op} is <em>associative</em> if the following
  * holds:
