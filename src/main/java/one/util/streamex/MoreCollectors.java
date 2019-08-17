@@ -1625,6 +1625,7 @@ public final class MoreCollectors {
      * @see Stream#allMatch(Predicate)
      * @see AbstractStreamEx#dropWhile(Predicate)
      * @see AbstractStreamEx#takeWhile(Predicate)
+     * @since 0.6.3
      */
     public static <T, A, R> Collector<T, ?, Optional<R>> ifAllMatch(Predicate<T> predicate,
             Collector<T, A, R> downstream) {
