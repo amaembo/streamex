@@ -183,6 +183,33 @@ public class EntryStreamTest {
     }
 
     @Test
+    public void testAnyMatch() {
+        assertTrue(EntryStream.of(createMap()).anyMatch((k, v) -> "a".equals(k)));
+        assertTrue(EntryStream.of(createMap()).anyMatch((k, v) -> v == 22));
+        assertTrue(EntryStream.of(createMap()).anyMatch((k, v) -> "ccc".equals(k) && v == 33));
+        assertFalse(EntryStream.of(createMap()).anyMatch((k, v) -> "b".equals(k) && v == 1));
+    }
+
+    @Test
+    public void testAllMatch() {
+        assertTrue(EntryStream.of(createMap()).allMatch((k, v) -> k.length() < 4));
+        assertFalse(EntryStream.of(createMap()).allMatch((k, v) -> v < 30));
+
+        Map<String, Integer> map = createMap();
+        assertTrue(EntryStream.of(createMap()).allMatch((k, v) -> v.equals(map.get(k))));
+        map.put("a", 2);
+        assertFalse(EntryStream.of(createMap()).allMatch((k, v) -> v.equals(map.get(k))));
+    }
+
+    @Test
+    public void testNoneMatch() {
+        assertTrue(EntryStream.of(createMap()).noneMatch((k, v) -> k.contains("d")));
+        assertFalse(EntryStream.of(createMap()).noneMatch((k, v) -> v < 10));
+        assertTrue(EntryStream.of(createMap()).noneMatch((k, v) -> k.length() + 1 == v));
+        assertFalse(EntryStream.of(createMap()).noneMatch((k, v) -> k.length() == v));
+    }
+
+    @Test
     public void testPeek() {
         List<String> keys = new ArrayList<>();
         assertEquals(createMap(), EntryStream.of(createMap()).peekKeys(keys::add).toMap());
