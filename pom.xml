@@ -92,6 +92,7 @@
             </goals>
             <configuration>
               <quiet>true</quiet>
+              <additionalOptions>-source 1.8</additionalOptions>
             </configuration>
           </execution>
           <execution>
@@ -104,7 +105,7 @@
             <configuration>
               <sourcepath>${project.build.sourceDirectory};${project.build.directory}/jdk</sourcepath>
               <excludePackageNames>java.util.stream</excludePackageNames>
-              <additionalOptions>-Xdoclint:none</additionalOptions>
+              <additionalOptions>-Xdoclint:none -source 1.8</additionalOptions>
               <noqualifier>all</noqualifier>
               <quiet>true</quiet>
             </configuration>
