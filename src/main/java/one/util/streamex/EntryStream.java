@@ -729,6 +729,62 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     }
 
     /**
+     * Returns whether any elements of this stream match the provided
+     * predicate. If the stream is empty then {@code false} is returned
+     * and the predicate is not evaluated.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
+     *
+     * @param predicate a non-interfering, stateless predicate to apply
+     *        to elements of this stream
+     * @return {@code true} if any elements of the stream match the provided
+     *         predicate, otherwise {@code false}
+     */
+    public boolean anyMatch(BiPredicate<? super K, ? super V> predicate) {
+        return anyMatch(e -> predicate.test(e.getKey(), e.getValue()));
+    }
+
+    /**
+     * Returns whether all elements of this stream match the provided
+     * predicate. If the stream is empty then {@code true} is returned
+     * and the predicate is not evaluated.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
+     *
+     * @param predicate a non-interfering, stateless predicate to apply
+     *        to elements of this stream
+     * @return {@code true} if either all elements of the stream match the
+     *         provided predicate or the stream is empty,
+     *         otherwise {@code false}
+     */
+    public boolean allMatch(BiPredicate<? super K, ? super V> predicate) {
+        return allMatch(e -> predicate.test(e.getKey(), e.getValue()));
+    }
+
+    /**
+     * Returns whether no elements of this stream match the provided
+     * predicate. If the stream is empty then {@code true} is returned
+     * and the predicate is not evaluated.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a>
+     * operation.
+     *
+     * @param predicate a non-interfering, stateless predicate to apply
+     *        to elements of this stream
+     * @return {@code true} if either no elements of the stream match the
+     *         provided predicate or the stream is empty,
+     *         otherwise {@code false}
+     */
+    public boolean noneMatch(BiPredicate<? super K, ? super V> predicate) {
+        return noneMatch(e -> predicate.test(e.getKey(), e.getValue()));
+    }
+
+    /**
      * Returns a stream consisting of the elements of this stream which keys
      * don't match the given predicate.
      *
