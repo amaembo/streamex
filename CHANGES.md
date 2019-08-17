@@ -6,6 +6,8 @@ Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 * [#193] Removed optimizations which rely on internal implementation details of Stream API (unwrap IteratorSpliterator;
   do not delegate to Stream::close when unnecessary)
 * [#194] Removed: `skipOrdered`.
+* [#200] Added: `EntryStream.allMatch/anyMatch/noneMatch` accepting key-value pair.
+* Now Java 11 is used to build the library. In particular this results in modern JavaDoc artifact (including the search).
 
 ### 0.6.8
 * [#183] Added: `StreamEx.mapPartial`, `EntryStream.mapToKeyPartial/mapToValuePartial/mapKeyValuePartial`

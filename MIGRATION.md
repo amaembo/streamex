@@ -2,6 +2,13 @@
 
 This document describes StreamEx changes which may break the backwards compatibility. For full list of changes see [CHANGES.md](CHANGES.md).
 
+### 0.7.0
+Issue#194: Method `skipOrdered` is removed, which may break source and binary compatibility if in was used. Use simply `skip` instead.
+PR#200: Overloads added to `EntryStream.allMatch/anyMatch/noneMatch` which accept a `BiPredicate`. Such overloads may cause
+    source incompatibility in rare case when a method reference was used which is either bound to var-arg method or
+    has several overloads. E.g. assuming `boolean allNull(Object... objects)` now `EntryStream.of(...).allMatch(Utils::allNull)`
+    won't compile anymore. To work-around this issue use a lambda instead of method reference.
+
 ### 0.6.0
 
 Issue#67: Now `StreamEx.withFirst()` as well as `StreamEx.withFirst(BinaryOperator)` include `(first, first)` pair. If you used these operations in StreamEx 0.5.3-0.5.5, you should update the existing code: replace `.withFirst()` with `.withFirst().skip(1)`.
