@@ -741,6 +741,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      *        to elements of this stream
      * @return {@code true} if any elements of the stream match the provided
      *         predicate, otherwise {@code false}
+     * @since 0.7.0
      */
     public boolean anyMatch(BiPredicate<? super K, ? super V> predicate) {
         return anyMatch(e -> predicate.test(e.getKey(), e.getValue()));
@@ -760,6 +761,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return {@code true} if either all elements of the stream match the
      *         provided predicate or the stream is empty,
      *         otherwise {@code false}
+     * @since 0.7.0
      */
     public boolean allMatch(BiPredicate<? super K, ? super V> predicate) {
         return allMatch(e -> predicate.test(e.getKey(), e.getValue()));
@@ -779,6 +781,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @return {@code true} if either no elements of the stream match the
      *         provided predicate or the stream is empty,
      *         otherwise {@code false}
+     * @since 0.7.0
      */
     public boolean noneMatch(BiPredicate<? super K, ? super V> predicate) {
         return noneMatch(e -> predicate.test(e.getKey(), e.getValue()));
