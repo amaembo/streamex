@@ -1,4 +1,4 @@
-# StreamEx 0.6.8
+# StreamEx 0.7.0
 Enhancing Java 8 Streams.
 
 [![Maven Central](https://img.shields.io/maven-central/v/one.util/streamex.svg)](https://maven-badges.herokuapp.com/maven-central/one.util/streamex/)
@@ -133,7 +133,7 @@ Add this snippet to the pom.xml `dependencies` section:
 <dependency>
   <groupId>one.util</groupId>
   <artifactId>streamex</artifactId>
-  <version>0.6.8</version>
+  <version>0.7.0</version>
 </dependency>
 ```
 
@@ -142,7 +142,7 @@ Add this snippet to the pom.xml `dependencies` section:
 Add this snippet to the build.gradle `dependencies` section:
 
 ```groovy
-implementation 'one.util:streamex:0.6.8'
+implementation 'one.util:streamex:0.7.0'
 ```
 
 Pull requests are welcome.
