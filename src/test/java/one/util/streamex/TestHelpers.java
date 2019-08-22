@@ -20,17 +20,16 @@ import org.junit.ComparisonFailure;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.IntConsumer;
-import java.util.function.Supplier;
+import java.util.function.*;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static one.util.streamex.StreamExInternals.TailSpliterator;
 import static one.util.streamex.StreamExInternals.finished;
 import static org.junit.Assert.*;
@@ -39,6 +38,7 @@ import static org.junit.Assert.*;
  * @author Tagir Valeev
  */
 public class TestHelpers {
+
     enum Mode {
         NORMAL, SPLITERATOR, PARALLEL, APPEND, PREPEND, RANDOM
     }
@@ -414,5 +414,86 @@ public class TestHelpers {
                     + "' (attempt to merge values '" + value2 + "' and '" + value1 + "')"))
                 fail("wrong exception message: " + exmsg);
         }
+    }
+
+    @FunctionalInterface
+    interface Statement {
+        void evaluate() throws Throwable;
+    }
+
+    static void assertThrows(Class<? extends Throwable> expected, Statement statement) {
+        try {
+            statement.evaluate();
+            fail("Expected exception: " + expected.getName());
+        } catch (Throwable e) {
+            if (!expected.isAssignableFrom(e.getClass())) {
+                fail("Unexpected exception, " +
+                        "expected<" + expected.getName() + "> " +
+                        "but was<" + e.getClass().getName() + ">");
+            }
+        }
+    }
+
+    static <T> Collector<T, ?, ?> secondConcurrentAddAssertingCollector() {
+        return Collector.<T, Collection<T>>of(
+                SecondConcurrentAddAssertingCollection::new,
+                Collection::add,
+                (a, b) -> {
+                    throw new IllegalStateException(
+                            "Combining is not expected within secondConcurrentAddAssertingCollector");
+                },
+                Collector.Characteristics.CONCURRENT,
+                Collector.Characteristics.UNORDERED,
+                Collector.Characteristics.IDENTITY_FINISH);
+    }
+
+    private static class SecondConcurrentAddAssertingCollection<E> extends AbstractCollection<E> {
+        private AtomicBoolean firstCall = new AtomicBoolean(true);
+        private final Semaphore semaphore = new Semaphore(0);
+
+        @Override
+        public Iterator<E> iterator() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public int size() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean add(E ignored) {
+            if (semaphore.availablePermits() > 0) {
+                // do nothing: first two elements was already "added"
+                return false;
+            }
+            if (!firstCall.getAndSet(false)) {
+                // release first call and communicate further calls to do nothing
+                semaphore.release(2);
+                return false;
+            }
+            try {
+                // hope that 1 sec. is quite enough for second call to be concurrently done
+                assertTrue("Second element was not added in parallel", semaphore.tryAcquire(1, SECONDS));
+                return false;
+            } catch (InterruptedException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+    }
+
+    static <T> Spliterator<T> emptySpliteratorWithExactSize(long exactSize) {
+        return new Spliterators.AbstractSpliterator<T>(0, Spliterator.SIZED) {
+
+            @Override
+            public long getExactSizeIfKnown() {
+                return exactSize;
+            }
+
+            @Override
+            public boolean tryAdvance(Consumer<? super T> ignored) {
+                return false;
+            }
+        };
     }
 }

@@ -26,8 +26,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
 import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -1025,15 +1025,29 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             List<T> list = Arrays.asList((T[]) toArray());
             collection.addAll(list);
         } else {
-            Spliterator<T> spltr = spliterator();
-            if (collection instanceof ArrayList) {
-                long size = spltr.getExactSizeIfKnown();
-                if (size >= 0 && size < Integer.MAX_VALUE - collection.size())
-                    ((ArrayList<?>) collection).ensureCapacity((int) (collection.size() + size));
-            }
-            spltr.forEachRemaining(collection::add);
+            Spliterator<T> spliterator = spliterator();
+            prepareToAdd(collection, spliterator);
+            spliterator.forEachRemaining(collection::add);
         }
         return collection;
+    }
+
+    private <C extends Collection<? super T>> void prepareToAdd(C collection, Spliterator<T> spliterator) {
+        if (collection instanceof ArrayList) {
+            prepareToAdd((ArrayList<?>) collection, spliterator);
+        }
+    }
+
+    private void prepareToAdd(ArrayList<?> arrayList, Spliterator<T> spliterator) {
+        extendedSize(arrayList.size(), spliterator)
+                .ifPresent(arrayList::ensureCapacity);
+    }
+
+    private Optional<Integer> extendedSize(int initialSize, Spliterator<T> spliterator) {
+        return Optional.of(spliterator.getExactSizeIfKnown())
+                .filter(spliteratorSize -> /*is known and non-zero*/ spliteratorSize > 0
+                        && /*no int overflow*/Integer.MAX_VALUE - spliteratorSize >= initialSize)
+                .map(spliteratorSize -> initialSize + spliteratorSize.intValue());
     }
 
     /**
@@ -2589,16 +2603,25 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             return IntStreamEx.ofChars(str).mapToObj(ch -> new String(new char[] { (char) ch }));
         }
         char ch = regex.charAt(0);
-        if (regex.length() == 1 && ".$|()[{^?*+\\".indexOf(ch) == -1) {
+        if (regex.length() == 1 && isNotRegexSpecialCaseStarter(ch)) {
             return split(str, ch);
         } else if (regex.length() == 2 && ch == '\\') {
             ch = regex.charAt(1);
-            if ((ch < '0' || ch > '9') && (ch < 'A' || ch > 'Z') && (ch < 'a' || ch > 'z')
-                && (ch < Character.MIN_HIGH_SURROGATE || ch > Character.MAX_LOW_SURROGATE)) {
+            if (isTransparentlyQuotableCharacter(ch)) {
                 return split(str, ch);
             }
         }
         return new StreamEx<>(Pattern.compile(regex).splitAsStream(str), StreamContext.SEQUENTIAL);
+    }
+
+    private static boolean isNotRegexSpecialCaseStarter(char ch) {
+        /* @see java.util.regex.Pattern#atom() */
+        return ".$|()[{^?*+\\".indexOf(ch) == -1;
+    }
+
+    private static boolean isTransparentlyQuotableCharacter(char ch) {
+        /* @see java.util.regex.Pattern#escape(boolean,boolean,boolean) */
+        return (ch < '0' || ch > '9') && (ch < 'A' || ch > 'Z') && (ch < 'a' || ch > 'z');
     }
 
     /**

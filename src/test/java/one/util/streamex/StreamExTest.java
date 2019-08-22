@@ -26,15 +26,14 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -214,6 +213,7 @@ public class StreamExTest {
         Integer[] emptyArray = {};
         assertSame(emptyArray, StreamEx.of(1, 2, 3).filter(x -> x > 3).toArray(emptyArray));
         assertArrayEquals(new Integer[] { 1, 2, 3 }, StreamEx.of(1, 2, 3).remove(x -> x > 3).toArray(emptyArray));
+        assertThrows(IllegalArgumentException.class, () -> StreamEx.of().toArray(new Integer[1]));
     }
 
     @Test
@@ -380,6 +380,9 @@ public class StreamExTest {
             chm = supplier.get().groupingTo(String::length, ConcurrentHashMap::new, TreeSet::new);
             assertTrue(chm.get(1) instanceof TreeSet);
         });
+        StreamEx.of("a", "b").parallel().groupingBy(String::length, secondConcurrentAddAssertingCollector());
+        StreamEx.of("a", "b").parallel()
+                .groupingBy(String::length, ConcurrentHashMap::new, secondConcurrentAddAssertingCollector());
     }
 
     @Test
@@ -1468,6 +1471,7 @@ public class StreamExTest {
     @Test
     public void testSubListsStep() {
         List<Integer> input = IntStreamEx.range(12).boxed().toList();
+        assertThrows(IllegalArgumentException.class, () -> StreamEx.ofSubLists(input, 0, Integer.MAX_VALUE));
         assertEquals("[0, 1, 2, 3, 4]", StreamEx.ofSubLists(input, 5, Integer.MAX_VALUE).joining("-"));
         assertEquals("[0, 1, 2, 3, 4]", StreamEx.ofSubLists(input, 5, 12).joining("-"));
         assertEquals("[0, 1, 2, 3, 4]-[11]", StreamEx.ofSubLists(input, 5, 11).joining("-"));
@@ -1765,6 +1769,13 @@ public class StreamExTest {
         streamEx(() -> StreamEx.split("ab.cd...", "\\w"), s -> assertEquals("||.||...", s.get().joining("|")));
         streamEx(() -> StreamEx.split("ab.cd...", "\\W"), s -> assertEquals("ab|cd", s.get().joining("|")));
         streamEx(() -> StreamEx.split("ab|cd|e", "\\|"), s -> assertEquals("ab,cd,e", s.get().joining(",")));
+        assertEquals(CharSpliterator.class, StreamEx.split("a#a", "\\#").spliterator().getClass());
+        assertThrows(PatternSyntaxException.class, () -> StreamEx.split("a", "\\0"));
+        asList('9', 'A', 'Z', 'z').forEach(ch ->
+                assertEquals(asList("a" + ch + "a"), StreamEx.split("a" + ch + "a", "\\" + ch).toList()));
+        assertEquals(asList("aaa"), StreamEx.split("aaa", "\\a").toList());
+        asList(Character.MIN_HIGH_SURROGATE, Character.MAX_HIGH_SURROGATE).forEach(ch ->
+                assertEquals(asList("a", "a"), StreamEx.split("a" + ch + "a", "\\" + ch).toList()));
     }
 
     @Test
@@ -2022,6 +2033,37 @@ public class StreamExTest {
     }
 
     @Test
+    public void testIntoArrayListEnsureCapacityOptimization() {
+        CapacityEnsuredAssertingArrayList<Integer> list = new CapacityEnsuredAssertingArrayList<>();
+        Collection<Integer> collection = list;
+        StreamEx.<Integer>of().into(collection);
+        StreamEx.of(asList(1)).into(collection);
+        int maxAvailableSize = Integer.MAX_VALUE - collection.size();
+        StreamEx.<Integer>of(emptySpliteratorWithExactSize(maxAvailableSize + 1)).into(collection);
+        StreamEx.<Integer>of(emptySpliteratorWithExactSize(Long.MAX_VALUE)).into(collection);
+        StreamEx.<Integer>of(emptySpliteratorWithExactSize(maxAvailableSize)).into(collection);
+        assertEquals(Integer.MAX_VALUE, list.ensuredCapacity);
+    }
+
+    private static class CapacityEnsuredAssertingArrayList<E> extends ArrayList<E> {
+        private int ensuredCapacity = 0;
+
+        @Override
+        public boolean add(E element) {
+            if (size() >= ensuredCapacity)
+                fail("ArrayList capacity was not ensured");
+            return super.add(element);
+        }
+
+        @Override
+        public void ensureCapacity(int minCapacity) {
+            if (minCapacity <= ensuredCapacity)
+                fail("Not required ensureCapacity call");
+            ensuredCapacity = minCapacity;
+        }
+    }
+
+    @Test
     public void testFilterBy() {
         assertEquals(3, StreamEx.of("a", "bb", "c", "e", "ddd").filterBy(String::length, 1).count());
         assertEquals(2, StreamEx.of("a", "bb", "c", "e", "ddd").filterBy(x -> x.length() > 1 ? null : x, null).count());
@@ -2093,5 +2135,25 @@ public class StreamExTest {
     @Test(expected = IllegalArgumentException.class)
     public void testOfCombinationsNegativeK() {
         StreamEx.ofCombinations(0, -1);
+    }
+
+    @Test
+    public void testMapToEntry() {
+        assertEquals(Collections.singletonMap(1, "a"),
+                StreamEx.of("a").mapToEntry(String::length, Function.identity()).toMap());
+    }
+
+    @Test
+    public void testFlatMapToEntry() {
+        assertEquals(Collections.singletonMap(1, "a"),
+                StreamEx.of("a").flatMapToEntry(s -> Collections.singletonMap(s.length(), s)).toMap());
+    }
+
+    @Test
+    public void testHeadTail() {
+        assertEquals(asList(),
+                StreamEx.<Integer>of().headTail((h, t) -> t.map(e -> h + e)).toList());
+        assertEquals(asList("ab", "ac"),
+                StreamEx.of("a", "b", "c").headTail((h, t) -> t.map(e -> h + e)).toList());
     }
 }
