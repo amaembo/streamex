@@ -1549,12 +1549,7 @@ public class StreamExTest {
         });
 
         // Test that in JDK9 operation is propagated to JDK dropWhile method.
-        boolean hasDropWhile = true;
-        try {
-            Stream.class.getDeclaredMethod("dropWhile", Predicate.class);
-        } catch (NoSuchMethodException e) {
-            hasDropWhile = false;
-        }
+        boolean hasDropWhile = StreamExInternals.VER_SPEC instanceof Java9Specific;
         Spliterator<String> spliterator = StreamEx.of("aaa", "b", "cccc").dropWhile(x -> x.length() > 1).spliterator();
         assertEquals(hasDropWhile, !spliterator.getClass().getSimpleName().equals("TDOfRef"));
     }

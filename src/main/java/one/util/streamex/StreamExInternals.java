@@ -44,7 +44,8 @@ import java.util.stream.Collector.Characteristics;
     static final Set<Characteristics> ID_CHARACTERISTICS = EnumSet.of(Characteristics.IDENTITY_FINISH);
 
     static final VersionSpecific VER_SPEC = System.getProperty("java.version", "")
-            .compareTo("1.9") > 0 ? new Java9Specific() : new VersionSpecific();
+            .compareTo("1.9") > 0 && !Boolean.getBoolean("one.util.streamex.emulateJava8")
+            ? new Java9Specific() : new VersionSpecific();
 
     static void checkNonNegative(String name, int value) {
         if (value < 0) {

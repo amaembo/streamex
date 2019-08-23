@@ -245,6 +245,31 @@
         </executions>
       </plugin>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.0.0-M3</version>
+        <executions>
+          <execution>
+            <id>default-test</id>
+            <configuration>
+              <argLine>@{argLine}/jacoco_java11.exec</argLine>
+            </configuration>
+            <goals>
+              <goal>test</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>emulate-java8</id>
+            <configuration>
+              <argLine>@{argLine}/jacoco_java8.exec -Done.util.streamex.emulateJava8=true</argLine>
+            </configuration>
+            <goals>
+              <goal>test</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
         <version>0.8.4</version>
@@ -254,6 +279,26 @@
             <goals>
               <goal>prepare-agent</goal>
             </goals>
+            <configuration>
+              <destFile>${project.build.directory}</destFile>
+            </configuration>
+          </execution>
+          <execution>
+            <id>default-merge</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>merge</goal>
+            </goals>
+            <configuration>
+              <fileSets>
+                <fileSet>
+                  <directory>${project.build.directory}</directory>
+                  <includes>
+                    <include>jacoco_*.exec</include>
+                  </includes>
+                </fileSet>
+              </fileSets>
+            </configuration>
           </execution>
           <execution>
             <id>default-report</id>
