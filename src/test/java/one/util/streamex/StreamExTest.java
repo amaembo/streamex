@@ -29,12 +29,16 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Exchanger;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -2094,4 +2098,33 @@ public class StreamExTest {
     public void testOfCombinationsNegativeK() {
         StreamEx.ofCombinations(0, -1);
     }
+
+    @Test
+    public void testConcurrentGroupingBy() {
+        StreamEx.of("a", "b").parallel().groupingBy(String::length, secondConcurrentAddAssertingCollector("a", "b"));
+        StreamEx.of("x", "y").parallel()
+                .groupingBy(String::length, ConcurrentHashMap::new, secondConcurrentAddAssertingCollector("x", "y"));
+    }
+
+    static <T> Collector<T, ?, ?> secondConcurrentAddAssertingCollector(T first, T second) {
+        return Collector.<T, Exchanger<T>>of(
+                Exchanger::new,
+                (exchanger, t) -> {
+                    T t1;
+                    try {
+                        t1 = exchanger.exchange(t, 1, TimeUnit.SECONDS);
+                    } catch (InterruptedException | TimeoutException e) {
+                        throw new AssertionError("Unexpected exception: ", e);
+                    }
+                    assertTrue((t1.equals(first) && t.equals(second) || t1.equals(second) && t.equals(first)));
+                },
+                (a, b) -> {
+                    throw new AssertionError(
+                            "Combining is not expected within secondConcurrentAddAssertingCollector");
+                },
+                Collector.Characteristics.CONCURRENT,
+                Collector.Characteristics.UNORDERED,
+                Collector.Characteristics.IDENTITY_FINISH);
+    }
+
 }
