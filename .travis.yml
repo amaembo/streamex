@@ -1,4 +1,5 @@
 language: java
+install: []
 script:
   - mvn install coveralls:report -Dgpg.skip=true -B -V
 jdk:
