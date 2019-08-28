@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2017 StreamEx contributors
+ * Copyright 2015, 2019 StreamEx contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Exchanger;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -34,6 +39,7 @@ import java.util.function.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -380,9 +386,6 @@ public class StreamExTest {
             chm = supplier.get().groupingTo(String::length, ConcurrentHashMap::new, TreeSet::new);
             assertTrue(chm.get(1) instanceof TreeSet);
         });
-        StreamEx.of("a", "b").parallel().groupingBy(String::length, secondConcurrentAddAssertingCollector());
-        StreamEx.of("a", "b").parallel()
-                .groupingBy(String::length, ConcurrentHashMap::new, secondConcurrentAddAssertingCollector());
     }
 
     @Test
@@ -1549,12 +1552,7 @@ public class StreamExTest {
         });
 
         // Test that in JDK9 operation is propagated to JDK dropWhile method.
-        boolean hasDropWhile = true;
-        try {
-            Stream.class.getDeclaredMethod("dropWhile", Predicate.class);
-        } catch (NoSuchMethodException e) {
-            hasDropWhile = false;
-        }
+        boolean hasDropWhile = StreamExInternals.VER_SPEC instanceof Java9Specific;
         Spliterator<String> spliterator = StreamEx.of("aaa", "b", "cccc").dropWhile(x -> x.length() > 1).spliterator();
         assertEquals(hasDropWhile, !spliterator.getClass().getSimpleName().equals("TDOfRef"));
     }
@@ -2156,4 +2154,33 @@ public class StreamExTest {
         assertEquals(asList("ab", "ac"),
                 StreamEx.of("a", "b", "c").headTail((h, t) -> t.map(e -> h + e)).toList());
     }
+
+    @Test
+    public void testConcurrentGroupingBy() {
+        StreamEx.of("a", "b").parallel().groupingBy(String::length, secondConcurrentAddAssertingCollector("a", "b"));
+        StreamEx.of("x", "y").parallel()
+                .groupingBy(String::length, ConcurrentHashMap::new, secondConcurrentAddAssertingCollector("x", "y"));
+    }
+
+    static <T> Collector<T, ?, ?> secondConcurrentAddAssertingCollector(T first, T second) {
+        return Collector.<T, Exchanger<T>>of(
+                Exchanger::new,
+                (exchanger, t) -> {
+                    T t1;
+                    try {
+                        t1 = exchanger.exchange(t, 1, TimeUnit.SECONDS);
+                    } catch (InterruptedException | TimeoutException e) {
+                        throw new AssertionError("Unexpected exception: ", e);
+                    }
+                    assertTrue((t1.equals(first) && t.equals(second) || t1.equals(second) && t.equals(first)));
+                },
+                (a, b) -> {
+                    throw new AssertionError(
+                            "Combining is not expected within secondConcurrentAddAssertingCollector");
+                },
+                Collector.Characteristics.CONCURRENT,
+                Collector.Characteristics.UNORDERED,
+                Collector.Characteristics.IDENTITY_FINISH);
+    }
+
 }
