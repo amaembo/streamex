@@ -1025,29 +1025,15 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             List<T> list = Arrays.asList((T[]) toArray());
             collection.addAll(list);
         } else {
-            Spliterator<T> spliterator = spliterator();
-            prepareToAdd(collection, spliterator);
-            spliterator.forEachRemaining(collection::add);
+            Spliterator<T> spltr = spliterator();
+            if (collection instanceof ArrayList) {
+                long size = spltr.getExactSizeIfKnown();
+                if (size > 0 && size <= Integer.MAX_VALUE - collection.size())
+                    ((ArrayList<?>) collection).ensureCapacity((int) (collection.size() + size));
+            }
+            spltr.forEachRemaining(collection::add);
         }
         return collection;
-    }
-
-    private <C extends Collection<? super T>> void prepareToAdd(C collection, Spliterator<T> spliterator) {
-        if (collection instanceof ArrayList) {
-            prepareToAdd((ArrayList<?>) collection, spliterator);
-        }
-    }
-
-    private void prepareToAdd(ArrayList<?> arrayList, Spliterator<T> spliterator) {
-        extendedSize(arrayList.size(), spliterator)
-                .ifPresent(arrayList::ensureCapacity);
-    }
-
-    private Optional<Integer> extendedSize(int initialSize, Spliterator<T> spliterator) {
-        return Optional.of(spliterator.getExactSizeIfKnown())
-                .filter(spliteratorSize -> /*is known and non-zero*/ spliteratorSize > 0
-                        && /*no int overflow*/Integer.MAX_VALUE - spliteratorSize >= initialSize)
-                .map(spliteratorSize -> initialSize + spliteratorSize.intValue());
     }
 
     /**

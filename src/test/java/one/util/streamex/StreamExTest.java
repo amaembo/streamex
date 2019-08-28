@@ -2148,14 +2148,6 @@ public class StreamExTest {
     }
 
     @Test
-    public void testHeadTail() {
-        assertEquals(asList(),
-                StreamEx.<Integer>of().headTail((h, t) -> t.map(e -> h + e)).toList());
-        assertEquals(asList("ab", "ac"),
-                StreamEx.of("a", "b", "c").headTail((h, t) -> t.map(e -> h + e)).toList());
-    }
-
-    @Test
     public void testConcurrentGroupingBy() {
         StreamEx.of("a", "b").parallel().groupingBy(String::length, secondConcurrentAddAssertingCollector("a", "b"));
         StreamEx.of("x", "y").parallel()

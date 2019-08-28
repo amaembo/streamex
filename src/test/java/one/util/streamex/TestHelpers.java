@@ -434,54 +434,6 @@ public class TestHelpers {
         }
     }
 
-    static <T> Collector<T, ?, ?> secondConcurrentAddAssertingCollector() {
-        return Collector.<T, Collection<T>>of(
-                SecondConcurrentAddAssertingCollection::new,
-                Collection::add,
-                (a, b) -> {
-                    throw new IllegalStateException(
-                            "Combining is not expected within secondConcurrentAddAssertingCollector");
-                },
-                Collector.Characteristics.CONCURRENT,
-                Collector.Characteristics.UNORDERED,
-                Collector.Characteristics.IDENTITY_FINISH);
-    }
-
-    private static class SecondConcurrentAddAssertingCollection<E> extends AbstractCollection<E> {
-        private AtomicBoolean firstCall = new AtomicBoolean(true);
-        private final Semaphore semaphore = new Semaphore(0);
-
-        @Override
-        public Iterator<E> iterator() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public int size() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean add(E ignored) {
-            if (semaphore.availablePermits() > 0) {
-                // do nothing: first two elements was already "added"
-                return false;
-            }
-            if (!firstCall.getAndSet(false)) {
-                // release first call and communicate further calls to do nothing
-                semaphore.release(2);
-                return false;
-            }
-            try {
-                // hope that 1 sec. is quite enough for second call to be concurrently done
-                assertTrue("Second element was not added in parallel", semaphore.tryAcquire(1, SECONDS));
-                return false;
-            } catch (InterruptedException e) {
-                throw new IllegalStateException(e);
-            }
-        }
-    }
-
     static <T> Spliterator<T> emptySpliteratorWithExactSize(long exactSize) {
         return new Spliterators.AbstractSpliterator<T>(0, Spliterator.SIZED) {
 
