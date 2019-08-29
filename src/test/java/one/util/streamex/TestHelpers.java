@@ -20,7 +20,6 @@ import org.junit.ComparisonFailure;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -29,7 +28,6 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static one.util.streamex.StreamExInternals.TailSpliterator;
 import static one.util.streamex.StreamExInternals.finished;
 import static org.junit.Assert.*;

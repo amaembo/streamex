@@ -154,6 +154,7 @@ public class EntryStreamTest {
         assertNotEquals(new Object(), entry);
         assertNotEquals(entry, new Object());
         assertEquals(new AbstractMap.SimpleImmutableEntry<>(0, "a"), entry);
+        assertEquals(entry, new AbstractMap.SimpleImmutableEntry<>(0, "a"));
 
         assertThrows(UnsupportedOperationException.class, () ->
                 EntryStream.of(Collections.singletonList("1")).forEach(e -> e.setValue("2")));
