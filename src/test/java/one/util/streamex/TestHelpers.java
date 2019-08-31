@@ -23,10 +23,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.IntConsumer;
-import java.util.function.Supplier;
+import java.util.function.*;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -39,6 +36,7 @@ import static org.junit.Assert.*;
  * @author Tagir Valeev
  */
 public class TestHelpers {
+
     enum Mode {
         NORMAL, SPLITERATOR, PARALLEL, APPEND, PREPEND, RANDOM
     }
@@ -414,5 +412,38 @@ public class TestHelpers {
                     + "' (attempt to merge values '" + value2 + "' and '" + value1 + "')"))
                 fail("wrong exception message: " + exmsg);
         }
+    }
+
+    @FunctionalInterface
+    interface Statement {
+        void evaluate() throws Throwable;
+    }
+
+    static void assertThrows(Class<? extends Throwable> expected, Statement statement) {
+        try {
+            statement.evaluate();
+            fail("Expected exception: " + expected.getName());
+        } catch (Throwable e) {
+            if (!expected.isAssignableFrom(e.getClass())) {
+                fail("Unexpected exception, " +
+                        "expected<" + expected.getName() + "> " +
+                        "but was<" + e.getClass().getName() + ">");
+            }
+        }
+    }
+
+    static <T> Spliterator<T> emptySpliteratorWithExactSize(long exactSize) {
+        return new Spliterators.AbstractSpliterator<T>(0, Spliterator.SIZED) {
+
+            @Override
+            public long getExactSizeIfKnown() {
+                return exactSize;
+            }
+
+            @Override
+            public boolean tryAdvance(Consumer<? super T> ignored) {
+                return false;
+            }
+        };
     }
 }

@@ -31,7 +31,6 @@ import java.util.function.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.IntStream.Builder;
-import java.util.stream.StreamSupport;
 
 import static one.util.streamex.TestHelpers.*;
 import static org.junit.Assert.*;
@@ -165,11 +164,8 @@ public class IntStreamExTest {
 
         assertEquals(0, IntStreamEx.range(0, Integer.MIN_VALUE, 2).spliterator().getExactSizeIfKnown());
         assertEquals(0, IntStreamEx.range(0, Integer.MAX_VALUE, -2).spliterator().getExactSizeIfKnown());
-    }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testRangeIllegalStep() {
-        IntStreamEx.range(0, 1000, 0);
+        assertThrows(IllegalArgumentException.class, () -> IntStreamEx.range(0, 1000, 0));
     }
 
     @Test
@@ -219,21 +215,10 @@ public class IntStreamExTest {
         assertEquals(0, IntStreamEx.rangeClosed(0, 1000, -2).count());
         assertEquals(0, IntStreamEx.rangeClosed(0, 1, -2).count());
         assertEquals(0, IntStreamEx.rangeClosed(0, -1, 2).count());
-    }
 
-    @Test(expected = ArrayIndexOutOfBoundsException.class)
-    public void testArrayOffsetUnderflow() {
-        IntStreamEx.of(EVEN_BYTES, -1, 3).findAny();
-    }
-
-    @Test(expected = ArrayIndexOutOfBoundsException.class)
-    public void testArrayOffsetWrong() {
-        IntStreamEx.of(EVEN_BYTES, 3, 1).findAny();
-    }
-
-    @Test(expected = ArrayIndexOutOfBoundsException.class)
-    public void testArrayLengthOverflow() {
-        IntStreamEx.of(EVEN_BYTES, 3, 6).findAny();
+        assertThrows(ArrayIndexOutOfBoundsException.class, () -> IntStreamEx.of(EVEN_BYTES, -1, 3).findAny());
+        assertThrows(ArrayIndexOutOfBoundsException.class, () -> IntStreamEx.of(EVEN_BYTES, 3, 1).findAny());
+        assertThrows(ArrayIndexOutOfBoundsException.class, () -> IntStreamEx.of(EVEN_BYTES, 3, 6).findAny());
     }
 
     @Test

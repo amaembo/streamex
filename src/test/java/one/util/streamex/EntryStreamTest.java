@@ -153,12 +153,11 @@ public class EntryStreamTest {
         // Test equals contract
         assertNotEquals(new Object(), entry);
         assertNotEquals(entry, new Object());
+        assertEquals(new AbstractMap.SimpleImmutableEntry<>(0, "a"), entry);
         assertEquals(entry, new AbstractMap.SimpleImmutableEntry<>(0, "a"));
-    }
 
-    @Test(expected = UnsupportedOperationException.class)
-    public void testWithIndexModify() {
-        EntryStream.of(Collections.singletonList("1")).forEach(entry -> entry.setValue("2"));
+        assertThrows(UnsupportedOperationException.class, () ->
+                EntryStream.of(Collections.singletonList("1")).forEach(e -> e.setValue("2")));
     }
 
     @Test

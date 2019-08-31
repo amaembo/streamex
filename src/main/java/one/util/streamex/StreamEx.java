@@ -26,8 +26,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
 import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -1028,7 +1028,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             Spliterator<T> spltr = spliterator();
             if (collection instanceof ArrayList) {
                 long size = spltr.getExactSizeIfKnown();
-                if (size >= 0 && size < Integer.MAX_VALUE - collection.size())
+                if (size > 0 && size <= Integer.MAX_VALUE - collection.size())
                     ((ArrayList<?>) collection).ensureCapacity((int) (collection.size() + size));
             }
             spltr.forEachRemaining(collection::add);
@@ -2589,16 +2589,25 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             return IntStreamEx.ofChars(str).mapToObj(ch -> new String(new char[] { (char) ch }));
         }
         char ch = regex.charAt(0);
-        if (regex.length() == 1 && ".$|()[{^?*+\\".indexOf(ch) == -1) {
+        if (regex.length() == 1 && isNotRegexSpecialCaseStarter(ch)) {
             return split(str, ch);
         } else if (regex.length() == 2 && ch == '\\') {
             ch = regex.charAt(1);
-            if ((ch < '0' || ch > '9') && (ch < 'A' || ch > 'Z') && (ch < 'a' || ch > 'z')
-                && (ch < Character.MIN_HIGH_SURROGATE || ch > Character.MAX_LOW_SURROGATE)) {
+            if (isTransparentlyQuotableCharacter(ch)) {
                 return split(str, ch);
             }
         }
         return new StreamEx<>(Pattern.compile(regex).splitAsStream(str), StreamContext.SEQUENTIAL);
+    }
+
+    private static boolean isNotRegexSpecialCaseStarter(char ch) {
+        /* @see java.util.regex.Pattern#atom() */
+        return ".$|()[{^?*+\\".indexOf(ch) == -1;
+    }
+
+    private static boolean isTransparentlyQuotableCharacter(char ch) {
+        /* @see java.util.regex.Pattern#escape(boolean,boolean,boolean) */
+        return (ch < '0' || ch > '9') && (ch < 'A' || ch > 'Z') && (ch < 'a' || ch > 'z');
     }
 
     /**

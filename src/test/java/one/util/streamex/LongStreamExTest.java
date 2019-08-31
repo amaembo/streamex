@@ -28,6 +28,7 @@ import java.util.function.*;
 import java.util.stream.LongStream;
 import java.util.stream.LongStream.Builder;
 
+import static one.util.streamex.TestHelpers.assertThrows;
 import static one.util.streamex.TestHelpers.checkSpliterator;
 import static org.junit.Assert.*;
 
@@ -151,11 +152,8 @@ public class LongStreamExTest {
 
         assertEquals(0, LongStreamEx.range(0, Long.MIN_VALUE, 2).spliterator().getExactSizeIfKnown());
         assertEquals(0, LongStreamEx.range(0, Long.MAX_VALUE, -2).spliterator().getExactSizeIfKnown());
-    }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testRangeIllegalStep() {
-        LongStreamEx.range(0, 1000, 0);
+        assertThrows(IllegalArgumentException.class, () -> LongStreamEx.range(0, 1000, 0));
     }
 
     @Test
