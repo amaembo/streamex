@@ -18,7 +18,19 @@ package one.util.streamex;
 
 import org.junit.Test;
 
+import java.util.Spliterator;
+
+import static java.util.Spliterator.DISTINCT;
+import static java.util.Spliterator.IMMUTABLE;
+import static java.util.Spliterator.NONNULL;
+import static java.util.Spliterator.ORDERED;
+import static java.util.Spliterator.SIZED;
+import static java.util.Spliterator.SUBSIZED;
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class CombinationSpliteratorTest {
     @Test
@@ -46,5 +58,38 @@ public class CombinationSpliteratorTest {
                 assertArrayEquals("n=" + n + ", k=" + k + ", cur = " + cur, values, CombinationSpliterator.jump(size - 1 - cur, k, n));
             }
         }
+    }
+
+    @Test
+    public void testCharacteristics() {
+        Spliterator<int[]> spliterator = StreamEx.ofCombinations(10, 5).spliterator();
+        assertEquals(DISTINCT | IMMUTABLE | NONNULL | ORDERED | SIZED | SUBSIZED, spliterator.characteristics());
+        assertEquals(252, spliterator.estimateSize());
+    }
+
+    @Test
+    public void testTrySplit() {
+        Spliterator<int[]> spliterator = StreamEx.ofCombinations(5, 5).spliterator();
+        assertEquals(1, spliterator.estimateSize());
+        assertNull(spliterator.trySplit());
+
+        spliterator = StreamEx.ofCombinations(2, 1).spliterator();
+        assertEquals(2, spliterator.estimateSize());
+        assertNotNull(spliterator.trySplit());
+
+        spliterator = StreamEx.ofCombinations(2, 1).spliterator();
+        assertEquals(2, spliterator.estimateSize());
+        boolean[] readZero = {false};
+        assertTrue(spliterator.tryAdvance(x -> readZero[0] = x[0] == 0));
+        assertTrue(readZero[0]);
+        assertNull(spliterator.trySplit());
+
+        spliterator = StreamEx.ofCombinations(4, 1).spliterator();
+        assertEquals(4, spliterator.estimateSize());
+        assertNotNull(spliterator.trySplit());
+        assertEquals(2, spliterator.estimateSize());
+        assertNotNull(spliterator.trySplit());
+        assertEquals(1, spliterator.estimateSize());
+        assertNull(spliterator.trySplit());
     }
 }

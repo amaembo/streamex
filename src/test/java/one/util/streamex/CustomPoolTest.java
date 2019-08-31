@@ -15,6 +15,12 @@
  */
 package one.util.streamex;
 
+import org.junit.After;
+import org.junit.Before;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
+
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,32 +29,24 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import one.util.streamex.DoubleStreamEx;
-import one.util.streamex.EntryStream;
-import one.util.streamex.IntStreamEx;
-import one.util.streamex.LongStreamEx;
-import one.util.streamex.MoreCollectors;
-import one.util.streamex.StreamEx;
-
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Tagir Valeev
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class CustomPoolTest {
-    final ForkJoinPool pool = new ForkJoinPool(3);
+    ForkJoinPool pool;
 
     private void checkThread(Object element) {
         Thread thread = Thread.currentThread();
@@ -56,6 +54,16 @@ public class CustomPoolTest {
             throw new IllegalStateException("Not inside FJP (element: " + element + ")");
         if (((ForkJoinWorkerThread) thread).getPool() != pool)
             throw new IllegalStateException("FJP is incorrect (element: " + element + ")");
+    }
+
+    @Before
+    public void setUp() {
+        pool = new ForkJoinPool(3);
+    }
+
+    @After
+    public void tearDown() {
+        assertEquals(Collections.emptyList(), pool.shutdownNow());
     }
 
     @Test(expected = IllegalStateException.class)
