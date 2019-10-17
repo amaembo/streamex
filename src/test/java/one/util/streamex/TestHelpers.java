@@ -422,14 +422,15 @@ public class TestHelpers {
     static void assertThrows(Class<? extends Throwable> expected, Statement statement) {
         try {
             statement.evaluate();
-            fail("Expected exception: " + expected.getName());
         } catch (Throwable e) {
             if (!expected.isAssignableFrom(e.getClass())) {
-                fail("Unexpected exception, " +
+                throw new AssertionError("Unexpected exception, " +
                         "expected<" + expected.getName() + "> " +
-                        "but was<" + e.getClass().getName() + ">");
+                        "but was<" + e.getClass().getName() + ">", e);
             }
+            return;
         }
+        fail("Expected exception: " + expected.getName());
     }
 
     static <T> Spliterator<T> emptySpliteratorWithExactSize(long exactSize) {
