@@ -2972,7 +2972,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public static <T> StreamEx<T> ofTree(T root, Function<T, Stream<T>> mapper) {
         TreeSpliterator<T, T> spliterator = new TreeSpliterator.Plain<>(root, mapper);
-        return new StreamEx<>(spliterator, StreamContext.SEQUENTIAL.onClose(spliterator::close));
+        return new StreamEx<>(spliterator, StreamContext.SEQUENTIAL.onClose(spliterator));
     }
 
     /**

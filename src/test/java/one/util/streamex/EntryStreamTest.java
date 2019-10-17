@@ -671,16 +671,16 @@ public class EntryStreamTest {
         }
         assertEquals(StreamEx.of(0, 1, 2).toSet(), set);
         boolean catched = false;
-        try(EntryStream<Integer, String> stream = EntryStream.ofTree("", (Integer depth, String str) -> depth >= 3 ? null : Stream.of("a", "b")
+        try(EntryStream<Integer, String> stream = EntryStream.ofTree("", (Integer depth, String str) -> depth > 1000 ? null : Stream.of("a", "b")
                 .map(str::concat).onClose(() -> {throw new IllegalArgumentException(String.valueOf(depth));}))) {
             stream.count();
         }
         catch(IllegalArgumentException iae) {
             catched = true;
-            assertEquals("2", iae.getMessage());
-            assertEquals(2, iae.getSuppressed().length);
-            assertEquals("1", iae.getSuppressed()[0].getMessage());
-            assertEquals("0", iae.getSuppressed()[1].getMessage());
+            assertEquals("1000", iae.getMessage());
+            assertArrayEquals(IntStreamEx.rangeClosed(1000, 0, -1).toArray(), 
+                    StreamEx.<Throwable>ofTree(iae, ex -> StreamEx.of(ex.getSuppressed()))
+                    .mapToInt(throwable -> Integer.parseInt(throwable.getMessage())).toArray());
         }
         assertTrue(catched);
 
@@ -693,6 +693,17 @@ public class EntryStreamTest {
             assertEquals(asList("a", "b", "aa", "ab", "ba", "bb", "aaa", "aab", "aba", "abb", "baa", "bab", "bba",
                 "bbb"), supplier.get().sorted(Entry.comparingByKey()).values().without("").toList());
         });
+    }
+
+    @Test
+    public void testOfTreeDeep() {
+        List<Integer> numbers = EntryStream.ofTree(1, (d, n) -> n >= 10000 ? null : StreamEx.of(n + 1))
+                .values().toList();
+        assertEquals(IntStreamEx.rangeClosed(1, 10000).boxed().toList(), numbers);
+
+        assertEquals(700, EntryStream.ofTree(1, (d, n) -> n >= 300 ? null : StreamEx.constant(n + 1, n % 100 == 0 ? 2 : 1))
+                .peekKeyValue((d, n) -> assertEquals(d + 1, (int) n))
+                .count());
     }
 
     @Test

@@ -2148,8 +2148,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @see #ofTree(Object, Class, BiFunction)
      */
     public static <T> EntryStream<Integer, T> ofTree(T root, BiFunction<Integer, T, Stream<T>> mapper) {
-        TreeSpliterator<T, Entry<Integer, T>> spliterator = new TreeSpliterator.Depth<>(root, mapper);
-        return new EntryStream<>(spliterator, StreamContext.SEQUENTIAL.onClose(spliterator::close));
+        TreeSpliterator<T, Entry<Integer, T>> spliterator = new TreeSpliterator.Depth<>(root, mapper, 0);
+        return new EntryStream<>(spliterator, StreamContext.SEQUENTIAL.onClose(spliterator));
     }
 
     /**

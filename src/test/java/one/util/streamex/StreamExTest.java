@@ -85,17 +85,17 @@ public class StreamExTest {
 
         assertEquals(asList("a1", "b2", "c3"), StreamEx.zip(asList("a", "b", "c"), asList(1, 2, 3), (s, i) -> s + i)
                 .toList());
-        assertEquals(asList("a1", "b2", "c3"), StreamEx.zip(new String[] { "a", "b", "c" }, new Integer[] { 1, 2, 3 }, (
+        assertEquals(asList("a1", "b2", "c3"), StreamEx.zip(new String[]{"a", "b", "c"}, new Integer[]{1, 2, 3}, (
                 s, i) -> s + i).toList());
 
         assertEquals(asList("a", "b"), StreamEx.of(asList("a", "b").spliterator()).toList());
         assertEquals(asList("a", "b"), StreamEx.of(asList("a", "b").iterator()).toList());
-        assertEquals(asList(), StreamEx.of(asList().iterator()).toList());
-        assertEquals(asList(), StreamEx.of(asList().iterator()).parallel().toList());
+        assertEquals(asList(), StreamEx.of(Collections.emptyIterator()).toList());
+        assertEquals(asList(), StreamEx.of(Collections.emptyIterator()).parallel().toList());
         assertEquals(asList("a", "b"), StreamEx.of(new Vector<>(asList("a", "b")).elements()).toList());
 
         assertEquals(asList("a", "b", "c", "d"), StreamEx.ofReversed(asList("d", "c", "b", "a")).toList());
-        assertEquals(asList("a", "b", "c", "d"), StreamEx.ofReversed(new String[] { "d", "c", "b", "a" }).toList());
+        assertEquals(asList("a", "b", "c", "d"), StreamEx.ofReversed(new String[]{"d", "c", "b", "a"}).toList());
     }
 
     @Test
@@ -1003,14 +1003,24 @@ public class StreamExTest {
 
         streamEx(() -> StreamEx.ofTree("", (String str) -> str.length() >= 3 ? null
                 : Stream.of("a", "b").map(str::concat)), supplier -> {
-                    assertEquals(Arrays.asList("", "a", "aa", "aaa", "aab", "ab", "aba", "abb", "b", "ba", "baa", "bab",
-                        "bb", "bba", "bbb"), supplier.get().toList());
-                    assertEquals(Arrays.asList("a", "b", "aa", "ab", "ba", "bb", "aaa", "aab", "aba", "abb", "baa",
-                        "bab", "bba", "bbb"), supplier.get().sortedByInt(String::length).without("").toList());
-                });
+            assertEquals(Arrays.asList("", "a", "aa", "aaa", "aab", "ab", "aba", "abb", "b", "ba", "baa", "bab",
+                    "bb", "bba", "bbb"), supplier.get().toList());
+            assertEquals(Arrays.asList("a", "b", "aa", "ab", "ba", "bb", "aaa", "aab", "aba", "abb", "baa",
+                    "bab", "bba", "bbb"), supplier.get().sortedByInt(String::length).without("").toList());
+        });
 
         assertEquals(1000001, StreamEx.ofTree("x", s -> s.equals("x") ? IntStreamEx.range(1000000).mapToObj(
-            String::valueOf) : null).parallel().count());
+                String::valueOf) : null).parallel().count());
+    }
+
+    @Test
+    public void testOfTreeDeep() {
+        List<Integer> numbers = StreamEx.ofTree(1, n -> n >= 10000 ? null : StreamEx.of(n + 1))
+                .toList();
+        assertEquals(IntStreamEx.rangeClosed(1, 10000).boxed().toList(), numbers);
+
+        assertEquals(700, StreamEx.ofTree(1, n -> n >= 300 ? null : StreamEx.constant(n + 1, n % 100 == 0 ? 2 : 1))
+                .count());
     }
 
     @Test
@@ -1020,7 +1030,7 @@ public class StreamExTest {
         r.flatStream().close(); // should not fail
 
         List<Consumer<StreamEx<TreeNode>>> tests = Arrays.asList(stream -> assertEquals(
-            Optional.empty(), stream.findFirst(tn -> tn.title.contains("abc"))), stream -> assertEquals(Optional.of(
+                Optional.empty(), stream.findFirst(tn -> tn.title.contains("abc"))), stream -> assertEquals(Optional.of(
                 "grandB1"), stream.findFirst(tn -> tn.title.contains("B1")).map(tn -> tn.title)),
             stream -> assertEquals(7, stream.count()));
         for (Consumer<StreamEx<TreeNode>> test : tests) {
