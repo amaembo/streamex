@@ -90,8 +90,8 @@ public class StreamExTest {
 
         assertEquals(asList("a", "b"), StreamEx.of(asList("a", "b").spliterator()).toList());
         assertEquals(asList("a", "b"), StreamEx.of(asList("a", "b").iterator()).toList());
-        assertEquals(asList(), StreamEx.of(asList().iterator()).toList());
-        assertEquals(asList(), StreamEx.of(asList().iterator()).parallel().toList());
+        assertEquals(asList(), StreamEx.of(Collections.emptyIterator()).toList());
+        assertEquals(asList(), StreamEx.of(Collections.emptyIterator()).parallel().toList());
         assertEquals(asList("a", "b"), StreamEx.of(new Vector<>(asList("a", "b")).elements()).toList());
 
         assertEquals(asList("a", "b", "c", "d"), StreamEx.ofReversed(asList("d", "c", "b", "a")).toList());
@@ -1011,6 +1011,17 @@ public class StreamExTest {
 
         assertEquals(1000001, StreamEx.ofTree("x", s -> s.equals("x") ? IntStreamEx.range(1000000).mapToObj(
             String::valueOf) : null).parallel().count());
+    }
+
+    @Test
+    public void testOfTreeDeep() {
+        List<Integer> numbers = StreamEx.ofTree(1, n -> n >= 10000 ? null : StreamEx.of(n + 1))
+                .toList();
+        assertEquals(IntStreamEx.rangeClosed(1, 10000).boxed().toList(), numbers);
+        assertThrows(StackOverflowError.class,
+                () -> StreamEx.ofTreeFast(1, Integer.class, n -> n >= 10000 ? null : StreamEx.of(n + 1)).toList());
+        assertThrows(StackOverflowError.class, 
+                () -> StreamEx.ofTreeFast(1, n -> n >= 10000 ? null : StreamEx.of(n + 1)).toList());
     }
 
     @Test
