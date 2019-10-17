@@ -35,12 +35,10 @@ import static one.util.streamex.StreamExInternals.*;
     T cur;
     List<PairBox<Spliterator<T>, Stream<T>>> spliterators;
     private Runnable closeHandler = null;
-    final boolean stackFriendly;
     long size = Long.MAX_VALUE;
 
-    TreeSpliterator(T root, boolean stackFriendly) {
+    TreeSpliterator(T root) {
         this.cur = root;
-        this.stackFriendly = stackFriendly;
     }
     
     boolean advance() {
@@ -170,8 +168,8 @@ import static one.util.streamex.StreamExInternals.*;
     static class Plain<T> extends TreeSpliterator<T, T> {
         private final Function<T, Stream<T>> mapper;
 
-        Plain(T root, Function<T, Stream<T>> mapper, boolean stackFriendly) {
-            super(root, stackFriendly);
+        Plain(T root, Function<T, Stream<T>> mapper) {
+            super(root);
             this.mapper = mapper;
         }
 
@@ -186,10 +184,6 @@ import static one.util.streamex.StreamExInternals.*;
     
         @Override
         public void forEachRemaining(Consumer<? super T> action) {
-            if (stackFriendly) {
-                super.forEachRemaining(action);
-                return;
-            }
             Acceptor<T> acceptor = new Acceptor<>(action, mapper);
             if(spliterators != null) {
                 for(int i=spliterators.size()-1; i>=0; i--) {
@@ -242,8 +236,8 @@ import static one.util.streamex.StreamExInternals.*;
     static class Depth<T> extends TreeSpliterator<T, Entry<Integer, T>> {
         private final BiFunction<Integer, T, Stream<T>> mapper;
 
-        Depth(T root, BiFunction<Integer, T, Stream<T>> mapper, boolean stackFriendly) {
-            super(root, stackFriendly);
+        Depth(T root, BiFunction<Integer, T, Stream<T>> mapper) {
+            super(root);
             this.mapper = mapper;
         }
 
@@ -259,10 +253,6 @@ import static one.util.streamex.StreamExInternals.*;
 
         @Override
         public void forEachRemaining(Consumer<? super Entry<Integer, T>> action) {
-            if (stackFriendly) {
-                super.forEachRemaining(action);
-                return;
-            }
             DepthAcceptor<T> acceptor = new DepthAcceptor<>(action, mapper, 0);
             if(spliterators != null) {
                 for(int i=spliterators.size()-1; i>=0; i--) {

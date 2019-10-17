@@ -2146,35 +2146,9 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.5.2
      * @see StreamEx#ofTree(Object, Function)
      * @see #ofTree(Object, Class, BiFunction)
-     * @see #ofTreeFast(Object, BiFunction) 
      */
     public static <T> EntryStream<Integer, T> ofTree(T root, BiFunction<Integer, T, Stream<T>> mapper) {
-        TreeSpliterator<T, Entry<Integer, T>> spliterator = new TreeSpliterator.Depth<>(root, mapper, true);
-        return new EntryStream<>(spliterator, StreamContext.SEQUENTIAL.onClose(spliterator::close));
-    }
-
-    /**
-     * Return a new {@link EntryStream} containing all the nodes of tree-like
-     * data structure in entry values along with the corresponding tree depths
-     * in entry keys, in depth-first order.
-     *
-     * <p>
-     * This method behaves in the same way as {@link #ofTree(Object, BiFunction)}, 
-     * except it may work faster at the additional cost of stack consumption
-     * (max two frames per tree level), so a {@link StackOverflowError} is possible
-     * for the deep trees.
-     *
-     * @param <T> the type of tree nodes
-     * @param root root node of the tree
-     * @param mapper a non-interfering, stateless function to apply to each tree
-     *        node and its depth which returns null for leaf nodes or stream of
-     *        direct children for non-leaf nodes.
-     * @return the new sequential ordered {@code EntryStream}
-     * @since 0.7.1
-     * @see #ofTree(Object, BiFunction)
-     */
-    public static <T> EntryStream<Integer, T> ofTreeFast(T root, BiFunction<Integer, T, Stream<T>> mapper) {
-        TreeSpliterator<T, Entry<Integer, T>> spliterator = new TreeSpliterator.Depth<>(root, mapper, false);
+        TreeSpliterator<T, Entry<Integer, T>> spliterator = new TreeSpliterator.Depth<>(root, mapper);
         return new EntryStream<>(spliterator, StreamContext.SEQUENTIAL.onClose(spliterator::close));
     }
 
@@ -2207,40 +2181,11 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.5.2
      * @see StreamEx#ofTree(Object, Class, Function)
      * @see #ofTree(Object, BiFunction)
-     * @see #ofTreeFast(Object, Class, BiFunction) 
      */
     @SuppressWarnings("unchecked")
     public static <T, TT extends T> EntryStream<Integer, T> ofTree(T root, Class<TT> collectionClass,
             BiFunction<Integer, TT, Stream<T>> mapper) {
         return ofTree(root, (d, t) -> collectionClass.isInstance(t) ? mapper.apply(d, (TT) t) : null);
-    }
-
-    /**
-     * Return a new {@link EntryStream} containing all the nodes of tree-like
-     * data structure in entry values along with the corresponding tree depths
-     * in entry keys, in depth-first order.
-     *
-     * <p>
-     * This method behaves in the same way as {@link #ofTree(Object, Class, BiFunction)}, 
-     * except it may work faster at the additional cost of stack consumption
-     * (max two frames per tree level), so a {@link StackOverflowError} is possible
-     * for the deep trees.
-     *
-     * @param <T> the base type of tree nodes
-     * @param <TT> the sub-type of composite tree nodes which may have children
-     * @param root root node of the tree
-     * @param collectionClass a class representing the composite tree node
-     * @param mapper a non-interfering, stateless function to apply to each
-     *        composite tree node and its depth which returns stream of direct
-     *        children. May return null if the given node has no children.
-     * @return the new sequential ordered stream
-     * @since 0.7.1
-     * @see #ofTree(Object, Class, BiFunction) 
-     */
-    @SuppressWarnings("unchecked")
-    public static <T, TT extends T> EntryStream<Integer, T> ofTreeFast(T root, Class<TT> collectionClass,
-            BiFunction<Integer, TT, Stream<T>> mapper) {
-        return ofTreeFast(root, (d, t) -> collectionClass.isInstance(t) ? mapper.apply(d, (TT) t) : null);
     }
 
     /**

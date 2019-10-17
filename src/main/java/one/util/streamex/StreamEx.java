@@ -2969,34 +2969,9 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.2.2
      * @see EntryStream#ofTree(Object, BiFunction)
      * @see #ofTree(Object, Class, Function)
-     * @see #ofTreeFast(Object, Function) 
      */
     public static <T> StreamEx<T> ofTree(T root, Function<T, Stream<T>> mapper) {
-        TreeSpliterator<T, T> spliterator = new TreeSpliterator.Plain<>(root, mapper, true);
-        return new StreamEx<>(spliterator, StreamContext.SEQUENTIAL.onClose(spliterator::close));
-    }
-
-    /**
-     * Return a new {@link StreamEx} containing all the nodes of tree-like data
-     * structure in depth-first order.
-     *
-     * <p>
-     * This method behaves in the same way as {@link #ofTree(Object, Function)}, 
-     * except it may work faster at the additional cost of stack consumption
-     * (max two frames per tree level), so a {@link StackOverflowError} is possible
-     * for the deep trees.
-     *
-     * @param <T> the type of tree nodes
-     * @param root root node of the tree
-     * @param mapper a non-interfering, stateless function to apply to each tree
-     *        node which returns null for leaf nodes or stream of direct
-     *        children for non-leaf nodes.
-     * @return the new sequential ordered stream
-     * @since 0.7.1
-     * @see #ofTree(Object, Function) 
-     */
-    public static <T> StreamEx<T> ofTreeFast(T root, Function<T, Stream<T>> mapper) {
-        TreeSpliterator<T, T> spliterator = new TreeSpliterator.Plain<>(root, mapper, false);
+        TreeSpliterator<T, T> spliterator = new TreeSpliterator.Plain<>(root, mapper);
         return new StreamEx<>(spliterator, StreamContext.SEQUENTIAL.onClose(spliterator::close));
     }
 
@@ -3023,37 +2998,10 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.2.2
      * @see EntryStream#ofTree(Object, Class, BiFunction)
      * @see #ofTree(Object, Function)
-     * @see #ofTreeFast(Object, Class, Function) 
      */
     @SuppressWarnings("unchecked")
     public static <T, TT extends T> StreamEx<T> ofTree(T root, Class<TT> collectionClass, Function<TT, Stream<T>> mapper) {
         return ofTree(root, t -> collectionClass.isInstance(t) ? mapper.apply((TT) t) : null);
-    }
-
-    /**
-     * Return a new {@link StreamEx} containing all the nodes of tree-like data
-     * structure in depth-first order.
-     *
-     * <p>
-     * This method behaves in the same way as {@link #ofTree(Object, Class, Function)}, 
-     * except it may work faster at the additional cost of stack consumption
-     * (max two frames per tree level), so a {@link StackOverflowError} is possible
-     * for the deep trees.
-     * 
-     * @param <T> the base type of tree nodes
-     * @param <TT> the sub-type of composite tree nodes which may have children
-     * @param root root node of the tree
-     * @param collectionClass a class representing the composite tree node
-     * @param mapper a non-interfering, stateless function to apply to each
-     *        composite tree node which returns stream of direct children. May
-     *        return null if the given node has no children.
-     * @return the new sequential ordered stream
-     * @since 0.7.1
-     * @see #ofTree(Object, Class, Function) 
-     */
-    @SuppressWarnings("unchecked")
-    public static <T, TT extends T> StreamEx<T> ofTreeFast(T root, Class<TT> collectionClass, Function<TT, Stream<T>> mapper) {
-        return ofTreeFast(root, t -> collectionClass.isInstance(t) ? mapper.apply((TT) t) : null);
     }
 
     /**

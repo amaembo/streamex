@@ -25,7 +25,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -654,71 +653,46 @@ public class EntryStreamTest {
 
     @Test
     public void testOfTree() {
-        for (boolean fast : new boolean[]{true, false}) {
-            entryStream(() -> ofTree("a", (Integer depth, String str) -> null, fast), supplier -> checkAsString(
-                    "0->a", supplier.get()));
+        entryStream(() -> EntryStream.ofTree("a", (Integer depth, String str) -> null), supplier -> checkAsString(
+            "0->a", supplier.get()));
 
-            List<Object> input = Arrays.asList("aa", null, asList(asList("bbbb", "cc", null, asList()), "ddd", Arrays
-                    .asList("e"), asList("fff")), "ggg");
-            @SuppressWarnings("unchecked")
-            Supplier<Stream<Entry<Integer, Object>>> base = 
-                    () -> ofTree(input, List.class, (depth, l) -> l.stream(), fast);
-            entryStream(base, supplier -> assertEquals("{1=[aa, ggg], 2=[ddd], 3=[bbbb, cc, e, fff]}", supplier.get()
-                    .selectValues(String.class).grouping(TreeMap::new).toString()));
+        List<Object> input = Arrays.asList("aa", null, asList(asList("bbbb", "cc", null, asList()), "ddd", Arrays
+                .asList("e"), asList("fff")), "ggg");
+        @SuppressWarnings("unchecked")
+        Supplier<Stream<Entry<Integer, Object>>> base = () -> EntryStream.ofTree(input, List.class, (depth, l) -> l
+                .stream());
+        entryStream(base, supplier -> assertEquals("{1=[aa, ggg], 2=[ddd], 3=[bbbb, cc, e, fff]}", supplier.get()
+                .selectValues(String.class).grouping(TreeMap::new).toString()));
 
-            Set<Integer> set = new HashSet<>();
-            try(EntryStream<Integer, String> stream = ofTree("", (Integer depth, String str) -> depth >= 3 ? null : Stream.of("a", "b")
-                    .map(str::concat).onClose(() -> set.add(depth)), fast)) {
-                assertEquals(15, stream.count());
-            }
-            assertEquals(StreamEx.of(0, 1, 2).toSet(), set);
-            boolean catched = false;
-            try(EntryStream<Integer, String> stream = ofTree("", (Integer depth, String str) -> depth >= 4 ? null : Stream.of("a", "b")
-                    .map(str::concat).onClose(() -> {throw new IllegalArgumentException(String.valueOf(depth));}), fast)) {
-                stream.count();
-            }
-            catch(IllegalArgumentException iae) {
-                catched = true;
-                assertEquals("3", iae.getMessage());
-                assertEquals(asList("3", "2", "1", "0"), StreamEx.<Throwable>ofTree(iae, ex -> StreamEx.of(ex.getSuppressed()))
-                        .map(Throwable::getMessage).toList());
-            }
-            assertTrue(catched);
-
-            entryStream(() -> ofTree("", (Integer depth, String str) -> depth >= 3 ? null : Stream.of("a", "b")
-                    .map(str::concat), fast), supplier -> {
-                assertEquals(asList("", "a", "aa", "aaa", "aab", "ab", "aba", "abb", "b", "ba", "baa", "bab", "bb", "bba",
-                        "bbb"), supplier.get().values().toList());
-                assertTrue(supplier.get().values().has("bbb"));
-                assertFalse(supplier.get().values().has("ccc"));
-                assertEquals(asList("a", "b", "aa", "ab", "ba", "bb", "aaa", "aab", "aba", "abb", "baa", "bab", "bba",
-                        "bbb"), supplier.get().sorted(Entry.comparingByKey()).values().without("").toList());
-            });
+        Set<Integer> set = new HashSet<>();
+        try(EntryStream<Integer, String> stream = EntryStream.ofTree("", (Integer depth, String str) -> depth >= 3 ? null : Stream.of("a", "b")
+                .map(str::concat).onClose(() -> set.add(depth)))) {
+            assertEquals(15, stream.count());
         }
-    }
+        assertEquals(StreamEx.of(0, 1, 2).toSet(), set);
+        boolean catched = false;
+        try(EntryStream<Integer, String> stream = EntryStream.ofTree("", (Integer depth, String str) -> depth >= 3 ? null : Stream.of("a", "b")
+                .map(str::concat).onClose(() -> {throw new IllegalArgumentException(String.valueOf(depth));}))) {
+            stream.count();
+        }
+        catch(IllegalArgumentException iae) {
+            catched = true;
+            assertEquals("2", iae.getMessage());
+            assertEquals(2, iae.getSuppressed().length);
+            assertEquals("1", iae.getSuppressed()[0].getMessage());
+            assertEquals("0", iae.getSuppressed()[1].getMessage());
+        }
+        assertTrue(catched);
 
-    private static <T> EntryStream<Integer, T> ofTree(T root, BiFunction<Integer, T, Stream<T>> mapper, boolean fast) {
-        return fast ? EntryStream.ofTreeFast(root, mapper) : EntryStream.ofTree(root, mapper);
-    }
-
-    private static <T, TT extends T> EntryStream<Integer, T> ofTree(T root, Class<TT> collectionClass,
-                                                                    BiFunction<Integer, TT, Stream<T>> mapper,
-                                                                    boolean fast) {
-        return fast ? EntryStream.ofTreeFast(root, collectionClass, mapper) : EntryStream
-                .ofTree(root, collectionClass, mapper);
-    }
-
-    @Test
-    public void testOfTreeDeep() {
-        List<Integer> numbers = EntryStream.ofTree(1, (d, n) -> n >= 10000 ? null : StreamEx.of(n + 1))
-                .values().toList();
-        assertEquals(IntStreamEx.rangeClosed(1, 10000).boxed().toList(), numbers);
-        assertThrows(StackOverflowError.class, 
-                () -> EntryStream.ofTreeFast(1, (d, n) -> n >= 10000 ? null : StreamEx.of(n + 1))
-                .values().toList());
-        assertThrows(StackOverflowError.class, 
-                () -> EntryStream.ofTreeFast(1, Integer.class, (d, n) -> n >= 10000 ? null : StreamEx.of(n + 1))
-                .values().toList());
+        entryStream(() -> EntryStream.ofTree("", (Integer depth, String str) -> depth >= 3 ? null : Stream.of("a", "b")
+                .map(str::concat)), supplier -> {
+            assertEquals(asList("", "a", "aa", "aaa", "aab", "ab", "aba", "abb", "b", "ba", "baa", "bab", "bb", "bba",
+                "bbb"), supplier.get().values().toList());
+            assertTrue(supplier.get().values().has("bbb"));
+            assertFalse(supplier.get().values().has("ccc"));
+            assertEquals(asList("a", "b", "aa", "ab", "ba", "bb", "aaa", "aab", "aba", "abb", "baa", "bab", "bba",
+                "bbb"), supplier.get().sorted(Entry.comparingByKey()).values().without("").toList());
+        });
     }
 
     @Test
