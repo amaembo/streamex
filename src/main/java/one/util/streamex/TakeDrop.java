@@ -37,8 +37,8 @@ import one.util.streamex.Internals.CloneableSpliterator;
 /**
  * @author Tagir Valeev
  */
-class TakeDrop {
-    static final class TDOfRef<T> extends AbstractSpliterator<T> implements Consumer<T> {
+interface TakeDrop {
+    final class TDOfRef<T> extends AbstractSpliterator<T> implements Consumer<T> {
         private final Predicate<? super T> predicate;
         private final boolean drop;
         private final boolean inclusive;
@@ -109,7 +109,7 @@ class TakeDrop {
         }
     }
     
-    static final class UnorderedTDOfRef<T> extends CloneableSpliterator<T, UnorderedTDOfRef<T>> implements Consumer<T> {
+    final class UnorderedTDOfRef<T> extends CloneableSpliterator<T, UnorderedTDOfRef<T>> implements Consumer<T> {
         private final Predicate<? super T> predicate;
         private final boolean drop;
         private final boolean inclusive;
@@ -176,7 +176,7 @@ class TakeDrop {
         }
     }
     
-    static final class TDOfInt extends AbstractIntSpliterator implements IntConsumer {
+    final class TDOfInt extends AbstractIntSpliterator implements IntConsumer {
         private final IntPredicate predicate;
         private final boolean drop;
         private final boolean inclusive;
@@ -247,7 +247,7 @@ class TakeDrop {
         }
     }
 
-    static final class TDOfLong extends AbstractLongSpliterator implements LongConsumer {
+    final class TDOfLong extends AbstractLongSpliterator implements LongConsumer {
         private final LongPredicate predicate;
         private final boolean drop;
         private final boolean inclusive;
@@ -318,7 +318,7 @@ class TakeDrop {
         }
     }
 
-    static final class TDOfDouble extends AbstractDoubleSpliterator implements DoubleConsumer {
+    final class TDOfDouble extends AbstractDoubleSpliterator implements DoubleConsumer {
         private final DoublePredicate predicate;
         private final boolean drop;
         private final boolean inclusive;

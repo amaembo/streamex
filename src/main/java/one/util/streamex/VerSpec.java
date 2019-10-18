@@ -16,6 +16,6 @@
 
 package one.util.streamex;
 
-/* package */ class VerSpec {
-	static final VersionSpecific VER_SPEC = new VersionSpecific();
+/* package */ interface VerSpec {
+	VersionSpecific VER_SPEC = new VersionSpecific();
 }

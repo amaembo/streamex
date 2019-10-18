@@ -47,17 +47,17 @@ import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collector.Characteristics;
 
-/* package */final class Internals {
-    static final int INITIAL_SIZE = 128;
-    static final Function<int[], Integer> UNBOX_INT = box -> box[0];
-    static final Function<long[], Long> UNBOX_LONG = box -> box[0];
-    static final Function<double[], Double> UNBOX_DOUBLE = box -> box[0];
-    static final Object NONE = new Object();
-    static final Set<Characteristics> NO_CHARACTERISTICS = EnumSet.noneOf(Characteristics.class);
-    static final Set<Characteristics> UNORDERED_CHARACTERISTICS = EnumSet.of(Characteristics.UNORDERED);
-    static final Set<Characteristics> UNORDERED_ID_CHARACTERISTICS = EnumSet.of(Characteristics.UNORDERED,
+/* package */interface Internals {
+    int INITIAL_SIZE = 128;
+    Function<int[], Integer> UNBOX_INT = box -> box[0];
+    Function<long[], Long> UNBOX_LONG = box -> box[0];
+    Function<double[], Double> UNBOX_DOUBLE = box -> box[0];
+    Object NONE = new Object();
+    Set<Characteristics> NO_CHARACTERISTICS = EnumSet.noneOf(Characteristics.class);
+    Set<Characteristics> UNORDERED_CHARACTERISTICS = EnumSet.of(Characteristics.UNORDERED);
+    Set<Characteristics> UNORDERED_ID_CHARACTERISTICS = EnumSet.of(Characteristics.UNORDERED,
         Characteristics.IDENTITY_FINISH);
-    static final Set<Characteristics> ID_CHARACTERISTICS = EnumSet.of(Characteristics.IDENTITY_FINISH);
+    Set<Characteristics> ID_CHARACTERISTICS = EnumSet.of(Characteristics.IDENTITY_FINISH);
 
     static void checkNonNegative(String name, int value) {
         if (value < 0) {
@@ -65,7 +65,7 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    static final class ByteBuffer {
+    final class ByteBuffer {
         int size = 0;
         byte[] data;
 
@@ -101,7 +101,7 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    static final class CharBuffer {
+    final class CharBuffer {
         int size = 0;
         char[] data;
 
@@ -137,7 +137,7 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    static final class ShortBuffer {
+    final class ShortBuffer {
         int size = 0;
         short[] data;
 
@@ -173,7 +173,7 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    static final class FloatBuffer {
+    final class FloatBuffer {
         int size = 0;
         float[] data;
 
@@ -209,7 +209,7 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    static final class IntBuffer {
+    final class IntBuffer {
         int size = 0;
         int[] data;
 
@@ -241,7 +241,7 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    static final class LongBuffer {
+    final class LongBuffer {
         int size = 0;
         long[] data;
 
@@ -273,7 +273,7 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    static final class DoubleBuffer {
+    final class DoubleBuffer {
         int size = 0;
         double[] data;
 
@@ -305,7 +305,7 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    static final class BooleanMap<T> extends AbstractMap<Boolean, T> {
+    final class BooleanMap<T> extends AbstractMap<Boolean, T> {
         T trueValue, falseValue;
 
         BooleanMap(T trueValue, T falseValue) {
@@ -368,7 +368,7 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    abstract static class BaseCollector<T, A, R> implements MergingCollector<T, A, R> {
+    abstract class BaseCollector<T, A, R> implements MergingCollector<T, A, R> {
         final Supplier<A> supplier;
         final BiConsumer<A, A> merger;
         final Function<A, R> finisher;
@@ -403,7 +403,7 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    static final class PartialCollector<A, R> extends BaseCollector<Object, A, R> {
+    final class PartialCollector<A, R> extends BaseCollector<Object, A, R> {
         PartialCollector(Supplier<A> supplier, BiConsumer<A, A> merger, Function<A, R> finisher,
                 Set<Characteristics> characteristics) {
             super(supplier, merger, finisher, characteristics);
@@ -494,11 +494,11 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    static abstract class CancellableCollector<T, A, R> implements Collector<T, A, R> {
+    abstract class CancellableCollector<T, A, R> implements Collector<T, A, R> {
         abstract Predicate<A> finished();
     }
 
-    static final class CancellableCollectorImpl<T, A, R> extends CancellableCollector<T, A, R> {
+    final class CancellableCollectorImpl<T, A, R> extends CancellableCollector<T, A, R> {
         private final Supplier<A> supplier;
         private final BiConsumer<A, T> accumulator;
         private final BinaryOperator<A> combiner;
@@ -548,7 +548,7 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    static final class IntCollectorImpl<A, R> extends BaseCollector<Integer, A, R> implements IntCollector<A, R> {
+    final class IntCollectorImpl<A, R> extends BaseCollector<Integer, A, R> implements IntCollector<A, R> {
         private final ObjIntConsumer<A> intAccumulator;
 
         IntCollectorImpl(Supplier<A> supplier, ObjIntConsumer<A> intAccumulator, BiConsumer<A, A> merger,
@@ -563,7 +563,7 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    static final class LongCollectorImpl<A, R> extends BaseCollector<Long, A, R> implements LongCollector<A, R> {
+    final class LongCollectorImpl<A, R> extends BaseCollector<Long, A, R> implements LongCollector<A, R> {
         private final ObjLongConsumer<A> longAccumulator;
 
         LongCollectorImpl(Supplier<A> supplier, ObjLongConsumer<A> longAccumulator, BiConsumer<A, A> merger,
@@ -578,7 +578,7 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    static final class DoubleCollectorImpl<A, R> extends BaseCollector<Double, A, R> implements DoubleCollector<A, R> {
+    final class DoubleCollectorImpl<A, R> extends BaseCollector<Double, A, R> implements DoubleCollector<A, R> {
         private final ObjDoubleConsumer<A> doubleAccumulator;
 
         DoubleCollectorImpl(Supplier<A> supplier, ObjDoubleConsumer<A> doubleAccumulator,
@@ -593,7 +593,7 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    static class Box<A> implements Consumer<A> {
+    class Box<A> implements Consumer<A> {
         A a;
         
         Box() {
@@ -621,7 +621,7 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    static final class PairBox<A, B> extends Box<A> {
+    final class PairBox<A, B> extends Box<A> {
         B b;
 
         PairBox(A a, B b) {
@@ -644,7 +644,7 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    static final class ObjIntBox<A> extends Box<A> implements Entry<Integer, A> {
+    final class ObjIntBox<A> extends Box<A> implements Entry<Integer, A> {
         int b;
 
         ObjIntBox(A a, int b) {
@@ -686,7 +686,7 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    static final class ObjLongBox<A> extends Box<A> implements Entry<A, Long> {
+    final class ObjLongBox<A> extends Box<A> implements Entry<A, Long> {
         long b;
 
         ObjLongBox(A a, long b) {
@@ -728,7 +728,7 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    static final class ObjDoubleBox<A> extends Box<A> {
+    final class ObjDoubleBox<A> extends Box<A> {
         double b;
 
         ObjDoubleBox(A a, double b) {
@@ -737,7 +737,7 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    static final class PrimitiveBox {
+    final class PrimitiveBox {
         int i;
         double d;
         long l;
@@ -799,7 +799,7 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    static final class AverageLong {
+    final class AverageLong {
         long hi, lo, cnt;
 
         public void accept(long val) {
@@ -834,7 +834,7 @@ import java.util.stream.Collector.Characteristics;
     }
 
     @SuppressWarnings("serial")
-    static class CancelException extends Error {
+    class CancelException extends Error {
         CancelException() {
             // Calling this constructor makes the Exception construction much
             // faster (like 0.3us vs 1.7us)
@@ -842,7 +842,7 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    static class ArrayCollection extends AbstractCollection<Object> {
+    class ArrayCollection extends AbstractCollection<Object> {
         private final Object[] arr;
 
         ArrayCollection(Object[] arr) {
@@ -921,7 +921,7 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    static abstract class CloneableSpliterator<T, S extends CloneableSpliterator<T, ?>> implements Spliterator<T>,
+    abstract class CloneableSpliterator<T, S extends CloneableSpliterator<T, ?>> implements Spliterator<T>,
             Cloneable {
         @SuppressWarnings("unchecked")
         S doClone() {

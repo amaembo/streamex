@@ -22,6 +22,7 @@ import org.junit.runners.MethodSorters;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.IntBuffer;
 import java.util.*;
 import java.util.PrimitiveIterator.OfInt;
@@ -703,6 +704,20 @@ public class IntStreamExTest {
         try(IntStream s = IntStreamEx.of(new ByteArrayInputStream(data))) {
             assertEquals(278, s.sum());
         }
+        InputStream is = new InputStream() {
+            @Override
+            public int read() throws IOException {
+                throw new IOException();
+            }
+
+            @Override
+            public void close() throws IOException {
+                throw new IOException();
+            }
+        };
+        IntStreamEx stream = IntStreamEx.of(is).filter(x -> x > 0);
+        assertThrows(UncheckedIOException.class, stream::count);
+        assertThrows(UncheckedIOException.class, stream::close);
     }
     
     @Test
