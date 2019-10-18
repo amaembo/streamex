@@ -166,6 +166,14 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
         <version>1.8</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.jacoco</groupId>
+            <artifactId>org.jacoco.ant</artifactId>
+            <classifier>nodeps</classifier>
+            <version>0.8.4</version>
+          </dependency>
+        </dependencies>
         <executions>
           <execution>
             <!-- Unpack java.util.stream package from JDK source to inherit 
@@ -215,6 +223,48 @@
                   <fileset dir="${project.build.directory}/apidocs"
                     includes="${project.package.path}/StreamEx.html" />
                 </jar>
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>jacoco-report</id>
+            <phase>prepare-package</phase>
+            <configuration>
+              <target>
+                <typedef resource="org/jacoco/ant/antlib.xml"/>
+                <report>
+                  <executiondata>
+                    <fileset dir="target" includes="jacoco_*.exec"/>
+                  </executiondata>
+                  <structure name="${project.name}">
+                    <group name="src/main/java">
+                      <classfiles>
+                        <fileset dir="${basedir}/target/classes"/>
+                      </classfiles>
+                      <sourcefiles>
+                        <fileset dir="${basedir}/src/main/java"/>
+                      </sourcefiles>
+                    </group>
+                    <group name="src/main/java-mr/9">
+                      <classfiles>
+                        <fileset dir="${basedir}/target/classes-9"/>
+                      </classfiles>
+                      <sourcefiles>
+                        <fileset dir="${basedir}/src/main/java-mr/9"/>
+                      </sourcefiles>
+                    </group>
+                  </structure>
+                  <html destdir="${basedir}/target/site/jacoco"/>
+                  <xml destfile="${basedir}/target/site/jacoco/jacoco.xml"/>
+                  <check>
+                    <rule element="BUNDLE">
+                      <limit counter="COMPLEXITY" value="COVEREDRATIO" minimum="0.95"/>
+                    </rule>
+                  </check>
+                </report>
               </target>
             </configuration>
             <goals>
@@ -310,50 +360,6 @@
             </goals>
             <configuration>
               <destFile>${project.build.directory}</destFile>
-            </configuration>
-          </execution>
-          <execution>
-            <id>default-merge</id>
-            <phase>prepare-package</phase>
-            <goals>
-              <goal>merge</goal>
-            </goals>
-            <configuration>
-              <fileSets>
-                <fileSet>
-                  <directory>${project.build.directory}</directory>
-                  <includes>
-                    <include>jacoco_*.exec</include>
-                  </includes>
-                </fileSet>
-              </fileSets>
-            </configuration>
-          </execution>
-          <execution>
-            <id>default-report</id>
-            <phase>prepare-package</phase>
-            <goals>
-              <goal>report</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>default-check</id>
-            <goals>
-              <goal>check</goal>
-            </goals>
-            <configuration>
-              <rules>
-                <rule implementation="org.jacoco.maven.RuleConfiguration">
-                  <element>BUNDLE</element>
-                  <limits>
-                    <limit implementation="org.jacoco.report.check.Limit">
-                      <counter>COMPLEXITY</counter>
-                      <value>COVEREDRATIO</value>
-                      <minimum>0.95</minimum>
-                    </limit>
-                  </limits>
-                </rule>
-              </rules>
             </configuration>
           </execution>
         </executions>
