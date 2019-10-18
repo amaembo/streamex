@@ -33,6 +33,8 @@ public class PermutationSpliteratorTest {
     private static List<String> collect(Spliterator<int[]> spliterator) {
         List<String> strings = new ArrayList<>();
         spliterator.forEachRemaining(i -> strings.add(IntStreamEx.of(i).mapToObj(String::valueOf).joining()));
+        spliterator.forEachRemaining(i -> fail("Should not have any more elements"));
+        assertFalse(spliterator.tryAdvance(i -> fail("Should not have any more elements")));
         return strings;
     }
 
