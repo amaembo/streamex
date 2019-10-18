@@ -1634,7 +1634,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @see #dropWhile(IntPredicate)
      */
     public IntStreamEx takeWhile(IntPredicate predicate) {
-        return VER_SPEC.callWhile(this, Objects.requireNonNull(predicate), false);
+        return VerSpec.VER_SPEC.callWhile(this, Objects.requireNonNull(predicate), false);
     }
 
     /**
@@ -1683,7 +1683,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.3.6
      */
     public IntStreamEx dropWhile(IntPredicate predicate) {
-        return VER_SPEC.callWhile(this, Objects.requireNonNull(predicate), true);
+        return VerSpec.VER_SPEC.callWhile(this, Objects.requireNonNull(predicate), true);
     }
 
     /**
@@ -2309,7 +2309,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @see CharSequence#chars()
      */
     public static IntStreamEx ofChars(CharSequence seq) {
-        return of(VER_SPEC.ofChars(seq));
+        return of(VerSpec.VER_SPEC.ofChars(seq));
     }
 
     /**

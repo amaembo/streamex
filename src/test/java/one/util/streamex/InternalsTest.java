@@ -51,13 +51,4 @@ public class InternalsTest {
     public void testPartialCollector() {
         PartialCollector.intSum().accumulator();
     }
-
-    @Test
-    public void testJdk9Basics() {
-        MethodHandle[][] jdk9Methods = Java9Specific.initJdk9Methods();
-        if (Stream.of(Stream.class.getMethods()).anyMatch(m -> m.getName().equals("takeWhile")))
-            assertNotNull(jdk9Methods);
-        else
-            assertNull(jdk9Methods);
-    }
 }

@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/streamex.iml" filepath="$PROJECT_DIR$/streamex.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/streamex.iml" filepath="$PROJECT_DIR$/.idea/streamex.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/streamex-9.iml" filepath="$PROJECT_DIR$/.idea/streamex-9.iml" />
     </modules>
   </component>
 </project>

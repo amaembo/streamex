@@ -1678,7 +1678,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      */
     public S takeWhile(Predicate<? super T> predicate) {
         Objects.requireNonNull(predicate);
-        return VER_SPEC.callWhile(this, predicate, false);
+        return VerSpec.VER_SPEC.callWhile(this, predicate, false);
     }
 
     /**
@@ -1735,7 +1735,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      */
     public S dropWhile(Predicate<? super T> predicate) {
         Objects.requireNonNull(predicate);
-        return VER_SPEC.callWhile(this, predicate, true);
+        return VerSpec.VER_SPEC.callWhile(this, predicate, true);
     }
 
     /**
