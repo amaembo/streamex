@@ -85,6 +85,7 @@
               <goal>add-source</goal>
             </goals>
             <configuration>
+              <!-- Necessary to add sources to the source-jar -->
               <sources>
                 <source>src/main/java-mr/9</source>
               </sources>
@@ -119,7 +120,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.3</version>
         <configuration>
-          <source>1.8</source>
+          <!-- javadoc plugin uses this to detect JDK URL -->
+          <source>${maven.compiler.source}</source>
           <compilerArgs>
             <arg>-Xlint:all</arg>
           </compilerArgs>
