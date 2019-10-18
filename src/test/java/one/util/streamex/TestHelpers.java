@@ -28,8 +28,8 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static one.util.streamex.StreamExInternals.TailSpliterator;
-import static one.util.streamex.StreamExInternals.finished;
+import static one.util.streamex.Internals.TailSpliterator;
+import static one.util.streamex.Internals.finished;
 import static org.junit.Assert.*;
 
 /**

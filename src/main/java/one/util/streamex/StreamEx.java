@@ -40,7 +40,7 @@ import java.util.stream.Collector.Characteristics;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static one.util.streamex.StreamExInternals.*;
+import static one.util.streamex.Internals.*;
 
 /**
  * A {@link Stream} implementation with additional functionality.
@@ -2686,7 +2686,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see #iterate(Object, Predicate, UnaryOperator)
      */
     public static <T> StreamEx<T> iterate(final T seed, final UnaryOperator<T> f) {
-        return iterate(seed, x -> true, f);
+        return iterate(seed, alwaysTrue(), f);
     }
 
     /**

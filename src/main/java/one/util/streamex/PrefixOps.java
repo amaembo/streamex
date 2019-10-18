@@ -15,7 +15,7 @@
  */
 package one.util.streamex;
 
-import static one.util.streamex.StreamExInternals.*;
+import static one.util.streamex.Internals.*;
 
 import java.util.Spliterator;
 import java.util.Spliterators.AbstractDoubleSpliterator;

@@ -27,7 +27,7 @@ import java.util.function.IntConsumer;
 import java.util.function.LongBinaryOperator;
 import java.util.function.LongConsumer;
 
-import static one.util.streamex.StreamExInternals.*;
+import static one.util.streamex.Internals.*;
 
 /**
  * @author Tagir Valeev

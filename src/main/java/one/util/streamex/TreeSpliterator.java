@@ -25,7 +25,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import static one.util.streamex.StreamExInternals.*;
+import static one.util.streamex.Internals.*;
 
 /**
  * @author Tagir Valeev
@@ -96,7 +96,7 @@ import static one.util.streamex.StreamExInternals.*;
         this.size -= clone.size;
         clone.spliterators = new ArrayList<>();
         clone.spliterators.add(new PairBox<>(prefix, null));
-        closeHandler = StreamContext.compose(closeHandler, clone::close);
+        closeHandler = StreamContext.compose(closeHandler, clone);
         return clone;
     }
     

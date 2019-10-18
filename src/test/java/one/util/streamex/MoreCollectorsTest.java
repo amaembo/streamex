@@ -15,7 +15,7 @@
  */
 package one.util.streamex;
 
-import one.util.streamex.StreamExInternals.BooleanMap;
+import one.util.streamex.Internals.BooleanMap;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;

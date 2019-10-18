@@ -30,7 +30,7 @@ import java.util.function.ObjDoubleConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 
-import static one.util.streamex.StreamExInternals.*;
+import static one.util.streamex.Internals.*;
 
 /**
  * A {@link Collector} specialized to work with primitive {@code double}.
@@ -148,7 +148,7 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
      */
     static DoubleCollector<?, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return PartialCollector.joining(delimiter, prefix, suffix, true).asDouble(
-            StreamExInternals.joinAccumulatorDouble(delimiter));
+            Internals.joinAccumulatorDouble(delimiter));
     }
 
     /**
@@ -162,7 +162,7 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
      */
     static DoubleCollector<?, String> joining(CharSequence delimiter) {
         return PartialCollector.joining(delimiter, null, null, false).asDouble(
-            StreamExInternals.joinAccumulatorDouble(delimiter));
+            Internals.joinAccumulatorDouble(delimiter));
     }
 
     /**

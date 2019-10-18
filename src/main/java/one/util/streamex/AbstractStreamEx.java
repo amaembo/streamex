@@ -21,7 +21,7 @@ import java.util.function.*;
 import java.util.stream.*;
 import java.util.stream.Collector.Characteristics;
 
-import static one.util.streamex.StreamExInternals.*;
+import static one.util.streamex.Internals.*;
 
 /**
  * Base class providing common functionality for {@link StreamEx} and {@link EntryStream}.

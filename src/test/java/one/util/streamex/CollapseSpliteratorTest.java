@@ -40,8 +40,8 @@ import static org.junit.Assert.*;
  */
 public class CollapseSpliteratorTest {
     private static <T> void splitEquals(Spliterator<T> source, BiConsumer<Spliterator<T>, Spliterator<T>> consumer) {
-        Spliterator<T> right = new CollapseSpliterator<>(Objects::equals, Function.identity(), StreamExInternals
-                .selectFirst(), StreamExInternals.selectFirst(), source);
+        Spliterator<T> right = new CollapseSpliterator<>(Objects::equals, Function.identity(), Internals
+                .selectFirst(), Internals.selectFirst(), source);
         Spliterator<T> left = right.trySplit();
         assertNotNull(left);
         consumer.accept(left, right);
@@ -114,7 +114,7 @@ public class CollapseSpliteratorTest {
     private static void multiSplit(Supplier<Spliterator<Integer>> inputSpliterator) throws AssertionError {
         withRandom(r -> repeat(100, n -> {
             Spliterator<Integer> spliterator = new CollapseSpliterator<>(Objects::equals, Function.identity(),
-                    StreamExInternals.selectFirst(), StreamExInternals.selectFirst(), inputSpliterator.get());
+                    Internals.selectFirst(), Internals.selectFirst(), inputSpliterator.get());
             List<Integer> result = new ArrayList<>();
             List<Spliterator<Integer>> spliterators = new ArrayList<>();
             spliterators.add(spliterator);

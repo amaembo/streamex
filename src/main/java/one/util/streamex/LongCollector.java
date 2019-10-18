@@ -33,7 +33,7 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
-import static one.util.streamex.StreamExInternals.*;
+import static one.util.streamex.Internals.*;
 
 /**
  * A {@link Collector} specialized to work with primitive {@code long}.
@@ -148,7 +148,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      */
     static LongCollector<?, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return PartialCollector.joining(delimiter, prefix, suffix, true).asLong(
-            StreamExInternals.joinAccumulatorLong(delimiter));
+            Internals.joinAccumulatorLong(delimiter));
     }
 
     /**
@@ -162,7 +162,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      */
     static LongCollector<?, String> joining(CharSequence delimiter) {
         return PartialCollector.joining(delimiter, null, null, false).asLong(
-            StreamExInternals.joinAccumulatorLong(delimiter));
+            Internals.joinAccumulatorLong(delimiter));
     }
 
     /**

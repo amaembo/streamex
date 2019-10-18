@@ -49,7 +49,7 @@ import java.util.stream.Collector.Characteristics;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static one.util.streamex.StreamExInternals.*;
+import static one.util.streamex.Internals.*;
 
 /**
  * Implementations of several collectors in addition to ones available in JDK.
@@ -77,7 +77,7 @@ public final class MoreCollectors {
     private static <T, U> Collector<T, ?, U> empty(Supplier<U> supplier) {
         return new CancellableCollectorImpl<>(() -> NONE, (acc, t) -> {
             // empty
-        }, selectFirst(), acc -> supplier.get(), acc -> true, EnumSet.of(Characteristics.UNORDERED,
+        }, selectFirst(), acc -> supplier.get(), alwaysTrue(), EnumSet.of(Characteristics.UNORDERED,
             Characteristics.CONCURRENT));
     }
 

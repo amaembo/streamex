@@ -23,10 +23,6 @@ import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
 import java.util.function.IntConsumer;
 import java.util.function.LongConsumer;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-
-import static one.util.streamex.StreamExInternals.*;
 
 /* package */abstract class UnknownSizeSpliterator<T, S extends UnknownSizeSpliterator<? extends T, S, I>, I extends Iterator<? extends T>>
         implements Spliterator<T> {

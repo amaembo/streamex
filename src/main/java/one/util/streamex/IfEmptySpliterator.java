@@ -20,7 +20,7 @@ import java.util.Spliterator;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
-/* package */ class IfEmptySpliterator<T> extends StreamExInternals.CloneableSpliterator<T, IfEmptySpliterator<T>> {
+/* package */ class IfEmptySpliterator<T> extends Internals.CloneableSpliterator<T, IfEmptySpliterator<T>> {
     // alt == null --> decision is made
     private Spliterator<? extends T> spltr, alt;
     // positive = number of non-exhausted spliterators; negative = surely non-empty

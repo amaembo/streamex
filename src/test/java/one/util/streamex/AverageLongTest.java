@@ -15,7 +15,7 @@
  */
 package one.util.streamex;
 
-import static one.util.streamex.StreamExInternals.*;
+import static one.util.streamex.Internals.*;
 import static one.util.streamex.TestHelpers.*;
 import static org.junit.Assert.*;
 

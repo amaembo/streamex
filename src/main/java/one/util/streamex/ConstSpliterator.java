@@ -21,7 +21,7 @@ import java.util.function.DoubleConsumer;
 import java.util.function.IntConsumer;
 import java.util.function.LongConsumer;
 
-import one.util.streamex.StreamExInternals.CloneableSpliterator;
+import one.util.streamex.Internals.CloneableSpliterator;
 
 /**
  * @author Tagir Valeev

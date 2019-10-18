@@ -21,7 +21,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import static one.util.streamex.UnknownSizeSpliterator.*;
-import static one.util.streamex.StreamExInternals.*;
+import static one.util.streamex.Internals.*;
 
 /**
  * @author Tagir Valeev

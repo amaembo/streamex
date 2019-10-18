@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static one.util.streamex.StreamExInternals.*;
+import static one.util.streamex.Internals.*;
 
 /**
  * A {@link Stream} of {@link Entry} objects which provides additional specific
@@ -1019,24 +1019,24 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @since 0.5.5
      */
     public EntryStream<K, List<V>> collapseKeys() {
-        return new StreamEx<>(new CollapseSpliterator<Entry<K, V>, PairBox<K, List<V>>>(equalKeys(),
+        return new StreamEx<>(new CollapseSpliterator<>(equalKeys(),
                 e -> new PairBox<>(e.getKey(), Collections.singletonList(e.getValue())), (pb, e) -> {
-                    if (!(pb.b instanceof ArrayList)) {
-                        V old = pb.b.get(0);
-                        pb.b = new ArrayList<>();
-                        pb.b.add(old);
-                    }
-                    pb.b.add(e.getValue());
-                    return pb;
-                }, (pb1, pb2) -> {
-                    if (!(pb1.b instanceof ArrayList)) {
-                        V old = pb1.b.get(0);
-                        pb1.b = new ArrayList<>();
-                        pb1.b.add(old);
-                    }
-                    pb1.b.addAll(pb2.b);
-                    return pb1;
-                }, spliterator()), context).mapToEntry(pb -> pb.a, pb -> pb.b);
+            if (!(pb.b instanceof ArrayList)) {
+                V old = pb.b.get(0);
+                pb.b = new ArrayList<>();
+                pb.b.add(old);
+            }
+            pb.b.add(e.getValue());
+            return pb;
+        }, (pb1, pb2) -> {
+            if (!(pb1.b instanceof ArrayList)) {
+                V old = pb1.b.get(0);
+                pb1.b = new ArrayList<>();
+                pb1.b.add(old);
+            }
+            pb1.b.addAll(pb2.b);
+            return pb1;
+        }, spliterator()), context).mapToEntry(pb -> pb.a, pb -> pb.b);
     }
 
     /**
@@ -1092,7 +1092,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         BiConsumer<A, ? super V> accumulator = collector.accumulator();
         BinaryOperator<A> combiner = collector.combiner();
         Function<A, R> finisher = collector.finisher();
-        return new StreamEx<>(new CollapseSpliterator<Entry<K, V>, PairBox<K, A>>(equalKeys(), e -> {
+        return new StreamEx<>(new CollapseSpliterator<>(equalKeys(), e -> {
             A a = supplier.get();
             accumulator.accept(a, e.getValue());
             return new PairBox<>(e.getKey(), a);
@@ -1649,7 +1649,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * operation.
      *
      * <p>
-     * The behavior of this operation is explicitly nondeterministic. For
+     * The behavior of this operation is explicitly non-deterministic. For
      * parallel stream pipelines, this operation does <em>not</em> guarantee to
      * respect the encounter order of the stream, as doing so would sacrifice
      * the benefit of parallelism. For any given element, the action may be

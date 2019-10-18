@@ -34,7 +34,7 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static one.util.streamex.StreamExInternals.*;
+import static one.util.streamex.Internals.*;
 
 /**
  * A {@link Collector} specialized to work with primitive {@code int}.
@@ -149,7 +149,7 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      */
     static IntCollector<?, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return PartialCollector.joining(delimiter, prefix, suffix, true).asInt(
-            StreamExInternals.joinAccumulatorInt(delimiter));
+            Internals.joinAccumulatorInt(delimiter));
     }
 
     /**
@@ -163,7 +163,7 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      */
     static IntCollector<?, String> joining(CharSequence delimiter) {
         return PartialCollector.joining(delimiter, null, null, false).asInt(
-            StreamExInternals.joinAccumulatorInt(delimiter));
+            Internals.joinAccumulatorInt(delimiter));
     }
 
     /**

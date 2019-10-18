@@ -20,7 +20,7 @@ import java.util.Spliterator;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-import one.util.streamex.StreamExInternals.CloneableSpliterator;
+import one.util.streamex.Internals.CloneableSpliterator;
 
 /**
  * @author Tagir Valeev

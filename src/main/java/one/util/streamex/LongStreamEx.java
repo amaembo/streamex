@@ -23,7 +23,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.function.*;
 import java.util.stream.*;
 
-import static one.util.streamex.StreamExInternals.*;
+import static one.util.streamex.Internals.*;
 
 /**
  * A {@link LongStream} implementation with additional functionality

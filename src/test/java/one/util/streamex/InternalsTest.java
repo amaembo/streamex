@@ -21,8 +21,8 @@ import java.lang.invoke.MethodHandle;
 import java.util.*;
 import java.util.stream.Stream;
 
-import static one.util.streamex.StreamExInternals.ArrayCollection;
-import static one.util.streamex.StreamExInternals.PartialCollector;
+import static one.util.streamex.Internals.ArrayCollection;
+import static one.util.streamex.Internals.PartialCollector;
 import static org.junit.Assert.*;
 
 /**

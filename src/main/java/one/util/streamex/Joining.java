@@ -28,7 +28,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-import static one.util.streamex.StreamExInternals.*;
+import static one.util.streamex.Internals.*;
 
 /**
  * An advanced implementation of joining {@link Collector}. This collector is
@@ -642,7 +642,7 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
             return null;
         init();
         if (limit <= 0 && lenStrategy != LENGTH_ELEMENTS)
-            return acc -> true;
+            return alwaysTrue();
         return acc -> acc.count > limit;
     }
 }

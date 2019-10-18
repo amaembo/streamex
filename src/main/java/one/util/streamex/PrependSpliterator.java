@@ -18,7 +18,7 @@ package one.util.streamex;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 
-import one.util.streamex.StreamExInternals.TailSpliterator;
+import one.util.streamex.Internals.TailSpliterator;
 
 /**
  * @author Tagir Valeev

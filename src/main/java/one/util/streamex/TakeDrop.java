@@ -32,7 +32,7 @@ import java.util.function.LongConsumer;
 import java.util.function.LongPredicate;
 import java.util.function.Predicate;
 
-import one.util.streamex.StreamExInternals.CloneableSpliterator;
+import one.util.streamex.Internals.CloneableSpliterator;
 
 /**
  * @author Tagir Valeev

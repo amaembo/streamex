@@ -22,7 +22,7 @@ import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static one.util.streamex.StreamExInternals.*;
+import static one.util.streamex.Internals.*;
 
 /* package */final class CollapseSpliterator<T, R> extends Box<T> implements Spliterator<R> {
     private final Spliterator<T> source;
