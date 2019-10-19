@@ -26,10 +26,20 @@
   <name>StreamEx</name>
   <description>Enhancing Java 8 Streams</description>
   <url>https://github.com/amaembo/streamex</url>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.package>one.util.streamex</project.package>
+    <project.package.path>one/util/streamex</project.package.path>
+    <license.url>https://www.apache.org/licenses/LICENSE-2.0</license.url>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+  </properties>
+
   <licenses>
     <license>
       <name>Apache License, Version 2.0</name>
-      <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+      <url>${license.url}</url>
       <distribution>repo</distribution>
     </license>
   </licenses>
@@ -40,14 +50,6 @@
       <url>https://oss.sonatype.org/content/repositories/snapshots</url>
     </snapshotRepository>
   </distributionManagement>
-
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.package>one.util.streamex</project.package>
-    <project.package.path>one/util/streamex</project.package.path>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
-  </properties>
 
   <dependencies>
     <dependency>
@@ -74,6 +76,26 @@
       </extension>
     </extensions>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>3.0.0-M2</version>
+        <executions>
+          <execution>
+            <id>enforce-java</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireJavaVersion>
+                  <version>11</version>
+                </requireJavaVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
@@ -106,7 +128,7 @@
               <Automatic-Module-Name>${project.package}</Automatic-Module-Name>
               <Bundle-Name>${project.name}</Bundle-Name>
               <Bundle-Description>${project.description}</Bundle-Description>
-              <Bundle-License>https://www.apache.org/licenses/LICENSE-2.0</Bundle-License>
+              <Bundle-License>${license.url}</Bundle-License>
               <Bundle-ManifestVersion>2</Bundle-ManifestVersion>
               <Bundle-SymbolicName>${project.package}</Bundle-SymbolicName>
               <Bundle-Version>${project.version}</Bundle-Version>
@@ -331,14 +353,14 @@
             <configuration>
               <classesDirectory>${basedir}/target/classes-9</classesDirectory>
               <additionalClasspathElements>${project.build.outputDirectory}</additionalClasspathElements>
-              <argLine>@{argLine}/jacoco_java11.exec</argLine>
+              <argLine>@{argLine}/jacoco_java9.exec</argLine>
             </configuration>
             <goals>
               <goal>test</goal>
             </goals>
           </execution>
           <execution>
-            <id>emulate-java8</id>
+            <id>java8-test</id>
             <configuration>
               <argLine>@{argLine}/jacoco_java8.exec</argLine>
             </configuration>
