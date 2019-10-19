@@ -2,6 +2,10 @@
 
 Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 
+### 0.7.1
+* [#202] Fixed: `StreamEx/EntryStream.ofTree` stack consumption is now limited
+* Multi-release Jar is used to provide Java 9+ specializations
+
 ### 0.7.0
 * [#193] Removed optimizations which rely on internal implementation details of Stream API (unwrap IteratorSpliterator;
   do not delegate to Stream::close when unnecessary)
