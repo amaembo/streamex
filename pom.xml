@@ -193,7 +193,7 @@
             <groupId>org.jacoco</groupId>
             <artifactId>org.jacoco.ant</artifactId>
             <classifier>nodeps</classifier>
-            <version>0.8.4</version>
+            <version>0.8.5</version>
           </dependency>
         </dependencies>
         <executions>
@@ -373,7 +373,7 @@
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
-        <version>0.8.4</version>
+        <version>0.8.5</version>
         <executions>
           <execution>
             <id>default-prepare-agent</id>
