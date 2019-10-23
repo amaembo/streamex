@@ -259,7 +259,7 @@
                 <typedef resource="org/jacoco/ant/antlib.xml"/>
                 <report>
                   <executiondata>
-                    <fileset dir="target" includes="jacoco_*.exec"/>
+                    <fileset dir="target" includes="jacoco.exec"/>
                   </executiondata>
                   <structure name="${project.name}">
                     <group name="src/main/java">
@@ -353,7 +353,6 @@
             <configuration>
               <classesDirectory>${basedir}/target/classes-9</classesDirectory>
               <additionalClasspathElements>${project.build.outputDirectory}</additionalClasspathElements>
-              <argLine>@{argLine}/jacoco_java9.exec</argLine>
             </configuration>
             <goals>
               <goal>test</goal>
@@ -361,9 +360,6 @@
           </execution>
           <execution>
             <id>java8-test</id>
-            <configuration>
-              <argLine>@{argLine}/jacoco_java8.exec</argLine>
-            </configuration>
             <goals>
               <goal>test</goal>
             </goals>
@@ -380,9 +376,6 @@
             <goals>
               <goal>prepare-agent</goal>
             </goals>
-            <configuration>
-              <destFile>${project.build.directory}</destFile>
-            </configuration>
           </execution>
         </executions>
       </plugin>
