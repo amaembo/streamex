@@ -2,6 +2,9 @@
 
 Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 
+### 0.7.2
+* Fixed: accidental use of Java 9 API in CrossSpliterator
+
 ### 0.7.1
 * [#202] Fixed: `StreamEx/EntryStream.ofTree` stack consumption is now limited
 * Multi-release Jar is used to provide Java 9+ specializations

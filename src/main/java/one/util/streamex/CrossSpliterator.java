@@ -40,7 +40,8 @@ import java.util.stream.StreamSupport;
         long est = 1;
         try {
             for (Collection<T> c : source) {
-                est = StrictMath.multiplyExact(est, c.size());
+                long size = c.size();
+                est = StrictMath.multiplyExact(est, size);
             }
         } catch (ArithmeticException e) {
             est = Long.MAX_VALUE;
@@ -222,7 +223,8 @@ import java.util.stream.StreamSupport;
         } else {
             try {
                 for (int i = splitPos + 1; i < collections.length; i++) {
-                    newEst = StrictMath.multiplyExact(newEst, collections[i].size());
+                    long size = collections[i].size();
+                    newEst = StrictMath.multiplyExact(newEst, size);
                 }
                 if (est != Long.MAX_VALUE)
                     prefixEst = est - newEst;
