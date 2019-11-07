@@ -494,10 +494,6 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    abstract class CancellableCollector<T, A, R> implements Collector<T, A, R> {
-        abstract Predicate<A> finished();
-    }
-
     final class CancellableCollectorImpl<T, A, R> extends CancellableCollector<T, A, R> {
         private final Supplier<A> supplier;
         private final BiConsumer<A, T> accumulator;
