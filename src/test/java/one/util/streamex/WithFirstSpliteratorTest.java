@@ -42,7 +42,7 @@ public class WithFirstSpliteratorTest {
     @Test
     public void testCharacteristics() {
         WithFirstSpliterator<Integer, Integer> spltr = new WithFirstSpliterator<>(Stream.of(6, 1, 2, 3, 4, 5)
-                .spliterator(), (a, b) -> a + b);
+                .spliterator(), Integer::sum);
         assertTrue(spltr.hasCharacteristics(Spliterator.SIZED));
         assertEquals(6, spltr.getExactSizeIfKnown());
         assertTrue(spltr.tryAdvance(x -> assertEquals(12, (int)x)));
@@ -50,7 +50,7 @@ public class WithFirstSpliteratorTest {
         assertTrue(spltr.tryAdvance(x -> assertEquals(7, (int)x)));
         assertEquals(4, spltr.getExactSizeIfKnown());
         
-        spltr = new WithFirstSpliterator<>(Spliterators.emptySpliterator(), (a, b) -> a + b);
+        spltr = new WithFirstSpliterator<>(Spliterators.emptySpliterator(), Integer::sum);
         assertTrue(spltr.hasCharacteristics(Spliterator.SIZED));
         assertEquals(0, spltr.getExactSizeIfKnown());
         assertFalse(spltr.tryAdvance(x -> fail("Should not happen")));

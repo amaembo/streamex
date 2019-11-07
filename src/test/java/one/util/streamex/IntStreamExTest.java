@@ -474,7 +474,7 @@ public class IntStreamExTest {
         assertArrayEquals(IntStreamEx.range(9999).toArray(), dropLast(IntStreamEx.range(10000)).toArray());
 
         withRandom(r -> {
-            int data[] = r.ints(1000, 1, 1000).toArray();
+            int[] data = r.ints(1000, 1, 1000).toArray();
             int[] expected = new int[data.length - 1];
             int lastSquare = data[0] * data[0];
             for (int i = 0; i < expected.length; i++) {
@@ -541,20 +541,6 @@ public class IntStreamExTest {
         Map<Integer, List<Integer>> result = IntStreamEx.range(10).mapToEntry(x -> x % 2, x -> x).grouping();
         assertEquals(Arrays.asList(0, 2, 4, 6, 8), result.get(0));
         assertEquals(Arrays.asList(1, 3, 5, 7, 9), result.get(1));
-    }
-
-    static final class HundredIterator implements PrimitiveIterator.OfInt {
-        int i = 0;
-
-        @Override
-        public boolean hasNext() {
-            return i < 100;
-        }
-
-        @Override
-        public int nextInt() {
-            return i++;
-        }
     }
 
     @Test

@@ -43,8 +43,7 @@ import java.util.function.LongConsumer;
     }
 
     int getN() {
-        int n = fence + BATCH_UNIT;
-        return n > MAX_BATCH ? MAX_BATCH : n;
+        return Math.min(fence + BATCH_UNIT, MAX_BATCH);
     }
 
     S correctSize(S prefix) {

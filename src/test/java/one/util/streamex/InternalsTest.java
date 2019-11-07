@@ -17,13 +17,17 @@ package one.util.streamex;
 
 import org.junit.Test;
 
-import java.lang.invoke.MethodHandle;
-import java.util.*;
-import java.util.stream.Stream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 import static one.util.streamex.Internals.ArrayCollection;
 import static one.util.streamex.Internals.PartialCollector;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for non-public APIs in StreamExInternals
