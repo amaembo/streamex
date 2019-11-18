@@ -998,6 +998,20 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     }
 
     /**
+     * {@inheritDoc}
+     *
+     * <p>
+     * This method is unlikely to work on {@code EntryStream}, because {@link Map.Entry} instances rarely implement
+     * the {@link Comparable} interface. If you want to sort the stream by Map keys use 
+     * {@code sorted(Map.Entry.comparingByKey())} or {@code sortedBy(Map.Entry::getKey)}. If you want to sort the 
+     * stream by Map values use {@code sorted(Map.Entry.comparingByValue())} or {@code sortedBy(Map.Entry::getValue)}.
+     */
+    @Override
+    public EntryStream<K, V> sorted() {
+        return super.sorted();
+    }
+
+    /**
      * Merge series of adjacent stream entries with equal keys grouping the
      * corresponding values into {@code List}.
      *

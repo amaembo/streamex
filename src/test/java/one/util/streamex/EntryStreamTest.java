@@ -555,6 +555,7 @@ public class EntryStreamTest {
         LinkedHashMap<String, Integer> result = EntryStream.of(data).reverseSorted(Entry.comparingByValue())
                 .toCustomMap(LinkedHashMap::new);
         assertEquals("{ccc=33, bb=22, a=1}", result.toString());
+        assertThrows(ClassCastException.class, () -> EntryStream.of(data).sorted().toList());
     }
 
     @Test
