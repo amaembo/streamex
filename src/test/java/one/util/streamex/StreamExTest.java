@@ -252,6 +252,10 @@ public class StreamExTest {
         ArrayList<String> list = StreamEx.of("a", "bb", "ccc").toSetAndThen(ArrayList::new);
         assertEquals(3, list.size());
         assertTrue(list.contains("bb"));
+
+        ArrayList<String> linkedHashSet = StreamEx.of("a", "bb", "ccc", "a", "d", "bb", "e")
+                .toCollectionAndThen(LinkedHashSet::new, ArrayList::new);
+        assertEquals(asList("a", "bb", "ccc", "d", "e"), linkedHashSet);
     }
 
     @Test

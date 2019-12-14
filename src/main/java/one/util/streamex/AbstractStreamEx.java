@@ -1295,6 +1295,31 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     }
 
     /**
+     * Creates a custom {@link Collection} containing the elements of this stream, 
+     * then performs finishing transformation and returns its result. The
+     * {@code Collection} is created by the provided factory.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param <C> the type of the resulting {@code Collection}
+     * @param <R> the result type
+     * @param collectionFactory a {@code Supplier} which returns a new, empty
+     *        {@code Collection} of the appropriate type
+     * @param finisher a function to be applied to the intermediate {@code Collection}
+     * @return result of applying the finisher transformation to the {@code Collection}
+     *         of the stream elements.
+     * @since 0.7.3
+     * @see #toCollection(Supplier) 
+     */
+    public <C extends Collection<T>, R> R toCollectionAndThen(Supplier<C> collectionFactory, 
+                                                              Function<? super C, R> finisher) {
+        if (context.fjp != null)
+            return context.terminate(() -> finisher.apply(toCollection(collectionFactory)));
+        return finisher.apply(toCollection(collectionFactory));
+    }
+
+    /**
      * Returns a {@link Collection} containing the elements of this stream. The
      * {@code Collection} is created by the provided factory.
      *
@@ -1306,6 +1331,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      *        {@code Collection} of the appropriate type
      * @return a {@code Collection} containing the elements of this stream
      * @see Collectors#toCollection(Supplier)
+     * @see #toCollectionAndThen(Supplier, Function) 
      */
     public <C extends Collection<T>> C toCollection(Supplier<C> collectionFactory) {
         return rawCollect(Collectors.toCollection(collectionFactory));

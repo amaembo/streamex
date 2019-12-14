@@ -2,6 +2,9 @@
 
 Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 
+### 0.7.3
+* [#028]: Added: `StreamEx.toCollectionAndThen`
+
 ### 0.7.2
 * Fixed: accidental use of Java 9 API in CrossSpliterator
 

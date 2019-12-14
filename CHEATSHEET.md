@@ -196,7 +196,7 @@ Replace the stream contents if the stream is empty | `StreamEx.ifEmpty()`/`Entry
 What I want | How to get it
 --- | ---
 Collect elements to `List`, `Set` or custom `Collection` | `StreamEx/EntryStream.toList()/toSet()/toCollection()`
-Collect elements to `List` or `Set` adding custom final step | `StreamEx/EntryStream.toListAndThen()/toSetAndThen()`
+Collect elements to `Collection` adding custom final step | `StreamEx/EntryStream.toListAndThen()/toSetAndThen()/toCollectionAndThen()`
 Collect elements to immutable `List` or `Set` | `StreamEx/EntryStream.toImmutableList()/toImmutableSet()`
 Collect elements or entries to `Map` | `StreamEx/EntryStream.toMap()/toSortedMap()/toNavigableMap()`
 Collect entries to immutable `Map` | `EntryStream.toImmutableMap()`

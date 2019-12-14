@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -119,6 +120,11 @@ public class CustomPoolTest {
                 .toSetAndThen(list -> {
                     this.checkThread(list);
                     return list;
+                }));
+        assertEquals(new HashSet<>(Arrays.asList(1, 2, 3)), StreamEx.of(1, 2, 3).parallel(pool).peek(this::checkThread)
+                .toCollectionAndThen(LinkedHashSet::new, lhs -> {
+                    this.checkThread(lhs);
+                    return lhs;
                 }));
 
         assertEquals(Collections.singletonMap(1, 3L), StreamEx.of(1, 1, 1).parallel(pool).peek(this::checkThread)
