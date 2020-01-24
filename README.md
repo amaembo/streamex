@@ -1,5 +1,5 @@
 # StreamEx 0.7.2
-Enhancing Java 8 Streams.
+Enhancing Java Stream API.
 
 [![Maven Central](https://img.shields.io/maven-central/v/one.util/streamex.svg)](https://maven-badges.herokuapp.com/maven-central/one.util/streamex/)
 [![Javadocs](https://www.javadoc.io/badge/one.util/streamex.svg)](https://www.javadoc.io/doc/one.util/streamex)
