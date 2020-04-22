@@ -163,6 +163,60 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     public <R> StreamEx<R> map(Function<? super T, ? extends R> mapper) {
         return new StreamEx<>(stream().map(mapper), context);
     }
+    /**
+     * Returns a stream consisting of the results of replacing each element of
+     * this stream with the contents of a mapped Stream produced by applying
+     * the provided mapping function to each element.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate
+     * operation</a>.
+     *
+     * <p>
+     * The {@code mapAndFlatten()} operation has the effect of applying a
+     * one-to-many transformation to the elements of the stream, and then
+     * flattening the resulting elements into a new stream.
+     *
+     * @param <R> The element type of the new stream
+     * @param mapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to each element which produces a
+     *        stream of new values
+     * @return the new stream
+     * @since 0.7.3
+     */
+    public <R> StreamEx<R> mapAndFlatten(Function<? super T, ? extends Stream<? extends R>> mapper) {
+        return new StreamEx<>(stream().map(mapper).flatMap(Function.identity()), context);
+    }
+    /**
+     * Flattens a {@code Stream<Stream<T>>} (stream of stream) to a single {@code Stream} of {@code T}.  
+     * Each mapped stream is
+     * {@link java.util.stream.BaseStream#close() closed} after its contents
+     * have been placed into this stream.  (If a mapped stream is {@code null}
+     * an empty stream is used, instead.)
+     *
+     * <p>This is an <a href="package-summary.html#StreamOps">intermediate
+     * operation</a>.
+     *
+     * @apiNote
+     * The {@code flatMap()} operation has the effect of applying {@link Function#identity()}
+     * transformation to the elements of the stream, and then flattening the
+     * resulting elements into a new stream.
+     *
+     *
+     * @param <R> The element type of the new stream
+     * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *               <a href="package-summary.html#Statelessness">stateless</a>
+     *               function to apply to each element which produces a stream
+     *               of new values
+     * @return the new stream
+     * @since 0.7.3
+     */
+    @SuppressWarnings("unchecked")
+    public <R> StreamEx<R> flatMap() {
+        return new StreamEx<>(stream().flatMap((Function<? super T, ? extends Stream<? extends R>>) Function.identity()), context);
+    }
 
     @Override
     public IntStreamEx mapToInt(ToIntFunction<? super T> mapper) {
