@@ -689,6 +689,12 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @param keyPredicate a non-interfering, stateless predicate to apply to
      *        the key of each element to determine if it should be included
      * @return the new stream
+     * @see #nonNull()
+     * @see #filter(Predicate)
+     * @see #remove(Predicate)
+     * @see #selectKeys(Class)
+     * @see #selectValues(Class)
+     * @see EntryStream  EntryStream specific version with "Keys|Values|KeyValue" suffix
      */
     public EntryStream<K, V> filterKeys(Predicate<? super K> keyPredicate) {
         return filter(e -> keyPredicate.test(e.getKey()));
@@ -705,6 +711,12 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @param valuePredicate a non-interfering, stateless predicate to apply to
      *        the value of each element to determine if it should be included
      * @return the new stream
+     * @see #nonNull()
+     * @see #filter(Predicate)
+     * @see #remove(Predicate)
+     * @see #selectKeys(Class)
+     * @see #selectValues(Class)
+     * @see EntryStream  EntryStream specific version with "Keys|Values|KeyValue" suffix
      */
     public EntryStream<K, V> filterValues(Predicate<? super V> valuePredicate) {
         return filter(e -> valuePredicate.test(e.getValue()));
@@ -723,6 +735,12 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      *        included
      * @return the new stream
      * @since 0.3.0
+     * @see #nonNull()
+     * @see #filter(Predicate)
+     * @see #remove(Predicate)
+     * @see #selectKeys(Class)
+     * @see #selectValues(Class)
+     * @see EntryStream  EntryStream specific version with "Keys|Values|KeyValue" suffix
      */
     public EntryStream<K, V> filterKeyValue(BiPredicate<? super K, ? super V> predicate) {
         return filter(e -> predicate.test(e.getKey(), e.getValue()));
@@ -798,6 +816,12 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @param keyPredicate a non-interfering, stateless predicate to apply to
      *        the key of each element to determine if it should be excluded
      * @return the new stream
+     * @see #nonNull()
+     * @see #filter(Predicate)
+     * @see #remove(Predicate)
+     * @see #selectKeys(Class)
+     * @see #selectValues(Class)
+     * @see EntryStream  EntryStream specific version with "Keys|Values|KeyValue" suffix
      */
     public EntryStream<K, V> removeKeys(Predicate<? super K> keyPredicate) {
         return filterKeys(keyPredicate.negate());
@@ -814,6 +838,12 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @param valuePredicate a non-interfering, stateless predicate to apply to
      *        the value of each element to determine if it should be excluded
      * @return the new stream
+     * @see #nonNull()
+     * @see #filter(Predicate)
+     * @see #remove(Predicate)
+     * @see #selectKeys(Class)
+     * @see #selectValues(Class)
+     * @see EntryStream  EntryStream specific version with "Keys|Values|KeyValue" suffix
      */
     public EntryStream<K, V> removeValues(Predicate<? super V> valuePredicate) {
         return filterValues(valuePredicate.negate());
@@ -832,6 +862,12 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      *        excluded
      * @return the new stream
      * @since 0.6.0
+     * @see #nonNull()
+     * @see #filter(Predicate)
+     * @see #remove(Predicate)
+     * @see #selectKeys(Class)
+     * @see #selectValues(Class)
+     * @see EntryStream  EntryStream specific version with "Keys|Values|KeyValue" suffix
      */
     public EntryStream<K, V> removeKeyValue(BiPredicate<? super K, ? super V> predicate) {
         return filterKeyValue(predicate.negate());
@@ -846,6 +882,12 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * operation.
      *
      * @return the new stream
+     * @see #nonNull()
+     * @see #filter(Predicate)
+     * @see #remove(Predicate)
+     * @see #selectKeys(Class)
+     * @see #selectValues(Class)
+     * @see EntryStream  EntryStream specific version with "Keys|Values|KeyValue" suffix
      */
     public EntryStream<K, V> nonNullKeys() {
         return filter(e -> e.getKey() != null);
@@ -860,6 +902,12 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * operation.
      *
      * @return the new stream
+     * @see #nonNull()
+     * @see #filter(Predicate)
+     * @see #remove(Predicate)
+     * @see #selectKeys(Class)
+     * @see #selectValues(Class)
+     * @see EntryStream  EntryStream specific version with "Keys|Values|KeyValue" suffix
      */
     public EntryStream<K, V> nonNullValues() {
         return filter(e -> e.getValue() != null);
@@ -876,6 +924,12 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @param <KK> a type of keys to select.
      * @param clazz a class to filter the keys.
      * @return the new stream
+     * @see #nonNull()
+     * @see #filter(Predicate)
+     * @see #remove(Predicate)
+     * @see #selectKeys(Class)
+     * @see #selectValues(Class)
+     * @see EntryStream  EntryStream specific version with "Keys|Values|KeyValue" suffix
      */
     @SuppressWarnings({ "unchecked" })
     public <KK> EntryStream<KK, V> selectKeys(Class<KK> clazz) {
@@ -893,6 +947,12 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @param <VV> a type of values to select.
      * @param clazz a class to filter the values.
      * @return the new stream
+     * @see #nonNull()
+     * @see #filter(Predicate)
+     * @see #remove(Predicate)
+     * @see #selectKeys(Class)
+     * @see #selectValues(Class)
+     * @see EntryStream  EntryStream specific version with "Keys|Values|KeyValue" suffix
      */
     @SuppressWarnings({ "unchecked" })
     public <VV> EntryStream<K, VV> selectValues(Class<VV> clazz) {

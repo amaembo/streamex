@@ -148,7 +148,12 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     public S onClose(Runnable closeHandler) {
         return (S) super.onClose(closeHandler);
     }
-
+    
+    /**
+     * @see #nonNull()
+     * @see #remove(Predicate)
+     * @see StreamEx#select(Class)
+     */
     @Override
     public S filter(Predicate<? super T> predicate) {
         return supply(stream().filter(predicate));
@@ -635,6 +640,9 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      *        predicate to apply to each element to determine if it should be
      *        excluded
      * @return the new stream
+     * @see #filter(Predicate)
+     * @see #nonNull()
+     * @see StreamEx#select(Class)
      */
     public S remove(Predicate<? super T> predicate) {
         return filter(predicate.negate());
@@ -649,6 +657,9 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * operation</a>.
      *
      * @return the new stream
+     * @see #filter(Predicate)
+     * @see #remove(Predicate)
+     * @see StreamEx#select(Class)
      */
     public S nonNull() {
         return filter(Objects::nonNull);
