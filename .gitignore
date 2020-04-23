@@ -1,7 +1,14 @@
 /target/
 
+# Eclipse
+/.settings
+/.metadata
+
 # IntelliJ IDEA
-.idea/dictionaries/
+/.idea/dictionaries/
+/.idea/workspace.xml
+/.idea/uiDesigner.xml
+/.idea/misc.xml
 
 # Mac OS/X
 .DS_Store
