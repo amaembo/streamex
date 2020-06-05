@@ -35,12 +35,12 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
         BaseStreamEx<T, Stream<T>, Spliterator<T>, S> implements Stream<T>, Iterable<T> {
     @SuppressWarnings("unchecked")
     AbstractStreamEx(Stream<? extends T> stream, StreamContext context) {
-        super((Stream<T>)stream, context);
+        super((Stream<T>) stream, context);
     }
 
     @SuppressWarnings("unchecked")
     AbstractStreamEx(Spliterator<? extends T> spliterator, StreamContext context) {
-        super((Spliterator<T>)spliterator, context);
+        super((Spliterator<T>) spliterator, context);
     }
 
     @Override
@@ -1213,7 +1213,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     @SuppressWarnings("unchecked")
     public List<T> toImmutableList() {
         Object[] array = toArray(Object[]::new);
-        switch(array.length) {
+        switch (array.length) {
         case 0:
             return Collections.emptyList();
         case 1:

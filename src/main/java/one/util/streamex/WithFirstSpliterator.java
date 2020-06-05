@@ -45,13 +45,13 @@ import one.util.streamex.Internals.CloneableSpliterator;
     }
     
     private void acquire() {
-        if(lock != null && state == STATE_NONE) {
+        if (lock != null && state == STATE_NONE) {
             lock.lock();
         }
     }
     
     private void release() {
-        if(lock != null && lock.isHeldByCurrentThread()) {
+        if (lock != null && lock.isHeldByCurrentThread()) {
             lock.unlock();
         }
     }
@@ -62,8 +62,7 @@ import one.util.streamex.Internals.CloneableSpliterator;
             acquire();
             try {
                 doInit();
-            }
-            finally {
+            } finally {
                 release();
             }
         }
@@ -101,9 +100,9 @@ import one.util.streamex.Internals.CloneableSpliterator;
         acquire();
         int myState = state;
         this.action = action;
-        if(myState == STATE_FIRST_READ || myState == STATE_INIT) {
+        if (myState == STATE_FIRST_READ || myState == STATE_INIT) {
             release();
-            if(myState == STATE_FIRST_READ) {
+            if (myState == STATE_FIRST_READ) {
                 state = STATE_INIT;
                 accept(first);
             }
@@ -124,22 +123,21 @@ import one.util.streamex.Internals.CloneableSpliterator;
             };
             source.forEachRemaining(init.andThen(this));
             this.action = null;
-        }
-        finally {
+        } finally {
             release();
         }
     }
 
     @Override
     public Spliterator<R> trySplit() {
-        if(state != STATE_NONE)
+        if (state != STATE_NONE)
             return null;
         Spliterator<T> prefix;
-        if(lock == null)
+        if (lock == null)
             lock = new ReentrantLock();
         acquire();
         try {
-            if(state != STATE_NONE)
+            if (state != STATE_NONE)
                 return null;
             prefix = source.trySplit();
             if (prefix == null)

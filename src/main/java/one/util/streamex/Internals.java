@@ -332,7 +332,7 @@ import java.util.stream.Collector.Characteristics;
             return new AbstractSet<Map.Entry<Boolean, T>>() {
                 @Override
                 public Iterator<Map.Entry<Boolean, T>> iterator() {
-                    return Arrays.<Map.Entry<Boolean, T>> asList(new SimpleEntry<>(Boolean.TRUE, trueValue),
+                    return Arrays.<Map.Entry<Boolean, T>>asList(new SimpleEntry<>(Boolean.TRUE, trueValue),
                         new SimpleEntry<>(Boolean.FALSE, falseValue)).iterator();
                 }
 

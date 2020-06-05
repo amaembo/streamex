@@ -188,7 +188,7 @@ public final class MoreCollectors {
      * @since 0.3.8
      */
     public static <T> Collector<T, ?, List<T>> distinctBy(Function<? super T, ?> mapper) {
-        return Collector.<T, Map<Object, T>, List<T>> of(LinkedHashMap::new, (map, t) -> map.putIfAbsent(mapper.apply(
+        return Collector.<T, Map<Object, T>, List<T>>of(LinkedHashMap::new, (map, t) -> map.putIfAbsent(mapper.apply(
             t), t), (m1, m2) -> {
                 for (Entry<Object, T> e : m2.entrySet()) {
                     m1.putIfAbsent(e.getKey(), e.getValue());
@@ -399,7 +399,7 @@ public final class MoreCollectors {
      * @see #maxAll()
      */
     public static <T extends Comparable<? super T>, A, D> Collector<T, ?, D> maxAll(Collector<T, A, D> downstream) {
-        return maxAll(Comparator.<T> naturalOrder(), downstream);
+        return maxAll(Comparator.<T>naturalOrder(), downstream);
     }
 
     /**
@@ -414,7 +414,7 @@ public final class MoreCollectors {
      * @see #maxAll(Collector)
      */
     public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> maxAll() {
-        return maxAll(Comparator.<T> naturalOrder(), Collectors.toList());
+        return maxAll(Comparator.<T>naturalOrder(), Collectors.toList());
     }
 
     /**
@@ -472,7 +472,7 @@ public final class MoreCollectors {
      * @see #minAll()
      */
     public static <T extends Comparable<? super T>, A, D> Collector<T, ?, D> minAll(Collector<T, A, D> downstream) {
-        return maxAll(Comparator.<T> reverseOrder(), downstream);
+        return maxAll(Comparator.<T>reverseOrder(), downstream);
     }
 
     /**
@@ -487,7 +487,7 @@ public final class MoreCollectors {
      * @see #minAll(Collector)
      */
     public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> minAll() {
-        return maxAll(Comparator.<T> reverseOrder(), Collectors.toList());
+        return maxAll(Comparator.<T>reverseOrder(), Collectors.toList());
     }
 
     /**
@@ -628,7 +628,7 @@ public final class MoreCollectors {
     public static <T> Collector<T, ?, List<T>> tail(int n) {
         if (n <= 0)
             return empty();
-        return Collector.<T, Deque<T>, List<T>> of(ArrayDeque::new, (acc, t) -> {
+        return Collector.<T, Deque<T>, List<T>>of(ArrayDeque::new, (acc, t) -> {
             if (acc.size() == n)
                 acc.pollFirst();
             acc.addLast(t);
@@ -700,7 +700,7 @@ public final class MoreCollectors {
      *         n stream elements or less if the stream was shorter.
      */
     public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> greatest(int n) {
-        return least(Comparator.<T> reverseOrder(), n);
+        return least(Comparator.<T>reverseOrder(), n);
     }
 
     /**
@@ -748,7 +748,7 @@ public final class MoreCollectors {
                     return list;
                 return new ArrayList<>(list.subList(0, n));
             });
-        return Collector.<T, Limiter<T>, List<T>> of(() -> new Limiter<>(n, comparator), Limiter::put, Limiter::putAll,
+        return Collector.<T, Limiter<T>, List<T>>of(() -> new Limiter<>(n, comparator), Limiter::put, Limiter::putAll,
             pq -> {
                 pq.sort();
                 return new ArrayList<>(pq);
@@ -783,7 +783,7 @@ public final class MoreCollectors {
      *         stream elements or less if the stream was shorter.
      */
     public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> least(int n) {
-        return least(Comparator.<T> naturalOrder(), n);
+        return least(Comparator.<T>naturalOrder(), n);
     }
 
     /**

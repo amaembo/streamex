@@ -97,7 +97,7 @@ import static one.util.streamex.Internals.*;
                 return true;
             }
         }
-        if (a == NONE) {// start
+        if (a == NONE) { // start
             if (!source.tryAdvance(this)) {
                 return accept(pushRight(none(), none()), action);
             }

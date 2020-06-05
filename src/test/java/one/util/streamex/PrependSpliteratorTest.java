@@ -48,7 +48,7 @@ public class PrependSpliteratorTest {
                 .estimateSize());
         
         PrependSpliterator<Integer> spltr = new PrependSpliterator<>(IntStream.range(1, 100).spliterator(), 0);
-        spltr.tryAdvance(x -> assertEquals(0, (int)x));
+        spltr.tryAdvance(x -> assertEquals(0, (int) x));
         assertTrue(spltr.hasCharacteristics(Spliterator.SORTED));
     }
 }

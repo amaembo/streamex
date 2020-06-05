@@ -121,13 +121,13 @@ import static one.util.streamex.Internals.*;
     PairSpliterator(S source, int mode, T headTail) {
         this.source = source;
         this.mode = mode;
-        if(mode != MODE_PAIRS) {
+        if (mode != MODE_PAIRS) {
             Sink<T> sink = new Sink<>(this.lock);
             Sink<T> other = new Sink<>(this.lock);
             sink.other = other;
             other.other = sink;
             other.push(headTail, null, true);
-            if(mode == MODE_MAP_FIRST || mode == MODE_MAP_FIRST_OR_ELSE)
+            if (mode == MODE_MAP_FIRST || mode == MODE_MAP_FIRST_OR_ELSE)
                 this.left = sink;
             else
                 this.right = sink;
@@ -188,16 +188,16 @@ import static one.util.streamex.Internals.*;
         // Must be called only if T == R
         @SuppressWarnings("unchecked")
         PSOfRef(Function<? super T, ? extends R> mapper, Spliterator<T> source, boolean first) {
-            super(source, first ? MODE_MAP_FIRST : MODE_MAP_LAST, (T)HEAD_TAIL);
-            BiFunction<? super T, ? super T, ?> m = first ? 
-                    ((a, b) -> a == HEAD_TAIL ? mapper.apply(b) : (T)b) :
-                    ((a, b) -> b == HEAD_TAIL ? mapper.apply(a) : (T)a);
+            super(source, first ? MODE_MAP_FIRST : MODE_MAP_LAST, (T) HEAD_TAIL);
+            BiFunction<? super T, ? super T, ?> m = first ?
+                    ((a, b) -> a == HEAD_TAIL ? mapper.apply(b) : (T) b) :
+                    ((a, b) -> b == HEAD_TAIL ? mapper.apply(a) : (T) a);
             this.mapper = (BiFunction<? super T, ? super T, ? extends R>) m;
         }
 
         @SuppressWarnings("unchecked")
         PSOfRef(Function<? super T, ? extends R> boundMapper, Function<? super T, ? extends R> elseMapper, Spliterator<T> source, boolean first) {
-            super(source, first ? MODE_MAP_FIRST_OR_ELSE : MODE_MAP_LAST_OR_ELSE, (T)HEAD_TAIL);
+            super(source, first ? MODE_MAP_FIRST_OR_ELSE : MODE_MAP_LAST_OR_ELSE, (T) HEAD_TAIL);
             this.mapper = first ? 
                 ((a, b) -> a == HEAD_TAIL ? boundMapper.apply(b) : elseMapper.apply(b)) :
                 ((a, b) -> b == HEAD_TAIL ? boundMapper.apply(a) : elseMapper.apply(a));
@@ -264,14 +264,14 @@ import static one.util.streamex.Internals.*;
                     return this;
             }
             @SuppressWarnings("unchecked")
-            Spliterator<R> s = (Spliterator<R>)source;
+            Spliterator<R> s = (Spliterator<R>) source;
             source = null;
             return s;
         }
         
         @Override
         public Spliterator<R> forEachOrTail(Consumer<? super R> action) {
-            if(mode != MODE_MAP_FIRST || right != EMPTY) {
+            if (mode != MODE_MAP_FIRST || right != EMPTY) {
                 forEachRemaining(action);
                 return null;
             }
@@ -301,7 +301,7 @@ import static one.util.streamex.Internals.*;
         }
 
         private BiConsumer<Integer, Integer> fn(IntConsumer action) {
-            switch(mode) {
+            switch (mode) {
             case MODE_MAP_FIRST:
                 return (a, b) -> action.accept(a == null ? unaryMapper.applyAsInt(b) : b);
             case MODE_MAP_LAST:
@@ -365,7 +365,7 @@ import static one.util.streamex.Internals.*;
         }
 
         private BiConsumer<Long, Long> fn(LongConsumer action) {
-            switch(mode) {
+            switch (mode) {
             case MODE_MAP_FIRST:
                 return (a, b) -> action.accept(a == null ? unaryMapper.applyAsLong(b) : b);
             case MODE_MAP_LAST:
@@ -429,7 +429,7 @@ import static one.util.streamex.Internals.*;
         }
 
         private BiConsumer<Double, Double> fn(DoubleConsumer action) {
-            switch(mode) {
+            switch (mode) {
             case MODE_MAP_FIRST:
                 return (a, b) -> action.accept(a == null ? unaryMapper.applyAsDouble(b) : b);
             case MODE_MAP_LAST:

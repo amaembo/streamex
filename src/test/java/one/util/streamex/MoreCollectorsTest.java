@@ -55,7 +55,7 @@ public class MoreCollectorsTest {
 
         @Override
         public boolean equals(Object obj) {
-            return obj instanceof MyNumber && ((MyNumber)obj).value == value;
+            return obj instanceof MyNumber && ((MyNumber) obj).value == value;
         }
 
         @Override
@@ -291,8 +291,8 @@ public class MoreCollectorsTest {
             Supplier<Stream<String>> supplier = () -> ints.stream().map(Object::toString);
             checkCollector("minIndex", OptionalLong.of(expectedMinString), supplier, MoreCollectors.minIndex());
             checkCollector("maxIndex", OptionalLong.of(expectedMaxString), supplier, MoreCollectors.maxIndex());
-            checkCollectorEmpty("minIndex", OptionalLong.empty(), MoreCollectors.<String> minIndex());
-            checkCollectorEmpty("maxIndex", OptionalLong.empty(), MoreCollectors.<String> maxIndex());
+            checkCollectorEmpty("minIndex", OptionalLong.empty(), MoreCollectors.<String>minIndex());
+            checkCollectorEmpty("maxIndex", OptionalLong.empty(), MoreCollectors.<String>maxIndex());
         });
     }
 

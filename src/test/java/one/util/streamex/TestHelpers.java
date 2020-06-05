@@ -85,7 +85,7 @@ public class TestHelpers {
 
         @Override
         public StreamEx<T> get() {
-            if(mode == Mode.SPLITERATOR)
+            if (mode == Mode.SPLITERATOR)
                 return StreamEx.of(base.get().spliterator());
             return StreamEx.of(super.get());
         }
@@ -127,7 +127,7 @@ public class TestHelpers {
      */
     static void withRandom(long seed, Consumer<Random> cons) {
         Random random = new Random(seed);
-        withMessage("Using new Random("+seed+")", () -> cons.accept(random));
+        withMessage("Using new Random(" + seed + ")", () -> cons.accept(random));
     }
     
     /**
@@ -286,7 +286,7 @@ public class TestHelpers {
 
         // Test characteristics
         Spliterator<T> forCharacteristics = supplier.get();
-        if(forCharacteristics.hasCharacteristics(Spliterator.SORTED)) {
+        if (forCharacteristics.hasCharacteristics(Spliterator.SORTED)) {
             forCharacteristics.getComparator(); // must not fail
         }
         assertTrue(forCharacteristics.estimateSize() >= 0);
@@ -319,13 +319,13 @@ public class TestHelpers {
         assertEquals(msg, expected, seq);
         
         // Test TailSpliterator
-        if(sequential instanceof TailSpliterator) {
+        if (sequential instanceof TailSpliterator) {
             seq.clear();
             TailSpliterator.forEachWithTail(supplier.get(), seq::add);
             assertEquals(msg, expected, seq);
             seq.clear();
             sequential = supplier.get();
-            while(sequential != null) {
+            while (sequential != null) {
                 sequential = TailSpliterator.tryAdvanceWithTail(sequential, seq::add);
             }
         }
@@ -335,7 +335,7 @@ public class TestHelpers {
         for (int i = 1; i < Math.min(4, expected.size() - 1); i++) {
             seq.clear();
             sequential = supplier.get();
-            for(int j=0; j<i; j++) assertTrue(msg, sequential.tryAdvance(seq::add));
+            for (int j = 0; j < i; j++) assertTrue(msg, sequential.tryAdvance(seq::add));
             sequential.forEachRemaining(seq::add);
             assertEquals(msg, expected, seq);
         }
@@ -376,7 +376,7 @@ public class TestHelpers {
                     if (split != null)
                         spliterators.add(idx, split);
                 }
-                List<List<T>> results = StreamEx.<List<T>> generate(ArrayList::new).limit(spliterators.size())
+                List<List<T>> results = StreamEx.<List<T>>generate(ArrayList::new).limit(spliterators.size())
                         .toList();
                 int count = spliterators.size();
                 while (count > 0) {

@@ -668,7 +668,7 @@ public class IntStreamExTest {
     // leaving scanner in known state
     public static IntStreamEx scannerInts(Scanner sc) {
         return IntStreamEx.produce(action -> {
-            if(sc.hasNextInt())
+            if (sc.hasNextInt())
                 action.accept(sc.nextInt());
             return sc.hasNextInt();
         });
@@ -684,10 +684,10 @@ public class IntStreamExTest {
     @Test
     public void testOfInputStream() {
         byte[] data = new byte[] { 5, 3, 10, 1, 4, -1 };
-        try(IntStream s = IntStreamEx.of(new ByteArrayInputStream(data))) {
-            assertEquals(22, s.map(b -> (byte)b).sum());
+        try (IntStream s = IntStreamEx.of(new ByteArrayInputStream(data))) {
+            assertEquals(22, s.map(b -> (byte) b).sum());
         }
-        try(IntStream s = IntStreamEx.of(new ByteArrayInputStream(data))) {
+        try (IntStream s = IntStreamEx.of(new ByteArrayInputStream(data))) {
             assertEquals(278, s.sum());
         }
         InputStream is = new InputStream() {
@@ -714,8 +714,8 @@ public class IntStreamExTest {
         assertEquals(2, is.skip(2));
         assertEquals(254, is.read(data));
         assertEquals(-1, is.read());
-        for(int i=0; i<254; i++) {
-            assertEquals((byte)(i+2), data[i]);
+        for (int i = 0; i < 254; i++) {
+            assertEquals((byte) (i + 2), data[i]);
         }
         assertEquals(0, data[254]);
         assertEquals(0, data[255]);

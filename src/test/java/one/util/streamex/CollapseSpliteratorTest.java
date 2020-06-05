@@ -124,7 +124,7 @@ public class CollapseSpliteratorTest {
                     spliterators.add(split);
             }
             Collections.shuffle(spliterators, r);
-            repeat(spliterators.size(), i -> spliterators.get(i-1).forEachRemaining(result::add));
+            repeat(spliterators.size(), i -> spliterators.get(i - 1).forEachRemaining(result::add));
             assertEquals(6, result.size());
         }));
     }

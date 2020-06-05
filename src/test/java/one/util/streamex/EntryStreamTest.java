@@ -384,7 +384,7 @@ public class EntryStreamTest {
         expected.put(3, asList("aaa", "bb"));
         expected.put(4, asList("bb"));
         assertEquals(expected, result);
-        assertEquals(0, EntryStream.<Stream<String>, String> of(null, "a").flatMapKeys(Function.identity()).count());
+        assertEquals(0, EntryStream.<Stream<String>, String>of(null, "a").flatMapKeys(Function.identity()).count());
     }
 
     @Test
@@ -666,17 +666,18 @@ public class EntryStreamTest {
                 .selectValues(String.class).grouping(TreeMap::new).toString()));
 
         Set<Integer> set = new HashSet<>();
-        try(EntryStream<Integer, String> stream = EntryStream.ofTree("", (Integer depth, String str) -> depth >= 3 ? null : Stream.of("a", "b")
+        try (EntryStream<Integer, String> stream = EntryStream.ofTree("", (Integer depth, String str) -> depth >= 3 ? null : Stream.of("a", "b")
                 .map(str::concat).onClose(() -> set.add(depth)))) {
             assertEquals(15, stream.count());
         }
         assertEquals(StreamEx.of(0, 1, 2).toSet(), set);
         boolean catched = false;
-        try(EntryStream<Integer, String> stream = EntryStream.ofTree("", (Integer depth, String str) -> depth > 1000 ? null : Stream.of("a", "b")
-                .map(str::concat).onClose(() -> {throw new IllegalArgumentException(String.valueOf(depth));}))) {
+        try (EntryStream<Integer, String> stream = EntryStream.ofTree("", (Integer depth, String str) -> depth > 1000 ? null : Stream.of("a", "b")
+                .map(str::concat).onClose(() -> {
+                    throw new IllegalArgumentException(String.valueOf(depth));
+                }))) {
             stream.count();
-        }
-        catch(IllegalArgumentException iae) {
+        } catch (IllegalArgumentException iae) {
             catched = true;
             assertEquals("1000", iae.getMessage());
             assertArrayEquals(IntStreamEx.rangeClosed(1000, 0, -1).toArray(), 
@@ -749,7 +750,7 @@ public class EntryStreamTest {
 
     @Test
     public void testInto() {
-        for(AbstractMap<String, Integer> m : Arrays.<AbstractMap<String, Integer>>asList(new HashMap<>(), new TreeMap<>(), new ConcurrentHashMap<>())) {
+        for (AbstractMap<String, Integer> m : Arrays.<AbstractMap<String, Integer>>asList(new HashMap<>(), new TreeMap<>(), new ConcurrentHashMap<>())) {
             AbstractMap<String, Integer> res = EntryStream.of("a", 1, "b", 2, "c", 3).into(m);
             assertSame(m, res);
             assertEquals(EntryStream.of("a", 1, "b", 2, "c", 3).toMap(), m);

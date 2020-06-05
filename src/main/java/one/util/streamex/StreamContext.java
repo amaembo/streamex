@@ -98,7 +98,7 @@ import java.util.stream.BaseStream;
     }
 
     static Runnable compose(Runnable r1, Runnable r2) {
-        if(r1 == null)
+        if (r1 == null)
             return r2;
         return () -> {
             try {
