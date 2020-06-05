@@ -2,6 +2,11 @@
 
 This document describes StreamEx changes which may break the backwards compatibility. For full list of changes see [CHANGES.md](CHANGES.md).
 
+### 0.7.3
+Issue#219: Now many collectors defined in `MoreCollectors` may throw NullPointerException more eagerly, before the
+ collector is used. Also, `MoreCollectors.last` now throws NullPointerException if the last element is null (this
+  makes it conformant to `MoreCollectors.first`).
+
 ### 0.7.0
 Issue#194: Method `skipOrdered` is removed, which may break source and binary compatibility if in was used. Use simply `skip` instead.
 PR#200: Overloads added to `EntryStream.allMatch/anyMatch/noneMatch` which accept a `BiPredicate`. Such overloads may cause
