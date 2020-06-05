@@ -17,5 +17,5 @@
 package one.util.streamex;
 
 /* package */ interface VerSpec {
-	VersionSpecific VER_SPEC = new Java9Specific();
+   VersionSpecific VER_SPEC = new Java9Specific();
 }

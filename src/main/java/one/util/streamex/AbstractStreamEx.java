@@ -1170,8 +1170,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * operation</a>.
      *
      * @param other other stream to replace the contents of this stream if this stream is empty.
-     * @return the stream which contents is replaced by other stream contents only if
-     * this stream is empty.
+     * @return the stream which contents is replaced by other stream contents only if this stream is empty.
      * @since 0.6.6
      */
     public S ifEmpty(Stream<? extends T> other) {
@@ -1813,6 +1812,6 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     @SuppressWarnings("unchecked")
     @Override
     public <U> U chain(Function<? super S, U> mapper) {
-        return mapper.apply((S)this);
+        return mapper.apply((S) this);
     }
 }

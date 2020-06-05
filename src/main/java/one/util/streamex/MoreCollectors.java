@@ -803,6 +803,7 @@ public final class MoreCollectors {
             long count = 0;
             long index = -1;
         }
+
         return Collector.of(Container::new, (c, t) -> {
             if (c.index == -1 || comparator.compare(c.value, t) > 0) {
                 c.value = t;
