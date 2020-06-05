@@ -1713,15 +1713,51 @@ public final class MoreCollectors {
                 downstream.characteristics().contains(Characteristics.UNORDERED) ? UNORDERED_CHARACTERISTICS
                         : NO_CHARACTERISTICS);
     }
-    
-    public static <T> Collector<T, ?, Optional<T>> reducingWithZero(T zero, BinaryOperator<T> accumulator) {
+
+    /**
+     * Returns a {@code Collector} which performs a possibly short-circuting reduction of its
+     * input elements under a specified {@code BinaryOperator}. The result
+     * is described as an {@code Optional<T>}.
+     * 
+     * <p>
+     * This collector behaves like {@link Collectors#reducing(BinaryOperator)}. However,
+     * it additionally accepts a zero element (also known as absorbing element). When zero element
+     * is passed to the accumulator then the result must be zero as well. So the collector
+     * takes the advantage of this and may short-circuit if zero is reached during the collection.
+     * 
+     * <p>
+     * This method returns a
+     * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
+     * collector</a>: it may not process all the elements if the result of reduction is equal to zero.
+     * 
+     * <p>
+     * This collector is mostly useful as a downstream collector. To perform simple 
+     * short-circuiting reduction, use {@link AbstractStreamEx#reduceWithZero(Object, BinaryOperator)} 
+     * instead.
+     * 
+     * @param zero zero element
+     * @param op an <a href="package-summary.html#Associativity">associative</a>
+     *        , <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to combine two elements into one. 
+     * @param <T> the type of input elements
+     * @return a collector which returns an {@link Optional} describing the reduction result. 
+     *         For empty stream an empty {@code Optional} is returned.
+     * @throws NullPointerException if op is null or the result of reduction is null
+     * @see #reducingWithZero(Object, Object, BinaryOperator) 
+     * @see AbstractStreamEx#reduceWithZero(Object, BinaryOperator) 
+     * @see Collectors#reducing(BinaryOperator)
+     * @since 0.7.3
+     */
+    public static <T> Collector<T, ?, Optional<T>> reducingWithZero(T zero, BinaryOperator<T> op) {
+        Objects.requireNonNull(op);
         // acc.b: 0 = no element, 1 = has element, 2 = zero reached
         return new CancellableCollectorImpl<>(
             () -> new ObjIntBox<T>(null, 0),
             (acc, t) -> {
                 if (acc.b != 2) {
                     if (acc.b == 1) {
-                        t = accumulator.apply(t, acc.a);
+                        t = op.apply(t, acc.a);
                     }
                     if (Objects.equals(t, zero)) {
                         acc.b = 2;
@@ -1735,7 +1771,7 @@ public final class MoreCollectors {
             (acc1, acc2) -> {
                 if (acc1.b == 0 || acc2.b == 2) return acc2;
                 if (acc2.b == 0 || acc1.b == 2) return acc1;
-                T t = accumulator.apply(acc1.a, acc2.a);
+                T t = op.apply(acc1.a, acc2.a);
                 if (Objects.equals(t, zero)) {
                     acc1.b = 2;
                     acc1.a = zero;
@@ -1751,6 +1787,7 @@ public final class MoreCollectors {
     }
     
     public static <T> Collector<T, ?, T> reducingWithZero(T zero, T identity, BinaryOperator<T> accumulator) {
+        Objects.requireNonNull(accumulator);
         // acc.b: 1 = has element, 2 = zero reached
         return new CancellableCollectorImpl<>(
             () -> new ObjIntBox<>(identity, 1),

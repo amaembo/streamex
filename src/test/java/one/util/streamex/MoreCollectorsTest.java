@@ -837,6 +837,7 @@ public class MoreCollectorsTest {
     
     @Test
     public void testReducingWithZero() {
+        assertThrows(NullPointerException.class, () -> MoreCollectors.reducingWithZero(0, null));
         Collector<Integer, ?, Optional<Integer>> multiplication = MoreCollectors.reducingWithZero(0, (a, b) -> a * b);
         checkShortCircuitCollector("reducingWithZero: multiply", Optional.of(0), 4,
             () -> StreamEx.of(3, 5, 10, 0, 1, 4), multiplication);
@@ -850,6 +851,7 @@ public class MoreCollectorsTest {
     
     @Test
     public void testReducingWithZeroAndIdentity() {
+        assertThrows(NullPointerException.class, () -> MoreCollectors.reducingWithZero(0, 0, null));
         Collector<Integer, ?, Integer> multiplication = MoreCollectors.reducingWithZero(0, 1, (a, b) -> a * b);
         checkShortCircuitCollector("reducingWithZero: multiply", 0, 4,
             () -> StreamEx.of(3, 5, 10, 0, 1, 4), multiplication);
