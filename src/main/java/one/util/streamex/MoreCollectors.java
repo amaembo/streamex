@@ -98,8 +98,10 @@ public final class MoreCollectors {
      *        type and the provided length
      * @return a {@code Collector} which collects all the input elements into an
      *         array, in encounter order
+     * @throws NullPointerException if generator is null.
      */
     public static <T> Collector<T, ?, T[]> toArray(IntFunction<T[]> generator) {
+        Objects.requireNonNull(generator);
         return Collectors.collectingAndThen(Collectors.toList(), list -> list.toArray(generator.apply(list.size())));
     }
 
@@ -114,9 +116,11 @@ public final class MoreCollectors {
      *        to the resulting boolean array.
      * @return a {@code Collector} which collects the results of the predicate
      *         function to the boolean array, in encounter order.
+     * @throws NullPointerException if predicate is null.
      * @since 0.3.8
      */
     public static <T> Collector<T, ?, boolean[]> toBooleanArray(Predicate<T> predicate) {
+        Objects.requireNonNull(predicate);
         return PartialCollector.booleanArray().asRef((box, t) -> {
             if (predicate.test(t))
                 box.a.set(box.b);
@@ -138,6 +142,7 @@ public final class MoreCollectors {
      * @param enumClass the class of input enum values
      * @return a {@code Collector} which collects all the input elements into a
      *         {@code EnumSet}
+     * @throws NullPointerException if enumClass is null.
      */
     public static <T extends Enum<T>> Collector<T, ?, EnumSet<T>> toEnumSet(Class<T> enumClass) {
         int size = EnumSet.allOf(enumClass).size();
@@ -160,8 +165,10 @@ public final class MoreCollectors {
      * @param mapper a function which classifies input elements.
      * @return a collector which counts a number of distinct classes the mapper
      *         function returns for the stream elements.
+     * @throws NullPointerException if mapper is null.
      */
     public static <T> Collector<T, ?, Integer> distinctCount(Function<? super T, ?> mapper) {
+        Objects.requireNonNull(mapper);
         return Collectors.collectingAndThen(Collectors.mapping(mapper, Collectors.toSet()), Set::size);
     }
 
@@ -185,9 +192,11 @@ public final class MoreCollectors {
      * @param <T> the type of the input elements
      * @param mapper a function which classifies input elements.
      * @return a collector which collects distinct elements to the {@code List}.
+     * @throws NullPointerException if mapper is null.
      * @since 0.3.8
      */
     public static <T> Collector<T, ?, List<T>> distinctBy(Function<? super T, ?> mapper) {
+        Objects.requireNonNull(mapper);
         return Collector.<T, Map<Object, T>, List<T>> of(LinkedHashMap::new, (map, t) -> map.putIfAbsent(mapper.apply(
             t), t), (m1, m2) -> {
                 for (Entry<Object, T> e : m2.entrySet()) {
@@ -239,9 +248,11 @@ public final class MoreCollectors {
      *        one.
      * @return a {@code Collector} which aggregates the results of two supplied
      *         collectors.
+     * @throws NullPointerException if c1 is null, or c2 is null, or finisher is null.
      */
     public static <T, A1, A2, R1, R2, R> Collector<T, ?, R> pairing(Collector<? super T, A1, R1> c1,
             Collector<? super T, A2, R2> c2, BiFunction<? super R1, ? super R2, ? extends R> finisher) {
+        Objects.requireNonNull(finisher);
         EnumSet<Characteristics> c = EnumSet.noneOf(Characteristics.class);
         c.addAll(c1.characteristics());
         c.retainAll(c2.characteristics());
@@ -300,11 +311,14 @@ public final class MoreCollectors {
      * @param finisher a {@link BiFunction} which takes minimal and maximal
      *        element and produces the final result.
      * @return a {@code Collector} which finds minimal and maximal elements.
+     * @throws NullPointerException if comparator is null, finisher is null, 
+     * or finisher returns null.
      */
     public static <T, R> Collector<T, ?, Optional<R>> minMax(Comparator<? super T> comparator,
             BiFunction<? super T, ? super T, ? extends R> finisher) {
-        return pairing(Collectors.minBy(comparator), Collectors.maxBy(comparator), (min, max) -> min.isPresent()
-                ? Optional.of(finisher.apply(min.get(), max.get())) : Optional.empty());
+        Objects.requireNonNull(finisher);
+        return pairing(Collectors.minBy(comparator), Collectors.maxBy(comparator), 
+            (min, max) -> min.isPresent() ? Optional.of(finisher.apply(min.get(), max.get())) : Optional.empty());
     }
 
     /**
@@ -320,12 +334,14 @@ public final class MoreCollectors {
      * @param downstream a {@code Collector} implementing the downstream
      *        reduction
      * @return a {@code Collector} which finds all the maximal elements.
+     * @throws NullPointerException if comparator is null, or downstream is null.
      * @see #maxAll(Comparator)
      * @see #maxAll(Collector)
      * @see #maxAll()
      */
     public static <T, A, D> Collector<T, ?, D> maxAll(Comparator<? super T> comparator,
             Collector<? super T, A, D> downstream) {
+        Objects.requireNonNull(comparator);
         Supplier<A> downstreamSupplier = downstream.supplier();
         BiConsumer<A, ? super T> downstreamAccumulator = downstream.accumulator();
         BinaryOperator<A> downstreamCombiner = downstream.combiner();
@@ -375,6 +391,7 @@ public final class MoreCollectors {
      * @param comparator a {@code Comparator} to compare the elements
      * @return a {@code Collector} which finds all the maximal elements and
      *         collects them to the {@code List}.
+     * @throws NullPointerException if comparator is null.
      * @see #maxAll(Comparator, Collector)
      * @see #maxAll()
      */
@@ -394,6 +411,7 @@ public final class MoreCollectors {
      * @param downstream a {@code Collector} implementing the downstream
      *        reduction
      * @return a {@code Collector} which finds all the maximal elements.
+     * @throws NullPointerException if downstream is null.
      * @see #maxAll(Comparator, Collector)
      * @see #maxAll(Comparator)
      * @see #maxAll()
@@ -430,6 +448,7 @@ public final class MoreCollectors {
      * @param downstream a {@code Collector} implementing the downstream
      *        reduction
      * @return a {@code Collector} which finds all the minimal elements.
+     * @throws NullPointerException if comparator is null, or downstream is null.
      * @see #minAll(Comparator)
      * @see #minAll(Collector)
      * @see #minAll()
@@ -448,6 +467,7 @@ public final class MoreCollectors {
      * @param comparator a {@code Comparator} to compare the elements
      * @return a {@code Collector} which finds all the minimal elements and
      *         collects them to the {@code List}.
+     * @throws NullPointerException if comparator is null.
      * @see #minAll(Comparator, Collector)
      * @see #minAll()
      */
@@ -467,6 +487,7 @@ public final class MoreCollectors {
      * @param downstream a {@code Collector} implementing the downstream
      *        reduction
      * @return a {@code Collector} which finds all the minimal elements.
+     * @throws NullPointerException if downstream is null.
      * @see #minAll(Comparator, Collector)
      * @see #minAll(Comparator)
      * @see #minAll()
@@ -503,6 +524,7 @@ public final class MoreCollectors {
      * @return a collector which returns an {@link Optional} describing the only
      *         element of the stream. For empty stream or stream containing more
      *         than one element an empty {@code Optional} is returned.
+     * @throws NullPointerException if the only stream element is null.
      * @since 0.4.0
      */
     public static <T> Collector<T, ?, Optional<T>> onlyOne() {
@@ -526,6 +548,7 @@ public final class MoreCollectors {
      * @return a collector which returns an {@link Optional} describing the only
      *         element of the stream satisfying the predicate. If stream contains no elements satisfying the predicate,
      *         or more than one such element, an empty {@code Optional} is returned.
+     * @throws NullPointerException if predicate is null or the only stream element is null.
      * @since 0.6.7
      */
     public static <T> Collector<T, ?, Optional<T>> onlyOne(Predicate<? super T> predicate) {
@@ -550,6 +573,7 @@ public final class MoreCollectors {
      * @return a collector which returns an {@link Optional} which describes the
      *         first element of the stream. For empty stream an empty
      *         {@code Optional} is returned.
+     * @throws NullPointerException if the first stream element is null.
      */
     public static <T> Collector<T, ?, Optional<T>> first() {
         return new CancellableCollectorImpl<>(() -> new Box<T>(none()), (box, t) -> {
@@ -567,9 +591,11 @@ public final class MoreCollectors {
      * @return a collector which returns an {@link Optional} which describes the
      *         last element of the stream. For empty stream an empty
      *         {@code Optional} is returned.
+     * @throws NullPointerException if the last stream element is null.
      */
     public static <T> Collector<T, ?, Optional<T>> last() {
-        return Collectors.reducing((u, v) -> v);
+        return Collector.of(() -> new Box<T>(none()), (box, t) -> box.a = t, 
+            (box1, box2) -> box2.a == NONE ? box1 : box2, box -> box.a == NONE ? Optional.empty() : Optional.of(box.a));
     }
 
     /**
@@ -667,6 +693,7 @@ public final class MoreCollectors {
      * @param n maximum number of stream elements to preserve
      * @return a collector which returns a {@code List} containing the greatest
      *         n stream elements or less if the stream was shorter.
+     * @throws NullPointerException if comparator is null.
      */
     public static <T> Collector<T, ?, List<T>> greatest(Comparator<? super T> comparator, int n) {
         return least(comparator.reversed(), n);
@@ -730,8 +757,10 @@ public final class MoreCollectors {
      * @param n maximum number of stream elements to preserve
      * @return a collector which returns a {@code List} containing the least n
      *         stream elements or less if the stream was shorter.
+     * @throws NullPointerException if comparator is null.
      */
     public static <T> Collector<T, ?, List<T>> least(Comparator<? super T> comparator, int n) {
+        Objects.requireNonNull(comparator);
         if (n <= 0)
             return empty();
         if (n == 1) {
@@ -794,10 +823,12 @@ public final class MoreCollectors {
      * @param <T> the type of the input elements
      * @param comparator a {@code Comparator} to compare the elements
      * @return a {@code Collector} which finds the index of the minimal element.
+     * @throws NullPointerException if comparator is null.
      * @see #minIndex()
      * @since 0.3.5
      */
     public static <T> Collector<T, ?, OptionalLong> minIndex(Comparator<? super T> comparator) {
+        Objects.requireNonNull(comparator);
         class Container {
             T value;
             long count = 0;
@@ -842,6 +873,7 @@ public final class MoreCollectors {
      * @param <T> the type of the input elements
      * @param comparator a {@code Comparator} to compare the elements
      * @return a {@code Collector} which finds the index of the maximal element.
+     * @throws NullPointerException if comparator is null.
      * @see #maxIndex()
      * @since 0.3.5
      */
@@ -894,6 +926,7 @@ public final class MoreCollectors {
      * @param downstream a {@code Collector} implementing the downstream
      *        reduction
      * @return a {@code Collector} implementing the cascaded group-by operation
+     * @throws NullPointerException if enumClass is null, classifier is null, or downstream is null.
      * @see Collectors#groupingBy(Function, Collector)
      * @see #groupingBy(Function, Set, Supplier, Collector)
      * @since 0.3.7
@@ -941,6 +974,7 @@ public final class MoreCollectors {
      *        reduction
      * @return a {@code Collector} implementing the cascaded group-by operation
      *         with given domain
+     * @throws NullPointerException if classifier is null, domain is null, or downstream is null.
      *
      * @see #groupingBy(Function, Set, Supplier, Collector)
      * @see #groupingByEnum(Class, Function, Collector)
@@ -989,6 +1023,7 @@ public final class MoreCollectors {
      *        {@code Map} of the desired type
      * @return a {@code Collector} implementing the cascaded group-by operation
      *         with given domain
+     * @throws NullPointerException if classifier is null, domain is null, mapFactory is null, or downstream is null.
      *
      * @see #groupingBy(Function, Set, Collector)
      * @see #groupingByEnum(Class, Function, Collector)
@@ -997,6 +1032,9 @@ public final class MoreCollectors {
     public static <T, K, D, A, M extends Map<K, D>> Collector<T, ?, M> groupingBy(
             Function<? super T, ? extends K> classifier, Set<K> domain, Supplier<M> mapFactory,
             Collector<? super T, A, D> downstream) {
+        Objects.requireNonNull(classifier);
+        Objects.requireNonNull(domain);
+        Objects.requireNonNull(mapFactory);
         Supplier<A> downstreamSupplier = downstream.supplier();
         Collector<T, ?, M> groupingBy;
         Function<K, A> supplier = k -> {
@@ -1093,6 +1131,7 @@ public final class MoreCollectors {
      *        downstream collector
      * @return a collector which performs the action of the downstream
      *         collector, followed by an additional finishing step
+     * @throws NullPointerException if downstream is null, or finisher is null.
      * @see Collectors#collectingAndThen(Collector, Function)
      * @since 0.4.0
      */
@@ -1128,11 +1167,13 @@ public final class MoreCollectors {
      *        reduction
      * @return a {@code Collector} implementing the cascaded partitioning
      *         operation
+     * @throws NullPointerException if predicate is null, or downstream is null.
      * @since 0.4.0
      * @see Collectors#partitioningBy(Predicate, Collector)
      */
     public static <T, D, A> Collector<T, ?, Map<Boolean, D>> partitioningBy(Predicate<? super T> predicate,
             Collector<? super T, A, D> downstream) {
+        Objects.requireNonNull(predicate);
         Predicate<A> finished = finished(downstream);
         if (finished != null) {
             BiConsumer<A, ? super T> accumulator = downstream.accumulator();
@@ -1163,11 +1204,13 @@ public final class MoreCollectors {
      * @return a collector which applies the mapping function to the input
      *         elements and provides the mapped results to the downstream
      *         collector
+     * @throws NullPointerException if mapper is null, or downstream is null.
      * @see Collectors#mapping(Function, Collector)
      * @since 0.4.0
      */
     public static <T, U, A, R> Collector<T, ?, R> mapping(Function<? super T, ? extends U> mapper,
             Collector<? super U, A, R> downstream) {
+        Objects.requireNonNull(mapper);
         Predicate<A> finished = finished(downstream);
         if (finished != null) {
             BiConsumer<A, ? super U> downstreamAccumulator = downstream.accumulator();
@@ -1196,6 +1239,7 @@ public final class MoreCollectors {
      * @param mapper a function to be applied to the input elements
      * @return a collector which applies the mapping function to the input
      *         elements and collects the mapped results to the {@code List}
+     * @throws NullPointerException if mapper is null.
      * @see #mapping(Function, Collector)
      * @since 0.6.0
      */
@@ -1230,10 +1274,12 @@ public final class MoreCollectors {
      * @return a collector which applies the mapping function to the input
      *         elements and provides the flat mapped results to the downstream
      *         collector
+     * @throws NullPointerException if mapper is null, or downstream is null.
      * @since 0.4.1
      */
     public static <T, U, A, R> Collector<T, ?, R> flatMapping(Function<? super T, ? extends Stream<? extends U>> mapper,
             Collector<? super U, A, R> downstream) {
+        Objects.requireNonNull(mapper);
         BiConsumer<A, ? super U> downstreamAccumulator = downstream.accumulator();
         Predicate<A> finished = finished(downstream);
         if (finished != null) {
@@ -1284,6 +1330,7 @@ public final class MoreCollectors {
      *        returns a stream of results
      * @return a collector which applies the mapping function to the input
      *         elements and collects the flat mapped results to the {@code List}
+     * @throws NullPointerException if mapper is null.
      * @since 0.6.0
      */
     public static <T, U> Collector<T, ?, List<U>> flatMapping(
@@ -1320,11 +1367,13 @@ public final class MoreCollectors {
      * @return a collector which applies the predicate to the input elements and
      *         provides the elements for which predicate returned true to the
      *         downstream collector
+     * @throws NullPointerException if predicate is null, or downstream is null.
      * @see #pairing(Collector, Collector, BiFunction)
      * @since 0.4.0
      */
     public static <T, A, R> Collector<T, ?, R> filtering(Predicate<? super T> predicate,
             Collector<T, A, R> downstream) {
+        Objects.requireNonNull(predicate);
         BiConsumer<A, T> downstreamAccumulator = downstream.accumulator();
         BiConsumer<A, T> accumulator = (acc, t) -> {
             if (predicate.test(t))
@@ -1356,6 +1405,7 @@ public final class MoreCollectors {
      * @return a collector which applies the predicate to the input elements and
      *         collects the elements for which predicate returned true to the
      *         {@code List}
+     * @throws NullPointerException if predicate is null.
      * @see #filtering(Predicate, Collector)
      * @since 0.6.0
      */
@@ -1377,9 +1427,11 @@ public final class MoreCollectors {
      * @param mapper a function extracting the property to be processed
      * @return a {@code Collector} that produces the bitwise-and operation of a
      *         derived property
+     * @throws NullPointerException if mapper is null.
      * @since 0.4.0
      */
     public static <T> Collector<T, ?, OptionalInt> andingInt(ToIntFunction<T> mapper) {
+        Objects.requireNonNull(mapper);
         return new CancellableCollectorImpl<>(PrimitiveBox::new, (acc, t) -> {
             if (!acc.b) {
                 acc.i = mapper.applyAsInt(t);
@@ -1411,9 +1463,11 @@ public final class MoreCollectors {
      * @param mapper a function extracting the property to be processed
      * @return a {@code Collector} that produces the bitwise-and operation of a
      *         derived property
+     * @throws NullPointerException if mapper is null.
      * @since 0.4.0
      */
     public static <T> Collector<T, ?, OptionalLong> andingLong(ToLongFunction<T> mapper) {
+        Objects.requireNonNull(mapper);
         return new CancellableCollectorImpl<>(PrimitiveBox::new, (acc, t) -> {
             if (!acc.b) {
                 acc.l = mapper.applyAsLong(t);
@@ -1572,10 +1626,12 @@ public final class MoreCollectors {
      *        the dominator for the second argument.
      * @return a collector which collects input element into {@code List}
      *         leaving only dominator elements.
+     * @throws NullPointerException if isDominator is null.
      * @see StreamEx#collapse(BiPredicate)
      * @since 0.5.1
      */
     public static <T> Collector<T, ?, List<T>> dominators(BiPredicate<? super T, ? super T> isDominator) {
+        Objects.requireNonNull(isDominator);
         return Collector.of(ArrayList::new, (acc, t) -> {
             if (acc.isEmpty() || !isDominator.test(acc.get(acc.size() - 1), t))
                 acc.add(t);
@@ -1622,6 +1678,7 @@ public final class MoreCollectors {
      *        reduction
      * @return a {@code Collector} witch performs downstream reduction if all
      *         elements satisfy the predicate
+     * @throws NullPointerException if mapper is null.
      * @see Stream#allMatch(Predicate)
      * @see AbstractStreamEx#dropWhile(Predicate)
      * @see AbstractStreamEx#takeWhile(Predicate)
@@ -1629,6 +1686,7 @@ public final class MoreCollectors {
      */
     public static <T, A, R> Collector<T, ?, Optional<R>> ifAllMatch(Predicate<T> predicate,
             Collector<T, A, R> downstream) {
+        Objects.requireNonNull(predicate);
         Predicate<A> finished = finished(downstream);
         Supplier<A> supplier = downstream.supplier();
         BiConsumer<A, T> accumulator = downstream.accumulator();

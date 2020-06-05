@@ -77,6 +77,7 @@ public class MoreCollectorsTest {
 
     @Test
     public void testToArray() {
+        assertThrows(NullPointerException.class, () -> MoreCollectors.toArray(null));
         List<String> input = asList("a", "bb", "c", "", "cc", "eee", "bb", "ddd");
         streamEx(input::stream, supplier -> {
             Map<Integer, String[]> result = supplier.get().groupingBy(String::length, HashMap::new,
@@ -96,6 +97,7 @@ public class MoreCollectorsTest {
 
     @Test
     public void testDistinctCount() {
+        assertThrows(NullPointerException.class, () -> MoreCollectors.distinctCount(null));
         List<String> input = asList("a", "bb", "c", "cc", "eee", "bb", "bc", "ddd");
         streamEx(input::stream, supplier -> {
             Map<String, Integer> result = supplier.get().groupingBy(s -> s.substring(0, 1), HashMap::new,
@@ -110,6 +112,7 @@ public class MoreCollectorsTest {
 
     @Test
     public void testDistinctBy() {
+        assertThrows(NullPointerException.class, () -> MoreCollectors.distinctBy(null));
         List<String> input = asList("a", "bb", "c", "cc", "eee", "bb", "bc", "ddd", "ca", "ce", "cf", "ded", "dump");
         streamEx(input::stream, supplier -> {
             Map<String, List<String>> result = supplier.get().groupingBy(s -> s.substring(0, 1), HashMap::new,
@@ -124,6 +127,12 @@ public class MoreCollectorsTest {
 
     @Test
     public void testMaxAll() {
+        assertThrows(NullPointerException.class, () -> MoreCollectors.maxAll((Comparator<String>)null));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.maxAll((Collector<String, ?, ?>)null));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.maxAll(null, null));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.minAll((Comparator<String>)null));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.minAll((Collector<String, ?, ?>)null));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.minAll(null, null));
         List<String> input = asList("a", "bb", "c", "", "cc", "eee", "bb", "ddd");
         checkCollector("maxAll", asList("eee", "ddd"), input::stream, MoreCollectors.maxAll(Comparator
                 .comparingInt(String::length)));
@@ -194,6 +203,10 @@ public class MoreCollectorsTest {
         checkCollector("last", Optional.of(999), s, MoreCollectors.last());
         checkCollectorEmpty("first", Optional.empty(), MoreCollectors.first());
         checkCollectorEmpty("last", Optional.empty(), MoreCollectors.last());
+        assertThrows(NullPointerException.class, () -> StreamEx.of(null, 1).collect(MoreCollectors.first()));
+        assertThrows(NullPointerException.class, () -> StreamEx.of(1, null).collect(MoreCollectors.last()));
+        assertEquals(Optional.of(1), StreamEx.of(null, 1).collect(MoreCollectors.last()));
+        assertEquals(Optional.of(1), StreamEx.of(1, null).collect(MoreCollectors.first()));
     }
 
     @Test
@@ -239,6 +252,8 @@ public class MoreCollectorsTest {
 
     @Test
     public void testGreatest() {
+        assertThrows(NullPointerException.class, () -> MoreCollectors.greatest(null, 0));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.least(null, 0));
         withRandom(r -> {
             List<Integer> ints = IntStreamEx.of(r, 1000, 1, 1000).boxed().toList();
             List<Integer> sorted = StreamEx.of(ints).sorted().toList();
@@ -277,6 +292,7 @@ public class MoreCollectorsTest {
 
     @Test
     public void testMinIndex() {
+        assertThrows(NullPointerException.class, () -> MoreCollectors.minIndex(null));
         withRandom(r -> {
             List<Integer> ints = IntStreamEx.of(r, 1000, 5, 47).boxed().toList();
             long expectedMin = IntStreamEx.ofIndices(ints).minBy(ints::get).getAsInt();
@@ -298,6 +314,12 @@ public class MoreCollectorsTest {
 
     @Test
     public void testGroupingByEnum() {
+        assertThrows(NullPointerException.class, () -> MoreCollectors.groupingByEnum((Class<TimeUnit>)null, 
+            Function.identity(), Collectors.toList()));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.groupingByEnum(TimeUnit.class, 
+            null, Collectors.toList()));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.groupingByEnum(TimeUnit.class, 
+            Function.identity(), null));
         EnumMap<TimeUnit, Long> expected = new EnumMap<>(TimeUnit.class);
         EnumSet.allOf(TimeUnit.class).forEach(tu -> expected.put(tu, 0L));
         expected.put(TimeUnit.SECONDS, 1L);
@@ -319,6 +341,20 @@ public class MoreCollectorsTest {
 
     @Test
     public void testGroupingByWithDomain() {
+        assertThrows(NullPointerException.class, () -> MoreCollectors.groupingBy(null,
+            Collections.emptySet(), Collectors.toList()));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.groupingBy(Function.identity(),
+            null, Collectors.toList()));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.groupingBy(Function.identity(),
+            Collections.emptySet(), null));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.groupingBy(null,
+            Collections.emptySet(), HashMap::new, Collectors.toList()));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.groupingBy(Function.identity(),
+            null, HashMap::new, Collectors.toList()));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.groupingBy(Function.identity(),
+            Collections.emptySet(), null, Collectors.toList()));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.groupingBy(Function.identity(),
+            Collections.emptySet(), HashMap::new, null));
         List<String> data = asList("a", "foo", "test", "ququq", "bar", "blahblah");
         Collector<String, ?, String> collector = MoreCollectors.collectingAndThen(MoreCollectors.groupingBy(
             String::length, IntStreamEx.range(10).boxed().toSet(), TreeMap::new, MoreCollectors.first()),
@@ -361,6 +397,7 @@ public class MoreCollectorsTest {
 
     @Test
     public void testToBooleanArray() {
+        assertThrows(NullPointerException.class, () -> MoreCollectors.toBooleanArray(null));
         withRandom(r -> {
             List<Integer> input = IntStreamEx.of(r, 1000, 1, 100).boxed().toList();
             boolean[] expected = new boolean[input.size()];
@@ -373,6 +410,8 @@ public class MoreCollectorsTest {
 
     @Test
     public void testPartitioningBy() {
+        assertThrows(NullPointerException.class, () -> MoreCollectors.partitioningBy(null, Collectors.toList()));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.partitioningBy(x -> x.hashCode() > 0, null));
         Collector<Integer, ?, Map<Boolean, Optional<Integer>>> by20 = MoreCollectors.partitioningBy(x -> x % 20 == 0,
             MoreCollectors.first());
         Collector<Integer, ?, Map<Boolean, Optional<Integer>>> by200 = MoreCollectors.partitioningBy(x -> x % 200 == 0,
@@ -384,6 +423,8 @@ public class MoreCollectorsTest {
 
     @Test
     public void testMapping() {
+        assertThrows(NullPointerException.class, () -> MoreCollectors.mapping(null, Collectors.toList()));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.mapping(Function.identity(), null));
         List<String> input = asList("Capital", "lower", "Foo", "bar");
         Collector<String, ?, Map<Boolean, Optional<Integer>>> collector = MoreCollectors
                 .partitioningBy(str -> Character.isUpperCase(str.charAt(0)), MoreCollectors.mapping(String::length,
@@ -430,6 +471,7 @@ public class MoreCollectorsTest {
 
     @Test
     public void testAndInt() {
+        assertThrows(NullPointerException.class, () -> MoreCollectors.andingInt(null));
         List<Integer> ints = asList(0b1100, 0b0110, 0b101110, 0b11110011);
         Collector<Integer, ?, OptionalInt> collector = MoreCollectors.andingInt(Integer::intValue);
         checkShortCircuitCollector("andInt", OptionalInt.of(0), 4, ints::stream, collector);
@@ -446,6 +488,7 @@ public class MoreCollectorsTest {
 
     @Test
     public void testAndLong() {
+        assertThrows(NullPointerException.class, () -> MoreCollectors.andingLong(null));
         List<Long> longs = asList(0xFFFFFFFFFFFFFFFFL, 0xFFFFFFFF00000000L, 0xFFFFFFFF0000L);
         checkShortCircuitCollector("andLong", OptionalLong.of(0xFFFF00000000L), 3, longs::stream, MoreCollectors
                 .andingLong(Long::longValue));
@@ -463,6 +506,8 @@ public class MoreCollectorsTest {
 
     @Test
     public void testFiltering() {
+        assertThrows(NullPointerException.class, () -> MoreCollectors.filtering(null, Collectors.toList()));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.filtering(x -> true, null));
         Collector<Integer, ?, Optional<Integer>> firstEven = MoreCollectors.filtering(x -> x % 2 == 0, MoreCollectors
                 .first());
         Collector<Integer, ?, Optional<Integer>> firstOdd = MoreCollectors.filtering(x -> x % 2 != 0, MoreCollectors
@@ -493,10 +538,12 @@ public class MoreCollectorsTest {
         checkShortCircuitCollector("FilterSeveral", Optional.empty(), 40, ints::stream, MoreCollectors.onlyOne(x -> x % 20 == 0));
         checkShortCircuitCollector("FilterOne", Optional.of(60), 100, ints::stream, MoreCollectors.onlyOne(x -> x % 60 == 0));
         checkShortCircuitCollector("FilterNone", Optional.empty(), 100, ints::stream, MoreCollectors.onlyOne(x -> x % 110 == 0));
+        assertThrows(NullPointerException.class, () -> StreamEx.of((String)null).collect(MoreCollectors.onlyOne()));
     }
 
     @Test
     public void testToEnumSet() {
+        assertThrows(NullPointerException.class, () -> MoreCollectors.toEnumSet(null));
         TimeUnit[] vals = TimeUnit.values();
         List<TimeUnit> enumValues = IntStreamEx.range(100).map(x -> x % vals.length).elements(vals).toList();
         checkShortCircuitCollector("toEnumSet", EnumSet.allOf(TimeUnit.class), vals.length, enumValues::stream,
@@ -511,6 +558,9 @@ public class MoreCollectorsTest {
 
     @Test
     public void testFlatMapping() {
+        assertThrows(NullPointerException.class, () -> MoreCollectors.flatMapping(null));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.flatMapping(null, Collectors.toList()));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.flatMapping(Stream::of, null));
         {
             Map<Integer, List<Integer>> expected = IntStreamEx.rangeClosed(1, 100).boxed().toMap(
                 x -> IntStreamEx.rangeClosed(1, x).boxed().toList());
@@ -701,6 +751,7 @@ public class MoreCollectorsTest {
 
     @Test
     public void testDominators() {
+        assertThrows(NullPointerException.class, () -> MoreCollectors.dominators(null));
         List<String> input = asList("a/", "a/b/c/", "b/c/", "b/d/", "c/a/", "d/a/b/", "c/a/b/", "c/b/", "b/c/d/");
         List<String> expected = asList("a/", "b/c/", "b/d/", "c/a/", "c/b/", "d/a/b/");
         checkCollector("dominators", expected, () -> input.stream().sorted(), MoreCollectors.dominators((a, b) -> b
@@ -753,6 +804,8 @@ public class MoreCollectorsTest {
     
     @Test
     public void testMinMax() {
+        assertThrows(NullPointerException.class, () -> MoreCollectors.minMax(null, String::concat));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.minMax(Comparator.naturalOrder(), null));
         List<String> input = asList("abc", "a", "asdf", "gdasa", "gffsd", "sfgs", "b", "c", "dsgs");
         checkCollector("minMax", Optional.of("agdasa"), input::stream, MoreCollectors.minMax(Comparator
                 .comparingInt(String::length), String::concat));
@@ -765,6 +818,8 @@ public class MoreCollectorsTest {
 
     @Test
     public void testIfAllMatch() {
+        assertThrows(NullPointerException.class, () -> MoreCollectors.ifAllMatch(null, Collectors.toList()));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.ifAllMatch(i -> true, null));
         Supplier<Stream<Integer>> five = () -> IntStreamEx.range(5).boxed();
         checkShortCircuitCollector("ifAllMatch: all match", Optional.of(asList(0, 1, 2, 3, 4)), 5, five,
                 MoreCollectors.ifAllMatch(i -> true, Collectors.toList()));
