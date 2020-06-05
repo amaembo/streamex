@@ -2173,4 +2173,11 @@ public class StreamExTest {
                 Collector.Characteristics.IDENTITY_FINISH);
     }
 
+    @Test
+    public void testReduceWithZero() {
+        streamEx(() -> IntStreamEx.range(1, Integer.MAX_VALUE).boxed(), s -> {
+            assertEquals(Optional.of(0), s.get().reduceWithZero(0, (a, b) -> a * b));
+            assertEquals((Integer)0, s.get().reduceWithZero(0, 1, (a, b) -> a * b));
+        });
+    }
 }
