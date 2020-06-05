@@ -1655,4 +1655,74 @@ public final class MoreCollectors {
                 downstream.characteristics().contains(Characteristics.UNORDERED) ? UNORDERED_CHARACTERISTICS
                         : NO_CHARACTERISTICS);
     }
+    
+    public static <T> Collector<T, ?, Optional<T>> reducingWithZero(T zero, BinaryOperator<T> accumulator) {
+        // acc.b: 0 = no element, 1 = has element, 2 = zero reached
+        return new CancellableCollectorImpl<>(
+            () -> new ObjIntBox<T>(null, 0),
+            (acc, t) -> {
+                if (acc.b != 2) {
+                    if (acc.b == 1) {
+                        t = accumulator.apply(t, acc.a);
+                    }
+                    if (Objects.equals(t, zero)) {
+                        acc.b = 2;
+                        acc.a = zero;
+                    } else {
+                        acc.b = 1;
+                        acc.a = t;
+                    }
+                }
+            },
+            (acc1, acc2) -> {
+                if (acc1.b == 0 || acc2.b == 2) return acc2;
+                if (acc2.b == 0 || acc1.b == 2) return acc1;
+                T t = accumulator.apply(acc1.a, acc2.a);
+                if (Objects.equals(t, zero)) {
+                    acc1.b = 2;
+                    acc1.a = zero;
+                } else {
+                    acc1.a = t;
+                }
+                return acc1;
+            },
+            acc -> acc.b == 0 ? Optional.empty() : Optional.of(acc.a),
+            acc -> acc.b == 2,
+            UNORDERED_CHARACTERISTICS
+        );
+    }
+    
+    public static <T> Collector<T, ?, T> reducingWithZero(T zero, T identity, BinaryOperator<T> accumulator) {
+        // acc.b: 1 = has element, 2 = zero reached
+        return new CancellableCollectorImpl<>(
+            () -> new ObjIntBox<>(identity, 1),
+            (acc, t) -> {
+                if (acc.b != 2) {
+                    t = accumulator.apply(t, acc.a);
+                    if (Objects.equals(t, zero)) {
+                        acc.b = 2;
+                        acc.a = zero;
+                    } else {
+                        acc.b = 1;
+                        acc.a = t;
+                    }
+                }
+            },
+            (acc1, acc2) -> {
+                if (acc2.b == 2) return acc2;
+                if (acc1.b == 2) return acc1;
+                T t = accumulator.apply(acc1.a, acc2.a);
+                if (Objects.equals(t, zero)) {
+                    acc1.b = 2;
+                    acc1.a = zero;
+                } else {
+                    acc1.a = t;
+                }
+                return acc1;
+            },
+            acc -> acc.a,
+            acc -> acc.b == 2,
+            UNORDERED_CHARACTERISTICS
+        );
+    }
 }

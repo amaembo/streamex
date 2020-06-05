@@ -779,4 +779,30 @@ public class MoreCollectorsTest {
         checkShortCircuitCollector("ifAllMatch: empty stream", Optional.of(Collections.emptyList()), 0, Stream::empty,
                 MoreCollectors.ifAllMatch(i -> true, Collectors.toList()));
     }
+    
+    @Test
+    public void testReducingWithZero() {
+        Collector<Integer, ?, Optional<Integer>> multiplication = MoreCollectors.reducingWithZero(0, (a, b) -> a * b);
+        checkShortCircuitCollector("reducingWithZero: multiply", Optional.of(0), 4,
+            () -> StreamEx.of(3, 5, 10, 0, 1, 4), multiplication);
+        checkShortCircuitCollector("reducingWithZero: multiply", Optional.of(1200), 6,
+            () -> StreamEx.of(3, 5, 10, 2, 1, 4), multiplication);
+        checkShortCircuitCollector("reducingWithZero: multiply", Optional.empty(), 0,
+            StreamEx::empty, multiplication);
+        checkShortCircuitCollector("reducingWithZero: multiply", Optional.of(0), 32,
+            () -> StreamEx.constant(2, 64), multiplication);
+    }
+    
+    @Test
+    public void testReducingWithZeroAndIdentity() {
+        Collector<Integer, ?, Integer> multiplication = MoreCollectors.reducingWithZero(0, 1, (a, b) -> a * b);
+        checkShortCircuitCollector("reducingWithZero: multiply", 0, 4,
+            () -> StreamEx.of(3, 5, 10, 0, 1, 4), multiplication);
+        checkShortCircuitCollector("reducingWithZero: multiply", 1200, 6,
+            () -> StreamEx.of(3, 5, 10, 2, 1, 4), multiplication);
+        checkShortCircuitCollector("reducingWithZero: multiply", 1, 0,
+            StreamEx::empty, multiplication);
+        checkShortCircuitCollector("reducingWithZero: multiply", 0, 32,
+            () -> StreamEx.constant(2, 64), multiplication);
+    }
 }

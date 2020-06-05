@@ -369,6 +369,14 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
             return context.terminate(() -> stream().reduce(identity, accumulator, combiner));
         return stream().reduce(identity, accumulator, combiner);
     }
+    
+    public Optional<T> reduceWithZero(T zero, BinaryOperator<T> accumulator) {
+        return collect(MoreCollectors.reducingWithZero(zero, accumulator));
+    }
+    
+    public T reduceWithZero(T zero, T identity, BinaryOperator<T> accumulator) {
+        return collect(MoreCollectors.reducingWithZero(zero, identity, accumulator));
+    }
 
     @Override
     public <R> R collect(Supplier<R> supplier, BiConsumer<R, ? super T> accumulator, BiConsumer<R, R> combiner) {
