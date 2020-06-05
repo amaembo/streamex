@@ -150,7 +150,7 @@ import static one.util.streamex.Internals.*;
             if (t instanceof RuntimeException)
                 throw (RuntimeException) t;
             if (t instanceof Error)
-                throw (Error ) t;
+                throw (Error) t;
         }
     }
     

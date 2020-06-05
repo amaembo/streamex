@@ -60,7 +60,8 @@ public class BaseStreamExTest {
     public void testClose() {
         List<String> closeHandlers = new ArrayList<>();
         StreamEx<Integer> stream = StreamEx.of(Stream.of(1, 2, 3).onClose(() -> closeHandlers.add("Orig stream")))
-            .onClose(() -> closeHandlers.add("StreamEx")).map(x -> x * 2)
+            .onClose(() -> closeHandlers.add("StreamEx"))
+            .map(x -> x * 2)
             .onClose(() -> closeHandlers.add("After map"))
             .pairMap(Integer::sum)
             .onClose(() -> closeHandlers.add("After pairMap"))

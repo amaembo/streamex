@@ -300,8 +300,9 @@ public class StreamExHeadTailTest {
     private static <T> StreamEx<T> twoFilters(StreamEx<T> input, Predicate<T> f1, Predicate<T> f2, Stream.Builder<T> buf) {
         return input.headTail((head, tail) -> {
             StreamEx<T> res = twoFilters(tail, f1, f2, buf);
-            if (f2.test(head))
+            if (f2.test(head)) {
                 buf.add(head);
+            }
             return f1.test(head) ? res.prepend(head) : res;
         }, buf::build);
     }
