@@ -553,7 +553,7 @@ public class LongStreamExTest {
     // leaving scanner in known state
     public static LongStreamEx scannerLongs(Scanner sc) {
         return LongStreamEx.produce(action -> {
-            if(sc.hasNextLong())
+            if (sc.hasNextLong())
                 action.accept(sc.nextLong());
             return sc.hasNextLong();
         });

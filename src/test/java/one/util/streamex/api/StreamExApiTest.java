@@ -33,8 +33,7 @@ public class StreamExApiTest {
     @Test
     public void testMap() {
         BiFunction<StreamEx<Integer>, Function<Integer, Integer>, StreamEx<Integer>> streamMapper = StreamEx::map;
-		assertEquals(asList(2, 4, 10),
-				streamMapper.apply(StreamEx.of(1, 2, 5), x -> x * 2).toList());
+        assertEquals(asList(2, 4, 10), streamMapper.apply(StreamEx.of(1, 2, 5), x -> x * 2).toList());
     }
     
     @Test

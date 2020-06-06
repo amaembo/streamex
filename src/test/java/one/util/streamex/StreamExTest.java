@@ -435,7 +435,7 @@ public class StreamExTest {
                 .length() == 1).toList());
         StringBuilder sb = new StringBuilder();
         StringBuffer sbb = new StringBuffer();
-        StreamEx.<CharSequence> of("test", sb, sbb).select(Appendable.class).forEach(a -> {
+        StreamEx.<CharSequence>of("test", sb, sbb).select(Appendable.class).forEach(a -> {
             try {
                 a.append("b");
             } catch (IOException e) {
@@ -579,7 +579,7 @@ public class StreamExTest {
                 assertEquals(supplier.toString(), minStr, supplier.get().minByDouble(String::length).get());
                 assertEquals(supplier.toString(), minStr, supplier.get().minBy(String::length).get());
             });
-            assertFalse(StreamEx.<String> empty().minByInt(String::length).isPresent());
+            assertFalse(StreamEx.<String>empty().minByInt(String::length).isPresent());
         });
     }
 
@@ -781,8 +781,8 @@ public class StreamExTest {
 
     @Test
     public void testPairMap() {
-        assertEquals(0, StreamEx.<String> empty().pairMap(String::concat).count());
-        assertArrayEquals(new Object[0], StreamEx.<String> empty().pairMap(String::concat).toArray());
+        assertEquals(0, StreamEx.<String>empty().pairMap(String::concat).count());
+        assertArrayEquals(new Object[0], StreamEx.<String>empty().pairMap(String::concat).toArray());
         assertEquals(0, StreamEx.of("a").pairMap(String::concat).count());
         assertEquals(asList("aa", "aa", "aa"), StreamEx.generate(() -> "a").pairMap(String::concat).limit(3).toList());
         AtomicBoolean flag = new AtomicBoolean();
@@ -820,7 +820,7 @@ public class StreamExTest {
         // Find first element which violates the sorting
         assertEquals("bba", firstMisplaced(asList("a", "bb", "bb", "bba", "bb", "c")).get());
         assertFalse(firstMisplaced(asList("a", "bb", "bb", "bb", "c")).isPresent());
-        assertFalse(firstMisplaced(Arrays.<String> asList()).isPresent());
+        assertFalse(firstMisplaced(Arrays.<String>asList()).isPresent());
         assertFalse(IntStreamEx.range(1000).greater(2000).boxed().parallel().pairMap((a, b) -> a).findFirst()
                 .isPresent());
     }
@@ -1565,7 +1565,7 @@ public class StreamExTest {
     @Test
     public void testTakeDropUnordered() {
         repeat(10, n -> withRandom(rnd -> {
-            List<Boolean> data = IntStreamEx.of(rnd, n*100, 0, rnd.nextInt(10)+2).mapToObj(x -> x != 0).toList();
+            List<Boolean> data = IntStreamEx.of(rnd, n * 100, 0, rnd.nextInt(10) + 2).mapToObj(x -> x != 0).toList();
             List<Boolean> sorted = StreamEx.of(data).sorted().toList();
             streamEx(() -> data.stream().unordered(), s -> {
                 assertFalse(StreamEx.of(s.get().takeWhile(b -> b).toList()).has(false));
@@ -1647,7 +1647,7 @@ public class StreamExTest {
         streamEx(() -> StreamEx.cartesianProduct(input3, "", (a, b) -> a + b), supplier -> assertEquals(
             "134,135,234,235", supplier.get().joining(",")));
 
-        assertEquals(asList(""), StreamEx.cartesianProduct(Collections.<List<String>> emptyList(), "", String::concat)
+        assertEquals(asList(""), StreamEx.cartesianProduct(Collections.<List<String>>emptyList(), "", String::concat)
                 .toList());
         assertEquals(asList(""), StreamEx.cartesianPower(0, asList(1, 2, 3), "", (a, b) -> a + b).toList());
     }
@@ -2087,20 +2087,20 @@ public class StreamExTest {
 
     @Test
     public void testIfEmpty() {
-        repeat(10, n -> streamEx(asList(1,2,3,4,5,6)::stream, s -> {
-            assertEquals("123456", s.get().ifEmpty(7,8,9).joining());
-            assertEquals("123456", s.get().filter(x -> x > 0).ifEmpty(7,8,9).joining());
-            assertEquals("6", s.get().filter(x -> x > 5).ifEmpty(7,8,9).joining());
-            assertEquals("789", s.get().filter(x -> x < 0).ifEmpty(7,8,9).joining());
+        repeat(10, n -> streamEx(asList(1, 2, 3, 4, 5, 6)::stream, s -> {
+            assertEquals("123456", s.get().ifEmpty(7, 8, 9).joining());
+            assertEquals("123456", s.get().filter(x -> x > 0).ifEmpty(7, 8, 9).joining());
+            assertEquals("6", s.get().filter(x -> x > 5).ifEmpty(7, 8, 9).joining());
+            assertEquals("789", s.get().filter(x -> x < 0).ifEmpty(7, 8, 9).joining());
             assertEquals("123456", s.get().ifEmpty(s.get()).joining());
             assertEquals("123456", s.get().filter(x -> x > 0).ifEmpty(s.get().filter(x -> x % 2 == 1)).joining());
             assertEquals("135", s.get().filter(x -> x < 0).ifEmpty(s.get().filter(x -> x % 2 == 1)).joining());
             assertEquals("", s.get().filter(x -> x < 0).ifEmpty(s.get().filter(x -> x < 0)).joining());
 
-            assertEquals(Optional.of(1), s.get().ifEmpty(7,8,9).findFirst());
-            assertEquals(Optional.of(1), s.get().filter(x -> x > 0).ifEmpty(7,8,9).findFirst());
-            assertEquals(Optional.of(6), s.get().filter(x -> x > 5).ifEmpty(7,8,9).findFirst());
-            assertEquals(Optional.of(7), s.get().filter(x -> x < 0).ifEmpty(7,8,9).findFirst());
+            assertEquals(Optional.of(1), s.get().ifEmpty(7, 8, 9).findFirst());
+            assertEquals(Optional.of(1), s.get().filter(x -> x > 0).ifEmpty(7, 8, 9).findFirst());
+            assertEquals(Optional.of(6), s.get().filter(x -> x > 5).ifEmpty(7, 8, 9).findFirst());
+            assertEquals(Optional.of(7), s.get().filter(x -> x < 0).ifEmpty(7, 8, 9).findFirst());
             assertEquals(Optional.of(1), s.get().ifEmpty(s.get()).findFirst());
             assertEquals(Optional.of(1), s.get().filter(x -> x > 0).ifEmpty(s.get().filter(x -> x % 2 == 1)).findFirst());
             assertEquals(Optional.of(1), s.get().filter(x -> x < 0).ifEmpty(s.get().filter(x -> x % 2 == 1)).findFirst());

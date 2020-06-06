@@ -311,13 +311,13 @@ public final class MoreCollectors {
      * @param finisher a {@link BiFunction} which takes minimal and maximal
      *        element and produces the final result.
      * @return a {@code Collector} which finds minimal and maximal elements.
-     * @throws NullPointerException if comparator is null, finisher is null, 
+     * @throws NullPointerException if comparator is null, finisher is null,
      * or finisher returns null.
      */
     public static <T, R> Collector<T, ?, Optional<R>> minMax(Comparator<? super T> comparator,
             BiFunction<? super T, ? super T, ? extends R> finisher) {
         Objects.requireNonNull(finisher);
-        return pairing(Collectors.minBy(comparator), Collectors.maxBy(comparator), 
+        return pairing(Collectors.minBy(comparator), Collectors.maxBy(comparator),
             (min, max) -> min.isPresent() ? Optional.of(finisher.apply(min.get(), max.get())) : Optional.empty());
     }
 
@@ -417,7 +417,7 @@ public final class MoreCollectors {
      * @see #maxAll()
      */
     public static <T extends Comparable<? super T>, A, D> Collector<T, ?, D> maxAll(Collector<T, A, D> downstream) {
-        return maxAll(Comparator.<T> naturalOrder(), downstream);
+        return maxAll(Comparator.<T>naturalOrder(), downstream);
     }
 
     /**
@@ -432,7 +432,7 @@ public final class MoreCollectors {
      * @see #maxAll(Collector)
      */
     public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> maxAll() {
-        return maxAll(Comparator.<T> naturalOrder(), Collectors.toList());
+        return maxAll(Comparator.<T>naturalOrder(), Collectors.toList());
     }
 
     /**
@@ -493,7 +493,7 @@ public final class MoreCollectors {
      * @see #minAll()
      */
     public static <T extends Comparable<? super T>, A, D> Collector<T, ?, D> minAll(Collector<T, A, D> downstream) {
-        return maxAll(Comparator.<T> reverseOrder(), downstream);
+        return maxAll(Comparator.<T>reverseOrder(), downstream);
     }
 
     /**
@@ -508,7 +508,7 @@ public final class MoreCollectors {
      * @see #minAll(Collector)
      */
     public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> minAll() {
-        return maxAll(Comparator.<T> reverseOrder(), Collectors.toList());
+        return maxAll(Comparator.<T>reverseOrder(), Collectors.toList());
     }
 
     /**
@@ -594,7 +594,7 @@ public final class MoreCollectors {
      * @throws NullPointerException if the last stream element is null.
      */
     public static <T> Collector<T, ?, Optional<T>> last() {
-        return Collector.of(() -> new Box<T>(none()), (box, t) -> box.a = t, 
+        return Collector.of(() -> new Box<T>(none()), (box, t) -> box.a = t,
             (box1, box2) -> box2.a == NONE ? box1 : box2, box -> box.a == NONE ? Optional.empty() : Optional.of(box.a));
     }
 
@@ -654,7 +654,7 @@ public final class MoreCollectors {
     public static <T> Collector<T, ?, List<T>> tail(int n) {
         if (n <= 0)
             return empty();
-        return Collector.<T, Deque<T>, List<T>> of(ArrayDeque::new, (acc, t) -> {
+        return Collector.<T, Deque<T>, List<T>>of(ArrayDeque::new, (acc, t) -> {
             if (acc.size() == n)
                 acc.pollFirst();
             acc.addLast(t);
@@ -727,7 +727,7 @@ public final class MoreCollectors {
      *         n stream elements or less if the stream was shorter.
      */
     public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> greatest(int n) {
-        return least(Comparator.<T> reverseOrder(), n);
+        return least(Comparator.<T>reverseOrder(), n);
     }
 
     /**
@@ -777,7 +777,7 @@ public final class MoreCollectors {
                     return list;
                 return new ArrayList<>(list.subList(0, n));
             });
-        return Collector.<T, Limiter<T>, List<T>> of(() -> new Limiter<>(n, comparator), Limiter::put, Limiter::putAll,
+        return Collector.<T, Limiter<T>, List<T>>of(() -> new Limiter<>(n, comparator), Limiter::put, Limiter::putAll,
             pq -> {
                 pq.sort();
                 return new ArrayList<>(pq);
@@ -812,7 +812,7 @@ public final class MoreCollectors {
      *         stream elements or less if the stream was shorter.
      */
     public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> least(int n) {
-        return least(Comparator.<T> naturalOrder(), n);
+        return least(Comparator.<T>naturalOrder(), n);
     }
 
     /**
@@ -834,6 +834,7 @@ public final class MoreCollectors {
             long count = 0;
             long index = -1;
         }
+
         return Collector.of(Container::new, (c, t) -> {
             if (c.index == -1 || comparator.compare(c.value, t) > 0) {
                 c.value = t;
@@ -1718,34 +1719,34 @@ public final class MoreCollectors {
      * Returns a {@code Collector} which performs a possibly short-circuting reduction of its
      * input elements under a specified {@code BinaryOperator}. The result
      * is described as an {@code Optional<T>}.
-     * 
+     *
      * <p>
      * This collector behaves like {@link Collectors#reducing(BinaryOperator)}. However,
      * it additionally accepts a zero element (also known as absorbing element). When zero element
      * is passed to the accumulator then the result must be zero as well. So the collector
      * takes the advantage of this and may short-circuit if zero is reached during the collection.
-     * 
+     *
      * <p>
      * This method returns a
      * <a href="package-summary.html#ShortCircuitReduction">short-circuiting
      * collector</a>: it may not process all the elements if the result of reduction is equal to zero.
-     * 
+     *
      * <p>
-     * This collector is mostly useful as a downstream collector. To perform simple 
-     * short-circuiting reduction, use {@link AbstractStreamEx#reduceWithZero(Object, BinaryOperator)} 
+     * This collector is mostly useful as a downstream collector. To perform simple
+     * short-circuiting reduction, use {@link AbstractStreamEx#reduceWithZero(Object, BinaryOperator)}
      * instead.
-     * 
+     *
      * @param zero zero element
      * @param op an <a href="package-summary.html#Associativity">associative</a>
      *        , <a href="package-summary.html#NonInterference">non-interfering
      *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
-     *        function to combine two elements into one. 
+     *        function to combine two elements into one.
      * @param <T> the type of input elements
-     * @return a collector which returns an {@link Optional} describing the reduction result. 
+     * @return a collector which returns an {@link Optional} describing the reduction result.
      *         For empty stream an empty {@code Optional} is returned.
      * @throws NullPointerException if op is null or the result of reduction is null
-     * @see #reducingWithZero(Object, Object, BinaryOperator) 
-     * @see AbstractStreamEx#reduceWithZero(Object, BinaryOperator) 
+     * @see #reducingWithZero(Object, Object, BinaryOperator)
+     * @see AbstractStreamEx#reduceWithZero(Object, BinaryOperator)
      * @see Collectors#reducing(BinaryOperator)
      * @since 0.7.3
      */
@@ -1785,7 +1786,7 @@ public final class MoreCollectors {
             UNORDERED_CHARACTERISTICS
         );
     }
-    
+
     public static <T> Collector<T, ?, T> reducingWithZero(T zero, T identity, BinaryOperator<T> accumulator) {
         Objects.requireNonNull(accumulator);
         // acc.b: 1 = has element, 2 = zero reached

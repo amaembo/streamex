@@ -806,7 +806,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     @SuppressWarnings("unchecked")
     public <A> A[] toArray(Class<A> elementClass) {
-        return stream().toArray(size -> (A[])Array.newInstance(elementClass, size));
+        return stream().toArray(size -> (A[]) Array.newInstance(elementClass, size));
     }
 
     /**
@@ -836,7 +836,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     @SuppressWarnings("unchecked")
     public <A> A[] toArray(A[] emptyArray) {
-        if(emptyArray.length != 0) {
+        if (emptyArray.length != 0) {
             throw new IllegalArgumentException("Empty array must be supplied");
         }
         return stream().toArray(size -> size == 0 ? emptyArray
@@ -1912,7 +1912,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @since 0.5.5
      */
     public <V> EntryStream<T, V> zipWith(Stream<V> other) {
-        return zipWith((BaseStream<V, ?>)other);
+        return zipWith((BaseStream<V, ?>) other);
     }
 
     /**

@@ -36,7 +36,7 @@ import org.junit.runners.MethodSorters;
 public class BaseStreamExTest {
     @Test
     public void testSpliterator() {
-        Spliterator<Integer> spltr = Arrays.spliterator(new Integer[] {1,2,3}); 
+        Spliterator<Integer> spltr = Arrays.spliterator(new Integer[]{1, 2, 3});
         StreamEx<Integer> s = StreamEx.of(spltr);
         assertFalse(s.isParallel());
         assertSame(spltr, s.spliterator());
@@ -59,9 +59,9 @@ public class BaseStreamExTest {
     @Test
     public void testClose() {
         List<String> closeHandlers = new ArrayList<>();
-        StreamEx<Integer> stream = StreamEx.of(Stream.of(1,2,3).onClose(() -> closeHandlers.add("Orig stream")))
+        StreamEx<Integer> stream = StreamEx.of(Stream.of(1, 2, 3).onClose(() -> closeHandlers.add("Orig stream")))
             .onClose(() -> closeHandlers.add("StreamEx"))
-            .map(x -> x*2)
+            .map(x -> x * 2)
             .onClose(() -> closeHandlers.add("After map"))
             .pairMap(Integer::sum)
             .onClose(() -> closeHandlers.add("After pairMap"))
@@ -82,10 +82,12 @@ public class BaseStreamExTest {
     @Test
     public void testCloseException() {
         AtomicBoolean flag = new AtomicBoolean();
-        Function<String, Runnable> ex = str -> () -> {throw new IllegalStateException(str);};
-        StreamEx<Integer> stream = StreamEx.of(Stream.of(1,2,3).onClose(ex.apply("Orig stream")))
+        Function<String, Runnable> ex = str -> () -> {
+            throw new IllegalStateException(str);
+        };
+        StreamEx<Integer> stream = StreamEx.of(Stream.of(1, 2, 3).onClose(ex.apply("Orig stream")))
             .onClose(ex.apply("StreamEx"))
-            .map(x -> x*2)
+            .map(x -> x * 2)
             .onClose(() -> flag.set(true))
             .pairMap(Integer::sum)
             .onClose(ex.apply("After pairMap"))
@@ -96,8 +98,7 @@ public class BaseStreamExTest {
         assertEquals(Arrays.asList(6, 5, 6, 10, 4), stream.toList());
         try {
             stream.close();
-        }
-        catch(IllegalStateException e) {
+        } catch (IllegalStateException e) {
             assertEquals("Orig stream", e.getMessage());
             assertEquals(Arrays.asList("StreamEx", "After pairMap", "After append", "Prepended Stream",
                 "Prepended StreamEx"), StreamEx.of(e.getSuppressed()).map(IllegalStateException.class::cast).map(

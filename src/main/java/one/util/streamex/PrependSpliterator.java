@@ -33,7 +33,7 @@ import one.util.streamex.Internals.TailSpliterator;
     public PrependSpliterator(Spliterator<T> source, T element) {
         this.source = source;
         this.element = element;
-        this.mode = source.estimateSize() < Long.MAX_VALUE-1 ? 1 : 2;
+        this.mode = source.estimateSize() < Long.MAX_VALUE - 1 ? 1 : 2;
     }
 
     @Override
@@ -96,7 +96,7 @@ import one.util.streamex.Internals.TailSpliterator;
 
     @Override
     public int characteristics() {
-        switch(mode) {
+        switch (mode) {
         case 1:
             return source.characteristics() & (ORDERED | SIZED | SUBSIZED);
         case 2:

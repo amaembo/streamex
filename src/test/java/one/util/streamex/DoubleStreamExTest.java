@@ -465,7 +465,7 @@ public class DoubleStreamExTest {
     // leaving scanner in known state
     private static DoubleStreamEx scannerDoubles(Scanner sc) {
         return DoubleStreamEx.produce(action -> {
-            if(sc.hasNextDouble())
+            if (sc.hasNextDouble())
                 action.accept(sc.nextDouble());
             return sc.hasNextDouble();
         });

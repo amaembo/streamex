@@ -332,7 +332,7 @@ import java.util.stream.Collector.Characteristics;
             return new AbstractSet<Map.Entry<Boolean, T>>() {
                 @Override
                 public Iterator<Map.Entry<Boolean, T>> iterator() {
-                    return Arrays.<Map.Entry<Boolean, T>> asList(new SimpleEntry<>(Boolean.TRUE, trueValue),
+                    return Arrays.<Map.Entry<Boolean, T>>asList(new SimpleEntry<>(Boolean.TRUE, trueValue),
                         new SimpleEntry<>(Boolean.FALSE, falseValue)).iterator();
                 }
 
@@ -488,8 +488,8 @@ import java.util.stream.Collector.Characteristics;
             };
             Supplier<StringBuilder> supplier = StringBuilder::new;
             if (hasPS)
-                return new PartialCollector<>(supplier, merger, sb -> String.valueOf(prefix) + sb +
-                        suffix, NO_CHARACTERISTICS);
+                return new PartialCollector<>(supplier, merger, sb -> String.valueOf(prefix) + sb + suffix,
+                        NO_CHARACTERISTICS);
             return new PartialCollector<>(supplier, merger, StringBuilder::toString, NO_CHARACTERISTICS);
         }
     }
@@ -867,7 +867,7 @@ import java.util.stream.Collector.Characteristics;
     /**
      * A spliterator which may perform tail-stream optimization
      *
-     * @param <T>
+     * @param <T> the type of elements returned by this spliterator
      */
     interface TailSpliterator<T> extends Spliterator<T> {
         /**

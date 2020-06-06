@@ -45,10 +45,10 @@ import static one.util.streamex.Internals.*;
     
     @Override
     public boolean tryAdvance(Consumer<? super U> action) {
-        if(!init())
+        if (!init())
             return false;
         target = TailSpliterator.tryAdvanceWithTail(target, action);
-        if(target == null) {
+        if (target == null) {
             context = null;
             return false;
         }
@@ -57,7 +57,7 @@ import static one.util.streamex.Internals.*;
 
     @Override
     public Spliterator<U> tryAdvanceOrTail(Consumer<? super U> action) {
-        if(!init())
+        if (!init())
             return null;
         Spliterator<U> tail = target;
         target = null;
@@ -67,7 +67,7 @@ import static one.util.streamex.Internals.*;
 
     @Override
     public void forEachRemaining(Consumer<? super U> action) {
-        if(!init())
+        if (!init())
             return;
         TailSpliterator.forEachWithTail(target, action);
         target = null;
@@ -80,20 +80,20 @@ import static one.util.streamex.Internals.*;
     }
 
     private boolean init() {
-        if(context == null)
+        if (context == null)
             return false;
-        if(target == null) {
+        if (target == null) {
             Box<T> first = new Box<>();
             source = TailSpliterator.tryAdvanceWithTail(source, first);
             Stream<U> stream = source == null ? emptyMapper.get() : mapper.apply(first.a, StreamEx.of(source));
             source = null;
             mapper = null;
             emptyMapper = null;
-            if(stream == null) {
+            if (stream == null) {
                 target = Spliterators.emptySpliterator();
             } else {
                 StreamContext ctx = StreamContext.of(stream);
-                if(ctx.closeHandler != null)
+                if (ctx.closeHandler != null)
                     context.onClose(ctx.closeHandler);
                 target = stream.spliterator();
             }
@@ -103,7 +103,7 @@ import static one.util.streamex.Internals.*;
     
     @Override
     public long estimateSize() {
-        if(context == null)
+        if (context == null)
             return 0;
         return (target == null ? source : target).estimateSize();
     }

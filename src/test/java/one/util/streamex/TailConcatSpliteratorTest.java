@@ -42,13 +42,13 @@ public class TailConcatSpliteratorTest {
         spltr = new TailConcatSpliterator<>(Spliterators.emptySpliterator(), Spliterators.emptySpliterator());
         assertTrue(spltr.hasCharacteristics(Spliterator.SIZED));
         assertEquals(0, spltr.getExactSizeIfKnown());
-        
-        spltr = new TailConcatSpliterator<>(IntStreamEx.range(1000).spliterator(), new HashSet<>(Arrays.asList(1,2,3)).spliterator());
+
+        spltr = new TailConcatSpliterator<>(IntStreamEx.range(1000).spliterator(), new HashSet<>(Arrays.asList(1, 2, 3)).spliterator());
         assertTrue(spltr.hasCharacteristics(Spliterator.SIZED));
         assertFalse(spltr.hasCharacteristics(Spliterator.SUBSIZED));
         assertFalse(spltr.hasCharacteristics(Spliterator.ORDERED));
         assertEquals(1003, spltr.getExactSizeIfKnown());
-        spltr.tryAdvance(x -> assertEquals(0, (int)x));
+        spltr.tryAdvance(x -> assertEquals(0, (int) x));
         assertEquals(1002, spltr.getExactSizeIfKnown());
         
         TailConcatSpliterator<Long> longSpltr = new TailConcatSpliterator<>(LongStreamEx.range(Long.MAX_VALUE / 2 + 1)
@@ -57,15 +57,15 @@ public class TailConcatSpliteratorTest {
         assertFalse(longSpltr.hasCharacteristics(Spliterator.SUBSIZED));
         assertTrue(longSpltr.hasCharacteristics(Spliterator.ORDERED));
         assertEquals(Long.MAX_VALUE, longSpltr.estimateSize());
-        longSpltr.tryAdvance(x -> assertEquals(0L, (long)x));
+        longSpltr.tryAdvance(x -> assertEquals(0L, (long) x));
         assertEquals(Long.MAX_VALUE, longSpltr.estimateSize());
         
         Queue<Integer> q = new ConcurrentLinkedDeque<>();
         spltr = new TailConcatSpliterator<>(q.spliterator(), q.spliterator());
         q.add(1);
         assertFalse(longSpltr.hasCharacteristics(Spliterator.SIZED));
-        assertTrue(spltr.tryAdvance(x -> assertEquals(1, (int)x)));
-        assertTrue(spltr.tryAdvance(x -> assertEquals(1, (int)x)));
+        assertTrue(spltr.tryAdvance(x -> assertEquals(1, (int) x)));
+        assertTrue(spltr.tryAdvance(x -> assertEquals(1, (int) x)));
         assertFalse(spltr.tryAdvance(x -> fail("Should not happen")));
     }
 }

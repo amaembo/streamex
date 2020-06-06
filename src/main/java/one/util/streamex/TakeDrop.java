@@ -154,10 +154,10 @@ interface TakeDrop {
         @Override
         public Spliterator<T> trySplit() {
             Spliterator<T> prefix = source.trySplit();
-            if(prefix == null) {
+            if (prefix == null) {
                 return null;
             }
-            if(checked.get()) {
+            if (checked.get()) {
                 return drop ? prefix : Spliterators.emptySpliterator();
             }
             UnorderedTDOfRef<T> clone = doClone();

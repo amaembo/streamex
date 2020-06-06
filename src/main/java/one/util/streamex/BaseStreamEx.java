@@ -167,5 +167,5 @@ import java.util.stream.BaseStream;
      * @return the result of the function invocation.
      * @since 0.5.4
      */
-    abstract public <U> U chain(Function<? super B, U> mapper);
+    public abstract <U> U chain(Function<? super B, U> mapper);
 }

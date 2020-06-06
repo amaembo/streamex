@@ -52,7 +52,7 @@ import one.util.streamex.Internals.TailSpliterator;
             }
             left = null;
         }
-        if(right != null)
+        if (right != null)
             right = TailSpliterator.tryAdvanceWithTail(right, action);
         return right != null;
     }
@@ -73,7 +73,7 @@ import one.util.streamex.Internals.TailSpliterator;
     public void forEachRemaining(Consumer<? super T> action) {
         if (left != null)
             left.forEachRemaining(action);
-        if(right != null)
+        if (right != null)
             TailSpliterator.forEachWithTail(right, action);
     }
 

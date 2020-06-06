@@ -45,9 +45,9 @@ public class WithFirstSpliteratorTest {
                 .spliterator(), Integer::sum);
         assertTrue(spltr.hasCharacteristics(Spliterator.SIZED));
         assertEquals(6, spltr.getExactSizeIfKnown());
-        assertTrue(spltr.tryAdvance(x -> assertEquals(12, (int)x)));
+        assertTrue(spltr.tryAdvance(x -> assertEquals(12, (int) x)));
         assertEquals(5, spltr.getExactSizeIfKnown());
-        assertTrue(spltr.tryAdvance(x -> assertEquals(7, (int)x)));
+        assertTrue(spltr.tryAdvance(x -> assertEquals(7, (int) x)));
         assertEquals(4, spltr.getExactSizeIfKnown());
         
         spltr = new WithFirstSpliterator<>(Spliterators.emptySpliterator(), Integer::sum);
@@ -60,8 +60,8 @@ public class WithFirstSpliteratorTest {
                 .spliterator(), Long::sum);
         assertTrue(longSpltr.hasCharacteristics(Spliterator.SIZED));
         assertEquals(Long.MAX_VALUE, longSpltr.getExactSizeIfKnown());
-        assertTrue(longSpltr.tryAdvance(x -> assertEquals(0, (long)x)));
-        assertEquals(Long.MAX_VALUE-1, longSpltr.getExactSizeIfKnown());
+        assertTrue(longSpltr.tryAdvance(x -> assertEquals(0, (long) x)));
+        assertEquals(Long.MAX_VALUE - 1, longSpltr.getExactSizeIfKnown());
         
         longSpltr = new WithFirstSpliterator<>(LongStreamEx.range(-1, Long.MAX_VALUE)
                 .spliterator(), Long::sum);

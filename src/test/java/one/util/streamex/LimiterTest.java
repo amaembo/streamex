@@ -55,9 +55,9 @@ public class LimiterTest {
         List<Integer> list = IntStreamEx.range(100000).boxed().toList();
         exerciseLimiter("big", list, list, 50000, Comparator.naturalOrder()); 
         exerciseLimiter("big", list, list, 49999, Comparator.naturalOrder()); 
-        exerciseLimiter("big", list, list, 10000, Comparator.naturalOrder()); 
-        exerciseLimiter("big", list, list, Integer.MAX_VALUE/3, Comparator.naturalOrder()); 
-        exerciseLimiter("big", list, list, Integer.MAX_VALUE/2, Comparator.naturalOrder()); 
+        exerciseLimiter("big", list, list, 10000, Comparator.naturalOrder());
+        exerciseLimiter("big", list, list, Integer.MAX_VALUE / 3, Comparator.naturalOrder());
+        exerciseLimiter("big", list, list, Integer.MAX_VALUE / 2, Comparator.naturalOrder());
     }
 
     public static <T> void exerciseLimiter(String msg, Collection<T> input, Comparator<T> comp) {

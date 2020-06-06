@@ -35,12 +35,12 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
         BaseStreamEx<T, Stream<T>, Spliterator<T>, S> implements Stream<T>, Iterable<T> {
     @SuppressWarnings("unchecked")
     AbstractStreamEx(Stream<? extends T> stream, StreamContext context) {
-        super((Stream<T>)stream, context);
+        super((Stream<T>) stream, context);
     }
 
     @SuppressWarnings("unchecked")
     AbstractStreamEx(Spliterator<? extends T> spliterator, StreamContext context) {
-        super((Spliterator<T>)spliterator, context);
+        super((Spliterator<T>) spliterator, context);
     }
 
     @Override
@@ -1178,8 +1178,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * operation</a>.
      *
      * @param other other stream to replace the contents of this stream if this stream is empty.
-     * @return the stream which contents is replaced by other stream contents only if
-     * this stream is empty.
+     * @return the stream which contents is replaced by other stream contents only if this stream is empty.
      * @since 0.6.6
      */
     public S ifEmpty(Stream<? extends T> other) {
@@ -1221,7 +1220,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     @SuppressWarnings("unchecked")
     public List<T> toImmutableList() {
         Object[] array = toArray(Object[]::new);
-        switch(array.length) {
+        switch (array.length) {
         case 0:
             return Collections.emptyList();
         case 1:
@@ -1821,6 +1820,6 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     @SuppressWarnings("unchecked")
     @Override
     public <U> U chain(Function<? super S, U> mapper) {
-        return mapper.apply((S)this);
+        return mapper.apply((S) this);
     }
 }

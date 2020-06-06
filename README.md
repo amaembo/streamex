@@ -14,9 +14,9 @@ class as well as primitive collectors concept.
 
 Full API documentation is available [here](http://amaembo.github.io/streamex/javadoc/).
 
-Take a look at the [Cheatsheet](CHEATSHEET.md) for brief introduction to the StreamEx!
+Take a look at the [Cheatsheet](wiki/CHEATSHEET.md) for brief introduction to the StreamEx!
 
-Before updating StreamEx check the [migration notes](MIGRATION.md) and full list of [changes](CHANGES.md).
+Before updating StreamEx check the [migration notes](wiki/MIGRATION.md) and full list of [changes](wiki/CHANGES.md).
 
 StreamEx library main points are following:
 
@@ -123,7 +123,7 @@ This project is licensed under [Apache License, version 2.0](https://www.apache.
 
 Releases are available in [Maven Central](https://repo1.maven.org/maven2/one/util/streamex/)
 
-Before updating StreamEx check the [migration notes](MIGRATION.md) and full list of [changes](CHANGES.md).
+Before updating StreamEx check the [migration notes](wiki/MIGRATION.md) and full list of [changes](wiki/CHANGES.md).
 
 #### Maven
 

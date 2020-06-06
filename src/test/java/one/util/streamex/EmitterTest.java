@@ -127,7 +127,7 @@ public class EmitterTest {
     }
     
     public static LongStreamEx primes() {
-        return ((LongEmitter)(action -> {
+        return ((LongEmitter) (action -> {
             action.accept(2);
             return primes(3, x -> x % 2 != 0);
         })).stream();
@@ -137,7 +137,7 @@ public class EmitterTest {
         return action -> {
             long nextPrime = LongStreamEx.range(start, Long.MAX_VALUE, 2).findFirst(isPrime).getAsLong();
             action.accept(nextPrime);
-            return primes(nextPrime+2, isPrime.and(x -> x % nextPrime != 0));
+            return primes(nextPrime + 2, isPrime.and(x -> x % nextPrime != 0));
         };
     }
     

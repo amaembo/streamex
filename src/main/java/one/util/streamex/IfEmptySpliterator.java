@@ -106,7 +106,7 @@ import java.util.function.Consumer;
 
     @Override
     public int characteristics() {
-        if(alt == null) {
+        if (alt == null) {
             return spltr.characteristics() & (~SORTED);
         }
         return (spltr.characteristics() & alt.characteristics() & (~SORTED)) |

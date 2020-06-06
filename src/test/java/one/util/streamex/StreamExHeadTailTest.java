@@ -194,7 +194,7 @@ public class StreamExHeadTailTest {
         return input.headTail((head, tail) -> {
             buf.add(head);
             return cycleTSO(tail, n, buf).prepend(head);
-        }, () -> IntStreamEx.range(n-1).flatMapToObj(i -> buf.stream()));
+        }, () -> IntStreamEx.range(n - 1).flatMapToObj(i -> buf.stream()));
     }
     
     // mapFirst (TSO)
@@ -300,7 +300,9 @@ public class StreamExHeadTailTest {
     private static <T> StreamEx<T> twoFilters(StreamEx<T> input, Predicate<T> f1, Predicate<T> f2, Stream.Builder<T> buf) {
         return input.headTail((head, tail) -> {
             StreamEx<T> res = twoFilters(tail, f1, f2, buf);
-            if(f2.test(head)) buf.add(head);
+            if (f2.test(head)) {
+                buf.add(head);
+            }
             return f1.test(head) ? res.prepend(head) : res;
         }, buf::build);
     }
@@ -443,9 +445,9 @@ public class StreamExHeadTailTest {
 
         assertEquals(asList("1. Foo", "2. Bar", "3. Baz"), withIndices(StreamEx.of("Foo", "Bar", "Baz"),
             (idx, e) -> (idx + 1) + ". " + e).toList());
-        
-        assertEquals(asList(1,2,3,4,10), appendSum(StreamEx.of(1,2,3,4)).toList());
-        assertFalse(appendSum(StreamEx.of(1,2,3,4)).has(11));
+
+        assertEquals(asList(1, 2, 3, 4, 10), appendSum(StreamEx.of(1, 2, 3, 4)).toList());
+        assertFalse(appendSum(StreamEx.of(1, 2, 3, 4)).has(11));
         
         assertEquals(asList(0, 3, 6, 9, 12, 15, 18, 0, 4, 8, 12, 16), twoFilters(IntStreamEx.range(20).boxed(),
             x -> x % 3 == 0, x -> x % 4 == 0).toList());
@@ -454,8 +456,8 @@ public class StreamExHeadTailTest {
         assertEquals(asList(0, 3, 6, 9, 12, 15, 18), every3(IntStreamEx.range(20).boxed()).toList());
 
         //noinspection RedundantTypeArguments -- necessary for Javac 8u92
-        assertEquals(asList(0, 1, 2, 3, 3), StreamEx.of(0, 1, 4, 2, 10, 3, 5, 10, 3, 15).chain(
-            limitSorted(Comparator.<Integer> naturalOrder(), 5)).toList());
+        assertEquals(asList(0, 1, 2, 3, 3),
+                StreamEx.of(0, 1, 4, 2, 10, 3, 5, 10, 3, 15).chain(limitSorted(Comparator.<Integer>naturalOrder(), 5)).toList());
         
         assertEquals(asList(1, 3, 7, 9, 2, 4, 11, 17, 5, 10), 
             StreamEx.of(1, 3, 5, 7, 9, 2, 4, 10, 11, 17).chain(moveToEnd(x -> x % 5 == 0)).toList());
@@ -536,7 +538,7 @@ public class StreamExHeadTailTest {
         assertTrue(internalClosed.get());
         assertTrue(finalClosed.get());
 
-        res = StreamEx.<Integer> empty().headTail((head, tail) -> tail);
+        res = StreamEx.<Integer>empty().headTail((head, tail) -> tail);
         assertEquals(0, res.count());
         res.close();
     }
@@ -566,16 +568,16 @@ public class StreamExHeadTailTest {
     
     @Test
     public void testSpliterator() {
-        Spliterator<Integer> spltr = map(StreamEx.of(1,2,3,4), x -> x*2).spliterator();
+        Spliterator<Integer> spltr = map(StreamEx.of(1, 2, 3, 4), x -> x * 2).spliterator();
         assertTrue(spltr.hasCharacteristics(Spliterator.ORDERED));
         assertEquals(4, spltr.estimateSize());
-        assertTrue(spltr.tryAdvance(x -> assertEquals(2, (int)x)));
+        assertTrue(spltr.tryAdvance(x -> assertEquals(2, (int) x)));
         assertEquals(3, spltr.estimateSize());
-        assertTrue(spltr.tryAdvance(x -> assertEquals(4, (int)x)));
+        assertTrue(spltr.tryAdvance(x -> assertEquals(4, (int) x)));
         assertEquals(2, spltr.estimateSize());
-        assertTrue(spltr.tryAdvance(x -> assertEquals(6, (int)x)));
+        assertTrue(spltr.tryAdvance(x -> assertEquals(6, (int) x)));
         assertEquals(1, spltr.estimateSize());
-        assertTrue(spltr.tryAdvance(x -> assertEquals(8, (int)x)));
+        assertTrue(spltr.tryAdvance(x -> assertEquals(8, (int) x)));
         assertFalse(spltr.tryAdvance(x -> fail("Should not be called")));
         assertEquals(0, spltr.estimateSize());
     }

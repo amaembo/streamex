@@ -396,13 +396,13 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
      * ellipsis sequence. The cutting strategy is mostly irrelevant for this
      * mode except {@link #cutBeforeDelimiter()}.
      * <p>
-     * The collector returned by this method is <a href="package-summary.html#ShortCircuitReduction">short-circuiting</a>:
+     * The collector returned by this method is
+     * <a href="package-summary.html#ShortCircuitReduction">short-circuiting</a>:
      * it may not process all the input elements if the limit is reached.
      *
-     * @param limit the maximal number of input elements in the resulting
-     *              String.
+     * @param limit the maximal number of input elements in the resulting String.
      * @return a new {@code Collector} which will produce String no longer than
-     * given limit.
+     *         given limit.
      * @since 0.6.7
      */
     public Joining maxElements(int limit) {

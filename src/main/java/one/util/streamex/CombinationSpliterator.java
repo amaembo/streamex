@@ -31,6 +31,7 @@ import java.util.function.Consumer;
         this.fence = fence;
         this.value = value;
     }
+
     @Override
     public void forEachRemaining(Consumer<? super int[]> action) {
         long rest = pos - fence;

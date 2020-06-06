@@ -16,25 +16,52 @@
 package one.util.streamex;
 
 import one.util.streamex.Internals.BooleanMap;
+
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
+import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.*;
+import java.util.stream.Collector;
 import java.util.stream.Collector.Characteristics;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
-import static one.util.streamex.TestHelpers.*;
-import static org.junit.Assert.*;
+import static one.util.streamex.TestHelpers.assertThrows;
+import static one.util.streamex.TestHelpers.checkCollector;
+import static one.util.streamex.TestHelpers.checkCollectorEmpty;
+import static one.util.streamex.TestHelpers.checkShortCircuitCollector;
+import static one.util.streamex.TestHelpers.streamEx;
+import static one.util.streamex.TestHelpers.withRandom;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * @author Tagir Valeev
@@ -55,7 +82,7 @@ public class MoreCollectorsTest {
 
         @Override
         public boolean equals(Object obj) {
-            return obj instanceof MyNumber && ((MyNumber)obj).value == value;
+            return obj instanceof MyNumber && ((MyNumber) obj).value == value;
         }
 
         @Override
@@ -127,11 +154,11 @@ public class MoreCollectorsTest {
 
     @Test
     public void testMaxAll() {
-        assertThrows(NullPointerException.class, () -> MoreCollectors.maxAll((Comparator<String>)null));
-        assertThrows(NullPointerException.class, () -> MoreCollectors.maxAll((Collector<String, ?, ?>)null));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.maxAll((Comparator<String>) null));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.maxAll((Collector<String, ?, ?>) null));
         assertThrows(NullPointerException.class, () -> MoreCollectors.maxAll(null, null));
-        assertThrows(NullPointerException.class, () -> MoreCollectors.minAll((Comparator<String>)null));
-        assertThrows(NullPointerException.class, () -> MoreCollectors.minAll((Collector<String, ?, ?>)null));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.minAll((Comparator<String>) null));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.minAll((Collector<String, ?, ?>) null));
         assertThrows(NullPointerException.class, () -> MoreCollectors.minAll(null, null));
         List<String> input = asList("a", "bb", "c", "", "cc", "eee", "bb", "ddd");
         checkCollector("maxAll", asList("eee", "ddd"), input::stream, MoreCollectors.maxAll(Comparator
@@ -307,18 +334,18 @@ public class MoreCollectorsTest {
             Supplier<Stream<String>> supplier = () -> ints.stream().map(Object::toString);
             checkCollector("minIndex", OptionalLong.of(expectedMinString), supplier, MoreCollectors.minIndex());
             checkCollector("maxIndex", OptionalLong.of(expectedMaxString), supplier, MoreCollectors.maxIndex());
-            checkCollectorEmpty("minIndex", OptionalLong.empty(), MoreCollectors.<String> minIndex());
-            checkCollectorEmpty("maxIndex", OptionalLong.empty(), MoreCollectors.<String> maxIndex());
+            checkCollectorEmpty("minIndex", OptionalLong.empty(), MoreCollectors.<String>minIndex());
+            checkCollectorEmpty("maxIndex", OptionalLong.empty(), MoreCollectors.<String>maxIndex());
         });
     }
 
     @Test
     public void testGroupingByEnum() {
-        assertThrows(NullPointerException.class, () -> MoreCollectors.groupingByEnum((Class<TimeUnit>)null, 
+        assertThrows(NullPointerException.class, () -> MoreCollectors.groupingByEnum((Class<TimeUnit>)null,
             Function.identity(), Collectors.toList()));
-        assertThrows(NullPointerException.class, () -> MoreCollectors.groupingByEnum(TimeUnit.class, 
+        assertThrows(NullPointerException.class, () -> MoreCollectors.groupingByEnum(TimeUnit.class,
             null, Collectors.toList()));
-        assertThrows(NullPointerException.class, () -> MoreCollectors.groupingByEnum(TimeUnit.class, 
+        assertThrows(NullPointerException.class, () -> MoreCollectors.groupingByEnum(TimeUnit.class,
             Function.identity(), null));
         EnumMap<TimeUnit, Long> expected = new EnumMap<>(TimeUnit.class);
         EnumSet.allOf(TimeUnit.class).forEach(tu -> expected.put(tu, 0L));
@@ -538,7 +565,7 @@ public class MoreCollectorsTest {
         checkShortCircuitCollector("FilterSeveral", Optional.empty(), 40, ints::stream, MoreCollectors.onlyOne(x -> x % 20 == 0));
         checkShortCircuitCollector("FilterOne", Optional.of(60), 100, ints::stream, MoreCollectors.onlyOne(x -> x % 60 == 0));
         checkShortCircuitCollector("FilterNone", Optional.empty(), 100, ints::stream, MoreCollectors.onlyOne(x -> x % 110 == 0));
-        assertThrows(NullPointerException.class, () -> StreamEx.of((String)null).collect(MoreCollectors.onlyOne()));
+        assertThrows(NullPointerException.class, () -> StreamEx.of((String) null).collect(MoreCollectors.onlyOne()));
     }
 
     @Test
@@ -834,7 +861,7 @@ public class MoreCollectorsTest {
         checkShortCircuitCollector("ifAllMatch: empty stream", Optional.of(Collections.emptyList()), 0, Stream::empty,
                 MoreCollectors.ifAllMatch(i -> true, Collectors.toList()));
     }
-    
+
     @Test
     public void testReducingWithZero() {
         assertThrows(NullPointerException.class, () -> MoreCollectors.reducingWithZero(0, null));
@@ -848,7 +875,7 @@ public class MoreCollectorsTest {
         checkShortCircuitCollector("reducingWithZero: multiply", Optional.of(0), 32,
             () -> StreamEx.constant(2, 64), multiplication);
     }
-    
+
     @Test
     public void testReducingWithZeroAndIdentity() {
         assertThrows(NullPointerException.class, () -> MoreCollectors.reducingWithZero(0, 0, null));

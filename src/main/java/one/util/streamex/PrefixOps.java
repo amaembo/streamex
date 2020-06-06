@@ -35,7 +35,7 @@ import java.util.function.LongConsumer;
 /**
  * @author Tagir Valeev
  */
-/* package */ abstract class PrefixOps<T, S extends Spliterator<T>> extends CloneableSpliterator<T, PrefixOps<T, S>>{
+/* package */ abstract class PrefixOps<T, S extends Spliterator<T>> extends CloneableSpliterator<T, PrefixOps<T, S>> {
     private static final int BUF_SIZE = 128;
     
     S source;
@@ -51,15 +51,15 @@ import java.util.function.LongConsumer;
     
     @Override
     public Spliterator<T> trySplit() {
-        if(acc != NONE) {
+        if (acc != NONE) {
             return null;
         }
         @SuppressWarnings("unchecked")
         S prefix = (S) source.trySplit();
-        if(prefix == null) {
+        if (prefix == null) {
             return null;
         }
-        if(accRef == null) {
+        if (accRef == null) {
             accRef = new AtomicReference<>(none());
         }
         PrefixOps<T, S> pref = doClone();
@@ -91,7 +91,7 @@ import java.util.function.LongConsumer;
 
         @Override
         public boolean tryAdvance(Consumer<? super T> action) {
-            if(!source.tryAdvance(this))
+            if (!source.tryAdvance(this))
                 return false;
             action.accept(acc);
             return true;
@@ -107,7 +107,7 @@ import java.util.function.LongConsumer;
 
         @Override
         public void accept(T next) {
-            if(started) {
+            if (started) {
                 acc = op.apply(acc, next);
             } else {
                 started = true;
@@ -130,7 +130,7 @@ import java.util.function.LongConsumer;
         
         @Override
         public boolean tryAdvance(IntConsumer action) {
-            if(!source.tryAdvance(this))
+            if (!source.tryAdvance(this))
                 return false;
             action.accept(acc);
             return true;
@@ -146,7 +146,7 @@ import java.util.function.LongConsumer;
         
         @Override
         public void accept(int next) {
-            if(started) {
+            if (started) {
                 acc = op.applyAsInt(acc, next);
             } else {
                 started = true;
@@ -169,7 +169,7 @@ import java.util.function.LongConsumer;
         
         @Override
         public boolean tryAdvance(LongConsumer action) {
-            if(!source.tryAdvance(this))
+            if (!source.tryAdvance(this))
                 return false;
             action.accept(acc);
             return true;
@@ -185,7 +185,7 @@ import java.util.function.LongConsumer;
         
         @Override
         public void accept(long next) {
-            if(started) {
+            if (started) {
                 acc = op.applyAsLong(acc, next);
             } else {
                 started = true;
@@ -208,7 +208,7 @@ import java.util.function.LongConsumer;
         
         @Override
         public boolean tryAdvance(DoubleConsumer action) {
-            if(!source.tryAdvance(this))
+            if (!source.tryAdvance(this))
                 return false;
             action.accept(acc);
             return true;
@@ -224,7 +224,7 @@ import java.util.function.LongConsumer;
         
         @Override
         public void accept(double next) {
-            if(started) {
+            if (started) {
                 acc = op.applyAsDouble(acc, next);
             } else {
                 started = true;
@@ -243,7 +243,7 @@ import java.util.function.LongConsumer;
         
         @Override
         public boolean tryAdvance(Consumer<? super T> action) {
-            if(!source.tryAdvance(this)) {
+            if (!source.tryAdvance(this)) {
                 return false;
             }
             action.accept(acc);
@@ -252,37 +252,37 @@ import java.util.function.LongConsumer;
         
         @Override
         public void forEachRemaining(Consumer<? super T> action) {
-            if(accRef == null) {
+            if (accRef == null) {
                 source.forEachRemaining(next -> action.accept(acc = op.apply(acc, next)));
             } else {
                 @SuppressWarnings("unchecked")
                 T[] buf = (T[]) new Object[BUF_SIZE];
                 source.forEachRemaining(next -> {
-                    if(idx == 0) {
+                    if (idx == 0) {
                         buf[idx++] = next;
                     } else {
-                        T prev = buf[idx-1];
+                        T prev = buf[idx - 1];
                         buf[idx++] = localOp.apply(prev, next);
-                        if(idx == buf.length) {
+                        if (idx == buf.length) {
                             drain(action, buf);
                             idx = 0;
                         }
                     }
                 });
-                if(idx > 0)
+                if (idx > 0)
                     drain(action, buf);
             }
         }
 
         private void drain(Consumer<? super T> action, T[] buf) {
-            T last = buf[idx-1];
+            T last = buf[idx - 1];
             T acc = accRef.getAndAccumulate(last, op);
-            if(acc != NONE) {
-                for(int i=0; i<idx; i++) {
+            if (acc != NONE) {
+                for (int i = 0; i < idx; i++) {
                     action.accept(localOp.apply(buf[i], acc));
                 }
             } else {
-                for(int i=0; i<idx; i++) {
+                for (int i = 0; i < idx; i++) {
                     action.accept(buf[i]);
                 }
             }
@@ -290,7 +290,7 @@ import java.util.function.LongConsumer;
 
         @Override
         public void accept(T next) {
-            if(accRef == null) {
+            if (accRef == null) {
                 acc = op.apply(acc, next);
             } else {
                 acc = accRef.accumulateAndGet(next, op);
