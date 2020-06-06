@@ -23,11 +23,11 @@ import java.util.function.BinaryOperator;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-import static one.util.streamex.TestHelpers.*;
-import static org.junit.Assert.*;
-import one.util.streamex.UnorderedCancellableSpliterator;
-
 import org.junit.Test;
+
+import static one.util.streamex.TestHelpers.checkSpliterator;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Tagir Valeev

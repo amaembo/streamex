@@ -15,19 +15,17 @@
  */
 package one.util.streamex;
 
-import static one.util.streamex.TestHelpers.*;
-import static org.junit.Assert.*;
-
 import java.util.Arrays;
 import java.util.Spliterator;
 
-import one.util.streamex.DoubleStreamEx;
-import one.util.streamex.IntStreamEx;
-import one.util.streamex.LongStreamEx;
-import one.util.streamex.PairSpliterator;
+import org.junit.Test;
+
 import one.util.streamex.PairSpliterator.PSOfRef;
 
-import org.junit.Test;
+import static one.util.streamex.TestHelpers.checkSpliterator;
+import static one.util.streamex.TestHelpers.withRandom;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Tagir Valeev

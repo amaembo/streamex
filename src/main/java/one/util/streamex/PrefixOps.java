@@ -15,8 +15,6 @@
  */
 package one.util.streamex;
 
-import static one.util.streamex.Internals.*;
-
 import java.util.Spliterator;
 import java.util.Spliterators.AbstractDoubleSpliterator;
 import java.util.Spliterators.AbstractIntSpliterator;
@@ -31,6 +29,10 @@ import java.util.function.IntBinaryOperator;
 import java.util.function.IntConsumer;
 import java.util.function.LongBinaryOperator;
 import java.util.function.LongConsumer;
+
+import static one.util.streamex.Internals.CloneableSpliterator;
+import static one.util.streamex.Internals.NONE;
+import static one.util.streamex.Internals.none;
 
 /**
  * @author Tagir Valeev

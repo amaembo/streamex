@@ -15,22 +15,18 @@
  */
 package one.util.streamex;
 
-import static org.junit.Assert.*;
-
 import java.util.Map;
 import java.util.OptionalDouble;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import one.util.streamex.DoubleCollector;
-import one.util.streamex.DoubleStreamEx;
-import one.util.streamex.IntStreamEx;
-import one.util.streamex.LongCollector;
-import one.util.streamex.LongStreamEx;
-
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
+
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 /**
  * @author Tagir Valeev

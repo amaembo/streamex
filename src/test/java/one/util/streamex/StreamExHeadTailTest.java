@@ -15,10 +15,6 @@
  */
 package one.util.streamex;
 
-import static java.util.Arrays.asList;
-import static one.util.streamex.TestHelpers.*;
-import static org.junit.Assert.*;
-
 import java.io.StringReader;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -28,9 +24,9 @@ import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Random;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -46,11 +42,16 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
-
-
-
-
 import org.junit.Test;
+
+import static java.util.Arrays.asList;
+import static one.util.streamex.TestHelpers.emptyStreamEx;
+import static one.util.streamex.TestHelpers.repeat;
+import static one.util.streamex.TestHelpers.streamEx;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Tests/examples for StreamEx.headTail() method

@@ -23,11 +23,9 @@ import java.util.function.BinaryOperator;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-import static one.util.streamex.TestHelpers.*;
-import one.util.streamex.IntStreamEx;
-import one.util.streamex.OrderedCancellableSpliterator;
-
 import org.junit.Test;
+
+import static one.util.streamex.TestHelpers.checkSpliterator;
 
 /**
  * @author Tagir Valeev

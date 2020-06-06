@@ -16,14 +16,47 @@
 package one.util.streamex;
 
 import java.nio.Buffer;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.LongSummaryStatistics;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.OptionalDouble;
+import java.util.OptionalLong;
+import java.util.PrimitiveIterator;
 import java.util.PrimitiveIterator.OfLong;
+import java.util.Random;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.concurrent.ForkJoinPool;
-import java.util.function.*;
-import java.util.stream.*;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.function.LongBinaryOperator;
+import java.util.function.LongConsumer;
+import java.util.function.LongFunction;
+import java.util.function.LongPredicate;
+import java.util.function.LongSupplier;
+import java.util.function.LongToDoubleFunction;
+import java.util.function.LongToIntFunction;
+import java.util.function.LongUnaryOperator;
+import java.util.function.ObjLongConsumer;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.stream.Collector;
+import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
-import static one.util.streamex.Internals.*;
+import static one.util.streamex.Internals.Box;
+import static one.util.streamex.Internals.INITIAL_SIZE;
+import static one.util.streamex.Internals.LongBuffer;
+import static one.util.streamex.Internals.ObjLongBox;
+import static one.util.streamex.Internals.PrimitiveBox;
+import static one.util.streamex.Internals.checkLength;
 
 /**
  * A {@link LongStream} implementation with additional functionality

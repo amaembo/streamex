@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package one.util.streamex;
 
-import org.junit.Test;
-
 import java.util.Spliterator;
+
+import org.junit.Test;
 
 import static java.util.Spliterator.DISTINCT;
 import static java.util.Spliterator.IMMUTABLE;

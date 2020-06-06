@@ -15,10 +15,6 @@
  */
 package one.util.streamex;
 
-import static org.junit.Assert.*;
-import static one.util.streamex.TestHelpers.*;
-import static java.util.Arrays.asList;
-
 import java.math.BigInteger;
 import java.util.Iterator;
 import java.util.function.BinaryOperator;
@@ -26,14 +22,21 @@ import java.util.function.LongPredicate;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
+
 import one.util.streamex.DoubleStreamEx.DoubleEmitter;
 import one.util.streamex.IntStreamEx.IntEmitter;
 import one.util.streamex.LongStreamEx.LongEmitter;
 import one.util.streamex.StreamEx.Emitter;
 
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
+import static java.util.Arrays.asList;
+import static one.util.streamex.TestHelpers.checkSpliterator;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Tagir Valeev

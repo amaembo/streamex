@@ -30,7 +30,10 @@ import java.util.function.LongBinaryOperator;
 import java.util.function.LongConsumer;
 import java.util.function.LongUnaryOperator;
 
-import static one.util.streamex.Internals.*;
+import static one.util.streamex.Internals.CloneableSpliterator;
+import static one.util.streamex.Internals.NONE;
+import static one.util.streamex.Internals.TailSpliterator;
+import static one.util.streamex.Internals.none;
 
 /**
  * @author Tagir Valeev

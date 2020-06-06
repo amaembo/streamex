@@ -15,13 +15,24 @@
  */
 package one.util.streamex;
 
-import static one.util.streamex.TestHelpers.*;
-import static java.util.Arrays.asList;
-import static org.junit.Assert.*;
-
-import java.util.*;
+import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NavigableMap;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -32,11 +43,28 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import one.util.streamex.StreamExTest.Point;
-
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
+
+import one.util.streamex.StreamExTest.Point;
+
+import static java.util.Arrays.asList;
+import static one.util.streamex.TestHelpers.StreamExSupplier;
+import static one.util.streamex.TestHelpers.assertThrows;
+import static one.util.streamex.TestHelpers.checkIllegalStateException;
+import static one.util.streamex.TestHelpers.entryStream;
+import static one.util.streamex.TestHelpers.repeat;
+import static one.util.streamex.TestHelpers.streamEx;
+import static one.util.streamex.TestHelpers.withRandom;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * @author Tagir Valeev
