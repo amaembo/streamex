@@ -57,6 +57,7 @@ import static one.util.streamex.Internals.LongBuffer;
 import static one.util.streamex.Internals.ObjLongBox;
 import static one.util.streamex.Internals.PrimitiveBox;
 import static one.util.streamex.Internals.checkLength;
+import static one.util.streamex.Internals.intSize;
 
 /**
  * A {@link LongStream} implementation with additional functionality
@@ -818,8 +819,8 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      */
     public long[] scanLeft(LongBinaryOperator accumulator) {
         Spliterator.OfLong spliterator = spliterator();
-        long size = spliterator.getExactSizeIfKnown();
-        LongBuffer buf = new LongBuffer(size >= 0 && size <= Integer.MAX_VALUE ? (int) size : INITIAL_SIZE);
+        int size = intSize(spliterator);
+        LongBuffer buf = new LongBuffer(size >= 0 ? size : INITIAL_SIZE);
         delegate(spliterator).forEachOrdered(i -> buf.add(buf.size == 0 ? i
                 : accumulator.applyAsLong(buf.data[buf.size - 1], i)));
         return buf.toArray();

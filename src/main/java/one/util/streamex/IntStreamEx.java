@@ -69,6 +69,7 @@ import static one.util.streamex.Internals.ObjIntBox;
 import static one.util.streamex.Internals.PrimitiveBox;
 import static one.util.streamex.Internals.ShortBuffer;
 import static one.util.streamex.Internals.checkLength;
+import static one.util.streamex.Internals.intSize;
 import static one.util.streamex.Internals.rangeCheck;
 
 /**
@@ -103,10 +104,10 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
         if (isParallel())
             return collect(supplier, accumulator, combiner);
         java.util.Spliterator.OfInt spliterator = spliterator();
-        long size = spliterator.getExactSizeIfKnown();
+        int size = intSize(spliterator);
         A intermediate;
-        if (size >= 0 && size <= Integer.MAX_VALUE) {
-            intermediate = sizedSupplier.apply((int) size);
+        if (size != -1) {
+            intermediate = sizedSupplier.apply(size);
             spliterator.forEachRemaining((IntConsumer) i -> sizedAccumulator.accept(intermediate, i));
         } else {
             intermediate = supplier.get();
@@ -900,8 +901,8 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      */
     public int[] scanLeft(IntBinaryOperator accumulator) {
         Spliterator.OfInt spliterator = spliterator();
-        long size = spliterator.getExactSizeIfKnown();
-        IntBuffer buf = new IntBuffer(size >= 0 && size <= Integer.MAX_VALUE ? (int) size : INITIAL_SIZE);
+        int size = intSize(spliterator);
+        IntBuffer buf = new IntBuffer(size >= 0 ? size : INITIAL_SIZE);
         delegate(spliterator).forEachOrdered(i -> buf.add(buf.size == 0 ? i
                 : accumulator.applyAsInt(buf.data[buf.size - 1], i)));
         return buf.toArray();

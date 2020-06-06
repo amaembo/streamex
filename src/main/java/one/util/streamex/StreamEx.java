@@ -70,6 +70,7 @@ import static one.util.streamex.Internals.PairBox;
 import static one.util.streamex.Internals.alwaysTrue;
 import static one.util.streamex.Internals.checkLength;
 import static one.util.streamex.Internals.checkNonNegative;
+import static one.util.streamex.Internals.intSize;
 import static one.util.streamex.Internals.selectFirst;
 
 /**
@@ -1057,9 +1058,9 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         } else {
             Spliterator<T> spltr = spliterator();
             if (collection instanceof ArrayList) {
-                long size = spltr.getExactSizeIfKnown();
+                int size = intSize(spltr);
                 if (size > 0 && size <= Integer.MAX_VALUE - collection.size())
-                    ((ArrayList<?>) collection).ensureCapacity((int) (collection.size() + size));
+                    ((ArrayList<?>) collection).ensureCapacity(collection.size() + size);
             }
             spltr.forEachRemaining(collection::add);
         }

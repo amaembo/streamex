@@ -631,7 +631,7 @@ import java.util.stream.Collector.Characteristics;
 
         @Override
         public int hashCode() {
-            return b == null ? 0 : b.hashCode();
+            return Objects.hashCode(b);
         }
 
         @Override
@@ -987,5 +987,16 @@ import java.util.stream.Collector.Characteristics;
             array[index++] = box.a;
         }
         return index;
+    }
+
+    static int intSize(Spliterator<?> spliterator) {
+        long size = spliterator.getExactSizeIfKnown();
+        if (size < -1) {
+            throw new IllegalArgumentException("Spliterator violates its contract: getExactSizeIfKnown() = " + size);
+        }
+        if (size > Integer.MAX_VALUE) {
+            throw new OutOfMemoryError("Stream size exceeds Integer.MAX_VALUE: " + size);
+        }
+        return (int) size;
     }
 }

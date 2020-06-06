@@ -2093,8 +2093,11 @@ public class StreamExTest {
         StreamEx.<Integer>of().into(collection);
         StreamEx.of(asList(1)).into(collection);
         int maxAvailableSize = Integer.MAX_VALUE - collection.size();
+        assertThrows(IllegalArgumentException.class,
+            () -> StreamEx.<Integer>of(emptySpliteratorWithExactSize(-2)).into(collection));
+        assertThrows(OutOfMemoryError.class, 
+            () -> StreamEx.<Integer>of(emptySpliteratorWithExactSize(Long.MAX_VALUE)).into(collection));
         StreamEx.<Integer>of(emptySpliteratorWithExactSize(maxAvailableSize + 1)).into(collection);
-        StreamEx.<Integer>of(emptySpliteratorWithExactSize(Long.MAX_VALUE)).into(collection);
         StreamEx.<Integer>of(emptySpliteratorWithExactSize(maxAvailableSize)).into(collection);
         assertEquals(Integer.MAX_VALUE, list.ensuredCapacity);
     }

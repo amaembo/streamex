@@ -58,6 +58,7 @@ import static one.util.streamex.Internals.INITIAL_SIZE;
 import static one.util.streamex.Internals.ObjDoubleBox;
 import static one.util.streamex.Internals.PrimitiveBox;
 import static one.util.streamex.Internals.checkLength;
+import static one.util.streamex.Internals.intSize;
 import static one.util.streamex.Internals.rangeCheck;
 
 /**
@@ -630,10 +631,10 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
         if (isParallel())
             return collect(DoubleCollector.toFloatArray());
         java.util.Spliterator.OfDouble spliterator = spliterator();
-        long size = spliterator.getExactSizeIfKnown();
+        int size = intSize(spliterator);
         FloatBuffer buf;
-        if (size >= 0 && size <= Integer.MAX_VALUE) {
-            buf = new FloatBuffer((int) size);
+        if (size >= 0) {
+            buf = new FloatBuffer(size);
             spliterator.forEachRemaining((DoubleConsumer) buf::addUnsafe);
         } else {
             buf = new FloatBuffer();
@@ -781,8 +782,8 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      */
     public double[] scanLeft(DoubleBinaryOperator accumulator) {
         Spliterator.OfDouble spliterator = spliterator();
-        double size = spliterator.getExactSizeIfKnown();
-        DoubleBuffer buf = new DoubleBuffer(size >= 0 && size <= Integer.MAX_VALUE ? (int) size : INITIAL_SIZE);
+        int size = intSize(spliterator);
+        DoubleBuffer buf = new DoubleBuffer(size == -1 ? INITIAL_SIZE : size);
         delegate(spliterator).forEachOrdered(i -> buf.add(buf.size == 0 ? i
                 : accumulator.applyAsDouble(buf.data[buf.size - 1], i)));
         return buf.toArray();

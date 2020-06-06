@@ -129,6 +129,15 @@ public class EntryStreamTest {
         checkAsString("a->1;b->2;c->3;d->4;e->5;f->6;g->7;h->8;i->9;j->10", EntryStream.of("a", 1, "b", 2, "c", 3, "d",
             4, "e", 5, "f", 6, "g", 7, "h", 8, "i", 9, "j", 10));
     }
+    
+    @Test
+    public void testOfList() {
+        List<Entry<Integer, String>> list1 = EntryStream.of(asList("a", "b")).toList();
+        List<Entry<Integer, String>> list2 = EntryStream.of(asList("a", "c")).toList();
+        List<Entry<Integer, String>> list3 = EntryStream.of(asList("a", "b")).toList();
+        assertNotEquals(list1, list2);
+        assertEquals(list1, list3);
+    }
 
     @Test
     public void testGenerate() {

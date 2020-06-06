@@ -59,6 +59,7 @@ import static one.util.streamex.TestHelpers.streamEx;
 import static one.util.streamex.TestHelpers.withRandom;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -309,6 +310,10 @@ public class MoreCollectorsTest {
         checkCollector("10", IntStreamEx.range(10).boxed().toList(), s, MoreCollectors.least(10));
         checkCollector("100", IntStreamEx.range(100).boxed().toList(), s, MoreCollectors.least(100));
         checkCollector("200", IntStreamEx.range(100).boxed().toList(), s, MoreCollectors.least(200));
+        checkCollector("least(1)", Collections.singletonList(801), 
+            () -> IntStreamEx.range(0, 1000).filter(x -> x > 800).boxed(), MoreCollectors.least(1));
+        checkCollector("least(1)", Collections.emptyList(), 
+            () -> IntStreamEx.range(0, 1000).filter(x -> x > 1200).boxed(), MoreCollectors.least(1));
     }
 
     @Test
@@ -847,6 +852,10 @@ public class MoreCollectorsTest {
     public void testIfAllMatch() {
         assertThrows(NullPointerException.class, () -> MoreCollectors.ifAllMatch(null, Collectors.toList()));
         assertThrows(NullPointerException.class, () -> MoreCollectors.ifAllMatch(i -> true, null));
+        assertFalse(MoreCollectors.ifAllMatch(i -> true, Collectors.toList()).characteristics()
+            .contains(Characteristics.UNORDERED));
+        assertTrue(MoreCollectors.ifAllMatch(i -> true, Collectors.toSet()).characteristics()
+            .contains(Characteristics.UNORDERED));
         Supplier<Stream<Integer>> five = () -> IntStreamEx.range(5).boxed();
         checkShortCircuitCollector("ifAllMatch: all match", Optional.of(asList(0, 1, 2, 3, 4)), 5, five,
                 MoreCollectors.ifAllMatch(i -> true, Collectors.toList()));
@@ -855,8 +864,14 @@ public class MoreCollectorsTest {
         checkShortCircuitCollector("ifAllMatch: shirtCircuit downstream", Optional.of(asList(0, 1, 2)), 3, ints,
                 MoreCollectors.ifAllMatch(i -> true, MoreCollectors.head(3)), true);
 
+        checkShortCircuitCollector("ifAllMatch: shirtCircuit downstream", Optional.empty(), 4, ints,
+                MoreCollectors.ifAllMatch(i -> i < 3, MoreCollectors.head(5)), true);
+
         checkShortCircuitCollector("ifAllMatch: some match", Optional.empty(), 11, ints,
                 MoreCollectors.ifAllMatch(i -> i < 10, Collectors.toList()), true);
+
+        checkShortCircuitCollector("ifAllMatch: some match", Optional.empty(), 2, five,
+                MoreCollectors.ifAllMatch(i -> i % 2 == 0, Collectors.toList()));
 
         checkShortCircuitCollector("ifAllMatch: empty stream", Optional.of(Collections.emptyList()), 0, Stream::empty,
                 MoreCollectors.ifAllMatch(i -> true, Collectors.toList()));
