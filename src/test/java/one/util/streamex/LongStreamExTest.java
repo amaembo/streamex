@@ -162,6 +162,14 @@ public class LongStreamExTest {
         assertEquals(-1, LongStreamEx.range(Long.MIN_VALUE, Long.MAX_VALUE, 1).spliterator().getExactSizeIfKnown());
         assertEquals(-1, LongStreamEx.range(Long.MAX_VALUE, Long.MIN_VALUE, -1).spliterator().getExactSizeIfKnown());
         assertEquals(0, LongStreamEx.range(0, -1000, 1).count());
+        assertArrayEquals(new long[] {10}, LongStreamEx.rangeClosed(10, 10, 1).toArray());
+        assertArrayEquals(new long[] {10}, LongStreamEx.rangeClosed(10, 10, 2).toArray());
+        assertArrayEquals(new long[] {10}, LongStreamEx.rangeClosed(10, 11, 2).toArray());
+        assertArrayEquals(new long[] {}, LongStreamEx.rangeClosed(11, 10, 2).toArray());
+        assertArrayEquals(new long[] {10}, LongStreamEx.rangeClosed(10, 10, -1).toArray());
+        assertArrayEquals(new long[] {10}, LongStreamEx.rangeClosed(10, 10, -2).toArray());
+        assertArrayEquals(new long[] {}, LongStreamEx.rangeClosed(10, 11, -2).toArray());
+        assertArrayEquals(new long[] {11}, LongStreamEx.rangeClosed(11, 10, -2).toArray());
         assertEquals(0, LongStreamEx.range(0, 1000, -1).count());
         assertEquals(0, LongStreamEx.range(0, 0, -1).count());
         assertEquals(0, LongStreamEx.range(0, 0, 1).count());

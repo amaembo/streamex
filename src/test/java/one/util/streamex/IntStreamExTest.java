@@ -240,6 +240,14 @@ public class IntStreamExTest {
         assertEquals(0, IntStreamEx.rangeClosed(0, 1000, -2).count());
         assertEquals(0, IntStreamEx.rangeClosed(0, 1, -2).count());
         assertEquals(0, IntStreamEx.rangeClosed(0, -1, 2).count());
+        assertArrayEquals(new int[] {10}, IntStreamEx.rangeClosed(10, 10, 1).toArray());
+        assertArrayEquals(new int[] {10}, IntStreamEx.rangeClosed(10, 10, 2).toArray());
+        assertArrayEquals(new int[] {10}, IntStreamEx.rangeClosed(10, 11, 2).toArray());
+        assertArrayEquals(new int[] {}, IntStreamEx.rangeClosed(11, 10, 2).toArray());
+        assertArrayEquals(new int[] {10}, IntStreamEx.rangeClosed(10, 10, -1).toArray());
+        assertArrayEquals(new int[] {10}, IntStreamEx.rangeClosed(10, 10, -2).toArray());
+        assertArrayEquals(new int[] {}, IntStreamEx.rangeClosed(10, 11, -2).toArray());
+        assertArrayEquals(new int[] {11}, IntStreamEx.rangeClosed(11, 10, -2).toArray());
 
         assertThrows(ArrayIndexOutOfBoundsException.class, () -> IntStreamEx.of(EVEN_BYTES, -1, 3).findAny());
         assertThrows(ArrayIndexOutOfBoundsException.class, () -> IntStreamEx.of(EVEN_BYTES, 3, 1).findAny());

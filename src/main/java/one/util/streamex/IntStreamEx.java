@@ -2599,7 +2599,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * Returns a sequential ordered {@code IntStreamEx} from
      * {@code startInclusive} (inclusive) to {@code endInclusive} (inclusive) by
      * the specified incremental step. The negative step values are also
-     * supported. In this case the {@code startInclusive} should be greater than
+     * supported. In this case, the {@code startInclusive} should be not less than
      * {@code endInclusive}.
      * 
      * <p>
@@ -2613,7 +2613,9 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @param step the non-zero value which designates the difference between
      *        the consecutive values of the resulting stream.
      * @return a sequential {@code IntStreamEx} for the range of {@code int}
-     *         elements
+     *         elements; an empty stream if startInclusive is greater than endInclusive
+     *         for positive step, or if startInclusive is less than endInclusive
+     *         for negative step.
      * @throws IllegalArgumentException if step is zero
      * @see IntStreamEx#rangeClosed(int, int)
      * @since 0.4.0
@@ -2621,6 +2623,8 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
     public static IntStreamEx rangeClosed(int startInclusive, int endInclusive, int step) {
         if (step == 0)
             throw new IllegalArgumentException("step = 0");
+        if (endInclusive == startInclusive)
+            return IntStreamEx.of(startInclusive);
         if (step == 1)
             return seq(IntStream.rangeClosed(startInclusive, endInclusive));
         if (step == -1) {
@@ -2629,7 +2633,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
             int sum = endInclusive + startInclusive;
             return seq(IntStream.rangeClosed(endInclusive, startInclusive).map(x -> sum - x));
         }
-        if (endInclusive > startInclusive ^ step > 0)
+        if ((endInclusive > startInclusive) != (step > 0))
             return empty();
         int limit = (endInclusive - startInclusive) * Integer.signum(step);
         limit = Integer.divideUnsigned(limit, Math.abs(step));
