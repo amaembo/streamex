@@ -25,7 +25,8 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-import static one.util.streamex.Internals.*;
+import static one.util.streamex.Internals.CancelException;
+import static one.util.streamex.Internals.CloneableSpliterator;
 
 /**
  * @author Tagir Valeev

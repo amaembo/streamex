@@ -15,19 +15,18 @@
  */
 package one.util.streamex;
 
-import static one.util.streamex.TestHelpers.*;
-import static org.junit.Assert.*;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Spliterator;
 
-import one.util.streamex.CrossSpliterator;
-import one.util.streamex.IntStreamEx;
-
 import org.junit.Test;
+
+import static one.util.streamex.TestHelpers.checkSpliterator;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Tagir Valeev

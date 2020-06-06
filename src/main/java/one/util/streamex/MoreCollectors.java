@@ -28,10 +28,10 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.OptionalInt;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -49,7 +49,23 @@ import java.util.stream.Collector.Characteristics;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static one.util.streamex.Internals.*;
+import static one.util.streamex.Internals.BooleanMap;
+import static one.util.streamex.Internals.Box;
+import static one.util.streamex.Internals.CancelException;
+import static one.util.streamex.Internals.CancellableCollectorImpl;
+import static one.util.streamex.Internals.ID_CHARACTERISTICS;
+import static one.util.streamex.Internals.NONE;
+import static one.util.streamex.Internals.NO_CHARACTERISTICS;
+import static one.util.streamex.Internals.ObjIntBox;
+import static one.util.streamex.Internals.PairBox;
+import static one.util.streamex.Internals.PartialCollector;
+import static one.util.streamex.Internals.PrimitiveBox;
+import static one.util.streamex.Internals.UNORDERED_CHARACTERISTICS;
+import static one.util.streamex.Internals.UNORDERED_ID_CHARACTERISTICS;
+import static one.util.streamex.Internals.alwaysTrue;
+import static one.util.streamex.Internals.finished;
+import static one.util.streamex.Internals.none;
+import static one.util.streamex.Internals.selectFirst;
 
 /**
  * Implementations of several collectors in addition to ones available in JDK.
@@ -197,7 +213,7 @@ public final class MoreCollectors {
      */
     public static <T> Collector<T, ?, List<T>> distinctBy(Function<? super T, ?> mapper) {
         Objects.requireNonNull(mapper);
-        return Collector.<T, Map<Object, T>, List<T>> of(LinkedHashMap::new, (map, t) -> map.putIfAbsent(mapper.apply(
+        return Collector.<T, Map<Object, T>, List<T>>of(LinkedHashMap::new, (map, t) -> map.putIfAbsent(mapper.apply(
             t), t), (m1, m2) -> {
                 for (Entry<Object, T> e : m2.entrySet()) {
                     m1.putIfAbsent(e.getKey(), e.getValue());

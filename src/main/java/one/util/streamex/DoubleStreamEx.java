@@ -16,14 +16,49 @@
 package one.util.streamex;
 
 import java.nio.Buffer;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.DoubleSummaryStatistics;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.OptionalDouble;
+import java.util.OptionalLong;
+import java.util.PrimitiveIterator;
 import java.util.PrimitiveIterator.OfDouble;
+import java.util.Random;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.concurrent.ForkJoinPool;
-import java.util.function.*;
-import java.util.stream.*;
+import java.util.function.BiConsumer;
+import java.util.function.DoubleBinaryOperator;
+import java.util.function.DoubleConsumer;
+import java.util.function.DoubleFunction;
+import java.util.function.DoublePredicate;
+import java.util.function.DoubleSupplier;
+import java.util.function.DoubleToIntFunction;
+import java.util.function.DoubleToLongFunction;
+import java.util.function.DoubleUnaryOperator;
+import java.util.function.Function;
+import java.util.function.ObjDoubleConsumer;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.stream.Collector;
+import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
-import static one.util.streamex.Internals.*;
+import static one.util.streamex.Internals.Box;
+import static one.util.streamex.Internals.DoubleBuffer;
+import static one.util.streamex.Internals.FloatBuffer;
+import static one.util.streamex.Internals.INITIAL_SIZE;
+import static one.util.streamex.Internals.ObjDoubleBox;
+import static one.util.streamex.Internals.PrimitiveBox;
+import static one.util.streamex.Internals.checkLength;
+import static one.util.streamex.Internals.rangeCheck;
 
 /**
  * A {@link DoubleStream} implementation with additional functionality

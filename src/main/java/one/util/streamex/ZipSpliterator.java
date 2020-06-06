@@ -20,8 +20,11 @@ import java.util.Spliterators;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-import static one.util.streamex.UnknownSizeSpliterator.*;
-import static one.util.streamex.Internals.*;
+import static one.util.streamex.Internals.Box;
+import static one.util.streamex.Internals.drainTo;
+import static one.util.streamex.UnknownSizeSpliterator.BATCH_UNIT;
+import static one.util.streamex.UnknownSizeSpliterator.MAX_BATCH;
+import static one.util.streamex.UnknownSizeSpliterator.USOfRef;
 
 /**
  * @author Tagir Valeev

@@ -15,14 +15,14 @@
  */
 package one.util.streamex;
 
-import static one.util.streamex.TestHelpers.*;
-
 import java.util.List;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.Supplier;
 
 import org.junit.Test;
+
+import static one.util.streamex.TestHelpers.checkSpliterator;
 
 /**
  * @author Tagir Valeev

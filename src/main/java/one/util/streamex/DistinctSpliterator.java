@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
-import static one.util.streamex.Internals.*;
+import static one.util.streamex.Internals.Box;
 
 /* package */final class DistinctSpliterator<T> extends Box<T> implements Spliterator<T> {
     private final Spliterator<T> source;

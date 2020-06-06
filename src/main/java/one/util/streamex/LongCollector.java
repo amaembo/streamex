@@ -33,7 +33,16 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
-import static one.util.streamex.Internals.*;
+import static one.util.streamex.Internals.AverageLong;
+import static one.util.streamex.Internals.BooleanMap;
+import static one.util.streamex.Internals.Box;
+import static one.util.streamex.Internals.ID_CHARACTERISTICS;
+import static one.util.streamex.Internals.LongBuffer;
+import static one.util.streamex.Internals.LongCollectorImpl;
+import static one.util.streamex.Internals.NO_CHARACTERISTICS;
+import static one.util.streamex.Internals.PartialCollector;
+import static one.util.streamex.Internals.PrimitiveBox;
+import static one.util.streamex.Internals.UNBOX_LONG;
 
 /**
  * A {@link Collector} specialized to work with primitive {@code long}.

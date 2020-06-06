@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 
 import org.junit.Test;
 
-import static one.util.streamex.TestHelpers.*;
+import static one.util.streamex.TestHelpers.checkSpliterator;
 
 /**
  * @author Tagir Valeev

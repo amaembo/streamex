@@ -15,12 +15,6 @@
  */
 package one.util.streamex;
 
-import one.util.streamex.Internals.BooleanMap;
-
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.AbstractMap;
@@ -49,6 +43,12 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
+
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
+
+import one.util.streamex.Internals.BooleanMap;
 
 import static java.util.Arrays.asList;
 import static one.util.streamex.TestHelpers.assertThrows;
@@ -341,7 +341,7 @@ public class MoreCollectorsTest {
 
     @Test
     public void testGroupingByEnum() {
-        assertThrows(NullPointerException.class, () -> MoreCollectors.groupingByEnum((Class<TimeUnit>)null,
+        assertThrows(NullPointerException.class, () -> MoreCollectors.groupingByEnum((Class<TimeUnit>) null,
             Function.identity(), Collectors.toList()));
         assertThrows(NullPointerException.class, () -> MoreCollectors.groupingByEnum(TimeUnit.class,
             null, Collectors.toList()));

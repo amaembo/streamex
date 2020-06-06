@@ -15,13 +15,53 @@
  */
 package one.util.streamex;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.OptionalLong;
+import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.concurrent.ForkJoinPool;
-import java.util.function.*;
-import java.util.stream.*;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.IntFunction;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.function.ToDoubleFunction;
+import java.util.function.ToIntFunction;
+import java.util.function.ToLongFunction;
+import java.util.stream.Collector;
 import java.util.stream.Collector.Characteristics;
+import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
-import static one.util.streamex.Internals.*;
+import static one.util.streamex.Internals.ArrayCollection;
+import static one.util.streamex.Internals.Box;
+import static one.util.streamex.Internals.CancelException;
+import static one.util.streamex.Internals.CancellableCollectorImpl;
+import static one.util.streamex.Internals.NONE;
+import static one.util.streamex.Internals.NO_CHARACTERISTICS;
+import static one.util.streamex.Internals.ObjDoubleBox;
+import static one.util.streamex.Internals.ObjIntBox;
+import static one.util.streamex.Internals.ObjLongBox;
+import static one.util.streamex.Internals.PairBox;
+import static one.util.streamex.Internals.finished;
+import static one.util.streamex.Internals.none;
 
 /**
  * Base class providing common functionality for {@link StreamEx} and {@link EntryStream}.

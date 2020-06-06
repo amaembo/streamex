@@ -26,7 +26,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import static one.util.streamex.Internals.*;
+import static one.util.streamex.Internals.CloneableSpliterator;
+import static one.util.streamex.Internals.ObjIntBox;
+import static one.util.streamex.Internals.PairBox;
 
 /**
  * @author Tagir Valeev

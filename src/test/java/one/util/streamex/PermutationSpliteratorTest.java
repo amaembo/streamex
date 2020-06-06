@@ -22,8 +22,12 @@ import java.util.Spliterator;
 
 import org.junit.Test;
 
-import static one.util.streamex.TestHelpers.*;
-import static org.junit.Assert.*;
+import static one.util.streamex.TestHelpers.repeat;
+import static one.util.streamex.TestHelpers.withRandom;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 public class PermutationSpliteratorTest {
     private static final String PERMUTATIONS_4 = "0123,0132,0213,0231,0312,0321," + "1023,1032,1203,1230,1302,1320,"

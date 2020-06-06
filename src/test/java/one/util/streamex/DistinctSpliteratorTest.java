@@ -21,12 +21,11 @@ import java.util.Set;
 import java.util.Spliterator;
 import java.util.stream.IntStream;
 
-import one.util.streamex.DistinctSpliterator;
-
 import org.junit.Test;
 
-import static one.util.streamex.TestHelpers.*;
-import static org.junit.Assert.*;
+import static one.util.streamex.TestHelpers.checkSpliterator;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Tagir Valeev

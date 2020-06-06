@@ -16,13 +16,13 @@
 
 package one.util.streamex;
 
-import org.junit.Test;
-
 import java.util.List;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.StreamSupport;
+
+import org.junit.Test;
 
 import static one.util.streamex.TestHelpers.checkSpliterator;
 import static org.junit.Assert.assertEquals;

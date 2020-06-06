@@ -15,8 +15,6 @@
  */
 package one.util.streamex;
 
-import static org.junit.Assert.*;
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Queue;
@@ -25,6 +23,11 @@ import java.util.Spliterators;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * @author Tagir Valeev
