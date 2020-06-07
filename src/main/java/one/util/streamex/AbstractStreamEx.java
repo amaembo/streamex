@@ -1205,7 +1205,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
 
     /**
      * Returns a stream which contents is the same as this stream, except the case when
-     * this stream is empty. In this case its contents is replaced with other stream contents.
+     * this stream is empty. In this case, its contents is replaced with other stream contents.
      *
      * <p>
      * The other stream will not be traversed if this stream is not empty.

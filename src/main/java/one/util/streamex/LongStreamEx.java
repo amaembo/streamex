@@ -1979,7 +1979,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * Returns a sequential ordered {@code LongStreamEx} from
      * {@code startInclusive} (inclusive) to {@code endExclusive} (exclusive) by
      * the specified incremental step. The negative step values are also
-     * supported. In this case the {@code startInclusive} should be greater than
+     * supported. In this case, the {@code startInclusive} should be greater than
      * {@code endExclusive}.
      *
      * @param startInclusive the (inclusive) initial value

@@ -2561,7 +2561,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * Returns a sequential ordered {@code IntStreamEx} from
      * {@code startInclusive} (inclusive) to {@code endExclusive} (exclusive) by
      * the specified incremental step. The negative step values are also
-     * supported. In this case the {@code startInclusive} should be greater than
+     * supported. In this case, the {@code startInclusive} should be greater than
      * {@code endExclusive}.
      *
      * @param startInclusive the (inclusive) initial value

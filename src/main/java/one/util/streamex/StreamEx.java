@@ -1405,7 +1405,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
 
     /**
      * Returns a stream which contents is the same as this stream, except the case when
-     * this stream is empty. In this case its contents is replaced with supplied values.
+     * this stream is empty. In this case, its contents is replaced with supplied values.
      *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
@@ -1653,7 +1653,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * <p>
      * Note that this operation always tests the adjacent pairs of input
      * elements. In some scenarios it's desired to test every element with the
-     * first element of the current series. In this case consider using
+     * first element of the current series. In this case, consider using
      * {@link MoreCollectors#dominators(BiPredicate)} collector instead.
      * 
      * <p>
