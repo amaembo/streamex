@@ -1983,7 +1983,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * {@code endExclusive}.
      *
      * @param startInclusive the (inclusive) initial value
-     * @param endExclusive the exclusive upper bound
+     * @param endExclusive the exclusive upper (for positive step) or lower (for negative step) bound
      * @param step the non-zero value which designates the difference between
      *        the consecutive values of the resulting stream.
      * @return a sequential {@code LongStreamEx} for the range of {@code long}
@@ -2028,7 +2028,7 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * numbers: 0L, 2L and 4L.
      *
      * @param startInclusive the (inclusive) initial value
-     * @param endInclusive the inclusive upper bound
+     * @param endInclusive the inclusive upper (for positive step) or lower (for negative step) bound
      * @param step the non-zero value which designates the difference between
      *        the consecutive values of the resulting stream.
      * @return a sequential {@code LongStreamEx} for the range of {@code long}

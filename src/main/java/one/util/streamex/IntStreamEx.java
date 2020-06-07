@@ -2565,7 +2565,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * {@code endExclusive}.
      *
      * @param startInclusive the (inclusive) initial value
-     * @param endExclusive the exclusive upper bound
+     * @param endExclusive the exclusive upper (for positive step) or lower (for negative step) bound
      * @param step the non-zero value which designates the difference between
      *        the consecutive values of the resulting stream.
      * @return a sequential {@code IntStreamEx} for the range of {@code int}
@@ -2610,7 +2610,7 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * numbers: 0, 2 and 4.
      *
      * @param startInclusive the (inclusive) initial value
-     * @param endInclusive the inclusive upper bound
+     * @param endInclusive the inclusive upper (for positive step) or lower (for negative step) bound
      * @param step the non-zero value which designates the difference between
      *        the consecutive values of the resulting stream.
      * @return a sequential {@code IntStreamEx} for the range of {@code int}
