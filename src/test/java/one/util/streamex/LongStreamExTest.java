@@ -46,6 +46,7 @@ import org.junit.runners.MethodSorters;
 
 import static one.util.streamex.TestHelpers.assertThrows;
 import static one.util.streamex.TestHelpers.checkSpliterator;
+import static one.util.streamex.TestHelpers.streamEx;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -286,6 +287,13 @@ public class LongStreamExTest {
         List<Long> list = new ArrayList<>();
         LongStreamEx.of(1).forEach(list::add);
         assertEquals(Arrays.asList(1L), list);
+        streamEx(() -> StreamEx.of(1L, 2L, 3L), s -> {
+            AtomicLong count = new AtomicLong(0);
+            s.get().mapToLong(Long::longValue).forEach(count::addAndGet);
+            assertEquals(6, count.get());
+            s.get().mapToLong(Long::longValue).pairMap((a, b) -> b - a).forEach(count::addAndGet);
+            assertEquals(8, count.get());
+        });
     }
 
     @Test

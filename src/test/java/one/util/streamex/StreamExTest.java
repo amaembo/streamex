@@ -1439,6 +1439,24 @@ public class StreamExTest {
         assertThrows(UnsupportedOperationException.class, () ->
                 StreamEx.of("1", "1", "1").runLengths().forEach(e -> e.setValue(5L)));
     }
+    
+    @SuppressWarnings("SimplifiableAssertion")
+    @Test
+    public void testRunLengthsEntries() {
+        // runLengths produces custom entries (ObjLongBox), so let's test their equals/hashCode contract
+        List<Entry<String, Long>> runLengths = StreamEx.of("a", "a", "b", "b", "a", "a", "a").runLengths().toList();
+        assertTrue(runLengths.get(0).equals(new AbstractMap.SimpleImmutableEntry<>("a", 2L)));
+        assertTrue(runLengths.get(1).equals(new AbstractMap.SimpleImmutableEntry<>("b", 2L)));
+        assertTrue(runLengths.get(2).equals(new AbstractMap.SimpleImmutableEntry<>("a", 3L)));
+        assertEquals(runLengths.get(0).hashCode(), new AbstractMap.SimpleImmutableEntry<>("a", 2L).hashCode());
+        assertEquals(runLengths.get(1).hashCode(), new AbstractMap.SimpleImmutableEntry<>("b", 2L).hashCode());
+        assertEquals(runLengths.get(2).hashCode(), new AbstractMap.SimpleImmutableEntry<>("a", 3L).hashCode());
+        assertTrue(new AbstractMap.SimpleImmutableEntry<>("a", 2L).equals(runLengths.get(0)));
+        assertTrue(new AbstractMap.SimpleImmutableEntry<>("b", 2L).equals(runLengths.get(1)));
+        assertTrue(new AbstractMap.SimpleImmutableEntry<>("a", 3L).equals(runLengths.get(2)));
+        assertNotEquals(runLengths.get(0), runLengths.get(1));
+        assertNotEquals(runLengths.get(0), runLengths.get(2));
+    }
 
     @Test
     public void testRunLengthsSorted() {
@@ -2185,6 +2203,7 @@ public class StreamExTest {
 
         assertThrows(IllegalArgumentException.class, () -> StreamEx.ofCombinations(-1, 0));
         assertThrows(IllegalArgumentException.class, () -> StreamEx.ofCombinations(0, -1));
+        assertThrows(UnsupportedOperationException.class, () -> StreamEx.ofCombinations(1000, 500));
     }
 
     @Test

@@ -617,6 +617,12 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
+    /**
+     * A box of two elements with special equality semantics: only the second element matters for equality.
+     * 
+     * @param <A> type of the first element
+     * @param <B> type of the second element
+     */
     final class PairBox<A, B> extends Box<A> {
         B b;
 

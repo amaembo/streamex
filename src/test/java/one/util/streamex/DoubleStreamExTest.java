@@ -46,6 +46,7 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import static one.util.streamex.TestHelpers.checkSpliterator;
+import static one.util.streamex.TestHelpers.streamEx;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -176,6 +177,17 @@ public class DoubleStreamExTest {
         assertEquals(2.0, iterator.next(), 0.0);
         assertEquals(3.0, iterator.next(), 0.0);
         assertFalse(iterator.hasNext());
+    }
+
+    @Test
+    public void testForEach() {
+        streamEx(() -> StreamEx.of(1, 2, 3), s -> {
+            AtomicInteger count = new AtomicInteger(0);
+            s.get().mapToDouble(Integer::intValue).forEach(v -> count.addAndGet((int) v));
+            assertEquals(6, count.get());
+            s.get().mapToDouble(Integer::intValue).pairMap((a, b) -> b - a).forEach(v -> count.addAndGet((int) v));
+            assertEquals(8, count.get());
+        });
     }
 
     @Test
@@ -348,6 +360,9 @@ public class DoubleStreamExTest {
         assertArrayEquals(expected, IntStreamEx.range(0, 10000).asDoubleStream().greater(-1).toFloatArray(), 0.0f);
         assertArrayEquals(expected, IntStreamEx.range(0, 10000).asDoubleStream().parallel().greater(-1).toFloatArray(),
             0.0f);
+        // Test when resize of internal buffer is not required on addAll (buffer size = 128)
+        assertArrayEquals(Arrays.copyOf(expected, 100), 
+            IntStreamEx.range(0, 100).asDoubleStream().parallel().toFloatArray(), 0.0f);
     }
 
     @Test

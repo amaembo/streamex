@@ -22,11 +22,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import one.util.streamex.Internals.PairBox;
 import org.junit.Test;
 
 import static one.util.streamex.Internals.ArrayCollection;
 import static one.util.streamex.Internals.PartialCollector;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -54,5 +57,20 @@ public class InternalsTest {
     @Test(expected = UnsupportedOperationException.class)
     public void testPartialCollector() {
         PartialCollector.intSum().accumulator();
+    }
+    
+    @SuppressWarnings({"SimplifiableAssertion", "EqualsBetweenInconvertibleTypes"})
+    @Test
+    public void testPairBoxEquals() {
+        PairBox<Integer, Integer> boxOneTwo = new PairBox<>(1, 2);
+        PairBox<Integer, Integer> boxTwoTwo = new PairBox<>(2, 2);
+        PairBox<Integer, Integer> boxTwoOne = new PairBox<>(2, 1);
+        PairBox<Integer, Integer> boxOneOne = new PairBox<>(1, 1);
+        assertFalse(boxOneOne.equals(null));
+        assertFalse(boxOneOne.equals(""));
+        assertEquals(boxOneTwo, boxTwoTwo);
+        assertNotEquals(boxOneTwo, boxTwoOne);
+        assertNotEquals(boxOneTwo, boxOneOne);
+        assertEquals(boxTwoOne, boxOneOne);
     }
 }

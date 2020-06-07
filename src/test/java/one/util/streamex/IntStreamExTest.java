@@ -319,6 +319,17 @@ public class IntStreamExTest {
         assertFalse(IntStreamEx.of(1).noneMatch(x -> true));
         assertTrue(IntStreamEx.of(1).noneMatch(x -> false));
     }
+    
+    @Test
+    public void testForEach() {
+        streamEx(() -> StreamEx.of(1, 2, 3), s -> {
+            AtomicInteger count = new AtomicInteger(0);
+            s.get().mapToInt(Integer::intValue).forEach(count::addAndGet);
+            assertEquals(6, count.get());
+            s.get().mapToInt(Integer::intValue).pairMap((a, b) -> b - a).forEach(count::addAndGet);
+            assertEquals(8, count.get());
+        });
+    }
 
     @Test
     public void testFlatMap() {
@@ -536,6 +547,8 @@ public class IntStreamExTest {
         assertArrayEquals(expected, IntStreamEx.range(0, 10000).parallel().toByteArray());
         assertArrayEquals(expected, IntStreamEx.range(0, 10000).greater(-1).toByteArray());
         assertArrayEquals(expected, IntStreamEx.range(0, 10000).parallel().greater(-1).toByteArray());
+        // Test when resize of internal buffer is not required on addAll (buffer size = 128)
+        assertArrayEquals(Arrays.copyOf(expected, 100), IntStreamEx.range(0, 100).parallel().toByteArray());
     }
 
     @Test
@@ -547,6 +560,8 @@ public class IntStreamExTest {
         assertArrayEquals(expected, IntStreamEx.range(0, 10000).parallel().toCharArray());
         assertArrayEquals(expected, IntStreamEx.range(0, 10000).greater(-1).toCharArray());
         assertArrayEquals(expected, IntStreamEx.range(0, 10000).parallel().greater(-1).toCharArray());
+        // Test when resize of internal buffer is not required on addAll (buffer size = 128)
+        assertArrayEquals(Arrays.copyOf(expected, 100), IntStreamEx.range(0, 100).parallel().toCharArray());
     }
 
     @Test
@@ -558,6 +573,8 @@ public class IntStreamExTest {
         assertArrayEquals(expected, IntStreamEx.range(0, 10000).parallel().toShortArray());
         assertArrayEquals(expected, IntStreamEx.range(0, 10000).greater(-1).toShortArray());
         assertArrayEquals(expected, IntStreamEx.range(0, 10000).parallel().greater(-1).toShortArray());
+        // Test when resize of internal buffer is not required on addAll (buffer size = 128)
+        assertArrayEquals(Arrays.copyOf(expected, 100), IntStreamEx.range(0, 100).parallel().toShortArray());
     }
 
     @Test
