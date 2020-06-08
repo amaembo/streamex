@@ -1699,6 +1699,50 @@ public class StreamExTest {
 
         assertEquals(asList(Collections.emptyList()), StreamEx.cartesianProduct(Collections.emptyList()).toList());
         assertEquals(asList(Collections.emptyList()), StreamEx.cartesianPower(0, asList(1, 2, 3)).toList());
+        streamEx(() -> StreamEx.cartesianPower(3, new NoSplittingList()),
+            s -> assertEquals(125, s.get().filter(x -> true).count()));
+    }
+    
+    private static class NoSplittingList extends AbstractList<String> {
+        @Override
+        public String get(int index) {
+            return "foo";
+        }
+
+        @Override
+        public Spliterator<String> spliterator() {
+            return new Spliterator<String>() {
+                int pos = size();
+                
+                @Override
+                public boolean tryAdvance(Consumer<? super String> action) {
+                    if (pos <= 0) return false;
+                    pos--;
+                    action.accept("foo");
+                    return true;
+                }
+
+                @Override
+                public Spliterator<String> trySplit() {
+                    return null;
+                }
+
+                @Override
+                public long estimateSize() {
+                    return size();
+                }
+
+                @Override
+                public int characteristics() {
+                    return SIZED;
+                }
+            };
+        }
+
+        @Override
+        public int size() {
+            return 5;
+        }
     }
 
     @Test

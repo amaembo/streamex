@@ -379,6 +379,7 @@ public class EntryStreamTest {
             checkIllegalStateException(() -> fn.apply(supplier).toSortedMap(), "2", "dd", "bb");
             checkIllegalStateException(() -> fn.apply(supplier).toNavigableMap(), "2", "dd", "bb");
             checkIllegalStateException(() -> fn.apply(supplier).toCustomMap(HashMap::new), "2", "dd", "bb");
+            checkIllegalStateException(() -> fn.apply(supplier).toCustomMap(ConcurrentHashMap::new), "2", "dd", "bb");
         });
 
         assertEquals(createMap(), EntryStream.of(createMap()).parallel().toMap());
@@ -555,6 +556,9 @@ public class EntryStreamTest {
             ConcurrentSkipListMap<Integer, Integer> map = supplier.get().mapToEntry(i -> i / 500, i -> i).grouping(
                 ConcurrentSkipListMap::new, MoreCollectors.countingInt());
             assertEquals(EntryStream.of(0, 500, 1, 500).toMap(), map);
+            Map<Integer, Integer> map2 = supplier.get().mapToEntry(i -> i / 500, i -> i).grouping(
+                TreeMap::new, MoreCollectors.countingInt());
+            assertEquals(map, map2);
         });
     }
 
