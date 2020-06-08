@@ -33,6 +33,8 @@ import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -589,6 +591,65 @@ public class MoreCollectorsTest {
         checkShortCircuitCollector("toEnumSet", expected, 100, enumValues::stream, MoreCollectors
                 .toEnumSet(TimeUnit.class));
         checkCollectorEmpty("Empty", EnumSet.noneOf(TimeUnit.class), MoreCollectors.toEnumSet(TimeUnit.class));
+    }
+
+    @Test
+    public void testToMap() {
+        assertThrows(IllegalStateException.class, () ->
+                EntryStream.generate(() -> "a", () -> 1).limit(10).collect(MoreCollectors.toMap()));
+
+        assertThrows(NullPointerException.class, () -> MoreCollectors.toMap(null, null));
+
+        {
+            Map<Integer, String> expected = EntryStream.of(1, "*", 2, "**", 3, "***", 4, "****")
+                    .collect(MoreCollectors.toMap());
+            checkCollector("toMap", expected, expected.entrySet()::stream, MoreCollectors.toMap());
+        }
+
+        final Map<Integer, String> expected = new HashMap<>();
+        expected.put(1, "one");
+        expected.put(2, "two");
+        expected.put(3, "three");
+        expected.put(4, "four");
+        expected.put(5, "five");
+
+        checkCollector("toMap", expected, expected.entrySet()::stream, MoreCollectors.toMap());
+        streamEx(expected.entrySet()::stream, supplier -> {
+            Map<Integer, String> result = supplier.get().collect(MoreCollectors.toMap());
+            assertEquals("one", result.get(1));
+            assertEquals("two", result.get(2));
+            assertEquals("three", result.get(3));
+            assertEquals("four", result.get(4));
+            assertEquals("five", result.get(5));
+        });
+
+        checkCollectorEmpty("Empty", Collections.emptyMap(), MoreCollectors.toMap());
+
+        /*streamEx(EntryStream.of(1, "*", 2, "**", 3, "***", 4, "****")::stream, supplier -> {
+            Map<Integer, String> result = supplier.get().collect(MoreCollectors.toMap());
+            assertEquals("*", result.get(1));
+            assertEquals("**", result.get(2));
+            assertEquals("***", result.get(3));
+            assertEquals("****", result.get(4));
+        });*/
+    }
+
+    @Test
+    public void toConcurrentMap() {
+        final ConcurrentMap<Integer, String> expected = new ConcurrentHashMap<>();
+        expected.put(0, "zero");
+        expected.put(1, "one");
+        expected.put(2, "two");
+        expected.put(3, "three");
+        expected.put(4, "four");
+        expected.put(5, "five");
+        expected.put(6, "six");
+        expected.put(7, "seven");
+        expected.put(8, "eight");
+        expected.put(9, "nine");
+        expected.put(10, "ten");
+        checkCollector("toConcurrentMap", expected, expected.entrySet()::stream,
+                MoreCollectors.toConcurrentMap());
     }
 
     @Test
