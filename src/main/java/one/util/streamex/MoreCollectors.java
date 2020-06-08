@@ -34,6 +34,7 @@ import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
@@ -167,6 +168,61 @@ public final class MoreCollectors {
             return s1;
         }, Function.identity(), set -> set.size() == size, UNORDERED_ID_CHARACTERISTICS);
     }
+
+
+    public static <K, V> Collector<Entry<K, V>, ?, Map<K, V>> toMap() {
+        return Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue);
+    }
+
+    public static <K, V> Collector<Entry<K, V>, ?, ConcurrentMap<K, V>> toConcurrentMap() {
+        return Collectors.toConcurrentMap(Map.Entry::getKey, Map.Entry::getValue);
+    }
+
+    public static <K, V> Collector<Entry<K, V>, ?, Map<K, V>> toMap(
+            BinaryOperator<V> combiner) {
+
+        return Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, combiner);
+    }
+
+    public static <K, V, VV> Collector<Entry<K, V>, ?, Map<K, VV>> toMap(
+            Function<V, VV> valueMapper) {
+
+        return null;
+    }
+
+    public static <K, V, VV> Collector<Entry<K, V>, ?, Map<K, VV>> toMap(
+            Function<V, VV> valueMapper, BinaryOperator<VV> combiner) {
+
+        Objects.requireNonNull(valueMapper);
+        return null;
+    }
+
+    public static <K, V, M extends Map<K, V>> Collector<Entry<K, V>, ?, M> toCustomMap(
+            Supplier<M> mapSupplier) {
+
+        return null;
+    }
+
+    public static <K, V, VV, M extends Map<K, VV>> Collector<Entry<K, V>, ?, M> toCustomMap(
+            Function<V, VV> valueMapper, Supplier<M> mapSupplier) {
+
+        Objects.requireNonNull(valueMapper);
+        return null;
+    }
+
+    public static <K, V, M extends Map<K, V>> Collector<Entry<K, V>, ?, M> toCustomMap(
+            BinaryOperator<V> combiner, Supplier<M> mapSupplier) {
+
+        return null;
+    }
+
+    public static <K, V, VV, M extends Map<K, VV>> Collector<Entry<K, V>, ?, M> toCustomMap(
+            Function<V, VV> valueMapper, BinaryOperator<VV> combiner, Supplier<M> mapSupplier) {
+
+        Objects.requireNonNull(valueMapper);
+        return null;
+    }
+
 
     /**
      * Returns a {@code Collector} which counts a number of distinct values the
