@@ -45,6 +45,7 @@ import java.util.stream.Stream;
 import org.junit.Test;
 
 import static java.util.Arrays.asList;
+import static one.util.streamex.TestHelpers.consumeElement;
 import static one.util.streamex.TestHelpers.emptyStreamEx;
 import static one.util.streamex.TestHelpers.repeat;
 import static one.util.streamex.TestHelpers.streamEx;
@@ -572,13 +573,13 @@ public class StreamExHeadTailTest {
         Spliterator<Integer> spltr = map(StreamEx.of(1, 2, 3, 4), x -> x * 2).spliterator();
         assertTrue(spltr.hasCharacteristics(Spliterator.ORDERED));
         assertEquals(4, spltr.estimateSize());
-        assertTrue(spltr.tryAdvance(x -> assertEquals(2, (int) x)));
+        consumeElement(spltr, 2);
         assertEquals(3, spltr.estimateSize());
-        assertTrue(spltr.tryAdvance(x -> assertEquals(4, (int) x)));
+        consumeElement(spltr, 4);
         assertEquals(2, spltr.estimateSize());
-        assertTrue(spltr.tryAdvance(x -> assertEquals(6, (int) x)));
+        consumeElement(spltr, 6);
         assertEquals(1, spltr.estimateSize());
-        assertTrue(spltr.tryAdvance(x -> assertEquals(8, (int) x)));
+        consumeElement(spltr, 8);
         assertFalse(spltr.tryAdvance(x -> fail("Should not be called")));
         assertEquals(0, spltr.estimateSize());
     }

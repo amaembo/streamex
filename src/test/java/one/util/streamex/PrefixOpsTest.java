@@ -20,18 +20,17 @@ import java.util.Spliterator;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import static one.util.streamex.TestHelpers.consumeElement;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 public class PrefixOpsTest {
   @Test
   public void testNoSplitAfterAdvance() {
     Spliterator<Integer> spliterator = IntStreamEx.range(100).boxed().unordered().prefix(Integer::sum).spliterator();
-    assertTrue(spliterator.tryAdvance(i -> assertEquals((int) i, 0)));
-    assertTrue(spliterator.tryAdvance(i -> assertEquals((int) i, 1)));
-    assertTrue(spliterator.tryAdvance(i -> assertEquals((int) i, 3)));
-    assertTrue(spliterator.tryAdvance(i -> assertEquals((int) i, 6)));
+    consumeElement(spliterator, 0);
+    consumeElement(spliterator, 1);
+    consumeElement(spliterator, 3);
+    consumeElement(spliterator, 6);
     assertNull(spliterator.trySplit());
   }
 }

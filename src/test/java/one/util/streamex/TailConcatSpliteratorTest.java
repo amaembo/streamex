@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 
 import org.junit.Test;
 
+import static one.util.streamex.TestHelpers.consumeElement;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -67,8 +68,8 @@ public class TailConcatSpliteratorTest {
         spltr = new TailConcatSpliterator<>(q.spliterator(), q.spliterator());
         q.add(1);
         assertFalse(longSpltr.hasCharacteristics(Spliterator.SIZED));
-        assertTrue(spltr.tryAdvance(x -> assertEquals(1, (int) x)));
-        assertTrue(spltr.tryAdvance(x -> assertEquals(1, (int) x)));
+        consumeElement(spltr, 1);
+        consumeElement(spltr, 1);
         assertFalse(spltr.tryAdvance(x -> fail("Should not happen")));
     }
 }

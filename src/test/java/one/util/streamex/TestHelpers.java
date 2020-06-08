@@ -412,6 +412,15 @@ public class TestHelpers {
         });
     }
 
+    static <T> void consumeElement(Spliterator<T> spliterator, T element) {
+        boolean[] consumed = {false};
+        assertTrue(spliterator.tryAdvance(x -> {
+            assertEquals(element, x);
+            consumed[0] = true;
+        }));
+        assertTrue(consumed[0]);
+    }
+
     static void checkIllegalStateException(Runnable r, String key, String value1, String value2) {
         try {
             r.run();

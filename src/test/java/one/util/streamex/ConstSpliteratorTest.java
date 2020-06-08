@@ -23,6 +23,7 @@ import org.junit.Test;
 import one.util.streamex.ConstSpliterator.OfRef;
 
 import static one.util.streamex.TestHelpers.checkSpliterator;
+import static one.util.streamex.TestHelpers.consumeElement;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -62,7 +63,7 @@ public class ConstSpliteratorTest {
         spltr = spltr.trySplit();
         assertEquals(1, spltr.getExactSizeIfKnown());
         assertNull(spltr.trySplit());
-        assertTrue(spltr.tryAdvance(x -> assertEquals("val", x)));
+        consumeElement(spltr, "val");
         assertEquals(0, spltr.getExactSizeIfKnown());
         assertNull(spltr.trySplit());
     }

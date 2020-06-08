@@ -26,6 +26,7 @@ import java.util.function.Supplier;
 import org.junit.Test;
 
 import static one.util.streamex.TestHelpers.checkSpliterator;
+import static one.util.streamex.TestHelpers.consumeElement;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -42,13 +43,16 @@ public class IfEmptySpliteratorTest {
 
     @Test
     public void testCharacteristics() {
-        assertFalse(StreamEx.of("foo", "bar", "baz").sorted().ifEmpty(
-                StreamEx.of("foo", "bar", "baz").sorted()).spliterator().hasCharacteristics(Spliterator.SORTED));
+        Spliterator<String> sortedSpltr = StreamEx.of("foo", "bar", "baz").sorted().ifEmpty(
+            StreamEx.of("foo", "bar", "baz").sorted()).spliterator();
+        assertFalse(sortedSpltr.hasCharacteristics(Spliterator.SORTED));
+        consumeElement(sortedSpltr, "bar");
+        assertFalse(sortedSpltr.hasCharacteristics(Spliterator.SORTED));
         assertTrue(StreamEx.of("foo", "bar", "baz").ifEmpty(StreamEx.of(new HashSet<>())).spliterator()
                 .hasCharacteristics(Spliterator.ORDERED));
         List<String> list = Collections.singletonList("foo");
         Spliterator<String> spliterator = StreamEx.<String>empty().ifEmpty(list.stream()).spliterator();
-        assertTrue(spliterator.tryAdvance(x -> assertEquals("foo", x)));
+        consumeElement(spliterator, "foo");
         assertEquals(list.spliterator().characteristics(), spliterator.characteristics());
     }
 
@@ -56,7 +60,7 @@ public class IfEmptySpliteratorTest {
     public void testSize() {
         Spliterator<String> spliterator = StreamEx.of("foo", "bar", "baz").ifEmpty("qux").spliterator();
         assertEquals(3, spliterator.getExactSizeIfKnown());
-        assertTrue(spliterator.tryAdvance(x -> assertEquals("foo", x)));
+        consumeElement(spliterator, "foo");
         assertEquals(2, spliterator.getExactSizeIfKnown());
         assertEquals(1, StreamEx.empty().ifEmpty("qux").spliterator().getExactSizeIfKnown());
     }
