@@ -15,14 +15,22 @@
  */
 package one.util.streamex;
 
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.util.Arrays;
 import java.util.List;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.TreeSet;
 import java.util.function.Supplier;
 
-import org.junit.Test;
-
 import static one.util.streamex.TestHelpers.checkSpliterator;
+import static one.util.streamex.TestHelpers.consumeElement;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Tagir Valeev
@@ -62,5 +70,71 @@ public class ZipSpliteratorTest {
                 .range(200).iterator(), Spliterator.ORDERED), Spliterators.spliteratorUnknownSize(IntStreamEx.range(1,
             201).iterator(), Spliterator.ORDERED), (x, y) -> x + ":" + y, true);
         checkSpliterator("unknownSize", expected, s);
+    }
+    
+    @Test
+    public void testNotSubsized() {
+        Supplier<Spliterator<String>> s = () -> new ZipSpliterator<>(new TreeSet<>(Arrays
+            .asList(1, 2, 3, 4))
+            .spliterator(), new TreeSet<>(Arrays.asList("a", "b", "c", "d")).spliterator(),
+            (a, b) -> a + b, true);
+        checkSpliterator("not-subsized", Arrays.asList("1a", "2b", "3c", "4d"), s);
+    }
+    
+    @Test
+    public void testTrySplit() {
+        ZipSpliterator<Integer, String, String> spliterator = new ZipSpliterator<>(Arrays.asList(1, 2, 3, 4)
+            .spliterator(), Arrays.asList("a", "b", "c", "d").spliterator(),
+            (a, b) -> a + b, true);
+        Spliterator<String> prefix = spliterator.trySplit();
+        assertTrue(prefix instanceof ZipSpliterator);
+        assertEquals(2, prefix.getExactSizeIfKnown());
+        assertEquals(2, spliterator.getExactSizeIfKnown());
+
+        // not SUBSIZED
+        spliterator = new ZipSpliterator<>(new TreeSet<>(Arrays.asList(1, 2, 3, 4))
+            .spliterator(), new TreeSet<>(Arrays.asList("a", "b", "c", "d")).spliterator(),
+            (a, b) -> a + b, true);
+        prefix = spliterator.trySplit();
+        assertTrue(prefix instanceof UnknownSizeSpliterator.USOfRef);
+        assertEquals(4, prefix.estimateSize());
+        consumeElement(prefix, "1a");
+        consumeElement(prefix, "2b");
+        consumeElement(prefix, "3c");
+        consumeElement(prefix, "4d");
+        assertFalse(spliterator.tryAdvance(Assert::fail));
+
+        spliterator = new ZipSpliterator<>(new TreeSet<>(Arrays.asList(1))
+            .spliterator(), new TreeSet<>(Arrays.asList("a")).spliterator(),
+            (a, b) -> a + b, true);
+        assertNull(spliterator.trySplit());
+
+        spliterator = new ZipSpliterator<>(new ConstSpliterator.OfRef<>(1, 1000, true),
+            new ConstSpliterator.OfRef<>("a", 4000, true), (a, b) -> a + b, true);
+        assertEquals(1000, spliterator.getExactSizeIfKnown());
+        prefix = spliterator.trySplit();
+        assertTrue(prefix instanceof UnknownSizeSpliterator.USOfRef);
+        assertEquals(1000, prefix.estimateSize());
+        assertEquals(0, spliterator.estimateSize());
+
+        spliterator = new ZipSpliterator<>(new ConstSpliterator.OfRef<>(1, 1000, true),
+            new ConstSpliterator.OfRef<>("a", 1100, true), (a, b) -> a + b, true);
+        assertEquals(1000, spliterator.getExactSizeIfKnown());
+        prefix = spliterator.trySplit();
+        assertTrue(prefix instanceof ZipSpliterator);
+        assertEquals(550, prefix.getExactSizeIfKnown());
+        assertEquals(450, spliterator.getExactSizeIfKnown());
+
+        spliterator = new ZipSpliterator<>(new ConstSpliterator.OfRef<>(1, 1100, true),
+            new ConstSpliterator.OfRef<>("a", 1000, true), (a, b) -> a + b, true);
+        assertEquals(1000, spliterator.getExactSizeIfKnown());
+        prefix = spliterator.trySplit();
+        assertTrue(prefix instanceof ZipSpliterator);
+        assertEquals(550, prefix.getExactSizeIfKnown());
+        assertEquals(450, spliterator.getExactSizeIfKnown());
+        prefix = spliterator.trySplit();
+        assertTrue(prefix instanceof UnknownSizeSpliterator.USOfRef);
+        assertEquals(450, prefix.estimateSize());
+        assertEquals(0, spliterator.estimateSize());
     }
 }

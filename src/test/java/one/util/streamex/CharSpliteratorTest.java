@@ -21,6 +21,7 @@ import java.util.Spliterator;
 import org.junit.Test;
 
 import static one.util.streamex.TestHelpers.checkSpliterator;
+import static one.util.streamex.TestHelpers.consumeElement;
 import static one.util.streamex.TestHelpers.withRandom;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -62,5 +63,23 @@ public class CharSpliteratorTest {
                 checkSpliterator(input, Arrays.asList(input.split(",", -1)), () -> new CharSpliterator(input, ',', false));
             }
         });
+    }
+    
+    @Test
+    public void testTrySplit() {
+        String input = "a,b,c,d,e,f,g,h";
+        CharSpliterator spliterator = new CharSpliterator(input, ',', false);
+        assertEquals(-1, spliterator.getExactSizeIfKnown());
+        assertEquals(15, spliterator.estimateSize());
+        Spliterator<String> prefix = spliterator.trySplit();
+        assertEquals(7, prefix.estimateSize());
+        assertEquals(7, spliterator.estimateSize());
+        prefix = spliterator.trySplit();
+        assertEquals(3, prefix.estimateSize());
+        assertEquals(3, spliterator.estimateSize());
+        consumeElement(spliterator, "g");
+        consumeElement(spliterator, "h");
+        consumeElement(prefix, "e");
+        consumeElement(prefix, "f");
     }
 }

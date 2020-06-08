@@ -254,6 +254,7 @@ public class MoreCollectorsTest {
     public void testHeadTail() {
         List<Integer> ints = IntStreamEx.range(1000).boxed().toList();
         checkShortCircuitCollector("tail(0)", asList(), 0, ints::stream, MoreCollectors.tail(0));
+        checkShortCircuitCollector("tail(0)", asList(), 0, ints::stream, MoreCollectors.tail(-1));
         checkCollector("tail(1)", asList(999), ints::stream, MoreCollectors.tail(1));
         checkCollector("tail(2)", asList(998, 999), ints::stream, MoreCollectors.tail(2));
         checkCollector("tail(500)", ints.subList(500, 1000), ints::stream, MoreCollectors.tail(500));
@@ -342,6 +343,8 @@ public class MoreCollectorsTest {
             checkCollectorEmpty("minIndex", OptionalLong.empty(), MoreCollectors.<String>minIndex());
             checkCollectorEmpty("maxIndex", OptionalLong.empty(), MoreCollectors.<String>maxIndex());
         });
+        checkCollector("minIndex", OptionalLong.of(999), () -> IntStreamEx.range(1000, 0, -1).boxed(), 
+            MoreCollectors.minIndex());
     }
 
     @Test
