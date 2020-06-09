@@ -1801,7 +1801,9 @@ public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.Of
      * @since 0.6.1
      */
     public IntStreamEx prefix(IntBinaryOperator op) {
-        return delegate(new PrefixOps.OfInt(spliterator(), op));
+        Spliterator.OfInt spltr = spliterator();
+        return delegate(spltr.hasCharacteristics(Spliterator.ORDERED) ? new PrefixOps.OfInt(spltr, op)
+                : new PrefixOps.OfUnordInt(spltr, op));
     }
 
     // Necessary to generate proper JavaDoc

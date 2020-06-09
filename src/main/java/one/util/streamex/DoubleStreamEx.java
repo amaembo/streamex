@@ -1501,7 +1501,9 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
      * @since 0.6.1
      */
     public DoubleStreamEx prefix(DoubleBinaryOperator op) {
-        return delegate(new PrefixOps.OfDouble(spliterator(), op));
+        Spliterator.OfDouble spltr = spliterator();
+        return delegate(spltr.hasCharacteristics(Spliterator.ORDERED) ? new PrefixOps.OfDouble(spltr, op)
+                : new PrefixOps.OfUnordDouble(spltr, op));
     }
 
     // Necessary to generate proper JavaDoc

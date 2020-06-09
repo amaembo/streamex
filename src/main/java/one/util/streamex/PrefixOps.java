@@ -20,6 +20,8 @@ import java.util.Spliterators.AbstractDoubleSpliterator;
 import java.util.Spliterators.AbstractIntSpliterator;
 import java.util.Spliterators.AbstractLongSpliterator;
 import java.util.Spliterators.AbstractSpliterator;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
@@ -297,6 +299,267 @@ import static one.util.streamex.Internals.none;
             } else {
                 acc = accRef.accumulateAndGet(next, op);
             }
+        }
+    }
+    
+    static final class OfUnordInt extends AbstractIntSpliterator implements IntConsumer {
+        private final IntBinaryOperator op;
+        private final Spliterator.OfInt source;
+        int idx = 0;
+        private boolean started;
+        AtomicInteger accRef;
+        private int acc;
+        
+        OfUnordInt(Spliterator.OfInt source, IntBinaryOperator op) {
+            super(source.estimateSize(), source.characteristics() & (ORDERED | IMMUTABLE | CONCURRENT | SIZED | NONNULL));
+            this.source = source;
+            this.op = op;
+        }
+        
+        @Override
+        public Spliterator.OfInt trySplit() {
+            if (started) {
+                return null;
+            }
+            OfInt prefix = source.trySplit();
+            if (prefix == null) {
+                return null;
+            }
+            if (accRef == null) {
+                accRef = new AtomicInteger();
+            }
+            OfUnordInt pref = new OfUnordInt(prefix, op);
+            pref.accRef = accRef;
+            return pref;
+        }
+        
+        @Override
+        public boolean tryAdvance(IntConsumer action) {
+            if (!source.tryAdvance(this)) {
+                return false;
+            }
+            action.accept(acc);
+            return true;
+        }
+        
+        @Override
+        public void forEachRemaining(IntConsumer action) {
+            if (accRef == null) {
+                source.forEachRemaining((IntConsumer) next -> action.accept(acc = op.applyAsInt(acc, next)));
+            } else {
+                int[] buf = new int[BUF_SIZE];
+                source.forEachRemaining((IntConsumer) next -> {
+                    if (idx == 0) {
+                        buf[idx++] = next;
+                    } else {
+                        int prev = buf[idx - 1];
+                        buf[idx++] = op.applyAsInt(prev, next);
+                        if (idx == buf.length) {
+                            drain(action, buf);
+                            idx = 0;
+                        }
+                    }
+                });
+                if (idx > 0)
+                    drain(action, buf);
+            }
+        }
+        
+        private void drain(IntConsumer action, int[] buf) {
+            int last = buf[idx - 1];
+            int acc = accRef.getAndAccumulate(last, op);
+            for (int i = 0; i < idx; i++) {
+                action.accept(op.applyAsInt(buf[i], acc));
+            }
+        }
+        
+        @Override
+        public void accept(int next) {
+            if (accRef == null) {
+                acc = op.applyAsInt(acc, next);
+                started = true;
+            } else {
+                acc = accRef.accumulateAndGet(next, op);
+            }
+        }
+        
+        @Override
+        public long estimateSize() {
+            return source.estimateSize();
+        }
+    }
+    
+    static final class OfUnordLong extends AbstractLongSpliterator implements LongConsumer {
+        private final LongBinaryOperator op;
+        private final Spliterator.OfLong source;
+        int idx = 0;
+        private boolean started;
+        AtomicLong accRef;
+        private long acc;
+        
+        OfUnordLong(Spliterator.OfLong source, LongBinaryOperator op) {
+            super(source.estimateSize(), source.characteristics() & (ORDERED | IMMUTABLE | CONCURRENT | SIZED | NONNULL));
+            this.source = source;
+            this.op = op;
+        }
+        
+        @Override
+        public Spliterator.OfLong trySplit() {
+            if (started) {
+                return null;
+            }
+            OfLong prefix = source.trySplit();
+            if (prefix == null) {
+                return null;
+            }
+            if (accRef == null) {
+                accRef = new AtomicLong();
+            }
+            OfUnordLong pref = new OfUnordLong(prefix, op);
+            pref.accRef = accRef;
+            return pref;
+        }
+        
+        @Override
+        public boolean tryAdvance(LongConsumer action) {
+            if (!source.tryAdvance(this)) {
+                return false;
+            }
+            action.accept(acc);
+            return true;
+        }
+        
+        @Override
+        public void forEachRemaining(LongConsumer action) {
+            if (accRef == null) {
+                source.forEachRemaining((LongConsumer) next -> action.accept(acc = op.applyAsLong(acc, next)));
+            } else {
+                long[] buf = new long[BUF_SIZE];
+                source.forEachRemaining((LongConsumer) next -> {
+                    if (idx == 0) {
+                        buf[idx++] = next;
+                    } else {
+                        long prev = buf[idx - 1];
+                        buf[idx++] = op.applyAsLong(prev, next);
+                        if (idx == buf.length) {
+                            drain(action, buf);
+                            idx = 0;
+                        }
+                    }
+                });
+                if (idx > 0)
+                    drain(action, buf);
+            }
+        }
+        
+        private void drain(LongConsumer action, long[] buf) {
+            long last = buf[idx - 1];
+            long acc = accRef.getAndAccumulate(last, op);
+            for (int i = 0; i < idx; i++) {
+                action.accept(op.applyAsLong(buf[i], acc));
+            }
+        }
+        
+        @Override
+        public void accept(long next) {
+            if (accRef == null) {
+                acc = op.applyAsLong(acc, next);
+                started = true;
+            } else {
+                acc = accRef.accumulateAndGet(next, op);
+            }
+        }
+        
+        @Override
+        public long estimateSize() {
+            return source.estimateSize();
+        }
+    }
+    
+    static final class OfUnordDouble extends AbstractDoubleSpliterator implements DoubleConsumer {
+        private final DoubleBinaryOperator op;
+        private final Spliterator.OfDouble source;
+        int idx = 0;
+        private boolean started;
+        AtomicDouble accRef;
+        private double acc;
+        
+        OfUnordDouble(Spliterator.OfDouble source, DoubleBinaryOperator op) {
+            super(source.estimateSize(), source.characteristics() & (ORDERED | IMMUTABLE | CONCURRENT | SIZED | NONNULL));
+            this.source = source;
+            this.op = op;
+        }
+        
+        @Override
+        public Spliterator.OfDouble trySplit() {
+            if (started) {
+                return null;
+            }
+            OfDouble prefix = source.trySplit();
+            if (prefix == null) {
+                return null;
+            }
+            if (accRef == null) {
+                accRef = new AtomicDouble();
+            }
+            OfUnordDouble pref = new OfUnordDouble(prefix, op);
+            pref.accRef = accRef;
+            return pref;
+        }
+        
+        @Override
+        public boolean tryAdvance(DoubleConsumer action) {
+            if (!source.tryAdvance(this)) {
+                return false;
+            }
+            action.accept(acc);
+            return true;
+        }
+        
+        @Override
+        public void forEachRemaining(DoubleConsumer action) {
+            if (accRef == null) {
+                source.forEachRemaining((DoubleConsumer) next -> action.accept(acc = op.applyAsDouble(acc, next)));
+            } else {
+                double[] buf = new double[BUF_SIZE];
+                source.forEachRemaining((DoubleConsumer) next -> {
+                    if (idx == 0) {
+                        buf[idx++] = next;
+                    } else {
+                        double prev = buf[idx - 1];
+                        buf[idx++] = op.applyAsDouble(prev, next);
+                        if (idx == buf.length) {
+                            drain(action, buf);
+                            idx = 0;
+                        }
+                    }
+                });
+                if (idx > 0)
+                    drain(action, buf);
+            }
+        }
+        
+        private void drain(DoubleConsumer action, double[] buf) {
+            double last = buf[idx - 1];
+            double acc = accRef.getAndAccumulate(last, op);
+            for (int i = 0; i < idx; i++) {
+                action.accept(op.applyAsDouble(buf[i], acc));
+            }
+        }
+        
+        @Override
+        public void accept(double next) {
+            if (accRef == null) {
+                acc = op.applyAsDouble(acc, next);
+                started = true;
+            } else {
+                acc = accRef.accumulateAndGet(next, op);
+            }
+        }
+        
+        @Override
+        public long estimateSize() {
+            return source.estimateSize();
         }
     }
 }
