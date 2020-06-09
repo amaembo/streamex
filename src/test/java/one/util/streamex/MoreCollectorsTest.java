@@ -600,16 +600,49 @@ public class MoreCollectorsTest {
 
         checkCollectorEmpty("entriesToMap", Collections.emptyMap(), MoreCollectors.entriesToMap());
 
-        Map<Integer, String> expected = EntryStream.of(1, "*", 2, "**", 3, "***", 4, "****", 5, "*****").toMap();
+        {
+            Map<Integer, String> expected = EntryStream.of(1, "*", 2, "**", 3, "***", 4, "****", 5, "*****").toMap();
+            Supplier<Stream<Entry<Integer, String>>> stream = expected.entrySet()::stream;
+            checkCollector("entriesToMap", expected, stream, MoreCollectors.entriesToMap());
 
-        checkCollector("entriesToMap", expected, expected.entrySet()::stream, MoreCollectors.entriesToMap());
-        streamEx(expected.entrySet()::stream, supplier -> {
-            Map<Integer, String> result = supplier.get().collect(MoreCollectors.entriesToMap());
-            assertEquals("*", result.get(1));
-            assertEquals("**", result.get(2));
+            streamEx(stream, supplier -> {
+                Map<Integer, String> result = supplier.get().collect(MoreCollectors.entriesToMap());
+                assertEquals("*", result.get(1));
+                assertEquals("**", result.get(2));
+                assertEquals("***", result.get(3));
+                assertEquals("****", result.get(4));
+                assertEquals("*****", result.get(5));
+            });
+        }
+    }
+
+    @Test
+    public void testEntriesToMapWithCombiner() {
+        streamEx(() -> Stream.of(
+                EntryStream.of(1, "*").toMap(),
+                EntryStream.of(1, "*", 2, "*").toMap(),
+                EntryStream.of(1, "*", 2, "*", 3, "*").toMap(),
+                EntryStream.of(1, "*", 2, "*", 3, "*", 4, "*").toMap(),
+                EntryStream.of(1, "*", 2, "*", 3, "*", 4, "*", 5, "*").toMap())
+                .flatMap(map -> map.entrySet().stream()), supplier -> {
+            Map<Integer, String> result = supplier.get().collect(MoreCollectors.entriesToMap(String::concat));
+            assertEquals("*****", result.get(1));
+            assertEquals("****", result.get(2));
             assertEquals("***", result.get(3));
-            assertEquals("****", result.get(4));
-            assertEquals("*****", result.get(5));
+            assertEquals("**", result.get(4));
+            assertEquals("*", result.get(5));
+        });
+
+        streamEx(() -> Stream.of(
+                EntryStream.of(1, "one", 2, "two", 3, "three", 4, "four").toMap(),
+                EntryStream.of(1, "ein", 2, "zwei", 3, "drei").toMap(),
+                EntryStream.of(1, "une", 2, "deux").toMap())
+                .flatMap(map -> map.entrySet().stream()), supplier -> {
+            Map<Integer, String> result = supplier.get().collect(MoreCollectors.entriesToMap((left, right) -> left + "," + right));
+            assertEquals("one,ein,une", result.get(1));
+            assertEquals("two,zwei,deux", result.get(2));
+            assertEquals("three,drei", result.get(3));
+            assertEquals("four", result.get(4));
         });
     }
 
