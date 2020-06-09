@@ -170,53 +170,50 @@ public final class MoreCollectors {
     }
 
 
-    public static <K, V> Collector<Entry<K, V>, ?, Map<K, V>> toMap() {
+    public static <K, V> Collector<Entry<K, V>, ?, Map<K, V>> entriesToMap() {
         return Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue);
     }
 
-    public static <K, V> Collector<Entry<K, V>, ?, ConcurrentMap<K, V>> toConcurrentMap() {
-        return Collectors.toConcurrentMap(Map.Entry::getKey, Map.Entry::getValue);
-    }
-
-    public static <K, V> Collector<Entry<K, V>, ?, Map<K, V>> toMap(
+    public static <K, V> Collector<Entry<K, V>, ?, Map<K, V>> entriesToMap(
             BinaryOperator<V> combiner) {
 
         return Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, combiner);
     }
 
-    public static <K, V, VV> Collector<Entry<K, V>, ?, Map<K, VV>> toMap(
+    public static <K, V, VV> Collector<Entry<K, V>, ?, Map<K, VV>> entriesToMap(
             Function<V, VV> valueMapper) {
 
         return null;
     }
 
-    public static <K, V, VV> Collector<Entry<K, V>, ?, Map<K, VV>> toMap(
+    public static <K, V, VV> Collector<Entry<K, V>, ?, Map<K, VV>> entriesToMap(
             Function<V, VV> valueMapper, BinaryOperator<VV> combiner) {
 
         Objects.requireNonNull(valueMapper);
         return null;
     }
 
-    public static <K, V, M extends Map<K, V>> Collector<Entry<K, V>, ?, M> toCustomMap(
+    public static <K, V, M extends Map<K, V>> Collector<Entry<K, V>, ?, M> entriesToCustomMap(
             Supplier<M> mapSupplier) {
 
         return null;
     }
 
-    public static <K, V, VV, M extends Map<K, VV>> Collector<Entry<K, V>, ?, M> toCustomMap(
+    public static <K, V, VV, M extends Map<K, VV>> Collector<Entry<K, V>, ?, M> entriesToCustomMap(
+
             Function<V, VV> valueMapper, Supplier<M> mapSupplier) {
 
         Objects.requireNonNull(valueMapper);
         return null;
     }
 
-    public static <K, V, M extends Map<K, V>> Collector<Entry<K, V>, ?, M> toCustomMap(
+    public static <K, V, M extends Map<K, V>> Collector<Entry<K, V>, ?, M> entriesToCustomMap(
             BinaryOperator<V> combiner, Supplier<M> mapSupplier) {
 
         return null;
     }
 
-    public static <K, V, VV, M extends Map<K, VV>> Collector<Entry<K, V>, ?, M> toCustomMap(
+    public static <K, V, VV, M extends Map<K, VV>> Collector<Entry<K, V>, ?, M> entriesToCustomMap(
             Function<V, VV> valueMapper, BinaryOperator<VV> combiner, Supplier<M> mapSupplier) {
 
         Objects.requireNonNull(valueMapper);
