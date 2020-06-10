@@ -647,6 +647,18 @@ public class MoreCollectorsTest {
     }
 
     @Test
+    public void testEntriesToMapWithValueMapper() {
+        streamEx(() -> EntryStream.of(1, "one", 2, "two", 3, "three", 4, "four"),
+                supplier -> {
+            Map<Integer, String> result = supplier.get().collect(MoreCollectors.entriesToMap((value) -> "See #" + value));
+            assertEquals("See #one", result.get(1));
+            assertEquals("See #two", result.get(2));
+            assertEquals("See #three", result.get(3));
+            assertEquals("See #four", result.get(4));
+        });
+    }
+
+    @Test
     public void testFlatMapping() {
         assertThrows(NullPointerException.class, () -> MoreCollectors.flatMapping(null));
         assertThrows(NullPointerException.class, () -> MoreCollectors.flatMapping(null, Collectors.toList()));
