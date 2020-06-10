@@ -17,14 +17,15 @@
 package one.util.streamex;
 
 import java.util.Spliterator;
-import java.util.function.DoubleConsumer;
 import java.util.function.IntConsumer;
 import java.util.function.LongConsumer;
 
 import org.junit.Test;
 
 import static one.util.streamex.TestHelpers.consumeElement;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class PrefixOpsTest {
   @Test
@@ -54,16 +55,6 @@ public class PrefixOpsTest {
     assertTrue(spliterator.tryAdvance((LongConsumer) i -> assertEquals(i, 1L)));
     assertTrue(spliterator.tryAdvance((LongConsumer) i -> assertEquals(i, 3L)));
     assertTrue(spliterator.tryAdvance((LongConsumer) i -> assertEquals(i, 6L)));
-    assertNull(spliterator.trySplit());
-  }
-
-  @Test
-  public void testDoubleNoSplitAfterAdvance() {
-    Spliterator.OfDouble spliterator = DoubleStreamEx.constant(1.0d, 1000).unordered().prefix(Double::sum).spliterator();
-    assertTrue(spliterator.tryAdvance((DoubleConsumer) i -> assertEquals(i, 1d, 0.0)));
-    assertTrue(spliterator.tryAdvance((DoubleConsumer) i -> assertEquals(i, 2d, 0.0)));
-    assertTrue(spliterator.tryAdvance((DoubleConsumer) i -> assertEquals(i, 3d, 0.0)));
-    assertTrue(spliterator.tryAdvance((DoubleConsumer) i -> assertEquals(i, 4d, 0.0)));
     assertNull(spliterator.trySplit());
   }
 }

@@ -361,7 +361,7 @@ public class DoubleStreamExTest {
         assertArrayEquals(expected, IntStreamEx.range(0, 10000).asDoubleStream().parallel().greater(-1).toFloatArray(),
             0.0f);
         // Test when resize of internal buffer is not required on addAll (buffer size = 128)
-        assertArrayEquals(Arrays.copyOf(expected, 100),
+        assertArrayEquals(Arrays.copyOf(expected, 100), 
             IntStreamEx.range(0, 100).asDoubleStream().parallel().toFloatArray(), 0.0f);
     }
 
@@ -514,8 +514,6 @@ public class DoubleStreamExTest {
         assertArrayEquals(new double[] { 1, 3, 6, 10, 20 }, DoubleStreamEx.of(1, 2, 3, 4, 10).prefix(Double::sum).toArray(), 0.0);
         assertEquals(OptionalDouble.of(10), DoubleStreamEx.of(1, 2, 3, 4, 10).prefix(Double::sum).findFirst(x -> x > 7));
         assertEquals(OptionalDouble.empty(), DoubleStreamEx.of(1, 2, 3, 4, 10).prefix(Double::sum).findFirst(x -> x > 20));
-        assertEquals(1000d, DoubleStreamEx.constant(1.0d, 1000).unordered().prefix(Double::sum).max().getAsDouble(), 0.0);
-        assertEquals(1000d, DoubleStreamEx.constant(1.0d, 1000).unordered().parallel().prefix(Double::sum).max().getAsDouble(), 0.0);
     }
     
     @Test
