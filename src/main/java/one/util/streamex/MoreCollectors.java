@@ -34,7 +34,6 @@ import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
@@ -171,55 +170,53 @@ public final class MoreCollectors {
 
 
     public static <K, V> Collector<Entry<K, V>, ?, Map<K, V>> entriesToMap() {
-        return Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue);
+        return Collectors.toMap(Entry::getKey, Entry::getValue);
     }
 
     public static <K, V> Collector<Entry<K, V>, ?, Map<K, V>> entriesToMap(
             BinaryOperator<V> combiner) {
-
-        return Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, combiner);
+        return Collectors.toMap(Entry::getKey, Entry::getValue, combiner);
     }
 
     public static <K, V, VV> Collector<Entry<K, V>, ?, Map<K, VV>> entriesToMap(
             Function<V, VV> valueMapper) {
-
-        return null;
+        return Collectors.toMap(Entry::getKey, entry -> valueMapper.apply(entry.getValue()));
     }
 
     public static <K, V, VV> Collector<Entry<K, V>, ?, Map<K, VV>> entriesToMap(
             Function<V, VV> valueMapper, BinaryOperator<VV> combiner) {
-
         Objects.requireNonNull(valueMapper);
-        return null;
+        return Collectors.toMap(Entry::getKey, entry -> valueMapper.apply(entry.getValue()), combiner);
     }
 
     public static <K, V, M extends Map<K, V>> Collector<Entry<K, V>, ?, M> entriesToCustomMap(
             Supplier<M> mapSupplier) {
-
-        return null;
+        return Collectors.toMap(Entry::getKey, Entry::getValue, throwingMerger(), mapSupplier);
     }
 
     public static <K, V, VV, M extends Map<K, VV>> Collector<Entry<K, V>, ?, M> entriesToCustomMap(
-
             Function<V, VV> valueMapper, Supplier<M> mapSupplier) {
-
         Objects.requireNonNull(valueMapper);
-        return null;
+        return Collectors.toMap(Entry::getKey, entry -> valueMapper.apply(entry.getValue()), throwingMerger(), mapSupplier);
     }
 
     public static <K, V, M extends Map<K, V>> Collector<Entry<K, V>, ?, M> entriesToCustomMap(
             BinaryOperator<V> combiner, Supplier<M> mapSupplier) {
-
-        return null;
+        return Collectors.toMap(Entry::getKey, Entry::getValue, combiner, mapSupplier);
     }
 
     public static <K, V, VV, M extends Map<K, VV>> Collector<Entry<K, V>, ?, M> entriesToCustomMap(
             Function<V, VV> valueMapper, BinaryOperator<VV> combiner, Supplier<M> mapSupplier) {
 
         Objects.requireNonNull(valueMapper);
-        return null;
+        return Collectors.toMap(Entry::getKey, entry -> valueMapper.apply(entry.getValue()), combiner, mapSupplier);
     }
 
+    private static <T> BinaryOperator<T> throwingMerger() {
+        return (firstKey, secondKey) -> {
+            throw new IllegalStateException("Duplicate entry keys are not allowed (attempt to merge key '" + firstKey + "'). ");
+        };
+    }
 
     /**
      * Returns a {@code Collector} which counts a number of distinct values the
