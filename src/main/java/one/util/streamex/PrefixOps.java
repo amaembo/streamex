@@ -43,45 +43,23 @@ import static one.util.streamex.Internals.none;
 /* package */ abstract class PrefixOps<T, S extends Spliterator<T>> extends CloneableSpliterator<T, PrefixOps<T, S>> {
     private static final int BUF_SIZE = 128;
     
-    S source;
-    AtomicReference<T> accRef;
-    T acc = none();
-    int idx = 0;
-    final BinaryOperator<T> op;
+    protected S source;
+    protected int idx = 0;
     
-    PrefixOps(S source, BinaryOperator<T> op) {
+    PrefixOps(S source) {
         this.source = source;
-        this.op = op;
     }
     
-    @Override
-    public Spliterator<T> trySplit() {
-        if (acc != NONE) {
-            return null;
-        }
-        @SuppressWarnings("unchecked")
-        S prefix = (S) source.trySplit();
-        if (prefix == null) {
-            return null;
-        }
-        if (accRef == null) {
-            accRef = new AtomicReference<>(none());
-        }
-        PrefixOps<T, S> pref = doClone();
-        pref.source = prefix;
-        return pref;
-    }
-
     @Override
     public long estimateSize() {
         return source.estimateSize();
     }
-
+    
     @Override
     public int characteristics() {
         return source.characteristics() & (ORDERED | IMMUTABLE | CONCURRENT | SIZED | SUBSIZED);
     }
-
+    
     static final class OfRef<T> extends AbstractSpliterator<T> implements Consumer<T> {
         private final BinaryOperator<T> op;
         private final Spliterator<T> source;
@@ -240,10 +218,31 @@ import static one.util.streamex.Internals.none;
     
     static final class OfUnordRef<T> extends PrefixOps<T, Spliterator<T>> implements Consumer<T> {
         private final BinaryOperator<T> localOp;
+        private AtomicReference<T> accRef;
+        private T acc = none();
+        private final BinaryOperator<T> op;
         
         OfUnordRef(Spliterator<T> source, BinaryOperator<T> op) {
-            super(source, (a, b) -> a == NONE ? b : op.apply(a, b));
+            super(source);
             this.localOp = op;
+            this.op = (a, b) -> a == NONE ? b : op.apply(a, b);
+        }
+        
+        @Override
+        public Spliterator<T> trySplit() {
+            if (acc != NONE) {
+                return null;
+            }
+            Spliterator<T> prefix = source.trySplit();
+            if (prefix == null) {
+                return null;
+            }
+            if (accRef == null) {
+                accRef = new AtomicReference<>(none());
+            }
+            OfUnordRef<T> pref = (OfUnordRef<T>) doClone();
+            pref.source = prefix;
+            return pref;
         }
         
         @Override
@@ -303,17 +302,14 @@ import static one.util.streamex.Internals.none;
         }
     }
     
-    static final class OfUnordInt extends AbstractIntSpliterator implements IntConsumer {
+    static final class OfUnordInt extends PrefixOps<Integer, Spliterator.OfInt> implements IntConsumer, Spliterator.OfInt {
         private final IntBinaryOperator op;
-        private final Spliterator.OfInt source;
-        int idx = 0;
         private boolean started;
-        MyAtomicInteger accRef;
+        private MyAtomicInteger accRef;
         private int acc;
         
         OfUnordInt(Spliterator.OfInt source, IntBinaryOperator op) {
-            super(source.estimateSize(), source.characteristics() & (ORDERED | IMMUTABLE | CONCURRENT | SIZED | NONNULL));
-            this.source = source;
+            super(source);
             this.op = op;
         }
         
@@ -336,15 +332,15 @@ import static one.util.streamex.Internals.none;
             if (started) {
                 return null;
             }
-            OfInt prefix = source.trySplit();
+            Spliterator.OfInt prefix = source.trySplit();
             if (prefix == null) {
                 return null;
             }
             if (accRef == null) {
                 accRef = new MyAtomicInteger();
             }
-            OfUnordInt pref = new OfUnordInt(prefix, op);
-            pref.accRef = accRef;
+            OfUnordInt pref = (OfUnordInt) doClone();
+            pref.source = prefix;
             return pref;
         }
         
@@ -409,24 +405,16 @@ import static one.util.streamex.Internals.none;
                 acc = next;
             }
         }
-        
-        @Override
-        public long estimateSize() {
-            return source.estimateSize();
-        }
     }
     
-    static final class OfUnordLong extends AbstractLongSpliterator implements LongConsumer {
+    static final class OfUnordLong extends PrefixOps<Long, Spliterator.OfLong> implements LongConsumer, Spliterator.OfLong {
         private final LongBinaryOperator op;
-        private final Spliterator.OfLong source;
-        int idx = 0;
         private boolean started;
-        MyAtomicLong accRef;
+        private MyAtomicLong accRef;
         private long acc;
         
         OfUnordLong(Spliterator.OfLong source, LongBinaryOperator op) {
-            super(source.estimateSize(), source.characteristics() & (ORDERED | IMMUTABLE | CONCURRENT | SIZED | NONNULL));
-            this.source = source;
+            super(source);
             this.op = op;
         }
         
@@ -449,15 +437,15 @@ import static one.util.streamex.Internals.none;
             if (started) {
                 return null;
             }
-            OfLong prefix = source.trySplit();
+            Spliterator.OfLong prefix = source.trySplit();
             if (prefix == null) {
                 return null;
             }
             if (accRef == null) {
                 accRef = new MyAtomicLong();
             }
-            OfUnordLong pref = new OfUnordLong(prefix, op);
-            pref.accRef = accRef;
+            OfUnordLong pref = (OfUnordLong) doClone();
+            pref.source = prefix;
             return pref;
         }
         
@@ -521,11 +509,6 @@ import static one.util.streamex.Internals.none;
                 started = true;
                 acc = next;
             }
-        }
-        
-        @Override
-        public long estimateSize() {
-            return source.estimateSize();
         }
     }
 }
