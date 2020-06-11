@@ -780,6 +780,8 @@ public class IntStreamExTest {
         assertEquals(OptionalInt.empty(), IntStreamEx.of(1, 2, 3, 4, 10).prefix(Integer::sum).findFirst(x -> x > 20));
         assertEquals(49995000, IntStreamEx.range(10000).unordered().prefix(Integer::sum).max().getAsInt());
         assertEquals(49995000, IntStreamEx.range(10000).unordered().parallel().prefix(Integer::sum).max().getAsInt());
+        assertEquals(1024, IntStreamEx.constant(2, 10).prefix((a, b) -> a*b).max().getAsInt());
+        assertEquals(1024, IntStreamEx.constant(2, 10).parallel().prefix((a, b) -> a*b).max().getAsInt());
     }
     
     @Test

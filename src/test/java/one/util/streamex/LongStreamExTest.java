@@ -609,6 +609,8 @@ public class LongStreamExTest {
         assertEquals(OptionalLong.empty(), LongStreamEx.of(1, 2, 3, 4, 10).prefix(Long::sum).findFirst(x -> x > 20));
         assertEquals(49995000L, LongStreamEx.range(10000).unordered().prefix(Long::sum).max().getAsLong());
         assertEquals(49995000L, LongStreamEx.range(10000).unordered().parallel().prefix(Long::sum).max().getAsLong());
+        assertEquals(1024L, LongStreamEx.constant(2, 10).prefix((a, b) -> a*b).max().getAsLong());
+        assertEquals(1024L, LongStreamEx.constant(2, 10).parallel().prefix((a, b) -> a*b).max().getAsLong());
     }
 
     @Test

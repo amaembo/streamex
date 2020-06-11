@@ -20,6 +20,7 @@ import java.util.Spliterators.AbstractDoubleSpliterator;
 import java.util.Spliterators.AbstractIntSpliterator;
 import java.util.Spliterators.AbstractLongSpliterator;
 import java.util.Spliterators.AbstractSpliterator;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -307,13 +308,27 @@ import static one.util.streamex.Internals.none;
         private final Spliterator.OfInt source;
         int idx = 0;
         private boolean started;
-        AtomicInteger accRef;
+        MyAtomicInteger accRef;
         private int acc;
         
         OfUnordInt(Spliterator.OfInt source, IntBinaryOperator op) {
             super(source.estimateSize(), source.characteristics() & (ORDERED | IMMUTABLE | CONCURRENT | SIZED | NONNULL));
             this.source = source;
             this.op = op;
+        }
+        
+        private static final class MyAtomicInteger extends AtomicInteger {
+            AtomicBoolean init = new AtomicBoolean(false);
+            
+            public int getAndAccumulateOrInit(int x, IntBinaryOperator accumulatorFunction) {
+                boolean init = this.init.getAndSet(true);
+                if (init) {
+                    return getAndAccumulate(x, accumulatorFunction);
+                } else {
+                    set(x);
+                    return x;
+                }
+            }
         }
         
         @Override
@@ -326,7 +341,7 @@ import static one.util.streamex.Internals.none;
                 return null;
             }
             if (accRef == null) {
-                accRef = new AtomicInteger();
+                accRef = new MyAtomicInteger();
             }
             OfUnordInt pref = new OfUnordInt(prefix, op);
             pref.accRef = accRef;
@@ -345,7 +360,15 @@ import static one.util.streamex.Internals.none;
         @Override
         public void forEachRemaining(IntConsumer action) {
             if (accRef == null) {
-                source.forEachRemaining((IntConsumer) next -> action.accept(acc = op.applyAsInt(acc, next)));
+                source.forEachRemaining((IntConsumer) next -> {
+                    if (started) {
+                        acc = op.applyAsInt(acc, next);
+                    } else {
+                        acc = next;
+                        started = true;
+                    }
+                    action.accept(acc);
+                });
             } else {
                 int[] buf = new int[BUF_SIZE];
                 source.forEachRemaining((IntConsumer) next -> {
@@ -367,7 +390,7 @@ import static one.util.streamex.Internals.none;
         
         private void drain(IntConsumer action, int[] buf) {
             int last = buf[idx - 1];
-            int acc = accRef.getAndAccumulate(last, op);
+            int acc = accRef.getAndAccumulateOrInit(last, op);
             for (int i = 0; i < idx; i++) {
                 action.accept(op.applyAsInt(buf[i], acc));
             }
@@ -375,11 +398,15 @@ import static one.util.streamex.Internals.none;
         
         @Override
         public void accept(int next) {
-            if (accRef == null) {
-                acc = op.applyAsInt(acc, next);
-                started = true;
+            if (started) {
+                if (accRef == null) {
+                    acc = op.applyAsInt(acc, next);
+                } else {
+                    acc = accRef.accumulateAndGet(next, op);
+                }
             } else {
-                acc = accRef.accumulateAndGet(next, op);
+                started = true;
+                acc = next;
             }
         }
         
@@ -394,13 +421,27 @@ import static one.util.streamex.Internals.none;
         private final Spliterator.OfLong source;
         int idx = 0;
         private boolean started;
-        AtomicLong accRef;
+        MyAtomicLong accRef;
         private long acc;
         
         OfUnordLong(Spliterator.OfLong source, LongBinaryOperator op) {
             super(source.estimateSize(), source.characteristics() & (ORDERED | IMMUTABLE | CONCURRENT | SIZED | NONNULL));
             this.source = source;
             this.op = op;
+        }
+        
+        private static final class MyAtomicLong extends AtomicLong {
+            AtomicBoolean init = new AtomicBoolean(false);
+        
+            public long getAndAccumulateOrInit(long x, LongBinaryOperator accumulatorFunction) {
+                boolean init = this.init.getAndSet(true);
+                if (init) {
+                    return getAndAccumulate(x, accumulatorFunction);
+                } else {
+                    set(x);
+                    return x;
+                }
+            }
         }
         
         @Override
@@ -413,7 +454,7 @@ import static one.util.streamex.Internals.none;
                 return null;
             }
             if (accRef == null) {
-                accRef = new AtomicLong();
+                accRef = new MyAtomicLong();
             }
             OfUnordLong pref = new OfUnordLong(prefix, op);
             pref.accRef = accRef;
@@ -432,7 +473,15 @@ import static one.util.streamex.Internals.none;
         @Override
         public void forEachRemaining(LongConsumer action) {
             if (accRef == null) {
-                source.forEachRemaining((LongConsumer) next -> action.accept(acc = op.applyAsLong(acc, next)));
+                source.forEachRemaining((LongConsumer) next -> {
+                    if (started) {
+                        acc = op.applyAsLong(acc, next);
+                    } else {
+                        acc = next;
+                        started = true;
+                    }
+                    action.accept(acc);
+                });
             } else {
                 long[] buf = new long[BUF_SIZE];
                 source.forEachRemaining((LongConsumer) next -> {
@@ -454,7 +503,7 @@ import static one.util.streamex.Internals.none;
         
         private void drain(LongConsumer action, long[] buf) {
             long last = buf[idx - 1];
-            long acc = accRef.getAndAccumulate(last, op);
+            long acc = accRef.getAndAccumulateOrInit(last, op);
             for (int i = 0; i < idx; i++) {
                 action.accept(op.applyAsLong(buf[i], acc));
             }
@@ -462,11 +511,15 @@ import static one.util.streamex.Internals.none;
         
         @Override
         public void accept(long next) {
-            if (accRef == null) {
-                acc = op.applyAsLong(acc, next);
-                started = true;
+            if (started) {
+                if (accRef == null) {
+                    acc = op.applyAsLong(acc, next);
+                } else {
+                    acc = accRef.accumulateAndGet(next, op);
+                }
             } else {
-                acc = accRef.accumulateAndGet(next, op);
+                started = true;
+                acc = next;
             }
         }
         
