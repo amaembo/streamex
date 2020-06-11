@@ -33,7 +33,6 @@ import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -653,6 +652,18 @@ public class MoreCollectorsTest {
             assertEquals("See #two", result.get(2));
             assertEquals("See #three", result.get(3));
             assertEquals("See #four", result.get(4));
+        });
+
+        streamEx(() -> StreamEx.of("Bran Stark", "Arya Stark", "Jon Snow", "Tyrion (The Imp) Lannister", "Theon Greyjoy",
+                "Ser Jaime (The Kingslayer) Lannister", "Daenerys Stormborn Targaryen", "Khal Drogo", "Ser Jorah Mormont")
+                .mapToEntry(name -> name.contains("Khal") || name.contains("Ser")), supplier -> {
+            Map<String, String> result = supplier.get().collect(
+                    MoreCollectors.entriesToMap((value) -> {
+                        return value ? "This character has celebrity title" : "Standard character";
+                    }));
+            assertEquals("This character has celebrity title", result.get("Khal Drogo"));
+            assertEquals("Standard character", result.get("Jon Snow"));
+            assertEquals("This character has celebrity title", result.get("Ser Jorah Mormont"));
         });
     }
 
