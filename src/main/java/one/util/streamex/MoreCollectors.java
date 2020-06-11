@@ -168,18 +168,15 @@ public final class MoreCollectors {
         }, Function.identity(), set -> set.size() == size, UNORDERED_ID_CHARACTERISTICS);
     }
 
-
     public static <K, V> Collector<Entry<K, V>, ?, Map<K, V>> entriesToMap() {
         return Collectors.toMap(Entry::getKey, Entry::getValue);
     }
 
-    public static <K, V> Collector<Entry<K, V>, ?, Map<K, V>> entriesToMap(
-            BinaryOperator<V> combiner) {
+    public static <K, V> Collector<Entry<K, V>, ?, Map<K, V>> entriesToMap(BinaryOperator<V> combiner) {
         return Collectors.toMap(Entry::getKey, Entry::getValue, combiner);
     }
 
-    public static <K, V, VV> Collector<Entry<K, V>, ?, Map<K, VV>> entriesToMap(
-            Function<V, VV> valueMapper) {
+    public static <K, V, VV> Collector<Entry<K, V>, ?, Map<K, VV>> entriesToMap(Function<V, VV> valueMapper) {
         return Collectors.toMap(Entry::getKey, entry -> valueMapper.apply(entry.getValue()));
     }
 
@@ -207,7 +204,6 @@ public final class MoreCollectors {
 
     public static <K, V, VV, M extends Map<K, VV>> Collector<Entry<K, V>, ?, M> entriesToCustomMap(
             Function<V, VV> valueMapper, BinaryOperator<VV> combiner, Supplier<M> mapSupplier) {
-
         Objects.requireNonNull(valueMapper);
         return Collectors.toMap(Entry::getKey, entry -> valueMapper.apply(entry.getValue()), combiner, mapSupplier);
     }
