@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package one.util.streamex.performance;
+package prefix;
 
 import one.util.streamex.LongStreamEx;
 import org.openjdk.jmh.annotations.Benchmark;

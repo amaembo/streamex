@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package one.util.streamex.performance;
+package prefix;
 
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
