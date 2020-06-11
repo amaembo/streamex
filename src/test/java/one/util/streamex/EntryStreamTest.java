@@ -407,7 +407,7 @@ public class EntryStreamTest {
         assertEquals(asList("a", "b", "b", "c", "c", "c"), EntryStream.of(createMap()).flatCollection(
             entry -> asList(entry.getKey().split(""))).toList());
         assertEquals(asList("a", 1, "bb", 22, "ccc", 33), EntryStream.of(createMap()).flatMapKeyValue(
-            (str, num) -> Stream.of(str, num)).toList());
+            Stream::of).toList());
     }
 
     @Test
