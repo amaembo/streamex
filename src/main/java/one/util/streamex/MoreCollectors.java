@@ -168,18 +168,89 @@ public final class MoreCollectors {
         }, Function.identity(), set -> set.size() == size, UNORDERED_ID_CHARACTERISTICS);
     }
 
+    /**
+     * Returns a {@code Collector} that accumulates elements into a {@code Map}
+     * whose keys and values are taken from {@code Map.Entry}.
+     *
+     * @param  <K> the {@link Comparable} type of then map keys
+     * @param  <V> the type of the map values
+     *
+     * @return {@code Collector} which collects elements into a {@code Map}
+     * whose keys and values are taken from {@code Map.Entry}
+     * @throws IllegalStateException if this stream contains duplicate keys
+     *         (according to {@link Object#equals(Object)})
+     * @see Collectors#toMap(Function, Function)
+     */
     public static <K, V> Collector<Entry<K, V>, ?, Map<K, V>> entriesToMap() {
         return Collectors.toMap(Entry::getKey, Entry::getValue);
     }
 
+    /**
+     * Returns a {@code Collector} that accumulates elements into a {@code Map}
+     * whose keys and values are taken from {@code Map.Entry} and combining them
+     * using the provided {@code combiner} function to the input elements.
+     *
+     * <p>If the mapped keys contains duplicates (according to {@link Object#equals(Object)}),
+     * the value mapping function is applied to each equal element, and the
+     * results are merged using the provided {@code combiner} function.
+     *
+     * @param <K>      the {@link Comparable} type of then map keys
+     * @param <V>      the type of the map values
+     * @param combiner a merge function, used to resolve collisions between
+     *                 values associated with the same key, as supplied
+     *                 to {@link Map#merge(Object, Object, BiFunction)}
+     * @return {@code Collector} which collects elements into a {@code Map}
+     * whose keys and values are taken from {@code Map.Entry} and combining them
+     * using the {@code combiner} function
+     * @throws IllegalStateException if this stream contains duplicate keys
+     *                               (according to {@link Object#equals(Object)})
+     * @see Collectors#toMap(Function, Function, BinaryOperator)
+     */
     public static <K, V> Collector<Entry<K, V>, ?, Map<K, V>> entriesToMap(BinaryOperator<V> combiner) {
         return Collectors.toMap(Entry::getKey, Entry::getValue, combiner);
     }
 
+    /**
+     * Returns a {@code Collector} that accumulates elements into a {@code Map}
+     * whose keys are taken from {@code Map.Entry} and values are the result
+     * of applying the provided {@code valueMapper} function.
+     *
+     * @param <K>         the {@link Comparable} type of then map keys
+     * @param <V>         the type of the map values
+     * @param <VV>        the output type of the value mapping function
+     * @param valueMapper a mapping function to produce values from {@code Map.Entry} values
+     * @return {@code Collector} which collects elements into a {@code Map}
+     * whose keys are taken from {@code Map.Entry} and values are the result of applying
+     * the provided {@code valueMapper} function to {@code Map.Entry} values.
+     * @throws IllegalStateException if this stream contains duplicate keys
+     *                               (according to {@link Object#equals(Object)})
+     * @see Collectors#toMap(Function, Function)
+     */
     public static <K, V, VV> Collector<Entry<K, V>, ?, Map<K, VV>> entriesToMap(Function<V, VV> valueMapper) {
         return Collectors.toMap(Entry::getKey, entry -> valueMapper.apply(entry.getValue()));
     }
 
+    /**
+     * Returns a {@code Collector} that accumulates elements into a {@code Map}
+     * whose keys are taken from {@code Map.Entry} and values are the result
+     * of applying the provided {@code valueMapper} function and combining them
+     * using the provided {@code combiner} function to {@code Map.Entry} values of input elements.
+     *
+     * @param <K>         the {@link Comparable} type of then map keys
+     * @param <V>         the type of the map values
+     * @param <VV>        the output type of the value mapping function
+     * @param valueMapper a mapping function to produce values
+     * @param combiner    a merge function, used to resolve collisions between
+     *                    values associated with the same key, as supplied
+     *                    to {@link Map#merge(Object, Object, BiFunction)}
+     * @return {@code Collector} which collects elements into a {@code Map}
+     * whose keys are taken from {@code Map.Entry} and values are the result
+     * of applying the provided {@code valueMapper} function and combining
+     * them using the provided {@code combiner} function to the input elements.
+     * @throws IllegalStateException if this stream contains duplicate keys
+     *                               (according to {@link Object#equals(Object)})
+     * @see Collectors#toMap(Function, Function, BinaryOperator)
+     */
     public static <K, V, VV> Collector<Entry<K, V>, ?, Map<K, VV>> entriesToMap(
             Function<V, VV> valueMapper, BinaryOperator<VV> combiner) {
         Objects.requireNonNull(valueMapper);
