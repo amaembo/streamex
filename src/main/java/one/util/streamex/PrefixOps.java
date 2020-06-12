@@ -314,16 +314,18 @@ import static one.util.streamex.Internals.none;
         }
         
         private static final class MyAtomicInteger extends AtomicInteger {
-            AtomicBoolean init = new AtomicBoolean(false);
+            boolean init;
             
             public int getAndAccumulateOrInit(int x, IntBinaryOperator accumulatorFunction) {
-                boolean init = this.init.getAndSet(true);
-                if (init) {
-                    return getAndAccumulate(x, accumulatorFunction);
-                } else {
-                    set(x);
-                    return x;
+                boolean init;
+                synchronized (this) {
+                    init = this.init;
+                    if (!init) {
+                        this.init = true;
+                        set(x);
+                    }
                 }
+                return init ? getAndAccumulate(x, accumulatorFunction) : x;
             }
         }
         
@@ -419,16 +421,18 @@ import static one.util.streamex.Internals.none;
         }
         
         private static final class MyAtomicLong extends AtomicLong {
-            AtomicBoolean init = new AtomicBoolean(false);
+            boolean init;
         
             public long getAndAccumulateOrInit(long x, LongBinaryOperator accumulatorFunction) {
-                boolean init = this.init.getAndSet(true);
-                if (init) {
-                    return getAndAccumulate(x, accumulatorFunction);
-                } else {
-                    set(x);
-                    return x;
+                boolean init;
+                synchronized (this) {
+                    init = this.init;
+                    if (!init) {
+                        this.init = true;
+                        set(x);
+                    }
                 }
+                return init ? getAndAccumulate(x, accumulatorFunction) : x;
             }
         }
         
