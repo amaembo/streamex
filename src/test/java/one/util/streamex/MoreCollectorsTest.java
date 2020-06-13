@@ -37,6 +37,7 @@ import java.util.OptionalLong;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
@@ -593,6 +594,9 @@ public class MoreCollectorsTest {
         checkCollectorEmpty("Empty", EnumSet.noneOf(TimeUnit.class), MoreCollectors.toEnumSet(TimeUnit.class));
     }
 
+    /**
+     * See {@link MoreCollectors#entriesToMap()}.
+     */
     @Test
     public void testEntriesToMap() {
         assertThrows(IllegalStateException.class, () ->
@@ -616,6 +620,9 @@ public class MoreCollectorsTest {
         }
     }
 
+    /**
+     * See {@link MoreCollectors#entriesToMap(BinaryOperator)}.
+     */
     @Test
     public void testEntriesToMapWithCombiner() {
         streamEx(() -> Stream.of(
@@ -646,6 +653,9 @@ public class MoreCollectorsTest {
         });
     }
 
+    /**
+     * See {@link MoreCollectors#entriesToMap(Function)}.
+     */
     @Test
     public void testEntriesToMapWithValueMapper() {
         streamEx(() -> EntryStream.of(1, "one", 2, "two", 3, "three", 4, "four"),
@@ -668,6 +678,9 @@ public class MoreCollectorsTest {
         });
     }
 
+    /**
+     * See {@link MoreCollectors#entriesToMap(Function, BinaryOperator)}.
+     */
     @Test
     public void testEntriesToMapWithValueMapperAndCombiner() {
         assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToMap(null, null));
@@ -686,6 +699,9 @@ public class MoreCollectorsTest {
         });
     }
 
+    /**
+     * See {@link MoreCollectors#entriesToCustomMap(Supplier)}.
+     */
     @Test
     public void testEntriesToCustomMap() {
         assertThrows(IllegalStateException.class, () ->
@@ -729,6 +745,9 @@ public class MoreCollectorsTest {
         }
     }
 
+    /**
+     * See {@link MoreCollectors#entriesToCustomMap(Function, Supplier)}.
+     */
     @Test
     public void testEntriesToCustomMapWithValueMapper() {
         assertThrows(IllegalStateException.class, () ->
@@ -749,6 +768,9 @@ public class MoreCollectorsTest {
         });
     }
 
+    /**
+     * See {@link MoreCollectors#entriesToCustomMap(BinaryOperator, Supplier)}.
+     */
     @Test
     public void testEntriesToCustomMapWithCombiner() {
         streamEx(() -> Stream.of(
@@ -783,6 +805,9 @@ public class MoreCollectorsTest {
         });
     }
 
+    /**
+     * See {@link MoreCollectors#entriesToCustomMap(Function, BinaryOperator, Supplier)}.
+     */
     @Test
     public void testEntriesToCustomMapWithValueMapperAndCombiner() {
         assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToCustomMap(null, null, null));
