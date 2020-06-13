@@ -486,9 +486,7 @@ public final class MoreCollectors {
 
         Supplier<PairBox<A1, A2>> supplier = () -> new PairBox<>(c1Supplier.get(), c2Supplier.get());
         BiConsumer<PairBox<A1, A2>, T> accumulator = (acc, v) -> {
-
-
-
+            c1Accumulator.accept(acc.a, v);
             c2Accumulator.accept(acc.b, v);
         };
         BinaryOperator<PairBox<A1, A2>> combiner = (acc1, acc2) -> {
