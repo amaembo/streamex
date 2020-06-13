@@ -25,10 +25,12 @@ import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NavigableMap;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
@@ -596,8 +598,6 @@ public class MoreCollectorsTest {
         assertThrows(IllegalStateException.class, () ->
                 EntryStream.generate(() -> "a", () -> 1).limit(10).collect(MoreCollectors.entriesToMap()));
 
-        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToMap(null, null));
-
         checkCollectorEmpty("entriesToMap", Collections.emptyMap(), MoreCollectors.entriesToMap());
 
         {
@@ -661,9 +661,7 @@ public class MoreCollectorsTest {
                 "Ser Jaime (The Kingslayer) Lannister", "Daenerys Stormborn Targaryen", "Khal Drogo", "Ser Jorah Mormont")
                 .mapToEntry(name -> name.contains("Khal") || name.contains("Ser")), supplier -> {
             Map<String, String> result = supplier.get().collect(
-                    MoreCollectors.entriesToMap((value) -> {
-                        return value ? "This character has celebrity title" : "Standard character";
-                    }));
+                    MoreCollectors.entriesToMap((value) -> value ? "This character has celebrity title" : "Standard character"));
             assertEquals("This character has celebrity title", result.get("Khal Drogo"));
             assertEquals("Standard character", result.get("Jon Snow"));
             assertEquals("This character has celebrity title", result.get("Ser Jorah Mormont"));
@@ -672,6 +670,8 @@ public class MoreCollectorsTest {
 
     @Test
     public void testEntriesToMapWithValueMapperAndCombiner() {
+        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToMap(null, null));
+
         streamEx(() -> Stream.of(
                 EntryStream.of(1, "one", 2, "two", 3, "three", 4, "four").toMap(),
                 EntryStream.of(1, "ein", 2, "zwei", 3, "drei").toMap(),
@@ -683,6 +683,126 @@ public class MoreCollectorsTest {
             assertEquals("['two'], ['zwei'], ['deux']", result.get(2));
             assertEquals("['three'], ['drei']", result.get(3));
             assertEquals("['four']", result.get(4));
+        });
+    }
+
+    @Test
+    public void testEntriesToCustomMap() {
+        assertThrows(IllegalStateException.class, () ->
+                EntryStream.generate(() -> "a", () -> 1).limit(10).collect(MoreCollectors.entriesToCustomMap(LinkedHashMap::new)));
+
+        checkCollectorEmpty("entriesToMap", Collections.emptyMap(),
+                MoreCollectors.entriesToCustomMap(HashMap::new));
+        checkCollectorEmpty("entriesToMap", Collections.emptyMap(),
+                MoreCollectors.entriesToCustomMap(IdentityHashMap::new));
+        checkCollectorEmpty("entriesToMap", Collections.emptyNavigableMap(),
+                MoreCollectors.entriesToCustomMap(TreeMap::new));
+        checkCollectorEmpty("entriesToMap", Collections.emptySortedMap(),
+                MoreCollectors.entriesToCustomMap(TreeMap::new));
+        checkCollectorEmpty("entriesToMap", Collections.emptySortedMap(),
+                MoreCollectors.entriesToCustomMap(LinkedHashMap::new));
+
+        {
+            Map<Integer, String> expected = EntryStream.of(5, "*****", 1, "*", 4, "****", 2, "**", 3, "***").toMap();
+            Supplier<Stream<Entry<Integer, String>>> stream = expected.entrySet()::stream;
+            checkCollector("entriesToMap", expected, stream, MoreCollectors.entriesToCustomMap(TreeMap::new));
+
+            streamEx(stream, supplier -> {
+                NavigableMap<Integer, String> result = supplier.get().collect(MoreCollectors.entriesToCustomMap(TreeMap::new));
+                assertEquals("*", result.get(1));
+                assertEquals("**", result.get(2));
+                assertEquals("***", result.get(3));
+                assertEquals("****", result.get(4));
+                assertEquals("*****", result.get(5));
+
+                assertEquals(1, (int) result.firstKey());
+                assertEquals("*", result.firstEntry().getValue());
+                assertEquals(5, (int) result.lastKey());
+                assertEquals("*****", result.lastEntry().getValue());
+            });
+        }
+
+        {
+            LinkedHashMap<Integer, String> expected = EntryStream.of(5, "*****", 1, "*", 4, "****", 2, "**", 3, "***")
+                    .collect(MoreCollectors.entriesToCustomMap(LinkedHashMap::new));
+            assertEquals("5=*****", expected.entrySet().iterator().next().toString());
+        }
+    }
+
+    @Test
+    public void testEntriesToCustomMapWithValueMapper() {
+        assertThrows(IllegalStateException.class, () ->
+                EntryStream.generate(() -> "a", () -> 1).limit(10).collect(
+                        MoreCollectors.entriesToCustomMap((value) -> "['" + value + "']", LinkedHashMap::new)));
+
+        streamEx(() -> EntryStream.of(5, "*****", 1, "*", 4, "****", 2, "**", 3, "***"), supplier -> {
+            NavigableMap<Integer, String> result = supplier.get().collect(
+                    MoreCollectors.entriesToCustomMap((value) -> "['" + value + "']", TreeMap::new));
+            assertEquals("1=['*']", result.firstEntry().toString());
+            assertEquals("5=['*****']", result.lastEntry().toString());
+        });
+
+        streamEx(() -> EntryStream.of(5, "*****", 1, "*", 4, "****", 2, "**", 3, "***"), supplier -> {
+            Map<Integer, String> result = supplier.get().collect(
+                    MoreCollectors.entriesToCustomMap((value) -> "['" + value + "']", LinkedHashMap::new));
+            assertEquals("5=['*****']", result.entrySet().iterator().next().toString());
+        });
+    }
+
+    @Test
+    public void testEntriesToCustomMapWithCombiner() {
+        streamEx(() -> Stream.of(
+                EntryStream.of(100, "hundred", 2, "two", 3, "three", 4, "four").toMap(),
+                EntryStream.of(100, "hundert", 2, "zwei", 3, "drei").toMap(),
+                EntryStream.of(100, "cent", 2, "deux").toMap())
+                .flatMap(map -> map.entrySet().stream()), supplier -> {
+            NavigableMap<Integer, String> result = supplier.get().collect(
+                    MoreCollectors.entriesToCustomMap((left, right) -> left + " -> " + right, TreeMap::new));
+            assertEquals("hundred -> hundert -> cent", result.get(100));
+            assertEquals("two -> zwei -> deux", result.get(2));
+            assertEquals("three -> drei", result.get(3));
+            assertEquals("four", result.get(4));
+
+            assertEquals(2, (int) result.firstKey());
+            assertEquals("two -> zwei -> deux", result.firstEntry().getValue());
+            assertEquals(100, (int) result.lastKey());
+            assertEquals("hundred -> hundert -> cent", result.lastEntry().getValue());
+        });
+
+        streamEx(() -> Stream.of(
+                EntryStream.of(10, "*").toMap(),
+                EntryStream.of(10, "*", 2, "*").toMap(),
+                EntryStream.of(10, "*", 2, "*", 100, "*").toMap(),
+                EntryStream.of(10, "*", 2, "*", 100, "*", 4, "*").toMap(),
+                EntryStream.of(10, "*", 2, "*", 100, "*", 4, "*", 5, "*").toMap())
+                .flatMap(map -> map.entrySet().stream()), supplier -> {
+
+                NavigableMap<Integer, String> result = supplier.get().collect(
+                        MoreCollectors.entriesToCustomMap((left, right) -> left + " -> " + right, TreeMap::new));
+                assertEquals("2=* -> * -> * -> *", result.entrySet().iterator().next().toString());
+        });
+    }
+
+    @Test
+    public void testEntriesToCustomMapWithValueMapperAndCombiner() {
+        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToCustomMap(null, null, null));
+
+        streamEx(() -> Stream.of(
+                EntryStream.of(100, "hundred", 2, "two", 3, "three", 4, "four").toMap(),
+                EntryStream.of(100, "hundert", 2, "zwei", 3, "drei").toMap(),
+                EntryStream.of(100, "cent", 2, "deux").toMap())
+                .flatMap(map -> map.entrySet().stream()), supplier -> {
+            NavigableMap<Integer, String> result = supplier.get().collect(
+                    MoreCollectors.entriesToCustomMap((value) -> "['" + value + "']", (left, right) -> left + ", " + right, TreeMap::new));
+            assertEquals("['hundred'], ['hundert'], ['cent']", result.get(100));
+            assertEquals("['two'], ['zwei'], ['deux']", result.get(2));
+            assertEquals("['three'], ['drei']", result.get(3));
+            assertEquals("['four']", result.get(4));
+
+            assertEquals(2, (int) result.firstKey());
+            assertEquals("['two'], ['zwei'], ['deux']", result.firstEntry().getValue());
+            assertEquals(100, (int) result.lastKey());
+            assertEquals("['hundred'], ['hundert'], ['cent']", result.lastEntry().getValue());
         });
     }
 
