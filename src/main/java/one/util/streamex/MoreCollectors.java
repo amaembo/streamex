@@ -180,7 +180,11 @@ public final class MoreCollectors {
      * @throws IllegalStateException if this stream contains duplicate keys
      *         (according to {@link Object#equals(Object)})
      *
+     * @see #entriesToMap(BinaryOperator)
+     * @see #entriesToMap(Function)
+     * @see #entriesToMap(Function, BinaryOperator)
      * @see Collectors#toMap(Function, Function)
+     * @since 0.7.3
      */
     public static <K, V> Collector<Entry<K, V>, ?, Map<K, V>> entriesToMap() {
         return Collectors.toMap(Entry::getKey, Entry::getValue);
@@ -204,7 +208,11 @@ public final class MoreCollectors {
      * whose keys and values are taken from {@code Map.Entry} and combining them
      * using the {@code combiner} function
      *
+     * @see #entriesToMap()
+     * @see #entriesToMap(Function)
+     * @see #entriesToMap(Function, BinaryOperator)
      * @see Collectors#toMap(Function, Function, BinaryOperator)
+     * @since 0.7.3
      */
     public static <K, V> Collector<Entry<K, V>, ?, Map<K, V>> entriesToMap(BinaryOperator<V> combiner) {
         return Collectors.toMap(Entry::getKey, Entry::getValue, combiner);
@@ -225,7 +233,11 @@ public final class MoreCollectors {
      * @throws IllegalStateException if this stream contains duplicate keys
      *                               (according to {@link Object#equals(Object)})
      *
+     * @see #entriesToMap()
+     * @see #entriesToMap(BinaryOperator)
+     * @see #entriesToMap(Function, BinaryOperator)
      * @see Collectors#toMap(Function, Function)
+     * @since 0.7.3
      */
     public static <K, V, VV> Collector<Entry<K, V>, ?, Map<K, VV>> entriesToMap(Function<V, VV> valueMapper) {
         return Collectors.toMap(Entry::getKey, entry -> valueMapper.apply(entry.getValue()));
@@ -249,7 +261,11 @@ public final class MoreCollectors {
      * of applying the provided {@code valueMapper} function and combining
      * them using the provided {@code combiner} function.
      *
+     * @see #entriesToMap()
+     * @see #entriesToMap(BinaryOperator)
+     * @see #entriesToMap(Function)
      * @see Collectors#toMap(Function, Function, BinaryOperator)
+     * @since 0.7.3
      */
     public static <K, V, VV> Collector<Entry<K, V>, ?, Map<K, VV>> entriesToMap(
             Function<V, VV> valueMapper, BinaryOperator<VV> combiner) {
@@ -270,7 +286,12 @@ public final class MoreCollectors {
      * whose keys and values are taken from {@code Map.Entry}
      * @throws IllegalStateException if this stream contains duplicate keys
      *                               (according to {@link Object#equals(Object)})
+     *
+     * @see #entriesToCustomMap(Function, Supplier)
+     * @see #entriesToCustomMap(BinaryOperator, Supplier)
+     * @see #entriesToCustomMap(Function, BinaryOperator, Supplier)
      * @see Collectors#toMap(Function, Function, BinaryOperator, Supplier)
+     * @since 0.7.3
      */
     public static <K, V, M extends Map<K, V>> Collector<Entry<K, V>, ?, M> entriesToCustomMap(
             Supplier<M> mapSupplier) {
@@ -295,7 +316,11 @@ public final class MoreCollectors {
      * @throws IllegalStateException if this stream contains duplicate keys
      *                               (according to {@link Object#equals(Object)})
      *
+     * @see #entriesToCustomMap(Supplier)
+     * @see #entriesToCustomMap(BinaryOperator, Supplier)
+     * @see #entriesToCustomMap(Function, BinaryOperator, Supplier)
      * @see Collectors#toMap(Function, Function, BinaryOperator, Supplier)
+     * @since 0.7.3
      */
     public static <K, V, VV, M extends Map<K, VV>> Collector<Entry<K, V>, ?, M> entriesToCustomMap(
             Function<V, VV> valueMapper, Supplier<M> mapSupplier) {
@@ -325,7 +350,11 @@ public final class MoreCollectors {
      * whose keys and values are taken from {@code Map.Entry} and combining them
      * using the {@code combiner} function
      *
+     * @see #entriesToCustomMap(Supplier)
+     * @see #entriesToCustomMap(Function, Supplier)
+     * @see #entriesToCustomMap(Function, BinaryOperator, Supplier)
      * @see Collectors#toMap(Function, Function, BinaryOperator, Supplier)
+     * @since 0.7.3
      */
     public static <K, V, M extends Map<K, V>> Collector<Entry<K, V>, ?, M> entriesToCustomMap(
             BinaryOperator<V> combiner, Supplier<M> mapSupplier) {
@@ -357,7 +386,11 @@ public final class MoreCollectors {
      * whose keys and values are taken from {@code Map.Entry} and combining them
      * using the {@code combiner} function
      *
+     * @see #entriesToCustomMap(Supplier)
+     * @see #entriesToCustomMap(Function, Supplier)
+     * @see #entriesToCustomMap(BinaryOperator, Supplier)
      * @see Collectors#toMap(Function, Function, BinaryOperator, Supplier)
+     * @since 0.7.3
      */
     public static <K, V, VV, M extends Map<K, VV>> Collector<Entry<K, V>, ?, M> entriesToCustomMap(
             Function<V, VV> valueMapper, BinaryOperator<VV> combiner, Supplier<M> mapSupplier) {
