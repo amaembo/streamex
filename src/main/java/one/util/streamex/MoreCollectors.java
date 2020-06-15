@@ -178,7 +178,7 @@ public final class MoreCollectors {
      * @return {@code Collector} which collects elements into a {@code Map}
      * whose keys and values are taken from {@code Map.Entry}
      * @throws IllegalStateException if this stream contains duplicate keys
-     *         (according to {@link Object#equals(Object)})
+     *         (according to {@link Object#equals(Object)}).
      *
      * @see #entriesToMap(BinaryOperator)
      * @see #entriesToMap(Function)
@@ -231,7 +231,8 @@ public final class MoreCollectors {
      * whose keys are taken from {@code Map.Entry} and values are the result of applying
      * the provided {@code valueMapper} function to {@code Map.Entry} values.
      * @throws IllegalStateException if this stream contains duplicate keys
-     *                               (according to {@link Object#equals(Object)})
+     *                               (according to {@link Object#equals(Object)}).
+     * @throws NullPointerException if mapper is null.
      *
      * @see #entriesToMap()
      * @see #entriesToMap(BinaryOperator)
@@ -240,6 +241,7 @@ public final class MoreCollectors {
      * @since 0.7.3
      */
     public static <K, V, VV> Collector<Entry<K, V>, ?, Map<K, VV>> entriesToMap(Function<V, VV> valueMapper) {
+        Objects.requireNonNull(valueMapper);
         return Collectors.toMap(Entry::getKey, entry -> valueMapper.apply(entry.getValue()));
     }
 
@@ -260,6 +262,7 @@ public final class MoreCollectors {
      * whose keys are taken from {@code Map.Entry} and values are the result
      * of applying the provided {@code valueMapper} function and combining
      * them using the provided {@code combiner} function.
+     * @throws NullPointerException if mapper is null.
      *
      * @see #entriesToMap()
      * @see #entriesToMap(BinaryOperator)
@@ -285,7 +288,7 @@ public final class MoreCollectors {
      * defined by {@code mapSupplier} function
      * whose keys and values are taken from {@code Map.Entry}
      * @throws IllegalStateException if this stream contains duplicate keys
-     *                               (according to {@link Object#equals(Object)})
+     *                               (according to {@link Object#equals(Object)}).
      *
      * @see #entriesToCustomMap(Function, Supplier)
      * @see #entriesToCustomMap(BinaryOperator, Supplier)
@@ -314,7 +317,8 @@ public final class MoreCollectors {
      * from {@code Map.Entry} and values are the result of applying
      * the provided {@code valueMapper} function to {@code Map.Entry} values.
      * @throws IllegalStateException if this stream contains duplicate keys
-     *                               (according to {@link Object#equals(Object)})
+     *                               (according to {@link Object#equals(Object)}).
+     * @throws NullPointerException if mapper is null.
      *
      * @see #entriesToCustomMap(Supplier)
      * @see #entriesToCustomMap(BinaryOperator, Supplier)
@@ -385,6 +389,7 @@ public final class MoreCollectors {
      * @return {@code Collector} which collects elements into a {@code Map}
      * whose keys and values are taken from {@code Map.Entry} and combining them
      * using the {@code combiner} function
+     * @throws NullPointerException if mapper is null.
      *
      * @see #entriesToCustomMap(Supplier)
      * @see #entriesToCustomMap(Function, Supplier)

@@ -626,12 +626,12 @@ public class MoreCollectorsTest {
     @Test
     public void testEntriesToMapWithCombiner() {
         streamEx(() -> Stream.of(
-                EntryStream.of(1, "*").toMap(),
-                EntryStream.of(1, "*", 2, "*").toMap(),
-                EntryStream.of(1, "*", 2, "*", 3, "*").toMap(),
-                EntryStream.of(1, "*", 2, "*", 3, "*", 4, "*").toMap(),
-                EntryStream.of(1, "*", 2, "*", 3, "*", 4, "*", 5, "*").toMap())
-                .flatMap(map -> map.entrySet().stream()), supplier -> {
+                EntryStream.of(1, "*"),
+                EntryStream.of(1, "*", 2, "*"),
+                EntryStream.of(1, "*", 2, "*", 3, "*"),
+                EntryStream.of(1, "*", 2, "*", 3, "*", 4, "*"),
+                EntryStream.of(1, "*", 2, "*", 3, "*", 4, "*", 5, "*"))
+                .flatMap(Function.identity()), supplier -> {
             Map<Integer, String> result = supplier.get().collect(MoreCollectors.entriesToMap(String::concat));
             assertEquals("*****", result.get(1));
             assertEquals("****", result.get(2));
@@ -641,10 +641,10 @@ public class MoreCollectorsTest {
         });
 
         streamEx(() -> Stream.of(
-                EntryStream.of(1, "one", 2, "two", 3, "three", 4, "four").toMap(),
-                EntryStream.of(1, "ein", 2, "zwei", 3, "drei").toMap(),
-                EntryStream.of(1, "une", 2, "deux").toMap())
-                .flatMap(map -> map.entrySet().stream()), supplier -> {
+                EntryStream.of(1, "one", 2, "two", 3, "three", 4, "four"),
+                EntryStream.of(1, "ein", 2, "zwei", 3, "drei"),
+                EntryStream.of(1, "une", 2, "deux"))
+                .flatMap(Function.identity()), supplier -> {
             Map<Integer, String> result = supplier.get().collect(MoreCollectors.entriesToMap((left, right) -> left + "," + right));
             assertEquals("one,ein,une", result.get(1));
             assertEquals("two,zwei,deux", result.get(2));
@@ -658,6 +658,8 @@ public class MoreCollectorsTest {
      */
     @Test
     public void testEntriesToMapWithValueMapper() {
+        Function<String, String> nullFunction = null;
+        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToMap(nullFunction));
         streamEx(() -> EntryStream.of(1, "one", 2, "two", 3, "three", 4, "four"),
                 supplier -> {
             Map<Integer, String> result = supplier.get().collect(MoreCollectors.entriesToMap((value) -> "See #" + value));
@@ -684,12 +686,13 @@ public class MoreCollectorsTest {
     @Test
     public void testEntriesToMapWithValueMapperAndCombiner() {
         assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToMap(null, null));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToMap(null, (a, b) -> a));
 
         streamEx(() -> Stream.of(
-                EntryStream.of(1, "one", 2, "two", 3, "three", 4, "four").toMap(),
-                EntryStream.of(1, "ein", 2, "zwei", 3, "drei").toMap(),
-                EntryStream.of(1, "une", 2, "deux").toMap())
-                .flatMap(map -> map.entrySet().stream()), supplier -> {
+                EntryStream.of(1, "one", 2, "two", 3, "three", 4, "four"),
+                EntryStream.of(1, "ein", 2, "zwei", 3, "drei"),
+                EntryStream.of(1, "une", 2, "deux"))
+                .flatMap(Function.identity()), supplier -> {
             Map<Integer, String> result = supplier.get().collect(
                     MoreCollectors.entriesToMap((value) -> "['" + value + "']", (left, right) -> left + ", " + right));
             assertEquals("['one'], ['ein'], ['une']", result.get(1));
@@ -750,6 +753,9 @@ public class MoreCollectorsTest {
      */
     @Test
     public void testEntriesToCustomMapWithValueMapper() {
+        Function<String, String> nullFunction = null;
+        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToCustomMap(nullFunction, LinkedHashMap::new));
+
         assertThrows(IllegalStateException.class, () ->
                 EntryStream.generate(() -> "a", () -> 1).limit(10).collect(
                         MoreCollectors.entriesToCustomMap((value) -> "['" + value + "']", LinkedHashMap::new)));
@@ -774,10 +780,10 @@ public class MoreCollectorsTest {
     @Test
     public void testEntriesToCustomMapWithCombiner() {
         streamEx(() -> Stream.of(
-                EntryStream.of(100, "hundred", 2, "two", 3, "three", 4, "four").toMap(),
-                EntryStream.of(100, "hundert", 2, "zwei", 3, "drei").toMap(),
-                EntryStream.of(100, "cent", 2, "deux").toMap())
-                .flatMap(map -> map.entrySet().stream()), supplier -> {
+                EntryStream.of(100, "hundred", 2, "two", 3, "three", 4, "four"),
+                EntryStream.of(100, "hundert", 2, "zwei", 3, "drei"),
+                EntryStream.of(100, "cent", 2, "deux"))
+                .flatMap(Function.identity()), supplier -> {
             NavigableMap<Integer, String> result = supplier.get().collect(
                     MoreCollectors.entriesToCustomMap((left, right) -> left + " -> " + right, TreeMap::new));
             assertEquals("hundred -> hundert -> cent", result.get(100));
@@ -792,12 +798,12 @@ public class MoreCollectorsTest {
         });
 
         streamEx(() -> Stream.of(
-                EntryStream.of(10, "*").toMap(),
-                EntryStream.of(10, "*", 2, "*").toMap(),
-                EntryStream.of(10, "*", 2, "*", 100, "*").toMap(),
-                EntryStream.of(10, "*", 2, "*", 100, "*", 4, "*").toMap(),
-                EntryStream.of(10, "*", 2, "*", 100, "*", 4, "*", 5, "*").toMap())
-                .flatMap(map -> map.entrySet().stream()), supplier -> {
+                EntryStream.of(10, "*"),
+                EntryStream.of(10, "*", 2, "*"),
+                EntryStream.of(10, "*", 2, "*", 100, "*"),
+                EntryStream.of(10, "*", 2, "*", 100, "*", 4, "*"),
+                EntryStream.of(10, "*", 2, "*", 100, "*", 4, "*", 5, "*"))
+                .flatMap(Function.identity()), supplier -> {
 
                 NavigableMap<Integer, String> result = supplier.get().collect(
                         MoreCollectors.entriesToCustomMap((left, right) -> left + " -> " + right, TreeMap::new));
@@ -811,12 +817,15 @@ public class MoreCollectorsTest {
     @Test
     public void testEntriesToCustomMapWithValueMapperAndCombiner() {
         assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToCustomMap(null, null, null));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToCustomMap(null, (a, b) -> a, null));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToCustomMap(null, null, TreeMap::new));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToCustomMap(null, (a, b) -> a, TreeMap::new));
 
         streamEx(() -> Stream.of(
-                EntryStream.of(100, "hundred", 2, "two", 3, "three", 4, "four").toMap(),
-                EntryStream.of(100, "hundert", 2, "zwei", 3, "drei").toMap(),
-                EntryStream.of(100, "cent", 2, "deux").toMap())
-                .flatMap(map -> map.entrySet().stream()), supplier -> {
+                EntryStream.of(100, "hundred", 2, "two", 3, "three", 4, "four"),
+                EntryStream.of(100, "hundert", 2, "zwei", 3, "drei"),
+                EntryStream.of(100, "cent", 2, "deux"))
+                .flatMap(Function.identity()), supplier -> {
             NavigableMap<Integer, String> result = supplier.get().collect(
                     MoreCollectors.entriesToCustomMap((value) -> "['" + value + "']", (left, right) -> left + ", " + right, TreeMap::new));
             assertEquals("['hundred'], ['hundert'], ['cent']", result.get(100));
