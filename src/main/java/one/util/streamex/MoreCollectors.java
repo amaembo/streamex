@@ -186,7 +186,7 @@ public final class MoreCollectors {
      * @see Collectors#toMap(Function, Function)
      * @since 0.7.3
      */
-    public static <K, V> Collector<Entry<K, V>, ?, Map<K, V>> entriesToMap() {
+    public static <K, V> Collector<Entry<? extends K, ? extends V>, ?, Map<K, V>> entriesToMap() {
         return Collectors.toMap(Entry::getKey, Entry::getValue);
     }
 
@@ -214,7 +214,8 @@ public final class MoreCollectors {
      * @see Collectors#toMap(Function, Function, BinaryOperator)
      * @since 0.7.3
      */
-    public static <K, V> Collector<Entry<K, V>, ?, Map<K, V>> entriesToMap(BinaryOperator<V> combiner) {
+    public static <K, V> Collector<Entry<? extends K, ? extends V>, ?, Map<K, V>> entriesToMap(
+            BinaryOperator<V> combiner) {
         return Collectors.toMap(Entry::getKey, Entry::getValue, combiner);
     }
 
@@ -240,7 +241,8 @@ public final class MoreCollectors {
      * @see Collectors#toMap(Function, Function)
      * @since 0.7.3
      */
-    public static <K, V, VV> Collector<Entry<K, V>, ?, Map<K, VV>> entriesToMap(Function<V, VV> valueMapper) {
+    public static <K, V, VV> Collector<Entry<? extends K, ? extends V>, ?, Map<K, VV>> entriesToMap(
+            Function<V, VV> valueMapper) {
         Objects.requireNonNull(valueMapper);
         return Collectors.toMap(Entry::getKey, entry -> valueMapper.apply(entry.getValue()));
     }
@@ -270,7 +272,7 @@ public final class MoreCollectors {
      * @see Collectors#toMap(Function, Function, BinaryOperator)
      * @since 0.7.3
      */
-    public static <K, V, VV> Collector<Entry<K, V>, ?, Map<K, VV>> entriesToMap(
+    public static <K, V, VV> Collector<Entry<? extends K, ? extends V>, ?, Map<K, VV>> entriesToMap(
             Function<V, VV> valueMapper, BinaryOperator<VV> combiner) {
         Objects.requireNonNull(valueMapper);
         return Collectors.toMap(Entry::getKey, entry -> valueMapper.apply(entry.getValue()), combiner);
@@ -296,7 +298,7 @@ public final class MoreCollectors {
      * @see Collectors#toMap(Function, Function, BinaryOperator, Supplier)
      * @since 0.7.3
      */
-    public static <K, V, M extends Map<K, V>> Collector<Entry<K, V>, ?, M> entriesToCustomMap(
+    public static <K, V, M extends Map<K, V>> Collector<Entry<? extends K, ? extends V>, ?, M> entriesToCustomMap(
             Supplier<M> mapSupplier) {
         return Collectors.toMap(Entry::getKey, Entry::getValue, throwingMerger(), mapSupplier);
     }
@@ -326,7 +328,7 @@ public final class MoreCollectors {
      * @see Collectors#toMap(Function, Function, BinaryOperator, Supplier)
      * @since 0.7.3
      */
-    public static <K, V, VV, M extends Map<K, VV>> Collector<Entry<K, V>, ?, M> entriesToCustomMap(
+    public static <K, V, VV, M extends Map<K, VV>> Collector<Entry<? extends K, ? extends V>, ?, M> entriesToCustomMap(
             Function<V, VV> valueMapper, Supplier<M> mapSupplier) {
         Objects.requireNonNull(valueMapper);
         return Collectors.toMap(Entry::getKey, entry -> valueMapper.apply(entry.getValue()), throwingMerger(), mapSupplier);
@@ -360,7 +362,7 @@ public final class MoreCollectors {
      * @see Collectors#toMap(Function, Function, BinaryOperator, Supplier)
      * @since 0.7.3
      */
-    public static <K, V, M extends Map<K, V>> Collector<Entry<K, V>, ?, M> entriesToCustomMap(
+    public static <K, V, M extends Map<K, V>> Collector<Entry<? extends K, ? extends V>, ?, M> entriesToCustomMap(
             BinaryOperator<V> combiner, Supplier<M> mapSupplier) {
         return Collectors.toMap(Entry::getKey, Entry::getValue, combiner, mapSupplier);
     }
@@ -397,7 +399,7 @@ public final class MoreCollectors {
      * @see Collectors#toMap(Function, Function, BinaryOperator, Supplier)
      * @since 0.7.3
      */
-    public static <K, V, VV, M extends Map<K, VV>> Collector<Entry<K, V>, ?, M> entriesToCustomMap(
+    public static <K, V, VV, M extends Map<K, VV>> Collector<Entry<? extends K, ? extends V>, ?, M> entriesToCustomMap(
             Function<V, VV> valueMapper, BinaryOperator<VV> combiner, Supplier<M> mapSupplier) {
         Objects.requireNonNull(valueMapper);
         return Collectors.toMap(Entry::getKey, entry -> valueMapper.apply(entry.getValue()), combiner, mapSupplier);
