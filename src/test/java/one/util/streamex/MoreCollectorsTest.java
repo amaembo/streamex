@@ -614,13 +614,12 @@ public class MoreCollectorsTest {
             Supplier<Stream<Entry<Integer, String>>> stream = expected.entrySet()::stream;
             checkCollector("entriesToMap", expected, stream, MoreCollectors.entriesToMap());
 
-            streamEx(stream, supplier -> {
-                Map<Integer, CharSequence> result = supplier.get().collect(MoreCollectors.entriesToMap());
-                assertEquals("*", result.get(1));
-                assertEquals("**", result.get(2));
-                assertEquals("***", result.get(3));
-                assertEquals("****", result.get(4));
-                assertEquals("*****", result.get(5));
+            streamEx(() -> EntryStream.of("one", "*", "two", "**", "three", "***", "four", "****").stream(), supplier -> {
+                Map<CharSequence, CharSequence> result = supplier.get().collect(MoreCollectors.entriesToMap());
+                assertEquals("*", result.get("one"));
+                assertEquals("**", result.get("two"));
+                assertEquals("***", result.get("three"));
+                assertEquals("****", result.get("four"));
             });
         }
     }
