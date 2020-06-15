@@ -625,39 +625,6 @@ public class MoreCollectorsTest {
         }
     }
 
-
-    /**
-     * See {@link MoreCollectors#entriesToMap(Function)}.
-     */
-    @Test
-    public void testEntriesToMapWithValueMapper() {
-        Function<String, String> nullValueMapper = null;
-        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToMap(nullValueMapper));
-        assertThrows(IllegalStateException.class, () -> EntryStream.generate(() -> "a", () -> 1).limit(10)
-                .collect(MoreCollectors.entriesToMap((value) -> "['" + value + "']")));
-
-        checkCollectorEmpty("entriesToMap", Collections.emptyMap(), MoreCollectors.entriesToMap((a, b) -> a));
-
-        streamEx(() -> EntryStream.of(1, "one", 2, "two", 3, "three", 4, "four"),
-                supplier -> {
-                    Map<Integer, CharSequence> result = supplier.get().collect(MoreCollectors.entriesToMap((value) -> "See #" + value));
-                    assertEquals("See #one", result.get(1));
-                    assertEquals("See #two", result.get(2));
-                    assertEquals("See #three", result.get(3));
-                    assertEquals("See #four", result.get(4));
-                });
-
-        streamEx(() -> StreamEx.of("Bran Stark", "Arya Stark", "Jon Snow", "Tyrion (The Imp) Lannister", "Theon Greyjoy",
-                "Ser Jaime (The Kingslayer) Lannister", "Daenerys Stormborn Targaryen", "Khal Drogo", "Ser Jorah Mormont")
-                .mapToEntry(name -> name.contains("Khal") || name.contains("Ser")), supplier -> {
-            Map<String, String> result = supplier.get().collect(
-                    MoreCollectors.entriesToMap((value) -> value ? "This character has celebrity title" : "Standard character"));
-            assertEquals("This character has celebrity title", result.get("Khal Drogo"));
-            assertEquals("Standard character", result.get("Jon Snow"));
-            assertEquals("This character has celebrity title", result.get("Ser Jorah Mormont"));
-        });
-    }
-
     /**
      * See {@link MoreCollectors#entriesToMap(BinaryOperator)}.
      */
@@ -776,32 +743,6 @@ public class MoreCollectorsTest {
                     .collect(MoreCollectors.entriesToCustomMap(LinkedHashMap::new));
             assertEquals("5=*****", expected.entrySet().iterator().next().toString());
         }
-    }
-
-    /**
-     * See {@link MoreCollectors#entriesToCustomMap(Function, Supplier)}.
-     */
-    @Test
-    public void testEntriesToCustomMapWithValueMapper() {
-        Function<String, String> nullValueMapper = null;
-        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToCustomMap(nullValueMapper, LinkedHashMap::new));
-        assertThrows(IllegalStateException.class, () -> EntryStream.generate(() -> "a", () -> 1).limit(10)
-                .collect(MoreCollectors.entriesToCustomMap((value) -> "['" + value + "']", LinkedHashMap::new)));
-
-        checkCollectorEmpty("entriesToMap", Collections.emptyMap(), MoreCollectors.entriesToCustomMap((a, b) -> a, TreeMap::new));
-
-        streamEx(() -> EntryStream.of(5, "*****", 1, "*", 4, "****", 2, "**", 3, "***"), supplier -> {
-            NavigableMap<Integer, String> result = supplier.get().collect(
-                    MoreCollectors.entriesToCustomMap((value) -> "['" + value + "']", TreeMap::new));
-            assertEquals("1=['*']", result.firstEntry().toString());
-            assertEquals("5=['*****']", result.lastEntry().toString());
-        });
-
-        streamEx(() -> EntryStream.of(5, "*****", 1, "*", 4, "****", 2, "**", 3, "***"), supplier -> {
-            Map<Integer, String> result = supplier.get().collect(
-                    MoreCollectors.entriesToCustomMap((value) -> "['" + value + "']", LinkedHashMap::new));
-            assertEquals("5=['*****']", result.entrySet().iterator().next().toString());
-        });
     }
 
     /**
