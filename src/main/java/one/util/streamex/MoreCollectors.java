@@ -49,6 +49,7 @@ import java.util.stream.Collector.Characteristics;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static one.util.streamex.AbstractStreamEx.addToMap;
 import static one.util.streamex.Internals.BooleanMap;
 import static one.util.streamex.Internals.Box;
 import static one.util.streamex.Internals.CancelException;
@@ -260,6 +261,7 @@ public final class MoreCollectors {
      * whose keys and values are taken from {@code Map.Entry}
      * @throws IllegalStateException if this stream contains duplicate keys
      *                               (according to {@link Object#equals(Object)}).
+     * @throws NullPointerException if entry value is null.
      *
      * @see #entriesToCustomMap(BinaryOperator, Supplier)
      * @see #entriesToCustomMap(Function, BinaryOperator, Supplier)
@@ -268,7 +270,16 @@ public final class MoreCollectors {
      */
     public static <K, V, M extends Map<K, V>> Collector<Entry<? extends K, ? extends V>, ?, M> entriesToCustomMap(
             Supplier<M> mapSupplier) {
-        return Collectors.toMap(Entry::getKey, Entry::getValue, throwingMerger(), mapSupplier);
+        Function<Entry<? extends K, ? extends V>, K> keyMapper = Entry::getKey;
+        Function<Entry<? extends K, ? extends V>, V> valueMapper = Entry::getValue;
+
+        return Collector.of(mapSupplier,
+                (m, entry) -> addToMap(m, entry.getKey(), Objects.requireNonNull(entry.getValue())),
+                (m1, m2) -> {
+                    m2.forEach((k, v) -> addToMap(m1, k, v));
+                    return m1;
+                }
+        );
     }
 
     /**
@@ -338,12 +349,6 @@ public final class MoreCollectors {
             Function<V, VV> valueMapper, BinaryOperator<VV> combiner, Supplier<M> mapSupplier) {
         Objects.requireNonNull(valueMapper);
         return Collectors.toMap(Entry::getKey, entry -> valueMapper.apply(entry.getValue()), combiner, mapSupplier);
-    }
-
-    private static <T> BinaryOperator<T> throwingMerger() {
-        return (firstKey, secondKey) -> {
-            throw new IllegalStateException("Duplicate entry keys are not allowed (attempt to merge key '" + firstKey + "'). ");
-        };
     }
 
     /**

@@ -57,6 +57,7 @@ import static java.util.Arrays.asList;
 import static one.util.streamex.TestHelpers.assertThrows;
 import static one.util.streamex.TestHelpers.checkCollector;
 import static one.util.streamex.TestHelpers.checkCollectorEmpty;
+import static one.util.streamex.TestHelpers.checkIllegalStateException;
 import static one.util.streamex.TestHelpers.checkShortCircuitCollector;
 import static one.util.streamex.TestHelpers.streamEx;
 import static one.util.streamex.TestHelpers.withRandom;
@@ -697,8 +698,14 @@ public class MoreCollectorsTest {
      */
     @Test
     public void testEntriesToCustomMap() {
+        assertThrows(NullPointerException.class, () ->
+                EntryStream.of("a", "*", "b", null).collect(MoreCollectors.entriesToCustomMap(LinkedHashMap::new)));
+
         assertThrows(IllegalStateException.class, () ->
                 EntryStream.generate(() -> "a", () -> 1).limit(10).collect(MoreCollectors.entriesToCustomMap(LinkedHashMap::new)));
+        streamEx(() -> EntryStream.of("a", "*", "a", "**").stream(), supplier -> {
+            checkIllegalStateException(() -> supplier.get().collect(MoreCollectors.entriesToCustomMap(TreeMap::new)), "a", "*", "**");
+        });
 
         checkCollectorEmpty("entriesToMap", Collections.emptyMap(),
                 MoreCollectors.entriesToCustomMap(HashMap::new));
