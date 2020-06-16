@@ -614,14 +614,14 @@ public class MoreCollectorsTest {
             Map<Integer, String> expected = EntryStream.of(1, "*", 2, "**", 3, "***", 4, "****", 5, "*****").toMap();
             Supplier<Stream<Entry<Integer, String>>> stream = expected.entrySet()::stream;
             checkCollector("entriesToMap", expected, stream, MoreCollectors.entriesToMap());
-
-            streamEx(() -> EntryStream.of("one", "*", "two", "**", "three", "***", "four", "****").stream(), supplier -> {
-                Map<CharSequence, CharSequence> result = supplier.get().collect(MoreCollectors.entriesToMap());
-                assertEquals("*", result.get("one"));
-                assertEquals("**", result.get("two"));
-                assertEquals("***", result.get("three"));
-                assertEquals("****", result.get("four"));
-            });
+        }
+        {
+            Map<String, String> expected = EntryStream.of("one", "*", "two", "**", "three", "***", "four", "****").toMap();
+            Map<CharSequence, CharSequence> result = expected.entrySet().stream().collect(MoreCollectors.entriesToMap());
+            assertEquals("*", result.get("one"));
+            assertEquals("**", result.get("two"));
+            assertEquals("***", result.get("three"));
+            assertEquals("****", result.get("four"));
         }
     }
 
@@ -706,11 +706,14 @@ public class MoreCollectorsTest {
         assertThrows(NullPointerException.class, () -> EntryStream.of("a", "*", "b", null).collect(
                 MoreCollectors.entriesToCustomMap(LinkedHashMap::new)));
 
-        assertThrows(IllegalStateException.class, () -> EntryStream.generate(() -> "a", () -> 1).limit(10).collect(
-                MoreCollectors.entriesToCustomMap(LinkedHashMap::new)));
-        streamEx(() -> EntryStream.of("a", "*", "a", "**").stream(),
-                supplier -> checkIllegalStateException(() -> supplier.get().collect(
-                        MoreCollectors.entriesToCustomMap(TreeMap::new)), "a", "*", "**"));
+        assertThrows(IllegalStateException.class,
+                "Duplicate entry for key 'a' (attempt to merge values '*' and '**')"::equals,
+                () -> EntryStream.of("a", "*", "a", "**").collect(MoreCollectors.entriesToCustomMap(LinkedHashMap::new)));
+
+        streamEx(() -> EntryStream.generate(() -> "a", () -> 1).limit(10),
+                supplier -> checkIllegalStateException(
+                        () -> supplier.get().collect(MoreCollectors.entriesToCustomMap(TreeMap::new)),
+                        "a", "1", "1"));
 
         checkCollectorEmpty("entriesToMap", Collections.emptyMap(),
                 MoreCollectors.entriesToCustomMap(HashMap::new));
