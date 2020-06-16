@@ -17,15 +17,11 @@
 package one.util.streamex;
 
 import java.util.Spliterator;
-import java.util.function.IntConsumer;
-import java.util.function.LongConsumer;
 
 import org.junit.Test;
 
 import static one.util.streamex.TestHelpers.consumeElement;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 public class PrefixOpsTest {
   @Test
@@ -41,20 +37,21 @@ public class PrefixOpsTest {
   @Test
   public void testIntNoSplitAfterAdvance() {
     Spliterator.OfInt spliterator = IntStreamEx.range(100).unordered().prefix(Integer::sum).spliterator();
-    assertTrue(spliterator.tryAdvance((IntConsumer) i -> assertEquals(i, 0)));
-    assertTrue(spliterator.tryAdvance((IntConsumer) i -> assertEquals(i, 1)));
-    assertTrue(spliterator.tryAdvance((IntConsumer) i -> assertEquals(i, 3)));
-    assertTrue(spliterator.tryAdvance((IntConsumer) i -> assertEquals(i, 6)));
+    consumeElement(spliterator, 0);
+    consumeElement(spliterator, 1);
+    consumeElement(spliterator, 3);
+    consumeElement(spliterator, 6);
     assertNull(spliterator.trySplit());
   }
 
   @Test
   public void testLongNoSplitAfterAdvance() {
     Spliterator.OfLong spliterator = LongStreamEx.range(100).unordered().prefix(Long::sum).spliterator();
-    assertTrue(spliterator.tryAdvance((LongConsumer) i -> assertEquals(i, 0L)));
-    assertTrue(spliterator.tryAdvance((LongConsumer) i -> assertEquals(i, 1L)));
-    assertTrue(spliterator.tryAdvance((LongConsumer) i -> assertEquals(i, 3L)));
-    assertTrue(spliterator.tryAdvance((LongConsumer) i -> assertEquals(i, 6L)));
+    assertNull(spliterator.trySplit());
+    consumeElement(spliterator, 0L);
+    consumeElement(spliterator, 1L);
+    consumeElement(spliterator, 3L);
+    consumeElement(spliterator, 6L);
     assertNull(spliterator.trySplit());
   }
 }

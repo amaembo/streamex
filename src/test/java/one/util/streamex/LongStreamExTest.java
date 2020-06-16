@@ -19,6 +19,7 @@ import java.nio.LongBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.OptionalLong;
@@ -37,6 +38,7 @@ import java.util.function.LongToDoubleFunction;
 import java.util.function.LongToIntFunction;
 import java.util.function.LongUnaryOperator;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 import java.util.stream.LongStream.Builder;
 
@@ -46,6 +48,7 @@ import org.junit.runners.MethodSorters;
 
 import static one.util.streamex.TestHelpers.assertThrows;
 import static one.util.streamex.TestHelpers.checkSpliterator;
+import static one.util.streamex.TestHelpers.longStreamEx;
 import static one.util.streamex.TestHelpers.streamEx;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -607,10 +610,15 @@ public class LongStreamExTest {
         assertArrayEquals(new long[] { 1, 3, 6, 10, 20 }, LongStreamEx.of(1, 2, 3, 4, 10).prefix(Long::sum).toArray());
         assertEquals(OptionalLong.of(10), LongStreamEx.of(1, 2, 3, 4, 10).prefix(Long::sum).findFirst(x -> x > 7));
         assertEquals(OptionalLong.empty(), LongStreamEx.of(1, 2, 3, 4, 10).prefix(Long::sum).findFirst(x -> x > 20));
-        assertEquals(49995000L, LongStreamEx.range(10000).unordered().prefix(Long::sum).max().getAsLong());
-        assertEquals(49995000L, LongStreamEx.range(10000).unordered().parallel().prefix(Long::sum).max().getAsLong());
-        assertEquals(1024L, LongStreamEx.constant(2, 10).prefix((a, b) -> a*b).max().getAsLong());
-        assertEquals(1024L, LongStreamEx.constant(2, 10).parallel().prefix((a, b) -> a*b).max().getAsLong());
+        longStreamEx(() -> LongStreamEx.range(10000).unordered(),
+                s -> assertEquals(49995000L, s.get().prefix(Long::sum).max().getAsLong()));
+        longStreamEx(() -> LongStreamEx.constant(2, 10),
+                s -> assertEquals(1024L, s.get().prefix((a, b) -> a*b).max().getAsLong()));
+        longStreamEx(() -> LongStreamEx.constant(1, 5),
+                s -> assertEquals(new HashSet<>(Arrays.asList(1L, 2L, 3L, 4L, 5L)),
+                        s.get().prefix(Long::sum).boxed().collect(Collectors.toSet())));
+        longStreamEx(() -> LongStreamEx.constant(1, 5),
+                s -> assertEquals(OptionalLong.of(5), s.get().prefix(Long::sum).findFirst(x -> x > 4)));
     }
 
     @Test
