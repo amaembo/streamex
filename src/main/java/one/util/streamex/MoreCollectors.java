@@ -187,7 +187,6 @@ public final class MoreCollectors {
      * @throws IllegalStateException if this stream contains duplicate keys
      *                               (according to {@link Object#equals(Object)}).
      * @see #entriesToMap(BinaryOperator)
-     * @see #entriesToMap(Function, BinaryOperator)
      * @see Collectors#toMap(Function, Function)
      * @since 0.7.3
      */
@@ -221,44 +220,12 @@ public final class MoreCollectors {
      * using the {@code combiner} function
      * @throws NullPointerException if combiner is null.
      * @see #entriesToMap()
-     * @see #entriesToMap(Function, BinaryOperator)
      * @see Collectors#toMap(Function, Function, BinaryOperator)
      * @since 0.7.3
      */
     public static <K, V> Collector<Entry<? extends K, ? extends V>, ?, Map<K, V>> entriesToMap(
             BinaryOperator<V> combiner) {
         return entriesToCustomMap(combiner, HashMap::new);
-    }
-
-    /**
-     * Returns a {@code Collector} that accumulates input elements into a {@code Map}
-     * whose keys are taken from {@code Map.Entry} and values are the result
-     * of applying the provided {@code valueMapper} function to {@code Map.Entry} values
-     * and combining them using the provided {@code combiner} function.
-     *
-     * @param <K>         the type of the map keys
-     * @param <V>         the type of the map values
-     * @param <VV>        the output type of the value mapping function
-     * @param valueMapper a mapping function to produce values
-     * @param combiner    a merge function, used to resolve collisions between
-     *                    values associated with the same key, as supplied
-     *                    to {@link Map#merge(Object, Object, BiFunction)}
-     * @return {@code Collector} which collects elements into a {@code Map}
-     * whose keys are taken from {@code Map.Entry} and values are the result
-     * of applying the provided {@code valueMapper} function and combining
-     * them using the provided {@code combiner} function.
-     * @throws NullPointerException if mapper is null.
-     * @throws NullPointerException if combiner is null.
-     * @see #entriesToMap()
-     * @see #entriesToMap(BinaryOperator)
-     * @see Collectors#toMap(Function, Function, BinaryOperator)
-     * @since 0.7.3
-     */
-    public static <K, V, VV> Collector<Entry<? extends K, ? extends V>, ?, Map<K, VV>> entriesToMap(
-            Function<V, VV> valueMapper, BinaryOperator<VV> combiner) {
-        Objects.requireNonNull(valueMapper);
-        Objects.requireNonNull(combiner);
-        return Collectors.toMap(Entry::getKey, entry -> valueMapper.apply(entry.getValue()), combiner);
     }
 
     /**
@@ -277,8 +244,7 @@ public final class MoreCollectors {
      * @throws NullPointerException  if mapSupplier is null.
      * @throws NullPointerException  if entry value is null.
      * @see #entriesToCustomMap(BinaryOperator, Supplier)
-     * @see #entriesToCustomMap(Function, BinaryOperator, Supplier)
-     * @see Collectors#toMap(Function, Function, BinaryOperator, Supplier)
+     * @see Collector#of(Supplier, BiConsumer, BinaryOperator, Collector.Characteristics...)
      * @since 0.7.3
      */
     public static <K, V, M extends Map<K, V>> Collector<Entry<? extends K, ? extends V>, ?, M> entriesToCustomMap(
@@ -316,7 +282,6 @@ public final class MoreCollectors {
      * @throws NullPointerException if {@code combiner} is null.
      * @throws NullPointerException if {@code mapSupplier} is null.
      * @see #entriesToCustomMap(Supplier)
-     * @see #entriesToCustomMap(Function, BinaryOperator, Supplier)
      * @see Collectors#toMap(Function, Function, BinaryOperator, Supplier)
      * @since 0.7.3
      */
@@ -325,46 +290,6 @@ public final class MoreCollectors {
         Objects.requireNonNull(combiner);
         Objects.requireNonNull(mapSupplier);
         return Collectors.toMap(Entry::getKey, Entry::getValue, combiner, mapSupplier);
-    }
-
-    /**
-     * Returns a {@code Collector} that accumulates elements into
-     * a result {@code Map} defined by {@code mapSupplier} function
-     * whose keys are taken from {@code Map.Entry} and values are the result
-     * of applying the provided {@code valueMapper} function to {@code Map.Entry} values
-     * and combining them using the provided {@code combiner} function.
-     *
-     * <p>If the mapped keys contains duplicates (according to {@link Object#equals(Object)}),
-     * the value mapping function is applied to each equal element, and the
-     * results are merged using the provided {@code combiner} function.
-     *
-     * @param <K>         the type of the map keys
-     * @param <V>         the type of the map values
-     * @param <VV>        the output type of the value mapping function
-     * @param <M>         the type of the resulting {@code Map}
-     * @param valueMapper a mapping function to produce values
-     * @param combiner    a merge function, used to resolve collisions between
-     *                    values associated with the same key, as supplied
-     *                    to {@link Map#merge(Object, Object, BiFunction)}
-     * @param mapSupplier a function which returns a new, empty {@code Map} into
-     *                    which the results will be inserted
-     * @return {@code Collector} which collects elements into a {@code Map}
-     * whose keys and values are taken from {@code Map.Entry} and combining them
-     * using the {@code combiner} function
-     * @throws NullPointerException if {@code }valueMapper} is null.
-     * @throws NullPointerException if {@code combiner} is null.
-     * @throws NullPointerException if {@code mapSupplier} is null.
-     * @see #entriesToCustomMap(Supplier)
-     * @see #entriesToCustomMap(BinaryOperator, Supplier)
-     * @see Collectors#toMap(Function, Function, BinaryOperator, Supplier)
-     * @since 0.7.3
-     */
-    public static <K, V, VV, M extends Map<K, VV>> Collector<Entry<? extends K, ? extends V>, ?, M> entriesToCustomMap(
-            Function<V, VV> valueMapper, BinaryOperator<VV> combiner, Supplier<M> mapSupplier) {
-        Objects.requireNonNull(valueMapper);
-        Objects.requireNonNull(combiner);
-        Objects.requireNonNull(mapSupplier);
-        return Collectors.toMap(Entry::getKey, entry -> valueMapper.apply(entry.getValue()), combiner, mapSupplier);
     }
 
     /**

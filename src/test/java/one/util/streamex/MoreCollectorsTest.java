@@ -668,36 +668,6 @@ public class MoreCollectorsTest {
     }
 
     /**
-     * See {@link MoreCollectors#entriesToMap(Function, BinaryOperator)}.
-     */
-    @Test
-    public void testEntriesToMapWithValueMapperAndCombiner() {
-        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToMap(null, null));
-        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToMap(null, (a, b) -> a));
-        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToMap(a -> a, null));
-
-        checkCollectorEmpty("entriesToMap", Collections.emptyMap(), MoreCollectors.entriesToMap(a -> a, (a, b) -> a));
-        {
-            Map<CharSequence, CharSequence> expected = Collections.<String, String>emptyMap().entrySet().stream()
-                    .collect(MoreCollectors.entriesToMap(a -> a, (a, b) -> a));
-            assertTrue(expected.isEmpty());
-        }
-
-        streamEx(() -> Stream.of(
-                EntryStream.of(1, "one", 2, "two", 3, "three", 4, "four"),
-                EntryStream.of(1, "ein", 2, "zwei", 3, "drei"),
-                EntryStream.of(1, "une", 2, "deux"))
-                .flatMap(Function.identity()), supplier -> {
-            Map<Integer, CharSequence> result = supplier.get().collect(
-                    MoreCollectors.entriesToMap((value) -> "['" + value + "']", (left, right) -> left + ", " + right));
-            assertEquals("['one'], ['ein'], ['une']", result.get(1));
-            assertEquals("['two'], ['zwei'], ['deux']", result.get(2));
-            assertEquals("['three'], ['drei']", result.get(3));
-            assertEquals("['four']", result.get(4));
-        });
-    }
-
-    /**
      * See {@link MoreCollectors#entriesToCustomMap(Supplier)}.
      */
     @Test
@@ -805,40 +775,6 @@ public class MoreCollectorsTest {
                 NavigableMap<Integer, CharSequence> result = supplier.get().collect(
                         MoreCollectors.entriesToCustomMap((left, right) -> left + " -> " + right, TreeMap::new));
                 assertEquals("2=* -> * -> * -> *", result.entrySet().iterator().next().toString());
-        });
-    }
-
-    /**
-     * See {@link MoreCollectors#entriesToCustomMap(Function, BinaryOperator, Supplier)}.
-     */
-    @Test
-    public void testEntriesToCustomMapWithValueMapperAndCombiner() {
-        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToCustomMap(null, null, null));
-        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToCustomMap(null, null, TreeMap::new));
-        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToCustomMap(null, (a, b) -> a, null));
-        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToCustomMap(a -> a, null, null));
-        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToCustomMap(a -> a, null, TreeMap::new));
-        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToCustomMap(a -> a, (a, b) -> a, null));
-
-        checkCollectorEmpty("entriesToCustomMap", Collections.emptyMap(),
-                MoreCollectors.entriesToCustomMap(a -> a, (a, b) -> a, TreeMap::new));
-
-        streamEx(() -> Stream.of(
-                EntryStream.of(100, "hundred", 2, "two", 3, "three", 4, "four"),
-                EntryStream.of(100, "hundert", 2, "zwei", 3, "drei"),
-                EntryStream.of(100, "cent", 2, "deux"))
-                .flatMap(Function.identity()), supplier -> {
-            NavigableMap<Integer, CharSequence> result = supplier.get().collect(
-                    MoreCollectors.entriesToCustomMap((value) -> "['" + value + "']", (left, right) -> left + ", " + right, TreeMap::new));
-            assertEquals("['hundred'], ['hundert'], ['cent']", result.get(100));
-            assertEquals("['two'], ['zwei'], ['deux']", result.get(2));
-            assertEquals("['three'], ['drei']", result.get(3));
-            assertEquals("['four']", result.get(4));
-
-            assertEquals(2, (int) result.firstKey());
-            assertEquals("['two'], ['zwei'], ['deux']", result.firstEntry().getValue());
-            assertEquals(100, (int) result.lastKey());
-            assertEquals("['hundred'], ['hundert'], ['cent']", result.lastEntry().getValue());
         });
     }
 
