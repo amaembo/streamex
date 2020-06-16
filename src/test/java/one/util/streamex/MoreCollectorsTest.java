@@ -630,8 +630,7 @@ public class MoreCollectorsTest {
      */
     @Test
     public void testEntriesToMapWithCombiner() {
-        BinaryOperator<String> nullCombiner = null;
-        assertThrows(NullPointerException.class, () -> EntryStream.of(1, "*").stream().collect(MoreCollectors.entriesToMap(nullCombiner)));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToMap(null));
 
         checkCollectorEmpty("entriesToMap", Collections.emptyMap(), MoreCollectors.entriesToMap(String::concat));
         {
@@ -675,9 +674,14 @@ public class MoreCollectorsTest {
     public void testEntriesToMapWithValueMapperAndCombiner() {
         assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToMap(null, null));
         assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToMap(null, (a, b) -> a));
-        BinaryOperator<String> nullCombiner = null;
-        assertThrows(NullPointerException.class, () -> EntryStream.of(1, "*").stream().collect(
-                MoreCollectors.entriesToMap(Function.identity(), nullCombiner)));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToMap(a -> a, null));
+
+        checkCollectorEmpty("entriesToMap", Collections.emptyMap(), MoreCollectors.entriesToMap(a -> a, (a, b) -> a));
+        {
+            Map<CharSequence, CharSequence> expected = Collections.<String, String>emptyMap().entrySet().stream()
+                    .collect(MoreCollectors.entriesToMap(a -> a, (a, b) -> a));
+            assertTrue(expected.isEmpty());
+        }
 
         streamEx(() -> Stream.of(
                 EntryStream.of(1, "one", 2, "two", 3, "three", 4, "four"),
@@ -698,14 +702,15 @@ public class MoreCollectorsTest {
      */
     @Test
     public void testEntriesToCustomMap() {
-        assertThrows(NullPointerException.class, () ->
-                EntryStream.of("a", "*", "b", null).collect(MoreCollectors.entriesToCustomMap(LinkedHashMap::new)));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToCustomMap(null));
+        assertThrows(NullPointerException.class, () -> EntryStream.of("a", "*", "b", null).collect(
+                MoreCollectors.entriesToCustomMap(LinkedHashMap::new)));
 
-        assertThrows(IllegalStateException.class, () ->
-                EntryStream.generate(() -> "a", () -> 1).limit(10).collect(MoreCollectors.entriesToCustomMap(LinkedHashMap::new)));
-        streamEx(() -> EntryStream.of("a", "*", "a", "**").stream(), supplier -> {
-            checkIllegalStateException(() -> supplier.get().collect(MoreCollectors.entriesToCustomMap(TreeMap::new)), "a", "*", "**");
-        });
+        assertThrows(IllegalStateException.class, () -> EntryStream.generate(() -> "a", () -> 1).limit(10).collect(
+                MoreCollectors.entriesToCustomMap(LinkedHashMap::new)));
+        streamEx(() -> EntryStream.of("a", "*", "a", "**").stream(),
+                supplier -> checkIllegalStateException(() -> supplier.get().collect(
+                        MoreCollectors.entriesToCustomMap(TreeMap::new)), "a", "*", "**"));
 
         checkCollectorEmpty("entriesToMap", Collections.emptyMap(),
                 MoreCollectors.entriesToCustomMap(HashMap::new));
@@ -756,10 +761,12 @@ public class MoreCollectorsTest {
      */
     @Test
     public void testEntriesToCustomMapWithCombiner() {
-        BinaryOperator<String> nullCombiner = null;
-        assertThrows(NullPointerException.class, () -> EntryStream.of(1, "*").stream().collect(MoreCollectors.entriesToCustomMap(nullCombiner, TreeMap::new)));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToCustomMap(null, null));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToCustomMap((a, b) -> a, null));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToCustomMap(null, TreeMap::new));
 
-        checkCollectorEmpty("entriesToMap", Collections.emptyMap(), MoreCollectors.entriesToCustomMap(String::concat, TreeMap::new));
+        checkCollectorEmpty("entriesToCustomMap", Collections.emptyMap(),
+                MoreCollectors.entriesToCustomMap((a, b) -> a, TreeMap::new));
         {
             Map<CharSequence, CharSequence> expected = Collections.<String, String>emptyMap().entrySet().stream()
                     .collect(MoreCollectors.entriesToCustomMap((a, b) -> b, TreeMap::new));
@@ -804,13 +811,14 @@ public class MoreCollectorsTest {
     @Test
     public void testEntriesToCustomMapWithValueMapperAndCombiner() {
         assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToCustomMap(null, null, null));
-        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToCustomMap(null, (a, b) -> a, null));
         assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToCustomMap(null, null, TreeMap::new));
-        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToCustomMap(null, (a, b) -> a, TreeMap::new));
-        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToCustomMap(null, (a, b) -> a, TreeMap::new));
-        BinaryOperator<String> nullCombiner = null;
-        assertThrows(NullPointerException.class, () -> EntryStream.of(1, "*").stream().collect(
-                MoreCollectors.entriesToCustomMap(Function.identity(), nullCombiner, TreeMap::new)));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToCustomMap(null, (a, b) -> a, null));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToCustomMap(a -> a, null, null));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToCustomMap(a -> a, null, TreeMap::new));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToCustomMap(a -> a, (a, b) -> a, null));
+
+        checkCollectorEmpty("entriesToCustomMap", Collections.emptyMap(),
+                MoreCollectors.entriesToCustomMap(a -> a, (a, b) -> a, TreeMap::new));
 
         streamEx(() -> Stream.of(
                 EntryStream.of(100, "hundred", 2, "two", 3, "three", 4, "four"),

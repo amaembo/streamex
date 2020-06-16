@@ -259,7 +259,8 @@ What I want | How to get it
 --- | ---
 Collect to array | `MoreCollectors.toArray()`
 Collect to boolean array using the `Predicate` applied to each element | `MoreCollectors.toBooleanArray()`
-Collect `Map.Entry` entries to `HashMap` | `MoreCollectors.entriesToMap()`
+Collect to `EnumSet` | `MoreCollectors.toEnumSet()`
+Collect `Map.Entry` entries to map | `MoreCollectors.entriesToMap()`
 Collect `Map.Entry` entries to custom `Map` implementation | `MoreCollectors.entriesToCustomMap()`
 Count number of distinct elements using custom key extractor | `MoreCollectors.distinctCount()`
 Get the `List` of distinct elements using custom key extractor | `MoreCollectors.distinctBy()`
