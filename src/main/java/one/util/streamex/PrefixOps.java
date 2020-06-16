@@ -20,7 +20,6 @@ import java.util.Spliterators.AbstractDoubleSpliterator;
 import java.util.Spliterators.AbstractIntSpliterator;
 import java.util.Spliterators.AbstractLongSpliterator;
 import java.util.Spliterators.AbstractSpliterator;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -314,18 +313,20 @@ import static one.util.streamex.Internals.none;
         }
         
         private static final class MyAtomicInteger extends AtomicInteger {
-            boolean init;
-            
-            public int getAndAccumulateOrInit(int x, IntBinaryOperator accumulatorFunction) {
-                boolean init;
-                synchronized (this) {
-                    init = this.init;
-                    if (!init) {
-                        this.init = true;
-                        set(x);
-                    }
+            private boolean init;
+    
+            /**
+             * On the very first call sets the value to {@code x}
+             * @param x the initial value
+             * @return {@code true} if it was the very first call
+             */
+            public synchronized boolean initialize(int x) {
+                if (!init) {
+                    init = true;
+                    set(x);
+                    return true;
                 }
-                return init ? getAndAccumulate(x, accumulatorFunction) : x;
+                return false;
             }
         }
         
@@ -388,23 +389,35 @@ import static one.util.streamex.Internals.none;
         
         private void drain(IntConsumer action, int[] buf) {
             int last = buf[idx - 1];
-            int acc = accRef.getAndAccumulateOrInit(last, op);
-            for (int i = 0; i < idx; i++) {
-                action.accept(op.applyAsInt(buf[i], acc));
+            boolean accRefJustInitialized = accRef.initialize(last);
+            if (accRefJustInitialized) {
+                for (int i = 0; i < idx; i++) {
+                    action.accept(buf[i]);
+                }
+            } else {
+                int acc = accRef.getAndAccumulate(last, op);
+                for (int i = 0; i < idx; i++) {
+                    action.accept(op.applyAsInt(buf[i], acc));
+                }
             }
         }
         
         @Override
         public void accept(int next) {
-            if (started) {
-                if (accRef == null) {
+            if (accRef == null) {
+                if (started) {
                     acc = op.applyAsInt(acc, next);
                 } else {
-                    acc = accRef.accumulateAndGet(next, op);
+                    started = true;
+                    acc = next;
                 }
             } else {
-                started = true;
-                acc = next;
+                boolean accRefJustInitialized = accRef.initialize(next);
+                if (!accRefJustInitialized) {
+                    acc = accRef.accumulateAndGet(next, op);
+                } else {
+                    acc = next;
+                }
             }
         }
     }
@@ -421,18 +434,20 @@ import static one.util.streamex.Internals.none;
         }
         
         private static final class MyAtomicLong extends AtomicLong {
-            boolean init;
-        
-            public long getAndAccumulateOrInit(long x, LongBinaryOperator accumulatorFunction) {
-                boolean init;
-                synchronized (this) {
-                    init = this.init;
-                    if (!init) {
-                        this.init = true;
-                        set(x);
-                    }
+            private boolean init;
+    
+            /**
+             * On the very first call sets the value to {@code x}
+             * @param x the initial value
+             * @return {@code true} if it was the very first call
+             */
+            public synchronized boolean initialize(long x) {
+                if (!init) {
+                    init = true;
+                    set(x);
+                    return true;
                 }
-                return init ? getAndAccumulate(x, accumulatorFunction) : x;
+                return false;
             }
         }
         
@@ -495,23 +510,35 @@ import static one.util.streamex.Internals.none;
         
         private void drain(LongConsumer action, long[] buf) {
             long last = buf[idx - 1];
-            long acc = accRef.getAndAccumulateOrInit(last, op);
-            for (int i = 0; i < idx; i++) {
-                action.accept(op.applyAsLong(buf[i], acc));
+            boolean accRefJustInitialized = accRef.initialize(last);
+            if (accRefJustInitialized) {
+                for (int i = 0; i < idx; i++) {
+                    action.accept(buf[i]);
+                }
+            } else {
+                long acc = accRef.getAndAccumulate(last, op);
+                for (int i = 0; i < idx; i++) {
+                    action.accept(op.applyAsLong(buf[i], acc));
+                }
             }
         }
         
         @Override
         public void accept(long next) {
-            if (started) {
-                if (accRef == null) {
+            if (accRef == null) {
+                if (started) {
                     acc = op.applyAsLong(acc, next);
                 } else {
-                    acc = accRef.accumulateAndGet(next, op);
+                    started = true;
+                    acc = next;
                 }
             } else {
-                started = true;
-                acc = next;
+                boolean accRefJustInitialized = accRef.initialize(next);
+                if (!accRefJustInitialized) {
+                    acc = accRef.accumulateAndGet(next, op);
+                } else {
+                    acc = next;
+                }
             }
         }
     }
