@@ -20,7 +20,6 @@ import java.util.Spliterators.AbstractDoubleSpliterator;
 import java.util.Spliterators.AbstractIntSpliterator;
 import java.util.Spliterators.AbstractLongSpliterator;
 import java.util.Spliterators.AbstractSpliterator;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BinaryOperator;
@@ -302,32 +301,16 @@ import static one.util.streamex.Internals.none;
     }
     
     static final class OfUnordInt extends PrefixOps<Integer, Spliterator.OfInt> implements IntConsumer, Spliterator.OfInt {
-        private final IntBinaryOperator op;
+        private final LongBinaryOperator op;
+        private final IntBinaryOperator localOp;
         private boolean started;
-        private MyAtomicInteger accRef;
+        private AtomicLong accRef;
         private int acc;
         
         OfUnordInt(Spliterator.OfInt source, IntBinaryOperator op) {
             super(source);
-            this.op = op;
-        }
-        
-        private static final class MyAtomicInteger extends AtomicInteger {
-            private boolean init;
-    
-            /**
-             * On the very first call sets the value to {@code x}
-             * @param x the initial value
-             * @return {@code true} if it was the very first call
-             */
-            public synchronized boolean initialize(int x) {
-                if (!init) {
-                    init = true;
-                    set(x);
-                    return true;
-                }
-                return false;
-            }
+            this.localOp = op;
+            this.op = (a, b) -> a == Long.MAX_VALUE ? b : op.applyAsInt((int) a, (int) b);;
         }
         
         @Override
@@ -340,7 +323,7 @@ import static one.util.streamex.Internals.none;
                 return null;
             }
             if (accRef == null) {
-                accRef = new MyAtomicInteger();
+                accRef = new AtomicLong(Long.MAX_VALUE);
             }
             OfUnordInt pref = (OfUnordInt) doClone();
             pref.source = prefix;
@@ -361,7 +344,7 @@ import static one.util.streamex.Internals.none;
             if (accRef == null) {
                 source.forEachRemaining((IntConsumer) next -> {
                     if (started) {
-                        acc = op.applyAsInt(acc, next);
+                        acc = localOp.applyAsInt(acc, next);
                     } else {
                         acc = next;
                         started = true;
@@ -375,7 +358,7 @@ import static one.util.streamex.Internals.none;
                         buf[idx++] = next;
                     } else {
                         int prev = buf[idx - 1];
-                        buf[idx++] = op.applyAsInt(prev, next);
+                        buf[idx++] = localOp.applyAsInt(prev, next);
                         if (idx == buf.length) {
                             drain(action, buf);
                             idx = 0;
@@ -389,15 +372,14 @@ import static one.util.streamex.Internals.none;
         
         private void drain(IntConsumer action, int[] buf) {
             int last = buf[idx - 1];
-            boolean accRefJustInitialized = accRef.initialize(last);
-            if (accRefJustInitialized) {
+            if (accRef.compareAndSet(Long.MAX_VALUE, last)) {
                 for (int i = 0; i < idx; i++) {
                     action.accept(buf[i]);
                 }
             } else {
-                int acc = accRef.getAndAccumulate(last, op);
+                int acc = (int) accRef.getAndAccumulate(last, op);
                 for (int i = 0; i < idx; i++) {
-                    action.accept(op.applyAsInt(buf[i], acc));
+                    action.accept(localOp.applyAsInt(buf[i], acc));
                 }
             }
         }
@@ -406,18 +388,13 @@ import static one.util.streamex.Internals.none;
         public void accept(int next) {
             if (accRef == null) {
                 if (started) {
-                    acc = op.applyAsInt(acc, next);
+                    acc = localOp.applyAsInt(acc, next);
                 } else {
                     started = true;
                     acc = next;
                 }
             } else {
-                boolean accRefJustInitialized = accRef.initialize(next);
-                if (!accRefJustInitialized) {
-                    acc = accRef.accumulateAndGet(next, op);
-                } else {
-                    acc = next;
-                }
+                acc = (int) accRef.accumulateAndGet(next, op);
             }
         }
     }
