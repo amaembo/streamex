@@ -5,25 +5,25 @@
 * [Glossary](#glossary)
 * [Stream sources](#stream-sources)
 * [New intermediate operations](#new-intermediate-operations)
- * [filtering](#filtering)
- * [mapping](#mapping)
- * [flat-mapping](#flat-mapping)
- * [distinct](#distinct)
- * [sorting](#sorting)
- * [partial reduction](#partial-reduction)
- * [concatenate](#concatenate)
- * [peek](#peek)
- * [misc](#misc-intermediate-operations)
+  * [filtering](#filtering)
+  * [mapping](#mapping)
+  * [flat-mapping](#flat-mapping)
+  * [distinct](#distinct)
+  * [sorting](#sorting)
+  * [partial reduction](#partial-reduction)
+  * [concatenate](#concatenate)
+  * [peek](#peek)
+  * [misc](#misc-intermediate-operations)
 * [New terminal operations](#new-terminal-operations)
- * [Collector shortcuts](#collector-shortcuts)
- * [Search](#search)
- * [Folding](#folding)
- * [Primitive operations](#primitive-operations)
- * [forEach-like operations](#foreach-like-operations)
- * [misc](#misc-terminal-operations)
+  * [Collector shortcuts](#collector-shortcuts)
+  * [Search](#search)
+  * [Folding](#folding)
+  * [Primitive operations](#primitive-operations)
+  * [forEach-like operations](#foreach-like-operations)
+  * [misc](#misc-terminal-operations)
 * [Collectors](#collectors)
- * [Basic collectors](#basic-collectors)
- * [Adaptor collectors](#adaptor-collectors)
+  * [Basic collectors](#basic-collectors)
+  * [Adaptor collectors](#adaptor-collectors)
 
 ## Glossary
 
@@ -260,6 +260,8 @@ What I want | How to get it
 Collect to array | `MoreCollectors.toArray()`
 Collect to boolean array using the `Predicate` applied to each element | `MoreCollectors.toBooleanArray()`
 Collect to `EnumSet` | `MoreCollectors.toEnumSet()`
+Collect `Map.Entry` entries to map | `MoreCollectors.entriesToMap()`
+Collect `Map.Entry` entries to custom `Map` implementation | `MoreCollectors.entriesToCustomMap()`
 Count number of distinct elements using custom key extractor | `MoreCollectors.distinctCount()`
 Get the `List` of distinct elements using custom key extractor | `MoreCollectors.distinctBy()`
 Simply counting, but get the result as `Integer` | `MoreCollectors.countingInt()`

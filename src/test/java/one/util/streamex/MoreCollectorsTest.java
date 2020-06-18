@@ -25,16 +25,19 @@ import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NavigableMap;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
@@ -54,6 +57,7 @@ import static java.util.Arrays.asList;
 import static one.util.streamex.TestHelpers.assertThrows;
 import static one.util.streamex.TestHelpers.checkCollector;
 import static one.util.streamex.TestHelpers.checkCollectorEmpty;
+import static one.util.streamex.TestHelpers.checkIllegalStateException;
 import static one.util.streamex.TestHelpers.checkShortCircuitCollector;
 import static one.util.streamex.TestHelpers.streamEx;
 import static one.util.streamex.TestHelpers.withRandom;
@@ -589,6 +593,189 @@ public class MoreCollectorsTest {
         checkShortCircuitCollector("toEnumSet", expected, 100, enumValues::stream, MoreCollectors
                 .toEnumSet(TimeUnit.class));
         checkCollectorEmpty("Empty", EnumSet.noneOf(TimeUnit.class), MoreCollectors.toEnumSet(TimeUnit.class));
+    }
+
+    /**
+     * See {@link MoreCollectors#entriesToMap()}.
+     */
+    @Test
+    public void testEntriesToMap() {
+        assertThrows(IllegalStateException.class, () ->
+                EntryStream.generate(() -> "a", () -> 1).limit(10).collect(MoreCollectors.entriesToMap()));
+
+        checkCollectorEmpty("entriesToMap", Collections.emptyMap(), MoreCollectors.entriesToMap());
+        {
+            Map<CharSequence, CharSequence> expected = Collections.<String, String>emptyMap().entrySet().stream()
+                    .collect(MoreCollectors.entriesToMap());
+            assertTrue(expected.isEmpty());
+        }
+
+        {
+            Map<Integer, String> expected = EntryStream.of(1, "*", 2, "**", 3, "***", 4, "****", 5, "*****").toMap();
+            Supplier<Stream<Entry<Integer, String>>> stream = expected.entrySet()::stream;
+            checkCollector("entriesToMap", expected, stream, MoreCollectors.entriesToMap());
+        }
+        {
+            Map<String, String> expected = EntryStream.of("one", "*", "two", "**", "three", "***", "four", "****").toMap();
+            Map<CharSequence, CharSequence> result = expected.entrySet().stream().collect(MoreCollectors.entriesToMap());
+            assertEquals("*", result.get("one"));
+            assertEquals("**", result.get("two"));
+            assertEquals("***", result.get("three"));
+            assertEquals("****", result.get("four"));
+        }
+    }
+
+    /**
+     * See {@link MoreCollectors#entriesToMap(BinaryOperator)}.
+     */
+    @Test
+    public void testEntriesToMapWithCombiner() {
+        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToMap(null));
+
+        checkCollectorEmpty("entriesToMap", Collections.emptyMap(), MoreCollectors.entriesToMap(String::concat));
+        {
+            Map<CharSequence, CharSequence> expected = Collections.<String, String>emptyMap().entrySet().stream()
+                    .collect(MoreCollectors.entriesToMap((a, b) -> b));
+            assertTrue(expected.isEmpty());
+        }
+
+        streamEx(() -> Stream.of(
+                EntryStream.of(1, "*"),
+                EntryStream.of(1, "*", 2, "*"),
+                EntryStream.of(1, "*", 2, "*", 3, "*"),
+                EntryStream.of(1, "*", 2, "*", 3, "*", 4, "*"),
+                EntryStream.of(1, "*", 2, "*", 3, "*", 4, "*", 5, "*"))
+                .flatMap(Function.identity()), supplier -> {
+            Map<Integer, String> result = supplier.get().collect(MoreCollectors.entriesToMap(String::concat));
+            assertEquals("*****", result.get(1));
+            assertEquals("****", result.get(2));
+            assertEquals("***", result.get(3));
+            assertEquals("**", result.get(4));
+            assertEquals("*", result.get(5));
+        });
+
+        streamEx(() -> Stream.of(
+                EntryStream.of(1, "one", 2, "two", 3, "three", 4, "four"),
+                EntryStream.of(1, "ein", 2, "zwei", 3, "drei"),
+                EntryStream.of(1, "une", 2, "deux"))
+                .flatMap(Function.identity()), supplier -> {
+            Map<Integer, CharSequence> result = supplier.get().collect(MoreCollectors.entriesToMap((left, right) -> left + "," + right));
+            assertEquals("one,ein,une", result.get(1));
+            assertEquals("two,zwei,deux", result.get(2));
+            assertEquals("three,drei", result.get(3));
+            assertEquals("four", result.get(4));
+        });
+    }
+
+    /**
+     * See {@link MoreCollectors#entriesToCustomMap(Supplier)}.
+     */
+    @Test
+    public void testEntriesToCustomMap() {
+        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToCustomMap(null));
+        assertThrows(NullPointerException.class, () -> EntryStream.of("a", "*", "b", null).collect(
+                MoreCollectors.entriesToCustomMap(LinkedHashMap::new)));
+
+        assertThrows(IllegalStateException.class,
+                "Duplicate entry for key 'a' (attempt to merge values '*' and '**')"::equals,
+                () -> EntryStream.of("a", "*", "a", "**").collect(MoreCollectors.entriesToCustomMap(LinkedHashMap::new)));
+
+        streamEx(() -> EntryStream.generate(() -> "a", () -> 1).limit(10),
+                supplier -> checkIllegalStateException(
+                        () -> supplier.get().collect(MoreCollectors.entriesToCustomMap(TreeMap::new)),
+                        "a", "1", "1"));
+
+        checkCollectorEmpty("entriesToMap", Collections.emptyMap(),
+                MoreCollectors.entriesToCustomMap(HashMap::new));
+        checkCollectorEmpty("entriesToMap", Collections.emptyMap(),
+                MoreCollectors.entriesToCustomMap(IdentityHashMap::new));
+        checkCollectorEmpty("entriesToMap", Collections.emptyNavigableMap(),
+                MoreCollectors.entriesToCustomMap(TreeMap::new));
+        checkCollectorEmpty("entriesToMap", Collections.emptySortedMap(),
+                MoreCollectors.entriesToCustomMap(TreeMap::new));
+        checkCollectorEmpty("entriesToMap", Collections.emptySortedMap(),
+                MoreCollectors.entriesToCustomMap(LinkedHashMap::new));
+
+        {
+            Map<CharSequence, CharSequence> expected = Collections.<String, String>emptyMap().entrySet().stream()
+                    .collect(MoreCollectors.entriesToCustomMap(TreeMap::new));
+            assertTrue(expected.isEmpty());
+        }
+
+        {
+            Map<Integer, String> expected = EntryStream.of(5, "*****", 1, "*", 4, "****", 2, "**", 3, "***").toMap();
+            Supplier<Stream<Entry<Integer, String>>> stream = expected.entrySet()::stream;
+            checkCollector("entriesToMap", expected, stream, MoreCollectors.entriesToCustomMap(TreeMap::new));
+
+            streamEx(stream, supplier -> {
+                NavigableMap<Integer, CharSequence> result = supplier.get().collect(MoreCollectors.entriesToCustomMap(TreeMap::new));
+                assertEquals("*", result.get(1));
+                assertEquals("**", result.get(2));
+                assertEquals("***", result.get(3));
+                assertEquals("****", result.get(4));
+                assertEquals("*****", result.get(5));
+
+                assertEquals(1, (int) result.firstKey());
+                assertEquals("*", result.firstEntry().getValue());
+                assertEquals(5, (int) result.lastKey());
+                assertEquals("*****", result.lastEntry().getValue());
+            });
+        }
+
+        {
+            LinkedHashMap<Integer, String> expected = EntryStream.of(5, "*****", 1, "*", 4, "****", 2, "**", 3, "***")
+                    .collect(MoreCollectors.entriesToCustomMap(LinkedHashMap::new));
+            assertEquals("5=*****", expected.entrySet().iterator().next().toString());
+        }
+    }
+
+    /**
+     * See {@link MoreCollectors#entriesToCustomMap(BinaryOperator, Supplier)}.
+     */
+    @Test
+    public void testEntriesToCustomMapWithCombiner() {
+        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToCustomMap(null, null));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToCustomMap((a, b) -> a, null));
+        assertThrows(NullPointerException.class, () -> MoreCollectors.entriesToCustomMap(null, TreeMap::new));
+
+        checkCollectorEmpty("entriesToCustomMap", Collections.emptyMap(),
+                MoreCollectors.entriesToCustomMap((a, b) -> a, TreeMap::new));
+        {
+            Map<CharSequence, CharSequence> expected = Collections.<String, String>emptyMap().entrySet().stream()
+                    .collect(MoreCollectors.entriesToCustomMap((a, b) -> b, TreeMap::new));
+            assertTrue(expected.isEmpty());
+        }
+
+        streamEx(() -> Stream.of(
+                EntryStream.of(100, "hundred", 2, "two", 3, "three", 4, "four"),
+                EntryStream.of(100, "hundert", 2, "zwei", 3, "drei"),
+                EntryStream.of(100, "cent", 2, "deux"))
+                .flatMap(Function.identity()), supplier -> {
+            NavigableMap<Integer, String> result = supplier.get().collect(
+                    MoreCollectors.entriesToCustomMap((left, right) -> left + " -> " + right, TreeMap::new));
+            assertEquals("hundred -> hundert -> cent", result.get(100));
+            assertEquals("two -> zwei -> deux", result.get(2));
+            assertEquals("three -> drei", result.get(3));
+            assertEquals("four", result.get(4));
+
+            assertEquals(2, (int) result.firstKey());
+            assertEquals("two -> zwei -> deux", result.firstEntry().getValue());
+            assertEquals(100, (int) result.lastKey());
+            assertEquals("hundred -> hundert -> cent", result.lastEntry().getValue());
+        });
+
+        streamEx(() -> Stream.of(
+                EntryStream.of(10, "*"),
+                EntryStream.of(10, "*", 2, "*"),
+                EntryStream.of(10, "*", 2, "*", 100, "*"),
+                EntryStream.of(10, "*", 2, "*", 100, "*", 4, "*"),
+                EntryStream.of(10, "*", 2, "*", 100, "*", 4, "*", 5, "*"))
+                .flatMap(Function.identity()), supplier -> {
+
+                NavigableMap<Integer, CharSequence> result = supplier.get().collect(
+                        MoreCollectors.entriesToCustomMap((left, right) -> left + " -> " + right, TreeMap::new));
+                assertEquals("2=* -> * -> * -> *", result.entrySet().iterator().next().toString());
+        });
     }
 
     @Test
