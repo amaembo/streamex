@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package one.util.streamex;
+package one.util.streamex.api;
 
 import java.util.Spliterator;
 
 import org.junit.Test;
+
+import one.util.streamex.IntStreamEx;
 
 import static one.util.streamex.TestHelpers.consumeElement;
 import static org.junit.Assert.assertNull;
