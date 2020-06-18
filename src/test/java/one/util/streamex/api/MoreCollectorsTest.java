@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2019 StreamEx contributors
+ * Copyright 2015, 2020 StreamEx contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package one.util.streamex;
+package one.util.streamex.api;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -51,7 +51,12 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
-import one.util.streamex.Internals.BooleanMap;
+import one.util.streamex.EntryStream;
+import one.util.streamex.IntStreamEx;
+import one.util.streamex.Joining;
+import one.util.streamex.LongStreamEx;
+import one.util.streamex.MoreCollectors;
+import one.util.streamex.StreamEx;
 
 import static java.util.Arrays.asList;
 import static one.util.streamex.TestHelpers.assertThrows;
@@ -451,30 +456,14 @@ public class MoreCollectorsTest {
     public void testPartitioningBy() {
         assertThrows(NullPointerException.class, () -> MoreCollectors.partitioningBy(null, Collectors.toList()));
         assertThrows(NullPointerException.class, () -> MoreCollectors.partitioningBy(x -> x.hashCode() > 0, null));
-        Collector<Integer, ?, Map<Boolean, Optional<Integer>>> by20 = MoreCollectors.partitioningBy(x -> x % 20 == 0,
-            MoreCollectors.first());
-        Collector<Integer, ?, Map<Boolean, Optional<Integer>>> by200 = MoreCollectors.partitioningBy(x -> x % 200 == 0,
-            MoreCollectors.first());
-        Supplier<Stream<Integer>> supplier = () -> IntStreamEx.range(1, 100).boxed();
-        checkShortCircuitCollector("by20", new BooleanMap<>(Optional.of(20), Optional.of(1)), 20, supplier, by20);
-        checkShortCircuitCollector("by200", new BooleanMap<>(Optional.empty(), Optional.of(1)), 99, supplier, by200);
     }
 
     @Test
     public void testMapping() {
         assertThrows(NullPointerException.class, () -> MoreCollectors.mapping(null, Collectors.toList()));
         assertThrows(NullPointerException.class, () -> MoreCollectors.mapping(Function.identity(), null));
-        List<String> input = asList("Capital", "lower", "Foo", "bar");
-        Collector<String, ?, Map<Boolean, Optional<Integer>>> collector = MoreCollectors
-                .partitioningBy(str -> Character.isUpperCase(str.charAt(0)), MoreCollectors.mapping(String::length,
-                    MoreCollectors.first()));
-        checkShortCircuitCollector("mapping", new BooleanMap<>(Optional.of(7), Optional.of(5)), 2, input::stream,
-            collector);
-        Collector<String, ?, Map<Boolean, Optional<Integer>>> collectorLast = MoreCollectors.partitioningBy(
-            str -> Character.isUpperCase(str.charAt(0)), MoreCollectors.mapping(String::length, MoreCollectors.last()));
-        checkCollector("last", new BooleanMap<>(Optional.of(3), Optional.of(3)), input::stream, collectorLast);
 
-        input = asList("Abc", "Bac", "Aac", "Abv", "Bbc", "Bgd", "Atc", "Bpv");
+        List<String> input = asList("Abc", "Bac", "Aac", "Abv", "Bbc", "Bgd", "Atc", "Bpv");
         Map<Character, List<String>> expected = EntryStream.of('A', asList("Abc", "Aac"), 'B', asList("Bac", "Bbc"))
                 .toMap();
         AtomicInteger cnt = new AtomicInteger();

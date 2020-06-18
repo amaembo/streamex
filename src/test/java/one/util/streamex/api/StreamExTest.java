@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2019 StreamEx contributors
+ * Copyright 2015, 2020 StreamEx contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package one.util.streamex;
+package one.util.streamex.api;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -80,6 +80,13 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runners.MethodSorters;
 
+import one.util.streamex.EntryStream;
+import one.util.streamex.IntStreamEx;
+import one.util.streamex.Joining;
+import one.util.streamex.MoreCollectors;
+import one.util.streamex.StreamEx;
+import one.util.streamex.TestHelpers.Point;
+
 import static java.util.Arrays.asList;
 import static one.util.streamex.TestHelpers.assertThrows;
 import static one.util.streamex.TestHelpers.checkIllegalStateException;
@@ -130,9 +137,6 @@ public class StreamExTest {
         assertEquals(asList("a", "a", "a", "a"), StreamEx.generate(() -> "a").limit(4).toList());
         assertEquals(asList("a", "a", "a", "a"), StreamEx.constant("a", 4).toList());
         assertEquals(asList("c", "d", "e"), StreamEx.of("abcdef".split(""), 2, 5).toList());
-
-        StreamEx<String> stream = StreamEx.of("foo", "bar");
-        assertSame(stream.stream(), StreamEx.of(stream).stream());
 
         assertEquals(asList("a1", "b2", "c3"), StreamEx.zip(asList("a", "b", "c"), asList(1, 2, 3), (s, i) -> s + i)
                 .toList());
@@ -817,19 +821,6 @@ public class StreamExTest {
         return StreamEx.of(c).parallel().pairMap((a, b) -> a.compareTo(b) > 0 ? a : null).nonNull().findFirst();
     }
 
-    static class Point {
-        final double x, y;
-
-        Point(double x, double y) {
-            this.x = x;
-            this.y = y;
-        }
-
-        double distance(Point o) {
-            return Math.sqrt((x - o.x) * (x - o.x) + (y - o.y) * (y - o.y));
-        }
-    }
-
     @Test
     public void testPairMap() {
         assertEquals(0, StreamEx.<String>empty().pairMap(String::concat).count());
@@ -1445,15 +1436,15 @@ public class StreamExTest {
     public void testRunLengthsEntries() {
         // runLengths produces custom entries (ObjLongBox), so let's test their equals/hashCode contract
         List<Entry<String, Long>> runLengths = StreamEx.of("a", "a", "b", "b", "a", "a", "a").runLengths().toList();
-        assertTrue(runLengths.get(0).equals(new AbstractMap.SimpleImmutableEntry<>("a", 2L)));
-        assertTrue(runLengths.get(1).equals(new AbstractMap.SimpleImmutableEntry<>("b", 2L)));
-        assertTrue(runLengths.get(2).equals(new AbstractMap.SimpleImmutableEntry<>("a", 3L)));
+        assertEquals(runLengths.get(0), new AbstractMap.SimpleImmutableEntry<>("a", 2L));
+        assertEquals(runLengths.get(1), new AbstractMap.SimpleImmutableEntry<>("b", 2L));
+        assertEquals(runLengths.get(2), new AbstractMap.SimpleImmutableEntry<>("a", 3L));
         assertEquals(runLengths.get(0).hashCode(), new AbstractMap.SimpleImmutableEntry<>("a", 2L).hashCode());
         assertEquals(runLengths.get(1).hashCode(), new AbstractMap.SimpleImmutableEntry<>("b", 2L).hashCode());
         assertEquals(runLengths.get(2).hashCode(), new AbstractMap.SimpleImmutableEntry<>("a", 3L).hashCode());
-        assertTrue(new AbstractMap.SimpleImmutableEntry<>("a", 2L).equals(runLengths.get(0)));
-        assertTrue(new AbstractMap.SimpleImmutableEntry<>("b", 2L).equals(runLengths.get(1)));
-        assertTrue(new AbstractMap.SimpleImmutableEntry<>("a", 3L).equals(runLengths.get(2)));
+        assertEquals(new AbstractMap.SimpleImmutableEntry<>("a", 2L), runLengths.get(0));
+        assertEquals(new AbstractMap.SimpleImmutableEntry<>("b", 2L), runLengths.get(1));
+        assertEquals(new AbstractMap.SimpleImmutableEntry<>("a", 3L), runLengths.get(2));
         assertNotEquals(runLengths.get(0), runLengths.get(1));
         assertNotEquals(runLengths.get(0), runLengths.get(2));
     }
@@ -1624,11 +1615,6 @@ public class StreamExTest {
             Optional<String> opt5 = s.get().dropWhile(x -> x.length() > 5).findFirst();
             assertEquals(Optional.of("aaa"), opt5);
         });
-
-        // Test that in JDK9 operation is propagated to JDK dropWhile method.
-        boolean hasDropWhile = VerSpec.VER_SPEC.getClass().getSimpleName().equals("Java9Specific");
-        Spliterator<String> spliterator = StreamEx.of("aaa", "b", "cccc").dropWhile(x -> x.length() > 1).spliterator();
-        assertEquals(hasDropWhile, !spliterator.getClass().getSimpleName().equals("TDOfRef"));
     }
 
     @Test
@@ -1885,7 +1871,7 @@ public class StreamExTest {
         streamEx(() -> StreamEx.split("ab.cd...", "\\w"), s -> assertEquals("||.||...", s.get().joining("|")));
         streamEx(() -> StreamEx.split("ab.cd...", "\\W"), s -> assertEquals("ab|cd", s.get().joining("|")));
         streamEx(() -> StreamEx.split("ab|cd|e", "\\|"), s -> assertEquals("ab,cd,e", s.get().joining(",")));
-        assertEquals(CharSpliterator.class, StreamEx.split("a#a", "\\#").spliterator().getClass());
+
         assertThrows(PatternSyntaxException.class, () -> StreamEx.split("a", "\\0"));
         asList('9', 'A', 'Z', 'z').forEach(ch ->
                 assertEquals(asList("a" + ch + "a"), StreamEx.split("a" + ch + "a", "\\" + ch).toList()));
@@ -2157,7 +2143,7 @@ public class StreamExTest {
         int maxAvailableSize = Integer.MAX_VALUE - collection.size();
         assertThrows(IllegalArgumentException.class,
             () -> StreamEx.<Integer>of(emptySpliteratorWithExactSize(-2)).into(collection));
-        assertThrows(OutOfMemoryError.class, 
+        assertThrows(OutOfMemoryError.class,
             () -> StreamEx.<Integer>of(emptySpliteratorWithExactSize(Long.MAX_VALUE)).into(collection));
         StreamEx.<Integer>of(emptySpliteratorWithExactSize(maxAvailableSize + 1)).into(collection);
         StreamEx.<Integer>of(emptySpliteratorWithExactSize(maxAvailableSize)).into(collection);

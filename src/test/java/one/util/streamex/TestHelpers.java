@@ -108,7 +108,7 @@ public class TestHelpers {
         }
     }
 
-    static class EntryStreamSupplier<K, V> extends StreamSupplier<Map.Entry<K, V>> {
+    public static class EntryStreamSupplier<K, V> extends StreamSupplier<Map.Entry<K, V>> {
 
         public EntryStreamSupplier(Supplier<Stream<Map.Entry<K, V>>> base, Mode mode) {
             super(base, mode);
@@ -117,6 +117,19 @@ public class TestHelpers {
         @Override
         public EntryStream<K, V> get() {
             return EntryStream.of(super.get());
+        }
+    }
+
+    public static class Point {
+        public final double x, y;
+
+        public Point(double x, double y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        public double distance(Point o) {
+            return Math.sqrt((x - o.x) * (x - o.x) + (y - o.y) * (y - o.y));
         }
     }
 
@@ -250,7 +263,7 @@ public class TestHelpers {
         }
     }
 
-    static <T, R> void checkCollectorEmpty(String message, R expected, Collector<T, ?, R> collector) {
+    public static <T, R> void checkCollectorEmpty(String message, R expected, Collector<T, ?, R> collector) {
         if (finished(collector) != null)
             checkShortCircuitCollector(message, expected, 0, Stream::empty, collector);
         else
@@ -442,7 +455,7 @@ public class TestHelpers {
     }
 
     @FunctionalInterface
-    interface Statement {
+    public interface Statement {
         void evaluate() throws Throwable;
     }
 
@@ -481,5 +494,9 @@ public class TestHelpers {
                 return false;
             }
         };
+    }
+
+    public static void checkAsString(String expected, EntryStream<?, ?> stream) {
+        assertEquals(expected, stream.join("->").joining(";"));
     }
 }

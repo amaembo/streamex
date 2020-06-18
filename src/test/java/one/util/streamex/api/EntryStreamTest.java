@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2019 StreamEx contributors
+ * Copyright 2015, 2020 StreamEx contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package one.util.streamex;
+package one.util.streamex.api;
 
 import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
@@ -43,15 +43,21 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import org.junit.Assert;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
-import one.util.streamex.StreamExTest.Point;
+import one.util.streamex.EntryStream;
+import one.util.streamex.IntStreamEx;
+import one.util.streamex.MoreCollectors;
+import one.util.streamex.StreamEx;
+import one.util.streamex.TestHelpers.Point;
 
 import static java.util.Arrays.asList;
 import static one.util.streamex.TestHelpers.StreamExSupplier;
 import static one.util.streamex.TestHelpers.assertThrows;
+import static one.util.streamex.TestHelpers.checkAsString;
 import static one.util.streamex.TestHelpers.checkIllegalStateException;
 import static one.util.streamex.TestHelpers.entryStream;
 import static one.util.streamex.TestHelpers.repeat;
@@ -71,10 +77,6 @@ import static org.junit.Assert.fail;
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class EntryStreamTest {
-    private static void checkAsString(String expected, EntryStream<?, ?> stream) {
-        assertEquals(expected, stream.join("->").joining(";"));
-    }
-
     private static Map<String, Integer> createMap() {
         Map<String, Integer> data = new LinkedHashMap<>();
         data.put("a", 1);
@@ -86,25 +88,18 @@ public class EntryStreamTest {
     @Test
     public void testCreate() {
         assertEquals(0, EntryStream.empty().count());
-        assertEquals(0, EntryStream.empty().count());
-        Map<String, Integer> data = createMap();
-        assertEquals(data, EntryStream.of(data).toMap());
-        assertEquals(data, EntryStream.of(data.entrySet().stream()).toMap());
+
         Map<String, Integer> expected = new HashMap<>();
         expected.put("aaa", 3);
         expected.put("bbb", 3);
         expected.put("c", 1);
-        assertEquals(expected, StreamEx.of("aaa", "bbb", "c").mapToEntry(String::length).toMap());
+        Assert.assertEquals(expected, StreamEx.of("aaa", "bbb", "c").mapToEntry(String::length).toMap());
         assertEquals(expected, StreamEx.of("aaa", "bbb", "c").mapToEntry(s -> s, String::length).toMap());
         assertEquals(Collections.singletonMap("foo", 1), EntryStream.of("foo", 1).toMap());
         assertEquals(createMap(), EntryStream.of("a", 1, "bb", 22, "ccc", 33).toMap());
 
         assertEquals(expected, StreamEx.of(Collections.singletonMap("aaa", 3), Collections.singletonMap("bbb", 3),
             Collections.singletonMap("c", 1), Collections.emptyMap()).flatMapToEntry(m -> m).toMap());
-
-        EntryStream<String, Integer> stream = EntryStream.of(data);
-        assertSame(stream.stream(), EntryStream.of(stream).stream());
-        assertSame(stream.stream(), EntryStream.of(StreamEx.of(EntryStream.of(stream))).stream());
 
         assertEquals(Collections.singletonMap("aaa", 3), EntryStream.of(
             Collections.singletonMap("aaa", 3).entrySet().spliterator()).toMap());
@@ -551,7 +546,7 @@ public class EntryStreamTest {
         assertEquals(expected, resultTree);
 
         streamEx(() -> IntStreamEx.range(1000).boxed(), supplier -> {
-            assertEquals(EntryStream.of(0, 500, 1, 500).toMap(), supplier.get().mapToEntry(i -> i / 500, i -> i)
+            Assert.assertEquals(EntryStream.of(0, 500, 1, 500).toMap(), supplier.get().mapToEntry(i -> i / 500, i -> i)
                     .grouping(MoreCollectors.countingInt()));
             ConcurrentSkipListMap<Integer, Integer> map = supplier.get().mapToEntry(i -> i / 500, i -> i).grouping(
                 ConcurrentSkipListMap::new, MoreCollectors.countingInt());
