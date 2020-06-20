@@ -236,6 +236,8 @@ public final class MoreCollectors {
      * @param <K> the type of the map keys
      * @param <V> the type of the map values
      * @param <M> the type of the resulting {@code Map}
+     * @param mapSupplier a function which returns a new, empty {@code Map} into
+     *                    which the results will be inserted
      * @return {@code Collector} which collects elements into a {@code Map}
      * defined by {@code mapSupplier} function
      * whose keys and values are taken from {@code Map.Entry}
