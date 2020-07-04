@@ -4,6 +4,7 @@ Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 
 ### 0.7.3
 * [#028]: Added: `StreamEx.toCollectionAndThen`
+* [#039]: Added: `AbstractStreamEx.reducingWithZero` and `MoreCollectors.reducingWithZero`.
 * [#043]: Added: Add `MoreCollectors.entriesToMap` and `MoreCollectors.entriesToCustomMap` methods accepting Entry<K,V>. 
 * [#219]: Changed: MoreCollectors now reject eagerly null parameters where possible; `MoreCollectors.last` throws NPE if last stream element is null.
 * [#221]: Fixed: `rangeClosed(x, x, step)` returned empty stream instead of stream of `x` if step absolute value is

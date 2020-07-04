@@ -226,6 +226,7 @@ Fold elements left-to-right | `any.foldLeft()`
 Fold elements right-to-left | `StreamEx/EntryStream.foldRight()`
 Get `List` of cumulative prefixes or suffixes | `StreamEx/EntryStream.scanLeft()/scanRight()`
 Get primitive array of cumulative prefixes | `IntStreamEx/LongStreamEx/DoubleStreamEx.scanLeft()`
+Reduce elements possibly short-circuiting the reduction | `StreamEx/EntryStream.reducingWithZero()`
 
 ### Primitive operations
 
@@ -279,6 +280,7 @@ Perform a group-by with the specified keys domain, so every key is initialized e
 Partition input according to the `Predicate` | `MoreCollectors.partitioningBy()`
 Get the common prefix or common suffix `String` of input elements | `MoreCollectors.commonPrefix()/commonSuffix()`
 Get the list of input elements removing the elements which follow their dominator element | `MoreCollectors.dominators()`
+Reduce elements possibly short-circuiting the reduction | `MoreCollectors.reducingWithZero()`
 
 ### Adaptor collectors
 

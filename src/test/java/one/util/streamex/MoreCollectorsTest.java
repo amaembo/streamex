@@ -25,6 +25,7 @@ import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -34,6 +35,7 @@ import java.util.NavigableMap;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -490,22 +492,6 @@ public class MoreCollectorsTest {
 
         checkCollector("mapping-toList", asList("a", "b", "c"), asList("a1", "b2", "c3")::stream, MoreCollectors
                 .mapping(str -> str.substring(0, 1)));
-    }
-
-    @Test
-    public void testIntersecting() {
-        for (int i = 0; i < 5; i++) {
-            List<List<String>> input = asList(asList("aa", "bb", "cc"), asList("cc", "bb", "dd"), asList("ee", "dd"),
-                asList("aa", "bb", "dd"));
-            checkShortCircuitCollector("#" + i, Collections.emptySet(), 3, input::stream, MoreCollectors.intersecting());
-            List<List<Integer>> copies = new ArrayList<>(Collections.nCopies(100, asList(1, 2)));
-            checkShortCircuitCollector("#" + i, StreamEx.of(1, 2).toSet(), 100, copies::stream, MoreCollectors
-                    .intersecting());
-            copies.addAll(Collections.nCopies(100, asList(3)));
-            checkShortCircuitCollector("#" + i, Collections.emptySet(), 101, copies::stream, MoreCollectors
-                    .intersecting());
-            checkCollectorEmpty("#" + i, Collections.emptySet(), MoreCollectors.intersecting());
-        }
     }
 
     @Test
@@ -1093,5 +1079,44 @@ public class MoreCollectorsTest {
             StreamEx::empty, multiplication);
         checkShortCircuitCollector("reducingWithZero: multiply", 0, 32,
             () -> StreamEx.constant(2, 64), multiplication);
+    }
+
+    @FunctionalInterface
+    interface Intersector {
+        <T> Collector<List<T>, ?, Set<T>> get();
+    }
+
+    @Test
+    public void testIntersecting() {
+        checkIntersecting(MoreCollectors::intersecting);
+    }
+
+    @Test
+    public void testIntersectingViaReducingWithZero() {
+        checkIntersecting(new Intersector() {
+            @Override
+            public <T> Collector<List<T>, ?, Set<T>> get() {
+                Collector<Set<T>, ?, Optional<Set<T>>> reducing = MoreCollectors.reducingWithZero(
+                    Collections.emptySet(), (c1, c2) -> {
+                        c1.retainAll(c2);
+                        return c1;
+                    });
+                return MoreCollectors.mapping(HashSet::new,
+                    MoreCollectors.collectingAndThen(reducing, res -> res.orElse(Collections.emptySet())));
+            }
+        });
+    }
+
+    private static void checkIntersecting(Intersector intersector) {
+        for (int i = 0; i < 5; i++) {
+            List<List<String>> input = asList(asList("aa", "bb", "cc"), asList("cc", "bb", "dd"), asList("ee", "dd"),
+                asList("aa", "bb", "dd"));
+            checkShortCircuitCollector("#" + i, Collections.emptySet(), 3, input::stream, intersector.get());
+            List<List<Integer>> copies = new ArrayList<>(Collections.nCopies(100, asList(1, 2)));
+            checkShortCircuitCollector("#" + i, StreamEx.of(1, 2).toSet(), 100, copies::stream, intersector.get());
+            copies.addAll(Collections.nCopies(100, asList(3)));
+            checkShortCircuitCollector("#" + i, Collections.emptySet(), 101, copies::stream, intersector.get());
+            checkCollectorEmpty("#" + i, Collections.emptySet(), intersector.get());
+        }
     }
 }
