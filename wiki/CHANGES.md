@@ -8,7 +8,8 @@ Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 * [#043]: Added: Add `MoreCollectors.entriesToMap` and `MoreCollectors.entriesToCustomMap` methods accepting Entry<K,V>. 
 * [#219]: Changed: MoreCollectors now reject eagerly null parameters where possible; `MoreCollectors.last` throws NPE if last stream element is null.
 * [#221]: Fixed: `rangeClosed(x, x, step)` returned empty stream instead of stream of `x` if step absolute value is
- bigger than one. 
+ bigger than one.
+* [#226]: Added: `EntryStream.pairMap` (pairMap pulled up to AbstractStreamEx).
 
 ### 0.7.2
 * Fixed: accidental use of Java 9 API in CrossSpliterator
