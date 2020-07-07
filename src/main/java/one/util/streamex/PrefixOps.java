@@ -50,8 +50,8 @@ import static one.util.streamex.Internals.none;
         }
     }
     
-    protected S source;
-    protected int idx = 0;
+    S source;
+    int idx = 0;
     
     PrefixOps(S source) {
         this.source = source;
@@ -394,7 +394,7 @@ import static one.util.streamex.Internals.none;
         OfUnordInt(Spliterator.OfInt source, IntBinaryOperator op) {
             super(source);
             this.localOp = op;
-            this.op = (a, b) -> a == Long.MAX_VALUE ? b : op.applyAsInt((int) a, (int) b);;
+            this.op = (a, b) -> a == Long.MAX_VALUE ? b : op.applyAsInt((int) a, (int) b);
         }
     
         private final class IntPrefixBuffer extends PrefixBuffer implements IntConsumer {
@@ -634,6 +634,7 @@ import static one.util.streamex.Internals.none;
     
             /**
              * On the very first call sets the value to {@code x}
+             *
              * @param x the initial value
              * @return {@code true} if it was the very first call
              */
