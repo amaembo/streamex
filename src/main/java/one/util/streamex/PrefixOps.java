@@ -41,6 +41,15 @@ import static one.util.streamex.Internals.none;
 /* package */ abstract class PrefixOps<T, S extends Spliterator<T>> extends CloneableSpliterator<T, PrefixOps<T, S>> {
     private static final int BUF_SIZE = 128;
     
+    abstract static class PrefixBuffer {
+        protected int idx;
+        protected boolean isFirst;
+    
+        public boolean isInit() {
+            return idx != 0;
+        }
+    }
+    
     protected S source;
     protected int idx = 0;
     
@@ -219,6 +228,7 @@ import static one.util.streamex.Internals.none;
         private AtomicReference<T> accRef;
         private T acc = none();
         private final BinaryOperator<T> op;
+        private RefPrefixBuffer buffer;
         
         OfUnordRef(Spliterator<T> source, BinaryOperator<T> op) {
             super(source);
@@ -226,6 +236,69 @@ import static one.util.streamex.Internals.none;
             this.op = (a, b) -> a == NONE ? b : op.apply(a, b);
         }
         
+        private final class RefPrefixBuffer extends PrefixBuffer implements Consumer<T> {
+            @SuppressWarnings("unchecked")
+            private final T[] buf = (T[]) new Object[BUF_SIZE];
+            private T prevBufferLast;
+        
+            boolean init(Spliterator<T> source) {
+                if (idx == 0) {
+                    int i = 0;
+                    while (i < BUF_SIZE && source.tryAdvance(this)) {
+                        i++;
+                    }
+                    if (idx == 0) {
+                        return false;
+                    }
+                
+                    T last = buf[idx - 1];
+                    isFirst = isFirst || accRef.compareAndSet(none(), last);
+                    if (!isFirst) {
+                        prevBufferLast = accRef.getAndAccumulate(last, op);
+                    }
+                }
+                return true;
+            }
+        
+            void drainOne(Consumer<? super T> action) {
+                T value = buf[--idx];
+                if (isFirst) {
+                    action.accept(value);
+                    if (idx == 0) {
+                        isFirst = false;
+                    }
+                } else {
+                    action.accept(localOp.apply(value, prevBufferLast));
+                }
+            }
+        
+            void drainAll(Consumer<? super T> action) {
+                if (!isInit()) return;
+            
+                if (isFirst) {
+                    for (int i = 0; i < idx; i++) {
+                        action.accept(buf[i]);
+                    }
+                    isFirst = false;
+                } else {
+                    for (int i = 0; i < idx; i++) {
+                        action.accept(localOp.apply(buf[i], prevBufferLast));
+                    }
+                }
+                idx = 0;
+            }
+        
+            @Override
+            public void accept(T value) {
+                if (idx == 0) {
+                    buf[idx++] = value;
+                } else {
+                    T prev = buf[idx - 1];
+                    buf[idx++] = localOp.apply(prev, value);
+                }
+            }
+        }
+    
         @Override
         public Spliterator<T> trySplit() {
             if (acc != NONE) {
@@ -237,18 +310,27 @@ import static one.util.streamex.Internals.none;
             }
             if (accRef == null) {
                 accRef = new AtomicReference<>(none());
+                buffer = new RefPrefixBuffer();
             }
             OfUnordRef<T> pref = (OfUnordRef<T>) doClone();
             pref.source = prefix;
+            pref.buffer = new RefPrefixBuffer();
             return pref;
         }
         
         @Override
         public boolean tryAdvance(Consumer<? super T> action) {
-            if (!source.tryAdvance(this)) {
-                return false;
+            if (accRef == null) {
+                if (!source.tryAdvance(this)) {
+                    return false;
+                }
+                action.accept(acc);
+            } else {
+                if (!buffer.init(source)) {
+                    return false;
+                }
+                buffer.drainOne(action);
             }
-            action.accept(acc);
             return true;
         }
         
@@ -257,6 +339,7 @@ import static one.util.streamex.Internals.none;
             if (accRef == null) {
                 source.forEachRemaining(next -> action.accept(acc = op.apply(acc, next)));
             } else {
+                buffer.drainAll(action);
                 @SuppressWarnings("unchecked")
                 T[] buf = (T[]) new Object[BUF_SIZE];
                 source.forEachRemaining(next -> {
@@ -304,13 +387,76 @@ import static one.util.streamex.Internals.none;
         private final LongBinaryOperator op;
         private final IntBinaryOperator localOp;
         private boolean started;
-        private AtomicLong accRef;
         private int acc;
+        private AtomicLong accRef;
+        private IntPrefixBuffer buffer;
         
         OfUnordInt(Spliterator.OfInt source, IntBinaryOperator op) {
             super(source);
             this.localOp = op;
             this.op = (a, b) -> a == Long.MAX_VALUE ? b : op.applyAsInt((int) a, (int) b);;
+        }
+    
+        private final class IntPrefixBuffer extends PrefixBuffer implements IntConsumer {
+            private final int[] buf = new int[BUF_SIZE];
+            private int prevBufferLast;
+    
+            boolean init(Spliterator.OfInt source) {
+                if (idx == 0) {
+                    int i = 0;
+                    while (i < BUF_SIZE && source.tryAdvance(this)) {
+                        i++;
+                    }
+                    if (idx == 0) {
+                        return false;
+                    }
+                    
+                    int last = buf[idx - 1];
+                    isFirst = isFirst || accRef.compareAndSet(Long.MAX_VALUE, last);
+                    if (!isFirst) {
+                        prevBufferLast = (int) accRef.getAndAccumulate(last, op);
+                    }
+                }
+                return true;
+            }
+    
+            void drainOne(IntConsumer action) {
+                int value = buf[--idx];
+                if (isFirst) {
+                    action.accept(value);
+                    if (idx == 0) {
+                        isFirst = false;
+                    }
+                } else {
+                    action.accept(localOp.applyAsInt(value, prevBufferLast));
+                }
+            }
+    
+            void drainAll(IntConsumer action) {
+                if (!isInit()) return;
+                
+                if (isFirst) {
+                    for (int i = 0; i < idx; i++) {
+                        action.accept(buf[i]);
+                    }
+                    isFirst = false;
+                } else {
+                    for (int i = 0; i < idx; i++) {
+                        action.accept(localOp.applyAsInt(buf[i], prevBufferLast));
+                    }
+                }
+                idx = 0;
+            }
+            
+            @Override
+            public void accept(int value) {
+                if (idx == 0) {
+                    buf[idx++] = value;
+                } else {
+                    int prev = buf[idx - 1];
+                    buf[idx++] = localOp.applyAsInt(prev, value);
+                }
+            }
         }
         
         @Override
@@ -324,18 +470,27 @@ import static one.util.streamex.Internals.none;
             }
             if (accRef == null) {
                 accRef = new AtomicLong(Long.MAX_VALUE);
+                buffer = new IntPrefixBuffer();
             }
             OfUnordInt pref = (OfUnordInt) doClone();
             pref.source = prefix;
+            pref.buffer = new IntPrefixBuffer();
             return pref;
         }
         
         @Override
         public boolean tryAdvance(IntConsumer action) {
-            if (!source.tryAdvance(this)) {
-                return false;
+            if (accRef == null) {
+                if (!source.tryAdvance(this)) {
+                    return false;
+                }
+                action.accept(acc);
+            } else {
+                if (!buffer.init(source)) {
+                    return false;
+                }
+                buffer.drainOne(action);
             }
-            action.accept(acc);
             return true;
         }
         
@@ -352,6 +507,7 @@ import static one.util.streamex.Internals.none;
                     action.accept(acc);
                 });
             } else {
+                buffer.drainAll(action);
                 int[] buf = new int[BUF_SIZE];
                 source.forEachRemaining((IntConsumer) next -> {
                     if (idx == 0) {
@@ -404,10 +560,73 @@ import static one.util.streamex.Internals.none;
         private boolean started;
         private MyAtomicLong accRef;
         private long acc;
+        private LongPrefixBuffer buffer;
         
         OfUnordLong(Spliterator.OfLong source, LongBinaryOperator op) {
             super(source);
             this.op = op;
+        }
+    
+        private final class LongPrefixBuffer extends PrefixBuffer implements LongConsumer {
+            private final long[] buf = new long[BUF_SIZE];
+            private long prevBufferLast;
+        
+            boolean init(Spliterator.OfLong source) {
+                if (idx == 0) {
+                    int i = 0;
+                    while (i < BUF_SIZE && source.tryAdvance(this)) {
+                        i++;
+                    }
+                    if (idx == 0) {
+                        return false;
+                    }
+                
+                    long last = buf[idx - 1];
+                    isFirst = isFirst || accRef.initialize(last);
+                    if (!isFirst) {
+                        prevBufferLast = accRef.getAndAccumulate(last, op);
+                    }
+                }
+                return true;
+            }
+        
+            void drainOne(LongConsumer action) {
+                long value = buf[--idx];
+                if (isFirst) {
+                    action.accept(value);
+                    if (idx == 0) {
+                        isFirst = false;
+                    }
+                } else {
+                    action.accept(op.applyAsLong(value, prevBufferLast));
+                }
+            }
+        
+            void drainAll(LongConsumer action) {
+                if (!isInit()) return;
+            
+                if (isFirst) {
+                    for (int i = 0; i < idx; i++) {
+                        action.accept(buf[i]);
+                    }
+                    isFirst = false;
+                } else {
+                    for (int i = 0; i < idx; i++) {
+                        action.accept(op.applyAsLong(buf[i], prevBufferLast));
+                    }
+                }
+                idx = 0;
+            }
+        
+            @Override
+            public void accept(long value) {
+                if (idx == 0) {
+                    buf[idx++] = value;
+                } else {
+                    long prev = buf[idx - 1];
+                    buf[idx++] = op.applyAsLong(prev, value);
+                }
+            }
         }
         
         private static final class MyAtomicLong extends AtomicLong {
@@ -439,18 +658,27 @@ import static one.util.streamex.Internals.none;
             }
             if (accRef == null) {
                 accRef = new MyAtomicLong();
+                buffer = new LongPrefixBuffer();
             }
             OfUnordLong pref = (OfUnordLong) doClone();
             pref.source = prefix;
+            pref.buffer = new LongPrefixBuffer();
             return pref;
         }
         
         @Override
         public boolean tryAdvance(LongConsumer action) {
-            if (!source.tryAdvance(this)) {
-                return false;
+            if (accRef == null) {
+                if (!source.tryAdvance(this)) {
+                    return false;
+                }
+                action.accept(acc);
+            } else {
+                if (!buffer.init(source)) {
+                    return false;
+                }
+                buffer.drainOne(action);
             }
-            action.accept(acc);
             return true;
         }
         
@@ -467,6 +695,7 @@ import static one.util.streamex.Internals.none;
                     action.accept(acc);
                 });
             } else {
+                buffer.drainAll(action);
                 long[] buf = new long[BUF_SIZE];
                 source.forEachRemaining((LongConsumer) next -> {
                     if (idx == 0) {
