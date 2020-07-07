@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
-package prefix;
+package one.util.streamex.benchmark.prefix;
 
-import one.util.streamex.LongStreamEx;
+import one.util.streamex.DoubleStreamEx;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 
 @State(Scope.Benchmark)
-public class PrefixLongStreamBenchmark {
+public class PrefixDoubleStreamBenchmark {
     @Param({"100000"})
     private int N;
     
     @Benchmark
-    public long[] parallelOrdered() {
-        return LongStreamEx.range(N).parallel().prefix(Long::sum).toArray();
+    public double[] parallelOrdered() {
+        return DoubleStreamEx.constant(1d, N).parallel().prefix(Double::sum).toArray();
     }
     
     @Benchmark
-    public long[] parallelUnordered() {
-        return LongStreamEx.range(N).unordered().parallel().prefix(Long::sum).toArray();
+    public double[] parallelUnordered() {
+        return DoubleStreamEx.constant(1d, N).unordered().parallel().prefix(Double::sum).toArray();
     }
 }

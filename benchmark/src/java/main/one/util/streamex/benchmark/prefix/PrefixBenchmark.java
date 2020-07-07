@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package prefix;
+package one.util.streamex.benchmark.prefix;
 
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
@@ -27,6 +27,7 @@ public class PrefixBenchmark {
                 .include(PrefixIntStreamBenchmark.class.getSimpleName())
                 .include(PrefixLongStreamBenchmark.class.getSimpleName())
                 .include(PrefixDoubleStreamBenchmark.class.getSimpleName())
+                .include(PrefixObjectStreamBenchmark.class.getSimpleName())
                 .build();
 
         new Runner(opt).run();

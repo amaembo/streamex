@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package prefix;
+package one.util.streamex.benchmark.prefix;
 
 import one.util.streamex.IntStreamEx;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -26,14 +26,44 @@ import org.openjdk.jmh.annotations.State;
 public class PrefixIntStreamBenchmark {
     @Param({"100000"})
     private int N;
-
+    
     @Benchmark
     public int[] parallelOrdered() {
         return IntStreamEx.range(N).parallel().prefix(Integer::sum).toArray();
     }
-
+    
+    @Benchmark
+    public boolean parallelOrderedShortCircuit() {
+        return IntStreamEx.range(N).parallel().prefix(Integer::sum).anyMatch(x -> x == -1);
+    }
+    
     @Benchmark
     public int[] parallelUnordered() {
         return IntStreamEx.range(N).unordered().parallel().prefix(Integer::sum).toArray();
+    }
+    
+    @Benchmark
+    public boolean parallelUnorderedShortCircuit() {
+        return IntStreamEx.range(N).unordered().parallel().prefix(Integer::sum).anyMatch(x -> x == -1);
+    }
+    
+    @Benchmark
+    public int[] sequentialOrdered() {
+        return IntStreamEx.range(N).prefix(Integer::sum).toArray();
+    }
+    
+    @Benchmark
+    public boolean sequentialOrderedShortCircuit() {
+        return IntStreamEx.range(N).prefix(Integer::sum).anyMatch(x -> x == -1);
+    }
+    
+    @Benchmark
+    public int[] sequentialUnordered() {
+        return IntStreamEx.range(N).unordered().prefix(Integer::sum).toArray();
+    }
+    
+    @Benchmark
+    public boolean sequentialUnorderedShortCircuit() {
+        return IntStreamEx.range(N).unordered().prefix(Integer::sum).anyMatch(x -> x == -1);
     }
 }

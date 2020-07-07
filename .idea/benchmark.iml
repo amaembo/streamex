@@ -4,8 +4,8 @@
     <output url="file://$MODULE_DIR$/target/classes" />
     <output-test url="file://$MODULE_DIR$/target/test-classes" />
     <content url="file://$MODULE_DIR$/benchmark">
-      <sourceFolder url="file://$MODULE_DIR$/benchmark/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/benchmark/target/generated-sources/annotations" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/benchmark/src/java/main" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/benchmark/target" />
     </content>
     <orderEntry type="inheritedJdk" />
