@@ -88,7 +88,7 @@ import one.util.streamex.StreamEx;
 import one.util.streamex.TestHelpers.Point;
 
 import static java.util.Arrays.asList;
-import static one.util.streamex.TestHelpers.assertThrows;
+import static one.util.streamex.TestHelpers.assertStatementThrows;
 import static one.util.streamex.TestHelpers.checkIllegalStateException;
 import static one.util.streamex.TestHelpers.checkSpliterator;
 import static one.util.streamex.TestHelpers.emptySpliteratorWithExactSize;
@@ -103,6 +103,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -1427,8 +1428,8 @@ public class StreamExTest {
         assertNotEquals(new Object(), entry);
         assertEquals(entry, new AbstractMap.SimpleImmutableEntry<>(1, 1L));
 
-        assertThrows(UnsupportedOperationException.class, () ->
-                StreamEx.of("1", "1", "1").runLengths().forEach(e -> e.setValue(5L)));
+        assertThrows(UnsupportedOperationException.class,
+                     () -> StreamEx.of("1", "1", "1").runLengths().forEach(e -> e.setValue(5L)));
     }
     
     @SuppressWarnings("SimplifiableAssertion")
@@ -2142,9 +2143,9 @@ public class StreamExTest {
         StreamEx.of(asList(1)).into(collection);
         int maxAvailableSize = Integer.MAX_VALUE - collection.size();
         assertThrows(IllegalArgumentException.class,
-            () -> StreamEx.<Integer>of(emptySpliteratorWithExactSize(-2)).into(collection));
+                     () -> StreamEx.<Integer>of(emptySpliteratorWithExactSize(-2)).into(collection));
         assertThrows(OutOfMemoryError.class,
-            () -> StreamEx.<Integer>of(emptySpliteratorWithExactSize(Long.MAX_VALUE)).into(collection));
+                     () -> StreamEx.<Integer>of(emptySpliteratorWithExactSize(Long.MAX_VALUE)).into(collection));
         StreamEx.<Integer>of(emptySpliteratorWithExactSize(maxAvailableSize + 1)).into(collection);
         StreamEx.<Integer>of(emptySpliteratorWithExactSize(maxAvailableSize)).into(collection);
         assertEquals(Integer.MAX_VALUE, list.ensuredCapacity);

@@ -54,7 +54,6 @@ import org.junit.runners.MethodSorters;
 import one.util.streamex.IntStreamEx;
 import one.util.streamex.StreamEx;
 
-import static one.util.streamex.TestHelpers.assertThrows;
 import static one.util.streamex.TestHelpers.checkSpliterator;
 import static one.util.streamex.TestHelpers.streamEx;
 import static one.util.streamex.TestHelpers.withRandom;
@@ -62,6 +61,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 /**

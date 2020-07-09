@@ -56,7 +56,6 @@ import one.util.streamex.TestHelpers.Point;
 
 import static java.util.Arrays.asList;
 import static one.util.streamex.TestHelpers.StreamExSupplier;
-import static one.util.streamex.TestHelpers.assertThrows;
 import static one.util.streamex.TestHelpers.checkAsString;
 import static one.util.streamex.TestHelpers.checkIllegalStateException;
 import static one.util.streamex.TestHelpers.entryStream;
@@ -69,6 +68,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -187,7 +187,6 @@ public class EntryStreamTest {
         assertNotEquals(entry, new Object());
         assertEquals(new AbstractMap.SimpleImmutableEntry<>(0, "a"), entry);
         assertEquals(entry, new AbstractMap.SimpleImmutableEntry<>(0, "a"));
-
         assertThrows(UnsupportedOperationException.class, () ->
                 EntryStream.of(Collections.singletonList("1")).forEach(e -> e.setValue("2")));
     }

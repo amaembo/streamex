@@ -459,12 +459,9 @@ public class TestHelpers {
         void evaluate() throws Throwable;
     }
 
-    public static void assertThrows(Class<? extends Throwable> expected, Statement statement) {
-        assertThrows(expected, msg -> true, statement);
-    }
-
-    public static void assertThrows(Class<? extends Throwable> expected, Predicate<? super String> checkExceptionAction,
-        Statement statement) {
+    public static void assertStatementThrows(Class<? extends Throwable> expected,
+                                             Predicate<? super String> checkExceptionAction,
+                                             Statement statement) {
         try {
             statement.evaluate();
         } catch (Throwable e) {

@@ -59,7 +59,7 @@ import one.util.streamex.MoreCollectors;
 import one.util.streamex.StreamEx;
 
 import static java.util.Arrays.asList;
-import static one.util.streamex.TestHelpers.assertThrows;
+import static one.util.streamex.TestHelpers.assertStatementThrows;
 import static one.util.streamex.TestHelpers.checkCollector;
 import static one.util.streamex.TestHelpers.checkCollectorEmpty;
 import static one.util.streamex.TestHelpers.checkIllegalStateException;
@@ -70,6 +70,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -665,7 +666,7 @@ public class MoreCollectorsTest {
         assertThrows(NullPointerException.class, () -> EntryStream.of("a", "*", "b", null).collect(
                 MoreCollectors.entriesToCustomMap(LinkedHashMap::new)));
 
-        assertThrows(IllegalStateException.class,
+        assertStatementThrows(IllegalStateException.class,
                 "Duplicate entry for key 'a' (attempt to merge values '*' and '**')"::equals,
                 () -> EntryStream.of("a", "*", "a", "**").collect(MoreCollectors.entriesToCustomMap(LinkedHashMap::new)));
 
