@@ -3,23 +3,22 @@
 Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 
 ### 0.7.3
-* [#028]: Added: `StreamEx.toCollectionAndThen`
-* [#043]: Added: `MoreCollectors.entriesToMap` and `MoreCollectors.entriesToCustomMap` methods accepting Entry<K,V>.
-* [#091]: Changed: API tests moved to the separate package
-* [#219]: Changed: MoreCollectors now reject eagerly null parameters where possible; `MoreCollectors.last` throws NPE if last stream element is null.
-* [#221]: Fixed: `rangeClosed(x, x, step)` returned empty stream instead of stream of `x` if step absolute value is
- bigger than one. 
+* [#028] Added: `StreamEx.toCollectionAndThen`.
+* [#043] Added: `MoreCollectors.entriesToMap` and `MoreCollectors.entriesToCustomMap` methods accepting Entry<K,V>.
+* [#091] Changed: API tests moved to the separate package.
+* [#219] Changed: MoreCollectors now reject eagerly null parameters where possible; `MoreCollectors.last` throws NPE if last stream element is null.
+* [#221] Fixed: `rangeClosed(x, x, step)` returned empty stream instead of stream of `x` if step absolute value is bigger than one. 
 
 ### 0.7.2
-* Fixed: accidental use of Java 9 API in CrossSpliterator
+* Fixed: accidental use of Java 9 API in CrossSpliterator.
 
 ### 0.7.1
-* [#202] Fixed: `StreamEx/EntryStream.ofTree` stack consumption is now limited
-* Multi-release Jar is used to provide Java 9+ specializations
+* [#202] Fixed: `StreamEx/EntryStream.ofTree` stack consumption is now limited.
+* Multi-release Jar is used to provide Java 9+ specializations.
 
 ### 0.7.0
 * [#193] Removed optimizations which rely on internal implementation details of Stream API (unwrap IteratorSpliterator;
-  do not delegate to Stream::close when unnecessary)
+  do not delegate to Stream::close when unnecessary).
 * [#194] Removed: `skipOrdered`.
 * [#200] Added: `EntryStream.allMatch/anyMatch/noneMatch` accepting key-value pair.
 * Now Java 11 is used to build the library. In particular this results in modern JavaDoc artifact (including the search).
