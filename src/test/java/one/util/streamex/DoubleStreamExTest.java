@@ -268,6 +268,18 @@ public class DoubleStreamExTest {
 
         assertArrayEquals(new double[] { 0.4, 1.5, 1.3, 2.3, 2.1, 2.0, 3.7 }, DoubleStreamEx.of(1.5, 2.3, 1.3, 2.1,
             3.7, 0.4, 2.0).sortedByLong(x -> (long) x).toArray(), 0.0);
+        double nonCanonicalNan = Double.longBitsToDouble(0xfff8000000000001L);
+        double nonCanonicalNan2 = Double.longBitsToDouble(0x7ff8000000000000L);
+        assertTrue(Double.isNaN(nonCanonicalNan));
+        assertTrue(Double.isNaN(nonCanonicalNan2));
+        double[] data = {Double.NEGATIVE_INFINITY, 0.0, 1.0, Double.POSITIVE_INFINITY, Double.NaN, nonCanonicalNan,
+            nonCanonicalNan2};
+        double[] reverseData = {nonCanonicalNan, nonCanonicalNan2, Double.NaN, Double.POSITIVE_INFINITY, 1.0, 0.0,
+            Double.NEGATIVE_INFINITY};
+        assertArrayEquals(DoubleStreamEx.of(data).mapToLong(Double::doubleToRawLongBits).toArray(), 
+            DoubleStreamEx.of(data).sorted().mapToLong(Double::doubleToRawLongBits).toArray());
+        assertArrayEquals(DoubleStreamEx.of(reverseData).mapToLong(Double::doubleToRawLongBits).toArray(), 
+            DoubleStreamEx.of(data).reverseSorted().mapToLong(Double::doubleToRawLongBits).toArray());
     }
 
     @SafeVarargs

@@ -10,6 +10,7 @@ Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 * [#221]: Fixed: `rangeClosed(x, x, step)` returned empty stream instead of stream of `x` if step absolute value is
  bigger than one.
 * [#226]: Added: `EntryStream.pairMap` (pairMap pulled up to AbstractStreamEx).
+* [#229]: Fixed: Some non-canonical nans were sorted incorrectly with `Double.reverseSorted()`.
 
 ### 0.7.2
 * Fixed: accidental use of Java 9 API in CrossSpliterator
