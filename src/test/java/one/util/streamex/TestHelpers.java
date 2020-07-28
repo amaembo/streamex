@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -455,6 +456,11 @@ public class TestHelpers {
     }
 
     static void assertThrows(Class<? extends Throwable> expected, Statement statement) {
+        assertThrows(expected, msg -> true, statement);
+    }
+
+    static void assertThrows(Class<? extends Throwable> expected, Predicate<? super String> checkExceptionAction,
+                             Statement statement) {
         try {
             statement.evaluate();
         } catch (Throwable e) {
@@ -462,6 +468,9 @@ public class TestHelpers {
                 throw new AssertionError("Unexpected exception, " +
                         "expected<" + expected.getName() + "> " +
                         "but was<" + e.getClass().getName() + ">", e);
+            }
+            if (!checkExceptionAction.test(e.getMessage())) {
+                fail("Unexpected exception<" + e.getMessage() + ">");
             }
             return;
         }

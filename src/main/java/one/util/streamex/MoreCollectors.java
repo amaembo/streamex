@@ -49,6 +49,7 @@ import java.util.stream.Collector.Characteristics;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static one.util.streamex.AbstractStreamEx.addToMap;
 import static one.util.streamex.Internals.BooleanMap;
 import static one.util.streamex.Internals.Box;
 import static one.util.streamex.Internals.CancelException;
@@ -166,6 +167,129 @@ public final class MoreCollectors {
             s1.addAll(s2);
             return s1;
         }, Function.identity(), set -> set.size() == size, UNORDERED_ID_CHARACTERISTICS);
+    }
+
+    /**
+     * Returns a {@code Collector} that accumulates elements into a {@code Map}
+     * whose keys and values are taken from {@code Map.Entry}.
+     *
+     * <p>
+     * There are no guarantees on the type or serializability of the {@code Map} returned;
+     * if more control over the returned {@code Map} is required, use {@link #entriesToCustomMap(Supplier)}
+     *
+     * <p>
+     * Returned {@code Map} is guaranteed to be modifiable. See {@link one.util.streamex.EntryStream#toMap()}.
+     *
+     * @param <K> the type of the map keys
+     * @param <V> the type of the map values
+     * @return {@code Collector} which collects elements into a {@code Map}
+     * whose keys and values are taken from {@code Map.Entry}
+     * @throws IllegalStateException if this stream contains duplicate keys
+     *                               (according to {@link Object#equals(Object)}).
+     * @see #entriesToMap(BinaryOperator)
+     * @see Collectors#toMap(Function, Function)
+     * @since 0.7.3
+     */
+    public static <K, V> Collector<Entry<? extends K, ? extends V>, ?, Map<K, V>> entriesToMap() {
+        return entriesToCustomMap(HashMap::new);
+    }
+
+    /**
+     * Returns a {@code Collector} that accumulates elements into a {@code Map}
+     * whose keys and values are taken from {@code Map.Entry} and combining them
+     * using the provided {@code combiner} function to the input elements.
+     *
+     * <p>
+     * There are no guarantees on the type or serializability of the {@code Map} returned;
+     * if more control over the returned {@code Map} is required, use {@link #entriesToCustomMap(BinaryOperator, Supplier)}
+     *
+     * <p>
+     * Returned {@code Map} is guaranteed to be modifiable. See {@link one.util.streamex.EntryStream#toMap()}.
+     *
+     * <p>If the mapped keys contains duplicates (according to {@link Object#equals(Object)}),
+     * the value mapping function is applied to each equal element, and the
+     * results are merged using the provided {@code combiner} function.
+     *
+     * @param <K>      the type of the map keys
+     * @param <V>      the type of the map values
+     * @param combiner a merge function, used to resolve collisions between
+     *                 values associated with the same key, as supplied
+     *                 to {@link Map#merge(Object, Object, BiFunction)}
+     * @return {@code Collector} which collects elements into a {@code Map}
+     * whose keys and values are taken from {@code Map.Entry} and combining them
+     * using the {@code combiner} function
+     * @throws NullPointerException if combiner is null.
+     * @see #entriesToMap()
+     * @see Collectors#toMap(Function, Function, BinaryOperator)
+     * @since 0.7.3
+     */
+    public static <K, V> Collector<Entry<? extends K, ? extends V>, ?, Map<K, V>> entriesToMap(
+            BinaryOperator<V> combiner) {
+        return entriesToCustomMap(combiner, HashMap::new);
+    }
+
+    /**
+     * Returns a {@code Collector} that accumulates elements into
+     * a result {@code Map} defined by {@code mapSupplier} function
+     * whose keys and values are taken from {@code Map.Entry}.
+     *
+     * @param <K> the type of the map keys
+     * @param <V> the type of the map values
+     * @param <M> the type of the resulting {@code Map}
+     * @return {@code Collector} which collects elements into a {@code Map}
+     * defined by {@code mapSupplier} function
+     * whose keys and values are taken from {@code Map.Entry}
+     * @throws IllegalStateException if this stream contains duplicate keys
+     *                               (according to {@link Object#equals(Object)}).
+     * @throws NullPointerException  if mapSupplier is null.
+     * @throws NullPointerException  if entry value is null.
+     * @see #entriesToCustomMap(BinaryOperator, Supplier)
+     * @see Collector#of(Supplier, BiConsumer, BinaryOperator, Collector.Characteristics...)
+     * @since 0.7.3
+     */
+    public static <K, V, M extends Map<K, V>> Collector<Entry<? extends K, ? extends V>, ?, M> entriesToCustomMap(
+            Supplier<M> mapSupplier) {
+        return Collector.of(mapSupplier,
+                (m, entry) -> addToMap(m, entry.getKey(), Objects.requireNonNull(entry.getValue())),
+                (m1, m2) -> {
+                    m2.forEach((k, v) -> addToMap(m1, k, v));
+                    return m1;
+                }
+        );
+    }
+
+    /**
+     * Returns a {@code Collector} that accumulates elements into
+     * a result {@code Map} defined by {@code mapSupplier} function
+     * whose keys and values are taken from {@code Map.Entry} and combining them
+     * using the provided {@code combiner} function to the input elements.
+     *
+     * <p>If the mapped keys contains duplicates (according to {@link Object#equals(Object)}),
+     * the value mapping function is applied to each equal element, and the
+     * results are merged using the provided {@code combiner} function.
+     *
+     * @param <K>         the type of the map keys
+     * @param <V>         the type of the map values
+     * @param <M>         the type of the resulting {@code Map}
+     * @param combiner    a merge function, used to resolve collisions between
+     *                    values associated with the same key, as supplied
+     *                    to {@link Map#merge(Object, Object, BiFunction)}
+     * @param mapSupplier a function which returns a new, empty {@code Map} into
+     *                    which the results will be inserted
+     * @return {@code Collector} which collects elements into a {@code Map}
+     * whose keys and values are taken from {@code Map.Entry} and combining them
+     * using the {@code combiner} function
+     * @throws NullPointerException if {@code combiner} is null.
+     * @throws NullPointerException if {@code mapSupplier} is null.
+     * @see #entriesToCustomMap(Supplier)
+     * @see Collectors#toMap(Function, Function, BinaryOperator, Supplier)
+     * @since 0.7.3
+     */
+    public static <K, V, M extends Map<K, V>> Collector<Entry<? extends K, ? extends V>, ?, M> entriesToCustomMap(
+            BinaryOperator<V> combiner, Supplier<M> mapSupplier) {
+        Objects.requireNonNull(combiner);
+        Objects.requireNonNull(mapSupplier);
+        return Collectors.toMap(Entry::getKey, Entry::getValue, combiner, mapSupplier);
     }
 
     /**
