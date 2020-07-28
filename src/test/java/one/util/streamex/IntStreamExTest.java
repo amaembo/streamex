@@ -781,14 +781,14 @@ public class IntStreamExTest {
         assertEquals(OptionalInt.of(10), IntStreamEx.of(1, 2, 3, 4, 10).prefix(Integer::sum).findFirst(x -> x > 7));
         assertEquals(OptionalInt.empty(), IntStreamEx.of(1, 2, 3, 4, 10).prefix(Integer::sum).findFirst(x -> x > 20));
         intStreamEx(() -> IntStreamEx.range(10000).unordered(),
-                s -> assertEquals(49995000, s.get().prefix(Integer::sum).max().getAsInt()));
+                s -> assertEquals(49995000, s.prefix(Integer::sum).max().getAsInt()));
         intStreamEx(() -> IntStreamEx.constant(2, 10),
-                s -> assertEquals(1024, s.get().prefix((a, b) -> a*b).max().getAsInt()));
+                s -> assertEquals(1024, s.prefix((a, b) -> a*b).max().getAsInt()));
         intStreamEx(() -> IntStreamEx.constant(1, 5),
                 s -> assertEquals(new HashSet<>(Arrays.asList(1, 2, 3, 4, 5)),
-                        s.get().prefix(Integer::sum).boxed().collect(Collectors.toSet())));
+                        s.prefix(Integer::sum).boxed().collect(Collectors.toSet())));
         intStreamEx(() -> IntStreamEx.constant(1, 5),
-                s -> assertEquals(OptionalInt.of(5), s.get().prefix(Integer::sum).findFirst(x -> x > 4)));
+                s -> assertEquals(OptionalInt.of(5), s.prefix(Integer::sum).findFirst(x -> x > 4)));
     }
     
     @Test

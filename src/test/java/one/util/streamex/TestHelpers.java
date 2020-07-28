@@ -32,7 +32,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
-import java.util.function.LongConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -110,146 +109,6 @@ public class TestHelpers {
         }
     }
 
-    static class IntStreamSupplier {
-        final Mode mode;
-        final Supplier<IntStream> base;
-        final IntStream myEmptyStream = new IntStreamEx(new Spliterator.OfInt() {
-            @Override
-            public OfInt trySplit() {
-                return null;
-            }
-    
-            @Override
-            public long estimateSize() {
-                return Long.MAX_VALUE;
-            }
-    
-            @Override
-            public int characteristics() {
-                return Spliterator.CONCURRENT;
-            }
-    
-            @Override
-            public boolean tryAdvance(IntConsumer action) {
-                return false;
-            }
-        }, StreamContext.PARALLEL);
-
-        public IntStreamSupplier(Supplier<IntStream> base, Mode mode) {
-            this.base = base;
-            this.mode = mode;
-        }
-
-        public IntStream get() {
-            IntStream res = base.get();
-            switch (mode) {
-                case NORMAL:
-                case SPLITERATOR:
-                    return res.sequential();
-                case PARALLEL:
-                    return res.parallel();
-                // using IntStream.empty() here is optimized out
-                // in append/prepend which is undesired
-                case APPEND:
-                    return IntStreamEx.of(res.parallel()).append(myEmptyStream);
-                case PREPEND:
-                    return IntStreamEx.of(res.parallel()).prepend(myEmptyStream);
-                case RANDOM:
-                    return IntStreamEx.of(new EmptyingIntSpliterator(res.parallel().spliterator())).parallel();
-                default:
-                    throw new InternalError("Unsupported mode: " + mode);
-            }
-        }
-
-        @Override
-        public String toString() {
-            return mode.toString();
-        }
-    }
-    
-    static class IntStreamExSupplier extends IntStreamSupplier {
-        public IntStreamExSupplier(Supplier<IntStream> base, Mode mode) {
-            super(base, mode);
-        }
-        
-        @Override
-        public IntStreamEx get() {
-            if (mode == Mode.SPLITERATOR)
-                return IntStreamEx.of(base.get().spliterator());
-            return IntStreamEx.of(super.get());
-        }
-    }
-    
-    static class LongStreamSupplier {
-        final Mode mode;
-        final Supplier<LongStream> base;
-        final LongStream myEmptyStream = new LongStreamEx(new Spliterator.OfLong() {
-            @Override
-            public OfLong trySplit() {
-                return null;
-            }
-    
-            @Override
-            public long estimateSize() {
-                return Long.MAX_VALUE;
-            }
-    
-            @Override
-            public int characteristics() {
-                return Spliterator.CONCURRENT;
-            }
-    
-            @Override
-            public boolean tryAdvance(LongConsumer action) {
-                return false;
-            }
-        }, StreamContext.PARALLEL);
-
-        public LongStreamSupplier(Supplier<LongStream> base, Mode mode) {
-            this.base = base;
-            this.mode = mode;
-        }
-
-        public LongStream get() {
-            LongStream res = base.get();
-            switch (mode) {
-                case NORMAL:
-                case SPLITERATOR:
-                    return res.sequential();
-                case PARALLEL:
-                    return res.parallel();
-                // using LongStream.empty() here is optimized out
-                // in append/prepend which is undesired
-                case APPEND:
-                    return LongStreamEx.of(res.parallel()).append(myEmptyStream);
-                case PREPEND:
-                    return LongStreamEx.of(res.parallel()).prepend(myEmptyStream);
-                case RANDOM:
-                    return LongStreamEx.of(new EmptyingLongSpliterator(res.parallel().spliterator())).parallel();
-                default:
-                    throw new InternalError("Unsupported mode: " + mode);
-            }
-        }
-
-        @Override
-        public String toString() {
-            return mode.toString();
-        }
-    }
-    
-    static class LongStreamExSupplier extends LongStreamSupplier {
-        public LongStreamExSupplier(Supplier<LongStream> base, Mode mode) {
-            super(base, mode);
-        }
-        
-        @Override
-        public LongStreamEx get() {
-            if (mode == Mode.SPLITERATOR)
-                return LongStreamEx.of(base.get().spliterator());
-            return LongStreamEx.of(super.get());
-        }
-    }
-    
     static class EntryStreamSupplier<K, V> extends StreamSupplier<Map.Entry<K, V>> {
 
         public EntryStreamSupplier(Supplier<Stream<Map.Entry<K, V>>> base, Mode mode) {
@@ -325,16 +184,12 @@ public class TestHelpers {
         }
     }
 
-    static void intStreamEx(Supplier<IntStream> base, Consumer<IntStreamExSupplier> consumer) {
-        for (IntStreamExSupplier supplier : StreamEx.of(Mode.values()).map(mode -> new IntStreamExSupplier(base, mode))) {
-            withMessage(supplier.toString(), () -> consumer.accept(supplier));
-        }
+    static void intStreamEx(Supplier<IntStream> base, Consumer<IntStreamEx> consumer) {
+        streamEx(() -> base.get().boxed(), s -> consumer.accept(s.get().mapToInt(x -> x)));
     }
     
-    static void longStreamEx(Supplier<LongStream> base, Consumer<LongStreamExSupplier> consumer) {
-        for (LongStreamExSupplier supplier : StreamEx.of(Mode.values()).map(mode -> new LongStreamExSupplier(base, mode))) {
-            withMessage(supplier.toString(), () -> consumer.accept(supplier));
-        }
+    static void longStreamEx(Supplier<LongStream> base, Consumer<LongStreamEx> consumer) {
+        streamEx(() -> base.get().boxed(), s -> consumer.accept(s.get().mapToLong(x -> x)));
     }
 
     static <T> void emptyStreamEx(Class<T> clazz, Consumer<StreamExSupplier<T>> consumer) {
@@ -355,10 +210,10 @@ public class TestHelpers {
      *
      * @param <T> type of the elements
      */
-    private static abstract class AbstractEmptyingSpliterator<T> implements Spliterator<T> {
-        protected Spliterator<T> source;
+    private static class EmptyingSpliterator<T> implements Spliterator<T> {
+        private Spliterator<T> source;
 
-        public AbstractEmptyingSpliterator(Spliterator<T> source) {
+        public EmptyingSpliterator(Spliterator<T> source) {
             this.source = Objects.requireNonNull(source);
         }
 
@@ -378,22 +233,6 @@ public class TestHelpers {
         }
 
         @Override
-        public long estimateSize() {
-            return source.estimateSize();
-        }
-
-        @Override
-        public int characteristics() {
-            return source.characteristics();
-        }
-    }
-
-    private static class EmptyingSpliterator<T> extends AbstractEmptyingSpliterator<T> {
-        public EmptyingSpliterator(Spliterator<T> source) {
-            super(source);
-        }
-
-        @Override
         public Spliterator<T> trySplit() {
             Spliterator<T> source = this.source;
             switch (ThreadLocalRandom.current().nextInt(3)) {
@@ -407,60 +246,18 @@ public class TestHelpers {
                 return split == null ? null : new EmptyingSpliterator<>(split);
             }
         }
-    }
-    
-    private static class EmptyingIntSpliterator extends AbstractEmptyingSpliterator<Integer> implements Spliterator.OfInt {
-        public EmptyingIntSpliterator(Spliterator.OfInt source) {
-            super(source);
-        }
-        
+
         @Override
-        public Spliterator.OfInt trySplit() {
-            Spliterator.OfInt source = (OfInt) this.source;
-            switch (ThreadLocalRandom.current().nextInt(3)) {
-                case 0:
-                    return Spliterators.emptyIntSpliterator();
-                case 1:
-                    this.source = Spliterators.emptyIntSpliterator();
-                    return source;
-                default:
-                    Spliterator.OfInt split = source.trySplit();
-                    return split == null ? null : new EmptyingIntSpliterator(split);
-            }
+        public long estimateSize() {
+            return source.estimateSize();
         }
-    
+
         @Override
-        public boolean tryAdvance(IntConsumer action) {
-            return ((OfInt) source).tryAdvance(action);
+        public int characteristics() {
+            return source.characteristics();
         }
     }
-    
-    private static class EmptyingLongSpliterator extends AbstractEmptyingSpliterator<Long> implements Spliterator.OfLong {
-        public EmptyingLongSpliterator(Spliterator.OfLong source) {
-            super(source);
-        }
-        
-        @Override
-        public Spliterator.OfLong trySplit() {
-            Spliterator.OfLong source = (OfLong) this.source;
-            switch (ThreadLocalRandom.current().nextInt(3)) {
-                case 0:
-                    return Spliterators.emptyLongSpliterator();
-                case 1:
-                    this.source = Spliterators.emptyLongSpliterator();
-                    return source;
-                default:
-                    Spliterator.OfLong split = source.trySplit();
-                    return split == null ? null : new EmptyingLongSpliterator(split);
-            }
-        }
-    
-        @Override
-        public boolean tryAdvance(LongConsumer action) {
-            return ((OfLong) source).tryAdvance(action);
-        }
-    }
-    
+
     static <T, R> void checkCollectorEmpty(String message, R expected, Collector<T, ?, R> collector) {
         if (finished(collector) != null)
             checkShortCircuitCollector(message, expected, 0, Stream::empty, collector);
