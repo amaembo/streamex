@@ -619,6 +619,8 @@ public class LongStreamExTest {
                         s.prefix(Long::sum).boxed().collect(Collectors.toSet())));
         longStreamEx(() -> LongStreamEx.constant(1, 5),
                 s -> assertEquals(OptionalLong.of(5), s.prefix(Long::sum).findFirst(x -> x > 4)));
+        longStreamEx(() -> LongStreamEx.constant(1, 5),
+                s -> assertEquals(OptionalLong.empty(), s.prefix(Long::sum).findFirst(x -> x > 6)));
     }
 
     @Test

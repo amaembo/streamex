@@ -789,6 +789,8 @@ public class IntStreamExTest {
                         s.prefix(Integer::sum).boxed().collect(Collectors.toSet())));
         intStreamEx(() -> IntStreamEx.constant(1, 5),
                 s -> assertEquals(OptionalInt.of(5), s.prefix(Integer::sum).findFirst(x -> x > 4)));
+        intStreamEx(() -> IntStreamEx.constant(1, 5),
+                s -> assertEquals(OptionalInt.empty(), s.prefix(Integer::sum).findFirst(x -> x > 6)));
     }
     
     @Test

@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Random;
+import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -432,6 +433,15 @@ public class TestHelpers {
         assertTrue(consumed[0]);
     }
 
+    static <T> void consumeElement(Spliterator<T> spliterator, Set<T> remainingElements) {
+        boolean[] consumed = {false};
+        assertTrue(spliterator.tryAdvance(x -> {
+            assertTrue(remainingElements.remove(x));
+            consumed[0] = true;
+        }));
+        assertTrue(consumed[0]);
+    }
+    
     static void checkIllegalStateException(Runnable r, String key, String value1, String value2) {
         try {
             r.run();
