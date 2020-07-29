@@ -34,32 +34,31 @@ import static org.junit.Assert.assertTrue;
 public class PrefixOpsTest {
   @Test
   public void testNoSplitAfterAdvance() {
-    Spliterator<Integer> spliterator = IntStreamEx.range(100).boxed().unordered().prefix(Integer::sum).spliterator();
-    consumeElement(spliterator, 0);
-    consumeElement(spliterator, 1);
-    consumeElement(spliterator, 3);
-    consumeElement(spliterator, 6);
+    Spliterator<String> spliterator = StreamEx.constant("a", 100).unordered().prefix(String::concat).spliterator();
+    consumeElement(spliterator, "a");
+    consumeElement(spliterator, "aa");
+    consumeElement(spliterator, "aaa");
+    consumeElement(spliterator, "aaaa");
     assertNull(spliterator.trySplit());
   }
 
   @Test
   public void testIntNoSplitAfterAdvance() {
-    Spliterator.OfInt spliterator = IntStreamEx.range(100).unordered().prefix(Integer::sum).spliterator();
-    consumeElement(spliterator, 0);
+    Spliterator.OfInt spliterator = IntStreamEx.constant(1, 100).unordered().prefix(Integer::sum).spliterator();
     consumeElement(spliterator, 1);
+    consumeElement(spliterator, 2);
     consumeElement(spliterator, 3);
-    consumeElement(spliterator, 6);
+    consumeElement(spliterator, 4);
     assertNull(spliterator.trySplit());
   }
 
   @Test
   public void testLongNoSplitAfterAdvance() {
-    Spliterator.OfLong spliterator = LongStreamEx.range(100).unordered().prefix(Long::sum).spliterator();
-    assertNull(spliterator.trySplit());
-    consumeElement(spliterator, 0L);
+    Spliterator.OfLong spliterator = LongStreamEx.constant(1, 100).unordered().prefix(Long::sum).spliterator();
     consumeElement(spliterator, 1L);
+    consumeElement(spliterator, 2L);
     consumeElement(spliterator, 3L);
-    consumeElement(spliterator, 6L);
+    consumeElement(spliterator, 4L);
     assertNull(spliterator.trySplit());
   }
   
