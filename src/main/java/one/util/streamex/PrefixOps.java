@@ -375,11 +375,7 @@ import static one.util.streamex.Internals.none;
 
         @Override
         public void accept(T next) {
-            if (accRef == null) {
-                acc = op.apply(acc, next);
-            } else {
-                acc = accRef.accumulateAndGet(next, op);
-            }
+            acc = op.apply(acc, next);
         }
     }
     
@@ -542,15 +538,11 @@ import static one.util.streamex.Internals.none;
         
         @Override
         public void accept(int next) {
-            if (accRef == null) {
-                if (started) {
-                    acc = localOp.applyAsInt(acc, next);
-                } else {
-                    started = true;
-                    acc = next;
-                }
+            if (started) {
+                acc = localOp.applyAsInt(acc, next);
             } else {
-                acc = (int) accRef.accumulateAndGet(next, op);
+                started = true;
+                acc = next;
             }
         }
     }
@@ -732,20 +724,11 @@ import static one.util.streamex.Internals.none;
         
         @Override
         public void accept(long next) {
-            if (accRef == null) {
-                if (started) {
-                    acc = op.applyAsLong(acc, next);
-                } else {
-                    started = true;
-                    acc = next;
-                }
+            if (started) {
+                acc = op.applyAsLong(acc, next);
             } else {
-                boolean accRefJustInitialized = accRef.initialize(next);
-                if (!accRefJustInitialized) {
-                    acc = accRef.accumulateAndGet(next, op);
-                } else {
-                    acc = next;
-                }
+                started = true;
+                acc = next;
             }
         }
     }
