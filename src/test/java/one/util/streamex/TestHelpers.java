@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Random;
+import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -36,6 +37,8 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
 import org.junit.ComparisonFailure;
@@ -181,6 +184,14 @@ public class TestHelpers {
         for (StreamExSupplier<T> supplier : StreamEx.of(Mode.values()).map(mode -> new StreamExSupplier<>(base, mode))) {
             withMessage(supplier.toString(), () -> consumer.accept(supplier));
         }
+    }
+
+    static void intStreamEx(Supplier<IntStream> base, Consumer<IntStreamEx> consumer) {
+        streamEx(() -> base.get().boxed(), s -> consumer.accept(s.get().mapToInt(x -> x)));
+    }
+    
+    static void longStreamEx(Supplier<LongStream> base, Consumer<LongStreamEx> consumer) {
+        streamEx(() -> base.get().boxed(), s -> consumer.accept(s.get().mapToLong(x -> x)));
     }
 
     static <T> void emptyStreamEx(Class<T> clazz, Consumer<StreamExSupplier<T>> consumer) {
@@ -422,6 +433,15 @@ public class TestHelpers {
         assertTrue(consumed[0]);
     }
 
+    static <T> void consumeElement(Spliterator<T> spliterator, Set<T> remainingElements) {
+        boolean[] consumed = {false};
+        assertTrue(spliterator.tryAdvance(x -> {
+            assertTrue(remainingElements.remove(x));
+            consumed[0] = true;
+        }));
+        assertTrue(consumed[0]);
+    }
+    
     static void checkIllegalStateException(Runnable r, String key, String value1, String value2) {
         try {
             r.run();

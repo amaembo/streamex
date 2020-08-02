@@ -1561,7 +1561,9 @@ public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfL
      * @since 0.6.1
      */
     public LongStreamEx prefix(LongBinaryOperator op) {
-        return delegate(new PrefixOps.OfLong(spliterator(), op));
+        Spliterator.OfLong spltr = spliterator();
+        return delegate(spltr.hasCharacteristics(Spliterator.ORDERED) ? new PrefixOps.OfLong(spltr, op)
+                : new PrefixOps.OfUnordLong(spltr, op));
     }
 
     // Necessary to generate proper JavaDoc
