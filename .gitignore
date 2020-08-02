@@ -1,4 +1,5 @@
 /target/
+/benchmark/target/
 
 # Eclipse
 /.settings
