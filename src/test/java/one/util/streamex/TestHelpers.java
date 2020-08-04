@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Random;
+import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -36,6 +37,8 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
 import org.junit.ComparisonFailure;
@@ -196,8 +199,16 @@ public class TestHelpers {
         }
     }
 
+    public static void intStreamEx(Supplier<IntStream> base, Consumer<IntStreamEx> consumer) {
+        streamEx(() -> base.get().boxed(), s -> consumer.accept(s.get().mapToInt(x -> x)));
+    }
+
+    public static void longStreamEx(Supplier<LongStream> base, Consumer<LongStreamEx> consumer) {
+        streamEx(() -> base.get().boxed(), s -> consumer.accept(s.get().mapToLong(x -> x)));
+    }
+
     public static <T> void emptyStreamEx(Class<T> clazz, Consumer<StreamExSupplier<T>> consumer) {
-        streamEx(Stream::empty, consumer);
+        streamEx(Stream::<T>empty, consumer);
     }
 
     public static <K, V> void entryStream(Supplier<Stream<Map.Entry<K, V>>> base,
@@ -436,6 +447,15 @@ public class TestHelpers {
         assertTrue(consumed[0]);
     }
 
+    public static <T> void consumeElement(Spliterator<T> spliterator, Set<T> remainingElements) {
+        boolean[] consumed = {false};
+        assertTrue(spliterator.tryAdvance(x -> {
+            assertTrue(remainingElements.remove(x));
+            consumed[0] = true;
+        }));
+        assertTrue(consumed[0]);
+    }
+
     public static void checkIllegalStateException(Runnable r, String key, String value1, String value2) {
         try {
             r.run();
@@ -443,13 +463,13 @@ public class TestHelpers {
         } catch (IllegalStateException ex) {
             String exmsg = ex.getMessage();
             if (!exmsg.equals("Duplicate entry for key '" + key + "' (attempt to merge values '" + value1 + "' and '"
-                + value2 + "')")
-                && !exmsg.equals("Duplicate entry for key '" + key + "' (attempt to merge values '" + value2
-                    + "' and '" + value1 + "')")
-                && !exmsg.equals("java.lang.IllegalStateException: Duplicate entry for key '" + key
-                    + "' (attempt to merge values '" + value1 + "' and '" + value2 + "')")
-                && !exmsg.equals("java.lang.IllegalStateException: Duplicate entry for key '" + key
-                    + "' (attempt to merge values '" + value2 + "' and '" + value1 + "')"))
+                                      + value2 + "')")
+                    && !exmsg.equals("Duplicate entry for key '" + key + "' (attempt to merge values '" + value2
+                                             + "' and '" + value1 + "')")
+                    && !exmsg.equals("java.lang.IllegalStateException: Duplicate entry for key '" + key
+                                             + "' (attempt to merge values '" + value1 + "' and '" + value2 + "')")
+                    && !exmsg.equals("java.lang.IllegalStateException: Duplicate entry for key '" + key
+                                             + "' (attempt to merge values '" + value2 + "' and '" + value1 + "')"))
                 fail("wrong exception message: " + exmsg);
         }
     }

@@ -395,8 +395,11 @@ public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterat
     public DoubleStreamEx reverseSorted() {
         return new DoubleStreamEx(stream().mapToLong(d -> {
             long l = Double.doubleToRawLongBits(d);
-            return l ^ (((l >>> 63) - 1) | Long.MIN_VALUE);
-        }).sorted().mapToDouble(l -> Double.longBitsToDouble(l ^ ((-(l >>> 63)) | Long.MIN_VALUE))), context);
+            return (l ^ (((l >>> 63) - 1) | Long.MIN_VALUE)) + 0xfffffffffffffL;
+        }).sorted().mapToDouble(l -> {
+            l -= 0xfffffffffffffL;
+            return Double.longBitsToDouble(l ^ ((-(l >>> 63)) | Long.MIN_VALUE));
+        }), context);
     }
 
     /**

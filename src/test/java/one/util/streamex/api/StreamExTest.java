@@ -2034,6 +2034,8 @@ public class StreamExTest {
             "aaaaa")), s.get().prefix(String::concat).toSet()));
         streamEx(() -> StreamEx.constant("a", 5), s -> assertEquals(Optional.of("aaaaa"), s.get().prefix(String::concat)
                 .findFirst(str -> str.length() > 4)));
+        streamEx(() -> StreamEx.constant("a", 5), s -> assertEquals(Optional.empty(), s.get().prefix(String::concat)
+                .findFirst(str -> str.length() > 6)));
 
         streamEx(() -> StreamEx.constant(100L, 10000), s -> assertEquals(5000500000L, (long) s.get().prefix(Long::sum)
                 .reduce(0L, Long::sum)));

@@ -409,11 +409,57 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
             return context.terminate(() -> stream().reduce(identity, accumulator, combiner));
         return stream().reduce(identity, accumulator, combiner);
     }
-    
+
+    /**
+     * Performs a possibly short-circuiting reduction of the stream elements using 
+     * the provided {@code BinaryOperator}. The result is described as an {@code Optional<T>}.
+     *
+     * <p>
+     * This is a short-circuiting terminal operation. It behaves like {@link #reduce(BinaryOperator)}. However,
+     * it additionally accepts a zero element (also known as absorbing element). When zero element
+     * is passed to the accumulator then the result must be zero as well. So the operation
+     * takes the advantage of this and may short-circuit if zero is reached during the reduction.
+     *
+     * @param zero zero element
+     * @param accumulator an <a href="package-summary.html#Associativity">associative</a>
+     *        , <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to combine two elements into one.
+     * @return the result of reduction. Empty Optional is returned if the input stream is empty.
+     * @throws NullPointerException if accumulator is null or the result of reduction is null
+     * @see MoreCollectors#reducingWithZero(Object, BinaryOperator) 
+     * @see #reduceWithZero(Object, Object, BinaryOperator)
+     * @see #reduce(BinaryOperator) 
+     * @since 0.7.3
+     */
     public Optional<T> reduceWithZero(T zero, BinaryOperator<T> accumulator) {
         return collect(MoreCollectors.reducingWithZero(zero, accumulator));
     }
-    
+
+    /**
+     * Performs a possibly short-circuiting reduction of the stream elements using 
+     * the provided identity value and a {@code BinaryOperator}.
+     *
+     * <p>
+     * This is a short-circuiting terminal operation. It behaves like {@link #reduce(Object, BinaryOperator)}. 
+     * However, it additionally accepts a zero element (also known as absorbing element). When zero element
+     * is passed to the accumulator then the result must be zero as well. So the operation
+     * takes the advantage of this and may short-circuit if zero is reached during the reduction.
+     *
+     * @param zero zero element
+     * @param identity an identity element. For all {@code t}, {@code accumulator.apply(t, identity)} is
+     *                 equal to {@code accumulator.apply(identity, t)} and is equal to {@code t}.
+     * @param accumulator an <a href="package-summary.html#Associativity">associative</a>
+     *        , <a href="package-summary.html#NonInterference">non-interfering
+     *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to combine two elements into one.
+     * @return the result of reduction. Empty Optional is returned if the input stream is empty.
+     * @throws NullPointerException if accumulator is null or the result of reduction is null
+     * @see MoreCollectors#reducingWithZero(Object, Object, BinaryOperator) 
+     * @see #reduceWithZero(Object, BinaryOperator) 
+     * @see #reduce(Object, BinaryOperator) 
+     * @since 0.7.3
+     */
     public T reduceWithZero(T zero, T identity, BinaryOperator<T> accumulator) {
         return collect(MoreCollectors.reducingWithZero(zero, identity, accumulator));
     }
@@ -672,6 +718,29 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     public <R> StreamEx<R> mapPartial(Function<? super T, ? extends Optional<? extends R>> mapper) {
         return new StreamEx<>(stream().map(value -> mapper.apply(value).orElse(null)).filter(Objects::nonNull),
                 context);
+    }
+
+    /**
+     * Returns a stream consisting of the results of applying the given function
+     * to the every adjacent pair of elements of this stream.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate</a>
+     * operation.
+     *
+     * <p>
+     * The output stream will contain one element less than this stream. If this
+     * stream contains zero or one element the output stream will be empty.
+     *
+     * @param <R> The element type of the new stream
+     * @param mapper a non-interfering, stateless function to apply to each
+     *        adjacent pair of this stream elements.
+     * @return the new stream
+     * @since 0.2.1
+     */
+    public <R> StreamEx<R> pairMap(BiFunction<? super T, ? super T, ? extends R> mapper) {
+        PairSpliterator.PSOfRef<T, R> spliterator = new PairSpliterator.PSOfRef<>(mapper, spliterator());
+        return new StreamEx<>(spliterator, context);
     }
 
     /**

@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.OptionalInt;
@@ -55,6 +56,7 @@ import one.util.streamex.IntStreamEx;
 import one.util.streamex.StreamEx;
 
 import static one.util.streamex.TestHelpers.checkSpliterator;
+import static one.util.streamex.TestHelpers.intStreamEx;
 import static one.util.streamex.TestHelpers.streamEx;
 import static one.util.streamex.TestHelpers.withRandom;
 import static org.junit.Assert.assertArrayEquals;
@@ -782,8 +784,17 @@ public class IntStreamExTest {
         assertArrayEquals(new int[] { 1, 3, 6, 10, 20 }, IntStreamEx.of(1, 2, 3, 4, 10).prefix(Integer::sum).toArray());
         assertEquals(OptionalInt.of(10), IntStreamEx.of(1, 2, 3, 4, 10).prefix(Integer::sum).findFirst(x -> x > 7));
         assertEquals(OptionalInt.empty(), IntStreamEx.of(1, 2, 3, 4, 10).prefix(Integer::sum).findFirst(x -> x > 20));
-        assertEquals(1024, IntStreamEx.constant(2, 10).prefix((a, b) -> a*b).max().getAsInt());
-        assertEquals(1024, IntStreamEx.constant(2, 10).parallel().prefix((a, b) -> a*b).max().getAsInt());
+        intStreamEx(() -> IntStreamEx.range(10000).unordered(),
+                s -> assertEquals(49995000, s.prefix(Integer::sum).max().getAsInt()));
+        intStreamEx(() -> IntStreamEx.constant(2, 10),
+                s -> assertEquals(1024, s.prefix((a, b) -> a*b).max().getAsInt()));
+        intStreamEx(() -> IntStreamEx.constant(1, 5),
+                s -> assertEquals(new HashSet<>(Arrays.asList(1, 2, 3, 4, 5)),
+                        s.prefix(Integer::sum).boxed().collect(Collectors.toSet())));
+        intStreamEx(() -> IntStreamEx.constant(1, 5),
+                s -> assertEquals(OptionalInt.of(5), s.prefix(Integer::sum).findFirst(x -> x > 4)));
+        intStreamEx(() -> IntStreamEx.constant(1, 5),
+                s -> assertEquals(OptionalInt.empty(), s.prefix(Integer::sum).findFirst(x -> x > 6)));
     }
     
     @Test

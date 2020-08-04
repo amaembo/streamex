@@ -1523,29 +1523,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
-     * Returns a stream consisting of the results of applying the given function
-     * to the every adjacent pair of elements of this stream.
-     *
-     * <p>
-     * This is a <a href="package-summary.html#StreamOps">quasi-intermediate</a>
-     * operation.
-     * 
-     * <p>
-     * The output stream will contain one element less than this stream. If this
-     * stream contains zero or one element the output stream will be empty.
-     *
-     * @param <R> The element type of the new stream
-     * @param mapper a non-interfering, stateless function to apply to each
-     *        adjacent pair of this stream elements.
-     * @return the new stream
-     * @since 0.2.1
-     */
-    public <R> StreamEx<R> pairMap(BiFunction<? super T, ? super T, ? extends R> mapper) {
-        PSOfRef<T, R> spliterator = new PairSpliterator.PSOfRef<>(mapper, spliterator());
-        return new StreamEx<>(spliterator, context);
-    }
-
-    /**
      * Performs an action for each adjacent pair of elements of this stream.
      *
      * <p>
