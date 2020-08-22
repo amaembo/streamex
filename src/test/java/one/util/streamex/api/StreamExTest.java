@@ -1437,15 +1437,15 @@ public class StreamExTest {
     public void testRunLengthsEntries() {
         // runLengths produces custom entries (ObjLongBox), so let's test their equals/hashCode contract
         List<Entry<String, Long>> runLengths = StreamEx.of("a", "a", "b", "b", "a", "a", "a").runLengths().toList();
-        assertEquals(runLengths.get(0), new AbstractMap.SimpleImmutableEntry<>("a", 2L));
-        assertEquals(runLengths.get(1), new AbstractMap.SimpleImmutableEntry<>("b", 2L));
-        assertEquals(runLengths.get(2), new AbstractMap.SimpleImmutableEntry<>("a", 3L));
+        assertTrue(runLengths.get(0).equals(new AbstractMap.SimpleImmutableEntry<>("a", 2L)));
+        assertTrue(runLengths.get(1).equals(new AbstractMap.SimpleImmutableEntry<>("b", 2L)));
+        assertTrue(runLengths.get(2).equals(new AbstractMap.SimpleImmutableEntry<>("a", 3L)));
         assertEquals(runLengths.get(0).hashCode(), new AbstractMap.SimpleImmutableEntry<>("a", 2L).hashCode());
         assertEquals(runLengths.get(1).hashCode(), new AbstractMap.SimpleImmutableEntry<>("b", 2L).hashCode());
         assertEquals(runLengths.get(2).hashCode(), new AbstractMap.SimpleImmutableEntry<>("a", 3L).hashCode());
-        assertEquals(new AbstractMap.SimpleImmutableEntry<>("a", 2L), runLengths.get(0));
-        assertEquals(new AbstractMap.SimpleImmutableEntry<>("b", 2L), runLengths.get(1));
-        assertEquals(new AbstractMap.SimpleImmutableEntry<>("a", 3L), runLengths.get(2));
+        assertTrue(new AbstractMap.SimpleImmutableEntry<>("a", 2L).equals(runLengths.get(0)));
+        assertTrue(new AbstractMap.SimpleImmutableEntry<>("b", 2L).equals(runLengths.get(1)));
+        assertTrue(new AbstractMap.SimpleImmutableEntry<>("a", 3L).equals(runLengths.get(2)));
         assertNotEquals(runLengths.get(0), runLengths.get(1));
         assertNotEquals(runLengths.get(0), runLengths.get(2));
     }

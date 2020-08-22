@@ -33,11 +33,7 @@ public class EntryStreamInternalTest {
 
     @Test
     public void testCreate() {
-        Map<String, Integer> data = createMap();
-        assertEquals(data, EntryStream.of(data).toMap());
-        assertEquals(data, EntryStream.of(data.entrySet().stream()).toMap());
-
-        EntryStream<String, Integer> stream = EntryStream.of(data);
+        EntryStream<String, Integer> stream = EntryStream.of(createMap());
         assertSame(stream.stream(), EntryStream.of(stream).stream());
         assertSame(stream.stream(), EntryStream.of(StreamEx.of(EntryStream.of(stream))).stream());
     }

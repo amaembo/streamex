@@ -33,18 +33,8 @@ import static org.junit.Assert.assertSame;
 public class StreamExInternalTest {
     @Test
     public void testCreate() {
-
         StreamEx<String> stream = StreamEx.of("foo", "bar");
         assertSame(stream.stream(), StreamEx.of(stream).stream());
-    }
-
-    @Test
-    public void testTakeWhileInclusive() {
-        streamEx(asList("aaa", "b", "cccc")::stream, s -> {
-            assertEquals(asList("aaa", "b"), s.get().takeWhileInclusive(x -> x.length() > 1).toList());
-            assertEquals(asList("aaa", "b", "cccc"), s.get().takeWhileInclusive(x -> x.length() > 0).toList());
-            assertEquals(asList("aaa"), s.get().takeWhileInclusive(x -> x.length() > 5).toList());
-        });
     }
 
     @Test

@@ -459,6 +459,22 @@ public class MoreCollectorsTest {
     public void testPartitioningBy() {
         assertThrows(NullPointerException.class, () -> MoreCollectors.partitioningBy(null, Collectors.toList()));
         assertThrows(NullPointerException.class, () -> MoreCollectors.partitioningBy(x -> x.hashCode() > 0, null));
+
+        Collector<Integer, ?, Map<Boolean, Optional<Integer>>> by20 = MoreCollectors.partitioningBy(x -> x % 20 == 0, MoreCollectors.first());
+        Collector<Integer, ?, Map<Boolean, Optional<Integer>>> by200 = MoreCollectors.partitioningBy(x -> x % 200 == 0, MoreCollectors.first());
+        Supplier<Stream<Integer>> supplier = () -> IntStreamEx.range(1, 100).boxed();
+        {
+            Map<Boolean, Optional<Integer>> expected = new HashMap<>();
+            expected.put(Boolean.TRUE, Optional.of(20));
+            expected.put(Boolean.FALSE, Optional.of(1));
+            checkShortCircuitCollector("by20", expected, 20, supplier, by20);
+        }
+        {
+            Map<Boolean, Optional<Integer>> expected = new HashMap<>();
+            expected.put(Boolean.TRUE, Optional.empty());
+            expected.put(Boolean.FALSE, Optional.of(1));
+            checkShortCircuitCollector("by200", expected, 99, supplier, by200);
+        }
     }
 
     @Test
@@ -466,22 +482,47 @@ public class MoreCollectorsTest {
         assertThrows(NullPointerException.class, () -> MoreCollectors.mapping(null, Collectors.toList()));
         assertThrows(NullPointerException.class, () -> MoreCollectors.mapping(Function.identity(), null));
 
-        List<String> input = asList("Abc", "Bac", "Aac", "Abv", "Bbc", "Bgd", "Atc", "Bpv");
-        Map<Character, List<String>> expected = EntryStream.of('A', asList("Abc", "Aac"), 'B', asList("Bac", "Bbc"))
-                .toMap();
-        AtomicInteger cnt = new AtomicInteger();
-        Collector<String, ?, Map<Character, List<String>>> groupMap = Collectors.groupingBy(s -> s.charAt(0),
-            MoreCollectors.mapping(x -> {
-                cnt.incrementAndGet();
-                return x;
-            }, MoreCollectors.head(2)));
-        checkCollector("groupMap", expected, input::stream, groupMap);
-        cnt.set(0);
-        assertEquals(expected, input.stream().collect(groupMap));
-        assertEquals(4, cnt.get());
+        {
+            List<String> input = asList("Abc", "Bac", "Aac", "Abv", "Bbc", "Bgd", "Atc", "Bpv");
+            Map<Character, List<String>> expected = EntryStream.of('A', asList("Abc", "Aac"), 'B', asList("Bac", "Bbc"))
+                                                               .toMap();
+            AtomicInteger cnt = new AtomicInteger();
+            Collector<String, ?, Map<Character, List<String>>> groupMap =
+                    Collectors.groupingBy(s -> s.charAt(0),
+                                          MoreCollectors.mapping(x -> {
+                                              cnt.incrementAndGet();
+                                              return x;
+                                          }, MoreCollectors.head(2)));
+            checkCollector("groupMap", expected, input::stream, groupMap);
+            cnt.set(0);
+            assertEquals(expected, input.stream().collect(groupMap));
+            assertEquals(4, cnt.get());
+        }
 
-        checkCollector("mapping-toList", asList("a", "b", "c"), asList("a1", "b2", "c3")::stream, MoreCollectors
-                .mapping(str -> str.substring(0, 1)));
+        checkCollector("mapping-toList", asList("a", "b", "c"), asList("a1", "b2", "c3")::stream,
+                       MoreCollectors.mapping(str -> str.substring(0, 1)));
+
+        {
+            List<String> input = asList("Capital", "lower", "Foo", "bar");
+            Map<Boolean, Optional<Integer>> expected = new HashMap<>();
+            expected.put(Boolean.TRUE, Optional.of(7));
+            expected.put(Boolean.FALSE, Optional.of(5));
+
+            Collector<String, ?, Map<Boolean, Optional<Integer>>> collectorFirst = MoreCollectors.partitioningBy(
+                    str -> Character.isUpperCase(str.charAt(0)),
+                    MoreCollectors.mapping(String::length, MoreCollectors.first()));
+            checkShortCircuitCollector("mapping", expected, 2, input::stream, collectorFirst);
+        }
+        {
+            List<String> input = asList("Capital", "lower", "Foo", "bar");
+            Map<Boolean, Optional<Integer>> expected = new HashMap<>();
+            expected.put(Boolean.TRUE, Optional.of(3));
+            expected.put(Boolean.FALSE, Optional.of(3));
+            Collector<String, ?, Map<Boolean, Optional<Integer>>> collectorLast = MoreCollectors.partitioningBy(
+                    str -> Character.isUpperCase(str.charAt(0)),
+                    MoreCollectors.mapping(String::length, MoreCollectors.last()));
+            checkCollector("last", expected, input::stream, collectorLast);
+        }
     }
 
     @Test
