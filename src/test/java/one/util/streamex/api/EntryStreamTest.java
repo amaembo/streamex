@@ -206,6 +206,20 @@ public class EntryStreamTest {
     }
 
     @Test
+    public void testWithoutKeys() {
+        assertTrue(EntryStream.of(new HashMap<>()).withoutKeys().toList().isEmpty());
+        assertTrue(EntryStream.of(null, null).withoutKeys().toList().contains(null));
+        assertEquals(asList(1, 22, 33), EntryStream.of(createMap()).withoutKeys().toList());
+    }
+
+    @Test
+    public void testWithoutValues() {
+        assertTrue(EntryStream.of(new HashMap<>()).withoutValues().toList().isEmpty());
+        assertTrue(EntryStream.of(null, null).withoutValues().toList().contains(null));
+        assertEquals(asList("a", "bb", "ccc"), EntryStream.of(createMap()).withoutValues().toList());
+    }
+
+    @Test
     public void testFilter() {
         assertEquals(Collections.singletonMap("a", 1), EntryStream.of(createMap()).filterKeys(s -> s.length() < 2)
                 .toMap());

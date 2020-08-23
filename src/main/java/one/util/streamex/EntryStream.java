@@ -535,6 +535,32 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     }
 
     /**
+     * Returns a {@link StreamEx} consisting of only the values of this stream.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
+     *
+     * @return the new stream containing only the values
+     * @since 0.7.4
+     */
+    public StreamEx<V> withoutKeys() {
+        return new StreamEx<>(stream().map(Entry::getValue), context);
+    }
+
+    /**
+     * Returns a {@link StreamEx} consisting of only the keys of this stream.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
+     *
+     * @return the new stream containing only the keys
+     * @since 0.7.4
+     */
+    public StreamEx<K> withoutValues() {
+        return new StreamEx<>(stream().map(Entry::getKey), context);
+    }
+
+    /**k
      * Performs a mapping of the stream keys and values to a partial function
      * removing the elements to which the function is not applicable.
      *
