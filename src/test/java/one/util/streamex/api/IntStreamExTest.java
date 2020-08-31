@@ -47,7 +47,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.IntStream.Builder;
 
-import org.junit.Assert;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
