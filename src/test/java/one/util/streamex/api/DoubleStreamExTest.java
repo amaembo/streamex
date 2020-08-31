@@ -41,7 +41,6 @@ import java.util.stream.DoubleStream;
 import java.util.stream.DoubleStream.Builder;
 import java.util.stream.LongStream;
 
-import org.junit.Assert;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
@@ -137,7 +136,7 @@ public class DoubleStreamExTest {
             assertEquals(1, s.count());
         }
         assertEquals(1, i.get());
-        Assert.assertEquals(6, IntStreamEx.range(0, 4).asDoubleStream().sum(), 0);
+        assertEquals(6, IntStreamEx.range(0, 4).asDoubleStream().sum(), 0);
         assertEquals(3, IntStreamEx.range(0, 4).asDoubleStream().max().getAsDouble(), 0);
         assertEquals(0, IntStreamEx.range(0, 4).asDoubleStream().min().getAsDouble(), 0);
         assertEquals(1.5, IntStreamEx.range(0, 4).asDoubleStream().average().getAsDouble(), 0.000001);

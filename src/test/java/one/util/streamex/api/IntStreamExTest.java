@@ -75,7 +75,7 @@ public class IntStreamExTest {
 
     @Test
     public void testCreate() {
-        Assert.assertArrayEquals(new int[] {}, IntStreamEx.empty().toArray());
+        assertArrayEquals(new int[] {}, IntStreamEx.empty().toArray());
         // double test is intended
         assertArrayEquals(new int[] {}, IntStreamEx.empty().toArray());
         assertArrayEquals(new int[] { 1 }, IntStreamEx.of(1).toArray());

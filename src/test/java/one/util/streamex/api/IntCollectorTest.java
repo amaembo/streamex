@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.junit.Assert;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
@@ -46,7 +45,7 @@ public class IntCollectorTest {
     @Test
     public void testJoining() {
         String expected = IntStream.range(0, 10000).mapToObj(String::valueOf).collect(Collectors.joining(", "));
-        Assert.assertEquals(expected, IntStreamEx.range(10000).collect(IntCollector.joining(", ")));
+        assertEquals(expected, IntStreamEx.range(10000).collect(IntCollector.joining(", ")));
         assertEquals(expected, IntStreamEx.range(10000).parallel().collect(IntCollector.joining(", ")));
         String expected2 = IntStreamEx.range(0, 1000).boxed().toList().toString();
         assertEquals(expected2, IntStreamEx.range(1000).collect(IntCollector.joining(", ", "[", "]")));
@@ -226,7 +225,7 @@ public class IntCollectorTest {
 
     @Test
     public void testMapping() {
-        Assert.assertArrayEquals(IntStreamEx.range(1000).asDoubleStream().toArray(), IntStreamEx.range(1000).collect(
+        assertArrayEquals(IntStreamEx.range(1000).asDoubleStream().toArray(), IntStreamEx.range(1000).collect(
             IntCollector.mappingToObj(i -> (double) i, DoubleCollector.toArray())), 0.0);
     }
 

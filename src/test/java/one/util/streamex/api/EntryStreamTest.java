@@ -86,6 +86,8 @@ public class EntryStreamTest {
 
     @Test
     public void testCreate() {
+        // double test is intended to caugh the bug in `EntryStream.emtpy()` related to sharing object
+        assertEquals(0, EntryStream.empty().count());
         assertEquals(0, EntryStream.empty().count());
 
         Map<String, Integer> data = createMap();

@@ -72,7 +72,7 @@ public class LongStreamExTest {
 
     @Test
     public void testCreate() {
-        Assert.assertArrayEquals(new long[] {}, LongStreamEx.empty().toArray());
+        assertArrayEquals(new long[] {}, LongStreamEx.empty().toArray());
         // double test is intended
         assertArrayEquals(new long[] {}, LongStreamEx.empty().toArray());
         assertArrayEquals(new long[] { 1 }, LongStreamEx.of(1).toArray());
@@ -630,8 +630,8 @@ public class LongStreamExTest {
 
     @Test
     public void testIntersperse() {
-        assertArrayEquals(new long[] { 1, 0, 10, 0, 100, 0, 1000 }, LongStreamEx.of(1, 10, 100, 1000).intersperse(0)
-                .toArray());
-        Assert.assertEquals(0L, IntStreamEx.empty().intersperse(1).count());
+        assertArrayEquals(new long[] { 1, 0, 10, 0, 100, 0, 1000 },
+                          LongStreamEx.of(1, 10, 100, 1000).intersperse(0).toArray());
+        assertEquals(0L, IntStreamEx.empty().intersperse(1).count());
     }
 }
