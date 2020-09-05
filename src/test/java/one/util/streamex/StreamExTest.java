@@ -1953,6 +1953,8 @@ public class StreamExTest {
 
         streamEx(() -> StreamEx.of(5, 10, 13, 12, 11), s -> assertEquals(asList("5+0", "5+5", "5+8", "5+7", "5+6"), s
                 .get().withFirst((a, b) -> a + "+" + (b - a)).toList()));
+        
+        streamEx(StreamEx::empty, s -> assertEquals(Optional.empty(), s.get().withFirst().findAny()));
     }
 
     @Test
