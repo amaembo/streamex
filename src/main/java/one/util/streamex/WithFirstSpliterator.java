@@ -16,153 +16,139 @@
 package one.util.streamex;
 
 import java.util.Spliterator;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import one.util.streamex.Internals.CloneableSpliterator;
 
+import static one.util.streamex.Internals.NONE;
+
 /**
  * @author Tagir Valeev
  */
-/* package */final class WithFirstSpliterator<T, R> extends CloneableSpliterator<R, WithFirstSpliterator<T, R>> implements Consumer<T> {
-    private static final int STATE_NONE = 0;
-    private static final int STATE_FIRST_READ = 1;
-    private static final int STATE_INIT = 2;
-    private static final int STATE_EMPTY = 3;
-
-    private ReentrantLock lock;
+/* package */final class WithFirstSpliterator<T, R> extends CloneableSpliterator<R, WithFirstSpliterator<T, R>> {
+    private static final Object lock = new Object();
     private Spliterator<T> source;
     private WithFirstSpliterator<T, R> prefix;
-    private volatile T first;
-    private volatile int state = STATE_NONE;
+    private T first = none();
+    private T[] firstRefHolder;
+    boolean firstToBeConsumed;
     private final BiFunction<? super T, ? super T, ? extends R> mapper;
-    private Consumer<? super R> action;
     
     WithFirstSpliterator(Spliterator<T> source, BiFunction<? super T, ? super T, ? extends R> mapper) {
         this.source = source;
         this.mapper = mapper;
     }
     
-    private void acquire() {
-        if (lock != null && state == STATE_NONE) {
-            lock.lock();
-        }
+    @SuppressWarnings("unchecked")
+    static <T> T[] arrayOfNone() {
+        return (T[]) new Object[]{NONE};
     }
     
-    private void release() {
-        if (lock != null && lock.isHeldByCurrentThread()) {
-            lock.unlock();
-        }
+    @SuppressWarnings("unchecked")
+    static <T> T none() {
+        return (T) NONE;
     }
-
-    @Override
-    public boolean tryAdvance(Consumer<? super R> action) {
-        if (state == STATE_NONE) {
-            acquire();
-            try {
-                doInit();
-            } finally {
-                release();
-            }
-        }
-        if (state == STATE_FIRST_READ) {
-            state = STATE_INIT;
-            action.accept(mapper.apply(first, first));
-            return true;
-        }
-        if (state != STATE_INIT)
-            return false;
-        this.action = action;
-        boolean hasNext = source.tryAdvance(this);
-        this.action = null;
-        return hasNext;
-    }
-
-    private void doInit() {
-        int prefixState = state;
-        if (prefixState != STATE_NONE)
-            return;
-        if (prefix != null) {
-            prefix.doInit();
-            prefixState = prefix.state;
-        }
-        if (prefixState == STATE_FIRST_READ || prefixState == STATE_INIT) {
-            first = prefix.first;
-            state = STATE_INIT;
-            return;
-        }
-        state = source.tryAdvance(x -> first = x) ? STATE_FIRST_READ : STATE_EMPTY;
-    }
-
-    @Override
-    public void forEachRemaining(Consumer<? super R> action) {
-        acquire();
-        int myState = state;
-        this.action = action;
-        if (myState == STATE_FIRST_READ || myState == STATE_INIT) {
-            release();
-            if (myState == STATE_FIRST_READ) {
-                state = STATE_INIT;
-                accept(first);
-            }
-            source.forEachRemaining(this);
-            this.action = null;
-            return;
-        }
-        try {
-            Consumer<T> init = x -> {
-                if (state == STATE_NONE) {
-                    if (prefix != null) {
-                        prefix.doInit();
-                    }
-                    this.first = (prefix == null || prefix.state == STATE_EMPTY) ? x : prefix.first;
-                    state = STATE_INIT;
-                }
-                release();
-            };
-            source.forEachRemaining(init.andThen(this));
-            this.action = null;
-        } finally {
-            release();
-        }
-    }
-
+    
     @Override
     public Spliterator<R> trySplit() {
-        if (state != STATE_NONE)
+        boolean isInit = first != NONE || (firstRefHolder != null && (first = firstRefHolder[0]) != NONE);
+        if (isInit) {
             return null;
-        Spliterator<T> prefix;
-        if (lock == null)
-            lock = new ReentrantLock();
-        acquire();
-        try {
-            if (state != STATE_NONE)
+        }
+        if (firstRefHolder == null) {
+            firstRefHolder = arrayOfNone();
+        }
+        synchronized (lock) {
+            if (isInit()) {
                 return null;
-            prefix = source.trySplit();
-            if (prefix == null)
+            }
+            Spliterator<T> prefix = source.trySplit();
+            if (prefix == null) {
                 return null;
+            }
             WithFirstSpliterator<T, R> result = doClone();
             result.source = prefix;
             return this.prefix = result;
-        } finally {
-            release();
         }
     }
-
+    
+    private boolean isInit() {
+        return first != NONE || (first = firstRefHolder[0]) != NONE;
+    }
+    
+    @Override
+    public boolean tryAdvance(Consumer<? super R> action) {
+        boolean isNotInit = first == NONE && (firstRefHolder == null || (first = firstRefHolder[0]) == NONE);
+        if (isNotInit) {
+            if (firstRefHolder == null) {
+                return source.tryAdvance(x -> {
+                    first = x;
+                    action.accept(mapper.apply(first, x));
+                });
+            } else {
+                doInit();
+                if (first == NONE) {
+                    return false;
+                }
+            }
+        }
+        if (firstToBeConsumed) {
+            firstToBeConsumed = false;
+            action.accept(mapper.apply(first, first));
+            return true;
+        }
+        return source.tryAdvance(x -> action.accept(mapper.apply(first, x)));
+    }
+    
+    private void doInit() {
+        synchronized (lock) {
+            if (prefix != null) {
+                prefix.doInit();
+            }
+            if (!isInit()) {
+                source.tryAdvance(x -> {
+                    firstToBeConsumed = true;
+                    first = x;
+                    firstRefHolder[0] = x;
+                });
+            }
+        }
+    }
+    
+    @Override
+    public void forEachRemaining(Consumer<? super R> action) {
+        if (firstRefHolder == null) {
+            Consumer<T> init = x -> {
+                if (first == NONE) {
+                    first = x;
+                }
+            };
+            source.forEachRemaining(init.andThen(x -> action.accept(mapper.apply(first, x))));
+        } else {
+            init();
+            if (firstToBeConsumed) {
+                firstToBeConsumed = false;
+                action.accept(mapper.apply(first, first));
+            }
+            source.forEachRemaining(x -> action.accept(mapper.apply(first, x)));
+        }
+    }
+    
+    private void init() {
+        if (!isInit()) {
+            doInit();
+        }
+    }
+    
     @Override
     public long estimateSize() {
         return source.estimateSize();
     }
-
+    
     @Override
     public int characteristics() {
         return NONNULL
-            | (source.characteristics() & (DISTINCT | IMMUTABLE | CONCURRENT | ORDERED | (lock == null ? SIZED : 0)));
-    }
-
-    @Override
-    public void accept(T x) {
-        action.accept(mapper.apply(first, x));
+                | (source.characteristics() & (DISTINCT | IMMUTABLE | CONCURRENT | ORDERED | (firstRefHolder == null ? SIZED : 0)));
     }
 }

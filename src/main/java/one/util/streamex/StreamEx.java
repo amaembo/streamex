@@ -1764,11 +1764,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a>.
-     * 
-     * <p>
-     * The size of the resulting stream is one element less than the input
-     * stream. If the input stream is empty or contains just one element, then
-     * the output stream will be empty.
      *
      * @param <R> The element type of the new stream
      * @param mapper a non-interfering, stateless function to apply to the first
@@ -1791,11 +1786,6 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * <p>
      * This is a <a href="package-summary.html#StreamOps">quasi-intermediate
      * operation</a>.
-     * 
-     * <p>
-     * The size of the resulting stream is one element less than the input
-     * stream. If the input stream is empty or contains just one element, then
-     * the output stream will be empty.
      *
      * @return the new stream
      * @see #withFirst(BiFunction)
@@ -1804,6 +1794,19 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public EntryStream<T, T> withFirst() {
         WithFirstSpliterator<T, Entry<T, T>> spliterator = new WithFirstSpliterator<>(spliterator(),
+                SimpleImmutableEntry::new);
+        return new EntryStream<>(spliterator, context);
+    }
+    
+    @Deprecated
+    public <R> StreamEx<R> withFirstOld(BiFunction<? super T, ? super T, ? extends R> mapper) {
+        WithFirstSpliteratorOld<T, R> spliterator = new WithFirstSpliteratorOld<>(spliterator(), mapper);
+        return new StreamEx<>(spliterator, context);
+    }
+    
+    @Deprecated
+    public EntryStream<T, T> withFirstOld() {
+        WithFirstSpliteratorOld<T, Entry<T, T>> spliterator = new WithFirstSpliteratorOld<>(spliterator(),
                 SimpleImmutableEntry::new);
         return new EntryStream<>(spliterator, context);
     }
