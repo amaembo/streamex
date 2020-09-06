@@ -86,7 +86,8 @@ public class EntryStreamTest {
 
     @Test
     public void testCreate() {
-        // double test is intended to caugh the bug in `EntryStream.emtpy()` related to sharing object
+        // double test is intended to ensure that EntryStream.empty() returns non-shared object 
+        // and can be consumed several times.
         assertEquals(0, EntryStream.empty().count());
         assertEquals(0, EntryStream.empty().count());
 
