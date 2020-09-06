@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2019 StreamEx contributors
+ * Copyright 2015, 2020 StreamEx contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package one.util.streamex;
+package one.util.streamex.api;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -80,8 +80,15 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runners.MethodSorters;
 
+import one.util.streamex.EntryStream;
+import one.util.streamex.IntStreamEx;
+import one.util.streamex.Joining;
+import one.util.streamex.MoreCollectors;
+import one.util.streamex.StreamEx;
+import one.util.streamex.TestHelpers.Point;
+
 import static java.util.Arrays.asList;
-import static one.util.streamex.TestHelpers.assertThrows;
+import static one.util.streamex.TestHelpers.assertStatementThrows;
 import static one.util.streamex.TestHelpers.checkIllegalStateException;
 import static one.util.streamex.TestHelpers.checkSpliterator;
 import static one.util.streamex.TestHelpers.emptySpliteratorWithExactSize;
@@ -96,6 +103,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -130,9 +138,6 @@ public class StreamExTest {
         assertEquals(asList("a", "a", "a", "a"), StreamEx.generate(() -> "a").limit(4).toList());
         assertEquals(asList("a", "a", "a", "a"), StreamEx.constant("a", 4).toList());
         assertEquals(asList("c", "d", "e"), StreamEx.of("abcdef".split(""), 2, 5).toList());
-
-        StreamEx<String> stream = StreamEx.of("foo", "bar");
-        assertSame(stream.stream(), StreamEx.of(stream).stream());
 
         assertEquals(asList("a1", "b2", "c3"), StreamEx.zip(asList("a", "b", "c"), asList(1, 2, 3), (s, i) -> s + i)
                 .toList());
@@ -817,19 +822,6 @@ public class StreamExTest {
         return StreamEx.of(c).parallel().pairMap((a, b) -> a.compareTo(b) > 0 ? a : null).nonNull().findFirst();
     }
 
-    static class Point {
-        final double x, y;
-
-        Point(double x, double y) {
-            this.x = x;
-            this.y = y;
-        }
-
-        double distance(Point o) {
-            return Math.sqrt((x - o.x) * (x - o.x) + (y - o.y) * (y - o.y));
-        }
-    }
-
     @Test
     public void testPairMap() {
         assertEquals(0, StreamEx.<String>empty().pairMap(String::concat).count());
@@ -1436,8 +1428,8 @@ public class StreamExTest {
         assertNotEquals(new Object(), entry);
         assertEquals(entry, new AbstractMap.SimpleImmutableEntry<>(1, 1L));
 
-        assertThrows(UnsupportedOperationException.class, () ->
-                StreamEx.of("1", "1", "1").runLengths().forEach(e -> e.setValue(5L)));
+        assertThrows(UnsupportedOperationException.class,
+                     () -> StreamEx.of("1", "1", "1").runLengths().forEach(e -> e.setValue(5L)));
     }
     
     @SuppressWarnings("SimplifiableAssertion")
@@ -1624,11 +1616,6 @@ public class StreamExTest {
             Optional<String> opt5 = s.get().dropWhile(x -> x.length() > 5).findFirst();
             assertEquals(Optional.of("aaa"), opt5);
         });
-
-        // Test that in JDK9 operation is propagated to JDK dropWhile method.
-        boolean hasDropWhile = VerSpec.VER_SPEC.getClass().getSimpleName().equals("Java9Specific");
-        Spliterator<String> spliterator = StreamEx.of("aaa", "b", "cccc").dropWhile(x -> x.length() > 1).spliterator();
-        assertEquals(hasDropWhile, !spliterator.getClass().getSimpleName().equals("TDOfRef"));
     }
 
     @Test
@@ -1885,7 +1872,7 @@ public class StreamExTest {
         streamEx(() -> StreamEx.split("ab.cd...", "\\w"), s -> assertEquals("||.||...", s.get().joining("|")));
         streamEx(() -> StreamEx.split("ab.cd...", "\\W"), s -> assertEquals("ab|cd", s.get().joining("|")));
         streamEx(() -> StreamEx.split("ab|cd|e", "\\|"), s -> assertEquals("ab,cd,e", s.get().joining(",")));
-        assertEquals(CharSpliterator.class, StreamEx.split("a#a", "\\#").spliterator().getClass());
+
         assertThrows(PatternSyntaxException.class, () -> StreamEx.split("a", "\\0"));
         asList('9', 'A', 'Z', 'z').forEach(ch ->
                 assertEquals(asList("a" + ch + "a"), StreamEx.split("a" + ch + "a", "\\" + ch).toList()));
@@ -2158,9 +2145,9 @@ public class StreamExTest {
         StreamEx.of(asList(1)).into(collection);
         int maxAvailableSize = Integer.MAX_VALUE - collection.size();
         assertThrows(IllegalArgumentException.class,
-            () -> StreamEx.<Integer>of(emptySpliteratorWithExactSize(-2)).into(collection));
-        assertThrows(OutOfMemoryError.class, 
-            () -> StreamEx.<Integer>of(emptySpliteratorWithExactSize(Long.MAX_VALUE)).into(collection));
+                     () -> StreamEx.<Integer>of(emptySpliteratorWithExactSize(-2)).into(collection));
+        assertThrows(OutOfMemoryError.class,
+                     () -> StreamEx.<Integer>of(emptySpliteratorWithExactSize(Long.MAX_VALUE)).into(collection));
         StreamEx.<Integer>of(emptySpliteratorWithExactSize(maxAvailableSize + 1)).into(collection);
         StreamEx.<Integer>of(emptySpliteratorWithExactSize(maxAvailableSize)).into(collection);
         assertEquals(Integer.MAX_VALUE, list.ensuredCapacity);

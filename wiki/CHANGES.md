@@ -2,14 +2,16 @@
 
 Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 
+### 0.7.4
+* [#091] Changed: API tests moved to the separate package.
+
 ### 0.7.3
-* [#028] Added: `StreamEx.toCollectionAndThen`
+* [#028] Added: `StreamEx.toCollectionAndThen`.
 * [#039] Added: `AbstractStreamEx.reducingWithZero` and `MoreCollectors.reducingWithZero`.
-* [#043] Added: Add `MoreCollectors.entriesToMap` and `MoreCollectors.entriesToCustomMap` methods accepting Entry<K,V>.
+* [#043] Added: `MoreCollectors.entriesToMap` and `MoreCollectors.entriesToCustomMap` methods accepting Entry<K,V>.
 * [#093] Optimized: parallel performance of unordered primitive streams and for short-circuiting streams is improved. 
 * [#219] Changed: MoreCollectors now reject eagerly null parameters where possible; `MoreCollectors.last` throws NPE if last stream element is null.
-* [#221] Fixed: `rangeClosed(x, x, step)` returned empty stream instead of stream of `x` if step absolute value is
- bigger than one.
+* [#221] Fixed: `rangeClosed(x, x, step)` returned empty stream instead of stream of `x` if step absolute value is bigger than one.
 * [#226] Added: `EntryStream.pairMap` (pairMap pulled up to AbstractStreamEx).
 * [#229] Fixed: Some non-canonical nans were sorted incorrectly with `Double.reverseSorted()`.
 
