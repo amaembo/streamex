@@ -27,7 +27,7 @@ import static one.util.streamex.Internals.NONE;
  * @author Tagir Valeev
  */
 /* package */final class WithFirstSpliterator<T, R> extends CloneableSpliterator<R, WithFirstSpliterator<T, R>> {
-    private static final Object lock = new Object();
+    private final Object lock = new Object();
     private Spliterator<T> source;
     private WithFirstSpliterator<T, R> prefix;
     private T first = none();
