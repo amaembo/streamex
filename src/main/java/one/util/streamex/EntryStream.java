@@ -41,6 +41,7 @@ import java.util.function.BiPredicate;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.IntPredicate;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
@@ -2283,5 +2284,89 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         return new EntryStream<>(
                 Stream.generate(() -> new SimpleImmutableEntry<>(keySupplier.get(), valueSupplier.get())),
                 StreamContext.SEQUENTIAL);
+    }
+
+    /**
+     * Returns a {@code EntryStream} consisting of the elements of this stream those keys are not equal to given keys.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
+     *
+     * @return the new stream containing only the values
+     * @see #withoutKey(Object)
+     * @see #withoutValue(Object)
+     * @see #withoutValues(Object...)
+     * @since 0.7.4
+     */
+    public EntryStream<K, V> withoutKeys(K... keys) {
+        if (keys.length == 0)
+            return this;
+        if (keys.length == 1)
+            return withoutKey(keys[0]);
+        return filter(entry -> {
+            for (K key : keys) {
+                if (entry.getKey().equals(key))
+                    return false;
+            }
+            return true;
+        });
+    }
+
+    /**
+     * Returns a {@code EntryStream} consisting of the elements of this stream those keys are not equal given key.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
+     *
+     * @return the new stream containing only the values
+     * @see #withoutKeys(Object...)
+     * @see #withoutValue(Object)
+     * @see #withoutValues(Object...)
+     * @since 0.7.4
+     */
+    public EntryStream<K, V> withoutKey(K key) {
+        return filter(entry -> !entry.getKey().equals(key));
+    }
+
+    /**
+     * Returns a {@code EntryStream} consisting of the elements of this stream those keys are not equal to given keys.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
+     *
+     * @return the new stream containing only the values
+     * @see #withoutKey(Object)
+     * @see #withoutKeys(Object...)
+     * @see #withoutValue(Object)
+     * @since 0.7.4
+     */
+    public EntryStream<K, V> withoutValues(V... values) {
+        if (values.length == 0)
+            return this;
+        if (values.length == 1)
+            return withoutValue(values[0]);
+        return filter(entry -> {
+            for (V value : values) {
+                if (entry.getValue().equals(value))
+                    return false;
+            }
+            return true;
+        });
+    }
+
+    /**
+     * Returns a {@code EntryStream} consisting of the elements of this stream those keys are not equal given key.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
+     *
+     * @return the new stream containing only the values
+     * @see #withoutKey(Object)
+     * @see #withoutKeys(Object...)
+     * @see #withoutValues(Object...)
+     * @since 0.7.4
+     */
+    public EntryStream<K, V> withoutValue(V value) {
+        return filter(entry -> !entry.getValue().equals(value));
     }
 }
