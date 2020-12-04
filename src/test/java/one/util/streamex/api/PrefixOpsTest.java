@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package one.util.streamex;
+package one.util.streamex.api;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -24,6 +23,10 @@ import java.util.function.IntConsumer;
 import java.util.function.LongConsumer;
 
 import org.junit.Test;
+
+import one.util.streamex.IntStreamEx;
+import one.util.streamex.LongStreamEx;
+import one.util.streamex.StreamEx;
 
 import static one.util.streamex.TestHelpers.consumeElement;
 import static org.junit.Assert.assertEquals;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2019 StreamEx contributors
+ * Copyright 2015, 2020 StreamEx contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package one.util.streamex;
+package one.util.streamex.api;
 
 import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
@@ -47,11 +47,15 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
-import one.util.streamex.StreamExTest.Point;
+import one.util.streamex.EntryStream;
+import one.util.streamex.IntStreamEx;
+import one.util.streamex.MoreCollectors;
+import one.util.streamex.StreamEx;
+import one.util.streamex.TestHelpers.Point;
 
 import static java.util.Arrays.asList;
 import static one.util.streamex.TestHelpers.StreamExSupplier;
-import static one.util.streamex.TestHelpers.assertThrows;
+import static one.util.streamex.TestHelpers.checkAsString;
 import static one.util.streamex.TestHelpers.checkIllegalStateException;
 import static one.util.streamex.TestHelpers.entryStream;
 import static one.util.streamex.TestHelpers.repeat;
@@ -63,6 +67,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -71,10 +76,6 @@ import static org.junit.Assert.fail;
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class EntryStreamTest {
-    private static void checkAsString(String expected, EntryStream<?, ?> stream) {
-        assertEquals(expected, stream.join("->").joining(";"));
-    }
-
     private static Map<String, Integer> createMap() {
         Map<String, Integer> data = new LinkedHashMap<>();
         data.put("a", 1);
@@ -85,11 +86,15 @@ public class EntryStreamTest {
 
     @Test
     public void testCreate() {
+        // double test is intended to ensure that EntryStream.empty() returns non-shared object 
+        // and can be consumed several times.
         assertEquals(0, EntryStream.empty().count());
         assertEquals(0, EntryStream.empty().count());
+
         Map<String, Integer> data = createMap();
         assertEquals(data, EntryStream.of(data).toMap());
         assertEquals(data, EntryStream.of(data.entrySet().stream()).toMap());
+
         Map<String, Integer> expected = new HashMap<>();
         expected.put("aaa", 3);
         expected.put("bbb", 3);
@@ -101,10 +106,6 @@ public class EntryStreamTest {
 
         assertEquals(expected, StreamEx.of(Collections.singletonMap("aaa", 3), Collections.singletonMap("bbb", 3),
             Collections.singletonMap("c", 1), Collections.emptyMap()).flatMapToEntry(m -> m).toMap());
-
-        EntryStream<String, Integer> stream = EntryStream.of(data);
-        assertSame(stream.stream(), EntryStream.of(stream).stream());
-        assertSame(stream.stream(), EntryStream.of(StreamEx.of(EntryStream.of(stream))).stream());
 
         assertEquals(Collections.singletonMap("aaa", 3), EntryStream.of(
             Collections.singletonMap("aaa", 3).entrySet().spliterator()).toMap());
@@ -192,7 +193,6 @@ public class EntryStreamTest {
         assertNotEquals(entry, new Object());
         assertEquals(new AbstractMap.SimpleImmutableEntry<>(0, "a"), entry);
         assertEquals(entry, new AbstractMap.SimpleImmutableEntry<>(0, "a"));
-
         assertThrows(UnsupportedOperationException.class, () ->
                 EntryStream.of(Collections.singletonList("1")).forEach(e -> e.setValue("2")));
     }

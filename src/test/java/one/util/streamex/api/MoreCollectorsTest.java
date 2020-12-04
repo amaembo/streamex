@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2019 StreamEx contributors
+ * Copyright 2015, 2020 StreamEx contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package one.util.streamex;
+package one.util.streamex.api;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -53,10 +53,15 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
-import one.util.streamex.Internals.BooleanMap;
+import one.util.streamex.EntryStream;
+import one.util.streamex.IntStreamEx;
+import one.util.streamex.Joining;
+import one.util.streamex.LongStreamEx;
+import one.util.streamex.MoreCollectors;
+import one.util.streamex.StreamEx;
 
 import static java.util.Arrays.asList;
-import static one.util.streamex.TestHelpers.assertThrows;
+import static one.util.streamex.TestHelpers.assertStatementThrows;
 import static one.util.streamex.TestHelpers.checkCollector;
 import static one.util.streamex.TestHelpers.checkCollectorEmpty;
 import static one.util.streamex.TestHelpers.checkIllegalStateException;
@@ -67,6 +72,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -453,45 +459,70 @@ public class MoreCollectorsTest {
     public void testPartitioningBy() {
         assertThrows(NullPointerException.class, () -> MoreCollectors.partitioningBy(null, Collectors.toList()));
         assertThrows(NullPointerException.class, () -> MoreCollectors.partitioningBy(x -> x.hashCode() > 0, null));
-        Collector<Integer, ?, Map<Boolean, Optional<Integer>>> by20 = MoreCollectors.partitioningBy(x -> x % 20 == 0,
-            MoreCollectors.first());
-        Collector<Integer, ?, Map<Boolean, Optional<Integer>>> by200 = MoreCollectors.partitioningBy(x -> x % 200 == 0,
-            MoreCollectors.first());
+
+        Collector<Integer, ?, Map<Boolean, Optional<Integer>>> by20 = MoreCollectors.partitioningBy(x -> x % 20 == 0, MoreCollectors.first());
+        Collector<Integer, ?, Map<Boolean, Optional<Integer>>> by200 = MoreCollectors.partitioningBy(x -> x % 200 == 0, MoreCollectors.first());
         Supplier<Stream<Integer>> supplier = () -> IntStreamEx.range(1, 100).boxed();
-        checkShortCircuitCollector("by20", new BooleanMap<>(Optional.of(20), Optional.of(1)), 20, supplier, by20);
-        checkShortCircuitCollector("by200", new BooleanMap<>(Optional.empty(), Optional.of(1)), 99, supplier, by200);
+        {
+            Map<Boolean, Optional<Integer>> expected = new HashMap<>();
+            expected.put(Boolean.TRUE, Optional.of(20));
+            expected.put(Boolean.FALSE, Optional.of(1));
+            checkShortCircuitCollector("by20", expected, 20, supplier, by20);
+        }
+        {
+            Map<Boolean, Optional<Integer>> expected = new HashMap<>();
+            expected.put(Boolean.TRUE, Optional.empty());
+            expected.put(Boolean.FALSE, Optional.of(1));
+            checkShortCircuitCollector("by200", expected, 99, supplier, by200);
+        }
     }
 
     @Test
     public void testMapping() {
         assertThrows(NullPointerException.class, () -> MoreCollectors.mapping(null, Collectors.toList()));
         assertThrows(NullPointerException.class, () -> MoreCollectors.mapping(Function.identity(), null));
-        List<String> input = asList("Capital", "lower", "Foo", "bar");
-        Collector<String, ?, Map<Boolean, Optional<Integer>>> collector = MoreCollectors
-                .partitioningBy(str -> Character.isUpperCase(str.charAt(0)), MoreCollectors.mapping(String::length,
-                    MoreCollectors.first()));
-        checkShortCircuitCollector("mapping", new BooleanMap<>(Optional.of(7), Optional.of(5)), 2, input::stream,
-            collector);
-        Collector<String, ?, Map<Boolean, Optional<Integer>>> collectorLast = MoreCollectors.partitioningBy(
-            str -> Character.isUpperCase(str.charAt(0)), MoreCollectors.mapping(String::length, MoreCollectors.last()));
-        checkCollector("last", new BooleanMap<>(Optional.of(3), Optional.of(3)), input::stream, collectorLast);
 
-        input = asList("Abc", "Bac", "Aac", "Abv", "Bbc", "Bgd", "Atc", "Bpv");
-        Map<Character, List<String>> expected = EntryStream.of('A', asList("Abc", "Aac"), 'B', asList("Bac", "Bbc"))
-                .toMap();
-        AtomicInteger cnt = new AtomicInteger();
-        Collector<String, ?, Map<Character, List<String>>> groupMap = Collectors.groupingBy(s -> s.charAt(0),
-            MoreCollectors.mapping(x -> {
-                cnt.incrementAndGet();
-                return x;
-            }, MoreCollectors.head(2)));
-        checkCollector("groupMap", expected, input::stream, groupMap);
-        cnt.set(0);
-        assertEquals(expected, input.stream().collect(groupMap));
-        assertEquals(4, cnt.get());
+        {
+            List<String> input = asList("Abc", "Bac", "Aac", "Abv", "Bbc", "Bgd", "Atc", "Bpv");
+            Map<Character, List<String>> expected = EntryStream.of('A', asList("Abc", "Aac"), 'B', asList("Bac", "Bbc"))
+                                                               .toMap();
+            AtomicInteger cnt = new AtomicInteger();
+            Collector<String, ?, Map<Character, List<String>>> groupMap =
+                    Collectors.groupingBy(s -> s.charAt(0),
+                                          MoreCollectors.mapping(x -> {
+                                              cnt.incrementAndGet();
+                                              return x;
+                                          }, MoreCollectors.head(2)));
+            checkCollector("groupMap", expected, input::stream, groupMap);
+            cnt.set(0);
+            assertEquals(expected, input.stream().collect(groupMap));
+            assertEquals(4, cnt.get());
+        }
 
-        checkCollector("mapping-toList", asList("a", "b", "c"), asList("a1", "b2", "c3")::stream, MoreCollectors
-                .mapping(str -> str.substring(0, 1)));
+        checkCollector("mapping-toList", asList("a", "b", "c"), asList("a1", "b2", "c3")::stream,
+                       MoreCollectors.mapping(str -> str.substring(0, 1)));
+
+        {
+            List<String> input = asList("Capital", "lower", "Foo", "bar");
+            Map<Boolean, Optional<Integer>> expected = new HashMap<>();
+            expected.put(Boolean.TRUE, Optional.of(7));
+            expected.put(Boolean.FALSE, Optional.of(5));
+
+            Collector<String, ?, Map<Boolean, Optional<Integer>>> collectorFirst = MoreCollectors.partitioningBy(
+                    str -> Character.isUpperCase(str.charAt(0)),
+                    MoreCollectors.mapping(String::length, MoreCollectors.first()));
+            checkShortCircuitCollector("mapping", expected, 2, input::stream, collectorFirst);
+        }
+        {
+            List<String> input = asList("Capital", "lower", "Foo", "bar");
+            Map<Boolean, Optional<Integer>> expected = new HashMap<>();
+            expected.put(Boolean.TRUE, Optional.of(3));
+            expected.put(Boolean.FALSE, Optional.of(3));
+            Collector<String, ?, Map<Boolean, Optional<Integer>>> collectorLast = MoreCollectors.partitioningBy(
+                    str -> Character.isUpperCase(str.charAt(0)),
+                    MoreCollectors.mapping(String::length, MoreCollectors.last()));
+            checkCollector("last", expected, input::stream, collectorLast);
+        }
     }
 
     @Test
@@ -662,7 +693,7 @@ public class MoreCollectorsTest {
         assertThrows(NullPointerException.class, () -> EntryStream.of("a", "*", "b", null).collect(
                 MoreCollectors.entriesToCustomMap(LinkedHashMap::new)));
 
-        assertThrows(IllegalStateException.class,
+        assertStatementThrows(IllegalStateException.class,
                 "Duplicate entry for key 'a' (attempt to merge values '*' and '**')"::equals,
                 () -> EntryStream.of("a", "*", "a", "**").collect(MoreCollectors.entriesToCustomMap(LinkedHashMap::new)));
 
