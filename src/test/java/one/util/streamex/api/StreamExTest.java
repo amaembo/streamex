@@ -432,6 +432,52 @@ public class StreamExTest {
     }
 
     @Test
+    public void testToSortedMapWithIdentityKeyMapper() {
+        Map<String, Integer> expected = new HashMap<>();
+        expected.put("a", 1);
+        expected.put("bb", 2);
+        expected.put("ccc", 3);
+
+        Map<String, Character> expected2 = new HashMap<>();
+        expected2.put("a", 'a');
+        expected2.put("bb", 'b');
+        expected2.put("ccc", 'c');
+
+        streamEx(() -> Stream.of("a", "bb", "ccc"), supplier -> {
+            SortedMap<String, Integer> map = supplier.get().toSortedMapWithIdentityKeyMapper(String::length);
+            assertEquals(supplier.get().isParallel(), map instanceof ConcurrentMap);
+            assertEquals(expected, map);
+
+            SortedMap<String, Character> map2 = supplier.get().toSortedMapWithIdentityKeyMapper(s -> s.charAt(0));
+            assertEquals(supplier.get().isParallel(), map2 instanceof ConcurrentMap);
+            assertEquals(expected2, map2);
+        });
+    }
+
+    @Test
+    public void testToSortedMapWithIdentityValueMapper() {
+        Map<Integer, String> expected = new HashMap<>();
+        expected.put(1, "a");
+        expected.put(2, "bb");
+        expected.put(3, "ccc");
+
+        Map<Character, String> expected2 = new HashMap<>();
+        expected2.put('a', "a");
+        expected2.put('b', "bb");
+        expected2.put('c', "ccc");
+
+        streamEx(() -> Stream.of("a", "bb", "ccc"), supplier -> {
+            SortedMap<Integer, String> map = supplier.get().toSortedMapWithIdentityValueMapper(String::length);
+            assertEquals(supplier.get().isParallel(), map instanceof ConcurrentMap);
+            assertEquals(expected, map);
+
+            SortedMap<Character, String> map2 = supplier.get().toSortedMapWithIdentityValueMapper(s -> s.charAt(0));
+            assertEquals(supplier.get().isParallel(), map2 instanceof ConcurrentMap);
+            assertEquals(expected2, map2);
+        });
+    }
+
+    @Test
     public void testToNavigableMap() {
         Map<String, Integer> expected = new HashMap<>();
         expected.put("a", 1);
@@ -464,6 +510,52 @@ public class StreamExTest {
 
             checkIllegalStateException(() -> supplier.get().toNavigableMap(String::length, Function.identity()), "2",
                 "dd", "bb");
+        });
+    }
+
+    @Test
+    public void testToNavigableMapWithIdentityKeyMapper() {
+        Map<String, Integer> expected = new HashMap<>();
+        expected.put("a", 1);
+        expected.put("bb", 2);
+        expected.put("ccc", 3);
+
+        Map<String, Character> expected2 = new HashMap<>();
+        expected2.put("a", 'a');
+        expected2.put("bb", 'b');
+        expected2.put("ccc", 'c');
+
+        streamEx(() -> Stream.of("a", "bb", "ccc"), supplier -> {
+            NavigableMap<String, Integer> map = supplier.get().toNavigableMapWithIdentityKeyMapper(String::length);
+            assertEquals(supplier.get().isParallel(), map instanceof ConcurrentMap);
+            assertEquals(expected, map);
+
+            NavigableMap<String, Character> map2 = supplier.get().toNavigableMapWithIdentityKeyMapper(s -> s.charAt(0));
+            assertEquals(supplier.get().isParallel(), map2 instanceof ConcurrentMap);
+            assertEquals(expected2, map2);
+        });
+    }
+
+    @Test
+    public void testToNavigableMapWithIdentityValueMapper() {
+        Map<Integer, String> expected = new HashMap<>();
+        expected.put(1, "a");
+        expected.put(2, "bb");
+        expected.put(3, "ccc");
+
+        Map<Character, String> expected2 = new HashMap<>();
+        expected2.put('a', "a");
+        expected2.put('b', "bb");
+        expected2.put('c', "ccc");
+
+        streamEx(() -> Stream.of("a", "bb", "ccc"), supplier -> {
+            NavigableMap<Integer, String> map = supplier.get().toNavigableMapWithIdentityValueMapper(String::length);
+            assertEquals(supplier.get().isParallel(), map instanceof ConcurrentMap);
+            assertEquals(expected, map);
+
+            NavigableMap<Character, String> map2 = supplier.get().toNavigableMapWithIdentityValueMapper(s -> s.charAt(0));
+            assertEquals(supplier.get().isParallel(), map2 instanceof ConcurrentMap);
+            assertEquals(expected2, map2);
         });
     }
 

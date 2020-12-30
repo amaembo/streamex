@@ -966,7 +966,8 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     /**
      * Returns a {@link Map} whose keys are elements from this stream and values
      * are the result of applying the provided mapping functions to the input elements.
-     * It is just alias for #toMap(Function)
+     *
+     * This is just alias for #toMap(Function).
      *
      * @param <V> the output type of the value mapping function
      * @param valMapper a mapping function to produce values
@@ -975,14 +976,15 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @throws IllegalStateException if this stream contains duplicate objects
      *         (according to {@link Object#equals(Object)})
      * @see #toMap(Function)
+     * @since 0.7.4
      */
     public <V> Map<T, V> toMapWithIdentityKeyMapper(Function<? super T, ? extends V> valMapper) {
         return toMap(valMapper);
     }
 
     /**
-     * Returns a {@link Map} whose values are elements from this stream and
-     * keys are the result of applying the provided mapping functions to the input elements.
+     * Returns a {@link Map} whose keys are the result of applying the provided mapping functions to the input elements
+     * and values are elements from this stream.
      *
      * <p>
      * This is a <a href="package-summary.html#StreamOps">terminal</a> operation.
@@ -1002,6 +1004,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Collectors#toMap(Function, Function)
      * @see Collectors#toConcurrentMap(Function, Function)
      * @see #toMap(Function, Function)
+     * @since 0.7.4
      */
     public <K> Map<K, T> toMapWithIdentityValueMapper(Function<? super T, ? extends K> keyMapper) {
         return toMap(keyMapper, Function.identity());
@@ -1149,6 +1152,50 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
+     * Returns a {@link SortedMap} whose keys are elements from this stream and
+     * values are the result of applying the provided mapping functions to the input elements.
+     *
+     * This is simple alias for #toSortedMap(Function).
+     *
+     * @see #toSortedMap(Function, Function)
+     * @see #toSortedMap(Function)
+     * @since 0.7.4
+     */
+    public <V> SortedMap<T, V> toSortedMapWithIdentityKeyMapper(Function<? super T, ? extends V> valMapper) {
+        return toSortedMap(valMapper);
+    }
+
+    /**
+     * Returns a {@link SortedMap} whose
+     * keys are the result of applying the provided mapping function to the input elements
+     * and values are elements from this stream.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a> operation.
+     *
+     * <p>
+     * If this stream contains duplicates (according to
+     * {@link Object#equals(Object)}), an {@code IllegalStateException} is
+     * thrown when the collection operation is performed.
+     *
+     * <p>
+     * For parallel stream the concurrent {@code SortedMap} is created.
+     *
+     * <p>
+     * Returned {@code SortedMap} is guaranteed to be modifiable.
+     *
+     * @param <K>       the output type of the key mapping function
+     * @param keyMapper a mapping function to produce keys
+     * @return a {@code SortedMap} whose keys are the result of applying mapping function to the input elements and
+     * values are elements from this stream
+     * @see #toSortedMap(Function, Function)
+     * @since 0.7.4
+     */
+    public <K> SortedMap<K, T> toSortedMapWithIdentityValueMapper(Function<? super T, ? extends K> keyMapper) {
+        return toSortedMap(keyMapper, Function.identity());
+    }
+
+    /**
      * Returns a {@link SortedMap} whose keys and values are the result of
      * applying the provided mapping functions to the input elements.
      *
@@ -1259,7 +1306,50 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public <V> NavigableMap<T, V> toNavigableMap(Function<? super T, ? extends V> valMapper) {
         return toNavigableMap(Function.identity(), valMapper);
     }
-    
+
+    /**
+     * Returns a {@link NavigableMap} whose keys are elements from this stream and
+     * values are the result of applying the provided mapping functions to the input elements.
+     * <p>
+     * This is simple alias for #toNavigableMap(Function).
+     *
+     * @see #toNavigableMap(Function, Function)
+     * @see #toNavigableMap(Function)
+     * @since 0.7.4
+     */
+    public <V> NavigableMap<T, V> toNavigableMapWithIdentityKeyMapper(Function<? super T, ? extends V> valMapper) {
+        return toNavigableMap(valMapper);
+    }
+
+    /**
+     * Returns a {@link NavigableMap} whose
+     * keys are the result of applying the provided mapping functions to the input elements
+     * and values are elements from this stream.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a> operation.
+     *
+     * <p>
+     * If this stream contains duplicates (according to {@link Object#equals(Object)}),
+     * an {@code IllegalStateException} is thrown when the collection operation is performed.
+     *
+     * <p>
+     * For parallel stream the concurrent {@code NavigableMap} is created.
+     *
+     * <p>
+     * Returned {@code NavigableMap} is guaranteed to be modifiable.
+     *
+     * @param <K>       the output type of the key mapping function
+     * @param keyMapper a mapping function to produce keys
+     * @return a {@code NavigableMap} whose keys are the result of applying the provided mapping functions to the
+     * input elements  and values are elements from this stream
+     * @see #toNavigableMap(Function, Function)
+     * @since 0.7.4
+     */
+    public <K> NavigableMap<K, T> toNavigableMapWithIdentityValueMapper(Function<? super T, ? extends K> keyMapper) {
+        return toNavigableMap(keyMapper, Function.identity());
+    }
+
     /**
      * Returns a {@link NavigableMap} whose keys and values are the result of
      * applying the provided mapping functions to the input elements.
