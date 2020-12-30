@@ -957,9 +957,54 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Collectors#toMap(Function, Function)
      * @see Collectors#toConcurrentMap(Function, Function)
      * @see #toMap(Function, Function)
+     * @see #toMapWithIdentityKeyMapper(Function)
      */
     public <V> Map<T, V> toMap(Function<? super T, ? extends V> valMapper) {
         return toMap(Function.identity(), valMapper);
+    }
+
+    /**
+     * Returns a {@link Map} whose keys are elements from this stream and values
+     * are the result of applying the provided mapping functions to the input elements.
+     * It is just alias for #toMap(Function)
+     *
+     * @param <V> the output type of the value mapping function
+     * @param valMapper a mapping function to produce values
+     * @return a {@code Map} whose keys are elements from this stream and values
+     *         are the result of applying mapping function to the input elements
+     * @throws IllegalStateException if this stream contains duplicate objects
+     *         (according to {@link Object#equals(Object)})
+     * @see #toMap(Function)
+     */
+    public <V> Map<T, V> toMapWithIdentityKeyMapper(Function<? super T, ? extends V> valMapper) {
+        return toMap(valMapper);
+    }
+
+    /**
+     * Returns a {@link Map} whose values are elements from this stream and
+     * keys are the result of applying the provided mapping functions to the input elements.
+     *
+     * <p>
+     * This is a <a href="package-summary.html#StreamOps">terminal</a> operation.
+     *
+     * <p>
+     * Returned {@code Map} is guaranteed to be modifiable.
+     *
+     * <p>
+     * For parallel stream the concurrent {@code Map} is created.
+     *
+     * @param <K>       the output type of the key mapping function
+     * @param keyMapper a mapping function to produce keys
+     * @return a {@code Map} whose values are elements from this stream and
+     * keys are the result of applying mapping function to the input elements
+     * @throws IllegalStateException if this stream contains duplicate objects
+     *                               (according to {@link Object#equals(Object)})
+     * @see Collectors#toMap(Function, Function)
+     * @see Collectors#toConcurrentMap(Function, Function)
+     * @see #toMap(Function, Function)
+     */
+    public <K> Map<K, T> toMapWithIdentityValueMapper(Function<? super T, ? extends K> keyMapper) {
+        return toMap(keyMapper, Function.identity());
     }
 
     /**
