@@ -2287,14 +2287,27 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     }
 
     /**
-     * Returns a {@code EntryStream} consisting of the elements of this stream those keys are not equal to given keys.
+     * Returns an {@code EntryStream} consisting of the elements of this stream
+     * whose keys are not equal to any of supplied keys.
      *
      * <p>
      * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
+     * May return itself if no keys were supplied.
      *
-     * @return the new stream containing only the values
-     * @see #withoutKey(Object)
-     * @see #withoutValue(Object)
+     * <p>
+     * Current implementation scans the supplied keys linearly for every stream element.
+     * If you have many keys, consider using more efficient alternative instead.
+     *
+     * <p>
+     * Future implementations may take advantage on using {@code hashCode()} or
+     * {@code compareTo} for {@code Comparable} objects to improve the performance.
+     *
+     * <p>
+     * If the {@code keys} array is changed between calling this method and finishing the stream traversal,
+     * then the result of the stream traversal is undefined: changes may or may not be taken into account.
+     *
+     * @param keys the keys to remove from the stream.
+     * @return the new stream
      * @see #withoutValues(Object...)
      * @since 0.7.4
      */
@@ -2302,7 +2315,7 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         if (keys.length == 0)
             return this;
         if (keys.length == 1)
-            return withoutKey(keys[0]);
+            return filter(entry -> !entry.getKey().equals(keys[0]));
         return filter(entry -> {
             for (K key : keys) {
                 if (entry.getKey().equals(key))
@@ -2313,38 +2326,35 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
     }
 
     /**
-     * Returns a {@code EntryStream} consisting of the elements of this stream those keys are not equal given key.
+     * Returns an {@code EntryStream} consisting of the elements of this stream
+     * whose values are not equal to any of the supplied values.
      *
      * <p>
      * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
-     *
-     * @return the new stream containing only the values
-     * @see #withoutKeys(Object...)
-     * @see #withoutValue(Object)
-     * @see #withoutValues(Object...)
-     * @since 0.7.4
-     */
-    public EntryStream<K, V> withoutKey(K key) {
-        return filter(entry -> !entry.getKey().equals(key));
-    }
-
-    /**
-     * Returns a {@code EntryStream} consisting of the elements of this stream those keys are not equal to given keys.
+     * May return itself if no values were supplied.
      *
      * <p>
-     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
+     * Current implementation scans the supplied values linearly for every stream element.
+     * If you have many values, consider using more efficient alternative instead.
      *
-     * @return the new stream containing only the values
-     * @see #withoutKey(Object)
+     * <p>
+     * Future implementations may take advantage on using {@code hashCode()} or
+     * {@code compareTo} for {@code Comparable} objects to improve the performance.
+     *
+     * <p>
+     * If the {@code values} array is changed between calling this method and finishing the stream traversal,
+     * then the result of the stream traversal is undefined: changes may or may not be taken into account.
+     *
+     * @param values the values to remove from the stream.
+     * @return the new stream
      * @see #withoutKeys(Object...)
-     * @see #withoutValue(Object)
      * @since 0.7.4
      */
     public EntryStream<K, V> withoutValues(V... values) {
         if (values.length == 0)
             return this;
         if (values.length == 1)
-            return withoutValue(values[0]);
+            return filter(entry -> !entry.getValue().equals(values[0]));
         return filter(entry -> {
             for (V value : values) {
                 if (entry.getValue().equals(value))
@@ -2354,19 +2364,4 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
         });
     }
 
-    /**
-     * Returns a {@code EntryStream} consisting of the elements of this stream those keys are not equal given key.
-     *
-     * <p>
-     * This is an <a href="package-summary.html#StreamOps">intermediate</a> operation.
-     *
-     * @return the new stream containing only the values
-     * @see #withoutKey(Object)
-     * @see #withoutKeys(Object...)
-     * @see #withoutValues(Object...)
-     * @since 0.7.4
-     */
-    public EntryStream<K, V> withoutValue(V value) {
-        return filter(entry -> !entry.getValue().equals(value));
-    }
 }
