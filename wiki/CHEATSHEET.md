@@ -83,9 +83,9 @@ Stream of doubles from the `DoubleBuffer` | `DoubleStreamEx.of(DoubleBuffer)`
 What I want | How to get it
 --- | ---
 Remove nulls | `StreamEx/EntryStream.nonNull()`
-Remove entries which keys or values are null | `EntryStream.nonNullKeys()/nonNullValues()`
-Remove entries which keys are equal to any of the supplied keys | `EntryStream.withoutKeys()`
-Remove entries which values are equal to any of the supplied values | `EntryStream.withoutValues()`
+Remove entries whose keys or values are null | `EntryStream.nonNullKeys()/nonNullValues()`
+Remove entries whose keys are equal to any of the supplied keys | `EntryStream.withoutKeys()`
+Remove entries whose values are equal to any of the supplied values | `EntryStream.withoutValues()`
 Remove elements by predicate | `any.remove()`
 Remove given elements | `StreamEx/IntStreamEx/LongStreamEx.without()`
 Remove by value extracted by supplied mapper function | `StreamEx.removeBy()`

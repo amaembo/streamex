@@ -4,7 +4,7 @@ Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 
 ### 0.7.4
 * [#091] Changed: API tests moved to the separate package.
-* [#185] Added: `EntryStream.withoutKey`, `EntryStream.withoutKeys`, `EntryStream.withoutValue` and `EntryStream.withoutValues`.
+* [#185] Added: `EntryStream.withoutKeys` and `EntryStream.withoutValues`.
 
 ### 0.7.3
 * [#028] Added: `StreamEx.toCollectionAndThen`.
