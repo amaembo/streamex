@@ -814,4 +814,68 @@ public class EntryStreamTest {
         Map<String, Integer> map = EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4).prefixKeys(String::concat).toMap();
         assertEquals(EntryStream.of("a", 1, "ab", 2, "abc", 3, "abcd", 4).toMap(), map);
     }
+
+    @Test
+    public void testWithoutKeys() {
+        assertEquals("Stream is not changed",
+                     EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4).toMap(),
+                     EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4)
+                                .withoutKeys().withoutKeys().withoutKeys().toMap());
+
+        assertEquals(EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4).toMap(),
+                     EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4)
+                                .withoutKeys().withoutKeys("A").withoutKeys("B", "C","D").toMap());
+
+        entryStream(() -> EntryStream.of(1, "a", 1, "b", 2, "c", 3, "d", 1, "e", 1, "f", 1, "g"),
+                    s -> checkAsString("2->c;3->d", s.get().withoutKeys(1)));
+
+        assertEquals(EntryStream.of("b", 2, "d", 4).toMap(),
+                     EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4)
+                                .withoutKeys("a").withoutKeys("c").toMap());
+
+        assertEquals(EntryStream.of("a", 1, "B", 4).toMap(),
+                     EntryStream.of("a", 1, "A", 2, "b", 3, "B", 4)
+                                .withoutKeys("A").withoutKeys("b").toMap());
+
+        entryStream(() -> EntryStream.generate(() -> "a", () -> 1).limit(10),
+                    s -> checkAsString("", s.get().withoutKeys("a")));
+
+        entryStream(() -> EntryStream.of(1, "a", 1, "b", 2, "c", 3, "d", 4, "e", 4, "f", 1, "g"),
+                    s -> checkAsString("2->c;3->d", s.get().withoutKeys(1, 4)));
+        assertEquals(EntryStream.of("b", 2, "d", 4).toMap(),
+                     EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4)
+                                .withoutKeys("a", "c").toMap());
+    }
+
+    @Test
+    public void testWithoutValues() {
+        assertEquals("Stream is not changed",
+                     EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4).toMap(),
+                     EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4)
+                                .withoutValues().withoutValues().withoutValues().toMap());
+
+        assertEquals(EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4).toMap(),
+                     EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4)
+                                .withoutValues().withoutValues(6).withoutValues(7, 8).toMap());
+
+        entryStream(() -> EntryStream.of(1, "a", 1, "b", 2, "b", 3, "c", 4, "c", 5, "c", 6, "d"),
+                    s -> checkAsString("1->a;1->b;2->b;6->d", s.get().withoutValues("c")));
+
+        assertEquals(EntryStream.of("c", 3, "d", 4).toMap(),
+                     EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4)
+                                .withoutValues(1).withoutValues(2).toMap());
+
+        entryStream(() -> EntryStream.generate(() -> "a", () -> 1).limit(10),
+                    s -> checkAsString("", s.get().withoutValues(1)));
+
+        entryStream(() -> EntryStream.of(1, "a", 1, "b", 2, "b", 3, "c", 4, "c", 5, "c", 6, "d"),
+                    s -> checkAsString("1->a;6->d", s.get().withoutValues("b", "c")));
+        entryStream(() -> EntryStream.of(1, "a", 1, "A", 2, "b", 3, "B", 4, "c", 5, "C"),
+                    s -> checkAsString("1->A;2->b;4->c;5->C", s.get().withoutValues("a", "B")));
+
+        assertEquals(EntryStream.of("c", 3, "d", 4).toMap(),
+                     EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4)
+                                .withoutValues(1, 2).toMap());
+
+    }
 }
