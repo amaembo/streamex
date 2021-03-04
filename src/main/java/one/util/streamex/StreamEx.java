@@ -281,6 +281,17 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
+     * Apply the given mapper on the stream with an index variable, the index starts from 0 and grows indefinitely.
+     * @param <V>
+     * @param mapper a non-interfering, stateless, two-parametric function to apply to each
+     *        element.
+     * @return the new stream
+     */
+    public <V> StreamEx<V> mapIndexed(BiFunction<? super T, Integer, ? extends V> mapper) {
+        return zipWith(IntStreamEx.ints(), mapper);
+    }
+
+    /**
      * Returns a stream where the last element is the replaced with the result
      * of applying the given function while the other elements are left intact.
      *

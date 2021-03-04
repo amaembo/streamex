@@ -300,6 +300,11 @@ public class StreamExTest {
     }
 
     @Test
+    public void testMapIndexed() {
+        assertArrayEquals(new String[]{"aaa0", "bbb1", "ccc2"}, StreamEx.of("aaa", "bbb", "ccc").mapIndexed((s, idx) -> s + idx).toArray());
+    }
+
+    @Test
     public void testAndThen() {
         HashSet<String> set = StreamEx.of("a", "bb", "ccc").toListAndThen(HashSet::new);
         assertEquals(3, set.size());
