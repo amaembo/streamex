@@ -2595,7 +2595,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         if (str.length() == 0)
             return of("");
         if (regex.isEmpty()) {
-            return IntStreamEx.ofChars(str).mapToObj(ch -> new String(new char[] { (char) ch }));
+            return IntStreamEx.ofChars(str).mapToObj(ch -> String.valueOf((char)ch));
         }
         char ch = regex.charAt(0);
         if (regex.length() == 1 && isNotRegexSpecialCaseStarter(ch)) {
