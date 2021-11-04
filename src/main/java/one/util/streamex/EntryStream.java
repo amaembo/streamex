@@ -2312,7 +2312,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @see #withoutValues(Object...)
      * @see StreamEx#without(Object...)
      */
-    public EntryStream<K, V> withoutKeys(K... keys) {
+    @SafeVarargs
+    public final EntryStream<K, V> withoutKeys(K... keys) {
         if (keys.length == 0)
             return this;
         if (keys.length == 1)
@@ -2352,7 +2353,8 @@ public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream
      * @see #withoutKeys(Object...)
      * @see StreamEx#without(Object...)
      */
-    public EntryStream<K, V> withoutValues(V... values) {
+    @SafeVarargs
+    public final EntryStream<K, V> withoutValues(V... values) {
         if (values.length == 0)
             return this;
         if (values.length == 1)

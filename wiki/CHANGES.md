@@ -2,6 +2,10 @@
 
 Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 
+### 0.8.0
+* Fixed: `EntryStream.withoutKeys` and `EntryStream.withoutValues` declared as `@SafeVarargs`
+* Minor documentation fixes
+
 ### 0.7.4
 * [#091] Changed: API tests moved to the separate package.
 * [#185] Added: `EntryStream.withoutKeys` and `EntryStream.withoutValues`.
