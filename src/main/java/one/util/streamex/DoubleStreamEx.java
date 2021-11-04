@@ -66,7 +66,7 @@ import static one.util.streamex.Internals.rangeCheck;
  * 
  * @author Tagir Valeev
  */
-public class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterator.OfDouble, DoubleStreamEx> implements
+public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterator.OfDouble, DoubleStreamEx> implements
         DoubleStream {
     DoubleStreamEx(DoubleStream stream, StreamContext context) {
         super(stream, context);

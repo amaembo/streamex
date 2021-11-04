@@ -77,7 +77,7 @@ import static one.util.streamex.Internals.rangeCheck;
  * 
  * @author Tagir Valeev
  */
-public class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.OfInt, IntStreamEx> implements IntStream {
+public final class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.OfInt, IntStreamEx> implements IntStream {
     IntStreamEx(IntStream stream, StreamContext context) {
         super(stream, context);
     }

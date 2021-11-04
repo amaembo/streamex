@@ -84,7 +84,7 @@ import static one.util.streamex.Internals.selectFirst;
  *
  * @param <T> the type of the stream elements
  */
-public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
+public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
 
     StreamEx(Stream<? extends T> stream, StreamContext context) {
         super(stream, context);

@@ -4,6 +4,7 @@ Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 
 ### 0.8.0
 * Fixed: `EntryStream.withoutKeys` and `EntryStream.withoutValues` declared as `@SafeVarargs`
+* [#251] Changed: public classes like `StreamEx` and `EntryStream` declared as final now. 
 * Minor documentation fixes
 
 ### 0.7.4

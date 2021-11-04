@@ -64,7 +64,7 @@ import static one.util.streamex.Internals.intSize;
  * 
  * @author Tagir Valeev
  */
-public class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfLong, LongStreamEx> implements
+public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfLong, LongStreamEx> implements
         LongStream {
     LongStreamEx(LongStream stream, StreamContext context) {
         super(stream, context);

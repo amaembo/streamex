@@ -68,7 +68,7 @@ import static one.util.streamex.Internals.checkLength;
  * @param <K> the type of {@code Entry} keys
  * @param <V> the type of {@code Entry} values
  */
-public class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream<K, V>> {
+public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream<K, V>> {
     EntryStream(Stream<? extends Entry<K, V>> stream, StreamContext context) {
         super(stream, context);
     }
