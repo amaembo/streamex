@@ -2308,7 +2308,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      *
      * @param keys the keys to remove from the stream.
      * @return the new stream
-     * @since 0.7.4
+     * @since 0.8.0
      * @see #withoutValues(Object...)
      * @see StreamEx#without(Object...)
      */
@@ -2349,7 +2349,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      *
      * @param values the values to remove from the stream.
      * @return the new stream
-     * @since 0.7.4
+     * @since 0.8.0
      * @see #withoutKeys(Object...)
      * @see StreamEx#without(Object...)
      */
