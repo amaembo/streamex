@@ -62,8 +62,6 @@ import java.util.stream.Collector.Characteristics;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import one.util.streamex.PairSpliterator.PSOfRef;
-
 import static one.util.streamex.Internals.Box;
 import static one.util.streamex.Internals.ObjLongBox;
 import static one.util.streamex.Internals.PairBox;
@@ -719,7 +717,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *        reduction
      * @return a {@code Map<Boolean, List<T>>} which {@link Boolean#TRUE} key is
      *         mapped to the result of downstream {@code Collector} collecting
-     *         the the stream elements for which predicate is true and
+     *         the stream elements for which predicate is true and
      *         {@link Boolean#FALSE} key is mapped to the result of downstream
      *         {@code Collector} collecting the other stream elements.
      *
@@ -843,7 +841,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     /**
      * Returns an array containing all the stream elements. If the stream
      * happens to contain no elements, the supplied empty array is returned
-     * instead. Otherwise the new array is allocated which element type is the
+     * instead. Otherwise, the new array is allocated which element type is the
      * same as the element type of supplied empty array.
      * 
      * <p>
@@ -1404,7 +1402,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
-     * Returns a stream which contents is the same as this stream, except the case when
+     * Returns a stream whose content is the same as this stream, except the case when
      * this stream is empty. In this case, its contents is replaced with supplied values.
      *
      * <p>
@@ -1412,7 +1410,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * operation</a>.
      *
      * @param values values to replace the contents of this stream if this stream is empty.
-     * @return the stream which contents is replaced by supplied values only if this stream is empty.
+     * @return the stream whose content is replaced by supplied values only if this stream is empty.
      * @since 0.6.6
      */
     @SafeVarargs
@@ -1759,7 +1757,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
 
     /**
      * Returns a stream consisting of the results of applying the given function
-     * to the the first element and every single element of this stream.
+     * to the first element and every single element of this stream.
      * When the mapper is called for the first element of the resulting stream,
      * both its arguments are the same and equal to the first element of this stream.
      * 
@@ -1975,7 +1973,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * <p>
      * The mapper function is not applied when the input stream is empty. This
      * operation is equivalent to {@code headTail(mapper, () -> null)}.
-     * Otherwise it's applied at most once during the stream terminal operation
+     * Otherwise, it's applied at most once during the stream terminal operation
      * execution. Sometimes it's useful to generate stream recursively like
      * this:
      * 
@@ -1998,7 +1996,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * This operation might perform badly with parallel streams. Sometimes the
      * same semantics could be expressed using other operations like
      * {@link #withFirst(BiFunction)} or {@link #mapFirst(Function)} which
-     * parallelize better. Consider using these methods if its possible in your
+     * parallelize better. Consider using these methods if it's possible in your
      * case.
      *
      * @param <R> The element type of the new stream
@@ -2055,7 +2053,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * This operation might perform badly with parallel streams. Sometimes the
      * same semantics could be expressed using other operations like
      * {@link #withFirst(BiFunction)} or {@link #mapFirst(Function)} which
-     * parallelize better. Consider using these methods if its possible in your
+     * parallelize better. Consider using these methods if it's possible in your
      * case.
      *
      * @param <R> The element type of the new stream
@@ -2689,7 +2687,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *
      * @param <T> the type of stream elements
      * @param seed the initial element
-     * @param f a function to be applied to to the previous element to produce a
+     * @param f a function to be applied to the previous element to produce a
      *        new element
      * @return a new sequential {@code StreamEx}
      * @see #iterate(Object, Predicate, UnaryOperator)
@@ -2716,7 +2714,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *
      * <p>
      * The resulting sequence may be empty if the predicate does not hold on the
-     * seed value. Otherwise the first element will be the supplied seed value,
+     * seed value. Otherwise, the first element will be the supplied seed value,
      * the next element (if present) will be the result of applying the function
      * f to the seed value, and so on iteratively until the predicate indicates
      * that the stream should terminate.
@@ -2824,7 +2822,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * 
      * @param <T> the type of the resulting stream elements
      * @param producer a predicate which calls the passed consumer to emit
-     *        stream element(s) and returns true if it producer should be
+     *        stream element(s) and returns true if its producer should be
      *        applied again.
      * @return the new stream
      * @since 0.6.0
@@ -2997,7 +2995,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * method of the resulting stream returned by {@code ofTree()}.
      * 
      * @param <T> the base type of tree nodes
-     * @param <TT> the sub-type of composite tree nodes which may have children
+     * @param <TT> the subtype of composite tree nodes which may have children
      * @param root root node of the tree
      * @param collectionClass a class representing the composite tree node
      * @param mapper a non-interfering, stateless function to apply to each
@@ -3114,7 +3112,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
 
     /**
      * Returns a new {@code StreamEx} which elements are results of reduction of
-     * all possible tuples composed from the elements of supplied collection of
+     * all possible tuples composed of the elements of supplied collection of
      * collections. The whole stream forms an n-fold Cartesian product (or
      * cross-product) of the input collections.
      * 
@@ -3133,7 +3131,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * </pre>
      * 
      * <p>
-     * However it may perform much faster as partial reduction results are
+     * However, it may perform much faster as partial reduction results are
      * reused.
      * 
      * <p>
@@ -3196,7 +3194,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
 
     /**
      * Returns a new {@code StreamEx} which elements are results of reduction of
-     * all possible n-tuples composed from the elements of supplied collections.
+     * all possible n-tuples composed of the elements of supplied collections.
      * The whole stream forms an n-fold Cartesian product of input collection
      * with itself or n-ary Cartesian power of the input collection.
      * 
@@ -3215,7 +3213,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * </pre>
      * 
      * <p>
-     * However it may perform much faster as partial reduction results are
+     * However, it may perform much faster as partial reduction results are
      * reused.
      * 
      * <p>
@@ -3286,7 +3284,7 @@ public class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
          * might be buffered consuming additional memory.
          * 
          * <p>
-         * It's allowed not to emit anything (don't call the consumer). However
+         * It's allowed not to emit anything (don't call the consumer). However,
          * if you do this and return new emitter which also does not emit
          * anything, you will end up in endless loop.
          * 
