@@ -23,4 +23,6 @@ jobs:
         distribution: 'adopt'
         cache: maven
     - name: Build with Maven
-      run: mvn install coveralls:report -Dgpg.skip=true -DrepoToken=${{ secrets.CoverallsToken }} -B -V --file pom.xml
+      env:
+        COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
+      run: mvn install coveralls:report -Dgpg.skip=true -DrepoToken="$COVERALLS_TOKEN" -B -V --file pom.xml
