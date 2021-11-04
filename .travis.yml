@@ -1,6 +1,0 @@
-language: java
-install: skip
-script:
-  - mvn install coveralls:report -Dgpg.skip=true -B -V
-jdk:
-  - oraclejdk11
