@@ -2,6 +2,13 @@
 
 This document describes StreamEx changes which may break the backwards compatibility. For full list of changes see [CHANGES.md](CHANGES.md).
 
+### 0.8.0
+Issue#244: To align with Java 16 `Stream.toList` specification, we no more guarantee that the results of 
+`AbstractStreamEx.toList` and `AbstractStreamEx.toSet` are mutable. They are still mutable by default 
+but this will change in future release. You can switch their implementation to immutable, using temporary 
+system property `-Dstreamex.default.immutable=true` and test how your code behaves. If you actually need mutability, 
+use new methods `AbstractStreamEx.toMutableList` and `AbstractStreamEx.toMutableSet`.
+
 ### 0.7.3
 Issue#219: Now many collectors defined in `MoreCollectors` may throw NullPointerException more eagerly, before the
  collector is used. Also, `MoreCollectors.last` now throws NullPointerException if the last element is null (this

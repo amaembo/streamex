@@ -395,7 +395,7 @@ public class TestHelpers {
                     if (split != null)
                         spliterators.add(idx, split);
                 }
-                List<Integer> order = IntStreamEx.ofIndices(spliterators).boxed().toList();
+                List<Integer> order = IntStreamEx.ofIndices(spliterators).boxed().toMutableList();
                 Collections.shuffle(order, r);
                 List<T> list = StreamEx.of(order).mapToEntry(idx -> {
                     Spliterator<T> s = spliterators.get(idx);
@@ -419,7 +419,7 @@ public class TestHelpers {
                         spliterators.add(idx, split);
                 }
                 List<List<T>> results = StreamEx.<List<T>>generate(ArrayList::new).limit(spliterators.size())
-                        .toList();
+                        .toMutableList();
                 int count = spliterators.size();
                 while (count > 0) {
                     int i;

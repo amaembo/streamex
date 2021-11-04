@@ -258,13 +258,20 @@ public class StreamExTest {
     }
 
     @Test
-    public void testToList() {
-        List<Integer> list = StreamEx.of(1, 2, 3).toList();
+    public void testToMutableList() {
+        List<Integer> list = StreamEx.of(1, 2, 3).toMutableList();
         // Test that returned list is mutable
-        List<Integer> list2 = StreamEx.of(4, 5, 6).parallel().toList();
+        List<Integer> list2 = StreamEx.of(4, 5, 6).parallel().toMutableList();
         list2.add(7);
         list.addAll(list2);
         assertEquals(asList(1, 2, 3, 4, 5, 6, 7), list);
+    }
+
+    @Test
+    public void testToMutableSet() {
+        Set<Integer> set = StreamEx.of(1, 2, 3).toMutableSet();
+        set.add(4);
+        assertEquals(new HashSet<>(Arrays.asList(1, 2, 3, 4)), set);
     }
 
     @Test
@@ -2074,18 +2081,8 @@ public class StreamExTest {
         repeat(4, n -> streamEx(() -> IntStreamEx.range(4).atLeast(n).boxed(), s -> {
             List<Integer> list = s.get().toImmutableList();
             assertEquals(expected.subList(n - 1, expected.size()), list);
-            try {
-                list.add(0);
-                fail("added");
-            } catch (UnsupportedOperationException e) {
-                // expected
-            }
-            try {
-                list.set(0, 0);
-                fail("set");
-            } catch (UnsupportedOperationException e) {
-                // expected
-            }
+            assertThrows(UnsupportedOperationException.class, () -> list.add(0));
+            assertThrows(UnsupportedOperationException.class, () -> list.set(0, 0));
         }));
     }
 
@@ -2095,12 +2092,7 @@ public class StreamExTest {
         repeat(4, n -> streamEx(() -> IntStreamEx.range(4).atLeast(n).boxed(), s -> {
             Set<Integer> set = s.get().toImmutableSet();
             assertEquals(new HashSet<>(expected.subList(n - 1, expected.size())), set);
-            try {
-                set.add(-1);
-                fail("added");
-            } catch (UnsupportedOperationException e) {
-                // expected
-            }
+            assertThrows(UnsupportedOperationException.class, () -> set.add(-1));
         }));
     }
 

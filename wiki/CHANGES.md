@@ -3,6 +3,9 @@
 Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 
 ### 0.8.0
+* [#244] Added: `StreamEx.toMutableList` and `StreamEx.toMutableSet`.  
+ Removed mutability guarantee for `toList` and `toSet`.
+ Added temporary system property `streamex.default.immutable` (set it to 'true' to test with immutable `toList` and `toSet`)
 * Fixed: `EntryStream.withoutKeys` and `EntryStream.withoutValues` declared as `@SafeVarargs`
 * [#251] Changed: public classes like `StreamEx` and `EntryStream` declared as final now. 
 * Minor documentation fixes

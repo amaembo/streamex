@@ -54,6 +54,7 @@ import static one.util.streamex.Internals.ArrayCollection;
 import static one.util.streamex.Internals.Box;
 import static one.util.streamex.Internals.CancelException;
 import static one.util.streamex.Internals.CancellableCollectorImpl;
+import static one.util.streamex.Internals.IMMUTABLE_TO_LIST;
 import static one.util.streamex.Internals.NONE;
 import static one.util.streamex.Internals.NO_CHARACTERISTICS;
 import static one.util.streamex.Internals.ObjDoubleBox;
@@ -69,7 +70,7 @@ import static one.util.streamex.Internals.none;
  * @author Tagir Valeev
  *
  * @param <T> the type of the stream elements
- * @param <S> the type of of the stream extending {@code AbstractStreamEx}
+ * @param <S> the type of the stream extending {@code AbstractStreamEx}
  */
 public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> extends
         BaseStreamEx<T, Stream<T>, Spliterator<T>, S> implements Stream<T>, Iterable<T> {
@@ -293,7 +294,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      *
      * <p>
      * This operation is not guaranteed to be stable: any of equal elements can
-     * be selected for the output. However if this stream is ordered then order
+     * be selected for the output. However, if this stream is ordered then order
      * is preserved.
      *
      * <p>
@@ -1273,7 +1274,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     }
 
     /**
-     * Returns a stream which contents is the same as this stream, except the case when
+     * Returns a stream whose content is the same as this stream, except the case when
      * this stream is empty. In this case, its contents is replaced with other stream contents.
      *
      * <p>
@@ -1287,7 +1288,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * operation</a>.
      *
      * @param other other stream to replace the contents of this stream if this stream is empty.
-     * @return the stream which contents is replaced by other stream contents only if this stream is empty.
+     * @return the stream whose content is replaced by other stream contents only if this stream is empty.
      * @since 0.6.6
      */
     public S ifEmpty(Stream<? extends T> other) {
@@ -1295,11 +1296,28 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     }
 
     /**
-     * Returns a {@link List} containing the elements of this stream. The
-     * returned {@code List} is guaranteed to be mutable, but there are no
-     * guarantees on the type, serializability, or thread-safety; if more
-     * control over the returned {@code List} is required, use
-     * {@link #toCollection(Supplier)}.
+     * Returns a {@link List} containing the elements of this stream. There
+     * are no guarantees on the type, mutability, serializability, or thread-safety
+     * of the returned {@code List}; if more control over the returned
+     * {@code List} is required, use {@link #toCollection(Supplier)}.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @return a {@code List} containing the elements of this stream
+     * @see Collectors#toList()
+     * @see #toMutableList()
+     * @see #toImmutableList()
+     */
+    public List<T> toList() {
+        return IMMUTABLE_TO_LIST ? toImmutableList() : toMutableList();
+    }
+
+    /**
+     * Returns a mutable {@link List} containing the elements of this stream.
+     * There are no guarantees on the type, serializability, or thread-safety
+     * of the returned {@code List}; if more control over the returned
+     * {@code List} is required, use {@link #toCollection(Supplier)}.
      *
      * <p>
      * This is a terminal operation.
@@ -1307,9 +1325,10 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * @return a {@code List} containing the elements of this stream
      * @see Collectors#toList()
      * @see #toImmutableList()
+     * @since 0.8.0
      */
     @SuppressWarnings("unchecked")
-    public List<T> toList() {
+    public List<T> toMutableList() {
         return new ArrayList<>((Collection<T>) new ArrayCollection(toArray(Object[]::new)));
     }
 
@@ -1324,6 +1343,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      *
      * @return a {@code List} containing the elements of this stream
      * @see #toList()
+     * @see #toMutableList()
      * @since 0.6.3
      */
     @SuppressWarnings("unchecked")
@@ -1357,24 +1377,43 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      */
     public <R> R toListAndThen(Function<? super List<T>, R> finisher) {
         if (context.fjp != null)
-            return context.terminate(() -> finisher.apply(toList()));
-        return finisher.apply(toList());
+            return context.terminate(() -> finisher.apply(toMutableList()));
+        return finisher.apply(toMutableList());
     }
 
     /**
-     * Returns a {@link Set} containing the elements of this stream. The
-     * returned {@code Set} is guaranteed to be mutable, but there are no
-     * guarantees on the type, serializability, or thread-safety; if more
-     * control over the returned {@code Set} is required, use
-     * {@link #toCollection(Supplier)}.
+     * Returns a {@link Set} containing the elements of this stream. There
+     * are no guarantees on the type, mutability, serializability, or thread-safety
+     * of the returned {@code Set}; if more control over the returned
+     * {@code Set} is required, use {@link #toCollection(Supplier)}.
      *
      * <p>
      * This is a terminal operation.
      *
      * @return a {@code Set} containing the elements of this stream
      * @see Collectors#toSet()
+     * @see #toMutableSet()
+     * @see #toImmutableSet()
      */
     public Set<T> toSet() {
+        return IMMUTABLE_TO_LIST ? toImmutableSet() : toMutableSet();
+    }
+
+    /**
+     * Returns a mutable {@link Set} containing the elements of this stream.
+     * There are no guarantees on the type, serializability, or thread-safety
+     * of the returned {@code Set}; if more control over the returned
+     * {@code Set} is required, use {@link #toCollection(Supplier)}.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @return a {@code Set} containing the elements of this stream
+     * @see Collectors#toSet()
+     * @see #toImmutableSet()
+     * @since 0.8.0
+     */
+    public Set<T> toMutableSet() {
         return rawCollect(Collectors.toSet());
     }
 
@@ -1390,10 +1429,11 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      *
      * @return a {@code Set} containing the elements of this stream
      * @see #toSet()
+     * @see #toMutableSet()
      * @since 0.6.3
      */
     public Set<T> toImmutableSet() {
-        Set<T> result = toSet();
+        Set<T> result = toMutableSet();
         if (result.size() == 0)
             return Collections.emptySet();
         return Collections.unmodifiableSet(result);
@@ -1417,8 +1457,8 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      */
     public <R> R toSetAndThen(Function<? super Set<T>, R> finisher) {
         if (context.fjp != null)
-            return context.terminate(() -> finisher.apply(toSet()));
-        return finisher.apply(toSet());
+            return context.terminate(() -> finisher.apply(toMutableSet()));
+        return finisher.apply(toMutableSet());
     }
 
     /**
@@ -1483,7 +1523,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * <p>
      * This method cannot take all the advantages of parallel streams as it must
      * process elements strictly left to right. If your accumulator function is
-     * associative and you can provide a combiner function, consider using
+     * associative, and you can provide a combiner function, consider using
      * {@link #reduce(Object, BiFunction, BinaryOperator)} method.
      *
      * <p>
@@ -1565,10 +1605,10 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      *
      * <p>
      * As this method must process elements strictly right to left, it cannot
-     * start processing till all the previous stream stages complete. Also it
+     * start processing till all the previous stream stages complete. Also, it
      * requires intermediate memory to store the whole content of the stream as
      * the stream natural order is left to right. If your accumulator function
-     * is associative and you can provide a combiner function, consider using
+     * is associative, and you can provide a combiner function, consider using
      * {@link #reduce(Object, BiFunction, BinaryOperator)} method.
      *
      * <p>
@@ -1605,7 +1645,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      *
      * <p>
      * As this method must process elements strictly right to left, it cannot
-     * start processing till all the previous stream stages complete. Also it
+     * start processing till all the previous stream stages complete. Also, it
      * requires intermediate memory to store the whole content of the stream as
      * the stream natural order is left to right. If your accumulator function
      * is associative, consider using {@link #reduce(BinaryOperator)} method.

@@ -58,6 +58,15 @@ import java.util.stream.Collector.Characteristics;
     Set<Characteristics> UNORDERED_ID_CHARACTERISTICS = EnumSet.of(Characteristics.UNORDERED,
         Characteristics.IDENTITY_FINISH);
     Set<Characteristics> ID_CHARACTERISTICS = EnumSet.of(Characteristics.IDENTITY_FINISH);
+    boolean IMMUTABLE_TO_LIST = isImmutableToSetToList();
+
+    static boolean isImmutableToSetToList() {
+        try {
+            return Boolean.parseBoolean(System.getProperty("streamex.default.immutable", "false"));
+        } catch (SecurityException e) {
+            return false;
+        }
+    }
 
     static void checkNonNegative(String name, int value) {
         if (value < 0) {

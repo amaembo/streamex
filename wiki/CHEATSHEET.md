@@ -200,6 +200,7 @@ What I want | How to get it
 Collect elements to `List`, `Set` or custom `Collection` | `StreamEx/EntryStream.toList()/toSet()/toCollection()`
 Collect elements to `Collection` adding custom final step | `StreamEx/EntryStream.toListAndThen()/toSetAndThen()/toCollectionAndThen()`
 Collect elements to immutable `List` or `Set` | `StreamEx/EntryStream.toImmutableList()/toImmutableSet()`
+Collect elements to mutable `List` or `Set` | `StreamEx/EntryStream.toMutableList()/toMutableSet()`
 Collect elements or entries to `Map` | `StreamEx/EntryStream.toMap()/toSortedMap()/toNavigableMap()`
 Collect entries to immutable `Map` | `EntryStream.toImmutableMap()`
 Collect entries to `Map` adding custom final step | `EntryStream.toMapAndThen()`
