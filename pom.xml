@@ -55,7 +55,7 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.13.1</version>
+      <version>4.13.2</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -125,7 +125,6 @@
           </compilerArgs>
           <archive>
             <manifestEntries>
-              <Automatic-Module-Name>${project.package}</Automatic-Module-Name>
               <Bundle-Name>${project.name}</Bundle-Name>
               <Bundle-Description>${project.description}</Bundle-Description>
               <Bundle-License>${license.url}</Bundle-License>
@@ -164,7 +163,6 @@
             </goals>
             <configuration>
               <quiet>true</quiet>
-              <additionalOptions>--no-module-directories -source 1.8</additionalOptions>
             </configuration>
           </execution>
           <execution>
@@ -175,9 +173,9 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <sourcepath>${project.build.sourceDirectory};${project.build.directory}/jdk</sourcepath>
+              <sourcepath>${project.build.sourceDirectory};${project.basedir}/src/main/java-mr/9;${project.build.directory}/jdk</sourcepath>
               <excludePackageNames>java.util.stream</excludePackageNames>
-              <additionalOptions>-Xdoclint:none --no-module-directories -source 1.8</additionalOptions>
+              <additionalOptions>-Xdoclint:none</additionalOptions>
               <noqualifier>all</noqualifier>
               <quiet>true</quiet>
             </configuration>
@@ -232,18 +230,18 @@
                 <property name="token.SpliteratorT"><![CDATA[Spliterator&lt;T&gt;]]></property>
                 <property name="token.SpliteratorKV"><![CDATA[Spliterator&lt;Map.Entry&lt;K, V&gt;&gt;]]></property>
                 <replace
-                  file="${project.build.directory}/apidocs/${project.package.path}/EntryStream.html"
+                  file="${project.build.directory}/apidocs/${project.package}/${project.package.path}/EntryStream.html"
                   token="${token.SPLTR}" value="${token.SpliteratorKV}" />
                 <replace
-                  file="${project.build.directory}/apidocs/${project.package.path}/StreamEx.html"
+                  file="${project.build.directory}/apidocs/${project.package}/${project.package.path}/StreamEx.html"
                   token="${token.SPLTR}" value="${token.SpliteratorT}" />
                 <jar
                   destfile="${project.build.directory}/${project.build.finalName}-javadoc.jar"
                   update="true">
                   <fileset dir="${project.build.directory}/apidocs"
-                    includes="${project.package.path}/EntryStream.html" />
+                    includes="${project.package}/${project.package.path}/EntryStream.html" />
                   <fileset dir="${project.build.directory}/apidocs"
-                    includes="${project.package.path}/StreamEx.html" />
+                    includes="${project.package}/${project.package.path}/StreamEx.html" />
                 </jar>
               </target>
             </configuration>
@@ -369,7 +367,7 @@
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
-        <version>0.8.5</version>
+        <version>0.8.7</version>
         <executions>
           <execution>
             <id>default-prepare-agent</id>

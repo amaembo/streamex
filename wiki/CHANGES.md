@@ -7,7 +7,9 @@ Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
  Removed mutability guarantee for `toList` and `toSet`.
  Added temporary system property `streamex.default.immutable` (set it to 'true' to test with immutable `toList` and `toSet`)
 * [#250] Fixed: `EntryStream.withoutKeys` and `EntryStream.withoutValues` declared as `@SafeVarargs`
-* [#251] Changed: public classes like `StreamEx` and `EntryStream` declared as final now. 
+* [#251] Changed: public classes like `StreamEx` and `EntryStream` declared as final now.
+* [#246] Added: Proper `module-info.class`, now it's full-fledged JPMS module
+* [#247] Fixed: now it's possible to build using Java 16 and Java 17 (though reference builds are created via Java 11) 
 * [#091] Changed: API tests moved to the separate package.
 * [#185] Added: `EntryStream.withoutKeys` and `EntryStream.withoutValues`.
 * Minor documentation fixes
