@@ -122,6 +122,8 @@
         <configuration>
           <compilerArgs>
             <arg>-Xlint:all</arg>
+            <arg>--module-version</arg>
+            <arg>${project.version}</arg>
           </compilerArgs>
           <archive>
             <manifestEntries>
