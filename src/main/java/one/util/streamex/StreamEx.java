@@ -841,7 +841,7 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     /**
      * Returns an array containing all the stream elements. If the stream
      * happens to contain no elements, the supplied empty array is returned
-     * instead. Otherwise, the new array is allocated which element type is the
+     * instead. Otherwise, the new array is allocated, whose element type is the
      * same as the element type of supplied empty array.
      * 
      * <p>
@@ -851,7 +851,7 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * <p>
      * This method is useful when the stream is expected to return empty arrays
      * often, so the same instance of empty array (presumably declared in some
-     * static final field) can be reused.
+     * {@code static final} field) can be reused.
      * 
      * @param <A> the element type of the resulting array
      * @param emptyArray an empty array of the resulting type
@@ -946,6 +946,10 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * <p>
      * For parallel stream the concurrent {@code Map} is created.
      *
+     * <p>
+     * Use {@link #valuesToMap(Function)} if this stream contains values,
+     * instead of keys.
+     *
      * @param <V> the output type of the value mapping function
      * @param valMapper a mapping function to produce values
      * @return a {@code Map} whose keys are elements from this stream and values
@@ -986,6 +990,7 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Collectors#toMap(Function, Function)
      * @see Collectors#toConcurrentMap(Function, Function)
      * @see #toMap(Function)
+     * @see #valuesToMap(Function)
      */
     public <K, V> Map<K, V> toMap(Function<? super T, ? extends K> keyMapper, Function<? super T, ? extends V> valMapper) {
         Map<K, V> map = isParallel() ? new ConcurrentHashMap<>() : new HashMap<>();
@@ -1055,8 +1060,9 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Collectors#toMap(Function, Function)
      * @see Collectors#toConcurrentMap(Function, Function)
      * @see #toMap(Function, Function)
+     * @since 0.8.0
      */
-    public <K> Map<K, T> toMapKey(Function<? super T, ? extends K> keyMapper) {
+    public <K> Map<K, T> valuesToMap(Function<? super T, ? extends K> keyMapper) {
         return toMap(keyMapper, Function.identity());
     }
 
@@ -1114,6 +1120,10 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * <p>
      * Returned {@code SortedMap} is guaranteed to be modifiable.
      *
+     * <p>
+     * Use {@link #valuesToSortedMap(Function)} if this stream contains values,
+     * instead of keys.
+     *
      * @param <V> the output type of the value mapping function
      * @param valMapper a mapping function to produce values
      * @return a {@code SortedMap} whose keys are elements from this stream and
@@ -1159,6 +1169,7 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Collectors#toMap(Function, Function)
      * @see Collectors#toConcurrentMap(Function, Function)
      * @see #toSortedMap(Function)
+     * @see #valuesToSortedMap(Function) 
      * @see #toNavigableMap(Function, Function)
      * @since 0.1.0
      */
@@ -1218,9 +1229,8 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *
      * <p>
      * If the mapped keys contains duplicates (according to
-     * {@link Object#equals(Object)}), the value mapping function is applied to
-     * each equal element, and the results are merged using the provided merging
-     * function.
+     * {@link Object#equals(Object)}), an {@code IllegalStateException} is
+     * thrown when the collection operation is performed.
      *
      * <p>
      * Returned {@code SortedMap} is guaranteed to be modifiable.
@@ -1233,9 +1243,10 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *         (according to {@link Object#equals(Object)})
      * @see Collectors#toMap(Function, Function)
      * @see Collectors#toConcurrentMap(Function, Function)
-     * @see #toMap(Function, Function)
+     * @see #toSortedMap(Function, Function)
+     * @since 0.8.0
      */
-    public <K> SortedMap<K, T> toSortedMapKey(Function<? super T, ? extends K> keyMapper) {
+    public <K> SortedMap<K, T> valuesToSortedMap(Function<? super T, ? extends K> keyMapper) {
         return toSortedMap(keyMapper, Function.identity());
     }
 
@@ -1258,6 +1269,10 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *
      * <p>
      * Returned {@code NavigableMap} is guaranteed to be modifiable.
+     *
+     * <p>
+     * Use {@link #valuesToNavigableMap(Function)} if this stream contains values,
+     * instead of keys.
      *
      * @param <V> the output type of the value mapping function
      * @param valMapper a mapping function to produce values
@@ -1303,6 +1318,7 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see Collectors#toMap(Function, Function)
      * @see Collectors#toConcurrentMap(Function, Function)
      * @see #toNavigableMap(Function)
+     * @see #valuesToNavigableMap(Function) 
      * @since 0.6.5
      */
     public <K, V> NavigableMap<K, V> toNavigableMap(Function<? super T, ? extends K> keyMapper,
@@ -1376,9 +1392,10 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *         (according to {@link Object#equals(Object)})
      * @see Collectors#toMap(Function, Function)
      * @see Collectors#toConcurrentMap(Function, Function)
-     * @see #toMap(Function, Function)
+     * @see #toNavigableMap(Function, Function) 
+     * @since 0.8.0
      */
-    public <K> NavigableMap<K, T> toNavigableMapKey(Function<? super T, ? extends K> keyMapper) {
+    public <K> NavigableMap<K, T> valuesToNavigableMap(Function<? super T, ? extends K> keyMapper) {
         return toNavigableMap(keyMapper, Function.identity());
     }
 

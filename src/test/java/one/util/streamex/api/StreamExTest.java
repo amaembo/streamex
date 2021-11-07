@@ -15,6 +15,19 @@
  */
 package one.util.streamex.api;
 
+import one.util.streamex.EntryStream;
+import one.util.streamex.IntStreamEx;
+import one.util.streamex.Joining;
+import one.util.streamex.MoreCollectors;
+import one.util.streamex.StreamEx;
+import one.util.streamex.TestHelpers.Point;
+
+import org.junit.FixMethodOrder;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.junit.runners.MethodSorters;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -74,21 +87,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.junit.FixMethodOrder;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runners.MethodSorters;
-
-import one.util.streamex.EntryStream;
-import one.util.streamex.IntStreamEx;
-import one.util.streamex.Joining;
-import one.util.streamex.MoreCollectors;
-import one.util.streamex.StreamEx;
-import one.util.streamex.TestHelpers.Point;
-
 import static java.util.Arrays.asList;
-import static one.util.streamex.TestHelpers.assertStatementThrows;
 import static one.util.streamex.TestHelpers.checkIllegalStateException;
 import static one.util.streamex.TestHelpers.checkSpliterator;
 import static one.util.streamex.TestHelpers.emptySpliteratorWithExactSize;
@@ -353,6 +352,27 @@ public class StreamExTest {
 
             checkIllegalStateException(() -> supplier.get().toMap(String::length, Function.identity()), "2", "dd",
                 "bb");
+        });
+    }
+
+    @Test
+    public void testValuesToMap() {
+        Map<Integer, String> expected = new HashMap<>();
+        expected.put(1, "a");
+        expected.put(2, "bb");
+        expected.put(3, "ccc");
+        streamEx(() -> Stream.of("a", "bb", "ccc"), supplier -> {
+            Map<Integer, String> map = supplier.get().valuesToMap(String::length);
+            assertEquals(supplier.get().isParallel(), map instanceof ConcurrentMap);
+            assertEquals(expected, map);
+
+            SortedMap<Integer, String> smap = supplier.get().valuesToSortedMap(String::length);
+            assertEquals(supplier.get().isParallel(), smap instanceof ConcurrentMap);
+            assertEquals(expected, smap);
+
+            NavigableMap<Integer, String> nmap = supplier.get().valuesToNavigableMap(String::length);
+            assertEquals(supplier.get().isParallel(), nmap instanceof ConcurrentMap);
+            assertEquals(expected, nmap);
         });
     }
 
@@ -1478,7 +1498,7 @@ public class StreamExTest {
     }
 
     /*
-     * Returns longest input stream segment for which the predicate holds (like
+     * Returns the longest input stream segment for which the predicate holds (like
      * the corresponding Scala method)
      */
     private static long segmentLength(IntStreamEx source, IntPredicate predicate) {
@@ -1628,7 +1648,7 @@ public class StreamExTest {
     @Test
     public void testTakeDropUnordered() {
         repeat(10, n -> withRandom(rnd -> {
-            List<Boolean> data = IntStreamEx.of(rnd, n * 100, 0, rnd.nextInt(10) + 2).mapToObj(x -> x != 0).toList();
+            List<Boolean> data = IntStreamEx.of(rnd, n * 100L, 0, rnd.nextInt(10) + 2).mapToObj(x -> x != 0).toList();
             List<Boolean> sorted = StreamEx.of(data).sorted().toList();
             streamEx(() -> data.stream().unordered(), s -> {
                 assertFalse(StreamEx.of(s.get().takeWhile(b -> b).toList()).has(false));

@@ -6,6 +6,7 @@ Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 * [#244] Added: `StreamEx.toMutableList` and `StreamEx.toMutableSet`.  
  Removed mutability guarantee for `toList` and `toSet`.
  Added temporary system property `streamex.default.immutable` (set it to 'true' to test with immutable `toList` and `toSet`)
+* [#238] Added: `valuesToMap`, `valuesToSortedMap`, `valuesToNavigableMap` methods to `StreamEx`
 * [#250] Fixed: `EntryStream.withoutKeys` and `EntryStream.withoutValues` declared as `@SafeVarargs`
 * [#251] Changed: public classes like `StreamEx` and `EntryStream` declared as final now.
 * [#246] Added: Proper `module-info.class`, now it's full-fledged JPMS module
