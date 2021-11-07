@@ -1,4 +1,4 @@
-# StreamEx 0.7.3
+# StreamEx 0.8.0
 Enhancing Java Stream API.
 
 [![Maven Central](https://img.shields.io/maven-central/v/one.util/streamex.svg)](https://maven-badges.herokuapp.com/maven-central/one.util/streamex/)
@@ -9,7 +9,7 @@ Enhancing Java Stream API.
 This library defines four classes: `StreamEx`, `IntStreamEx`, `LongStreamEx`, `DoubleStreamEx`
 which are fully compatible with Java 8 stream classes and provide many additional useful methods.
 Also `EntryStream` class is provided which represents the stream of map entries and provides
-additional functionality for this case. Finally there are some new useful collectors defined in `MoreCollectors`
+additional functionality for this case. Finally, there are some new useful collectors defined in `MoreCollectors`
 class as well as primitive collectors concept.
 
 Full API documentation is available [here](http://amaembo.github.io/streamex/javadoc/).
@@ -133,7 +133,7 @@ Add this snippet to the pom.xml `dependencies` section:
 <dependency>
   <groupId>one.util</groupId>
   <artifactId>streamex</artifactId>
-  <version>0.7.3</version>
+  <version>0.8.0</version>
 </dependency>
 ```
 
@@ -142,7 +142,7 @@ Add this snippet to the pom.xml `dependencies` section:
 Add this snippet to the build.gradle `dependencies` section:
 
 ```groovy
-implementation 'one.util:streamex:0.7.3'
+implementation 'one.util:streamex:0.8.0'
 ```
 
 Pull requests are welcome.
