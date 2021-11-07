@@ -20,7 +20,7 @@
 
   <groupId>one.util</groupId>
   <artifactId>streamex</artifactId>
-  <version>0.8.0</version>
+  <version>0.8.1-SNAPSHOT</version>
   <packaging>multi-release-jar</packaging>
 
   <name>StreamEx</name>
