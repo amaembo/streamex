@@ -115,20 +115,12 @@
         <configuration>
           <!-- javadoc plugin uses this to detect JDK URL -->
           <source>${maven.compiler.source}</source>
+          <release>8</release>
           <compilerArgs>
             <arg>-Xlint:all</arg>
           </compilerArgs>
         </configuration>
         <executions>
-          <execution>
-            <id>main</id>
-            <goals>
-              <goal>compile</goal>
-            </goals>
-            <configuration>
-              <release>8</release>
-            </configuration>
-          </execution>
           <execution>
             <id>java9</id>
             <goals>
