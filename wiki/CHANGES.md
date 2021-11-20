@@ -4,6 +4,7 @@ Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 
 ### 0.8.1
 * [#245] Fixed: back to 'jar' packaging
+* [#253] Added: Version information in module descriptor
 
 ### 0.8.0
 * [#244] Added: `StreamEx.toMutableList` and `StreamEx.toMutableSet`.  
