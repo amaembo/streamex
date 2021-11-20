@@ -21,7 +21,7 @@
   <groupId>one.util</groupId>
   <artifactId>streamex</artifactId>
   <version>0.8.1-SNAPSHOT</version>
-  <packaging>multi-release-jar</packaging>
+  <packaging>jar</packaging>
 
   <name>StreamEx</name>
   <description>Enhancing Java 8 Streams</description>
@@ -68,13 +68,6 @@
   </developers>
 
   <build>
-    <extensions>
-      <extension>
-        <groupId>pw.krejci</groupId>
-        <artifactId>multi-release-jar-maven-plugin</artifactId>
-        <version>0.1.5</version>
-      </extension>
-    </extensions>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -116,30 +109,9 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>pw.krejci</groupId>
-        <artifactId>multi-release-jar-maven-plugin</artifactId>
-        <version>0.1.5</version>
-        <configuration>
-          <compilerArgs>
-            <arg>-Xlint:all</arg>
-          </compilerArgs>
-          <archive>
-            <manifestEntries>
-              <Bundle-Name>${project.name}</Bundle-Name>
-              <Bundle-Description>${project.description}</Bundle-Description>
-              <Bundle-License>${license.url}</Bundle-License>
-              <Bundle-ManifestVersion>2</Bundle-ManifestVersion>
-              <Bundle-SymbolicName>${project.package}</Bundle-SymbolicName>
-              <Bundle-Version>${project.version}</Bundle-Version>
-              <Export-Package>${project.package};version="${project.version}"</Export-Package>
-            </manifestEntries>
-          </archive>
-        </configuration>
-      </plugin>
-      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.3</version>
+        <version>3.8.1</version>
         <configuration>
           <!-- javadoc plugin uses this to detect JDK URL -->
           <source>${maven.compiler.source}</source>
@@ -147,6 +119,30 @@
             <arg>-Xlint:all</arg>
           </compilerArgs>
         </configuration>
+        <executions>
+          <execution>
+            <id>main</id>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+            <configuration>
+              <release>8</release>
+            </configuration>
+          </execution>
+          <execution>
+            <id>java9</id>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+            <configuration>
+              <release>9</release>
+              <multiReleaseOutput>true</multiReleaseOutput>
+              <compileSourceRoots>
+                <compileSourceRoot>${project.basedir}/src/main/java-mr/9</compileSourceRoot>
+              </compileSourceRoots>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -262,7 +258,9 @@
                   <structure name="${project.name}">
                     <group name="src/main/java">
                       <classfiles>
-                        <fileset dir="${basedir}/target/classes"/>
+                        <fileset dir="${basedir}/target/classes">
+                          <exclude name="META-INF/versions/**"/>
+                        </fileset>
                       </classfiles>
                       <sourcefiles>
                         <fileset dir="${basedir}/src/main/java"/>
@@ -270,7 +268,7 @@
                     </group>
                     <group name="src/main/java-mr/9">
                       <classfiles>
-                        <fileset dir="${basedir}/target/classes-9"/>
+                        <fileset dir="${basedir}/target/classes/META-INF/versions/9"/>
                       </classfiles>
                       <sourcefiles>
                         <fileset dir="${basedir}/src/main/java-mr/9"/>
@@ -312,7 +310,16 @@
         <version>2.4</version>
         <configuration>
           <archive>
-            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+            <manifestEntries>
+              <Bundle-Name>${project.name}</Bundle-Name>
+              <Bundle-Description>${project.description}</Bundle-Description>
+              <Bundle-License>${license.url}</Bundle-License>
+              <Bundle-ManifestVersion>2</Bundle-ManifestVersion>
+              <Bundle-SymbolicName>${project.package}</Bundle-SymbolicName>
+              <Bundle-Version>${project.version}</Bundle-Version>
+              <Export-Package>${project.package};version="${project.version}"</Export-Package>
+              <Multi-Release>true</Multi-Release>
+            </manifestEntries>
           </archive>
         </configuration>
       </plugin>
@@ -345,11 +352,14 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.0.0-M3</version>
+        <configuration>
+          <useModulePath>false</useModulePath>
+        </configuration>
         <executions>
           <execution>
             <id>default-test</id>
             <configuration>
-              <classesDirectory>${basedir}/target/classes-9</classesDirectory>
+              <classesDirectory>${basedir}/target/classes/META-INF/versions/9</classesDirectory>
               <additionalClasspathElements>${project.build.outputDirectory}</additionalClasspathElements>
             </configuration>
             <goals>
