@@ -20,7 +20,7 @@
 
   <groupId>one.util</groupId>
   <artifactId>streamex</artifactId>
-  <version>0.8.1-SNAPSHOT</version>
+  <version>0.8.1</version>
   <packaging>jar</packaging>
 
   <name>StreamEx</name>
@@ -163,7 +163,7 @@
             <configuration>
               <sourcepath>${project.build.sourceDirectory};${project.basedir}/src/main/java-mr/9;${project.build.directory}/jdk</sourcepath>
               <excludePackageNames>java.util.stream</excludePackageNames>
-              <additionalOptions>-Xdoclint:none</additionalOptions>
+              <additionalOptions>-Xdoclint:all</additionalOptions>
               <noqualifier>all</noqualifier>
               <quiet>true</quiet>
             </configuration>
