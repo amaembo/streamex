@@ -26,6 +26,7 @@
   <name>StreamEx</name>
   <description>Enhancing Java 8 Streams</description>
   <url>https://github.com/amaembo/streamex</url>
+  <inceptionYear>2015</inceptionYear>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -390,6 +391,44 @@
             <version>2.2.3</version>
           </dependency>
         </dependencies>
+      </plugin>
+      <plugin>
+        <groupId>org.jreleaser</groupId>
+        <artifactId>jreleaser-maven-plugin</artifactId>
+        <version>0.9.1</version>
+        <configuration>
+          <jreleaser>
+            <release>
+              <github>
+                <tagName>streamex-{{projectVersion}}</tagName>
+                <branch>master</branch>
+                <changelog>
+                  <formatted>ALWAYS</formatted>
+                  <format>- {{commitShortHash}} {{commitTitle}}</format>
+                  <contributors>
+                    <format>- {{contributorName}}{{#contributorUsernameAsLink}} ({{.}}){{/contributorUsernameAsLink}}</format>
+                  </contributors>
+                  <hide>
+                    <contributors>GitHub</contributors>
+                  </hide>
+                </changelog>
+              </github>
+            </release>
+            <files>
+              <artifacts>
+                <artifact>
+                  <path>${project.build.directory}/${project.artifactId}-${project.version}.jar</path>
+                </artifact>
+                <artifact>
+                  <path>${project.build.directory}/${project.artifactId}-${project.version}-sources.jar</path>
+                </artifact>
+                <artifact>
+                  <path>${project.build.directory}/${project.artifactId}-${project.version}-javadoc.jar</path>
+                </artifact>
+              </artifacts>
+            </files>
+          </jreleaser>
+        </configuration>
       </plugin>
     </plugins>
   </build>
