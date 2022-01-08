@@ -42,10 +42,13 @@ jobs:
           mvn -B versions:set -DnewVersion=$VERSION -DgenerateBackupPoms=false -f pom.xml
           mvn -B versions:set -DnewVersion=$VERSION -DgenerateBackupPoms=false -f benchmark/pom.xml
 
+      - name: Install gpg secret key
+        run: |
+          cat <(echo -e "${{ secrets.GPG_PRIVATE_KEY }}") | gpg --batch --import
+          gpg --list-secret-keys --keyid-format LONG
+
       - name: Build
-        run: mvn --no-transfer-progress -B --file pom.xml verify
-        env:
-          MAVEN_GPG_PASSPHRASE: ${{ github.event.inputs.passphrase }}
+        run: mvn --no-transfer-progress -B --file pom.xml verify -Dgpg.passphrase=${{ github.event.inputs.passphrase }}
 
       - name: Commit version
         run: |
@@ -58,11 +61,11 @@ jobs:
         env:
           MAVEN_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           MAVEN_CENTRAL_TOKEN: ${{ secrets.SONATYPE_PASSWORD }}
-          MAVEN_GPG_PASSPHRASE: ${{ github.event.inputs.passphrase }}
         run: |
           export GPG_TTY=$(tty)
           mvn --no-transfer-progress -B --file pom.xml \
             -Drepository.url=https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git \
+            -Dgpg.passphrase=${{ github.event.inputs.passphrase }} \
             deploy
 
       - name: Release to GitHub
