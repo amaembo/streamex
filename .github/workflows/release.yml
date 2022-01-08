@@ -6,6 +6,9 @@ on:
       version:
         description: "Release version"
         required: true
+      passphrase:
+        description: "GPG passphrase"
+        required: true
 
 jobs:
   release:
@@ -53,7 +56,7 @@ jobs:
         env:
           MAVEN_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           MAVEN_CENTRAL_TOKEN: ${{ secrets.SONATYPE_PASSWORD }}
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          MAVEN_GPG_PASSPHRASE: ${{ github.event.inputs.passphrase }}
         run: |
           export GPG_TTY=$(tty)
           ./mvnw --no-transfer-progress -B --file pom.xml \
