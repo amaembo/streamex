@@ -21,16 +21,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Java
+      - name: Set up JDK 11
         uses: actions/setup-java@v2
         with:
-          distribution: 'zulu'
-          java-version: 11
-          server-id: central
-          server-username: MAVEN_USERNAME
-          server-password: MAVEN_CENTRAL_TOKEN
-          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
-          gpg-passphrase: MAVEN_GPG_PASSPHRASE
+          java-version: '11'
+          distribution: 'temurin'
+          cache: maven
 
       - name: Cache Maven
         uses: actions/cache@v2
@@ -39,14 +35,20 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: Build
-        run: ./mvnw --no-transfer-progress -B --file pom.xml verify
-
       - name: Set version
         run: |
           VERSION=${{ github.event.inputs.version }}
           echo "Releasing $VERSION"
-          ./mvnw -B versions:set -DnewVersion=$VERSION -DgenerateBackupPoms=false -f pom.xml
+          mvn -B versions:set -DnewVersion=$VERSION -DgenerateBackupPoms=false -f pom.xml
+          mvn -B versions:set -DnewVersion=$VERSION -DgenerateBackupPoms=false -f benchmark/pom.xml
+
+      - name: Build
+        run: mvn --no-transfer-progress -B --file pom.xml verify
+        env:
+          MAVEN_GPG_PASSPHRASE: ${{ github.event.inputs.passphrase }}
+
+      - name: Commit version
+        run: |
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --global user.name "GitHub Action"
           git commit -a -m "Releasing version $VERSION"
@@ -59,7 +61,7 @@ jobs:
           MAVEN_GPG_PASSPHRASE: ${{ github.event.inputs.passphrase }}
         run: |
           export GPG_TTY=$(tty)
-          ./mvnw --no-transfer-progress -B --file pom.xml \
+          mvn --no-transfer-progress -B --file pom.xml \
             -Drepository.url=https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git \
             deploy
 
@@ -67,7 +69,7 @@ jobs:
         env:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ./mvnw -B --file pom.xml jreleaser:release
+          mvn -B --file pom.xml jreleaser:release
 
       - name: JReleaser output
         if: always()
