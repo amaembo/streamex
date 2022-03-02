@@ -69,7 +69,8 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
 
     /**
      * A function that folds a value into a mutable result container.
-     * 
+     *
+     * <p>
      * The default implementation calls {@link #intAccumulator()} on unboxed
      * value.
      *
@@ -351,6 +352,7 @@ public interface IntCollector<A, R> extends MergingCollector<Integer, A, R> {
      * according to an {@code IntPredicate}, and organizes them into a
      * {@code Map<Boolean, int[]>}.
      *
+     * <p>
      * There are no guarantees on the type, mutability, serializability, or
      * thread-safety of the {@code Map} returned.
      *

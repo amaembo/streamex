@@ -65,7 +65,8 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
 
     /**
      * A function that folds a value into a mutable result container.
-     * 
+     *
+     * <p>
      * The default implementation calls {@link #longAccumulator()} on unboxed
      * value.
      *
@@ -347,6 +348,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * according to a {@code LongPredicate}, and organizes them into a
      * {@code Map<Boolean, long[]>}.
      *
+     * <p>
      * There are no guarantees on the type, mutability, serializability, or
      * thread-safety of the {@code Map} returned.
      *

@@ -46,7 +46,8 @@ import java.util.stream.Collector;
     /**
      * A function that accepts two partial results and combines them returning
      * either existing partial result or new one.
-     * 
+     *
+     * <p>
      * The default implementation calls the {@link #merger()} and returns the
      * first partial result.
      *

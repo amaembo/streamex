@@ -62,7 +62,8 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
 
     /**
      * A function that folds a value into a mutable result container.
-     * 
+     *
+     * <p>
      * The default implementation calls {@link #doubleAccumulator()} on unboxed
      * value.
      *
@@ -345,6 +346,7 @@ public interface DoubleCollector<A, R> extends MergingCollector<Double, A, R> {
      * according to a {@code DoublePredicate}, and organizes them into a
      * {@code Map<Boolean, double[]>}.
      *
+     * <p>
      * There are no guarantees on the type, mutability, serializability, or
      * thread-safety of the {@code Map} returned.
      *

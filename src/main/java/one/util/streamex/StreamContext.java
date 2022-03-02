@@ -23,10 +23,12 @@ import java.util.stream.BaseStream;
 /**
  * This class controls stream execution mode (parallel/sequential), custom FJP
  * and close handlers.
- * 
+ *
+ * <p>
  * Fields are package-private and mutable, but it's forbidden to change them
- * from outside of this class.
- * 
+ * from outside this class.
+ *
+ * <p>
  * For performance reasons shared objects SEQUENTIAL and PARALLEL are used: then
  * have no custom FJP and no close handler. If custom FJP or close handler is
  * requested for shared object, a new object is created, otherwise the current

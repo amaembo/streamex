@@ -105,7 +105,8 @@ public final class MoreCollectors {
     /**
      * Returns a {@code Collector} that accumulates the input elements into a
      * new array.
-     * 
+     *
+     * <p>
      * The operation performed by the returned collector is equivalent to
      * {@code stream.toArray(generator)}. This collector is mostly useful as a
      * downstream collector.
