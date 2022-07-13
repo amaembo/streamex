@@ -536,6 +536,12 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
         return stream().count();
     }
 
+    public long count(Predicate<? super T> predicate){
+        if(context.fjp != null)
+            return context.terminate(stream().filter(predicate)::count);
+        return stream().filter(predicate).count();
+    }
+
     @Override
     public boolean anyMatch(Predicate<? super T> predicate) {
         if (context.fjp != null)

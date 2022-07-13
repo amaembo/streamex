@@ -1167,6 +1167,12 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
         return stream().count();
     }
 
+    public long count(LongPredicate predicate){
+        if(context.fjp != null)
+            return context.terminate(stream().filter(predicate)::count);
+        return stream().filter(predicate).count();
+    }
+
     @Override
     public OptionalDouble average() {
         if (context.fjp != null)
