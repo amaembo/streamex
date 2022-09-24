@@ -95,7 +95,7 @@ public final class IntStreamEx extends BaseStreamEx<Integer, IntStream, Splitera
         return new IntStreamEx(stream, StreamContext.SEQUENTIAL);
     }
 
-    final IntStreamEx delegate(Spliterator.OfInt spliterator) {
+    IntStreamEx delegate(Spliterator.OfInt spliterator) {
         return new IntStreamEx(spliterator, context);
     }
 

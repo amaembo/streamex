@@ -1913,7 +1913,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
         Spliterator<T> spltr = spliterator();
         return supply(
             spltr.hasCharacteristics(Spliterator.ORDERED) ? new TakeDrop.TDOfRef<>(spltr, false, true, predicate)
-                    : new TakeDrop.UnorderedTDOfRef<T>(spltr, false, true, predicate));
+                    : new TakeDrop.UnorderedTDOfRef<>(spltr, false, true, predicate));
     }
 
     /**
@@ -1975,7 +1975,7 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     public S prefix(BinaryOperator<T> op) {
         Spliterator<T> spltr = spliterator();
         return supply(spltr.hasCharacteristics(Spliterator.ORDERED) ? new PrefixOps.OfRef<>(spltr, op)
-                : new PrefixOps.OfUnordRef<T>(spltr, op));
+                : new PrefixOps.OfUnordRef<>(spltr, op));
     }
 
     // Necessary to generate proper JavaDoc

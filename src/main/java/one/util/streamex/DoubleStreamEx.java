@@ -85,7 +85,7 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
         return new DoubleStreamEx(stream, StreamContext.SEQUENTIAL);
     }
 
-    final DoubleStreamEx delegate(Spliterator.OfDouble spliterator) {
+    DoubleStreamEx delegate(Spliterator.OfDouble spliterator) {
         return new DoubleStreamEx(spliterator, context);
     }
 

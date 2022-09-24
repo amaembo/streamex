@@ -83,7 +83,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
         return new LongStreamEx(stream, StreamContext.SEQUENTIAL);
     }
 
-    final LongStreamEx delegate(Spliterator.OfLong spliterator) {
+    LongStreamEx delegate(Spliterator.OfLong spliterator) {
         return new LongStreamEx(spliterator, context);
     }
 

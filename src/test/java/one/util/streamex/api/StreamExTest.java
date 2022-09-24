@@ -1726,7 +1726,7 @@ public class StreamExTest {
         public Spliterator<String> spliterator() {
             return new Spliterator<String>() {
                 int pos = size();
-                
+
                 @Override
                 public boolean tryAdvance(Consumer<? super String> action) {
                     if (pos <= 0) return false;
