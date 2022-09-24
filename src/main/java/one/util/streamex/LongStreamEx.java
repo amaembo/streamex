@@ -1167,6 +1167,23 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
         return stream().count();
     }
 
+    /**
+     * Counts the number of elements in the stream that satisfy the predicate.
+     *
+     * <p>
+     * This is a terminal operation.
+     *
+     * @param predicate a <a
+     *                  href="package-summary.html#NonInterference">non-interfering </a>,
+     *                  <a href="package-summary.html#Statelessness">stateless</a>
+     *                  predicate to apply to stream elements. Only elements passing
+     *                  the predicate will be counted.
+     * @return the count of elements in this stream satisfying the predicate.
+     */
+    public long count(LongPredicate predicate) {
+        return filter(predicate).count();
+    }
+
     @Override
     public OptionalDouble average() {
         if (context.fjp != null)

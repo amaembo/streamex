@@ -539,4 +539,9 @@ public class DoubleStreamExTest {
                 .toArray(), 0.0);
         assertEquals(0L, IntStreamEx.empty().intersperse(1).count());
     }
+
+    @Test
+    public void testCount() {
+        assertEquals(5L, DoubleStreamEx.of(0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4).count(x -> x == (int) x));
+    }
 }

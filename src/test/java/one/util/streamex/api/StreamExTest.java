@@ -21,7 +21,6 @@ import one.util.streamex.Joining;
 import one.util.streamex.MoreCollectors;
 import one.util.streamex.StreamEx;
 import one.util.streamex.TestHelpers.Point;
-
 import org.junit.FixMethodOrder;
 import org.junit.Rule;
 import org.junit.Test;
@@ -2297,5 +2296,10 @@ public class StreamExTest {
             assertEquals(Optional.of(0), s.get().reduceWithZero(0, (a, b) -> a * b));
             assertEquals((Integer) 0, s.get().reduceWithZero(0, 1, (a, b) -> a * b));
         });
+    }
+
+    @Test
+    public void testCount() {
+        assertEquals(3L, StreamEx.of("x", "", "y", "", "z").count(x -> !x.isEmpty()));
     }
 }
