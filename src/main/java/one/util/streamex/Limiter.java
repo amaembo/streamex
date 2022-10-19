@@ -88,6 +88,11 @@ import java.util.Iterator;
      * @return this object
      */
     public Limiter<T> putAll(Limiter<T> ls) {
+        if (initial && (size + ls.size <= data.length)){
+            System.arraycopy(ls.data, 0, data, size, ls.size);
+            size += ls.size;
+            return this;
+        }
         int i = 0;
         if (!ls.initial) {
             // sorted part
