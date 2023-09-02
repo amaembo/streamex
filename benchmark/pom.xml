@@ -20,7 +20,7 @@
 
   <groupId>one.util</groupId>
   <artifactId>streamex-benchmark</artifactId>
-  <version>0.8.2-SNAPSHOT</version>
+  <version>0.8.2</version>
 
   <dependencies>
     <dependency>
