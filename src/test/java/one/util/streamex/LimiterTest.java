@@ -90,5 +90,21 @@ public class LimiterTest {
         assertEquals(5, limiter.size());
         Iterator<Integer> iterator = limiter.iterator();
         assertEquals(Arrays.asList(1, 2, 3, 4, 5), StreamEx.of(iterator).toList());
-    } 
+    }
+    
+    @Test
+    public void testDirectPutAll() {
+        Limiter<Integer> limiter = new Limiter<>(3, Comparator.naturalOrder());
+        Limiter<Integer> limiter2 = new Limiter<>(3, Comparator.naturalOrder());
+        limiter.put(6);
+        limiter.put(5);
+        limiter.put(4);
+        limiter2.put(3);
+        limiter2.put(1);
+        limiter2.put(0);
+        Limiter<Integer> result = limiter.putAll(limiter2);
+        result.put(2);
+        result.sort();
+        System.out.println(result);
+    }
 }
