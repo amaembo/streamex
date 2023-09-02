@@ -835,12 +835,7 @@ import java.util.stream.Collector.Characteristics;
         public OptionalDouble result() {
             if (cnt == 0)
                 return OptionalDouble.empty();
-            if (hi == 0 && lo >= 0 || hi == -1 && lo < 0) {
-                return OptionalDouble.of(((double) lo) / cnt);
-            }
-            return OptionalDouble.of(new BigDecimal(new BigInteger(java.nio.ByteBuffer.allocate(16).order(
-                ByteOrder.BIG_ENDIAN).putLong(hi).putLong(lo).array())).divide(BigDecimal.valueOf(cnt),
-                MathContext.DECIMAL64).doubleValue());
+            return OptionalDouble.of(((double) (hi + (lo < 0 ? 1 : 0)) / cnt) * 0x1.0p64 + ((double) lo) / cnt);
         }
     }
 
