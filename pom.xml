@@ -230,36 +230,6 @@
             </goals>
           </execution>
           <execution>
-            <!-- Change the S generic type in StreamEx/EntryStream documentation 
-              to the appropriate type -->
-            <id>fix</id>
-            <phase>package</phase>
-            <configuration>
-              <target>
-                <property name="token.SPLTR"><![CDATA[SPLTR]]></property>
-                <property name="token.SpliteratorT"><![CDATA[Spliterator&lt;T&gt;]]></property>
-                <property name="token.SpliteratorKV"><![CDATA[Spliterator&lt;Map.Entry&lt;K, V&gt;&gt;]]></property>
-                <replace
-                  file="${project.build.directory}/apidocs/${project.package}/${project.package.path}/EntryStream.html"
-                  token="${token.SPLTR}" value="${token.SpliteratorKV}" />
-                <replace
-                  file="${project.build.directory}/apidocs/${project.package}/${project.package.path}/StreamEx.html"
-                  token="${token.SPLTR}" value="${token.SpliteratorT}" />
-                <jar
-                  destfile="${project.build.directory}/${project.build.finalName}-javadoc.jar"
-                  update="true">
-                  <fileset dir="${project.build.directory}/apidocs"
-                    includes="${project.package}/${project.package.path}/EntryStream.html" />
-                  <fileset dir="${project.build.directory}/apidocs"
-                    includes="${project.package}/${project.package.path}/StreamEx.html" />
-                </jar>
-              </target>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
-          <execution>
             <id>jacoco-report</id>
             <phase>prepare-package</phase>
             <configuration>
