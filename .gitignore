@@ -11,6 +11,8 @@
 /.idea/uiDesigner.xml
 /.idea/misc.xml
 /.idea/shelf
+/.idea/projectDependencies.xml
+/.idea/project-color
 
 # Mac OS/X
 .DS_Store
