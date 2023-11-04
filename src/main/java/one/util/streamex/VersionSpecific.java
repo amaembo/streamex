@@ -16,11 +16,10 @@
 package one.util.streamex;
 
 import java.nio.CharBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Spliterator;
-import java.util.function.DoublePredicate;
-import java.util.function.IntPredicate;
-import java.util.function.LongPredicate;
-import java.util.function.Predicate;
+import java.util.function.*;
 import java.util.stream.IntStream;
 
 /**
@@ -47,6 +46,38 @@ import java.util.stream.IntStream;
         return stream.delegate(new TakeDrop.TDOfDouble(stream.spliterator(), drop, false, predicate));
     }
 
+    <T, R> StreamEx<R> callMapMulti(AbstractStreamEx<T, ?> s, BiConsumer<? super T, ? super Consumer<R>> mapper) {
+        return s.flatCollection(e -> {
+            List<R> result = new ArrayList<>();
+            mapper.accept(e, (Consumer<R>) result::add);
+            return result;
+        });
+    }
+
+    <T> IntStreamEx callMapMultiToInt(AbstractStreamEx<T, ?> s, BiConsumer<? super T, ? super IntConsumer> mapper) {
+        return s.flatMapToInt(e -> {
+            Internals.IntBuffer result = new Internals.IntBuffer();
+            mapper.accept(e, (IntConsumer) result::add);
+            return result.stream();
+        });
+    }
+    
+    <T> LongStreamEx callMapMultiToLong(AbstractStreamEx<T, ?> s, BiConsumer<? super T, ? super LongConsumer> mapper) {
+        return s.flatMapToLong(e -> {
+            Internals.LongBuffer result = new Internals.LongBuffer();
+            mapper.accept(e, (LongConsumer) result::add);
+            return result.stream();
+        });
+    }
+
+    <T> DoubleStreamEx callMapMultiToDouble(AbstractStreamEx<T, ?> s, BiConsumer<? super T, ? super DoubleConsumer> mapper) {
+        return s.flatMapToDouble(e -> {
+            Internals.DoubleBuffer result = new Internals.DoubleBuffer();
+            mapper.accept(e, (DoubleConsumer) result::add);
+            return result.stream();
+        });
+    }
+    
     IntStream ofChars(CharSequence seq) {
         // In JDK 8 there's only default chars() method which uses
         // IteratorSpliterator

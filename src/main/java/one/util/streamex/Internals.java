@@ -244,6 +244,10 @@ import java.util.stream.Collector.Characteristics;
             System.arraycopy(buf.data, 0, data, size, buf.size);
             size += buf.size;
         }
+        
+        IntStreamEx stream() {
+            return IntStreamEx.of(data, 0, size);
+        }
 
         int[] toArray() {
             return data.length == size ? data : Arrays.copyOfRange(data, 0, size);
@@ -277,6 +281,10 @@ import java.util.stream.Collector.Characteristics;
             size += buf.size;
         }
 
+        LongStreamEx stream() {
+            return LongStreamEx.of(data, 0, size);
+        }
+
         long[] toArray() {
             return data.length == size ? data : Arrays.copyOfRange(data, 0, size);
         }
@@ -307,6 +315,10 @@ import java.util.stream.Collector.Characteristics;
             }
             System.arraycopy(buf.data, 0, data, size, buf.size);
             size += buf.size;
+        }
+
+        DoubleStreamEx stream() {
+            return DoubleStreamEx.of(data, 0, size);
         }
 
         double[] toArray() {

@@ -30,17 +30,7 @@ import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.ForkJoinPool;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.BinaryOperator;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.IntFunction;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.function.ToDoubleFunction;
-import java.util.function.ToIntFunction;
-import java.util.function.ToLongFunction;
+import java.util.function.*;
 import java.util.stream.Collector;
 import java.util.stream.Collector.Characteristics;
 import java.util.stream.Collectors;
@@ -203,6 +193,83 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     @Override
     public <R> StreamEx<R> flatMap(Function<? super T, ? extends Stream<? extends R>> mapper) {
         return new StreamEx<>(stream().flatMap(mapper), context);
+    }
+
+    /**
+     * Returns a stream where every element of this stream is replaced by elements produced
+     * by a mapper function.
+     *
+     * <p>This is an <a href="package-summary.html#StreamOps">intermediate
+     * operation</a>.
+     *
+     * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *               <a href="package-summary.html#Statelessness">stateless</a>
+     *               function that generates replacement elements. It accepts an element of this
+     *               stream and a consumer that accepts new elements produced from the input element.
+     * @return the new stream
+     * @param <R> type of the resulting elements
+     * @since 0.8.3
+     */
+    public <R> StreamEx<R> mapMulti(BiConsumer<? super T, ? super Consumer<R>> mapper) {
+        Objects.requireNonNull(mapper);
+        return VerSpec.VER_SPEC.callMapMulti(this, mapper);
+    }
+
+    /**
+     * Returns an {@link IntStreamEx} where every element of this stream is replaced by elements produced
+     * by a mapper function.
+     *
+     * <p>This is an <a href="package-summary.html#StreamOps">intermediate
+     * operation</a>.
+     *
+     * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *               <a href="package-summary.html#Statelessness">stateless</a>
+     *               function that generates replacement elements. It accepts an element of this
+     *               stream and a consumer that accepts new elements produced from the input element.
+     * @return the new stream
+     * @since 0.8.3
+     */
+    public IntStreamEx mapMultiToInt(BiConsumer<? super T, ? super IntConsumer> mapper) {
+        Objects.requireNonNull(mapper);
+        return VerSpec.VER_SPEC.callMapMultiToInt(this, mapper);
+    }
+
+    /**
+     * Returns a {@link LongStreamEx} where every element of this stream is replaced by elements produced
+     * by a mapper function.
+     *
+     * <p>This is an <a href="package-summary.html#StreamOps">intermediate
+     * operation</a>.
+     *
+     * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *               <a href="package-summary.html#Statelessness">stateless</a>
+     *               function that generates replacement elements. It accepts an element of this
+     *               stream and a consumer that accepts new elements produced from the input element.
+     * @return the new stream
+     * @since 0.8.3
+     */
+    public LongStreamEx mapMultiToLong(BiConsumer<? super T, ? super LongConsumer> mapper) {
+        Objects.requireNonNull(mapper);
+        return VerSpec.VER_SPEC.callMapMultiToLong(this, mapper);
+    }
+
+    /**
+     * Returns a {@link DoubleStreamEx} where every element of this stream is replaced by elements produced
+     * by a mapper function.
+     *
+     * <p>This is an <a href="package-summary.html#StreamOps">intermediate
+     * operation</a>.
+     *
+     * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *               <a href="package-summary.html#Statelessness">stateless</a>
+     *               function that generates replacement elements. It accepts an element of this
+     *               stream and a consumer that accepts new elements produced from the input element.
+     * @return the new stream
+     * @since 0.8.3
+     */
+    public DoubleStreamEx mapMultiToDouble(BiConsumer<? super T, ? super DoubleConsumer> mapper) {
+        Objects.requireNonNull(mapper);
+        return VerSpec.VER_SPEC.callMapMultiToDouble(this, mapper);
     }
 
     @Override

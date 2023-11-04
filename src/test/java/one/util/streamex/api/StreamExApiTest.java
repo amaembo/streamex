@@ -24,6 +24,7 @@ import org.junit.Test;
 import one.util.streamex.StreamEx;
 
 import static java.util.Arrays.asList;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -47,5 +48,38 @@ public class StreamExApiTest {
         List<String> input = asList("a", "b", "c");
         List<String> expected = asList("c", "b", "a");
         assertEquals(expected, input.stream().map(StreamEx::of).reduce(StreamEx::prepend).get().toList());
+    }
+    
+    @Test
+    public void testMapMulti() {
+        List<String> result = StreamEx.of("abc", "def", "gh")
+                .<String>mapMulti((s, cons) -> s.chars()
+                        .mapToObj(ch -> ""+(char)ch).forEach(cons))
+                .toList();
+        assertEquals(asList("a", "b", "c", "d", "e", "f", "g", "h"), result);
+    }
+    
+    @Test
+    public void testMapMultiToInt() {
+        int[] result = StreamEx.of("abc", "def", "gh")
+                .mapMultiToInt((s, cons) -> s.chars().forEach(cons))
+                .toArray();
+        assertArrayEquals(new int[] {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}, result);
+    }
+    
+    @Test
+    public void testMapMultiToLong() {
+        long[] result = StreamEx.of("abc", "def", "gh")
+                .mapMultiToLong((s, cons) -> s.chars().asLongStream().forEach(cons))
+                .toArray();
+        assertArrayEquals(new long[] {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}, result);
+    }
+    
+    @Test
+    public void testMapMultiToDouble() {
+        double[] result = StreamEx.of("abc", "def", "gh")
+                .mapMultiToDouble((s, cons) -> s.chars().asDoubleStream().forEach(cons))
+                .toArray();
+        assertArrayEquals(new double[] {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}, result, 0.0);
     }
 }
