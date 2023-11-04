@@ -125,6 +125,7 @@
 | What I want | How to get it |
 |---|---|
 | Flat-map primitive stream to the stream of other type | `IntStreamEx/LongStreamEx/DoubleStreamEx. flatMapToInt()/flatMapToLong()/flatMapToDouble()/flatMapToObj()` |
+| Flat-map stream in a push-like manner | `StreamEx/EntryStream. mapMulti()/mapMultiToInt()/mapMultiToLong()/mapMultiToDouble()` |
 | Flatten multiple collections to the stream of their elements | `StreamEx/EntryStream.flatCollection()` |
 | Flatten multiple arrays to the stream of their elements | `StreamEx/EntryStream.flatArray()` |
 | Flatten multiple maps to the stream of their entries | `StreamEx.flatMapToEntry()` |
