@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/benchmark.iml" filepath="$PROJECT_DIR$/.idea/benchmark.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/streamex.iml" filepath="$PROJECT_DIR$/.idea/streamex.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/streamex-16.iml" filepath="$PROJECT_DIR$/.idea/streamex-16.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/streamex-9.iml" filepath="$PROJECT_DIR$/.idea/streamex-9.iml" />
     </modules>
   </component>
