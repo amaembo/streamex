@@ -3,7 +3,7 @@ Enhancing Java Stream API.
 
 [![Maven Central](https://img.shields.io/maven-central/v/one.util/streamex.svg)](https://maven-badges.herokuapp.com/maven-central/one.util/streamex/)
 [![Javadocs](https://www.javadoc.io/badge/one.util/streamex.svg)](https://www.javadoc.io/doc/one.util/streamex)
-[![Build Status](https://github.com/amaembo/streamex/actions/workflows/test.yml/badge.svg)](https://travis-ci.org/amaembo/streamex)
+[![Build Status](https://github.com/amaembo/streamex/actions/workflows/test.yml/badge.svg)](https://github.com/amaembo/streamex/actions/workflows/test.yml)
 [![Coverage Status](https://coveralls.io/repos/amaembo/streamex/badge.svg?branch=master&service=github)](https://coveralls.io/github/amaembo/streamex?branch=master)
 
 This library defines four classes: `StreamEx`, `IntStreamEx`, `LongStreamEx`, `DoubleStreamEx`
