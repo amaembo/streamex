@@ -27,6 +27,7 @@ import java.util.stream.IntStream;
 
 import org.junit.Test;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -105,6 +106,6 @@ public class LimiterTest {
         Limiter<Integer> result = limiter.putAll(limiter2);
         result.put(2);
         result.sort();
-        System.out.println(result);
+        assertArrayEquals(new Object[] {0, 1, 2}, result.toArray());
     }
 }
