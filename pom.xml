@@ -90,7 +90,7 @@
             <configuration>
               <rules>
                 <requireJavaVersion>
-                  <version>11</version>
+                  <version>17</version>
                 </requireJavaVersion>
               </rules>
             </configuration>
@@ -111,6 +111,7 @@
               <!-- Necessary to add sources to the source-jar -->
               <sources>
                 <source>src/main/java-mr/9</source>
+                <source>src/main/java-mr/16</source>
               </sources>
             </configuration>
           </execution>
@@ -142,6 +143,19 @@
               </compileSourceRoots>
             </configuration>
           </execution>
+          <execution>
+            <id>java16</id>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+            <configuration>
+              <release>16</release>
+              <multiReleaseOutput>true</multiReleaseOutput>
+              <compileSourceRoots>
+                <compileSourceRoot>${project.basedir}/src/main/java-mr/16</compileSourceRoot>
+              </compileSourceRoots>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
       <plugin>
@@ -169,7 +183,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <sourcepath>${project.build.sourceDirectory};${project.basedir}/src/main/java-mr/9;${project.build.directory}/jdk</sourcepath>
+              <sourcepath>${project.build.sourceDirectory};${project.basedir}/src/main/java-mr/9;${project.basedir}/src/main/java-mr/16;${project.build.directory}/jdk</sourcepath>
               <excludePackageNames>java.util.stream</excludePackageNames>
               <additionalOptions>-Xdoclint:all</additionalOptions>
               <noqualifier>all</noqualifier>
@@ -187,7 +201,7 @@
             <groupId>org.jacoco</groupId>
             <artifactId>org.jacoco.ant</artifactId>
             <classifier>nodeps</classifier>
-            <version>0.8.5</version>
+            <version>0.8.10</version>
           </dependency>
         </dependencies>
         <executions>
@@ -274,6 +288,14 @@
                         <fileset dir="${basedir}/src/main/java-mr/9"/>
                       </sourcefiles>
                     </group>
+                    <group name="src/main/java-mr/16">
+                      <classfiles>
+                        <fileset dir="${basedir}/target/classes/META-INF/versions/16"/>
+                      </classfiles>
+                      <sourcefiles>
+                        <fileset dir="${basedir}/src/main/java-mr/16"/>
+                      </sourcefiles>
+                    </group>
                   </structure>
                   <html destdir="${basedir}/target/site/jacoco"/>
                   <xml destfile="${basedir}/target/site/jacoco/jacoco.xml"/>
@@ -358,6 +380,16 @@
         <executions>
           <execution>
             <id>default-test</id>
+            <configuration>
+              <classesDirectory>${basedir}/target/classes/META-INF/versions/16</classesDirectory>
+              <additionalClasspathElements>${project.build.outputDirectory}</additionalClasspathElements>
+            </configuration>
+            <goals>
+              <goal>test</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>java9-test</id>
             <configuration>
               <classesDirectory>${basedir}/target/classes/META-INF/versions/9</classesDirectory>
               <additionalClasspathElements>${project.build.outputDirectory}</additionalClasspathElements>

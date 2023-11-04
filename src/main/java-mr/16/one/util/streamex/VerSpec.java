@@ -20,5 +20,5 @@ package one.util.streamex;
  * @author Tagir Valeev
  */
 /* package */ interface VerSpec {
-    VersionSpecific VER_SPEC = new VersionSpecific();
+   VersionSpecific VER_SPEC = new Java16Specific();
 }

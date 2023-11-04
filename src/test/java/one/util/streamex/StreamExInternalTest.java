@@ -15,14 +15,15 @@
  */
 package one.util.streamex;
 
-import java.util.Spliterator;
-
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Spliterator;
+
 import static java.util.Arrays.asList;
-import static one.util.streamex.TestHelpers.streamEx;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 
@@ -40,7 +41,8 @@ public class StreamExInternalTest {
     @Test
     public void testDropWhile() {
         // Test that in JDK9 operation is propagated to JDK dropWhile method.
-        boolean hasDropWhile = VerSpec.VER_SPEC.getClass().getSimpleName().equals("Java9Specific");
+        String simpleName = VerSpec.VER_SPEC.getClass().getSimpleName();
+        boolean hasDropWhile = simpleName.equals("Java9Specific") || simpleName.equals("Java16Specific");
         Spliterator<String> spliterator = StreamEx.of("aaa", "b", "cccc").dropWhile(x -> x.length() > 1).spliterator();
         assertEquals(hasDropWhile, !spliterator.getClass().getSimpleName().equals("TDOfRef"));
     }
@@ -48,5 +50,22 @@ public class StreamExInternalTest {
     @Test
     public void testSplit() {
         assertEquals(CharSpliterator.class, StreamEx.split("a#a", "\\#").spliterator().getClass());
+    }
+    
+    @Test
+    public void testMapMulti() {
+        boolean hasMapMulti = VerSpec.VER_SPEC.getClass().getSimpleName().equals("Java16Specific");
+        List<String> data = new ArrayList<>(); 
+        StreamEx.of(10, 20, 30).<String>mapMulti((e, cons) -> {
+            data.add("MM: "+e);
+            cons.accept("T: " + e);
+            data.add("MM: " +(e + 1));
+            cons.accept("T: " + (e + 1));
+        }).into(data);
+        // When polyfill is used, results of mapMulti are buffered, so the order of execution is different
+        List<String> expected = hasMapMulti ? 
+                asList("MM: 10", "T: 10", "MM: 11", "T: 11", "MM: 20", "T: 20", "MM: 21", "T: 21", "MM: 30", "T: 30", "MM: 31", "T: 31") : 
+                asList("MM: 10", "MM: 11", "T: 10", "T: 11", "MM: 20", "MM: 21", "T: 20", "T: 21", "MM: 30", "MM: 31", "T: 30", "T: 31");
+        assertEquals(expected, data);
     }
 }
