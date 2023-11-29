@@ -2969,7 +2969,7 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * {@code mapper.apply(list.get(0), list.get(1))},
      * {@code mapper.apply(list.get(0), list.get(2))} and
      * {@code mapper.apply(list.get(1), list.get(2))}. The number of elements in
-     * the resulting stream is {@code list.size()*(list.size()+1L)/2}.
+     * the resulting stream is {@code list.size() * (list.size() - 1L) / 2}.
      * 
      * <p>
      * The list values are accessed using {@link List#get(int)}, so the list
@@ -3002,7 +3002,7 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * {@code mapper.apply(array[0], array[1])},
      * {@code mapper.apply(array[0], array[2])} and
      * {@code mapper.apply(array[1], array[2])}. The number of elements in the
-     * resulting stream is {@code array.length*(array.length+1L)/2}.
+     * resulting stream is {@code array.length * (array.length - 1L) / 2}.
      * 
      * @param <U> type of the array elements
      * @param <T> type of the stream elements
