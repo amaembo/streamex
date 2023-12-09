@@ -99,7 +99,7 @@ public class EntryStreamTest {
         expected.put("aaa", 3);
         expected.put("bbb", 3);
         expected.put("c", 1);
-        assertEquals(expected, StreamEx.of("aaa", "bbb", "c").mapToEntry(String::length).toMap());
+        assertEquals(expected, StreamEx.of("aaa", "bbb", "c").mapNewValue(String::length).toMap());
         assertEquals(expected, StreamEx.of("aaa", "bbb", "c").mapToEntry(s -> s, String::length).toMap());
         assertEquals(Collections.singletonMap("foo", 1), EntryStream.of("foo", 1).toMap());
         assertEquals(createMap(), EntryStream.of("a", 1, "bb", 22, "ccc", 33).toMap());
@@ -605,13 +605,13 @@ public class EntryStreamTest {
         expected.put("aaa", asList(3));
         expected.put("bbb", asList(3, 3));
         expected.put("cc", asList(2));
-        assertEquals(expected, StreamEx.of("aaa", "bbb", "bbb", "cc").mapToEntry(String::length).grouping());
+        assertEquals(expected, StreamEx.of("aaa", "bbb", "bbb", "cc").mapNewValue(String::length).grouping());
 
         Map<String, List<Integer>> expectedDistinct = new LinkedHashMap<>();
         expectedDistinct.put("aaa", asList(3));
         expectedDistinct.put("bbb", asList(3));
         expectedDistinct.put("cc", asList(2));
-        assertEquals(expectedDistinct, StreamEx.of("aaa", "bbb", "bbb", "cc").mapToEntry(String::length).distinct()
+        assertEquals(expectedDistinct, StreamEx.of("aaa", "bbb", "bbb", "cc").mapNewValue(String::length).distinct()
                 .grouping());
     }
 
@@ -656,7 +656,7 @@ public class EntryStreamTest {
 
     @Test(expected = IllegalStateException.class)
     public void testCollision() {
-        StreamEx.of("aa", "aa").mapToEntry(String::length).toCustomMap(LinkedHashMap::new);
+        StreamEx.of("aa", "aa").mapNewValue(String::length).toCustomMap(LinkedHashMap::new);
     }
 
     @Test
@@ -777,7 +777,7 @@ public class EntryStreamTest {
             for (int i = n; i < 4; i++)
                 expected.put(i, i);
             streamEx(() -> IntStreamEx.range(4).atLeast(n).boxed(), s -> {
-                Map<Integer, Integer> map = s.get().mapToEntry(Function.identity()).toImmutableMap();
+                Map<Integer, Integer> map = s.get().mapNewValue(Function.identity()).toImmutableMap();
                 assertEquals(expected, map);
                 try {
                     map.put(-1, -1);

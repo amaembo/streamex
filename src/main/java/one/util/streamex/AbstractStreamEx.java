@@ -40,6 +40,7 @@ import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static one.util.streamex.InternalUtilities.*;
 import static one.util.streamex.Internals.ArrayCollection;
 import static one.util.streamex.Internals.Box;
 import static one.util.streamex.Internals.CancelException;
@@ -53,6 +54,7 @@ import static one.util.streamex.Internals.ObjLongBox;
 import static one.util.streamex.Internals.PairBox;
 import static one.util.streamex.Internals.finished;
 import static one.util.streamex.Internals.none;
+import one.util.functionex.*;
 
 /**
  * Base class providing common functionality for {@link StreamEx} and {@link EntryStream}.
@@ -179,7 +181,19 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     public S onClose(Runnable closeHandler) {
         return (S) super.onClose(closeHandler);
     }
-    
+
+    /**
+     * Declares that {@code exceptionType} may be thrown during processing stream
+     * @param exceptionType exception type may be thrown
+     * @return this
+     * @param <X> Exception Type to throw
+     * @throws X Exception type declared
+     */
+    @SuppressWarnings("unchecked")
+    public <X extends Throwable> S throwing(Class<X> exceptionType) throws X {
+        return (S) this;
+    }
+
     /**
      * @see #nonNull()
      * @see #remove(Predicate)
@@ -189,10 +203,41 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     public S filter(Predicate<? super T> predicate) {
         return supply(stream().filter(predicate));
     }
+    /**
+     * Equivalent to {@link #filter(Predicate)} but accepts Throwable Functions instead and declares exception
+     * may mapper function throw
+     * @param <X> Exception Type the mapper function may throw
+     * @throws X Exception that mapper function may throw
+     */
+    public <X extends Throwable> S filterThrowing(ThrowablePredicate1<X, ? super T> predicate) throws X {
+        return tryFilter(predicate);
+    }
+    /**
+     * Equivalent to {@link #filterThrowing(ThrowablePredicate1)} but hides the exception that mapper function may throw
+     */
+    public S tryFilter(ThrowablePredicate1<? extends Throwable, ? super T> predicate) {
+        return filter(toPredicateSneakyThrowing(predicate));
+    }
 
     @Override
     public <R> StreamEx<R> flatMap(Function<? super T, ? extends Stream<? extends R>> mapper) {
         return new StreamEx<>(stream().flatMap(mapper), context);
+    }
+    /**
+     * Equivalent to {@link #flatMap(Function)} but accepts Throwable Functions instead and declares exception
+     * may mapper function throw
+     *
+     * @param <X> Exception Type the mapper function may throw
+     * @throws X Exception that mapper function may throw
+     */
+    public <X extends Throwable, R> StreamEx<R> flatMapThrowing(ThrowableFunction1_1<X, ? super T, ? extends Stream<? extends R>> mapper) throws X {
+        return tryFlatMap(mapper);
+    }
+    /**
+     * Equivalent to {@link #flatMapThrowing(ThrowableFunction1_1)} but hides the exception that mapper function may throw
+     */
+    public <R> StreamEx<R> tryFlatMap(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends Stream<? extends R>> mapper) {
+        return flatMap(toFunctionSneakyThrowing(mapper));
     }
 
     /**
@@ -214,6 +259,23 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
         Objects.requireNonNull(mapper);
         return VerSpec.VER_SPEC.callMapMulti(this, mapper);
     }
+    /**
+     * Equivalent to {@link #mapMulti(BiConsumer)} but accepts Throwable Functions instead and declares exception
+     * may mapper function throw
+     * @return the new stream
+     * @param <X> Exception Type the mapper function may throw
+     * @throws X Exception that mapper function may throw
+     */
+    public <X extends Throwable, R> StreamEx<R> mapMultiThrowing(ThrowableFunction2_0<X, ? super T, ? super Consumer<R>> mapper) throws X {
+        return tryMapMulti(mapper);
+    }
+    /**
+     * Equivalent to {@link #mapMultiThrowing(ThrowableFunction2_0)} but hides the exception that mapper function may throw
+     */
+    public <R> StreamEx<R> tryMapMulti(ThrowableFunction2_0<? extends Throwable, ? super T, ? super Consumer<R>> mapper) {
+        Objects.requireNonNull(mapper);
+        return mapMulti(toBiConsumerSneakyThrowing(mapper));
+    }
 
     /**
      * Returns an {@link IntStreamEx} where every element of this stream is replaced by elements produced
@@ -232,6 +294,22 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     public IntStreamEx mapMultiToInt(BiConsumer<? super T, ? super IntConsumer> mapper) {
         Objects.requireNonNull(mapper);
         return VerSpec.VER_SPEC.callMapMultiToInt(this, mapper);
+    }
+    /**
+     * Equivalent to {@link #mapMultiToInt(BiConsumer)} but accepts Throwable Functions instead and declares exception
+     * may mapper function throw
+     * @param <X> Exception Type the mapper function may throw
+     * @throws X Exception that mapper function may throw
+     */
+    public <X extends Throwable> IntStreamEx mapMultiToIntThrowing(ThrowableFunction2_0<X, ? super T, ? super IntConsumer> mapper) throws X {
+        return tryMapMultiToInt(mapper);
+    }
+    /**
+     * Equivalent to {@link #mapMultiToIntThrowing(ThrowableFunction2_0)} but hides the exception that mapper function may throw
+     */
+    public IntStreamEx tryMapMultiToInt(ThrowableFunction2_0<? extends Throwable, ? super T, ? super IntConsumer> mapper) {
+        Objects.requireNonNull(mapper);
+        return mapMultiToInt(toBiConsumerSneakyThrowing(mapper));
     }
 
     /**
@@ -252,6 +330,22 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
         Objects.requireNonNull(mapper);
         return VerSpec.VER_SPEC.callMapMultiToLong(this, mapper);
     }
+    /**
+     * Equivalent to {@link #mapMultiToLong(BiConsumer)} but accepts Throwable Functions instead and declares exception
+     * may mapper function throw
+     * @param <X> Exception Type the mapper function may throw
+     * @throws X Exception that mapper function may throw
+     */
+    public <X extends Throwable> LongStreamEx mapMultiToLongThrowing(ThrowableFunction2_0<X, ? super T, ? super LongConsumer> mapper) throws X {
+        return tryMapMultiToLong(mapper);
+    }
+    /**
+     * Equivalent to {@link #mapMultiToLongThrowing(ThrowableFunction2_0)} but hides the exception that mapper function may throw
+     */
+    public LongStreamEx tryMapMultiToLong(ThrowableFunction2_0<? extends Throwable, ? super T, ? super LongConsumer> mapper) {
+        Objects.requireNonNull(mapper);
+        return mapMultiToLong(toBiConsumerSneakyThrowing(mapper));
+    }
 
     /**
      * Returns a {@link DoubleStreamEx} where every element of this stream is replaced by elements produced
@@ -271,40 +365,161 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
         Objects.requireNonNull(mapper);
         return VerSpec.VER_SPEC.callMapMultiToDouble(this, mapper);
     }
+    /**
+     * Equivalent to {@link #mapMultiToDouble(BiConsumer)} but accepts Throwable Functions instead and declares exception
+     * may mapper function throw
+     * @param <X> Exception Type the mapper function may throw
+     * @throws X Exception that mapper function may throw
+     */
+    public <X extends Throwable> DoubleStreamEx mapMultiToDoubleThrowing(ThrowableFunction2_0<X, ? super T, ? super DoubleConsumer> mapper) throws X {
+        return tryMapMultiToDouble(mapper);
+    }
+    /**
+     * Equivalent to {@link #mapMultiToDoubleThrowing(ThrowableFunction2_0)} but hides the exception that mapper function may throw
+     */
+    public DoubleStreamEx tryMapMultiToDouble(ThrowableFunction2_0<? extends Throwable, ? super T, ? super DoubleConsumer> mapper) {
+        Objects.requireNonNull(mapper);
+        return mapMultiToDouble(toBiConsumerSneakyThrowing(mapper));
+    }
 
     @Override
     public <R> StreamEx<R> map(Function<? super T, ? extends R> mapper) {
         return new StreamEx<>(stream().map(mapper), context);
+    }
+    /**
+     * Equivalent to {@link #map(Function)} but accepts Throwable Functions instead and declares exception
+     * may mapper function throw
+     * @param <X> Exception Type the mapper function may throw
+     * @throws X Exception that mapper function may throw
+     */
+    public <X extends Throwable, R> StreamEx<R> mapThrowing(ThrowableFunction1_1<X, ? super T, ? extends R> mapper ) throws X {
+        return tryMap(mapper);
+    }
+    /**
+     * Equivalent to {@link #mapThrowing(ThrowableFunction1_1)} but hides the exception that mapper function may throw
+     */
+    public <R> StreamEx<R> tryMap(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends R> mapper ) {
+        return map(toFunctionSneakyThrowing(mapper));
     }
 
     @Override
     public IntStreamEx mapToInt(ToIntFunction<? super T> mapper) {
         return new IntStreamEx(stream().mapToInt(mapper), context);
     }
+    /**
+     * Equivalent to {@link #mapToInt(ToIntFunction)} but accepts Throwable Functions instead and declares exception
+     * may mapper function throw
+     * @param <X> Exception Type the mapper function may throw
+     * @throws X Exception that mapper function may throw
+     */
+    public <X extends Throwable> IntStreamEx mapToIntThrowing(ThrowableFunction1_1<X, ? super T, ? extends Integer> mapper ) throws X {
+        return tryMapToInt(mapper);
+    }
+    /**
+     * Equivalent to {@link #mapToIntThrowing(ThrowableFunction1_1)} but hides the exception that mapper function may throw
+     */
+    public IntStreamEx tryMapToInt(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends Integer> mapper ) {
+        return mapToInt(toIntFunctionSneakyThrowing(mapper));
+    }
 
     @Override
     public LongStreamEx mapToLong(ToLongFunction<? super T> mapper) {
         return new LongStreamEx(stream().mapToLong(mapper), context);
+    }
+    /**
+     * Equivalent to {@link #mapToLong(ToLongFunction)} but accepts Throwable Functions instead and declares exception
+     * may mapper function throw
+     * @param <X> Exception Type the mapper function may throw
+     * @throws X Exception that mapper function may throw
+     */
+    public <X extends Throwable> LongStreamEx mapToLongThrowing(ThrowableFunction1_1<X, ? super T, ? extends Long> mapper ) throws X {
+        return tryMapToLong(mapper);
+    }
+    /**
+     * Equivalent to {@link #mapToLongThrowing(ThrowableFunction1_1)} but hides the exception that mapper function may throw
+     */
+    public LongStreamEx tryMapToLong(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends Long> mapper ) {
+        return mapToLong(toLongFunctionSneakyThrowing(mapper));
     }
 
     @Override
     public DoubleStreamEx mapToDouble(ToDoubleFunction<? super T> mapper) {
         return new DoubleStreamEx(stream().mapToDouble(mapper), context);
     }
+    /**
+     * Equivalent to {@link #mapToDouble(ToDoubleFunction)} but accepts Throwable Functions instead and declares exception
+     * may mapper function throw
+     * @param <X> Exception Type the mapper function may throw
+     * @throws X Exception that mapper function may throw
+     */
+    public <X extends Throwable> DoubleStreamEx mapToDoubleThrowing(ThrowableFunction1_1<X, ? super T, ? extends Double> mapper ) throws X {
+        return tryMapToDouble(mapper);
+    }
+    /**
+     * Equivalent to {@link #mapToDoubleThrowing(ThrowableFunction1_1)} but hides the exception that mapper function may throw
+     */
+    public DoubleStreamEx tryMapToDouble(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends Double> mapper ) {
+        return mapToDouble(toDoubleFunctionSneakyThrowing(mapper));
+    }
 
     @Override
     public IntStreamEx flatMapToInt(Function<? super T, ? extends IntStream> mapper) {
         return new IntStreamEx(stream().flatMapToInt(mapper), context);
+    }
+    /**
+     * Equivalent to {@link #flatMapToInt(Function)} but accepts Throwable Functions instead and declares exception
+     * may mapper function throw
+     * @param <X> Exception Type the mapper function may throw
+     * @throws X Exception that mapper function may throw
+     */
+    public <X extends Throwable> IntStreamEx flatMapToIntThrowing(ThrowableFunction1_1<X, ? super T, ? extends IntStream> mapper ) throws X {
+        return tryFlatMapToInt(mapper);
+    }
+    /**
+     * Equivalent to {@link #flatMapToIntThrowing(ThrowableFunction1_1)} but hides the exception that mapper function may throw
+     */
+    public IntStreamEx tryFlatMapToInt(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends IntStream> mapper ) {
+        return flatMapToInt(toFunctionSneakyThrowing(mapper));
     }
 
     @Override
     public LongStreamEx flatMapToLong(Function<? super T, ? extends LongStream> mapper) {
         return new LongStreamEx(stream().flatMapToLong(mapper), context);
     }
+    /**
+     * Equivalent to {@link #flatMapToLong(Function)} but accepts Throwable Functions instead and declares exception
+     * may mapper function throw
+     * @param <X> Exception Type the mapper function may throw
+     * @throws X Exception that mapper function may throw
+     */
+    public <X extends Throwable> LongStreamEx flatMapToLongThrowing(ThrowableFunction1_1<X, ? super T, ? extends LongStream> mapper ) throws X {
+        return tryFlatMapToLong(mapper);
+    }
+    /**
+     * Equivalent to {@link #flatMapToLongThrowing(ThrowableFunction1_1)} but hides the exception that mapper function may throw
+     */
+    public LongStreamEx tryFlatMapToLong(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends LongStream> mapper ) {
+        return flatMapToLong(toFunctionSneakyThrowing(mapper));
+    }
 
     @Override
     public DoubleStreamEx flatMapToDouble(Function<? super T, ? extends DoubleStream> mapper) {
         return new DoubleStreamEx(stream().flatMapToDouble(mapper), context);
+    }
+    /**
+     * Equivalent to {@link #flatMapToDouble(Function)} but accepts Throwable Functions instead and declares exception
+     * may mapper function throw
+     * @param <X> Exception Type the mapper function may throw
+     * @throws X Exception that mapper function may throw
+     */
+    public <X extends Throwable> DoubleStreamEx flatMapToDoubleThrowing(ThrowableFunction1_1<X, ? super T, ? extends DoubleStream> mapper ) throws X {
+        return tryFlatMapToDouble(mapper);
+    }
+    /**
+     * Equivalent to {@link #flatMapToDoubleThrowing(ThrowableFunction1_1)} but hides the exception that mapper function may throw
+     */
+    public DoubleStreamEx tryFlatMapToDouble(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends DoubleStream> mapper ) {
+        return flatMapToDouble(toFunctionSneakyThrowing(mapper));
     }
 
     /**
@@ -428,6 +643,21 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
             }
         }
     }
+    /**
+     * Equivalent to {@link #forEach(Consumer)} but accepts Throwable Functions instead and declares exception
+     * may mapper function throw
+     * @param <X> Exception Type the mapper function may throw
+     * @throws X Exception that mapper function may throw
+     */
+    public <X extends Throwable> void forEachThrowing(ThrowableFunction1_0<X, ? super T> action) throws X {
+        tryForEach(action);
+    }
+    /**
+     * Equivalent to {@link #forEachThrowing(ThrowableFunction1_0)} but hides the exception that mapper function may throw
+     */
+    public void tryForEach(ThrowableFunction1_0<? extends Throwable, ? super T> action) {
+        forEach(toConsumerSneakyThrowing(action));
+    }
 
     @Override
     public void forEachOrdered(Consumer<? super T> action) {
@@ -443,6 +673,21 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
                 stream().forEachOrdered(action);
             }
         }
+    }
+    /**
+     * Equivalent to {@link #forEachOrdered(Consumer)} but accepts Throwable Functions instead and declares exception
+     * may mapper function throw
+     * @param <X> Exception Type the mapper function may throw
+     * @throws X Exception that mapper function may throw
+     */
+    public <X extends Throwable> void forEachOrderedThrowing(ThrowableFunction1_0<X, ? super T> action) throws X {
+        tryForEachOrdered(action);
+    }
+    /**
+     * Equivalent to {@link #forEachOrderedThrowing(ThrowableFunction1_0)} but hides the exception that mapper function may throw
+     */
+    public void tryForEachOrdered(ThrowableFunction1_0<? extends Throwable, ? super T> action) {
+        forEachOrdered(toConsumerSneakyThrowing(action));
     }
 
     @Override
@@ -463,6 +708,21 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
             return context.terminate(() -> stream().reduce(identity, accumulator));
         return stream().reduce(identity, accumulator);
     }
+    /**
+     * Equivalent to {@link #reduce(Object, BinaryOperator)} but accepts Throwable Functions instead and declares exception
+     * may accumulator function throw
+     * @param <X> Exception Type the accumulator function may throw
+     * @throws X Exception that accumulator function may throw
+     */
+    public <X extends Throwable> T reduceThrowing(T identity, ThrowableBinaryOperator<X, T> accumulator) throws X {
+        return tryReduce(identity, accumulator);
+    }
+    /**
+     * Equivalent to {@link #reduceThrowing(Object, ThrowableBinaryOperator)} but hides the exception that accumulator function may throw
+     */
+    public T tryReduce(T identity, ThrowableBinaryOperator<? extends Throwable, T> accumulator) {
+        return reduce(identity, toBinaryOperatorSneakyThrowing(accumulator));
+    }
 
     @Override
     public Optional<T> reduce(BinaryOperator<T> accumulator) {
@@ -470,12 +730,44 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
             return context.terminate(accumulator, stream()::reduce);
         return stream().reduce(accumulator);
     }
+    /**
+     * Equivalent to {@link #reduce(BinaryOperator)} but accepts Throwable Functions instead and declares exception
+     * may accumulator function throw
+     * @param <X> Exception Type the accumulator function may throw
+     * @throws X Exception that accumulator function may throw
+     */
+    public <X extends Throwable> Optional<T> reduceThrowing(ThrowableBinaryOperator<X, T> accumulator) throws X {
+        return tryReduce(accumulator);
+    }
+    /**
+     * Equivalent to {@link #reduceThrowing(ThrowableBinaryOperator)} but hides the exception that accumulator function may throw
+     */
+    public Optional<T> tryReduce(ThrowableBinaryOperator<? extends Throwable, T> accumulator) {
+        return reduce(toBinaryOperatorSneakyThrowing(accumulator));
+    }
 
     @Override
     public <U> U reduce(U identity, BiFunction<U, ? super T, U> accumulator, BinaryOperator<U> combiner) {
         if (context.fjp != null)
             return context.terminate(() -> stream().reduce(identity, accumulator, combiner));
         return stream().reduce(identity, accumulator, combiner);
+    }
+    /**
+     * Equivalent to {@link #reduce(Object, BiFunction, BinaryOperator)} but accepts Throwable Functions instead and declares exception
+     * may accumulator or combiner functions throw
+     * @param <X1> Exception Type the accumulator function may throw
+     * @param <X2> Exception Type the combiner function may throw
+     * @throws X1 Exception that accumulator function may throw
+     * @throws X2 Exception that combiner function may throw
+     */
+    public <X1 extends Throwable, X2 extends Throwable, U> U reduceThrowing(U identity, ThrowableFunction2_1<X1, U, ? super T, U> accumulator, ThrowableBinaryOperator<X2, U> combiner) throws X1, X2 {
+        return tryReduce(identity, accumulator, combiner);
+    }
+    /**
+     * Equivalent to {@link #reduceThrowing(Object, ThrowableFunction2_1, ThrowableBinaryOperator)} but hides the exception that accumulator or combiner function may throw
+     */
+    public <U> U tryReduce(U identity, ThrowableFunction2_1<? extends Throwable, U, ? super T, U> accumulator, ThrowableBinaryOperator<? extends Throwable, U> combiner) {
+        return reduce(identity, toBiFunctionSneakyThrowing(accumulator), toBinaryOperatorSneakyThrowing(combiner));
     }
 
     /**
@@ -502,6 +794,21 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      */
     public Optional<T> reduceWithZero(T zero, BinaryOperator<T> accumulator) {
         return collect(MoreCollectors.reducingWithZero(zero, accumulator));
+    }
+    /**
+     * Equivalent to {@link #reduceWithZero(Object, BinaryOperator)} but accepts Throwable Functions instead and declares exception
+     * may accumulator function throw
+     * @param <X> Exception Type the accumulator function may throw
+     * @throws X Exception that accumulator function may throw
+     */
+    public <X extends Throwable> Optional<T> reduceWithZeroThrowing(T zero, ThrowableBinaryOperator<X, T> accumulator) throws X {
+        return tryReduceWithZero(zero, accumulator);
+    }
+    /**
+     * Equivalent to {@link #reduceWithZeroThrowing(Object, ThrowableBinaryOperator)} but hides the exception that accumulator function may throw
+     */
+    public Optional<T> tryReduceWithZero(T zero, ThrowableBinaryOperator<? extends Throwable, T> accumulator) {
+        return reduceWithZero(zero, toBinaryOperatorSneakyThrowing(accumulator));
     }
 
     /**
@@ -531,12 +838,47 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     public T reduceWithZero(T zero, T identity, BinaryOperator<T> accumulator) {
         return collect(MoreCollectors.reducingWithZero(zero, identity, accumulator));
     }
+    /**
+     * Equivalent to {@link #reduceWithZero(Object, Object, BinaryOperator)} but accepts Throwable Functions instead and declares exception
+     * may accumulator function throw
+     * @param <X> Exception Type the accumulator function may throw
+     * @throws X Exception that accumulator function may throw
+     */
+    public <X extends Throwable> T reduceWithZeroThrowing(T zero, T identity, ThrowableBinaryOperator<X, T> accumulator) throws X {
+        return tryReduceWithZero(zero, identity, accumulator);
+    }
+    /**
+     * Equivalent to {@link #reduceWithZeroThrowing(Object, Object, ThrowableBinaryOperator)} but hides the exception that accumulator function may throw
+     */
+    public T tryReduceWithZero(T zero, T identity, ThrowableBinaryOperator<? extends Throwable, T> accumulator) {
+        return reduceWithZero(zero, identity, toBinaryOperatorSneakyThrowing(accumulator));
+    }
 
     @Override
     public <R> R collect(Supplier<R> supplier, BiConsumer<R, ? super T> accumulator, BiConsumer<R, R> combiner) {
         if (context.fjp != null)
             return context.terminate(() -> stream().collect(supplier, accumulator, combiner));
         return stream().collect(supplier, accumulator, combiner);
+    }
+    /**
+     * Equivalent to {@link #collect(Supplier, BiConsumer, BiConsumer)} but accepts Throwable Functions instead and declares exception
+     * may supplier, accumulator or combiner functions throw
+     * @param <X1> Exception Type the supplier function may throw
+     * @param <X2> Exception Type the accumulator function may throw
+     * @param <X3> Exception Type the combiner function may throw
+     * @throws X1 Exception that supplier function may throw
+     * @throws X2 Exception that accumulator function may throw
+     * @throws X3 Exception that combiner function may throw
+     */
+    public <X1 extends Throwable, X2 extends Throwable, X3 extends Throwable, R> R collectThrowing(ThrowableFunction0_1<X1, R> supplier, ThrowableFunction2_0<X2, R, ? super T> accumulator, ThrowableFunction2_0<X3, R, R> combiner) throws X1, X2, X3 {
+        return tryCollect(supplier, accumulator, combiner);
+    }
+    /**
+     * Equivalent to {@link #collectThrowing(ThrowableFunction0_1, ThrowableFunction2_0, ThrowableFunction2_0)} but hides the exception that
+     * supplier, accumulator or combiner functions may throw
+     */
+    public <R> R tryCollect(ThrowableFunction0_1<? extends Throwable, R> supplier, ThrowableFunction2_0<? extends Throwable, R, ? super T> accumulator, ThrowableFunction2_0<? extends Throwable, R, R> combiner) {
+        return collect(toSupplierSneakyThrowing(supplier), toBiConsumerSneakyThrowing(accumulator), toBiConsumerSneakyThrowing(combiner));
     }
 
     /**
@@ -619,12 +961,44 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     public long count(Predicate<? super T> predicate) {
         return filter(predicate).count();
     }
+    /**
+     * Equivalent to {@link #count(Predicate)} but accepts Throwable Functions instead and declares exception
+     * may predicate function throw
+     * @param <X> Exception Type the predicate function may throw
+     * @throws X Exception that predicate function may throw
+     */
+    public <X extends Throwable> long countThrowing(ThrowablePredicate1<X, ? super T> predicate) throws X {
+        return tryCount(predicate);
+    }
+    /**
+     * Equivalent to {@link #countThrowing(ThrowablePredicate1)} but hides the exception that
+     * predicate function may throw
+     */
+    public long tryCount(ThrowablePredicate1<? extends Throwable, ? super T> predicate) {
+        return count(toPredicateSneakyThrowing(predicate));
+    }
 
     @Override
     public boolean anyMatch(Predicate<? super T> predicate) {
         if (context.fjp != null)
             return context.terminate(predicate, stream()::anyMatch);
         return stream().anyMatch(predicate);
+    }
+    /**
+     * Equivalent to {@link #anyMatch(Predicate)} but accepts Throwable Functions instead and declares exception
+     * may predicate function throw
+     * @param <X> Exception Type the predicate function may throw
+     * @throws X Exception that predicate function may throw
+     */
+    public <X extends Throwable> boolean anyMatchThrowing(ThrowablePredicate1<X, ? super T> predicate) throws X {
+        return tryAnyMatch(predicate);
+    }
+    /**
+     * Equivalent to {@link #anyMatchThrowing(ThrowablePredicate1)} but hides the exception that
+     * predicate function may throw
+     */
+    public boolean tryAnyMatch(ThrowablePredicate1<? extends Throwable, ? super T> predicate) {
+        return anyMatch(toPredicateSneakyThrowing(predicate));
     }
 
     @Override
@@ -633,10 +1007,42 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
             return context.terminate(predicate, stream()::allMatch);
         return stream().allMatch(predicate);
     }
+    /**
+     * Equivalent to {@link #allMatch(Predicate)} but accepts Throwable Functions instead and declares exception
+     * may predicate function throw
+     * @param <X> Exception Type the predicate function may throw
+     * @throws X Exception that predicate function may throw
+     */
+    public <X extends Throwable> boolean allMatchThrowing(ThrowablePredicate1<X, ? super T> predicate) throws X {
+        return tryAllMatch(predicate);
+    }
+    /**
+     * Equivalent to {@link #allMatchThrowing(ThrowablePredicate1)} but hides the exception that
+     * predicate function may throw
+     */
+    public boolean tryAllMatch(ThrowablePredicate1<? extends Throwable, ? super T> predicate) {
+        return allMatch(toPredicateSneakyThrowing(predicate));
+    }
 
     @Override
     public boolean noneMatch(Predicate<? super T> predicate) {
         return !anyMatch(predicate);
+    }
+    /**
+     * Equivalent to {@link #noneMatch(Predicate)} but accepts Throwable Functions instead and declares exception
+     * may predicate function throw
+     * @param <X> Exception Type the predicate function may throw
+     * @throws X Exception that predicate function may throw
+     */
+    public <X extends Throwable> boolean noneMatchThrowing(ThrowablePredicate1<X, ? super T> predicate) throws X {
+        return tryNoneMatch(predicate);
+    }
+    /**
+     * Equivalent to {@link #noneMatchThrowing(ThrowablePredicate1)} but hides the exception that
+     * predicate function may throw
+     */
+    public boolean tryNoneMatch(ThrowablePredicate1<? extends Throwable, ? super T> predicate) {
+        return noneMatch(toPredicateSneakyThrowing(predicate));
     }
 
     @Override
@@ -707,6 +1113,22 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
             return acc1;
         }, acc -> acc[0] < 0 ? OptionalLong.empty() : OptionalLong.of(acc[0]), acc -> acc[0] >= 0, NO_CHARACTERISTICS));
     }
+    /**
+     * Equivalent to {@link #indexOf(Predicate)} but accepts Throwable Functions instead and declares exception
+     * may predicate function throw
+     * @param <X> Exception Type the predicate function may throw
+     * @throws X Exception that predicate function may throw
+     */
+    public <X extends Throwable> OptionalLong indexOfThrowing(ThrowablePredicate1<X, ? super T> predicate) throws X {
+        return tryIndexOf(predicate);
+    }
+    /**
+     * Equivalent to {@link #indexOfThrowing(ThrowablePredicate1)} but hides the exception that
+     * predicate function may throw
+     */
+    public OptionalLong tryIndexOf(ThrowablePredicate1<? extends Throwable, ? super T> predicate) {
+        return indexOf(toPredicateSneakyThrowing(predicate));
+    }
 
     /**
      * Returns a stream consisting of the results of replacing each element of
@@ -736,6 +1158,22 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
             Collection<? extends R> c = mapper.apply(t);
             return c == null ? null : StreamEx.of(c.spliterator());
         });
+    }
+    /**
+     * Equivalent to {@link #flatCollection(Function)} but accepts Throwable Functions instead and declares exception
+     * may mapper function throw
+     * @param <X> Exception Type the mapper function may throw
+     * @throws X Exception that mapper function may throw
+     */
+    public <X extends Throwable, R> StreamEx<R> flatCollectionThrowing(ThrowableFunction1_1<X, ? super T, ? extends Collection<? extends R>> mapper) throws X {
+        return tryFlatCollection(mapper);
+    }
+    /**
+     * Equivalent to {@link #flatCollectionThrowing(ThrowableFunction1_1)} but hides the exception that
+     * mapper function may throw
+     */
+    public <R> StreamEx<R> tryFlatCollection(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends Collection<? extends R>> mapper) {
+        return flatCollection(toFunctionSneakyThrowing(mapper));
     }
 
     /**
@@ -767,6 +1205,22 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
             R[] a = mapper.apply(t);
             return a == null ? null : StreamEx.of(Arrays.spliterator(a));
         });
+    }
+    /**
+     * Equivalent to {@link #flatArray(Function)} but accepts Throwable Functions instead and declares exception
+     * may mapper function throw
+     * @param <X> Exception Type the mapper function may throw
+     * @throws X Exception that mapper function may throw
+     */
+    public <X extends Throwable, R> StreamEx<R> flatArrayThrowing(ThrowableFunction1_1<X, ? super T, ? extends R[]> mapper) throws X {
+        return tryFlatArray(mapper);
+    }
+    /**
+     * Equivalent to {@link #flatArrayThrowing(ThrowableFunction1_1)} but hides the exception that
+     * mapper function may throw
+     */
+    public <R> StreamEx<R> tryFlatArray(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends R[]> mapper) {
+        return flatArray(toFunctionSneakyThrowing(mapper));
     }
 
     /**
@@ -800,6 +1254,22 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
         return new StreamEx<>(stream().map(value -> mapper.apply(value).orElse(null)).filter(Objects::nonNull),
                 context);
     }
+    /**
+     * Equivalent to {@link #mapPartial(Function)} but accepts Throwable Functions instead and declares exception
+     * may mapper function throw
+     * @param <X> Exception Type the mapper function may throw
+     * @throws X Exception that mapper function may throw
+     */
+    public <X extends Throwable, R> StreamEx<R> mapPartialThrowing(ThrowableFunction1_1<X, ? super T, ? extends Optional<? extends R>> mapper) throws X {
+        return tryMapPartial(mapper);
+    }
+    /**
+     * Equivalent to {@link #mapPartialThrowing(ThrowableFunction1_1)} but hides the exception that
+     * mapper function may throw
+     */
+    public <R> StreamEx<R> tryMapPartial(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends Optional<? extends R>> mapper) {
+        return mapPartial(toFunctionSneakyThrowing(mapper));
+    }
 
     /**
      * Returns a stream consisting of the results of applying the given function
@@ -823,7 +1293,22 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
         PairSpliterator.PSOfRef<T, R> spliterator = new PairSpliterator.PSOfRef<>(mapper, spliterator());
         return new StreamEx<>(spliterator, context);
     }
-
+    /**
+     * Equivalent to {@link #pairMap(BiFunction)} but accepts Throwable Functions instead and declares exception
+     * may mapper function throw
+     * @param <X> Exception Type the mapper function may throw
+     * @throws X Exception that mapper function may throw
+     */
+    public <X extends Throwable, R> StreamEx<R> pairMapThrowing(ThrowableFunction2_1<X, ? super T, ? super T, ? extends R> mapper) throws X {
+        return tryPairMap(mapper);
+    }
+    /**
+     * Equivalent to {@link #pairMapThrowing(ThrowableFunction2_1)} but hides the exception that
+     * mapper function may throw
+     */
+    public <R> StreamEx<R> tryPairMap(ThrowableFunction2_1<? extends Throwable, ? super T, ? super T, ? extends R> mapper) {
+        return pairMap(toBiFunctionSneakyThrowing(mapper));
+    }
     /**
      * Returns a stream consisting of the elements of this stream that don't
      * match the given predicate.
@@ -1460,6 +1945,22 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
             return context.terminate(() -> finisher.apply(toMutableList()));
         return finisher.apply(toMutableList());
     }
+    /**
+     * Equivalent to {@link #toListAndThen(Function)} but accepts Throwable Functions instead and declares exception
+     * may finisher function throw
+     * @param <X> Exception Type the finisher function may throw
+     * @throws X Exception that finisher function may throw
+     */
+    public <X extends Throwable, R> R toListAndThenThrowing(ThrowableFunction1_1<X, ? super List<T>, R> finisher) throws X {
+        return toListAndThenTry(finisher);
+    }
+    /**
+     * Equivalent to {@link #toListAndThenThrowing(ThrowableFunction1_1)} but hides the exception that
+     * finisher function may throw
+     */
+    public <R> R toListAndThenTry(ThrowableFunction1_1<? extends Throwable, ? super List<T>, R> finisher) {
+        return toListAndThen(toFunctionSneakyThrowing(finisher));
+    }
 
     /**
      * Returns a {@link Set} containing the elements of this stream. There
@@ -1540,6 +2041,22 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
             return context.terminate(() -> finisher.apply(toMutableSet()));
         return finisher.apply(toMutableSet());
     }
+    /**
+     * Equivalent to {@link #toSetAndThen(Function)} but accepts Throwable Functions instead and declares exception
+     * may finisher function throw
+     * @param <X> Exception Type the finisher function may throw
+     * @throws X Exception that finisher function may throw
+     */
+    public <X extends Throwable, R> R toSetAndThenThrowing(ThrowableFunction1_1<X, ? super Set<T>, R> finisher) throws X {
+        return toSetAndThenTry(finisher);
+    }
+    /**
+     * Equivalent to {@link #toSetAndThenThrowing(ThrowableFunction1_1)} but hides the exception that
+     * finisher function may throw
+     */
+    public <R> R toSetAndThenTry(ThrowableFunction1_1<? extends Throwable, ? super Set<T>, R> finisher) {
+        return toSetAndThen(toFunctionSneakyThrowing(finisher));
+    }
 
     /**
      * Creates a custom {@link Collection} containing the elements of this stream, 
@@ -1565,6 +2082,24 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
             return context.terminate(() -> finisher.apply(toCollection(collectionFactory)));
         return finisher.apply(toCollection(collectionFactory));
     }
+    /**
+     * Equivalent to {@link #toCollectionAndThen(Supplier, Function)} but accepts Throwable Functions instead and declares exception
+     * may collectionFactory or finisher functions throw
+     * @param <X1> Exception Type the collectionFactory function may throw
+     * @param <X2> Exception Type the finisher function may throw
+     * @throws X1 Exception that collectionFactory function may throw
+     * @throws X2 Exception that finisher function may throw
+     */
+    public <X1 extends Throwable, X2 extends Throwable, C extends Collection<T>, R> R toCollectionAndThenThrowing(ThrowableFunction0_1<X1, C> collectionFactory, ThrowableFunction1_1<X2, ? super C, R> finisher) throws X1, X2 {
+        return toCollectionAndThenTry(collectionFactory, finisher);
+    }
+    /**
+     * Equivalent to {@link #toCollectionAndThenThrowing(ThrowableFunction0_1, ThrowableFunction1_1)} but hides the exception that
+     * collectionFactory or finisher functions may throw
+     */
+    public <C extends Collection<T>, R> R toCollectionAndThenTry(ThrowableFunction0_1<? extends Throwable, C> collectionFactory, ThrowableFunction1_1<? extends Throwable, ? super C, R> finisher) {
+        return toCollectionAndThen(toSupplierSneakyThrowing(collectionFactory), toFunctionSneakyThrowing(finisher));
+    }
 
     /**
      * Returns a {@link Collection} containing the elements of this stream. The
@@ -1582,6 +2117,22 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      */
     public <C extends Collection<T>> C toCollection(Supplier<C> collectionFactory) {
         return rawCollect(Collectors.toCollection(collectionFactory));
+    }
+    /**
+     * Equivalent to {@link #toCollection(Supplier)} but accepts Throwable Functions instead and declares exception
+     * may collectionFactory function throw
+     * @param <X> Exception Type the collectionFactory function may throw
+     * @throws X Exception that collectionFactory function may throw
+     */
+    public <X extends Throwable, C extends Collection<T>> C toCollectionThrowing(ThrowableFunction0_1<X, C> collectionFactory) throws X {
+        return tryToCollection(collectionFactory);
+    }
+    /**
+     * Equivalent to {@link #toCollectionThrowing(ThrowableFunction0_1)} but hides the exception that
+     * collectionFactory function may throw
+     */
+    public <C extends Collection<T>> C tryToCollection(ThrowableFunction0_1<? extends Throwable, C> collectionFactory) {
+        return toCollection(toSupplierSneakyThrowing(collectionFactory));
     }
 
     /**
@@ -1626,6 +2177,22 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
         Box<U> result = new Box<>(seed);
         forEachOrdered(t -> result.a = accumulator.apply(result.a, t));
         return result.a;
+    }
+    /**
+     * Equivalent to {@link #foldLeft(Object, BiFunction)} but accepts Throwable Functions instead and declares exception
+     * may accumulator function throw
+     * @param <X> Exception Type the accumulator function may throw
+     * @throws X Exception that accumulator function may throw
+     */
+    public <X extends Throwable, U> U foldLeftThrowing(U seed, ThrowableFunction2_1<X, U, ? super T, U> accumulator) throws X {
+        return tryFoldLeft(seed, accumulator);
+    }
+    /**
+     * Equivalent to {@link #foldLeftThrowing(Object, ThrowableFunction2_1)} but hides the exception that
+     * accumulator function may throw
+     */
+    public <U> U tryFoldLeft(U seed, ThrowableFunction2_1<? extends Throwable, U, ? super T, U> accumulator) {
+        return foldLeft(seed, toBiFunctionSneakyThrowing(accumulator));
     }
 
     /**
@@ -1675,6 +2242,22 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
         forEachOrdered(t -> result.a = result.a == NONE ? t : accumulator.apply(result.a, t));
         return result.a == NONE ? Optional.empty() : Optional.of(result.a);
     }
+    /**
+     * Equivalent to {@link #foldLeft(BinaryOperator)} but accepts Throwable Functions instead and declares exception
+     * may accumulator function throw
+     * @param <X> Exception Type the accumulator function may throw
+     * @throws X Exception that accumulator function may throw
+     */
+    public <X extends Throwable> Optional<T> foldLeftThrowing(ThrowableBinaryOperator<X, T> accumulator) throws X {
+        return tryFoldLeft(accumulator);
+    }
+    /**
+     * Equivalent to {@link #foldLeftThrowing(ThrowableBinaryOperator)} but hides the exception that
+     * accumulator function may throw
+     */
+    public Optional<T> tryFoldLeft(ThrowableBinaryOperator<? extends Throwable, T> accumulator) {
+        return foldLeft(toBinaryOperatorSneakyThrowing(accumulator));
+    }
 
     /**
      * Folds the elements of this stream using the provided seed object and
@@ -1714,6 +2297,22 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
                 result = accumulator.apply(list.get(i), result);
             return result;
         });
+    }
+    /**
+     * Equivalent to {@link #foldRight(Object, BiFunction)} but accepts Throwable Functions instead and declares exception
+     * may accumulator function throw
+     * @param <X> Exception Type the accumulator function may throw
+     * @throws X Exception that accumulator function may throw
+     */
+    public <X extends Throwable, U> U foldRightThrowing(U seed, ThrowableFunction2_1<X, ? super T, U, U> accumulator) throws X {
+        return tryFoldRight(seed, accumulator);
+    }
+    /**
+     * Equivalent to {@link #foldRightThrowing(Object, ThrowableFunction2_1)} but hides the exception that
+     * accumulator function may throw
+     */
+    public <U> U tryFoldRight(U seed, ThrowableFunction2_1<? extends Throwable, ? super T, U, U> accumulator) {
+        return foldRight(seed, toBiFunctionSneakyThrowing(accumulator));
     }
 
     /**
@@ -1755,6 +2354,22 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
             return Optional.of(result);
         });
     }
+    /**
+     * Equivalent to {@link #foldRight(BinaryOperator)} but accepts Throwable Functions instead and declares exception
+     * may accumulator function throw
+     * @param <X> Exception Type the accumulator function may throw
+     * @throws X Exception that accumulator function may throw
+     */
+    public <X extends Throwable> Optional<T> foldRightThrowing(ThrowableBinaryOperator<X, T> accumulator) throws X {
+        return tryFoldRight(accumulator);
+    }
+    /**
+     * Equivalent to {@link #foldRightThrowing(ThrowableBinaryOperator)} but hides the exception that
+     * accumulator function may throw
+     */
+    public Optional<T> tryFoldRight(ThrowableBinaryOperator<? extends Throwable, T> accumulator) {
+        return foldRight(toBinaryOperatorSneakyThrowing(accumulator));
+    }
 
     /**
      * Produces a list containing cumulative results of applying the
@@ -1794,6 +2409,22 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
         result.add(seed);
         forEachOrdered(t -> result.add(accumulator.apply(result.get(result.size() - 1), t)));
         return result;
+    }
+    /**
+     * Equivalent to {@link #scanLeft(Object, BiFunction)} but accepts Throwable Functions instead and declares exception
+     * may accumulator function throw
+     * @param <X> Exception Type the accumulator function may throw
+     * @throws X Exception that accumulator function may throw
+     */
+    public <X extends Throwable, U> List<U> scanLeftThrowing(U seed, ThrowableFunction2_1<X, U, ? super T, U> accumulator) throws X {
+        return tryScanLeft(seed, accumulator);
+    }
+    /**
+     * Equivalent to {@link #scanLeftThrowing(Object, ThrowableFunction2_1)} but hides the exception that
+     * accumulator function may throw
+     */
+    public <U> List<U> tryScanLeft(U seed, ThrowableFunction2_1<? extends Throwable, U, ? super T, U> accumulator) {
+        return scanLeft(seed, toBiFunctionSneakyThrowing(accumulator));
     }
 
     /**
@@ -1837,6 +2468,22 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
                 result.add(accumulator.apply(result.get(result.size() - 1), t));
         });
         return result;
+    }
+    /**
+     * Equivalent to {@link #scanLeft(BinaryOperator)} but accepts Throwable Functions instead and declares exception
+     * may accumulator function throw
+     * @param <X> Exception Type the accumulator function may throw
+     * @throws X Exception that accumulator function may throw
+     */
+    public <X extends Throwable> List<T> scanLeftThrowing(ThrowableBinaryOperator<X, T> accumulator) throws X {
+        return tryScanLeft(accumulator);
+    }
+    /**
+     * Equivalent to {@link #scanLeftThrowing(ThrowableBinaryOperator)} but hides the exception that
+     * accumulator function may throw
+     */
+    public List<T> tryScanLeft(ThrowableBinaryOperator<? extends Throwable, T> accumulator) {
+        return scanLeft(toBinaryOperatorSneakyThrowing(accumulator));
     }
 
     /**
@@ -1884,6 +2531,22 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
             return result;
         });
     }
+    /**
+     * Equivalent to {@link #scanRight(Object, BiFunction)} but accepts Throwable Functions instead and declares exception
+     * may accumulator function throw
+     * @param <X> Exception Type the accumulator function may throw
+     * @throws X Exception that accumulator function may throw
+     */
+    public <X extends Throwable, U> List<U> scanRightThrowing(U seed, ThrowableFunction2_1<X, ? super T, U, U> accumulator) throws X {
+        return tryScanRight(seed, accumulator);
+    }
+    /**
+     * Equivalent to {@link #scanRightThrowing(Object, ThrowableFunction2_1)} but hides the exception that
+     * accumulator function may throw
+     */
+    public <U> List<U> tryScanRight(U seed, ThrowableFunction2_1<? extends Throwable, ? super T, U, U> accumulator) {
+        return scanRight(seed, toBiFunctionSneakyThrowing(accumulator));
+    }
 
     /**
      * Produces a collection containing cumulative results of applying the
@@ -1923,6 +2586,22 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
             }
             return list;
         });
+    }
+    /**
+     * Equivalent to {@link #scanRight(BinaryOperator)} but accepts Throwable Functions instead and declares exception
+     * may accumulator function throw
+     * @param <X> Exception Type the accumulator function may throw
+     * @throws X Exception that accumulator function may throw
+     */
+    public <X extends Throwable> List<T> scanRightThrowing(ThrowableBinaryOperator<X, T> accumulator) throws X {
+        return tryScanRight(accumulator);
+    }
+    /**
+     * Equivalent to {@link #scanRightThrowing(ThrowableBinaryOperator)} but hides the exception that
+     * accumulator function may throw
+     */
+    public List<T> tryScanRight(ThrowableBinaryOperator<? extends Throwable, T> accumulator) {
+        return scanRight(toBinaryOperatorSneakyThrowing(accumulator));
     }
 
     /**
@@ -2051,4 +2730,5 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     public <U> U chain(Function<? super S, U> mapper) {
         return mapper.apply((S) this);
     }
+
 }

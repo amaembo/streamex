@@ -15,6 +15,9 @@
  */
 package one.util.streamex;
 
+import one.util.functionex.ThrowableFunction1_1;
+import one.util.functionex.ThrowableFunction1_2;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -62,6 +65,7 @@ import java.util.stream.Collector.Characteristics;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static one.util.streamex.InternalUtilities.*;
 import static one.util.streamex.Internals.Box;
 import static one.util.streamex.Internals.ObjLongBox;
 import static one.util.streamex.Internals.PairBox;
@@ -204,8 +208,24 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *        element
      * @return the new stream
      */
-    public <V> EntryStream<T, V> mapToEntry(Function<? super T, ? extends V> valueMapper) {
+    public <V> EntryStream<T, V> mapNewValue(Function<? super T, ? extends V> valueMapper) {
         return new EntryStream<>(stream().map(e -> new SimpleImmutableEntry<>(e, valueMapper.apply(e))), context);
+    }
+    public <X extends Throwable, V> EntryStream<T, V> mapNewValueThrowing(ThrowableFunction1_1<X, ? super T, ? extends V> valueMapper) throws X {
+        return tryMapNewValue(valueMapper);
+    }
+    public <V> EntryStream<T, V> tryMapNewValue(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends V> valueMapper) {
+        return mapNewValue(toFunctionSneakyThrowing(valueMapper));
+    }
+
+    public <U, V> EntryStream<U, V> mapToEntry(Function<? super T, ? extends Entry<U, V>> entryMapper) {
+        return new EntryStream<>(stream().map(entryMapper), context);
+    }
+    public <X extends Throwable, U, V> EntryStream<U, V> mapToEntryThrowing(ThrowableFunction1_2<X, ? super T, ? extends U, ? extends V> entryMapper) throws X {
+        return tryMapToEntry(entryMapper);
+    }
+    public <U, V> EntryStream<U, V> tryMapToEntry(ThrowableFunction1_2<? extends Throwable, ? super T, ? extends U, ? extends V> entryMapper) {
+        return mapToEntry(toEntryFunctionSneakyThrowing(entryMapper));
     }
 
     /**
@@ -230,6 +250,14 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return new EntryStream<>(stream()
                 .map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e), valueMapper.apply(e))), context);
     }
+    public <X1 extends Throwable, X2 extends Throwable, K, V> EntryStream<K, V> mapToEntryThrowing(ThrowableFunction1_1<X1, ? super T, ? extends K> keyMapper,
+            ThrowableFunction1_1<X2, ? super T, ? extends V> valueMapper) throws X1, X2{
+        return tryMapToEntry(keyMapper, valueMapper);
+    }
+    public <K, V> EntryStream<K, V> tryMapToEntry(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends K> keyMapper,
+            ThrowableFunction1_1<? extends Throwable, ? super T, ? extends V> valueMapper) {
+        return mapToEntry(toFunctionSneakyThrowing(keyMapper), toFunctionSneakyThrowing(valueMapper));
+    }
 
     /**
      * Returns a stream where the first element is the replaced with the result
@@ -249,6 +277,12 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public StreamEx<T> mapFirst(Function<? super T, ? extends T> mapper) {
         return supply(new PairSpliterator.PSOfRef<>(mapper, spliterator(), true));
+    }
+    public <X extends Throwable> StreamEx<T> mapFirstThrowing(ThrowableFunction1_1<X, ? super T, ? extends T> mapper) throws X{
+        return tryMapFirst(mapper);
+    }
+    public StreamEx<T> tryMapFirst(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends T> mapper) {
+        return mapFirst(toFunctionSneakyThrowing(mapper));
     }
 
     /**
@@ -277,6 +311,12 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             Function<? super T, ? extends R> notFirstMapper) {
         return new StreamEx<>(new PairSpliterator.PSOfRef<>(firstMapper, notFirstMapper, spliterator(), true), context);
     }
+    public <X1 extends Throwable, X2 extends Throwable, R> StreamEx<R> mapFirstOrElseThrowing(ThrowableFunction1_1<X1, ? super T, ? extends R> firstMapper, ThrowableFunction1_1<X2, ? super T, ? extends R> notFirstMapper) throws X1, X2 {
+        return tryMapFirstOrElse(firstMapper, notFirstMapper);
+    }
+    public <R> StreamEx<R> tryMapFirstOrElse(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends R> firstMapper, ThrowableFunction1_1<? extends Throwable, ? super T, ? extends R> notFirstMapper) {
+        return mapFirstOrElse(toFunctionSneakyThrowing(firstMapper), toFunctionSneakyThrowing(notFirstMapper));
+    }
 
     /**
      * Returns a stream where the last element is the replaced with the result
@@ -299,6 +339,12 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      */
     public StreamEx<T> mapLast(Function<? super T, ? extends T> mapper) {
         return supply(new PairSpliterator.PSOfRef<>(mapper, spliterator(), false));
+    }
+    public <X extends Throwable> StreamEx<T> mapLastThrowing(ThrowableFunction1_1<X, ? super T, ? extends T> mapper) throws X {
+        return tryMapLast(mapper);
+    }
+    public StreamEx<T> tryMapLast(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends T> mapper) {
+        return mapLast(toFunctionSneakyThrowing(mapper));
     }
 
     /**
@@ -326,6 +372,12 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public <R> StreamEx<R> mapLastOrElse(Function<? super T, ? extends R> notLastMapper,
             Function<? super T, ? extends R> lastMapper) {
         return new StreamEx<>(new PairSpliterator.PSOfRef<>(lastMapper, notLastMapper, spliterator(), false), context);
+    }
+    public <X1 extends Throwable, X2 extends Throwable, R> StreamEx<R> mapLastOrElseThrowing(ThrowableFunction1_1<X1, ? super T, ? extends R> firstMapper, ThrowableFunction1_1<X2, ? super T, ? extends R> notFirstMapper) throws X1, X2 {
+        return tryMapLastOrElse(firstMapper, notFirstMapper);
+    }
+    public <R> StreamEx<R> tryMapLastOrElse(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends R> firstMapper, ThrowableFunction1_1<? extends Throwable, ? super T, ? extends R> notFirstMapper) {
+        return mapLastOrElse(toFunctionSneakyThrowing(firstMapper), toFunctionSneakyThrowing(notFirstMapper));
     }
 
     /**
@@ -424,6 +476,12 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             return s == null ? null : s.entrySet().stream();
         }), context);
     }
+    public <X extends Throwable, K, V> EntryStream<K, V> flatMapToEntryThrowing(ThrowableFunction1_1<X, ? super T, ? extends Map<K, V>> mapper) throws X {
+        return tryFlatMapToEntry(mapper);
+    }
+    public  <K, V> EntryStream<K, V> tryFlatMapToEntry(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends Map<K, V>> mapper) {
+        return flatMapToEntry(toFunctionSneakyThrowing(mapper));
+    }
 
     /**
      * Performs a cross product of current stream with specified array of
@@ -455,7 +513,7 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         if (other.length == 0)
             return new EntryStream<>(Spliterators.emptySpliterator(), context);
         if (other.length == 1)
-            return mapToEntry(e -> other[0]);
+            return mapNewValue(e -> other[0]);
         return cross(t -> of(other));
     }
 
@@ -506,6 +564,12 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public <V> EntryStream<T, V> cross(Function<? super T, ? extends Stream<? extends V>> mapper) {
         return new EntryStream<>(stream().flatMap(a -> EntryStream.withKey(a, mapper.apply(a))), context);
     }
+    public <X extends Throwable, V> EntryStream<T, V> crossThrowing(ThrowableFunction1_1<X, ? super T, ? extends Stream<? extends V>> mapper) throws X {
+        return tryCross(mapper);
+    }
+    public  <V> EntryStream<T, V> tryCross(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends Stream<? extends V>> mapper) {
+        return cross(toFunctionSneakyThrowing(mapper));
+    }
 
     /**
      * Returns a {@code Map} whose keys are the values resulting from applying
@@ -532,7 +596,12 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public <K> Map<K, List<T>> groupingBy(Function<? super T, ? extends K> classifier) {
         return groupingBy(classifier, Collectors.toList());
     }
-
+    public <X extends Throwable, K> Map<K, List<T>> groupingByThrowing(ThrowableFunction1_1<X, ? super T, ? extends K> classifier) throws X {
+        return tryGroupingBy(classifier);
+    }
+    public  <K> Map<K, List<T>> tryGroupingBy(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends K> classifier) {
+        return groupingBy(toFunctionSneakyThrowing(classifier));
+    }
     /**
      * Returns a {@code Map} whose keys are the values resulting from applying
      * the classification function to the input elements, and whose

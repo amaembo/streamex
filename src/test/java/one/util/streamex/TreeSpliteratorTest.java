@@ -41,7 +41,7 @@ public class TreeSpliteratorTest {
     @Test
     public void testDepthSpliterator() {
         List<Entry<Integer, String>> expected = StreamEx.of("", "a", "aa", "ab", "ac", "b", "ba", "bb", "bc", "c", "ca",
-            "cb", "cc").mapToEntry(String::length).invert().toList();
+            "cb", "cc").mapNewValue(String::length).invert().toList();
         checkSpliterator("tree", expected, () -> new TreeSpliterator.Depth<>("", (depth, s) -> depth == 2 ? null
                 : Stream.of("a", "b", "c").map(s::concat), 0));
     }

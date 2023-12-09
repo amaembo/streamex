@@ -19,6 +19,7 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Spliterator;
@@ -32,6 +33,8 @@ import static org.junit.Assert.assertSame;
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class StreamExInternalTest {
+    public static class DomainException extends Exception {}
+
     @Test
     public void testCreate() {
         StreamEx<String> stream = StreamEx.of("foo", "bar");
@@ -51,11 +54,63 @@ public class StreamExInternalTest {
     public void testSplit() {
         assertEquals(CharSpliterator.class, StreamEx.split("a#a", "\\#").spliterator().getClass());
     }
-    
+
+    @Test
+    public void testTryMapMulti() {
+        boolean hasMapMulti = VerSpec.VER_SPEC.getClass().getSimpleName().equals("Java16Specific");
+        List<String> data = new ArrayList<>();
+        StreamEx.of(10, 20, 30).<String>tryMapMulti((e, cons) -> {
+            if(e > 50)
+                throw new DomainException();
+            data.add("MM: "+e);
+            cons.accept("T: " + e);
+            data.add("MM: " +(e + 1));
+            cons.accept("T: " + (e + 1));
+        }).into(data);
+        // When polyfill is used, results of mapMulti are buffered, so the order of execution is different
+        List<String> expected = hasMapMulti ?
+                asList("MM: 10", "T: 10", "MM: 11", "T: 11", "MM: 20", "T: 20", "MM: 21", "T: 21", "MM: 30", "T: 30", "MM: 31", "T: 31") :
+                asList("MM: 10", "MM: 11", "T: 10", "T: 11", "MM: 20", "MM: 21", "T: 20", "T: 21", "MM: 30", "MM: 31", "T: 30", "T: 31");
+        assertEquals(expected, data);
+    }
+
+    @Test
+    public void testMapThrowing() throws DomainException {
+        List<String> result = StreamEx.of("Luke", "Leïa", "Anakin")
+            .mapThrowing(firstname -> {
+                if (firstname.equals("Error"))
+                    throw new DomainException();
+                return firstname + " Skywalker";
+            }).toList();
+        assertEquals("map throwing", asList("Luke Skywalker", "Leïa Skywalker", "Anakin Skywalker"), result);
+    }
+
+    @Test
+    public void testTryMap() {
+        List<String> result = StreamEx.of("Luke", "Leïa", "Anakin")
+            .tryMap(firstname -> {
+                if (firstname.equals("Error"))
+                    throw new DomainException();
+                return firstname + " Skywalker";
+            }).toList();
+        assertEquals("map throwing", asList("Luke Skywalker", "Leïa Skywalker", "Anakin Skywalker"), result);
+    }
+
+    @Test
+    public void testMapThrowing() throws DomainException {
+        List<String> result = StreamEx.of("Luke", "Leïa", "Anakin")
+            .and(firstname -> {
+                if (firstname.equals("Error"))
+                    throw new DomainException();
+                return firstname + " Skywalker";
+            }).toList();
+        assertEquals("map throwing", asList("Luke Skywalker", "Leïa Skywalker", "Anakin Skywalker"), result);
+    }
+
     @Test
     public void testMapMulti() {
         boolean hasMapMulti = VerSpec.VER_SPEC.getClass().getSimpleName().equals("Java16Specific");
-        List<String> data = new ArrayList<>(); 
+        List<String> data = new ArrayList<>();
         StreamEx.of(10, 20, 30).<String>mapMulti((e, cons) -> {
             data.add("MM: "+e);
             cons.accept("T: " + e);
@@ -63,9 +118,29 @@ public class StreamExInternalTest {
             cons.accept("T: " + (e + 1));
         }).into(data);
         // When polyfill is used, results of mapMulti are buffered, so the order of execution is different
-        List<String> expected = hasMapMulti ? 
-                asList("MM: 10", "T: 10", "MM: 11", "T: 11", "MM: 20", "T: 20", "MM: 21", "T: 21", "MM: 30", "T: 30", "MM: 31", "T: 31") : 
-                asList("MM: 10", "MM: 11", "T: 10", "T: 11", "MM: 20", "MM: 21", "T: 20", "T: 21", "MM: 30", "MM: 31", "T: 30", "T: 31");
+        List<String> expected = hasMapMulti ?
+            asList("MM: 10", "T: 10", "MM: 11", "T: 11", "MM: 20", "T: 20", "MM: 21", "T: 21", "MM: 30", "T: 30", "MM: 31", "T: 31") :
+            asList("MM: 10", "MM: 11", "T: 10", "T: 11", "MM: 20", "MM: 21", "T: 20", "T: 21", "MM: 30", "MM: 31", "T: 30", "T: 31");
         assertEquals(expected, data);
     }
+
+    @Test
+    public void testMapMultiThrowing() throws DomainException {
+        boolean hasMapMulti = VerSpec.VER_SPEC.getClass().getSimpleName().equals("Java16Specific");
+        List<String> data = new ArrayList<>();
+        StreamEx.of(10, 20, 30).<DomainException, String>mapMultiThrowing((e, cons) -> {
+            if(e > 50)
+                throw new DomainException();
+            data.add("MM: "+e);
+            cons.accept("T: " + e);
+            data.add("MM: " +(e + 1));
+            cons.accept("T: " + (e + 1));
+        }).into(data);
+        // When polyfill is used, results of mapMulti are buffered, so the order of execution is different
+        List<String> expected = hasMapMulti ?
+            asList("MM: 10", "T: 10", "MM: 11", "T: 11", "MM: 20", "T: 20", "MM: 21", "T: 21", "MM: 30", "T: 30", "MM: 31", "T: 31") :
+            asList("MM: 10", "MM: 11", "T: 10", "T: 11", "MM: 20", "MM: 21", "T: 20", "T: 21", "MM: 30", "MM: 31", "T: 30", "T: 31");
+        assertEquals(expected, data);
+    }
+
 }

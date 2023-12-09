@@ -318,7 +318,7 @@ public class CustomPoolTest {
             t -> counter.incrementAndGet()).collect(MoreCollectors.onlyOne()));
         assertTrue(counter.get() < 10000);
         counter.set(0);
-        assertEquals(Optional.empty(), IntStreamEx.range(0, 10000).boxed().mapToEntry(x -> x).parallel(pool).peek(
+        assertEquals(Optional.empty(), IntStreamEx.range(0, 10000).boxed().mapNewValue(x -> x).parallel(pool).peek(
             this::checkThread).peek(t -> counter.incrementAndGet()).collect(MoreCollectors.onlyOne()));
         assertTrue(counter.get() < 10000);
     }
