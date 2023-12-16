@@ -2,7 +2,22 @@ package one.util.functionex;
 
 import java.util.Comparator;
 import java.util.Objects;
+import java.util.function.BiFunction;
+import java.util.function.UnaryOperator;
 
+/**
+ * Represents an operation upon two operands of the same type, producing a result
+ * of the same type as the operands.  This is a specialization of
+ * {@link ThrowableFunction2_1} for the case where the operands and the result are all
+ * the same type.
+ *
+ * <p>This is a <a href="package-summary.html">functional interface</a>
+ * whose functional method is {@link #apply(Object, Object)}.
+ *
+ * @param <T> the type of the operands and result of the operator
+ *
+ * @see ThrowableFunction2_1
+ */
 @FunctionalInterface
 public interface ThrowableBinaryOperator<X extends Throwable, T> extends ThrowableFunction2_1<X, T, T, T>{
     /**

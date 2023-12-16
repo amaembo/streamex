@@ -29,17 +29,30 @@ public interface ThrowablePredicate2<X extends Throwable, T1, T2> extends Serial
     boolean test(T1 t1, T2 t2) throws X;
 
     /**
+     * Evaluates this predicate on the given argument.
+     *
+     * @param tuple tuple of 2 function argument
+     * @return {@code true} if the input argument matches the predicate,
+     * otherwise {@code false}
+     * @throws X if an exception occured
+     */
+    default boolean test(Tuple<T1, T2> tuple) throws X {
+        return test(tuple.t1(), tuple.t2());
+    }
+
+    /**
      * Narrows the given {@code one.util.functionex.ThrowablePredicate2<? extends Throwable, ? super T1, ? super T2>} to
      * {@code one.util.functionex.ThrowablePredicate2<? extends Throwable,T1,T2>}
      *
      * @param f A {@code one.util.functionex.ThrowablePredicate2}
+     * @param <X>  Exception that f may declare to throw
      * @param <T1> The first parameter type
      * @param <T2> The second parameter type
      * @return the given {@code f} instance as narrowed type {@code one.util.functionex.ThrowablePredicate2<? extends Throwable,T1,T2>}
      */
     @SuppressWarnings("unchecked")
-    static <T1, T2> ThrowablePredicate2<? extends Throwable, T1, T2> narrow(ThrowablePredicate2<? extends Throwable, ? super T1, ? super T2> f) {
-        return (ThrowablePredicate2<? extends Throwable, T1, T2>) f;
+    static <X extends Throwable, T1, T2> ThrowablePredicate2<X, T1, T2> narrow(ThrowablePredicate2<X, ? super T1, ? super T2> f) {
+        return (ThrowablePredicate2<X, T1, T2>) f;
     }
 
     /**

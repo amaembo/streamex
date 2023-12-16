@@ -15,6 +15,7 @@
  */
 package one.util.streamex;
 
+import one.util.functionex.ThrowableBinaryOperator;
 import one.util.functionex.ThrowableFunction1_1;
 import one.util.functionex.ThrowableFunction1_2;
 
@@ -211,19 +212,70 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public <V> EntryStream<T, V> mapNewValue(Function<? super T, ? extends V> valueMapper) {
         return new EntryStream<>(stream().map(e -> new SimpleImmutableEntry<>(e, valueMapper.apply(e))), context);
     }
+    /**
+     * Equivalent to {@link #mapNewValueThrowing(ThrowableFunction1_1)} but accepts Throwable Functions instead and declares exception
+     * may accumulator function throw
+     * @param <X> Exception Type the valueMapper function may throw
+     * @param <V> The {@code Entry} value type
+     * @param valueMapper a non-interfering, stateless function to apply to each
+     *        element
+     * @return the new stream
+     * @throws X Exception that valueMapper function may throw
+     */
     public <X extends Throwable, V> EntryStream<T, V> mapNewValueThrowing(ThrowableFunction1_1<X, ? super T, ? extends V> valueMapper) throws X {
         return tryMapNewValue(valueMapper);
     }
+
+    /**
+     * Equivalent to {@link #mapNewValueThrowing(ThrowableFunction1_1)} but hides the exception that
+     * accumulator function may throw
+     * @param <V> The {@code Entry} value type
+     * @param valueMapper a non-interfering, stateless function to apply to each
+     *        element
+     * @return the new stream
+     */
     public <V> EntryStream<T, V> tryMapNewValue(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends V> valueMapper) {
         return mapNewValue(toFunctionSneakyThrowing(valueMapper));
     }
 
+    /**
+     * Returns an {@link EntryStream} consisting of the {@link Entry} objects
+     * which keys and values are results of applying the given function to the
+     * elements of this stream.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate</a>
+     * operation.
+     *
+     * @param <U> The {@code Entry} key type
+     * @param <V> The {@code Entry} value type
+     * @param entryMapper a non-interfering, stateless function to apply to each element
+     * @return the new stream
+     */
     public <U, V> EntryStream<U, V> mapToEntry(Function<? super T, ? extends Entry<U, V>> entryMapper) {
         return new EntryStream<>(stream().map(entryMapper), context);
     }
+    /**
+     * Equivalent to {@link #mapToEntry(Function)} but accepts Throwable Functions instead and declares exception
+     * may accumulator function throw
+     * @param <X> Exception Type the valueMapper function may throw
+     * @param <U> The {@code Entry} key type
+     * @param <V> The {@code Entry} value type
+     * @param entryMapper a non-interfering, stateless function to apply to each element
+     * @return the new stream
+     * @throws X Exception that valueMapper function may throw
+     */
     public <X extends Throwable, U, V> EntryStream<U, V> mapToEntryThrowing(ThrowableFunction1_2<X, ? super T, ? extends U, ? extends V> entryMapper) throws X {
         return tryMapToEntry(entryMapper);
     }
+    /**
+     * Equivalent to {@link #mapToEntryThrowing(ThrowableFunction1_2)} but hides the exception that
+     * accumulator function may throw
+     * @param <U> The {@code Entry} key type
+     * @param <V> The {@code Entry} value type
+     * @param entryMapper a non-interfering, stateless function to apply to each element
+     * @return the new stream
+     */
     public <U, V> EntryStream<U, V> tryMapToEntry(ThrowableFunction1_2<? extends Throwable, ? super T, ? extends U, ? extends V> entryMapper) {
         return mapToEntry(toEntryFunctionSneakyThrowing(entryMapper));
     }
@@ -250,10 +302,36 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
         return new EntryStream<>(stream()
                 .map(e -> new SimpleImmutableEntry<>(keyMapper.apply(e), valueMapper.apply(e))), context);
     }
+    /**
+     * Equivalent to {@link #mapToEntry(Function)} but accepts Throwable Functions instead and declares exception
+     * may accumulator function throw
+     * @param <X1> Exception Type the keyMapper function may throw
+     * @param <X2> Exception Type the valueMapper function may throw
+     * @param <K> The {@code Entry} key type
+     * @param <V> The {@code Entry} value type
+     * @param keyMapper a non-interfering, stateless function to apply to each
+     *        element
+     * @param valueMapper a non-interfering, stateless function to apply to each
+     *        element
+     * @return the new stream
+     * @throws X1 Exception that keyMapper function may throw
+     * @throws X2 Exception that valueMapper function may throw
+     */
     public <X1 extends Throwable, X2 extends Throwable, K, V> EntryStream<K, V> mapToEntryThrowing(ThrowableFunction1_1<X1, ? super T, ? extends K> keyMapper,
             ThrowableFunction1_1<X2, ? super T, ? extends V> valueMapper) throws X1, X2{
         return tryMapToEntry(keyMapper, valueMapper);
     }
+    /**
+     * Equivalent to {@link #mapToEntryThrowing(ThrowableFunction1_2)} but hides the exception that
+     * accumulator function may throw
+     * @param <K> The {@code Entry} key type
+     * @param <V> The {@code Entry} value type
+     * @param keyMapper a non-interfering, stateless function to apply to each
+     *        element
+     * @param valueMapper a non-interfering, stateless function to apply to each
+     *        element
+     * @return the new stream
+     */
     public <K, V> EntryStream<K, V> tryMapToEntry(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends K> keyMapper,
             ThrowableFunction1_1<? extends Throwable, ? super T, ? extends V> valueMapper) {
         return mapToEntry(toFunctionSneakyThrowing(keyMapper), toFunctionSneakyThrowing(valueMapper));
@@ -278,14 +356,34 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public StreamEx<T> mapFirst(Function<? super T, ? extends T> mapper) {
         return supply(new PairSpliterator.PSOfRef<>(mapper, spliterator(), true));
     }
+    /**
+     * Equivalent to {@link #mapFirst(Function)} but accepts Throwable Functions instead and declares exception
+     * may mapper function throw
+     * @param <X> Exception Type the mapper function may throw
+     * @param mapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to the first element
+     * @return the new stream
+     * @throws X Exception that mapper function may throw
+     */
     public <X extends Throwable> StreamEx<T> mapFirstThrowing(ThrowableFunction1_1<X, ? super T, ? extends T> mapper) throws X{
         return tryMapFirst(mapper);
     }
+    /**
+     * Equivalent to {@link #mapFirstThrowing(ThrowableFunction1_1)} but hides the exception that
+     * mapper function may throw
+     * @param mapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to the first element
+     * @return the new stream
+     */
     public StreamEx<T> tryMapFirst(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends T> mapper) {
         return mapFirst(toFunctionSneakyThrowing(mapper));
     }
 
-    /**
+    /**.
      * Returns a stream where the first element is transformed using
      * {@code firstMapper} function and other elements are transformed using
      * {@code notFirstMapper} function.
@@ -311,9 +409,41 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             Function<? super T, ? extends R> notFirstMapper) {
         return new StreamEx<>(new PairSpliterator.PSOfRef<>(firstMapper, notFirstMapper, spliterator(), true), context);
     }
+    /**
+     * Equivalent to {@link #mapFirstOrElse(Function, Function)} but accepts Throwable Functions instead and declares exception
+     * may mappers functions throw
+     * @param <X1> Exception Type the firstMapper function may throw
+     * @param <X2> Exception Type the notFirstMapper function may throw
+     * @param <R> The element type of the new stream element
+     * @param firstMapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to the first element
+     * @param notFirstMapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to all elements except the first one.
+     * @return the new stream
+     * @throws X1 Exception that firstMapper function may throw
+     * @throws X2 Exception that notFirstMapper function may throw
+     */
     public <X1 extends Throwable, X2 extends Throwable, R> StreamEx<R> mapFirstOrElseThrowing(ThrowableFunction1_1<X1, ? super T, ? extends R> firstMapper, ThrowableFunction1_1<X2, ? super T, ? extends R> notFirstMapper) throws X1, X2 {
         return tryMapFirstOrElse(firstMapper, notFirstMapper);
     }
+    /**
+     * Equivalent to {@link #mapFirstOrElseThrowing(ThrowableFunction1_1, ThrowableFunction1_1)} but hides the exception that
+     * mappers function may throw
+     * @param <R> The element type of the new stream element
+     * @param firstMapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to the first element
+     * @param notFirstMapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to all elements except the first one.
+     * @return the new stream
+     */
     public <R> StreamEx<R> tryMapFirstOrElse(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends R> firstMapper, ThrowableFunction1_1<? extends Throwable, ? super T, ? extends R> notFirstMapper) {
         return mapFirstOrElse(toFunctionSneakyThrowing(firstMapper), toFunctionSneakyThrowing(notFirstMapper));
     }
@@ -340,9 +470,31 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public StreamEx<T> mapLast(Function<? super T, ? extends T> mapper) {
         return supply(new PairSpliterator.PSOfRef<>(mapper, spliterator(), false));
     }
+
+    /**
+     * Equivalent to {@link #mapLast(Function)} but accepts Throwable Functions instead and declares exception
+     * may mapper function throw
+     * @param <X> Exception Type mapper function may throw
+     * @param mapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to the last element
+     * @return the new stream
+     * @throws X Exception mapper function may throw
+     */
     public <X extends Throwable> StreamEx<T> mapLastThrowing(ThrowableFunction1_1<X, ? super T, ? extends T> mapper) throws X {
         return tryMapLast(mapper);
     }
+
+    /**
+     * Equivalent to {@link #mapLastThrowing(ThrowableFunction1_1)} but hides the exception that
+     * mapper function may throw
+     * @param mapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to the last element
+     * @return the new stream
+     */
     public StreamEx<T> tryMapLast(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends T> mapper) {
         return mapLast(toFunctionSneakyThrowing(mapper));
     }
@@ -373,11 +525,46 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             Function<? super T, ? extends R> lastMapper) {
         return new StreamEx<>(new PairSpliterator.PSOfRef<>(lastMapper, notLastMapper, spliterator(), false), context);
     }
-    public <X1 extends Throwable, X2 extends Throwable, R> StreamEx<R> mapLastOrElseThrowing(ThrowableFunction1_1<X1, ? super T, ? extends R> firstMapper, ThrowableFunction1_1<X2, ? super T, ? extends R> notFirstMapper) throws X1, X2 {
-        return tryMapLastOrElse(firstMapper, notFirstMapper);
+
+    /**
+     * Equivalent to {@link #mapLastOrElse(Function, Function)} but accepts Throwable Functions instead and declares exception
+     * may mappers functions throw
+     *
+     * @param <X1> Exception Type the notLastMapper function may throw
+     * @param <X2> Exception Type the lastMapper function may throw
+     * @param <R> The element type of the new stream element
+     * @param notLastMapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to the first element
+     * @param lastMapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to all elements except the first one.
+     * @return the new stream
+     * @throws X1 Exception that notLastMapper function may throw
+     * @throws X2 Exception that lastMapper function may throw
+     */
+    public <X1 extends Throwable, X2 extends Throwable, R> StreamEx<R> mapLastOrElseThrowing(ThrowableFunction1_1<X1, ? super T, ? extends R> notLastMapper, ThrowableFunction1_1<X2, ? super T, ? extends R> lastMapper) throws X1, X2 {
+        return tryMapLastOrElse(notLastMapper, lastMapper);
     }
-    public <R> StreamEx<R> tryMapLastOrElse(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends R> firstMapper, ThrowableFunction1_1<? extends Throwable, ? super T, ? extends R> notFirstMapper) {
-        return mapLastOrElse(toFunctionSneakyThrowing(firstMapper), toFunctionSneakyThrowing(notFirstMapper));
+
+    /**
+     * Equivalent to {@link #mapLastOrElseThrowing(ThrowableFunction1_1, ThrowableFunction1_1)} but hides the exception that
+     * mappers functions may throw
+     * @param <R> The element type of the new stream element
+     * @param notLastMapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to the first element
+     * @param lastMapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to all elements except the first one.
+     * @return the new stream
+     */
+    public <R> StreamEx<R> tryMapLastOrElse(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends R> notLastMapper, ThrowableFunction1_1<? extends Throwable, ? super T, ? extends R> lastMapper) {
+        return mapLastOrElse(toFunctionSneakyThrowing(notLastMapper), toFunctionSneakyThrowing(lastMapper));
     }
 
     /**
@@ -476,9 +663,37 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
             return s == null ? null : s.entrySet().stream();
         }), context);
     }
+
+    /**
+     * Equivalent to {@link #flatMapToEntry(Function)} but accepts Throwable Functions instead and declares exception
+     * may mapper function throw
+     * @param <X> Exception Type mapper function may throw
+     * @param <K> the type of {@code Map} keys.
+     * @param <V> the type of {@code Map} values.
+     * @param mapper a non-interfering, stateless function to apply to each
+     *        element which produces a {@link Map} of the entries corresponding
+     *        to the single element of the current stream. The mapper function
+     *        may return null or empty {@code Map} if no mapping should
+     *        correspond to some element.
+     * @return the new {@code EntryStream}
+     * @throws X Exception mapper function may throw
+     */
     public <X extends Throwable, K, V> EntryStream<K, V> flatMapToEntryThrowing(ThrowableFunction1_1<X, ? super T, ? extends Map<K, V>> mapper) throws X {
         return tryFlatMapToEntry(mapper);
     }
+
+    /**
+     * Equivalent to {@link #flatMapThrowing(ThrowableFunction1_1)} but hides the exception that
+     * mapper function may throw
+     * @param <K> the type of {@code Map} keys.
+     * @param <V> the type of {@code Map} values.
+     * @param mapper a non-interfering, stateless function to apply to each
+     *        element which produces a {@link Map} of the entries corresponding
+     *        to the single element of the current stream. The mapper function
+     *        may return null or empty {@code Map} if no mapping should
+     *        correspond to some element.
+     * @return the new {@code EntryStream}
+     */
     public  <K, V> EntryStream<K, V> tryFlatMapToEntry(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends Map<K, V>> mapper) {
         return flatMapToEntry(toFunctionSneakyThrowing(mapper));
     }
@@ -564,9 +779,31 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public <V> EntryStream<T, V> cross(Function<? super T, ? extends Stream<? extends V>> mapper) {
         return new EntryStream<>(stream().flatMap(a -> EntryStream.withKey(a, mapper.apply(a))), context);
     }
+
+    /**
+     * Equivalent to {@link #cross(Function)} but accepts Throwable Functions instead and declares exception
+     * may accumulator function throw
+     * @param <X> Exception Type the mapper function may throw
+     * @param <V> the type of values.
+     * @param mapper a non-interfering, stateless function to apply to each
+     *        element which produces a stream of the values corresponding to the
+     *        single element of the current stream.
+     * @return the new {@code EntryStream}
+     * @throws X Exception that accumulator function may throw
+     */
     public <X extends Throwable, V> EntryStream<T, V> crossThrowing(ThrowableFunction1_1<X, ? super T, ? extends Stream<? extends V>> mapper) throws X {
         return tryCross(mapper);
     }
+
+    /**
+     * Equivalent to {@link #crossThrowing(ThrowableFunction1_1)} but hides the exception that
+     * accumulator function may throw
+     * @param <V> the type of values.
+     * @param mapper a non-interfering, stateless function to apply to each
+     *        element which produces a stream of the values corresponding to the
+     *        single element of the current stream.
+     * @return the new {@code EntryStream}
+     */
     public  <V> EntryStream<T, V> tryCross(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends Stream<? extends V>> mapper) {
         return cross(toFunctionSneakyThrowing(mapper));
     }
@@ -596,12 +833,29 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     public <K> Map<K, List<T>> groupingBy(Function<? super T, ? extends K> classifier) {
         return groupingBy(classifier, Collectors.toList());
     }
+    /**
+     * Equivalent to {@link #groupingBy(Function)} but accepts Throwable Functions instead and declares exception
+     * may accumulator function throw
+     * @param <X> Exception Type the mapper function may throw
+     * @param <K> the type of the keys
+     * @param classifier the classifier function mapping input elements to keys
+     * @return a {@code Map} containing the results of the group-by operation
+     * @throws X Exception that accumulator function may throw
+     */
     public <X extends Throwable, K> Map<K, List<T>> groupingByThrowing(ThrowableFunction1_1<X, ? super T, ? extends K> classifier) throws X {
         return tryGroupingBy(classifier);
     }
+    /**
+     * Equivalent to {@link #groupingByThrowing(ThrowableFunction1_1)} but hides the exception that
+     * accumulator function may throw
+     * @param <K> the type of the keys
+     * @param classifier the classifier function mapping input elements to keys
+     * @return a {@code Map} containing the results of the group-by operation
+     */
     public  <K> Map<K, List<T>> tryGroupingBy(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends K> classifier) {
         return groupingBy(toFunctionSneakyThrowing(classifier));
     }
+
     /**
      * Returns a {@code Map} whose keys are the values resulting from applying
      * the classification function to the input elements, and whose

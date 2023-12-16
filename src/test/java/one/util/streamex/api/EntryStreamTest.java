@@ -99,13 +99,13 @@ public class EntryStreamTest {
         expected.put("aaa", 3);
         expected.put("bbb", 3);
         expected.put("c", 1);
-        assertEquals(expected, StreamEx.of("aaa", "bbb", "c").mapNewValue(String::length).toMap());
-        assertEquals(expected, StreamEx.of("aaa", "bbb", "c").mapToEntry(s -> s, String::length).toMap());
+        assertEquals(expected, StreamEx.of("aaa", "bbb", "c").mapNewValueThrowing(String::length).toMap());
+        assertEquals(expected, StreamEx.of("aaa", "bbb", "c").mapToEntryThrowing(s -> s, String::length).toMap());
         assertEquals(Collections.singletonMap("foo", 1), EntryStream.of("foo", 1).toMap());
         assertEquals(createMap(), EntryStream.of("a", 1, "bb", 22, "ccc", 33).toMap());
 
         assertEquals(expected, StreamEx.of(Collections.singletonMap("aaa", 3), Collections.singletonMap("bbb", 3),
-            Collections.singletonMap("c", 1), Collections.emptyMap()).flatMapToEntry(m -> m).toMap());
+            Collections.singletonMap("c", 1), Collections.emptyMap()).flatMapToEntryThrowing(m -> m).toMap());
 
         assertEquals(Collections.singletonMap("aaa", 3), EntryStream.of(
             Collections.singletonMap("aaa", 3).entrySet().spliterator()).toMap());

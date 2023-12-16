@@ -206,14 +206,19 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #filter(Predicate)} but accepts Throwable Functions instead and declares exception
      * may mapper function throw
+     *
      * @param <X> Exception Type the mapper function may throw
+     * @param predicate predicate to apply to each element to determine if it should be included
      * @throws X Exception that mapper function may throw
+     * @return the new stream
      */
     public <X extends Throwable> S filterThrowing(ThrowablePredicate1<X, ? super T> predicate) throws X {
         return tryFilter(predicate);
     }
     /**
      * Equivalent to {@link #filterThrowing(ThrowablePredicate1)} but hides the exception that mapper function may throw
+     * @param predicate predicate to apply to each element to determine if it should be included
+     * @return the new stream
      */
     public S tryFilter(ThrowablePredicate1<? extends Throwable, ? super T> predicate) {
         return filter(toPredicateSneakyThrowing(predicate));
@@ -227,7 +232,10 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * Equivalent to {@link #flatMap(Function)} but accepts Throwable Functions instead and declares exception
      * may mapper function throw
      *
+     * @param <R> The element type of the new stream
      * @param <X> Exception Type the mapper function may throw
+     * @param mapper function to apply to each element which produces a stream of new values
+     * @return the new stream
      * @throws X Exception that mapper function may throw
      */
     public <X extends Throwable, R> StreamEx<R> flatMapThrowing(ThrowableFunction1_1<X, ? super T, ? extends Stream<? extends R>> mapper) throws X {
@@ -235,6 +243,9 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     }
     /**
      * Equivalent to {@link #flatMapThrowing(ThrowableFunction1_1)} but hides the exception that mapper function may throw
+     * @param <R> The element type of the new stream
+     * @param mapper function to apply to each element which produces a stream of new values
+     * @return the new stream
      */
     public <R> StreamEx<R> tryFlatMap(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends Stream<? extends R>> mapper) {
         return flatMap(toFunctionSneakyThrowing(mapper));
@@ -262,7 +273,13 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #mapMulti(BiConsumer)} but accepts Throwable Functions instead and declares exception
      * may mapper function throw
+     *
+     * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *               <a href="package-summary.html#Statelessness">stateless</a>
+     *               function that generates replacement elements. It accepts an element of this
+     *               stream and a consumer that accepts new elements produced from the input element.
      * @return the new stream
+     * @param <R> The element type of the new stream
      * @param <X> Exception Type the mapper function may throw
      * @throws X Exception that mapper function may throw
      */
@@ -271,6 +288,12 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     }
     /**
      * Equivalent to {@link #mapMultiThrowing(ThrowableFunction2_0)} but hides the exception that mapper function may throw
+     * @param <R> The element type of the new stream
+     * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *               <a href="package-summary.html#Statelessness">stateless</a>
+     *               function that generates replacement elements. It accepts an element of this
+     *               stream and a consumer that accepts new elements produced from the input element.
+     * @return the new stream
      */
     public <R> StreamEx<R> tryMapMulti(ThrowableFunction2_0<? extends Throwable, ? super T, ? super Consumer<R>> mapper) {
         Objects.requireNonNull(mapper);
@@ -298,6 +321,11 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #mapMultiToInt(BiConsumer)} but accepts Throwable Functions instead and declares exception
      * may mapper function throw
+     * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *               <a href="package-summary.html#Statelessness">stateless</a>
+     *               function that generates replacement elements. It accepts an element of this
+     *               stream and a consumer that accepts new elements produced from the input element.
+     * @return the new stream
      * @param <X> Exception Type the mapper function may throw
      * @throws X Exception that mapper function may throw
      */
@@ -306,6 +334,11 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     }
     /**
      * Equivalent to {@link #mapMultiToIntThrowing(ThrowableFunction2_0)} but hides the exception that mapper function may throw
+     * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *               <a href="package-summary.html#Statelessness">stateless</a>
+     *               function that generates replacement elements. It accepts an element of this
+     *               stream and a consumer that accepts new elements produced from the input element.
+     * @return the new stream
      */
     public IntStreamEx tryMapMultiToInt(ThrowableFunction2_0<? extends Throwable, ? super T, ? super IntConsumer> mapper) {
         Objects.requireNonNull(mapper);
@@ -333,6 +366,11 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #mapMultiToLong(BiConsumer)} but accepts Throwable Functions instead and declares exception
      * may mapper function throw
+     * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *               <a href="package-summary.html#Statelessness">stateless</a>
+     *               function that generates replacement elements. It accepts an element of this
+     *               stream and a consumer that accepts new elements produced from the input element.
+     * @return the new stream
      * @param <X> Exception Type the mapper function may throw
      * @throws X Exception that mapper function may throw
      */
@@ -341,6 +379,11 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     }
     /**
      * Equivalent to {@link #mapMultiToLongThrowing(ThrowableFunction2_0)} but hides the exception that mapper function may throw
+     * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *               <a href="package-summary.html#Statelessness">stateless</a>
+     *               function that generates replacement elements. It accepts an element of this
+     *               stream and a consumer that accepts new elements produced from the input element.
+     * @return the new stream
      */
     public LongStreamEx tryMapMultiToLong(ThrowableFunction2_0<? extends Throwable, ? super T, ? super LongConsumer> mapper) {
         Objects.requireNonNull(mapper);
@@ -368,6 +411,11 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #mapMultiToDouble(BiConsumer)} but accepts Throwable Functions instead and declares exception
      * may mapper function throw
+     * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *               <a href="package-summary.html#Statelessness">stateless</a>
+     *               function that generates replacement elements. It accepts an element of this
+     *               stream and a consumer that accepts new elements produced from the input element.
+     * @return the new stream
      * @param <X> Exception Type the mapper function may throw
      * @throws X Exception that mapper function may throw
      */
@@ -376,6 +424,11 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     }
     /**
      * Equivalent to {@link #mapMultiToDoubleThrowing(ThrowableFunction2_0)} but hides the exception that mapper function may throw
+     * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *               <a href="package-summary.html#Statelessness">stateless</a>
+     *               function that generates replacement elements. It accepts an element of this
+     *               stream and a consumer that accepts new elements produced from the input element.
+     * @return the new stream
      */
     public DoubleStreamEx tryMapMultiToDouble(ThrowableFunction2_0<? extends Throwable, ? super T, ? super DoubleConsumer> mapper) {
         Objects.requireNonNull(mapper);
@@ -389,6 +442,12 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #map(Function)} but accepts Throwable Functions instead and declares exception
      * may mapper function throw
+     * @param <R> The element type of the new stream
+     * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *               <a href="package-summary.html#Statelessness">stateless</a>
+     *               function that generates replacement elements. It accepts an element of this
+     *               stream and a consumer that accepts new elements produced from the input element.
+     * @return the new stream
      * @param <X> Exception Type the mapper function may throw
      * @throws X Exception that mapper function may throw
      */
@@ -397,6 +456,12 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     }
     /**
      * Equivalent to {@link #mapThrowing(ThrowableFunction1_1)} but hides the exception that mapper function may throw
+     * @param <R> The element type of the new stream
+     * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *               <a href="package-summary.html#Statelessness">stateless</a>
+     *               function that generates replacement elements. It accepts an element of this
+     *               stream and a consumer that accepts new elements produced from the input element.
+     * @return the new stream
      */
     public <R> StreamEx<R> tryMap(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends R> mapper ) {
         return map(toFunctionSneakyThrowing(mapper));
@@ -409,6 +474,11 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #mapToInt(ToIntFunction)} but accepts Throwable Functions instead and declares exception
      * may mapper function throw
+     * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *               <a href="package-summary.html#Statelessness">stateless</a>
+     *               function that generates replacement elements. It accepts an element of this
+     *               stream and a consumer that accepts new elements produced from the input element.
+     * @return the new stream
      * @param <X> Exception Type the mapper function may throw
      * @throws X Exception that mapper function may throw
      */
@@ -417,6 +487,11 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     }
     /**
      * Equivalent to {@link #mapToIntThrowing(ThrowableFunction1_1)} but hides the exception that mapper function may throw
+     * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *               <a href="package-summary.html#Statelessness">stateless</a>
+     *               function that generates replacement elements. It accepts an element of this
+     *               stream and a consumer that accepts new elements produced from the input element.
+     * @return the new stream
      */
     public IntStreamEx tryMapToInt(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends Integer> mapper ) {
         return mapToInt(toIntFunctionSneakyThrowing(mapper));
@@ -429,6 +504,11 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #mapToLong(ToLongFunction)} but accepts Throwable Functions instead and declares exception
      * may mapper function throw
+     * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *               <a href="package-summary.html#Statelessness">stateless</a>
+     *               function that generates replacement elements. It accepts an element of this
+     *               stream and a consumer that accepts new elements produced from the input element.
+     * @return the new stream
      * @param <X> Exception Type the mapper function may throw
      * @throws X Exception that mapper function may throw
      */
@@ -437,6 +517,11 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     }
     /**
      * Equivalent to {@link #mapToLongThrowing(ThrowableFunction1_1)} but hides the exception that mapper function may throw
+     * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *               <a href="package-summary.html#Statelessness">stateless</a>
+     *               function that generates replacement elements. It accepts an element of this
+     *               stream and a consumer that accepts new elements produced from the input element.
+     * @return the new stream
      */
     public LongStreamEx tryMapToLong(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends Long> mapper ) {
         return mapToLong(toLongFunctionSneakyThrowing(mapper));
@@ -449,6 +534,11 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #mapToDouble(ToDoubleFunction)} but accepts Throwable Functions instead and declares exception
      * may mapper function throw
+     * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *               <a href="package-summary.html#Statelessness">stateless</a>
+     *               function that generates replacement elements. It accepts an element of this
+     *               stream and a consumer that accepts new elements produced from the input element.
+     * @return the new stream
      * @param <X> Exception Type the mapper function may throw
      * @throws X Exception that mapper function may throw
      */
@@ -457,6 +547,11 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     }
     /**
      * Equivalent to {@link #mapToDoubleThrowing(ThrowableFunction1_1)} but hides the exception that mapper function may throw
+     * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *               <a href="package-summary.html#Statelessness">stateless</a>
+     *               function that generates replacement elements. It accepts an element of this
+     *               stream and a consumer that accepts new elements produced from the input element.
+     * @return the new stream
      */
     public DoubleStreamEx tryMapToDouble(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends Double> mapper ) {
         return mapToDouble(toDoubleFunctionSneakyThrowing(mapper));
@@ -469,6 +564,11 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #flatMapToInt(Function)} but accepts Throwable Functions instead and declares exception
      * may mapper function throw
+     * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *               <a href="package-summary.html#Statelessness">stateless</a>
+     *               function that generates replacement elements. It accepts an element of this
+     *               stream and a consumer that accepts new elements produced from the input element.
+     * @return the new stream
      * @param <X> Exception Type the mapper function may throw
      * @throws X Exception that mapper function may throw
      */
@@ -476,6 +576,11 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
         return tryFlatMapToInt(mapper);
     }
     /**
+     * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *               <a href="package-summary.html#Statelessness">stateless</a>
+     *               function that generates replacement elements. It accepts an element of this
+     *               stream and a consumer that accepts new elements produced from the input element.
+     * @return the new stream
      * Equivalent to {@link #flatMapToIntThrowing(ThrowableFunction1_1)} but hides the exception that mapper function may throw
      */
     public IntStreamEx tryFlatMapToInt(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends IntStream> mapper ) {
@@ -489,6 +594,11 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #flatMapToLong(Function)} but accepts Throwable Functions instead and declares exception
      * may mapper function throw
+     * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *               <a href="package-summary.html#Statelessness">stateless</a>
+     *               function that generates replacement elements. It accepts an element of this
+     *               stream and a consumer that accepts new elements produced from the input element.
+     * @return the new stream
      * @param <X> Exception Type the mapper function may throw
      * @throws X Exception that mapper function may throw
      */
@@ -497,6 +607,11 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     }
     /**
      * Equivalent to {@link #flatMapToLongThrowing(ThrowableFunction1_1)} but hides the exception that mapper function may throw
+     * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *               <a href="package-summary.html#Statelessness">stateless</a>
+     *               function that generates replacement elements. It accepts an element of this
+     *               stream and a consumer that accepts new elements produced from the input element.
+     * @return the new stream
      */
     public LongStreamEx tryFlatMapToLong(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends LongStream> mapper ) {
         return flatMapToLong(toFunctionSneakyThrowing(mapper));
@@ -509,6 +624,11 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #flatMapToDouble(Function)} but accepts Throwable Functions instead and declares exception
      * may mapper function throw
+     * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *               <a href="package-summary.html#Statelessness">stateless</a>
+     *               function that generates replacement elements. It accepts an element of this
+     *               stream and a consumer that accepts new elements produced from the input element.
+     * @return the new stream
      * @param <X> Exception Type the mapper function may throw
      * @throws X Exception that mapper function may throw
      */
@@ -517,6 +637,11 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     }
     /**
      * Equivalent to {@link #flatMapToDoubleThrowing(ThrowableFunction1_1)} but hides the exception that mapper function may throw
+     * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *               <a href="package-summary.html#Statelessness">stateless</a>
+     *               function that generates replacement elements. It accepts an element of this
+     *               stream and a consumer that accepts new elements produced from the input element.
+     * @return the new stream
      */
     public DoubleStreamEx tryFlatMapToDouble(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends DoubleStream> mapper ) {
         return flatMapToDouble(toFunctionSneakyThrowing(mapper));
@@ -646,6 +771,9 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #forEach(Consumer)} but accepts Throwable Functions instead and declares exception
      * may mapper function throw
+     *
+     * @param action a <a href="package-summary.html#NonInterference">
+     *               non-interfering</a> action to perform on the elements
      * @param <X> Exception Type the mapper function may throw
      * @throws X Exception that mapper function may throw
      */
@@ -654,6 +782,8 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     }
     /**
      * Equivalent to {@link #forEachThrowing(ThrowableFunction1_0)} but hides the exception that mapper function may throw
+     * @param action a <a href="package-summary.html#NonInterference">
+     *               non-interfering</a> action to perform on the elements
      */
     public void tryForEach(ThrowableFunction1_0<? extends Throwable, ? super T> action) {
         forEach(toConsumerSneakyThrowing(action));
@@ -677,6 +807,8 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #forEachOrdered(Consumer)} but accepts Throwable Functions instead and declares exception
      * may mapper function throw
+     * @param action a <a href="package-summary.html#NonInterference">
+     *               non-interfering</a> action to perform on the elements
      * @param <X> Exception Type the mapper function may throw
      * @throws X Exception that mapper function may throw
      */
@@ -685,6 +817,8 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     }
     /**
      * Equivalent to {@link #forEachOrderedThrowing(ThrowableFunction1_0)} but hides the exception that mapper function may throw
+     * @param action a <a href="package-summary.html#NonInterference">
+     *               non-interfering</a> action to perform on the elements
      */
     public void tryForEachOrdered(ThrowableFunction1_0<? extends Throwable, ? super T> action) {
         forEachOrdered(toConsumerSneakyThrowing(action));
@@ -711,6 +845,12 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #reduce(Object, BinaryOperator)} but accepts Throwable Functions instead and declares exception
      * may accumulator function throw
+     * @param identity the identity value for the accumulating function
+     * @param accumulator an <a href="package-summary.html#Associativity">associative</a>,
+     *                    <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *                    <a href="package-summary.html#Statelessness">stateless</a>
+     *                    function for combining two values
+     * @return the result of the reduction
      * @param <X> Exception Type the accumulator function may throw
      * @throws X Exception that accumulator function may throw
      */
@@ -719,6 +859,12 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     }
     /**
      * Equivalent to {@link #reduceThrowing(Object, ThrowableBinaryOperator)} but hides the exception that accumulator function may throw
+     * @param identity the identity value for the accumulating function
+     * @param accumulator an <a href="package-summary.html#Associativity">associative</a>,
+     *                    <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *                    <a href="package-summary.html#Statelessness">stateless</a>
+     *                    function for combining two values
+     * @return the result of the reduction
      */
     public T tryReduce(T identity, ThrowableBinaryOperator<? extends Throwable, T> accumulator) {
         return reduce(identity, toBinaryOperatorSneakyThrowing(accumulator));
@@ -733,6 +879,11 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #reduce(BinaryOperator)} but accepts Throwable Functions instead and declares exception
      * may accumulator function throw
+     * @param accumulator an <a href="package-summary.html#Associativity">associative</a>,
+     *                    <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *                    <a href="package-summary.html#Statelessness">stateless</a>
+     *                    function for combining two values
+     * @return the result of the reduction
      * @param <X> Exception Type the accumulator function may throw
      * @throws X Exception that accumulator function may throw
      */
@@ -741,6 +892,11 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     }
     /**
      * Equivalent to {@link #reduceThrowing(ThrowableBinaryOperator)} but hides the exception that accumulator function may throw
+     * @param accumulator an <a href="package-summary.html#Associativity">associative</a>,
+     *                    <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *                    <a href="package-summary.html#Statelessness">stateless</a>
+     *                    function for combining two values
+     * @return the result of the reduction
      */
     public Optional<T> tryReduce(ThrowableBinaryOperator<? extends Throwable, T> accumulator) {
         return reduce(toBinaryOperatorSneakyThrowing(accumulator));
@@ -755,6 +911,18 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #reduce(Object, BiFunction, BinaryOperator)} but accepts Throwable Functions instead and declares exception
      * may accumulator or combiner functions throw
+     * @param identity the identity value for the accumulating function
+     * @param accumulator an <a href="package-summary.html#Associativity">associative</a>,
+     *                    <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *                    <a href="package-summary.html#Statelessness">stateless</a>
+     *                    function for combining two values
+     * @param combiner an <a href="package-summary.html#Associativity">associative</a>,
+     *                    <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *                    <a href="package-summary.html#Statelessness">stateless</a>
+     *                    function for combining two values, which must be
+     *                    compatible with the accumulator function
+     * @return the result of the reduction
+     * @param <U> The type of the result
      * @param <X1> Exception Type the accumulator function may throw
      * @param <X2> Exception Type the combiner function may throw
      * @throws X1 Exception that accumulator function may throw
@@ -765,6 +933,18 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     }
     /**
      * Equivalent to {@link #reduceThrowing(Object, ThrowableFunction2_1, ThrowableBinaryOperator)} but hides the exception that accumulator or combiner function may throw
+     * @param <U> The type of the result
+     * @param identity the identity value for the accumulating function
+     * @param accumulator an <a href="package-summary.html#Associativity">associative</a>,
+     *                    <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *                    <a href="package-summary.html#Statelessness">stateless</a>
+     *                    function for combining two values
+     * @param combiner an <a href="package-summary.html#Associativity">associative</a>,
+     *                    <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *                    <a href="package-summary.html#Statelessness">stateless</a>
+     *                    function for combining two values, which must be
+     *                    compatible with the accumulator function
+     * @return the result of the reduction
      */
     public <U> U tryReduce(U identity, ThrowableFunction2_1<? extends Throwable, U, ? super T, U> accumulator, ThrowableBinaryOperator<? extends Throwable, U> combiner) {
         return reduce(identity, toBiFunctionSneakyThrowing(accumulator), toBinaryOperatorSneakyThrowing(combiner));
@@ -798,6 +978,12 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #reduceWithZero(Object, BinaryOperator)} but accepts Throwable Functions instead and declares exception
      * may accumulator function throw
+     * @param zero zero element
+     * @param accumulator an <a href="package-summary.html#Associativity">associative</a>,
+     *                    <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *                    <a href="package-summary.html#Statelessness">stateless</a>
+     *                    function for combining two values
+     * @return the result of the reduction
      * @param <X> Exception Type the accumulator function may throw
      * @throws X Exception that accumulator function may throw
      */
@@ -806,6 +992,12 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     }
     /**
      * Equivalent to {@link #reduceWithZeroThrowing(Object, ThrowableBinaryOperator)} but hides the exception that accumulator function may throw
+     * @param zero zero element
+     * @param accumulator an <a href="package-summary.html#Associativity">associative</a>,
+     *                    <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *                    <a href="package-summary.html#Statelessness">stateless</a>
+     *                    function for combining two values
+     * @return the result of the reduction
      */
     public Optional<T> tryReduceWithZero(T zero, ThrowableBinaryOperator<? extends Throwable, T> accumulator) {
         return reduceWithZero(zero, toBinaryOperatorSneakyThrowing(accumulator));
@@ -841,6 +1033,13 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #reduceWithZero(Object, Object, BinaryOperator)} but accepts Throwable Functions instead and declares exception
      * may accumulator function throw
+     * @param zero zero element
+     * @param identity the identity value for the accumulating function
+     * @param accumulator an <a href="package-summary.html#Associativity">associative</a>,
+     *                    <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *                    <a href="package-summary.html#Statelessness">stateless</a>
+     *                    function for combining two values
+     * @return the result of the reduction
      * @param <X> Exception Type the accumulator function may throw
      * @throws X Exception that accumulator function may throw
      */
@@ -849,6 +1048,13 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     }
     /**
      * Equivalent to {@link #reduceWithZeroThrowing(Object, Object, ThrowableBinaryOperator)} but hides the exception that accumulator function may throw
+     * @param zero zero element
+     * @param identity the identity value for the accumulating function
+     * @param accumulator an <a href="package-summary.html#Associativity">associative</a>,
+     *                    <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *                    <a href="package-summary.html#Statelessness">stateless</a>
+     *                    function for combining two values
+     * @return the result of the reduction
      */
     public T tryReduceWithZero(T zero, T identity, ThrowableBinaryOperator<? extends Throwable, T> accumulator) {
         return reduceWithZero(zero, identity, toBinaryOperatorSneakyThrowing(accumulator));
@@ -863,6 +1069,24 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #collect(Supplier, BiConsumer, BiConsumer)} but accepts Throwable Functions instead and declares exception
      * may supplier, accumulator or combiner functions throw
+     * @param supplier a function that creates a new mutable result container.
+     *                 For a parallel execution, this function may be called
+     *                 multiple times and must return a fresh value each time.
+     * @param accumulator an <a href="package-summary.html#Associativity">associative</a>,
+     *                    <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *                    <a href="package-summary.html#Statelessness">stateless</a>
+     *                    function that must fold an element into a result
+     *                    container.
+     * @param combiner an <a href="package-summary.html#Associativity">associative</a>,
+     *                    <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *                    <a href="package-summary.html#Statelessness">stateless</a>
+     *                    function that accepts two partial result containers
+     *                    and merges them, which must be compatible with the
+     *                    accumulator function.  The combiner function must fold
+     *                    the elements from the second result container into the
+     *                    first result container.
+     * @return the result of the reduction
+     * @param <R> the type of the mutable result container
      * @param <X1> Exception Type the supplier function may throw
      * @param <X2> Exception Type the accumulator function may throw
      * @param <X3> Exception Type the combiner function may throw
@@ -876,6 +1100,24 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #collectThrowing(ThrowableFunction0_1, ThrowableFunction2_0, ThrowableFunction2_0)} but hides the exception that
      * supplier, accumulator or combiner functions may throw
+     * @param supplier a function that creates a new mutable result container.
+     *                 For a parallel execution, this function may be called
+     *                 multiple times and must return a fresh value each time.
+     * @param accumulator an <a href="package-summary.html#Associativity">associative</a>,
+     *                    <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *                    <a href="package-summary.html#Statelessness">stateless</a>
+     *                    function that must fold an element into a result
+     *                    container.
+     * @param combiner an <a href="package-summary.html#Associativity">associative</a>,
+     *                    <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *                    <a href="package-summary.html#Statelessness">stateless</a>
+     *                    function that accepts two partial result containers
+     *                    and merges them, which must be compatible with the
+     *                    accumulator function.  The combiner function must fold
+     *                    the elements from the second result container into the
+     *                    first result container.
+     * @return the result of the reduction
+     * @param <R> the type of the mutable result container
      */
     public <R> R tryCollect(ThrowableFunction0_1<? extends Throwable, R> supplier, ThrowableFunction2_0<? extends Throwable, R, ? super T> accumulator, ThrowableFunction2_0<? extends Throwable, R, R> combiner) {
         return collect(toSupplierSneakyThrowing(supplier), toBiConsumerSneakyThrowing(accumulator), toBiConsumerSneakyThrowing(combiner));
@@ -964,6 +1206,12 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #count(Predicate)} but accepts Throwable Functions instead and declares exception
      * may predicate function throw
+     * @param predicate a <a
+     *                  href="package-summary.html#NonInterference">non-interfering </a>,
+     *                  <a href="package-summary.html#Statelessness">stateless</a>
+     *                  predicate to apply to stream elements. Only elements passing
+     *                  the predicate will be counted.
+     * @return the count of elements in this stream satisfying the predicate.
      * @param <X> Exception Type the predicate function may throw
      * @throws X Exception that predicate function may throw
      */
@@ -971,6 +1219,12 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
         return tryCount(predicate);
     }
     /**
+     * @param predicate a <a
+     *                  href="package-summary.html#NonInterference">non-interfering </a>,
+     *                  <a href="package-summary.html#Statelessness">stateless</a>
+     *                  predicate to apply to stream elements. Only elements passing
+     *                  the predicate will be counted.
+     * @return the count of elements in this stream satisfying the predicate.
      * Equivalent to {@link #countThrowing(ThrowablePredicate1)} but hides the exception that
      * predicate function may throw
      */
@@ -987,6 +1241,10 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #anyMatch(Predicate)} but accepts Throwable Functions instead and declares exception
      * may predicate function throw
+     * @param predicate a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *                  <a href="package-summary.html#Statelessness">stateless</a>
+     *                  predicate to apply to elements of this stream
+     * @return {@code true} if any elements of the stream match the provided predicate, otherwise {@code false}
      * @param <X> Exception Type the predicate function may throw
      * @throws X Exception that predicate function may throw
      */
@@ -996,6 +1254,10 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #anyMatchThrowing(ThrowablePredicate1)} but hides the exception that
      * predicate function may throw
+     * @param predicate a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *                  <a href="package-summary.html#Statelessness">stateless</a>
+     *                  predicate to apply to elements of this stream
+     * @return {@code true} if any elements of the stream match the provided predicate, otherwise {@code false}
      */
     public boolean tryAnyMatch(ThrowablePredicate1<? extends Throwable, ? super T> predicate) {
         return anyMatch(toPredicateSneakyThrowing(predicate));
@@ -1010,6 +1272,10 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #allMatch(Predicate)} but accepts Throwable Functions instead and declares exception
      * may predicate function throw
+     * @param predicate a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *                  <a href="package-summary.html#Statelessness">stateless</a>
+     *                  predicate to apply to elements of this stream
+     * @return {@code true} if all elements of the stream match the provided predicate, otherwise {@code false}
      * @param <X> Exception Type the predicate function may throw
      * @throws X Exception that predicate function may throw
      */
@@ -1019,6 +1285,10 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #allMatchThrowing(ThrowablePredicate1)} but hides the exception that
      * predicate function may throw
+     * @param predicate a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *                  <a href="package-summary.html#Statelessness">stateless</a>
+     *                  predicate to apply to elements of this stream
+     * @return {@code true} if all elements of the stream match the provided predicate, otherwise {@code false}
      */
     public boolean tryAllMatch(ThrowablePredicate1<? extends Throwable, ? super T> predicate) {
         return allMatch(toPredicateSneakyThrowing(predicate));
@@ -1031,6 +1301,10 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #noneMatch(Predicate)} but accepts Throwable Functions instead and declares exception
      * may predicate function throw
+     * @param predicate a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *                  <a href="package-summary.html#Statelessness">stateless</a>
+     *                  predicate to apply to elements of this stream
+     * @return {@code true} if none element of the stream match the provided predicate, otherwise {@code false}
      * @param <X> Exception Type the predicate function may throw
      * @throws X Exception that predicate function may throw
      */
@@ -1040,6 +1314,10 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #noneMatchThrowing(ThrowablePredicate1)} but hides the exception that
      * predicate function may throw
+     * @param predicate a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *                  <a href="package-summary.html#Statelessness">stateless</a>
+     *                  predicate to apply to elements of this stream
+     * @return {@code true} if none element of the stream match the provided predicate, otherwise {@code false}
      */
     public boolean tryNoneMatch(ThrowablePredicate1<? extends Throwable, ? super T> predicate) {
         return noneMatch(toPredicateSneakyThrowing(predicate));
@@ -1116,6 +1394,13 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #indexOf(Predicate)} but accepts Throwable Functions instead and declares exception
      * may predicate function throw
+     * @param predicate a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        predicate which returned value should match
+     * @return an {@code OptionalLong} describing the index of the first
+     *         matching element of this stream, or an empty {@code OptionalLong}
+     *         if there's no matching element.
      * @param <X> Exception Type the predicate function may throw
      * @throws X Exception that predicate function may throw
      */
@@ -1125,6 +1410,13 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #indexOfThrowing(ThrowablePredicate1)} but hides the exception that
      * predicate function may throw
+     * @param predicate a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        predicate which returned value should match
+     * @return an {@code OptionalLong} describing the index of the first
+     *         matching element of this stream, or an empty {@code OptionalLong}
+     *         if there's no matching element.
      */
     public OptionalLong tryIndexOf(ThrowablePredicate1<? extends Throwable, ? super T> predicate) {
         return indexOf(toPredicateSneakyThrowing(predicate));
@@ -1162,6 +1454,13 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #flatCollection(Function)} but accepts Throwable Functions instead and declares exception
      * may mapper function throw
+     * @param mapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to each element which produces a
+     *        {@link Collection} of new values
+     * @return the new stream
+     * @param <R> The element type of the new stream
      * @param <X> Exception Type the mapper function may throw
      * @throws X Exception that mapper function may throw
      */
@@ -1171,6 +1470,13 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #flatCollectionThrowing(ThrowableFunction1_1)} but hides the exception that
      * mapper function may throw
+     * @param <R> The element type of the new stream
+     * @param mapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to each element which produces a
+     *        {@link Collection} of new values
+     * @return the new stream
      */
     public <R> StreamEx<R> tryFlatCollection(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends Collection<? extends R>> mapper) {
         return flatCollection(toFunctionSneakyThrowing(mapper));
@@ -1209,6 +1515,13 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #flatArray(Function)} but accepts Throwable Functions instead and declares exception
      * may mapper function throw
+     * @param mapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to each element which produces an
+     *        array of new values
+     * @return the new stream
+     * @param <R> The element type of the new stream
      * @param <X> Exception Type the mapper function may throw
      * @throws X Exception that mapper function may throw
      */
@@ -1218,6 +1531,13 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #flatArrayThrowing(ThrowableFunction1_1)} but hides the exception that
      * mapper function may throw
+     * @param <R> The element type of the new stream
+     * @param mapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function to apply to each element which produces an
+     *        array of new values
+     * @return the new stream
      */
     public <R> StreamEx<R> tryFlatArray(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends R[]> mapper) {
         return flatArray(toFunctionSneakyThrowing(mapper));
@@ -1257,6 +1577,13 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #mapPartial(Function)} but accepts Throwable Functions instead and declares exception
      * may mapper function throw
+     * @param <R> The element type of the new stream
+     * @param mapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        partial function to apply to each element which returns a present optional
+     *        if it's applicable, or an empty optional otherwise
+     * @return the new stream
      * @param <X> Exception Type the mapper function may throw
      * @throws X Exception that mapper function may throw
      */
@@ -1266,6 +1593,13 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #mapPartialThrowing(ThrowableFunction1_1)} but hides the exception that
      * mapper function may throw
+     * @param <R> The element type of the new stream
+     * @param mapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        partial function to apply to each element which returns a present optional
+     *        if it's applicable, or an empty optional otherwise
+     * @return the new stream
      */
     public <R> StreamEx<R> tryMapPartial(ThrowableFunction1_1<? extends Throwable, ? super T, ? extends Optional<? extends R>> mapper) {
         return mapPartial(toFunctionSneakyThrowing(mapper));
@@ -1296,6 +1630,10 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #pairMap(BiFunction)} but accepts Throwable Functions instead and declares exception
      * may mapper function throw
+     * @param mapper a non-interfering, stateless function to apply to each
+     *        adjacent pair of this stream elements.
+     * @return the new stream
+     * @param <R> The element type of the new stream
      * @param <X> Exception Type the mapper function may throw
      * @throws X Exception that mapper function may throw
      */
@@ -1305,6 +1643,10 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #pairMapThrowing(ThrowableFunction2_1)} but hides the exception that
      * mapper function may throw
+     * @param <R> The element type of the new stream
+     * @param mapper a non-interfering, stateless function to apply to each
+     *        adjacent pair of this stream elements.
+     * @return the new stream
      */
     public <R> StreamEx<R> tryPairMap(ThrowableFunction2_1<? extends Throwable, ? super T, ? super T, ? extends R> mapper) {
         return pairMap(toBiFunctionSneakyThrowing(mapper));
@@ -1949,6 +2291,10 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * Equivalent to {@link #toListAndThen(Function)} but accepts Throwable Functions instead and declares exception
      * may finisher function throw
      * @param <X> Exception Type the finisher function may throw
+     * @param <R> the type of the result
+     * @param finisher a function to be applied to the intermediate list
+     * @return result of applying the finisher transformation to the list of the
+     *         stream elements.
      * @throws X Exception that finisher function may throw
      */
     public <X extends Throwable, R> R toListAndThenThrowing(ThrowableFunction1_1<X, ? super List<T>, R> finisher) throws X {
@@ -1957,6 +2303,10 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #toListAndThenThrowing(ThrowableFunction1_1)} but hides the exception that
      * finisher function may throw
+     * @param <R> the type of the result
+     * @param finisher a function to be applied to the intermediate list
+     * @return result of applying the finisher transformation to the list of the
+     *         stream elements.
      */
     public <R> R toListAndThenTry(ThrowableFunction1_1<? extends Throwable, ? super List<T>, R> finisher) {
         return toListAndThen(toFunctionSneakyThrowing(finisher));
@@ -2045,6 +2395,10 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * Equivalent to {@link #toSetAndThen(Function)} but accepts Throwable Functions instead and declares exception
      * may finisher function throw
      * @param <X> Exception Type the finisher function may throw
+     * @param <R> the result type
+     * @param finisher a function to be applied to the intermediate {@code Set}
+     * @return result of applying the finisher transformation to the {@code Set}
+     *         of the stream elements.
      * @throws X Exception that finisher function may throw
      */
     public <X extends Throwable, R> R toSetAndThenThrowing(ThrowableFunction1_1<X, ? super Set<T>, R> finisher) throws X {
@@ -2053,6 +2407,10 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #toSetAndThenThrowing(ThrowableFunction1_1)} but hides the exception that
      * finisher function may throw
+     * @param <R> the result type
+     * @param finisher a function to be applied to the intermediate {@code Set}
+     * @return result of applying the finisher transformation to the {@code Set}
+     *         of the stream elements.
      */
     public <R> R toSetAndThenTry(ThrowableFunction1_1<? extends Throwable, ? super Set<T>, R> finisher) {
         return toSetAndThen(toFunctionSneakyThrowing(finisher));
@@ -2087,6 +2445,13 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * may collectionFactory or finisher functions throw
      * @param <X1> Exception Type the collectionFactory function may throw
      * @param <X2> Exception Type the finisher function may throw
+     * @param <C> the type of the resulting {@code Collection}
+     * @param <R> the result type
+     * @param collectionFactory a {@code Supplier} which returns a new, empty
+     *        {@code Collection} of the appropriate type
+     * @param finisher a function to be applied to the intermediate {@code Collection}
+     * @return result of applying the finisher transformation to the {@code Collection}
+     *         of the stream elements.
      * @throws X1 Exception that collectionFactory function may throw
      * @throws X2 Exception that finisher function may throw
      */
@@ -2096,6 +2461,13 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #toCollectionAndThenThrowing(ThrowableFunction0_1, ThrowableFunction1_1)} but hides the exception that
      * collectionFactory or finisher functions may throw
+     * @param <C> the type of the resulting {@code Collection}
+     * @param <R> the result type
+     * @param collectionFactory a {@code Supplier} which returns a new, empty
+     *        {@code Collection} of the appropriate type
+     * @param finisher a function to be applied to the intermediate {@code Collection}
+     * @return result of applying the finisher transformation to the {@code Collection}
+     *         of the stream elements.
      */
     public <C extends Collection<T>, R> R toCollectionAndThenTry(ThrowableFunction0_1<? extends Throwable, C> collectionFactory, ThrowableFunction1_1<? extends Throwable, ? super C, R> finisher) {
         return toCollectionAndThen(toSupplierSneakyThrowing(collectionFactory), toFunctionSneakyThrowing(finisher));
@@ -2122,6 +2494,10 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * Equivalent to {@link #toCollection(Supplier)} but accepts Throwable Functions instead and declares exception
      * may collectionFactory function throw
      * @param <X> Exception Type the collectionFactory function may throw
+     * @param <C> the type of the resulting {@code Collection}
+     * @param collectionFactory a {@code Supplier} which returns a new, empty
+     *        {@code Collection} of the appropriate type
+     * @return a {@code Collection} containing the elements of this stream
      * @throws X Exception that collectionFactory function may throw
      */
     public <X extends Throwable, C extends Collection<T>> C toCollectionThrowing(ThrowableFunction0_1<X, C> collectionFactory) throws X {
@@ -2130,6 +2506,10 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #toCollectionThrowing(ThrowableFunction0_1)} but hides the exception that
      * collectionFactory function may throw
+     * @param <C> the type of the resulting {@code Collection}
+     * @param collectionFactory a {@code Supplier} which returns a new, empty
+     *        {@code Collection} of the appropriate type
+     * @return a {@code Collection} containing the elements of this stream
      */
     public <C extends Collection<T>> C tryToCollection(ThrowableFunction0_1<? extends Throwable, C> collectionFactory) {
         return toCollection(toSupplierSneakyThrowing(collectionFactory));
@@ -2182,6 +2562,13 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * Equivalent to {@link #foldLeft(Object, BiFunction)} but accepts Throwable Functions instead and declares exception
      * may accumulator function throw
      * @param <X> Exception Type the accumulator function may throw
+     * @param <U> The type of the result
+     * @param seed the starting value
+     * @param accumulator a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function for incorporating an additional element into a result
+     * @return the result of the folding
      * @throws X Exception that accumulator function may throw
      */
     public <X extends Throwable, U> U foldLeftThrowing(U seed, ThrowableFunction2_1<X, U, ? super T, U> accumulator) throws X {
@@ -2190,6 +2577,13 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #foldLeftThrowing(Object, ThrowableFunction2_1)} but hides the exception that
      * accumulator function may throw
+     * @param <U> The type of the result
+     * @param seed the starting value
+     * @param accumulator a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function for incorporating an additional element into a result
+     * @return the result of the folding
      */
     public <U> U tryFoldLeft(U seed, ThrowableFunction2_1<? extends Throwable, U, ? super T, U> accumulator) {
         return foldLeft(seed, toBiFunctionSneakyThrowing(accumulator));
@@ -2246,6 +2640,11 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * Equivalent to {@link #foldLeft(BinaryOperator)} but accepts Throwable Functions instead and declares exception
      * may accumulator function throw
      * @param <X> Exception Type the accumulator function may throw
+     * @param accumulator a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function for incorporating an additional element into a result
+     * @return the result of the folding
      * @throws X Exception that accumulator function may throw
      */
     public <X extends Throwable> Optional<T> foldLeftThrowing(ThrowableBinaryOperator<X, T> accumulator) throws X {
@@ -2254,6 +2653,11 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #foldLeftThrowing(ThrowableBinaryOperator)} but hides the exception that
      * accumulator function may throw
+     * @param accumulator a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function for incorporating an additional element into a result
+     * @return the result of the folding
      */
     public Optional<T> tryFoldLeft(ThrowableBinaryOperator<? extends Throwable, T> accumulator) {
         return foldLeft(toBinaryOperatorSneakyThrowing(accumulator));
@@ -2302,6 +2706,13 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * Equivalent to {@link #foldRight(Object, BiFunction)} but accepts Throwable Functions instead and declares exception
      * may accumulator function throw
      * @param <X> Exception Type the accumulator function may throw
+     * @param <U> The type of the result
+     * @param seed the starting value
+     * @param accumulator a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function for incorporating an additional element into a result
+     * @return the result of the folding
      * @throws X Exception that accumulator function may throw
      */
     public <X extends Throwable, U> U foldRightThrowing(U seed, ThrowableFunction2_1<X, ? super T, U, U> accumulator) throws X {
@@ -2310,6 +2721,13 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #foldRightThrowing(Object, ThrowableFunction2_1)} but hides the exception that
      * accumulator function may throw
+     * @param <U> The type of the result
+     * @param seed the starting value
+     * @param accumulator a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function for incorporating an additional element into a result
+     * @return the result of the folding
      */
     public <U> U tryFoldRight(U seed, ThrowableFunction2_1<? extends Throwable, ? super T, U, U> accumulator) {
         return foldRight(seed, toBiFunctionSneakyThrowing(accumulator));
@@ -2358,6 +2776,11 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * Equivalent to {@link #foldRight(BinaryOperator)} but accepts Throwable Functions instead and declares exception
      * may accumulator function throw
      * @param <X> Exception Type the accumulator function may throw
+     * @param accumulator a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function for incorporating an additional element into a result
+     * @return the result of the folding
      * @throws X Exception that accumulator function may throw
      */
     public <X extends Throwable> Optional<T> foldRightThrowing(ThrowableBinaryOperator<X, T> accumulator) throws X {
@@ -2366,6 +2789,11 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #foldRightThrowing(ThrowableBinaryOperator)} but hides the exception that
      * accumulator function may throw
+     * @param accumulator a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function for incorporating an additional element into a result
+     * @return the result of the folding
      */
     public Optional<T> tryFoldRight(ThrowableBinaryOperator<? extends Throwable, T> accumulator) {
         return foldRight(toBinaryOperatorSneakyThrowing(accumulator));
@@ -2414,6 +2842,17 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * Equivalent to {@link #scanLeft(Object, BiFunction)} but accepts Throwable Functions instead and declares exception
      * may accumulator function throw
      * @param <X> Exception Type the accumulator function may throw
+     * @param <U> The type of the result
+     * @param seed the starting value
+     * @param accumulator a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function for incorporating an additional element into a result
+     * @return the {@code List} where the first element is the seed and every
+     *         successor element is the result of applying accumulator function
+     *         to the previous list element and the corresponding stream
+     *         element. The resulting list is one element longer than this
+     *         stream.
      * @throws X Exception that accumulator function may throw
      */
     public <X extends Throwable, U> List<U> scanLeftThrowing(U seed, ThrowableFunction2_1<X, U, ? super T, U> accumulator) throws X {
@@ -2422,6 +2861,17 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #scanLeftThrowing(Object, ThrowableFunction2_1)} but hides the exception that
      * accumulator function may throw
+     * @param <U> The type of the result
+     * @param seed the starting value
+     * @param accumulator a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function for incorporating an additional element into a result
+     * @return the {@code List} where the first element is the seed and every
+     *         successor element is the result of applying accumulator function
+     *         to the previous list element and the corresponding stream
+     *         element. The resulting list is one element longer than this
+     *         stream.
      */
     public <U> List<U> tryScanLeft(U seed, ThrowableFunction2_1<? extends Throwable, U, ? super T, U> accumulator) {
         return scanLeft(seed, toBiFunctionSneakyThrowing(accumulator));
@@ -2473,6 +2923,15 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * Equivalent to {@link #scanLeft(BinaryOperator)} but accepts Throwable Functions instead and declares exception
      * may accumulator function throw
      * @param <X> Exception Type the accumulator function may throw
+     * @param accumulator a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function for incorporating an additional element into a result
+     * @return the {@code List} where the first element is the first element of
+     *         this stream and every successor element is the result of applying
+     *         accumulator function to the previous list element and the
+     *         corresponding stream element. The resulting list has the same
+     *         size as this stream.
      * @throws X Exception that accumulator function may throw
      */
     public <X extends Throwable> List<T> scanLeftThrowing(ThrowableBinaryOperator<X, T> accumulator) throws X {
@@ -2481,6 +2940,15 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #scanLeftThrowing(ThrowableBinaryOperator)} but hides the exception that
      * accumulator function may throw
+     * @param accumulator a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function for incorporating an additional element into a result
+     * @return the {@code List} where the first element is the first element of
+     *         this stream and every successor element is the result of applying
+     *         accumulator function to the previous list element and the
+     *         corresponding stream element. The resulting list has the same
+     *         size as this stream.
      */
     public List<T> tryScanLeft(ThrowableBinaryOperator<? extends Throwable, T> accumulator) {
         return scanLeft(toBinaryOperatorSneakyThrowing(accumulator));
@@ -2535,6 +3003,17 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * Equivalent to {@link #scanRight(Object, BiFunction)} but accepts Throwable Functions instead and declares exception
      * may accumulator function throw
      * @param <X> Exception Type the accumulator function may throw
+     * @param <U> The type of the result
+     * @param seed the starting value
+     * @param accumulator a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function for incorporating an additional element into a result
+     * @return the {@code List} where the last element is the seed and every
+     *         predecessor element is the result of applying accumulator
+     *         function to the corresponding stream element and the next list
+     *         element. The resulting list is one element longer than this
+     *         stream.
      * @throws X Exception that accumulator function may throw
      */
     public <X extends Throwable, U> List<U> scanRightThrowing(U seed, ThrowableFunction2_1<X, ? super T, U, U> accumulator) throws X {
@@ -2543,6 +3022,17 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #scanRightThrowing(Object, ThrowableFunction2_1)} but hides the exception that
      * accumulator function may throw
+     * @param <U> The type of the result
+     * @param seed the starting value
+     * @param accumulator a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function for incorporating an additional element into a result
+     * @return the {@code List} where the last element is the seed and every
+     *         predecessor element is the result of applying accumulator
+     *         function to the corresponding stream element and the next list
+     *         element. The resulting list is one element longer than this
+     *         stream.
      */
     public <U> List<U> tryScanRight(U seed, ThrowableFunction2_1<? extends Throwable, ? super T, U, U> accumulator) {
         return scanRight(seed, toBiFunctionSneakyThrowing(accumulator));
@@ -2591,6 +3081,15 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
      * Equivalent to {@link #scanRight(BinaryOperator)} but accepts Throwable Functions instead and declares exception
      * may accumulator function throw
      * @param <X> Exception Type the accumulator function may throw
+     * @param accumulator a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function for incorporating an additional element into a result
+     * @return the {@code List} where the last element is the last element of
+     *         this stream and every predecessor element is the result of
+     *         applying accumulator function to the corresponding stream element
+     *         and the next list element. The resulting list is one element
+     *         longer than this stream.
      * @throws X Exception that accumulator function may throw
      */
     public <X extends Throwable> List<T> scanRightThrowing(ThrowableBinaryOperator<X, T> accumulator) throws X {
@@ -2599,6 +3098,15 @@ public abstract class AbstractStreamEx<T, S extends AbstractStreamEx<T, S>> exte
     /**
      * Equivalent to {@link #scanRightThrowing(ThrowableBinaryOperator)} but hides the exception that
      * accumulator function may throw
+     * @param accumulator a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        function for incorporating an additional element into a result
+     * @return the {@code List} where the last element is the last element of
+     *         this stream and every predecessor element is the result of
+     *         applying accumulator function to the corresponding stream element
+     *         and the next list element. The resulting list is one element
+     *         longer than this stream.
      */
     public List<T> tryScanRight(ThrowableBinaryOperator<? extends Throwable, T> accumulator) {
         return scanRight(toBinaryOperatorSneakyThrowing(accumulator));

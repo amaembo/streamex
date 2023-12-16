@@ -99,7 +99,7 @@ public class BaseStreamExTest {
             .onClose(ex.apply("StreamEx"))
             .map(x -> x * 2)
             .onClose(() -> flag.set(true))
-            .pairMap(Integer::sum)
+            .pairMapThrowing(Integer::sum)
             .onClose(ex.apply("After pairMap"))
             .append(4)
             .onClose(ex.apply("After append"))
@@ -123,7 +123,7 @@ public class BaseStreamExTest {
     public void testChain() {
         assertArrayEquals(new double[] { 2, 2, 6, 2, 6 },
             IntStreamEx.of(3, 4, 5).chain(IntStreamEx::boxed)
-                .chain(s -> s.flatMapToLong(LongStreamEx::range))
+                .chain(s -> s.flatMapToLongThrowing(LongStreamEx::range))
                 .chain(s -> s.filter(n -> n % 2 != 0).asDoubleStream())
                 .chain(s -> s.map(x -> x * 2)).toArray(), 0.0);
     }

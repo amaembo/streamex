@@ -22,21 +22,23 @@ public interface ThrowableFunction0_2<X extends Throwable, R1, R2> extends Seria
      * Gets 2 results in a Tuple.
      *
      * @return a @{@link Map.Entry} of 2 values
+     * @throws X Exception that function may throw
      */
-    Map.Entry<R1, R2> apply() throws X;
+    Tuple<R1, R2> apply() throws X;
 
     /**
      * Narrows the given {@code one.util.functionex.ThrowableFunction0_2<? extends Throwable, ? extends R1, ? extends R2>} to
      * {@code one.util.functionex.ThrowableFunction0_2<? extends Throwable,R1,R2>}
      *
      * @param f A {@code one.util.functionex.ThrowableFunction0_2}
+     * @param <X>  Exception that f may declare to throw
      * @param <R1> The first return type
      * @param <R2> The second return type
      * @return the given {@code f} instance as narrowed type {@code one.util.functionex.ThrowableFunction0_2<? extends Throwable,R1,R2>}
      */
     @SuppressWarnings("unchecked")
-    static <R1, R2> ThrowableFunction0_2<? extends Throwable, R1, R2> narrow(ThrowableFunction0_2<? extends Throwable, ? extends R1, ? extends R2> f) {
-        return (ThrowableFunction0_2<? extends Throwable, R1, R2>) f;
+    static <X extends Throwable, R1, R2> ThrowableFunction0_2<X, R1, R2> narrow(ThrowableFunction0_2<X, ? extends R1, ? extends R2> f) {
+        return (ThrowableFunction0_2<X, R1, R2>) f;
     }
 
     /**
@@ -95,8 +97,8 @@ public interface ThrowableFunction0_2<X extends Throwable, R1, R2> extends Seria
     default <V1, V2> ThrowableFunction0_2<X, V1, V2> andMap(ThrowableFunction2_2<X, ? super R1, ? super R2, ? extends V1, ? extends V2> after) {
         Objects.requireNonNull(after);
         return () -> {
-            Map.Entry<R1, R2> value = apply();
-            return (Map.Entry<V1, V2>) after.apply(value.getKey(), value.getValue());
+            Tuple<R1, R2> value = apply();
+            return (Tuple<V1, V2>) after.apply(value.getKey(), value.getValue());
         };
     }
 
@@ -124,16 +126,16 @@ public interface ThrowableFunction0_2<X extends Throwable, R1, R2> extends Seria
      * If evaluation of either function throws an exception, it is relayed to
      * the caller of the composed function.
      *
-     * @param <T> type of parameter of before function
+     * @param <I> type of parameter of before function
      * @param before the function to apply before this function is applied
      * @return a composed function that first applies the {@code before} function and
      * then applies this function
      * @throws NullPointerException if before is null
      */
-    default <T> ThrowableFunction1_2<X, T, R1, R2> compose(ThrowableFunction1_0<X, ? super T> before) {
+    default <I> ThrowableFunction1_2<X, I, R1, R2> compose(ThrowableFunction1_0<X, ? super I> before) {
         Objects.requireNonNull(before);
-        return t1 -> {
-            before.apply(t1);
+        return i1 -> {
+            before.apply(i1);
             return apply();
         };
     }
@@ -143,17 +145,17 @@ public interface ThrowableFunction0_2<X extends Throwable, R1, R2> extends Seria
      * If evaluation of either function throws an exception, it is relayed to
      * the caller of the composed function.
      *
-     * @param <T1> type of first parameter of before function
-     * @param <T2> type of second parameter of before function
+     * @param <I1> type of first parameter of before function
+     * @param <I2> type of second parameter of before function
      * @param before the function to apply before this function is applied
      * @return a composed function that first applies the {@code before} function and
      * then applies this function
      * @throws NullPointerException if before is null
      */
-    default <T1, T2> ThrowableFunction2_2<X, T1, T2, R1, R2> compose(ThrowableFunction2_0<X, ? super T1, ? super T2> before) {
+    default <I1, I2> ThrowableFunction2_2<X, I1, I2, R1, R2> compose(ThrowableFunction2_0<X, ? super I1, ? super I2> before) {
         Objects.requireNonNull(before);
-        return (t1, t2) -> {
-            before.apply(t1, t2);
+        return (i1, i2) -> {
+            before.apply(i1, i2);
             return apply();
         };
     }

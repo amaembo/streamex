@@ -209,7 +209,7 @@ public class StreamExTest {
             assertEquals(1, s.count());
         }
         assertEquals(1, i.get());
-        assertEquals(asList(1, 2), StreamEx.of("a", "bb").map(String::length).toList());
+        assertEquals(asList(1, 2), StreamEx.of("a", "bb").mapThrowing(String::length).toList());
         assertFalse(StreamEx.empty().findAny().isPresent());
         assertEquals("a", StreamEx.of("a").findAny().get());
         assertFalse(StreamEx.empty().findFirst().isPresent());
@@ -234,7 +234,7 @@ public class StreamExTest {
         assertTrue(StreamEx.of().allMatch("a"::equals));
         assertFalse(StreamEx.of().anyMatch("a"::equals));
 
-        assertEquals("abbccc", StreamEx.of("a", "bb", "ccc").collect(StringBuilder::new, StringBuilder::append,
+        assertEquals("abbccc", StreamEx.of("a", "bb", "ccc").collectThrowing(StringBuilder::new, StringBuilder::append,
             StringBuilder::append).toString());
         assertArrayEquals(new String[] { "a", "b", "c" }, StreamEx.of("a", "b", "c").toArray(String[]::new));
         assertArrayEquals(new Object[] { "a", "b", "c" }, StreamEx.of("a", "b", "c").toArray());
@@ -296,21 +296,21 @@ public class StreamExTest {
 
     @Test
     public void testFlatMap() {
-        assertArrayEquals(new int[] { 0, 0, 1, 0, 0, 1, 0, 0 }, StreamEx.of("111", "222", "333").flatMapToInt(s -> s
+        assertArrayEquals(new int[] { 0, 0, 1, 0, 0, 1, 0, 0 }, StreamEx.of("111", "222", "333").flatMapToIntThrowing(s -> s
                 .chars().map(ch -> ch - '0')).pairMap((a, b) -> b - a).toArray());
-        assertArrayEquals(new long[] { 0, 0, 1, 0, 0, 1, 0, 0 }, StreamEx.of("111", "222", "333").flatMapToLong(s -> s
+        assertArrayEquals(new long[] { 0, 0, 1, 0, 0, 1, 0, 0 }, StreamEx.of("111", "222", "333").flatMapToLongThrowing(s -> s
                 .chars().mapToLong(ch -> ch - '0')).pairMap((a, b) -> b - a).toArray());
-        assertArrayEquals(new double[] { 0, 0, 1, 0, 0, 1, 0, 0 }, StreamEx.of("111", "222", "333").flatMapToDouble(
+        assertArrayEquals(new double[] { 0, 0, 1, 0, 0, 1, 0, 0 }, StreamEx.of("111", "222", "333").flatMapToDoubleThrowing(
             s -> s.chars().mapToDouble(ch -> ch - '0')).pairMap((a, b) -> b - a).toArray(), 0.0);
     }
 
     @Test
     public void testAndThen() {
-        HashSet<String> set = StreamEx.of("a", "bb", "ccc").toListAndThen(HashSet::new);
+        HashSet<String> set = StreamEx.of("a", "bb", "ccc").toListAndThenThrowing(HashSet::new);
         assertEquals(3, set.size());
         assertTrue(set.contains("bb"));
 
-        ArrayList<String> list = StreamEx.of("a", "bb", "ccc").toSetAndThen(ArrayList::new);
+        ArrayList<String> list = StreamEx.of("a", "bb", "ccc").toSetAndThenThrowing(ArrayList::new);
         assertEquals(3, list.size());
         assertTrue(list.contains("bb"));
 
@@ -460,7 +460,7 @@ public class StreamExTest {
         expectedMapSet.put(3, new HashSet<>(asList("ccc")));
 
         streamEx(() -> StreamEx.of("a", "bb", "dd", "ccc"), supplier -> {
-            assertEquals(expected, supplier.get().groupingBy(String::length));
+            assertEquals(expected, supplier.get().groupingByThrowing(String::length));
             Map<Integer, List<String>> map = supplier.get().groupingTo(String::length, LinkedList::new);
             assertEquals(expected, map);
             assertTrue(map.get(1) instanceof LinkedList);
@@ -534,7 +534,7 @@ public class StreamExTest {
         data.put(1, asList("a", "b"));
         data.put(2, asList("c", "d"));
         data.put(3, null);
-        assertEquals(asList("a", "b", "c", "d"), StreamEx.of(data.entrySet()).flatCollection(Entry::getValue).toList());
+        assertEquals(asList("a", "b", "c", "d"), StreamEx.of(data.entrySet()).flatCollectionThrowing(Entry::getValue).toList());
     }
 
     @Test
@@ -543,7 +543,7 @@ public class StreamExTest {
         data.put(1, new String[] {"a", "b"});
         data.put(2, new String[] {"c", "d"});
         data.put(3, null);
-        assertEquals(asList("a", "b", "c", "d"), StreamEx.of(data.entrySet()).flatArray(Entry::getValue).toList());
+        assertEquals(asList("a", "b", "c", "d"), StreamEx.of(data.entrySet()).flatArrayThrowing(Entry::getValue).toList());
     }
 
     @Test
@@ -610,7 +610,7 @@ public class StreamExTest {
     @Test
     public void testPrependTSO() {
         List<Integer> expected = IntStreamEx.rangeClosed(19999, 0, -1).boxed().toList();
-        assertEquals(expected, IntStreamEx.range(20000).mapToObj(StreamEx::of).reduce(StreamEx::prepend).get()
+        assertEquals(expected, IntStreamEx.range(20000).mapToObj(StreamEx::of).reduceThrowing(StreamEx::prepend).get()
                 .toList());
         assertEquals(expected, IntStreamEx.range(20000).parallel().mapToObj(StreamEx::of).reduce(StreamEx::prepend)
                 .get().toList());
@@ -728,7 +728,7 @@ public class StreamExTest {
             assertTrue(supplier.get().foldLeft(false, (Boolean acc, String s) -> acc || s.equals("bb")));
             assertFalse(supplier.get().foldLeft(false, (Boolean acc, String s) -> acc || s.equals("d")));
             assertEquals(6, (int) supplier.get().foldLeft(0, (acc, v) -> acc + v.length()));
-            assertEquals("{ccc={bb={a={}}}}", supplier.get().foldLeft(Collections.emptyMap(), (Map<String, Object> acc,
+            assertEquals("{ccc={bb={a={}}}}", supplier.get().foldLeftThrowing(Collections.emptyMap(), (Map<String, Object> acc,
                     String v) -> Collections.singletonMap(v, acc)).toString());
         });
     }
@@ -746,7 +746,7 @@ public class StreamExTest {
 
     @Test
     public void testFoldRight() {
-        assertEquals(";c;b;a", StreamEx.of("a", "b", "c").parallel().foldRight("", (u, v) -> v + ";" + u));
+        assertEquals(";c;b;a", StreamEx.of("a", "b", "c").parallel().foldRightThrowing("", (u, v) -> v + ";" + u));
         assertEquals("{a={bb={ccc={}}}}", StreamEx.of("a", "bb", "ccc").foldRight(Collections.emptyMap(), (BiFunction<String, Map<String, Object>, Map<String, Object>>) Collections::singletonMap).toString());
         assertEquals("{a={bb={ccc={}}}}", StreamEx.of("a", "bb", "ccc").parallel().foldRight(Collections.emptyMap(), (BiFunction<String, Map<String, Object>, Map<String, Object>>) Collections::singletonMap).toString());
     }

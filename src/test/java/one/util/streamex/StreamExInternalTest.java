@@ -55,25 +55,35 @@ public class StreamExInternalTest {
         assertEquals(CharSpliterator.class, StreamEx.split("a#a", "\\#").spliterator().getClass());
     }
 
+    /* ************************************************************* */
+    /* Here some unit tests to explain interests of my modifications */
+    /* ************************************************************* */
+
+    /*
+        We can see in this example, when i use conventional map method, it is impossible to use
+        functions that can throws throwable exception.
+        It is necessary either :
+         - to prevent any exception to throws
+         - code a try-catch block in lambda like in the example to wrap exceptions in a RuntimeException
+     */
     @Test
-    public void testTryMapMulti() {
-        boolean hasMapMulti = VerSpec.VER_SPEC.getClass().getSimpleName().equals("Java16Specific");
-        List<String> data = new ArrayList<>();
-        StreamEx.of(10, 20, 30).<String>tryMapMulti((e, cons) -> {
-            if(e > 50)
-                throw new DomainException();
-            data.add("MM: "+e);
-            cons.accept("T: " + e);
-            data.add("MM: " +(e + 1));
-            cons.accept("T: " + (e + 1));
-        }).into(data);
-        // When polyfill is used, results of mapMulti are buffered, so the order of execution is different
-        List<String> expected = hasMapMulti ?
-                asList("MM: 10", "T: 10", "MM: 11", "T: 11", "MM: 20", "T: 20", "MM: 21", "T: 21", "MM: 30", "T: 30", "MM: 31", "T: 31") :
-                asList("MM: 10", "MM: 11", "T: 10", "T: 11", "MM: 20", "MM: 21", "T: 20", "T: 21", "MM: 30", "MM: 31", "T: 30", "T: 31");
-        assertEquals(expected, data);
+    public void testMap() {
+        List<String> result = StreamEx.of("Luke", "Leïa", "Anakin")
+            .map(firstname -> {
+                try {
+                    if (firstname.equals("Error"))
+                        throw new DomainException();
+                    return firstname + " Skywalker";
+                } catch (DomainException e) {
+                    throw new RuntimeException(e);
+                }
+            }).toList();
+        assertEquals("map throwing", asList("Luke Skywalker", "Leïa Skywalker", "Anakin Skywalker"), result);
     }
 
+    /*
+
+     */
     @Test
     public void testMapThrowing() throws DomainException {
         List<String> result = StreamEx.of("Luke", "Leïa", "Anakin")
@@ -89,17 +99,6 @@ public class StreamExInternalTest {
     public void testTryMap() {
         List<String> result = StreamEx.of("Luke", "Leïa", "Anakin")
             .tryMap(firstname -> {
-                if (firstname.equals("Error"))
-                    throw new DomainException();
-                return firstname + " Skywalker";
-            }).toList();
-        assertEquals("map throwing", asList("Luke Skywalker", "Leïa Skywalker", "Anakin Skywalker"), result);
-    }
-
-    @Test
-    public void testMapThrowing() throws DomainException {
-        List<String> result = StreamEx.of("Luke", "Leïa", "Anakin")
-            .and(firstname -> {
                 if (firstname.equals("Error"))
                     throw new DomainException();
                 return firstname + " Skywalker";
@@ -143,4 +142,22 @@ public class StreamExInternalTest {
         assertEquals(expected, data);
     }
 
+    @Test
+    public void testTryMapMulti() {
+        boolean hasMapMulti = VerSpec.VER_SPEC.getClass().getSimpleName().equals("Java16Specific");
+        List<String> data = new ArrayList<>();
+        StreamEx.of(10, 20, 30).<String>tryMapMulti((e, cons) -> {
+            if(e > 50)
+                throw new DomainException();
+            data.add("MM: "+e);
+            cons.accept("T: " + e);
+            data.add("MM: " +(e + 1));
+            cons.accept("T: " + (e + 1));
+        }).into(data);
+        // When polyfill is used, results of mapMulti are buffered, so the order of execution is different
+        List<String> expected = hasMapMulti ?
+            asList("MM: 10", "T: 10", "MM: 11", "T: 11", "MM: 20", "T: 20", "MM: 21", "T: 21", "MM: 30", "T: 30", "MM: 31", "T: 31") :
+            asList("MM: 10", "MM: 11", "T: 10", "T: 11", "MM: 20", "MM: 21", "T: 20", "T: 21", "MM: 30", "MM: 31", "T: 30", "T: 31");
+        assertEquals(expected, data);
+    }
 }

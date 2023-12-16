@@ -31,12 +31,13 @@ public interface ThrowablePredicate1<X extends Throwable, T> extends Serializabl
      * {@code one.util.functionex.ThrowablePredicate1<? extends Throwable,T>}
      *
      * @param f A {@code one.util.functionex.ThrowablePredicate1}
+     * @param <X>  Exception that f may declare to throw
      * @param <T> The parameter type
      * @return the given {@code f} instance as narrowed type {@code one.util.functionex.ThrowablePredicate1<? extends Throwable,T>}
      */
     @SuppressWarnings("unchecked")
-    static <T> ThrowablePredicate1<? extends Throwable, T> narrow(ThrowablePredicate1<? extends Throwable, ? super T> f) {
-        return (ThrowablePredicate1<? extends Throwable, T>) f;
+    static <X extends Throwable, T> ThrowablePredicate1<X, T> narrow(ThrowablePredicate1<X, ? super T> f) {
+        return (ThrowablePredicate1<X, T>) f;
     }
 
     /**
