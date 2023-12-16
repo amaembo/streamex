@@ -82,7 +82,13 @@ public class StreamExInternalTest {
     }
 
     /*
-
+        In this example, we can see that I don't need to catch the exception in the method mapThrowing.
+        This method accepts throwable functions.
+        But this method detects automatically the exception that can be thrown and I have to manage the DomainException
+        outside of the stream.
+        Here, we have to add the throws declaration in testMapThrowingMethod. If you remove it, an error of compilation
+        will appear in mapThrowing method asking to handle DomainException.
+        The goal is to keep the possibility to throw important Domain exception that should not be hidden.
      */
     @Test
     public void testMapThrowing() throws DomainException {
@@ -95,6 +101,14 @@ public class StreamExInternalTest {
         assertEquals("map throwing", asList("Luke Skywalker", "Leïa Skywalker", "Anakin Skywalker"), result);
     }
 
+    /*
+        In this example, we can see that I don't need to catch the exception in the method mapThrowing too because this
+        method accepts throwable functions too.
+        But this method hides exceptions that could be thrown (even not RuntimeException) and you can see there is not
+        the throws declaration like the mapThrowing.
+        If this exception occurs, it will be thrown the same in a sneaky way.
+        This method reacts is exactly the same as the map function except that it accepts throwable functions too.
+     */
     @Test
     public void testTryMap() {
         List<String> result = StreamEx.of("Luke", "Leïa", "Anakin")
@@ -103,6 +117,28 @@ public class StreamExInternalTest {
                     throw new DomainException();
                 return firstname + " Skywalker";
             }).toList();
+        assertEquals("map throwing", asList("Luke Skywalker", "Leïa Skywalker", "Anakin Skywalker"), result);
+    }
+
+    /*
+        In this example, i want to throw only important domain exceptions and maybe handling other technical exceptions
+        in a different way.
+        If I use mapThrowing, the exception that i have to declare is Exception because it is the exception parent in
+        common between DomainException and ClassNotFoundException.
+        But i want to declare to throw only DomainException, then i can do this : I use the tryMap to hide all exceptions
+        and i add a method throwing that just declares exception that i want to throw.
+     */
+    @Test
+    public void testTryMapWithSpecificThrowing() throws DomainException {
+        List<String> result = StreamEx.of("Luke", "Leïa", "Anakin")
+            .tryMap(firstname -> {
+                if (firstname.equals("Error"))
+                    throw new DomainException();
+                if (firstname.equals("Class"))
+                    throw new ClassNotFoundException();
+                return firstname + " Skywalker";
+            }).throwing(DomainException.class)
+            .toList();
         assertEquals("map throwing", asList("Luke Skywalker", "Leïa Skywalker", "Anakin Skywalker"), result);
     }
 
