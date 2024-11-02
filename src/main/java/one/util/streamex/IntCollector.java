@@ -15,38 +15,13 @@
  */
 package one.util.streamex;
 
-import java.util.BitSet;
-import java.util.HashMap;
-import java.util.IntSummaryStatistics;
-import java.util.Map;
-import java.util.Objects;
-import java.util.OptionalDouble;
-import java.util.OptionalInt;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
-import java.util.function.IntBinaryOperator;
-import java.util.function.IntFunction;
-import java.util.function.IntPredicate;
-import java.util.function.IntUnaryOperator;
-import java.util.function.ObjIntConsumer;
-import java.util.function.Supplier;
+import java.util.*;
+import java.util.function.*;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static one.util.streamex.Internals.AverageLong;
-import static one.util.streamex.Internals.BooleanMap;
-import static one.util.streamex.Internals.Box;
-import static one.util.streamex.Internals.ByteBuffer;
-import static one.util.streamex.Internals.CharBuffer;
-import static one.util.streamex.Internals.ID_CHARACTERISTICS;
-import static one.util.streamex.Internals.IntBuffer;
-import static one.util.streamex.Internals.IntCollectorImpl;
-import static one.util.streamex.Internals.NO_CHARACTERISTICS;
-import static one.util.streamex.Internals.PartialCollector;
-import static one.util.streamex.Internals.PrimitiveBox;
-import static one.util.streamex.Internals.ShortBuffer;
-import static one.util.streamex.Internals.UNBOX_INT;
+import static one.util.streamex.Internals.*;
 
 /**
  * A {@link Collector} specialized to work with primitive {@code int}.

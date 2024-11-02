@@ -15,6 +15,12 @@
  */
 package one.util.streamex.api;
 
+import one.util.streamex.LongCollector;
+import one.util.streamex.LongStreamEx;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
+
 import java.util.HashMap;
 import java.util.LongSummaryStatistics;
 import java.util.Map;
@@ -22,17 +28,8 @@ import java.util.OptionalLong;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
-
-import one.util.streamex.LongCollector;
-import one.util.streamex.LongStreamEx;
-
 import static one.util.streamex.TestHelpers.withRandom;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 
 /**
  * @author Tagir Valeev

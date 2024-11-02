@@ -15,34 +15,13 @@
  */
 package one.util.streamex;
 
-import java.util.HashMap;
-import java.util.LongSummaryStatistics;
-import java.util.Map;
-import java.util.Objects;
-import java.util.OptionalDouble;
-import java.util.OptionalLong;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
-import java.util.function.LongBinaryOperator;
-import java.util.function.LongFunction;
-import java.util.function.LongPredicate;
-import java.util.function.LongUnaryOperator;
-import java.util.function.ObjLongConsumer;
-import java.util.function.Supplier;
+import java.util.*;
+import java.util.function.*;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
-import static one.util.streamex.Internals.AverageLong;
-import static one.util.streamex.Internals.BooleanMap;
-import static one.util.streamex.Internals.Box;
-import static one.util.streamex.Internals.ID_CHARACTERISTICS;
-import static one.util.streamex.Internals.LongBuffer;
-import static one.util.streamex.Internals.LongCollectorImpl;
-import static one.util.streamex.Internals.NO_CHARACTERISTICS;
-import static one.util.streamex.Internals.PartialCollector;
-import static one.util.streamex.Internals.PrimitiveBox;
-import static one.util.streamex.Internals.UNBOX_LONG;
+import static one.util.streamex.Internals.*;
 
 /**
  * A {@link Collector} specialized to work with primitive {@code long}.

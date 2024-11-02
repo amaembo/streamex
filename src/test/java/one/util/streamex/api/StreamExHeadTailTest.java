@@ -15,49 +15,24 @@
  */
 package one.util.streamex.api;
 
-import java.io.StringReader;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Deque;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Random;
-import java.util.Set;
-import java.util.Spliterator;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.BiPredicate;
-import java.util.function.BinaryOperator;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
-import java.util.stream.Collector;
-import java.util.stream.Stream;
-
-import org.junit.Test;
-
 import one.util.streamex.EntryStream;
 import one.util.streamex.IntStreamEx;
 import one.util.streamex.MoreCollectors;
 import one.util.streamex.StreamEx;
+import org.junit.Test;
+
+import java.io.StringReader;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.*;
+import java.util.stream.Collector;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
-import static one.util.streamex.TestHelpers.consumeElement;
-import static one.util.streamex.TestHelpers.emptyStreamEx;
-import static one.util.streamex.TestHelpers.repeat;
-import static one.util.streamex.TestHelpers.streamEx;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static one.util.streamex.TestHelpers.*;
+import static org.junit.Assert.*;
 
 /**
  * Tests/examples for StreamEx.headTail() method

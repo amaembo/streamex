@@ -15,6 +15,8 @@
  */
 package one.util.streamex;
 
+import org.junit.Test;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
@@ -26,8 +28,6 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
-
-import org.junit.Test;
 
 import static one.util.streamex.Internals.AverageLong;
 import static one.util.streamex.TestHelpers.repeat;

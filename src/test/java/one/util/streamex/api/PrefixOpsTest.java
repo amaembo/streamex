@@ -15,6 +15,11 @@
  */
 package one.util.streamex.api;
 
+import one.util.streamex.IntStreamEx;
+import one.util.streamex.LongStreamEx;
+import one.util.streamex.StreamEx;
+import org.junit.Test;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -22,17 +27,8 @@ import java.util.Spliterator;
 import java.util.function.IntConsumer;
 import java.util.function.LongConsumer;
 
-import org.junit.Test;
-
-import one.util.streamex.IntStreamEx;
-import one.util.streamex.LongStreamEx;
-import one.util.streamex.StreamEx;
-
 import static one.util.streamex.TestHelpers.consumeElement;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class PrefixOpsTest {
   @Test

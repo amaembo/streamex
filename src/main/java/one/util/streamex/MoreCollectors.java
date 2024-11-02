@@ -15,58 +15,16 @@
  */
 package one.util.streamex;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Deque;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.OptionalInt;
-import java.util.OptionalLong;
-import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.BiPredicate;
-import java.util.function.BinaryOperator;
-import java.util.function.Function;
-import java.util.function.IntFunction;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.function.ToIntFunction;
-import java.util.function.ToLongFunction;
+import java.util.function.*;
 import java.util.stream.Collector;
 import java.util.stream.Collector.Characteristics;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static one.util.streamex.AbstractStreamEx.addToMap;
-import static one.util.streamex.Internals.BooleanMap;
-import static one.util.streamex.Internals.Box;
-import static one.util.streamex.Internals.CancelException;
-import static one.util.streamex.Internals.CancellableCollectorImpl;
-import static one.util.streamex.Internals.ID_CHARACTERISTICS;
-import static one.util.streamex.Internals.NONE;
-import static one.util.streamex.Internals.NO_CHARACTERISTICS;
-import static one.util.streamex.Internals.ObjIntBox;
-import static one.util.streamex.Internals.PairBox;
-import static one.util.streamex.Internals.PartialCollector;
-import static one.util.streamex.Internals.PrimitiveBox;
-import static one.util.streamex.Internals.UNORDERED_CHARACTERISTICS;
-import static one.util.streamex.Internals.UNORDERED_ID_CHARACTERISTICS;
-import static one.util.streamex.Internals.alwaysTrue;
-import static one.util.streamex.Internals.finished;
-import static one.util.streamex.Internals.none;
-import static one.util.streamex.Internals.selectFirst;
+import static one.util.streamex.Internals.*;
 
 /**
  * Implementations of several collectors in addition to ones available in JDK.

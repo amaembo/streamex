@@ -15,66 +15,27 @@
  */
 package one.util.streamex.api;
 
+import one.util.streamex.*;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.AbstractMap;
+import java.util.*;
 import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.NavigableMap;
-import java.util.Optional;
-import java.util.OptionalInt;
-import java.util.OptionalLong;
-import java.util.Set;
-import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collector;
+import java.util.stream.*;
 import java.util.stream.Collector.Characteristics;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.LongStream;
-import java.util.stream.Stream;
-
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
-
-import one.util.streamex.EntryStream;
-import one.util.streamex.IntStreamEx;
-import one.util.streamex.Joining;
-import one.util.streamex.LongStreamEx;
-import one.util.streamex.MoreCollectors;
-import one.util.streamex.StreamEx;
 
 import static java.util.Arrays.asList;
-import static one.util.streamex.TestHelpers.assertStatementThrows;
-import static one.util.streamex.TestHelpers.checkCollector;
-import static one.util.streamex.TestHelpers.checkCollectorEmpty;
-import static one.util.streamex.TestHelpers.checkIllegalStateException;
-import static one.util.streamex.TestHelpers.checkShortCircuitCollector;
-import static one.util.streamex.TestHelpers.streamEx;
-import static one.util.streamex.TestHelpers.withRandom;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static one.util.streamex.TestHelpers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Tagir Valeev

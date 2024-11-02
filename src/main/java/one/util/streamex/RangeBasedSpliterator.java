@@ -18,14 +18,7 @@ package one.util.streamex;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Spliterator;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.DoubleBinaryOperator;
-import java.util.function.DoubleConsumer;
-import java.util.function.IntBinaryOperator;
-import java.util.function.IntConsumer;
-import java.util.function.LongBinaryOperator;
-import java.util.function.LongConsumer;
+import java.util.function.*;
 
 import static one.util.streamex.Internals.CloneableSpliterator;
 import static one.util.streamex.Internals.ObjIntBox;

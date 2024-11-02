@@ -16,15 +16,9 @@
 package one.util.streamex;
 
 import java.util.Spliterator;
-import java.util.function.BiFunction;
-import java.util.function.BiPredicate;
-import java.util.function.BinaryOperator;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.function.*;
 
-import static one.util.streamex.Internals.Box;
-import static one.util.streamex.Internals.NONE;
-import static one.util.streamex.Internals.none;
+import static one.util.streamex.Internals.*;
 
 /* package */final class CollapseSpliterator<T, R> extends Box<T> implements Spliterator<R> {
     private final Spliterator<T> source;

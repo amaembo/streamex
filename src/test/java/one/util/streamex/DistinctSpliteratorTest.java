@@ -15,13 +15,13 @@
  */
 package one.util.streamex;
 
+import org.junit.Test;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.stream.IntStream;
-
-import org.junit.Test;
 
 import static one.util.streamex.TestHelpers.checkSpliterator;
 import static org.junit.Assert.assertEquals;

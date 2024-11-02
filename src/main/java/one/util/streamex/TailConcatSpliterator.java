@@ -15,10 +15,10 @@
  */
 package one.util.streamex;
 
+import one.util.streamex.Internals.TailSpliterator;
+
 import java.util.Spliterator;
 import java.util.function.Consumer;
-
-import one.util.streamex.Internals.TailSpliterator;
 
 /**
  * @author Tagir Valeev

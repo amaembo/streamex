@@ -15,14 +15,13 @@
  */
 package one.util.streamex;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
-import static org.junit.Assert.assertEquals;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import static org.junit.Assert.assertSame;
 
 /**

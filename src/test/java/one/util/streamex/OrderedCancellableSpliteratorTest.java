@@ -15,6 +15,8 @@
  */
 package one.util.streamex;
 
+import org.junit.Test;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -22,8 +24,6 @@ import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-
-import org.junit.Test;
 
 import static one.util.streamex.TestHelpers.checkSpliterator;
 

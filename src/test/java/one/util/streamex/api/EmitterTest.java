@@ -15,17 +15,6 @@
  */
 package one.util.streamex.api;
 
-import java.math.BigInteger;
-import java.util.Iterator;
-import java.util.function.BinaryOperator;
-import java.util.function.LongPredicate;
-import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
-
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
-
 import one.util.streamex.DoubleStreamEx.DoubleEmitter;
 import one.util.streamex.IntStreamEx.IntEmitter;
 import one.util.streamex.LongStreamEx;
@@ -33,13 +22,20 @@ import one.util.streamex.LongStreamEx.LongEmitter;
 import one.util.streamex.StreamEx;
 import one.util.streamex.StreamEx.Emitter;
 import one.util.streamex.TestHelpers;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
+
+import java.math.BigInteger;
+import java.util.Iterator;
+import java.util.function.BinaryOperator;
+import java.util.function.LongPredicate;
+import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 
 import static java.util.Arrays.asList;
 import static one.util.streamex.TestHelpers.checkSpliterator;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author Tagir Valeev

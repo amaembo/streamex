@@ -15,12 +15,12 @@
  */
 package one.util.streamex;
 
+import org.junit.Test;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.stream.Stream;
-
-import org.junit.Test;
 
 import static one.util.streamex.TestHelpers.checkSpliterator;
 

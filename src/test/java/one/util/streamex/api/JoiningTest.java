@@ -15,6 +15,14 @@
  */
 package one.util.streamex.api;
 
+import one.util.streamex.IntStreamEx;
+import one.util.streamex.Joining;
+import one.util.streamex.StreamEx;
+import org.junit.Assert;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -24,19 +32,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.junit.Assert;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
-
-import one.util.streamex.IntStreamEx;
-import one.util.streamex.Joining;
-import one.util.streamex.StreamEx;
-
-import static one.util.streamex.TestHelpers.StreamExSupplier;
-import static one.util.streamex.TestHelpers.checkCollector;
-import static one.util.streamex.TestHelpers.checkShortCircuitCollector;
-import static one.util.streamex.TestHelpers.streamEx;
+import static one.util.streamex.TestHelpers.*;
 import static org.junit.Assert.assertEquals;
 
 /**

@@ -15,12 +15,11 @@
  */
 package one.util.streamex;
 
-import java.util.Arrays;
-import java.util.Spliterator;
-
+import one.util.streamex.PairSpliterator.PSOfRef;
 import org.junit.Test;
 
-import one.util.streamex.PairSpliterator.PSOfRef;
+import java.util.Arrays;
+import java.util.Spliterator;
 
 import static one.util.streamex.TestHelpers.checkSpliterator;
 import static one.util.streamex.TestHelpers.withRandom;

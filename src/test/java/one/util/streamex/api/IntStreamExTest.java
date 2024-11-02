@@ -26,43 +26,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.IntBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.OptionalInt;
+import java.util.*;
 import java.util.PrimitiveIterator.OfInt;
-import java.util.Random;
-import java.util.Scanner;
-import java.util.Spliterator;
-import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
-import java.util.function.IntBinaryOperator;
-import java.util.function.IntFunction;
-import java.util.function.IntToDoubleFunction;
-import java.util.function.IntToLongFunction;
-import java.util.function.IntUnaryOperator;
-import java.util.function.Supplier;
+import java.util.function.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.IntStream.Builder;
 
-import static one.util.streamex.TestHelpers.checkSpliterator;
-import static one.util.streamex.TestHelpers.intStreamEx;
-import static one.util.streamex.TestHelpers.streamEx;
-import static one.util.streamex.TestHelpers.withRandom;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static one.util.streamex.TestHelpers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Tagir Valeev

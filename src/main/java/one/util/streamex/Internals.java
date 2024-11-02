@@ -15,35 +15,9 @@
  */
 package one.util.streamex;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.math.MathContext;
-import java.nio.ByteOrder;
-import java.util.AbstractCollection;
-import java.util.AbstractMap;
-import java.util.AbstractSet;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.EnumSet;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.OptionalDouble;
-import java.util.OptionalInt;
-import java.util.OptionalLong;
-import java.util.Set;
-import java.util.Spliterator;
-import java.util.function.BiConsumer;
-import java.util.function.BinaryOperator;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.ObjDoubleConsumer;
-import java.util.function.ObjIntConsumer;
-import java.util.function.ObjLongConsumer;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.function.*;
 import java.util.stream.Collector;
 import java.util.stream.Collector.Characteristics;
 

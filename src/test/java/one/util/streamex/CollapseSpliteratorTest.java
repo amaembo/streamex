@@ -15,25 +15,16 @@
  */
 package one.util.streamex;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import org.junit.Test;
+
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Random;
-import java.util.Spliterator;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import org.junit.Test;
-
-import static one.util.streamex.TestHelpers.checkSpliterator;
-import static one.util.streamex.TestHelpers.repeat;
-import static one.util.streamex.TestHelpers.withRandom;
+import static one.util.streamex.TestHelpers.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 

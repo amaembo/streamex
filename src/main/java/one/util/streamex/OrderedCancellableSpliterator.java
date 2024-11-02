@@ -17,11 +17,7 @@ package one.util.streamex;
 
 import java.util.ArrayDeque;
 import java.util.Spliterator;
-import java.util.function.BiConsumer;
-import java.util.function.BinaryOperator;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.function.*;
 
 import static one.util.streamex.Internals.CancelException;
 import static one.util.streamex.Internals.CloneableSpliterator;

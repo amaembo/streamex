@@ -15,13 +15,12 @@
  */
 package one.util.streamex.api;
 
+import one.util.streamex.StreamEx;
+import org.junit.Test;
+
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-
-import org.junit.Test;
-
-import one.util.streamex.StreamEx;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertArrayEquals;

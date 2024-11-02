@@ -15,22 +15,14 @@
  */
 package one.util.streamex;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
 import one.util.streamex.Internals.PairBox;
 import org.junit.Test;
 
+import java.util.*;
+
 import static one.util.streamex.Internals.ArrayCollection;
 import static one.util.streamex.Internals.PartialCollector;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Tests for non-public APIs in StreamExInternals
