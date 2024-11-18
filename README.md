@@ -1,5 +1,5 @@
 # StreamEx 0.8.3
-Enhancing Java Stream API.
+Enhancing the Java Stream API.
 
 [![Maven Central](https://img.shields.io/maven-central/v/one.util/streamex.svg)](https://maven-badges.herokuapp.com/maven-central/one.util/streamex/)
 [![Javadocs](https://www.javadoc.io/badge/one.util/streamex.svg)](https://www.javadoc.io/doc/one.util/streamex)
@@ -7,25 +7,25 @@ Enhancing Java Stream API.
 [![Coverage Status](https://coveralls.io/repos/amaembo/streamex/badge.svg?branch=master&service=github)](https://coveralls.io/github/amaembo/streamex?branch=master)
 
 This library defines four classes: `StreamEx`, `IntStreamEx`, `LongStreamEx`, `DoubleStreamEx`
-which are fully compatible with Java 8 stream classes and provide many additional useful methods.
-Also `EntryStream` class is provided which represents the stream of map entries and provides
-additional functionality for this case. Finally, there are some new useful collectors defined in `MoreCollectors`
-class as well as primitive collectors concept.
+that are fully compatible with the Java 8 stream classes and provide many useful additional methods.
+Also, the `EntryStream` class is provided which represents a stream of map entries and provides
+additional functionality for this case. Finally, there are some useful new collectors defined in `MoreCollectors`
+class as well as the primitive collectors concept.
 
 Full API documentation is available [here](http://amaembo.github.io/streamex/javadoc/).
 
-Take a look at the [Cheatsheet](wiki/CHEATSHEET.md) for brief introduction to the StreamEx!
+Take a look at the [Cheatsheet](wiki/CHEATSHEET.md) for brief introduction to StreamEx!
 
-Before updating StreamEx check the [migration notes](wiki/MIGRATION.md) and full list of [changes](wiki/CHANGES.md).
+Before updating StreamEx check the [migration notes](wiki/MIGRATION.md) and the full list of [changes](wiki/CHANGES.md).
 
-StreamEx library main points are following:
+StreamEx main points are the following:
 
-* Shorter and convenient ways to do the common tasks.
+* Shorter and convenient ways to do common tasks.
 * Better interoperability with older code.
-* 100% compatibility with original JDK streams.
-* Friendliness for parallel processing: any new feature takes the advantage on parallel streams as much as possible.
-* Performance and minimal overhead. If StreamEx allows to solve the task using less code compared to standard Stream, it
-should not be significantly slower than the standard way (and sometimes it's even faster).
+* 100% compatibility with the original JDK streams.
+* Friendliness for parallel processing: any new feature takes advantage of parallel streams as much as possible.
+* Performance and minimal overhead. Whenever StreamEx allows solving a task using less code compared to the standard JDK
+Stream API, it should not be significantly slower than the standard way (and sometimes it's even faster).
 
 ### Examples
 
@@ -36,7 +36,7 @@ Map<Role, List<User>> role2users = StreamEx.of(users).groupingBy(User::getRole);
 StreamEx.of(1,2,3).joining("; "); // "1; 2; 3"
 ```
 
-Selecting stream elements of specific type
+Selecting stream elements of a specific type
 ```java
 public List<Element> elementsOf(NodeList nodeList) {
     return IntStreamEx.range(nodeList.getLength())
@@ -44,7 +44,7 @@ public List<Element> elementsOf(NodeList nodeList) {
 }
 ```
 
-Adding elements to stream
+Adding elements to a stream
 ```java
 public List<String> getDropDownOptions() {
     return StreamEx.of(users).map(User::getName).prepend("(none)").toList();
@@ -55,7 +55,7 @@ public int[] addValue(int[] arr, int value) {
 }
 ```
 
-Removing unwanted elements and using the stream as Iterable:
+Removing unwanted elements and using a stream as an Iterable:
 ```java
 public void copyNonEmptyLines(Reader reader, Writer writer) throws IOException {
     for(String line : StreamEx.ofLines(reader).remove(String::isEmpty)) {
@@ -98,14 +98,14 @@ Pairwise differences:
 DoubleStreamEx.of(input).pairMap((a, b) -> b-a).toArray();
 ```
 
-Support of byte/char/short/float types:
+Support for byte/char/short/float types:
 ```java
 short[] multiply(short[] src, short multiplier) {
     return IntStreamEx.of(src).map(x -> x*multiplier).toShortArray(); 
 }
 ```
 
-Define custom lazy intermediate operation recursively:
+Define a custom lazy intermediate operation recursively:
 ```java
 static <T> StreamEx<T> scanLeft(StreamEx<T> input, BinaryOperator<T> operator) {
         return input.headTail((head, tail) -> scanLeft(tail.mapFirst(cur -> operator.apply(head, cur)), operator)
@@ -123,11 +123,11 @@ This project is licensed under [Apache License, version 2.0](https://www.apache.
 
 Releases are available in [Maven Central](https://repo1.maven.org/maven2/one/util/streamex/)
 
-Before updating StreamEx check the [migration notes](wiki/MIGRATION.md) and full list of [changes](wiki/CHANGES.md).
+Before updating StreamEx check the [migration notes](wiki/MIGRATION.md) and the full list of [changes](wiki/CHANGES.md).
 
 #### Maven
 
-Add this snippet to the pom.xml `dependencies` section:
+Add this snippet to your project's pom.xml `dependencies` section:
 
 ```xml
 <dependency>
@@ -139,7 +139,7 @@ Add this snippet to the pom.xml `dependencies` section:
 
 #### Gradle 
 
-Add this snippet to the build.gradle `dependencies` section:
+Add this snippet to your project's build.gradle `dependencies` section:
 
 ```groovy
 implementation 'one.util:streamex:0.8.3'
