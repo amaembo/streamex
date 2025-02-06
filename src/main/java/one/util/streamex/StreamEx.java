@@ -395,6 +395,48 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
     }
 
     /**
+     *
+     * Returns an {@link EntryStream} consisting of the {@link Entry} objects
+     * which keys are elements of this stream and values are results of applying
+     * the given partial function to the elements of this stream
+     * removing the elements to which the function is not applicable.
+     *
+     * <p>
+     * If the mapping function returns {@link Optional#empty()}, the original
+     * value will be removed from the resulting stream. The mapping function
+     * may not return null.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate
+     * operation</a>.
+     *
+     * <p>
+     * The {@code mapToEntryPartial()} operation has the effect of applying a
+     * one-to-zero-or-one transformation to the elements of the stream, and then
+     * flattening the resulting elements into a new stream.
+     *
+     * @param <V> The {@code Entry} value type
+     * @param valueMapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        partial function to apply to each element which returns a present optional
+     *        if it's applicable, or an empty optional otherwise
+     * @return the new stream
+     * @since 0.8.4
+     *
+     * @see AbstractStreamEx#mapPartial(Function)
+     */
+    public <V> EntryStream<T, ? extends V> mapToEntryPartial(Function<? super T, ? extends Optional<? extends V>> valueMapper){
+        return new EntryStream<>(
+                stream()
+                        .map(e -> {
+                            Optional<? extends V> s = valueMapper.apply(e);
+                            return s.isPresent() ? new SimpleImmutableEntry<>(e, s.get()) : null;
+                        })
+                        .filter(Objects::nonNull), context);
+    }
+
+    /**
      * Performs a cross product of current stream with specified array of
      * elements. As a result the {@link EntryStream} is created whose keys are
      * elements of current stream and values are elements of the specified
