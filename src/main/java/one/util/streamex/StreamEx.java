@@ -173,8 +173,7 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *        element
      * @return the new stream
      */
-    public <V> EntryStream<T, V>
-    mapToEntry(Function<? super T, ? extends V> valueMapper) {
+    public <V> EntryStream<T, V> mapToEntry(Function<? super T, ? extends V> valueMapper) {
         return new EntryStream<>(stream().map(e -> new SimpleImmutableEntry<>(e, valueMapper.apply(e))), context);
     }
 
