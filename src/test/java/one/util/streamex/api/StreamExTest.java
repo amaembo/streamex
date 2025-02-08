@@ -2203,6 +2203,17 @@ public class StreamExTest {
     }
 
     @Test
+    public void testMapToEntryPartial() {
+        Function<Integer, Optional<String>> literalOf = num -> num == 1
+                ? Optional.of("one")
+                : Optional.empty();
+
+        List<Integer> original = asList(1, 2, 3, 4);
+        Map<Integer, String> expected = Collections.singletonMap(1, "one");
+        streamEx(original::stream, s -> assertEquals(expected, s.get().mapToEntryPartial(literalOf).toMap()));
+    }
+
+    @Test
     public void testConcurrentGroupingBy() {
         StreamEx.of("a", "b").parallel().groupingBy(String::length, secondConcurrentAddAssertingCollector("a", "b"));
         StreamEx.of("x", "y").parallel()
