@@ -173,7 +173,8 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      *        element
      * @return the new stream
      */
-    public <V> EntryStream<T, V> mapToEntry(Function<? super T, ? extends V> valueMapper) {
+    public <V> EntryStream<T, V>
+    mapToEntry(Function<? super T, ? extends V> valueMapper) {
         return new EntryStream<>(stream().map(e -> new SimpleImmutableEntry<>(e, valueMapper.apply(e))), context);
     }
 
@@ -427,13 +428,10 @@ public final class StreamEx<T> extends AbstractStreamEx<T, StreamEx<T>> {
      * @see AbstractStreamEx#mapPartial(Function)
      */
     public <V> EntryStream<T, ? extends V> mapToEntryPartial(Function<? super T, ? extends Optional<? extends V>> valueMapper){
-        return new EntryStream<>(
-                stream()
-                        .map(e -> {
-                            Optional<? extends V> s = valueMapper.apply(e);
-                            return s.isPresent() ? new SimpleImmutableEntry<>(e, s.get()) : null;
-                        })
-                        .filter(Objects::nonNull), context);
+        return new EntryStream<>(stream().map(e -> {
+            Optional<? extends V> s = valueMapper.apply(e);
+            return s.isPresent() ? new SimpleImmutableEntry<>(e, s.get()) : null;
+        }).filter(Objects::nonNull), context);
     }
 
     /**
