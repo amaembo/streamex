@@ -478,6 +478,40 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
 
     /**
      * Returns an {@code EntryStream} consisting of the entries whose keys are
+     * modified by applying the given partial function to keys of this {@code EntryStream}
+     * and removing the keys to which the function is not applicable. The values are left
+     * unchanged.
+     *
+     * <p>
+     * If the mapping function returns {@link Optional#empty()}, the original
+     * key will be removed from the resulting {@code EntryStream}. The mapping function
+     * may not return null.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate
+     * operation</a>.
+     *
+     * <p>
+     * The {@code mapKeysPartial()} operation has the effect of applying a
+     * one-to-zero-or-one transformation to the keys of the {@code EntryStream},
+     * and then flattening the resulting elements into a new stream.
+     *
+     * @param <KK> The element type of keys in the new {@code EntryStream}
+     * @param keyMapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        partial function to apply to each key which returns a present optional
+     *        if it's applicable, or an empty optional otherwise
+     * @return the new stream
+     * @since 0.8.4
+     *
+     */
+    public <KK> EntryStream<KK, V> mapKeysPartial(Function<? super K, ? extends Optional<? extends KK>> keyMapper) {
+        return new EntryStream<>(stream().map(e -> new SimpleImmutableEntry<>((KK) keyMapper.apply(e.getKey()).orElse(null), e.getValue())).filter(e -> e.getKey() != null), context);
+    }
+
+    /**
+     * Returns an {@code EntryStream} consisting of the entries whose keys are
      * left unchanged and values are modified by applying the given function.
      *
      * <p>
@@ -492,6 +526,39 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
     public <VV> EntryStream<K, VV> mapValues(Function<? super V, ? extends VV> valueMapper) {
         return new EntryStream<>(stream().map(
             e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e.getValue()))), context);
+    }
+
+    /**
+     * Returns an {@code EntryStream} consisting of the entries whose values are
+     * modified by applying the given partial function to values of this {@code EntryStream}
+     * and removing the values to which the function is not applicable. The keys are left
+     * unchanged.
+     *
+     * <p>
+     * If the mapping function returns {@link Optional#empty()}, the original
+     * value will be removed from the resulting {@code EntryStream}. The mapping function
+     * may not return null.
+     *
+     * <p>
+     * This is an <a href="package-summary.html#StreamOps">intermediate
+     * operation</a>.
+     *
+     * <p>
+     * The {@code mapValuesPartial()} operation has the effect of applying a
+     * one-to-zero-or-one transformation to the keys of the {@code EntryStream},
+     * and then flattening the resulting elements into a new stream.
+     *
+     * @param <VV> The element type of keys in the new {@code EntryStream}
+     * @param valueMapper a <a
+     *        href="package-summary.html#NonInterference">non-interfering </a>,
+     *        <a href="package-summary.html#Statelessness">stateless</a>
+     *        partial function to apply to each value which returns a present optional
+     *        if it's applicable, or an empty optional otherwise
+     * @return the new stream
+     * @since 0.8.4
+     */
+    public <VV> EntryStream<K, VV> mapValuesPartial(Function<? super V, ? extends Optional<? extends VV>> valueMapper) {
+        return new EntryStream<>(stream().map(e -> new SimpleImmutableEntry<>(e.getKey(), (VV) valueMapper.apply(e.getValue()).orElse(null))).filter(e -> e.getValue() != null), context);
     }
 
     /**
