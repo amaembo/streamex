@@ -118,7 +118,7 @@
 | Map only first or last element, leaving others as is | `any.mapFirst()/mapLast()` |
 | Map stream element providing special mapper function for the first or last element | `any.mapFirstOrElse()/mapLastOrElse()` |
 | Attach the first stream element to every stream element | `StreamEx.withFirst()` |
-| Map only part of input elements using partial function which returns Optional | `StreamEx.mapPartial()`; `EntryStream.mapToKeyPartial()/mapToValuePartial()/mapKeyValuePartial()` |
+| Map only part of input elements using partial function which returns Optional | `StreamEx.mapPartial()/mapToEntryPartial()`; `EntryStream.mapToKeyPartial()/mapToValuePartial()/mapKeyValuePartial()/mapKeysPartial()/mapValuesPartial()` |
 
 ### flat-mapping
 
