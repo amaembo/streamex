@@ -268,6 +268,29 @@ public class EntryStreamTest {
     }
 
     @Test
+    public void testMapKeysPartial() {
+        Map<Integer, Integer> original = new HashMap<>();
+        original.put(1, 1);
+        original.put(2, 2);
+        original.put(3, 3);
+        original.put(4, 4);
+
+        Map<Integer, Integer> expected = new HashMap<>();
+        expected.put(1, 2);
+        expected.put(2, 4);
+
+        Map<Integer, Integer> actual = EntryStream.of(original)
+                .mapKeysPartial(key -> {
+                    if (key % 2 == 0) {
+                        return Optional.of(key / 2);
+                    }
+                    return Optional.empty();
+                }).toMap();
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
     public void testMapValues() {
         Map<String, String> expected = new HashMap<>();
         expected.put("a", "1");
@@ -275,6 +298,29 @@ public class EntryStreamTest {
         expected.put("ccc", "33");
         Map<String, String> result = EntryStream.of(createMap()).mapValues(String::valueOf).toMap();
         assertEquals(expected, result);
+    }
+
+    @Test
+    public void testMapValuesPartial() {
+        Map<Integer, Integer> original = new HashMap<>();
+        original.put(1, 1);
+        original.put(2, 2);
+        original.put(3, 3);
+        original.put(4, 4);
+
+        Map<Integer, Integer> expected = new HashMap<>();
+        expected.put(2, 1);
+        expected.put(4, 2);
+
+        Map<Integer, Integer> actual = EntryStream.of(original)
+                .mapValuesPartial(value -> {
+                    if (value % 2 == 0) {
+                        return Optional.of(value / 2);
+                    }
+                    return Optional.empty();
+                }).toMap();
+
+        assertEquals(expected, actual);
     }
 
     @Test
