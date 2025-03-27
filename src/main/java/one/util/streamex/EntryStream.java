@@ -507,7 +507,11 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      *
      */
     public <KK> EntryStream<KK, V> mapKeysPartial(Function<? super K, ? extends Optional<? extends KK>> keyMapper) {
-        return mapToKeyPartial((k, _v) -> keyMapper.apply(k));
+        return new EntryStream<>(stream().map(e -> {
+                    KK mapping = keyMapper.apply(e.getKey()).orElse(null);
+                    return mapping != null ? new SimpleImmutableEntry<>(mapping, e.getValue()) : null;
+                }
+        ).filter(Objects::nonNull), context);
     }
 
     /**
@@ -558,7 +562,11 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @since 0.8.4
      */
     public <VV> EntryStream<K, VV> mapValuesPartial(Function<? super V, ? extends Optional<? extends VV>> valueMapper) {
-        return mapToValuePartial((_k, v) -> valueMapper.apply(v));
+        return new EntryStream<>(stream().map(e -> {
+                    VV mapping = valueMapper.apply(e.getValue()).orElse(null);
+                    return mapping != null ? new SimpleImmutableEntry<>(e.getKey(), mapping) : null;
+                }
+        ).filter(Objects::nonNull), context);
     }
 
     /**
