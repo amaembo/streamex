@@ -19,6 +19,7 @@ import one.util.streamex.Internals.PairBox;
 import org.junit.Test;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 import static one.util.streamex.Internals.ArrayCollection;
 import static one.util.streamex.Internals.PartialCollector;
@@ -64,5 +65,22 @@ public class InternalsTest {
         assertNotEquals(boxOneTwo, boxTwoOne);
         assertNotEquals(boxOneTwo, boxOneOne);
         assertEquals(boxTwoOne, boxOneOne);
+    }
+    
+    @Test
+    public void testCloneableSpliterator() {
+        class Splt extends Internals.CloneableSpliterator<Object, Splt> {
+            @Override
+            protected Object clone() throws CloneNotSupportedException {
+                throw new CloneNotSupportedException();
+            }
+
+            @Override public boolean tryAdvance(Consumer<? super Object> action) { return false; }
+            @Override public Spliterator<Object> trySplit() { return null; }
+            @Override public long estimateSize() { return 0; }
+            @Override public int characteristics() { return 0; }
+        }
+        Splt splt = new Splt();
+        assertThrows(InternalError.class, splt::doClone);
     }
 }
