@@ -17,6 +17,7 @@ package one.util.streamex.api;
 
 import one.util.streamex.*;
 import one.util.streamex.TestHelpers.*;
+import org.jspecify.annotations.NonNull;
 import org.junit.FixMethodOrder;
 import org.junit.Rule;
 import org.junit.Test;
@@ -2242,5 +2243,22 @@ public class StreamExTest {
     @Test
     public void testCount() {
         assertEquals(3L, StreamEx.of("x", "", "y", "", "z").count(x -> !x.isEmpty()));
+    }
+    
+    @Test
+    public void testIterateUntilNull() {
+        StreamEx<@NonNull Integer> integers = StreamEx.iterateUntilNull(1, x -> x < 6 ? x + 1 : null);
+        assertEquals(asList(1, 2, 3, 4, 5, 6), integers.toList());
+        assertEquals(asList(), 
+                StreamEx.iterateUntilNull((Integer)null, x -> x < 6 ? x + 1 : null).map(Object::toString).toList());
+    }
+    
+    @Test
+    public void testTakeUntilNull() {
+        List<String> list = StreamEx.of(1, 2, 3, null, 4, 5, 6, null)
+                .takeUntilNull()
+                .map(Object::toString)
+                .toList();
+        assertEquals(asList("1", "2", "3"), list);
     }
 }

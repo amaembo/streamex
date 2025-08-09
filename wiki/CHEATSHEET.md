@@ -33,73 +33,75 @@
 
 ## Stream sources
 
-| What I want | How to get it |
-|---|---|
-| Empty Stream | `any.empty()` |
-| Stream of array, varargs, `Collection`, `Spliterator`, `Iterator`, `Stream` | `any.of()` |
-| Stream of `Enumeration` | `StreamEx.of()` |
-| Stream of array or `List` elements in reverse order | `StreamEx.ofReversed()` |
-| Stream of boxed `Collection<Integer>`, etc. with unboxing | `IntStreamEx/LongStreamEx/DoubleStreamEx.of()` |
-| Stream of boxed array `Integer[]`, etc. with unboxing | `IntStreamEx/LongStreamEx/DoubleStreamEx.of()` |
-| Stream of `byte[]`, `char[]`, `short[]` array | `IntStreamEx.of()` |
-| Stream of `float[]` array | `DoubleStreamEx.of()` |
-| Infinite Stream from `Supplier` | `any.generate()` |
-| Infinite Stream using iterative function | `any.iterate()` |
-| Convert three-argument for loop to Stream | `any.iterate()` |
-| Fixed length Stream of constant elements | `any.constant()` |
-| Stream from mutable object which is left in the known state after full Stream consumption | `any.produce()` |
-| Custom stream source which maintains mutable state | `Emitter/IntEmitter/LongEmitter/DoubleEmitter` |
-| Stream of array or `List` with indices | `EntryStream.of()` |
-| Stream of single value or empty if null supplied | `StreamEx.ofNullable()` |
-| Stream of `Map` keys (with optional values filter) | `StreamEx.ofKeys()` |
-| Stream of `Map` values (with optional keys filter) | `StreamEx.ofValues()` |
-| Stream of `Map` entries or explicit key-value pairs | `EntryStream.of()` |
-| Zip two arrays or lists | `any.zip()` |
-| Split `CharSequence` with regexp | `StreamEx.split()` |
-| Stream of `List` subLists of fixed length | `StreamEx.ofSubLists()` |
-| Stream of all elements of tree-like structure | `StreamEx.ofTree()` |
-| Stream of all elements of tree-like structure tracking the elements depth | `EntryStream.ofTree()` |
-| Stream of all possible pairs of array or `List` elements | `StreamEx/EntryStream.ofPairs()` |
-| Stream of all possible tuples of given length of `Collection` elements | `StreamEx.cartesianPower()` |
-| Stream of all possible tuples of given `Collection` of collections | `StreamEx.cartesianProduct()` |
-| Stream of permutations | `StreamEx.ofPermutations()` |
-| Stream of combinations | `StreamEx.ofCombinations()` |
-| Stream of array or `List` indices (with optional element filter) | `IntStreamEx.ofIndices()` |
-| Stream of range of integral values (with optional step parameter) | `IntStreamEx/LongStreamEx.range()/rangeClosed()` |
-| Stream of increasing `int` or `long` values | `IntStreamEx.ints()`/`LongStreamEx.longs()` |
-| Stream of random numbers | `IntStreamEx/LongStreamEx/DoubleStreamEx.of(Random, ...)` |
-| Stream of `CharSequence` symbols | `IntStreamEx.ofChars()/ofCodePoints()` |
-| Stream of `BitSet` true bits | `IntStreamEx.of(BitSet)` |
-| Stream of lines from file or `Reader` | `StreamEx.ofLines()` |
-| Stream of bytes from the `InputStream` | `IntStreamEx.of(InputStream)` |
-| Stream of ints from the `IntBuffer` | `IntStreamEx.of(IntBuffer)` |
-| Stream of longs from the `LongBuffer` | `LongStreamEx.of(LongBuffer)` |
-| Stream of doubles from the `DoubleBuffer` | `DoubleStreamEx.of(DoubleBuffer)` |
+| What I want                                                                               | How to get it                                             |
+|-------------------------------------------------------------------------------------------|-----------------------------------------------------------|
+| Empty Stream                                                                              | `any.empty()`                                             |
+| Stream of array, varargs, `Collection`, `Spliterator`, `Iterator`, `Stream`               | `any.of()`                                                |
+| Stream of `Enumeration`                                                                   | `StreamEx.of()`                                           |
+| Stream of array or `List` elements in reverse order                                       | `StreamEx.ofReversed()`                                   |
+| Stream of boxed `Collection<Integer>`, etc. with unboxing                                 | `IntStreamEx/LongStreamEx/DoubleStreamEx.of()`            |
+| Stream of boxed array `Integer[]`, etc. with unboxing                                     | `IntStreamEx/LongStreamEx/DoubleStreamEx.of()`            |
+| Stream of `byte[]`, `char[]`, `short[]` array                                             | `IntStreamEx.of()`                                        |
+| Stream of `float[]` array                                                                 | `DoubleStreamEx.of()`                                     |
+| Infinite Stream from `Supplier`                                                           | `any.generate()`                                          |
+| Infinite Stream using iterative function                                                  | `any.iterate()`                                           |
+| Convert three-argument for loop to Stream                                                 | `any.iterate()`                                           |
+| Generate Stream iteratively, until null is reached                                        | `any.iterateUntilNull()`                                  |
+| Fixed length Stream of constant elements                                                  | `any.constant()`                                          |
+| Stream from mutable object which is left in the known state after full Stream consumption | `any.produce()`                                           |
+| Custom stream source which maintains mutable state                                        | `Emitter/IntEmitter/LongEmitter/DoubleEmitter`            |
+| Stream of array or `List` with indices                                                    | `EntryStream.of()`                                        |
+| Stream of single value or empty if null supplied                                          | `StreamEx.ofNullable()`                                   |
+| Stream of `Map` keys (with optional values filter)                                        | `StreamEx.ofKeys()`                                       |
+| Stream of `Map` values (with optional keys filter)                                        | `StreamEx.ofValues()`                                     |
+| Stream of `Map` entries or explicit key-value pairs                                       | `EntryStream.of()`                                        |
+| Zip two arrays or lists                                                                   | `any.zip()`                                               |
+| Split `CharSequence` with regexp                                                          | `StreamEx.split()`                                        |
+| Stream of `List` subLists of fixed length                                                 | `StreamEx.ofSubLists()`                                   |
+| Stream of all elements of tree-like structure                                             | `StreamEx.ofTree()`                                       |
+| Stream of all elements of tree-like structure tracking the elements depth                 | `EntryStream.ofTree()`                                    |
+| Stream of all possible pairs of array or `List` elements                                  | `StreamEx/EntryStream.ofPairs()`                          |
+| Stream of all possible tuples of given length of `Collection` elements                    | `StreamEx.cartesianPower()`                               |
+| Stream of all possible tuples of given `Collection` of collections                        | `StreamEx.cartesianProduct()`                             |
+| Stream of permutations                                                                    | `StreamEx.ofPermutations()`                               |
+| Stream of combinations                                                                    | `StreamEx.ofCombinations()`                               |
+| Stream of array or `List` indices (with optional element filter)                          | `IntStreamEx.ofIndices()`                                 |
+| Stream of range of integral values (with optional step parameter)                         | `IntStreamEx/LongStreamEx.range()/rangeClosed()`          |
+| Stream of increasing `int` or `long` values                                               | `IntStreamEx.ints()`/`LongStreamEx.longs()`               |
+| Stream of random numbers                                                                  | `IntStreamEx/LongStreamEx/DoubleStreamEx.of(Random, ...)` |
+| Stream of `CharSequence` symbols                                                          | `IntStreamEx.ofChars()/ofCodePoints()`                    |
+| Stream of `BitSet` true bits                                                              | `IntStreamEx.of(BitSet)`                                  |
+| Stream of lines from file or `Reader`                                                     | `StreamEx.ofLines()`                                      |
+| Stream of bytes from the `InputStream`                                                    | `IntStreamEx.of(InputStream)`                             |
+| Stream of ints from the `IntBuffer`                                                       | `IntStreamEx.of(IntBuffer)`                               |
+| Stream of longs from the `LongBuffer`                                                     | `LongStreamEx.of(LongBuffer)`                             |
+| Stream of doubles from the `DoubleBuffer`                                                 | `DoubleStreamEx.of(DoubleBuffer)`                         |
 
 ## New intermediate operations
 
 ### filtering
 
-| What I want | How to get it |
-|---|---|
-| Remove nulls | `StreamEx/EntryStream.nonNull()` |
-| Remove entries whose keys or values are null | `EntryStream.nonNullKeys()/nonNullValues()` |
-| Remove entries whose keys are equal to any of the supplied keys | `EntryStream.withoutKeys()` |
-| Remove entries whose values are equal to any of the supplied values | `EntryStream.withoutValues()` |
-| Remove elements by predicate | `any.remove()` |
-| Remove given elements | `StreamEx/IntStreamEx/LongStreamEx.without()` |
-| Remove by value extracted by supplied mapper function | `StreamEx.removeBy()` |
-| Leave only elements greater/less/at least/at most given value | `IntStreamEx/LongStreamEx/DoubleStreamEx.greater()/atLeast()/less()/atMost()` |
-| Filter by value extracted by supplied mapper function | `StreamEx.filterBy()` |
-| Filter entries which keys or values satisfy the predicate | `EntryStream.filterKeys()/filterValues()` |
-| Filter entries applying the `BiPredicate` to key and value | `EntryStream.filterKeyValue()` |
-| Remove entries which keys or values satisfy the predicate | `EntryStream.removeKeys()/removeValues()` |
-| Remove entries applying the `BiPredicate` to key and value | `EntryStream.removeKeyValue()` |
-| Select elements which are instances of given class | `StreamEx.select()` |
-| Select entries which keys or values are instances of given class | `EntryStream.selectKeys()/selectValues()` |
-| Take stream elements while the condition is true | `any.takeWhile()` |
-| Take stream elements while the condition is true including first violating element | `any.takeWhileInclusive()` |
-| Skip stream elements while the condition is true | `any.dropWhile()` |
+| What I want                                                                        | How to get it                                                                 |
+|------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| Remove nulls                                                                       | `StreamEx/EntryStream.nonNull()`                                              |
+| Remove entries whose keys or values are null                                       | `EntryStream.nonNullKeys()/nonNullValues()`                                   |
+| Remove entries whose keys are equal to any of the supplied keys                    | `EntryStream.withoutKeys()`                                                   |
+| Remove entries whose values are equal to any of the supplied values                | `EntryStream.withoutValues()`                                                 |
+| Remove elements by predicate                                                       | `any.remove()`                                                                |
+| Remove given elements                                                              | `StreamEx/IntStreamEx/LongStreamEx.without()`                                 |
+| Remove by value extracted by supplied mapper function                              | `StreamEx.removeBy()`                                                         |
+| Leave only elements greater/less/at least/at most given value                      | `IntStreamEx/LongStreamEx/DoubleStreamEx.greater()/atLeast()/less()/atMost()` |
+| Filter by value extracted by supplied mapper function                              | `StreamEx.filterBy()`                                                         |
+| Filter entries which keys or values satisfy the predicate                          | `EntryStream.filterKeys()/filterValues()`                                     |
+| Filter entries applying the `BiPredicate` to key and value                         | `EntryStream.filterKeyValue()`                                                |
+| Remove entries which keys or values satisfy the predicate                          | `EntryStream.removeKeys()/removeValues()`                                     |
+| Remove entries applying the `BiPredicate` to key and value                         | `EntryStream.removeKeyValue()`                                                |
+| Select elements which are instances of given class                                 | `StreamEx.select()`                                                           |
+| Select entries which keys or values are instances of given class                   | `EntryStream.selectKeys()/selectValues()`                                     |
+| Take stream elements while the condition is true                                   | `any.takeWhile()`                                                             |
+| Take stream elements until null                                                    | `StreamEx.takeUntilNull()`                                                    |
+| Take stream elements while the condition is true including first violating element | `any.takeWhileInclusive()`                                                    |
+| Skip stream elements while the condition is true                                   | `any.dropWhile()`                                                             |
 
 ### mapping
 

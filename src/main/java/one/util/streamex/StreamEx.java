@@ -165,7 +165,32 @@ public final class StreamEx<T extends @Nullable Object> extends AbstractStreamEx
     public <K extends @Nullable Object> StreamEx<T> removeBy(Function<? super T, ? extends K> mapper, K value) {
         return value == null ? filter(t -> mapper.apply(t) != null) : filter(t -> !value.equals(mapper.apply(t)));
     }
-    
+
+    /**
+     * Returns a stream consisting of all elements from this stream until the
+     * null element is found. The null element itself is not included into
+     * the resulting stream.
+     *
+     * <p>
+     * This is a short-circuiting stateful operation. It can be either <a
+     * href="package-summary.html#StreamOps">intermediate or
+     * quasi-intermediate</a>.
+     *
+     * <p>
+     * While this operation is quite cheap for sequential stream, it can be
+     * quite expensive on parallel pipelines. Using unordered source or making it
+     * explicitly unordered with {@link #unordered()} call may improve the parallel
+     * processing performance if semantics permit.
+     *
+     * @return the new stream.
+     * @since 0.9.0
+     * @see #takeWhile(Predicate)
+     * @see #dropWhile(Predicate)
+     */
+    public StreamEx<@NonNull T> takeUntilNull() {
+        return super.takeWhile(Objects::nonNull);
+    }
+
     /**
      * Returns an {@link EntryStream} consisting of the {@link Entry} objects
      * which keys are elements of this stream and values are results of applying
@@ -2926,6 +2951,42 @@ public final class StreamEx<T extends @Nullable Object> extends AbstractStreamEx
             }
         };
         return of(spliterator);
+    }
+
+    /**
+     * Returns a sequential ordered {@code StreamEx} produced by iterative
+     * application of a function to an initial element (called seed). 
+     * The stream terminates as soon as the function returns null.
+     * If the seed is null, an empty stream will be returned.
+     *
+     * <p>
+     * {@code StreamEx.iterate} should produce the same sequence of elements as
+     * produced by the corresponding for-loop:
+     *
+     * <pre>{@code
+     *     for (T e=seed; e != null; e = f.apply(e)) {
+     *         ... 
+     *     }
+     * }</pre>
+     *
+     * <p>
+     * The resulting sequence may be empty if the seed is null. 
+     * Otherwise, the first element will be the supplied seed value,
+     * the next element (if present) will be the result of applying the function
+     * f to the seed value, and so on iteratively until the function returns null.
+     *
+     * @param <T> the type of stream elements
+     * @param seed the initial element
+     * @param f a function to be applied to the previous element to produce a
+     *        new element; returning null implies that the stream must terminate.
+     * @return a new sequential {@code StreamEx}
+     * @see #iterate(Object, UnaryOperator)
+     * @see #iterate(Object, Predicate, UnaryOperator) 
+     * @since 0.9.0
+     */
+    public static <T> StreamEx<T> iterateUntilNull(@Nullable T seed, Function<? super T, ? extends @Nullable T> f) {
+        if (seed == null) return StreamEx.empty();
+        return iterate(seed, Objects::nonNull, f::apply);
     }
 
     /**
