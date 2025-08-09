@@ -18,5 +18,6 @@
  * See package documentation for more information.
  */
 module one.util.streamex {
+  requires org.jspecify;
   exports one.util.streamex;
 }
