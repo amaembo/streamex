@@ -52,11 +52,11 @@ import java.util.stream.BaseStream;
         this.parallel = parallel;
     }
 
-    <T> T terminate(Supplier<T> terminalOperation) {
+    <T extends @Nullable Object> T terminate(Supplier<T> terminalOperation) {
         return fjp.submit(terminalOperation::get).join();
     }
 
-    <T, U> T terminate(U value, Function<U, T> terminalOperation) {
+    <T extends @Nullable Object, U extends @Nullable Object> T terminate(U value, Function<U, T> terminalOperation) {
         return fjp.submit(() -> terminalOperation.apply(value)).join();
     }
 

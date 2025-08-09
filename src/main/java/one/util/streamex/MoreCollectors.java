@@ -215,7 +215,7 @@ public final class MoreCollectors {
      */
     public static <
             K extends @Nullable Object,
-            V extends @Nullable Object,
+            V,
             M extends Map<K, V>> Collector<Entry<? extends K, ? extends V>, ?, M> entriesToCustomMap(
             Supplier<M> mapSupplier) {
         return Collector.of(mapSupplier,
@@ -808,8 +808,8 @@ public final class MoreCollectors {
      * 
      * <p>
      * The operation performed by the returned collector is equivalent to
-     * {@code stream.sorted(comparator.reversed()).limit(n).collect(Collectors.toList())}
-     * , but usually performed much faster if {@code n} is much less than the
+     * {@code stream.sorted(comparator.reversed()).limit(n).collect(Collectors.toList())},
+     * but usually performed much faster if {@code n} is much less than the
      * stream size.
      * 
      * <p>
@@ -841,8 +841,8 @@ public final class MoreCollectors {
      * 
      * <p>
      * The operation performed by the returned collector is equivalent to
-     * {@code stream.sorted(Comparator.reverseOrder()).limit(n).collect(Collectors.toList())}
-     * , but usually performed much faster if {@code n} is much less than the
+     * {@code stream.sorted(Comparator.reverseOrder()).limit(n).collect(Collectors.toList())},
+     * but usually performed much faster if {@code n} is much less than the
      * stream size.
      * 
      * <p>

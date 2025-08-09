@@ -15,6 +15,8 @@
  */
 package one.util.streamex;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.*;
@@ -644,7 +646,7 @@ import java.util.stream.Collector.Characteristics;
     final class ObjIntBox<A> extends Box<A> implements Entry<Integer, A> {
         int b;
 
-        ObjIntBox(A a, int b) {
+        ObjIntBox(@Nullable A a, int b) {
             super(a);
             this.b = b;
         }
