@@ -2,6 +2,13 @@
 
 This document describes StreamEx changes which may break the backwards compatibility. For full list of changes see [CHANGES.md](CHANGES.md).
 
+### 0.9.0
+Issue#282: JSpecify nullity annotations were added. This may break the source compatibility if the library was used from Kotlin code with incompatible types.
+Also, this may issue new static analyzer warnings. For example, it may cause build failure if NullAway is used as a part of the build pipeline.
+
+Issue#283: Redundant type arguments were removed from single-argument `IntStreamEx.ofIndices` overloads. This may cause warnings or errors if they were explicitly specified.
+To fix this, just remove them from the code.
+
 ### 0.8.0
 Issue#244: To align with Java 16 `Stream.toList` specification, we no more guarantee that the results of 
 `AbstractStreamEx.toList` and `AbstractStreamEx.toSet` are mutable. They are still mutable by default 

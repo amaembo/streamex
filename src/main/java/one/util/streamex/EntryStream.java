@@ -15,6 +15,10 @@
  */
 package one.util.streamex;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
+
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.*;
 import java.util.Map.Entry;
@@ -46,7 +50,9 @@ import static one.util.streamex.Internals.checkLength;
  * @param <K> the type of {@code Entry} keys
  * @param <V> the type of {@code Entry} values
  */
-public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, EntryStream<K, V>> {
+@NullMarked
+public final class EntryStream<K extends @Nullable Object, V extends @Nullable Object> extends
+        AbstractStreamEx<Entry<K, V>, EntryStream<K, V>> {
     EntryStream(Stream<? extends Entry<K, V>> stream, StreamContext context) {
         super(stream, context);
     }
@@ -65,11 +71,12 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
         return new EntryStream<>(spliterator, context);
     }
 
-    static <K, V> Consumer<? super Entry<K, V>> toConsumer(BiConsumer<? super K, ? super V> action) {
+    static <K extends @Nullable Object, V extends @Nullable Object> Consumer<? super Entry<K, V>> toConsumer(
+            BiConsumer<? super K, ? super V> action) {
         return entry -> action.accept(entry.getKey(), entry.getValue());
     }
 
-    static <K, V, M extends Map<K, V>> Consumer<? super Entry<K, V>> toMapConsumer(M map) {
+    static <K extends @Nullable Object, V extends @Nullable Object, M extends Map<K, V>> Consumer<? super Entry<K, V>> toMapConsumer(M map) {
         return entry -> addToMap(map, entry.getKey(), Objects.requireNonNull(entry.getValue()));
     }
 
@@ -77,15 +84,17 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
         return (e1, e2) -> Objects.equals(e1.getKey(), e2.getKey());
     }
 
-    static <K, V> Stream<Entry<K, V>> withValue(Stream<? extends K> s, V value) {
+    static <K extends @Nullable Object, V extends @Nullable Object> @Nullable Stream<Entry<K, V>> withValue(
+            @Nullable Stream<? extends K> s, V value) {
         return s == null ? null : s.map(key -> new SimpleImmutableEntry<>(key, value));
     }
 
-    static <K, V> Stream<Entry<K, V>> withKey(K key, Stream<? extends V> s) {
+    static <K extends @Nullable Object, V extends @Nullable Object> @Nullable Stream<Entry<K, V>> withKey(
+            K key, @Nullable Stream<? extends V> s) {
         return s == null ? null : s.map(value -> new SimpleImmutableEntry<>(key, value));
     }
 
-    static <K, V, R> Function<? super Entry<K, V>, ? extends R> toFunction(
+    static <K extends @Nullable Object, V extends @Nullable Object, R extends @Nullable Object> Function<? super Entry<K, V>, ? extends R> toFunction(
             BiFunction<? super K, ? super V, ? extends R> mapper) {
         return entry -> mapper.apply(entry.getKey(), entry.getValue());
     }
@@ -147,7 +156,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      *        function to apply to each key which produces a stream of new keys
      * @return the new stream
      */
-    public <KK> EntryStream<KK, V> flatMapKeys(Function<? super K, ? extends Stream<? extends KK>> mapper) {
+    public <KK extends @Nullable Object> EntryStream<KK, V> flatMapKeys(Function<? super K, ? extends @Nullable Stream<? extends KK>> mapper) {
         return new EntryStream<>(stream().flatMap(e -> withValue(mapper.apply(e.getKey()), e.getValue())), context);
     }
 
@@ -172,7 +181,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @return the new stream
      * @since 0.5.2
      */
-    public <KK> EntryStream<KK, V> flatMapToKey(BiFunction<? super K, ? super V, ? extends Stream<? extends KK>> mapper) {
+    public <KK extends @Nullable Object> EntryStream<KK, V> flatMapToKey(BiFunction<? super K, ? super V, ? extends @Nullable Stream<? extends KK>> mapper) {
         return new EntryStream<>(
                 stream().flatMap(e -> withValue(mapper.apply(e.getKey(), e.getValue()), e.getValue())), context);
     }
@@ -198,7 +207,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      *        values
      * @return the new stream
      */
-    public <VV> EntryStream<K, VV> flatMapValues(Function<? super V, ? extends Stream<? extends VV>> mapper) {
+    public <VV extends @Nullable Object> EntryStream<K, VV> flatMapValues(Function<? super V, ? extends @Nullable Stream<? extends VV>> mapper) {
         return new EntryStream<>(stream().flatMap(e -> withKey(e.getKey(), mapper.apply(e.getValue()))), context);
     }
 
@@ -223,8 +232,8 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @return the new stream
      * @since 0.5.2
      */
-    public <VV> EntryStream<K, VV> flatMapToValue(
-            BiFunction<? super K, ? super V, ? extends Stream<? extends VV>> mapper) {
+    public <VV extends @Nullable Object> EntryStream<K, VV> flatMapToValue(
+            BiFunction<? super K, ? super V, ? extends @Nullable Stream<? extends VV>> mapper) {
         return new EntryStream<>(stream().flatMap(e -> withKey(e.getKey(), mapper.apply(e.getKey(), e.getValue()))),
                 context);
     }
@@ -246,8 +255,9 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @return the new stream
      * @since 0.3.0
      */
-    public <R> StreamEx<R> flatMapKeyValue(BiFunction<? super K, ? super V, ? extends Stream<? extends R>> mapper) {
-        return this.<R>flatMap(toFunction(mapper));
+    public <R extends @Nullable Object> StreamEx<R> flatMapKeyValue(BiFunction<? super K, ? super V,
+            ? extends @Nullable Stream<? extends R>> mapper) {
+        return this.flatMap(toFunction(mapper));
     }
 
     /**
@@ -471,7 +481,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      *        key
      * @return the new stream
      */
-    public <KK> EntryStream<KK, V> mapKeys(Function<? super K, ? extends KK> keyMapper) {
+    public <KK extends @Nullable Object> EntryStream<KK, V> mapKeys(Function<? super K, ? extends KK> keyMapper) {
         return new EntryStream<>(stream().map(
             e -> new SimpleImmutableEntry<>(keyMapper.apply(e.getKey()), e.getValue())), context);
     }
@@ -527,7 +537,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      *        value
      * @return the new stream
      */
-    public <VV> EntryStream<K, VV> mapValues(Function<? super V, ? extends VV> valueMapper) {
+    public <VV extends @Nullable Object> EntryStream<K, VV> mapValues(Function<? super V, ? extends VV> valueMapper) {
         return new EntryStream<>(stream().map(
             e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e.getValue()))), context);
     }
@@ -584,7 +594,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      *        value of each {@link Entry} in this stream
      * @return the new stream
      */
-    public <R> StreamEx<R> mapKeyValue(BiFunction<? super K, ? super V, ? extends R> mapper) {
+    public <R extends @Nullable Object> StreamEx<R> mapKeyValue(BiFunction<? super K, ? super V, ? extends R> mapper) {
         return this.<R>map(toFunction(mapper));
     }
 
@@ -615,10 +625,10 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @return the new stream
      * @since 0.6.8
      */
-    public <R> StreamEx<R> mapKeyValuePartial(
+    public <R extends @Nullable Object> StreamEx<R> mapKeyValuePartial(
             BiFunction<? super K, ? super V, ? extends Optional<? extends R>> mapper
     ) {
-        return this.<R>mapPartial(toFunction(mapper));
+        return this.mapPartial(toFunction(mapper));
     }
 
     /**
@@ -635,7 +645,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @return the new stream
      * @since 0.3.0
      */
-    public <KK> EntryStream<KK, V> mapToKey(BiFunction<? super K, ? super V, ? extends KK> keyMapper) {
+    public <KK extends @Nullable Object> EntryStream<KK, V> mapToKey(BiFunction<? super K, ? super V, ? extends KK> keyMapper) {
         return new EntryStream<>(stream().map(
             e -> new SimpleImmutableEntry<>(keyMapper.apply(e.getKey(), e.getValue()), e.getValue())), context);
     }
@@ -691,7 +701,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @return the new stream
      * @since 0.3.0
      */
-    public <VV> EntryStream<K, VV> mapToValue(BiFunction<? super K, ? super V, ? extends VV> valueMapper) {
+    public <VV extends @Nullable Object> EntryStream<K, VV> mapToValue(BiFunction<? super K, ? super V, ? extends VV> valueMapper) {
         return new EntryStream<>(stream().map(
             e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e.getKey(), e.getValue()))), context);
     }
@@ -951,7 +961,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @see #selectKeys(Class)
      * @see #selectValues(Class)
      */
-    public EntryStream<K, V> nonNullKeys() {
+    public EntryStream<@NonNull K, V> nonNullKeys() {
         return filter(e -> e.getKey() != null);
     }
 
@@ -970,7 +980,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @see #selectKeys(Class)
      * @see #selectValues(Class)
      */
-    public EntryStream<K, V> nonNullValues() {
+    public EntryStream<K, @NonNull V> nonNullValues() {
         return filter(e -> e.getValue() != null);
     }
 
@@ -1218,7 +1228,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @see StreamEx#collapse(BiPredicate, Collector)
      * @since 0.5.5
      */
-    public <A, R> EntryStream<K, R> collapseKeys(Collector<? super V, A, R> collector) {
+    public <A extends @Nullable Object, R extends @Nullable Object> EntryStream<K, R> collapseKeys(Collector<? super V, A, R> collector) {
         Supplier<A> supplier = collector.supplier();
         BiConsumer<A, ? super V> accumulator = collector.accumulator();
         BinaryOperator<A> combiner = collector.combiner();
@@ -1368,7 +1378,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @see #toMap()
      * @since 0.5.5
      */
-    public <R> R toMapAndThen(Function<? super Map<K, V>, R> finisher) {
+    public <R extends @Nullable Object> R toMapAndThen(Function<? super Map<K, V>, R> finisher) {
         if (context.fjp != null)
             return context.terminate(() -> finisher.apply(toMap()));
         return finisher.apply(toMap());
@@ -1680,7 +1690,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @return a {@code Map} containing the elements of this stream
      * @see Collectors#groupingBy(Function, Collector)
      */
-    public <A, D> Map<K, D> grouping(Collector<? super V, A, D> downstream) {
+    public <A extends @Nullable Object, D extends @Nullable Object> Map<K, D> grouping(Collector<? super V, A, D> downstream) {
         Function<Entry<K, V>, K> keyMapper = Entry::getKey;
         Collector<Entry<K, V>, ?, D> mapping = Collectors.mapping(Entry::getValue, downstream);
         if (isParallel() && downstream.characteristics().contains(Characteristics.UNORDERED)) {
@@ -1711,7 +1721,8 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @see Collectors#groupingBy(Function, Supplier, Collector)
      */
     @SuppressWarnings("unchecked")
-    public <A, D, M extends Map<K, D>> M grouping(Supplier<M> mapSupplier, Collector<? super V, A, D> downstream) {
+    public <A extends @Nullable Object, D extends @Nullable Object, M extends Map<K, D>> M grouping(
+            Supplier<M> mapSupplier, Collector<? super V, A, D> downstream) {
         Function<Entry<K, V>, K> keyMapper = Entry::getKey;
         Collector<Entry<K, V>, ?, D> mapping = Collectors.mapping(Entry::getValue, downstream);
         if (isParallel() && downstream.characteristics().contains(Characteristics.UNORDERED)
@@ -1803,20 +1814,20 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @return an empty sequential stream
      * @since 0.0.8
      */
-    public static <K, V> EntryStream<K, V> empty() {
+    public static <K extends @Nullable Object, V extends @Nullable Object> EntryStream<K, V> empty() {
         return of(Stream.empty());
     }
 
     /**
      * Returns an {@code EntryStream} object which wraps given {@link Stream} of
-     * {@link Entry} elements
+     * non-null {@link Entry} elements
      *
      * @param <K> the type of original stream keys
      * @param <V> the type of original stream values
-     * @param stream original stream
+     * @param stream original stream that contains {@code Entry} elements and does not contain nulls.
      * @return the wrapped stream
      */
-    public static <K, V> EntryStream<K, V> of(Stream<? extends Entry<K, V>> stream) {
+    public static <K extends @Nullable Object, V extends @Nullable Object> EntryStream<K, V> of(Stream<? extends Entry<K, V>> stream) {
         if (stream instanceof AbstractStreamEx) {
             @SuppressWarnings("unchecked")
             AbstractStreamEx<Entry<K, V>, ?> ase = (AbstractStreamEx<Entry<K, V>, ?>) stream;
@@ -1833,11 +1844,11 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      *
      * @param <K> the type of stream keys
      * @param <V> the type of stream values
-     * @param spliterator a spliterator to create the stream from.
+     * @param spliterator a spliterator to create the stream from. The spliterator should not contain null elements.
      * @return the new stream
      * @since 0.3.4
      */
-    public static <K, V> EntryStream<K, V> of(Spliterator<? extends Entry<K, V>> spliterator) {
+    public static <K extends @Nullable Object, V extends @Nullable Object> EntryStream<K, V> of(Spliterator<? extends Entry<K, V>> spliterator) {
         return of(StreamSupport.stream(spliterator, false));
     }
 
@@ -1856,11 +1867,11 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      *
      * @param <K> the type of stream keys
      * @param <V> the type of stream values
-     * @param iterator an iterator to create the stream from.
+     * @param iterator an iterator to create the stream from. The iterator should not contain null elements.
      * @return the new stream
      * @since 0.5.1
      */
-    public static <K, V> EntryStream<K, V> of(Iterator<? extends Entry<K, V>> iterator) {
+    public static <K extends @Nullable Object, V extends @Nullable Object> EntryStream<K, V> of(Iterator<? extends Entry<K, V>> iterator) {
         return of(new UnknownSizeSpliterator.USOfRef<>(iterator));
     }
 
@@ -1873,7 +1884,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @param map the map to create the stream from
      * @return a new {@code EntryStream}
      */
-    public static <K, V> EntryStream<K, V> of(Map<K, V> map) {
+    public static <K extends @Nullable Object, V extends @Nullable Object> EntryStream<K, V> of(Map<K, V> map) {
         return of(map.entrySet().stream());
     }
 
@@ -1891,7 +1902,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @return a new {@code EntryStream}
      * @since 0.2.3
      */
-    public static <V> EntryStream<Integer, V> of(List<V> list) {
+    public static <V extends @Nullable Object> EntryStream<Integer, V> of(List<V> list) {
         return EntryStream.of(new RangeBasedSpliterator.AsEntry<>(list));
     }
 
@@ -1904,7 +1915,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @return a new {@code EntryStream}
      * @since 0.2.3
      */
-    public static <V> EntryStream<Integer, V> of(V[] array) {
+    public static <V extends @Nullable Object> EntryStream<Integer, V> of(V[] array) {
         return of(Arrays.asList(array));
     }
 
@@ -1918,7 +1929,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @param value the value of the single element
      * @return a singleton sequential stream
      */
-    public static <K, V> EntryStream<K, V> of(K key, V value) {
+    public static <K extends @Nullable Object, V extends @Nullable Object> EntryStream<K, V> of(K key, V value) {
         return of(Stream.of(new SimpleImmutableEntry<>(key, value)));
     }
 
@@ -1934,7 +1945,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @return a sequential stream
      * @since 0.2.3
      */
-    public static <K, V> EntryStream<K, V> of(K k1, V v1, K k2, V v2) {
+    public static <K extends @Nullable Object, V extends @Nullable Object> EntryStream<K, V> of(K k1, V v1, K k2, V v2) {
         return of(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2)));
     }
 
@@ -1952,7 +1963,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @return a sequential stream
      * @since 0.2.3
      */
-    public static <K, V> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3) {
+    public static <K extends @Nullable Object, V extends @Nullable Object> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3) {
         return of(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
             new SimpleImmutableEntry<>(k3, v3)));
     }
@@ -1973,7 +1984,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @return a sequential stream
      * @since 0.5.2
      */
-    public static <K, V> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4) {
+    public static <K extends @Nullable Object, V extends @Nullable Object> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4) {
         return of(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
             new SimpleImmutableEntry<>(k3, v3), new SimpleImmutableEntry<>(k4, v4)));
     }
@@ -1996,7 +2007,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @return a sequential stream
      * @since 0.5.2
      */
-    public static <K, V> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5) {
+    public static <K extends @Nullable Object, V extends @Nullable Object> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5) {
         return of(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
             new SimpleImmutableEntry<>(k3, v3), new SimpleImmutableEntry<>(k4, v4), new SimpleImmutableEntry<>(k5, v5)));
     }
@@ -2021,7 +2032,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @return a sequential stream
      * @since 0.5.2
      */
-    public static <K, V> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6) {
+    public static <K extends @Nullable Object, V extends @Nullable Object> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6) {
         return of(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
             new SimpleImmutableEntry<>(k3, v3), new SimpleImmutableEntry<>(k4, v4), new SimpleImmutableEntry<>(k5, v5),
             new SimpleImmutableEntry<>(k6, v6)));
@@ -2049,7 +2060,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @return a sequential stream
      * @since 0.5.2
      */
-    public static <K, V> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6,
+    public static <K extends @Nullable Object, V extends @Nullable Object> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6,
             K k7, V v7) {
         return of(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
             new SimpleImmutableEntry<>(k3, v3), new SimpleImmutableEntry<>(k4, v4), new SimpleImmutableEntry<>(k5, v5),
@@ -2080,7 +2091,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @return a sequential stream
      * @since 0.5.2
      */
-    public static <K, V> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6,
+    public static <K extends @Nullable Object, V extends @Nullable Object> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6,
             K k7, V v7, K k8, V v8) {
         return of(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
             new SimpleImmutableEntry<>(k3, v3), new SimpleImmutableEntry<>(k4, v4), new SimpleImmutableEntry<>(k5, v5),
@@ -2113,7 +2124,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @return a sequential stream
      * @since 0.5.2
      */
-    public static <K, V> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6,
+    public static <K extends @Nullable Object, V extends @Nullable Object> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6,
             K k7, V v7, K k8, V v8, K k9, V v9) {
         return of(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
             new SimpleImmutableEntry<>(k3, v3), new SimpleImmutableEntry<>(k4, v4), new SimpleImmutableEntry<>(k5, v5),
@@ -2149,7 +2160,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @return a sequential stream
      * @since 0.5.2
      */
-    public static <K, V> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6,
+    public static <K extends @Nullable Object, V extends @Nullable Object> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6,
             K k7, V v7, K k8, V v8, K k9, V v9, K k10, V v10) {
         return of(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
             new SimpleImmutableEntry<>(k3, v3), new SimpleImmutableEntry<>(k4, v4), new SimpleImmutableEntry<>(k5, v5),
@@ -2175,7 +2186,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @see StreamEx#zip(List, List, BiFunction)
      * @since 0.2.1
      */
-    public static <K, V> EntryStream<K, V> zip(List<K> keys, List<V> values) {
+    public static <K extends @Nullable Object, V extends @Nullable Object> EntryStream<K, V> zip(List<K> keys, List<V> values) {
         return of(new RangeBasedSpliterator.ZipRef<>(0, checkLength(keys.size(), values.size()),
                 SimpleImmutableEntry::new, keys, values));
     }
@@ -2193,7 +2204,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @see StreamEx#zip(Object[], Object[], BiFunction)
      * @since 0.2.1
      */
-    public static <K, V> EntryStream<K, V> zip(K[] keys, V[] values) {
+    public static <K extends @Nullable Object, V extends @Nullable Object> EntryStream<K, V> zip(K[] keys, V[] values) {
         return zip(Arrays.asList(keys), Arrays.asList(values));
     }
 
@@ -2222,7 +2233,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @see StreamEx#ofPairs(List, BiFunction)
      * @since 0.3.6
      */
-    public static <T> EntryStream<T, T> ofPairs(List<T> list) {
+    public static <T extends @Nullable Object> EntryStream<T, T> ofPairs(List<T> list) {
         return of(new PairPermutationSpliterator<>(list, SimpleImmutableEntry::new));
     }
 
@@ -2246,7 +2257,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @see StreamEx#ofPairs(Object[], BiFunction)
      * @since 0.3.6
      */
-    public static <T> EntryStream<T, T> ofPairs(T[] array) {
+    public static <T extends @Nullable Object> EntryStream<T, T> ofPairs(T[] array) {
         return ofPairs(Arrays.asList(array));
     }
 
@@ -2278,7 +2289,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @see StreamEx#ofTree(Object, Function)
      * @see #ofTree(Object, Class, BiFunction)
      */
-    public static <T> EntryStream<Integer, T> ofTree(T root, BiFunction<Integer, T, Stream<T>> mapper) {
+    public static <T extends @Nullable Object> EntryStream<Integer, T> ofTree(T root, BiFunction<Integer, T, @Nullable Stream<T>> mapper) {
         TreeSpliterator<T, Entry<Integer, T>> spliterator = new TreeSpliterator.Depth<>(root, mapper, 0);
         return new EntryStream<>(spliterator, StreamContext.SEQUENTIAL.onClose(spliterator));
     }
@@ -2314,8 +2325,8 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @see #ofTree(Object, BiFunction)
      */
     @SuppressWarnings("unchecked")
-    public static <T, TT extends T> EntryStream<Integer, T> ofTree(T root, Class<TT> collectionClass,
-            BiFunction<Integer, TT, Stream<T>> mapper) {
+    public static <T extends @Nullable Object, TT extends T> EntryStream<Integer, T> ofTree(T root, Class<TT> collectionClass,
+                                                                                            BiFunction<Integer, TT, @Nullable Stream<T>> mapper) {
         return ofTree(root, (d, t) -> collectionClass.isInstance(t) ? mapper.apply(d, (TT) t) : null);
     }
 
@@ -2332,8 +2343,9 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @since 0.6.6
      * @see StreamEx#generate(Supplier)
      */
-    public static <K, V> EntryStream<K, V> generate(Supplier<? extends K> keySupplier,
-                                                    Supplier<? extends V> valueSupplier) {
+    public static <K extends @Nullable Object, V extends @Nullable Object> EntryStream<K, V> generate(
+            Supplier<? extends K> keySupplier,
+            Supplier<? extends V> valueSupplier) {
         return new EntryStream<>(
                 Stream.generate(() -> new SimpleImmutableEntry<>(keySupplier.get(), valueSupplier.get())),
                 StreamContext.SEQUENTIAL);
@@ -2366,7 +2378,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @see StreamEx#without(Object...)
      */
     @SafeVarargs
-    public final EntryStream<K, V> withoutKeys(K... keys) {
+    public final EntryStream<K, V> withoutKeys(@Nullable K... keys) {
         if (keys.length == 0)
             return this;
         if (keys.length == 1)
@@ -2407,7 +2419,7 @@ public final class EntryStream<K, V> extends AbstractStreamEx<Entry<K, V>, Entry
      * @see StreamEx#without(Object...)
      */
     @SafeVarargs
-    public final EntryStream<K, V> withoutValues(V... values) {
+    public final EntryStream<K, V> withoutValues(@Nullable V... values) {
         if (values.length == 0)
             return this;
         if (values.length == 1)

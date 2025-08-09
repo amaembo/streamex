@@ -20,7 +20,7 @@
 
   <groupId>one.util</groupId>
   <artifactId>streamex</artifactId>
-  <version>0.8.4</version>
+  <version>0.9.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>StreamEx</name>
@@ -48,6 +48,12 @@
   </licenses>
 
   <dependencies>
+    <dependency>
+      <groupId>org.jspecify</groupId>
+      <artifactId>jspecify</artifactId>
+      <version>1.0.0</version>
+      <optional>true</optional>
+    </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>

@@ -15,6 +15,8 @@
  */
 package one.util.streamex;
 
+import org.jspecify.annotations.NullMarked;
+
 import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -70,6 +72,7 @@ import static one.util.streamex.Internals.checkNonNegative;
  * @author Tagir Valeev
  * @since 0.4.1
  */
+@NullMarked
 public class Joining extends CancellableCollector<CharSequence, Joining.Accumulator, String> {
     static final class Accumulator {
         final List<CharSequence> data = new ArrayList<>();

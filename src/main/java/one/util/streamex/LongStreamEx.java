@@ -15,6 +15,9 @@
  */
 package one.util.streamex;
 
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
+
 import java.nio.Buffer;
 import java.util.*;
 import java.util.Map.Entry;
@@ -30,6 +33,7 @@ import static one.util.streamex.Internals.*;
  * 
  * @author Tagir Valeev
  */
+@NullMarked
 public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfLong, LongStreamEx> implements
         LongStream {
     LongStreamEx(LongStream stream, StreamContext context) {
@@ -261,7 +265,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
     }
 
     @Override
-    public <U> StreamEx<U> mapToObj(LongFunction<? extends U> mapper) {
+    public <U extends @Nullable Object> StreamEx<U> mapToObj(LongFunction<? extends U> mapper) {
         return new StreamEx<>(stream().mapToObj(mapper), context);
     }
 
@@ -292,14 +296,16 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
      * @return the new stream
      * @since 0.3.1
      */
-    public <K, V> EntryStream<K, V> mapToEntry(LongFunction<? extends K> keyMapper,
+    public <K extends @Nullable Object,
+            V extends @Nullable Object> EntryStream<K, V> mapToEntry(
+            LongFunction<? extends K> keyMapper,
             LongFunction<? extends V> valueMapper) {
         return new EntryStream<>(stream().mapToObj(t -> new AbstractMap.SimpleImmutableEntry<>(keyMapper.apply(t),
                 valueMapper.apply(t))), context);
     }
 
     @Override
-    public LongStreamEx flatMap(LongFunction<? extends LongStream> mapper) {
+    public LongStreamEx flatMap(LongFunction<? extends @Nullable LongStream> mapper) {
         return new LongStreamEx(stream().flatMap(mapper), context);
     }
 
@@ -318,7 +324,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
      * @return the new stream
      * @since 0.3.0
      */
-    public IntStreamEx flatMapToInt(LongFunction<? extends IntStream> mapper) {
+    public IntStreamEx flatMapToInt(LongFunction<? extends @Nullable IntStream> mapper) {
         return new IntStreamEx(stream().mapToObj(mapper).flatMapToInt(Function.identity()), context);
     }
 
@@ -337,7 +343,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
      * @return the new stream
      * @since 0.3.0
      */
-    public DoubleStreamEx flatMapToDouble(LongFunction<? extends DoubleStream> mapper) {
+    public DoubleStreamEx flatMapToDouble(LongFunction<? extends @Nullable DoubleStream> mapper) {
         return new DoubleStreamEx(stream().mapToObj(mapper).flatMapToDouble(Function.identity()), context);
     }
 
@@ -357,7 +363,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
      * @return the new stream
      * @since 0.3.0
      */
-    public <R> StreamEx<R> flatMapToObj(LongFunction<? extends Stream<R>> mapper) {
+    public <R extends @Nullable Object> StreamEx<R> flatMapToObj(LongFunction<? extends @Nullable Stream<R>> mapper) {
         return new StreamEx<>(stream().mapToObj(mapper).flatMap(Function.identity()), context);
     }
 
@@ -829,7 +835,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
      * @see #collect(LongCollector)
      */
     @Override
-    public <R> R collect(Supplier<R> supplier, ObjLongConsumer<R> accumulator, BiConsumer<R, R> combiner) {
+    public <R extends @Nullable Object> R collect(Supplier<R> supplier, ObjLongConsumer<R> accumulator, BiConsumer<R, R> combiner) {
         if (context.fjp != null)
             return context.terminate(() -> stream().collect(supplier, accumulator, combiner));
         return stream().collect(supplier, accumulator, combiner);
@@ -858,7 +864,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
      * @since 0.3.0
      */
     @SuppressWarnings("unchecked")
-    public <A, R> R collect(LongCollector<A, R> collector) {
+    public <A extends @Nullable Object, R extends @Nullable Object> R collect(LongCollector<A, R> collector) {
         if (collector.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH))
             return (R) collect(collector.supplier(), collector.longAccumulator(), collector.merger());
         return collector.finisher().apply(collect(collector.supplier(), collector.longAccumulator(), collector
@@ -1552,7 +1558,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
     // Necessary to generate proper JavaDoc
     // does not add overhead as it appears in bytecode anyways as bridge method
     @Override
-    public <U> U chain(Function<? super LongStreamEx, U> mapper) {
+    public <U extends @Nullable Object> U chain(Function<? super LongStreamEx, U> mapper) {
         return mapper.apply(this);
     }
 
@@ -2123,7 +2129,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
          * @param action consumer to be called to emit elements
          * @return next emitter or null
          */
-        LongEmitter next(LongConsumer action);
+        @Nullable LongEmitter next(LongConsumer action);
 
         /**
          * Returns the spliterator which covers all the elements emitted by this

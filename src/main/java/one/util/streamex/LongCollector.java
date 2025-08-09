@@ -15,6 +15,9 @@
  */
 package one.util.streamex;
 
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
+
 import java.util.*;
 import java.util.function.*;
 import java.util.stream.Collector;
@@ -34,7 +37,8 @@ import static one.util.streamex.Internals.*;
  * @see LongStreamEx#collect(LongCollector)
  * @since 0.3.0
  */
-public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
+@NullMarked
+public interface LongCollector<A extends @Nullable Object, R extends @Nullable Object> extends MergingCollector<Long, A, R> {
     /**
      * A function that folds a value into a mutable result container.
      *
@@ -66,7 +70,7 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      *         by an additional finishing step
      * @since 0.3.7
      */
-    default <RR> LongCollector<A, RR> andThen(Function<R, RR> finisher) {
+    default <RR extends @Nullable Object> LongCollector<A, RR> andThen(Function<R, RR> finisher) {
         return of(supplier(), longAccumulator(), merger(), finisher().andThen(finisher));
     }
 
@@ -83,7 +87,10 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      *        result, for the new collector
      * @return the new {@code LongCollector}
      */
-    static <R> LongCollector<R, R> of(Supplier<R> supplier, ObjLongConsumer<R> longAccumulator, BiConsumer<R, R> merger) {
+    static <R extends @Nullable Object> LongCollector<R, R> of(
+            Supplier<R> supplier, 
+            ObjLongConsumer<R> longAccumulator, 
+            BiConsumer<R, R> merger) {
         return new LongCollectorImpl<>(supplier, longAccumulator, merger, Function.identity(), ID_CHARACTERISTICS);
     }
 
@@ -97,7 +104,8 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * @return a {@code LongCollector} which behaves in the same way as input
      *         collector.
      */
-    static <A, R> LongCollector<?, R> of(Collector<Long, A, R> collector) {
+    static <A extends @Nullable Object, R extends @Nullable Object> LongCollector<?, R> of(
+            Collector<Long, A, R> collector) {
         if (collector instanceof LongCollector) {
             return (LongCollector<A, R>) collector;
         }
@@ -117,7 +125,8 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * @param <R> The final result type of the new collector
      * @return the new {@code LongCollector}
      */
-    static <A, R> LongCollector<A, R> of(Supplier<A> supplier, ObjLongConsumer<A> longAccumulator,
+    static <A extends @Nullable Object, R extends @Nullable Object> LongCollector<A, R> of(
+            Supplier<A> supplier, ObjLongConsumer<A> longAccumulator,
             BiConsumer<A, A> merger, Function<A, R> finisher) {
         return new LongCollectorImpl<>(supplier, longAccumulator, merger, finisher, NO_CHARACTERISTICS);
     }
@@ -239,7 +248,8 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      *         elements and provides the mapped results to the downstream
      *         collector
      */
-    static <A, R> LongCollector<?, R> mapping(LongUnaryOperator mapper, LongCollector<A, R> downstream) {
+    static <A extends @Nullable Object, R extends @Nullable Object> LongCollector<?, R> mapping(
+            LongUnaryOperator mapper, LongCollector<A, R> downstream) {
         ObjLongConsumer<A> downstreamAccumulator = downstream.longAccumulator();
         return new LongCollectorImpl<>(downstream.supplier(), (r, t) -> downstreamAccumulator.accept(r, mapper
                 .applyAsLong(t)), downstream.merger(), downstream.finisher(), downstream.characteristics());
@@ -259,7 +269,8 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      *         elements and provides the mapped results to the downstream
      *         collector
      */
-    static <U, A, R> LongCollector<?, R> mappingToObj(LongFunction<U> mapper, Collector<U, A, R> downstream) {
+    static <U extends @Nullable Object, A extends @Nullable Object, R extends @Nullable Object> LongCollector<?, R> mappingToObj(
+            LongFunction<U> mapper, Collector<U, A, R> downstream) {
         BiConsumer<A, U> accumulator = downstream.accumulator();
         if (downstream instanceof MergingCollector) {
             return new LongCollectorImpl<>(downstream.supplier(), (acc, i) -> accumulator.accept(acc, mapper.apply(i)),
@@ -357,7 +368,8 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * @return a {@code LongCollector} implementing the cascaded partitioning
      *         operation
      */
-    static <A, D> LongCollector<?, Map<Boolean, D>> partitioningBy(LongPredicate predicate,
+    static <A extends @Nullable Object, D extends @Nullable Object> LongCollector<?, Map<Boolean, D>> partitioningBy(
+            LongPredicate predicate,
             LongCollector<A, D> downstream) {
         ObjLongConsumer<A> downstreamAccumulator = downstream.longAccumulator();
         ObjLongConsumer<BooleanMap<A>> accumulator = (result, t) -> downstreamAccumulator.accept(
@@ -414,7 +426,8 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * @return a {@code LongCollector} implementing the cascaded group-by
      *         operation
      */
-    static <K, D, A> LongCollector<?, Map<K, D>> groupingBy(LongFunction<? extends K> classifier,
+    static <K, D extends @Nullable Object, A extends @Nullable Object> LongCollector<?, Map<K, D>> groupingBy(
+            LongFunction<? extends K> classifier,
             LongCollector<A, D> downstream) {
         return groupingBy(classifier, HashMap::new, downstream);
     }
@@ -444,7 +457,8 @@ public interface LongCollector<A, R> extends MergingCollector<Long, A, R> {
      * @return a {@code LongCollector} implementing the cascaded group-by
      *         operation
      */
-    static <K, D, A, M extends Map<K, D>> LongCollector<?, M> groupingBy(LongFunction<? extends K> classifier,
+    static <K, D extends @Nullable Object, A extends @Nullable Object, M extends Map<K, D>> LongCollector<?, M> groupingBy(
+            LongFunction<? extends K> classifier,
             Supplier<M> mapFactory, LongCollector<A, D> downstream) {
         Supplier<A> downstreamSupplier = downstream.supplier();
         Function<K, A> supplier = k -> downstreamSupplier.get();

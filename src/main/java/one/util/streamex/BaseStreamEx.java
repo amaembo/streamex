@@ -15,6 +15,10 @@
  */
 package one.util.streamex;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
+
 import java.util.Spliterator;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Function;
@@ -23,27 +27,32 @@ import java.util.stream.BaseStream;
 /**
  * @author Tagir Valeev
  */
-/* package */abstract class BaseStreamEx<T, S extends BaseStream<T, S>, SPLTR extends Spliterator<T>, B extends BaseStreamEx<T, S, SPLTR, B>>
+@NullMarked
+/* package */abstract class BaseStreamEx<
+        T extends @Nullable Object, 
+        S extends BaseStream<T, S>, 
+        SPLTR extends Spliterator<T>, 
+        B extends BaseStreamEx<T, S, SPLTR, B>>
         implements BaseStream<T, S> {
     static final String CONSUMED_MESSAGE = "Stream is already consumed";
 
-    private S stream;
-    SPLTR spliterator;
+    private @Nullable S stream;
+    @Nullable SPLTR spliterator;
     StreamContext context;
 
-    BaseStreamEx(S stream, StreamContext context) {
+    BaseStreamEx(@NonNull S stream, StreamContext context) {
         this.stream = stream;
         this.context = context;
     }
 
-    BaseStreamEx(SPLTR spliterator, StreamContext context) {
+    BaseStreamEx(@NonNull SPLTR spliterator, StreamContext context) {
         this.spliterator = spliterator;
         this.context = context;
     }
 
     abstract S createStream();
 
-    final S stream() {
+    final @NonNull S stream() {
         if (stream != null)
             return stream;
         if (spliterator == null)
@@ -55,7 +64,7 @@ import java.util.stream.BaseStream;
 
     @SuppressWarnings("unchecked")
     @Override
-    public SPLTR spliterator() {
+    public @NonNull SPLTR spliterator() {
         if (stream != null)
             return (SPLTR) stream.spliterator();
         if (spliterator != null) {
@@ -73,7 +82,7 @@ import java.util.stream.BaseStream;
 
     @SuppressWarnings("unchecked")
     @Override
-    public S sequential() {
+    public @NonNull S sequential() {
         context = context.sequential();
         if (stream != null)
             stream = stream.sequential();
@@ -90,7 +99,7 @@ import java.util.stream.BaseStream;
      */
     @SuppressWarnings("unchecked")
     @Override
-    public S parallel() {
+    public @NonNull S parallel() {
         context = context.parallel();
         if (stream != null)
             stream = stream.parallel();
@@ -117,7 +126,7 @@ import java.util.stream.BaseStream;
      * @since 0.2.0
      */
     @SuppressWarnings("unchecked")
-    public S parallel(ForkJoinPool fjp) {
+    public @NonNull S parallel(ForkJoinPool fjp) {
         context = context.parallel(fjp);
         if (stream != null)
             stream = stream.parallel();
@@ -126,14 +135,14 @@ import java.util.stream.BaseStream;
 
     @SuppressWarnings("unchecked")
     @Override
-    public S unordered() {
+    public @NonNull S unordered() {
         stream = stream().unordered();
         return (S) this;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public S onClose(Runnable closeHandler) {
+    public @NonNull S onClose(Runnable closeHandler) {
         context = context.onClose(closeHandler);
         return (S) this;
     }
@@ -167,5 +176,5 @@ import java.util.stream.BaseStream;
      * @return the result of the function invocation.
      * @since 0.5.4
      */
-    public abstract <U> U chain(Function<? super B, U> mapper);
+    public abstract <U extends @Nullable Object> U chain(Function<? super B, U> mapper);
 }

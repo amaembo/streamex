@@ -15,6 +15,9 @@
  */
 package one.util.streamex;
 
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
+
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.*;
@@ -34,6 +37,7 @@ import static one.util.streamex.Internals.*;
  * @see Joining
  * @since 0.3.2
  */
+@NullMarked
 public final class MoreCollectors {
     private MoreCollectors() {
         throw new UnsupportedOperationException();
@@ -49,15 +53,16 @@ public final class MoreCollectors {
      * @return a {@code Collector} which just ignores the input and calls the
      *         provided supplier once to return the output.
      */
-    private static <T, U> Collector<T, ?, U> empty(Supplier<U> supplier) {
+    private static <T extends @Nullable Object, U extends @Nullable Object> Collector<T, ?, U> empty(
+            Supplier<U> supplier) {
         return new CancellableCollectorImpl<>(() -> NONE, (acc, t) -> {
             // empty
         }, selectFirst(), acc -> supplier.get(), alwaysTrue(), EnumSet.of(Characteristics.UNORDERED,
             Characteristics.CONCURRENT));
     }
 
-    private static <T> Collector<T, ?, List<T>> empty() {
-        return empty(ArrayList<T>::new);
+    private static <T extends @Nullable Object> Collector<T, ?, List<T>> empty() {
+        return empty(ArrayList::new);
     }
 
     /**
@@ -76,7 +81,7 @@ public final class MoreCollectors {
      *         array, in encounter order
      * @throws NullPointerException if generator is null.
      */
-    public static <T> Collector<T, ?, T[]> toArray(IntFunction<T[]> generator) {
+    public static <T extends @Nullable Object> Collector<T, ?, T[]> toArray(IntFunction<T[]> generator) {
         Objects.requireNonNull(generator);
         return Collectors.collectingAndThen(Collectors.toList(), list -> list.toArray(generator.apply(list.size())));
     }
@@ -95,7 +100,7 @@ public final class MoreCollectors {
      * @throws NullPointerException if predicate is null.
      * @since 0.3.8
      */
-    public static <T> Collector<T, ?, boolean[]> toBooleanArray(Predicate<T> predicate) {
+    public static <T extends @Nullable Object> Collector<T, ?, boolean[]> toBooleanArray(Predicate<? super T> predicate) {
         Objects.requireNonNull(predicate);
         return PartialCollector.booleanArray().asRef((box, t) -> {
             if (predicate.test(t))
@@ -149,7 +154,7 @@ public final class MoreCollectors {
      * @see Collectors#toMap(Function, Function)
      * @since 0.7.3
      */
-    public static <K, V> Collector<Entry<? extends K, ? extends V>, ?, Map<K, V>> entriesToMap() {
+    public static <K extends @Nullable Object, V extends @Nullable Object> Collector<Entry<? extends K, ? extends V>, ?, Map<K, V>> entriesToMap() {
         return entriesToCustomMap(HashMap::new);
     }
 
@@ -182,7 +187,7 @@ public final class MoreCollectors {
      * @see Collectors#toMap(Function, Function, BinaryOperator)
      * @since 0.7.3
      */
-    public static <K, V> Collector<Entry<? extends K, ? extends V>, ?, Map<K, V>> entriesToMap(
+    public static <K extends @Nullable Object, V extends @Nullable Object> Collector<Entry<? extends K, ? extends V>, ?, Map<K, V>> entriesToMap(
             BinaryOperator<V> combiner) {
         return entriesToCustomMap(combiner, HashMap::new);
     }
@@ -208,7 +213,10 @@ public final class MoreCollectors {
      * @see Collector#of(Supplier, BiConsumer, BinaryOperator, Collector.Characteristics...)
      * @since 0.7.3
      */
-    public static <K, V, M extends Map<K, V>> Collector<Entry<? extends K, ? extends V>, ?, M> entriesToCustomMap(
+    public static <
+            K extends @Nullable Object,
+            V extends @Nullable Object,
+            M extends Map<K, V>> Collector<Entry<? extends K, ? extends V>, ?, M> entriesToCustomMap(
             Supplier<M> mapSupplier) {
         return Collector.of(mapSupplier,
                 (m, entry) -> addToMap(m, entry.getKey(), Objects.requireNonNull(entry.getValue())),
@@ -246,7 +254,10 @@ public final class MoreCollectors {
      * @see Collectors#toMap(Function, Function, BinaryOperator, Supplier)
      * @since 0.7.3
      */
-    public static <K, V, M extends Map<K, V>> Collector<Entry<? extends K, ? extends V>, ?, M> entriesToCustomMap(
+    public static <
+            K extends @Nullable Object,
+            V extends @Nullable Object,
+            M extends Map<K, V>> Collector<Entry<? extends K, ? extends V>, ?, M> entriesToCustomMap(
             BinaryOperator<V> combiner, Supplier<M> mapSupplier) {
         Objects.requireNonNull(combiner);
         Objects.requireNonNull(mapSupplier);
@@ -268,7 +279,7 @@ public final class MoreCollectors {
      *         function returns for the stream elements.
      * @throws NullPointerException if mapper is null.
      */
-    public static <T> Collector<T, ?, Integer> distinctCount(Function<? super T, ?> mapper) {
+    public static <T extends @Nullable Object> Collector<T, ?, Integer> distinctCount(Function<? super T, ?> mapper) {
         Objects.requireNonNull(mapper);
         return Collectors.collectingAndThen(Collectors.mapping(mapper, Collectors.toSet()), Set::size);
     }
@@ -296,7 +307,7 @@ public final class MoreCollectors {
      * @throws NullPointerException if mapper is null.
      * @since 0.3.8
      */
-    public static <T> Collector<T, ?, List<T>> distinctBy(Function<? super T, ?> mapper) {
+    public static <T extends @Nullable Object> Collector<T, ?, List<T>> distinctBy(Function<? super T, ?> mapper) {
         Objects.requireNonNull(mapper);
         return Collector.<T, Map<Object, T>, List<T>>of(LinkedHashMap::new, (map, t) -> map.putIfAbsent(mapper.apply(
             t), t), (m1, m2) -> {
@@ -317,7 +328,7 @@ public final class MoreCollectors {
      * @since 0.3.3
      * @see Collectors#counting()
      */
-    public static <T> Collector<T, ?, Integer> countingInt() {
+    public static <T extends @Nullable Object> Collector<T, ?, Integer> countingInt() {
         return PartialCollector.intSum().asRef((acc, t) -> acc[0]++);
     }
 
@@ -351,8 +362,16 @@ public final class MoreCollectors {
      *         collectors.
      * @throws NullPointerException if c1 is null, or c2 is null, or finisher is null.
      */
-    public static <T, A1, A2, R1, R2, R> Collector<T, ?, R> pairing(Collector<? super T, A1, R1> c1,
-            Collector<? super T, A2, R2> c2, BiFunction<? super R1, ? super R2, ? extends R> finisher) {
+    public static <
+            T extends @Nullable Object,
+            A1 extends @Nullable Object,
+            A2 extends @Nullable Object,
+            R1 extends @Nullable Object,
+            R2 extends @Nullable Object,
+            R extends @Nullable Object> Collector<T, ?, R> pairing(
+            Collector<? super T, A1, R1> c1,
+            Collector<? super T, A2, R2> c2,
+            BiFunction<? super R1, ? super R2, ? extends R> finisher) {
         Objects.requireNonNull(finisher);
         EnumSet<Characteristics> c = EnumSet.noneOf(Characteristics.class);
         c.addAll(c1.characteristics());
@@ -415,7 +434,7 @@ public final class MoreCollectors {
      * @throws NullPointerException if comparator is null, finisher is null,
      * or finisher returns null.
      */
-    public static <T, R> Collector<T, ?, Optional<R>> minMax(Comparator<? super T> comparator,
+    public static <T extends @Nullable Object, R> Collector<T, ?, Optional<R>> minMax(Comparator<? super T> comparator,
             BiFunction<? super T, ? super T, ? extends R> finisher) {
         Objects.requireNonNull(finisher);
         return pairing(Collectors.minBy(comparator), Collectors.maxBy(comparator),
@@ -440,7 +459,11 @@ public final class MoreCollectors {
      * @see #maxAll(Collector)
      * @see #maxAll()
      */
-    public static <T, A, D> Collector<T, ?, D> maxAll(Comparator<? super T> comparator,
+    public static <
+            T extends @Nullable Object,
+            A extends @Nullable Object,
+            D extends @Nullable Object> Collector<T, ?, D> maxAll(
+            Comparator<? super T> comparator,
             Collector<? super T, A, D> downstream) {
         Objects.requireNonNull(comparator);
         Supplier<A> downstreamSupplier = downstream.supplier();
@@ -496,7 +519,7 @@ public final class MoreCollectors {
      * @see #maxAll(Comparator, Collector)
      * @see #maxAll()
      */
-    public static <T> Collector<T, ?, List<T>> maxAll(Comparator<? super T> comparator) {
+    public static <T extends @Nullable Object> Collector<T, ?, List<T>> maxAll(Comparator<? super T> comparator) {
         return maxAll(comparator, Collectors.toList());
     }
 
@@ -517,7 +540,10 @@ public final class MoreCollectors {
      * @see #maxAll(Comparator)
      * @see #maxAll()
      */
-    public static <T extends Comparable<? super T>, A, D> Collector<T, ?, D> maxAll(Collector<T, A, D> downstream) {
+    public static <
+            T extends Comparable<? super T>,
+            A extends @Nullable Object,
+            D extends @Nullable Object> Collector<T, ?, D> maxAll(Collector<T, A, D> downstream) {
         return maxAll(Comparator.<T>naturalOrder(), downstream);
     }
 
@@ -533,7 +559,7 @@ public final class MoreCollectors {
      * @see #maxAll(Collector)
      */
     public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> maxAll() {
-        return maxAll(Comparator.<T>naturalOrder(), Collectors.toList());
+        return maxAll(Comparator.naturalOrder(), Collectors.toList());
     }
 
     /**
@@ -554,7 +580,11 @@ public final class MoreCollectors {
      * @see #minAll(Collector)
      * @see #minAll()
      */
-    public static <T, A, D> Collector<T, ?, D> minAll(Comparator<? super T> comparator, Collector<T, A, D> downstream) {
+    public static <
+            T extends @Nullable Object,
+            A extends @Nullable Object,
+            D extends @Nullable Object> Collector<T, ?, D> minAll(
+            Comparator<? super T> comparator, Collector<T, A, D> downstream) {
         return maxAll(comparator.reversed(), downstream);
     }
 
@@ -572,7 +602,7 @@ public final class MoreCollectors {
      * @see #minAll(Comparator, Collector)
      * @see #minAll()
      */
-    public static <T> Collector<T, ?, List<T>> minAll(Comparator<? super T> comparator) {
+    public static <T extends @Nullable Object> Collector<T, ?, List<T>> minAll(Comparator<? super T> comparator) {
         return maxAll(comparator.reversed(), Collectors.toList());
     }
 
@@ -593,7 +623,9 @@ public final class MoreCollectors {
      * @see #minAll(Comparator)
      * @see #minAll()
      */
-    public static <T extends Comparable<? super T>, A, D> Collector<T, ?, D> minAll(Collector<T, A, D> downstream) {
+    public static <T extends Comparable<? super T>,
+            A extends @Nullable Object,
+            D extends @Nullable Object> Collector<T, ?, D> minAll(Collector<T, A, D> downstream) {
         return maxAll(Comparator.<T>reverseOrder(), downstream);
     }
 
@@ -609,7 +641,7 @@ public final class MoreCollectors {
      * @see #minAll(Collector)
      */
     public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> minAll() {
-        return maxAll(Comparator.<T>reverseOrder(), Collectors.toList());
+        return maxAll(Comparator.reverseOrder(), Collectors.toList());
     }
 
     /**
@@ -722,7 +754,7 @@ public final class MoreCollectors {
      * @return a collector which returns a {@code List} containing the first n
      *         stream elements or less if the stream was shorter.
      */
-    public static <T> Collector<T, ?, List<T>> head(int n) {
+    public static <T extends @Nullable Object> Collector<T, ?, List<T>> head(int n) {
         if (n <= 0)
             return empty();
         return new CancellableCollectorImpl<>(ArrayList::new, (acc, t) -> {
@@ -752,7 +784,7 @@ public final class MoreCollectors {
      * @return a collector which returns a {@code List} containing the last n
      *         stream elements or less if the stream was shorter.
      */
-    public static <T> Collector<T, ?, List<T>> tail(int n) {
+    public static <T extends @Nullable Object> Collector<T, ?, List<T>> tail(int n) {
         if (n <= 0)
             return empty();
         return Collector.<T, Deque<T>, List<T>>of(ArrayDeque::new, (acc, t) -> {
@@ -796,7 +828,7 @@ public final class MoreCollectors {
      *         n stream elements or less if the stream was shorter.
      * @throws NullPointerException if comparator is null.
      */
-    public static <T> Collector<T, ?, List<T>> greatest(Comparator<? super T> comparator, int n) {
+    public static <T extends @Nullable Object> Collector<T, ?, List<T>> greatest(Comparator<? super T> comparator, int n) {
         return least(comparator.reversed(), n);
     }
 
@@ -828,7 +860,7 @@ public final class MoreCollectors {
      *         n stream elements or less if the stream was shorter.
      */
     public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> greatest(int n) {
-        return least(Comparator.<T>reverseOrder(), n);
+        return least(Comparator.reverseOrder(), n);
     }
 
     /**
@@ -860,7 +892,7 @@ public final class MoreCollectors {
      *         stream elements or less if the stream was shorter.
      * @throws NullPointerException if comparator is null.
      */
-    public static <T> Collector<T, ?, List<T>> least(Comparator<? super T> comparator, int n) {
+    public static <T extends @Nullable Object> Collector<T, ?, List<T>> least(Comparator<? super T> comparator, int n) {
         Objects.requireNonNull(comparator);
         if (n <= 0)
             return empty();
@@ -913,7 +945,7 @@ public final class MoreCollectors {
      *         stream elements or less if the stream was shorter.
      */
     public static <T extends Comparable<? super T>> Collector<T, ?, List<T>> least(int n) {
-        return least(Comparator.<T>naturalOrder(), n);
+        return least(Comparator.naturalOrder(), n);
     }
 
     /**
@@ -928,7 +960,7 @@ public final class MoreCollectors {
      * @see #minIndex()
      * @since 0.3.5
      */
-    public static <T> Collector<T, ?, OptionalLong> minIndex(Comparator<? super T> comparator) {
+    public static <T extends @Nullable Object> Collector<T, ?, OptionalLong> minIndex(Comparator<? super T> comparator) {
         Objects.requireNonNull(comparator);
         class Container {
             T value;
@@ -979,7 +1011,7 @@ public final class MoreCollectors {
      * @see #maxIndex()
      * @since 0.3.5
      */
-    public static <T> Collector<T, ?, OptionalLong> maxIndex(Comparator<? super T> comparator) {
+    public static <T extends @Nullable Object> Collector<T, ?, OptionalLong> maxIndex(Comparator<? super T> comparator) {
         return minIndex(comparator.reversed());
     }
 
@@ -1033,8 +1065,14 @@ public final class MoreCollectors {
      * @see #groupingBy(Function, Set, Supplier, Collector)
      * @since 0.3.7
      */
-    public static <T, K extends Enum<K>, A, D> Collector<T, ?, EnumMap<K, D>> groupingByEnum(Class<K> enumClass,
-            Function<? super T, K> classifier, Collector<? super T, A, D> downstream) {
+    public static <
+            T extends @Nullable Object,
+            K extends Enum<K>,
+            A extends @Nullable Object,
+            D extends @Nullable Object> Collector<T, ?, EnumMap<K, D>> groupingByEnum(
+            Class<K> enumClass,
+            Function<? super T, K> classifier,
+            Collector<? super T, A, D> downstream) {
         return groupingBy(classifier, EnumSet.allOf(enumClass), () -> new EnumMap<>(enumClass), downstream);
     }
 
@@ -1082,7 +1120,11 @@ public final class MoreCollectors {
      * @see #groupingByEnum(Class, Function, Collector)
      * @since 0.4.0
      */
-    public static <T, K, D, A> Collector<T, ?, Map<K, D>> groupingBy(Function<? super T, ? extends K> classifier,
+    public static <
+            T extends @Nullable Object,
+            K,
+            D extends @Nullable Object,
+            A extends @Nullable Object> Collector<T, ?, Map<K, D>> groupingBy(Function<? super T, ? extends K> classifier,
             Set<K> domain, Collector<? super T, A, D> downstream) {
         return groupingBy(classifier, domain, HashMap::new, downstream);
     }
@@ -1131,8 +1173,15 @@ public final class MoreCollectors {
      * @see #groupingByEnum(Class, Function, Collector)
      * @since 0.4.0
      */
-    public static <T, K, D, A, M extends Map<K, D>> Collector<T, ?, M> groupingBy(
-            Function<? super T, ? extends K> classifier, Set<K> domain, Supplier<M> mapFactory,
+    public static <
+            T extends @Nullable Object,
+            K,
+            D extends @Nullable Object,
+            A extends @Nullable Object,
+            M extends Map<K, D>> Collector<T, ?, M> groupingBy(
+            Function<? super T, ? extends K> classifier,
+            Set<K> domain,
+            Supplier<M> mapFactory,
             Collector<? super T, A, D> downstream) {
         Objects.requireNonNull(classifier);
         Objects.requireNonNull(domain);
@@ -1197,7 +1246,7 @@ public final class MoreCollectors {
      *         collects them to the {@code List}.
      * @since 0.4.0
      */
-    public static <T, S extends Collection<T>> Collector<S, ?, Set<T>> intersecting() {
+    public static <T extends @Nullable Object, S extends Collection<T>> Collector<S, ?, Set<T>> intersecting() {
         return new CancellableCollectorImpl<S, Box<Set<T>>, Set<T>>(Box::new, (b, t) -> {
             if (b.a == null) {
                 b.a = new HashSet<>(t);
@@ -1237,7 +1286,11 @@ public final class MoreCollectors {
      * @see Collectors#collectingAndThen(Collector, Function)
      * @since 0.4.0
      */
-    public static <T, A, R, RR> Collector<T, A, RR> collectingAndThen(Collector<T, A, R> downstream,
+    public static <
+            T extends @Nullable Object,
+            A extends @Nullable Object,
+            R extends @Nullable Object,
+            RR extends @Nullable Object> Collector<T, A, RR> collectingAndThen(Collector<T, A, R> downstream,
             Function<R, RR> finisher) {
         Predicate<A> finished = finished(downstream);
         if (finished != null) {
@@ -1273,7 +1326,10 @@ public final class MoreCollectors {
      * @since 0.4.0
      * @see Collectors#partitioningBy(Predicate, Collector)
      */
-    public static <T, D, A> Collector<T, ?, Map<Boolean, D>> partitioningBy(Predicate<? super T> predicate,
+    public static <
+            T extends @Nullable Object,
+            D extends @Nullable Object,
+            A extends @Nullable Object> Collector<T, ?, Map<Boolean, D>> partitioningBy(Predicate<? super T> predicate,
             Collector<? super T, A, D> downstream) {
         Objects.requireNonNull(predicate);
         Predicate<A> finished = finished(downstream);
@@ -1310,7 +1366,11 @@ public final class MoreCollectors {
      * @see Collectors#mapping(Function, Collector)
      * @since 0.4.0
      */
-    public static <T, U, A, R> Collector<T, ?, R> mapping(Function<? super T, ? extends U> mapper,
+    public static <
+            T extends @Nullable Object,
+            U extends @Nullable Object,
+            A extends @Nullable Object,
+            R extends @Nullable Object> Collector<T, ?, R> mapping(Function<? super T, ? extends U> mapper,
             Collector<? super U, A, R> downstream) {
         Objects.requireNonNull(mapper);
         Predicate<A> finished = finished(downstream);
@@ -1345,7 +1405,9 @@ public final class MoreCollectors {
      * @see #mapping(Function, Collector)
      * @since 0.6.0
      */
-    public static <T, U> Collector<T, ?, List<U>> mapping(Function<? super T, ? extends U> mapper) {
+    public static <
+            T extends @Nullable Object,
+            U extends @Nullable Object> Collector<T, ?, List<U>> mapping(Function<? super T, ? extends U> mapper) {
         return Collectors.mapping(mapper, Collectors.toList());
     }
 
@@ -1379,7 +1441,12 @@ public final class MoreCollectors {
      * @throws NullPointerException if mapper is null, or downstream is null.
      * @since 0.4.1
      */
-    public static <T, U, A, R> Collector<T, ?, R> flatMapping(Function<? super T, ? extends Stream<? extends U>> mapper,
+    public static <
+            T extends @Nullable Object,
+            U extends @Nullable Object,
+            A extends @Nullable Object,
+            R extends @Nullable Object> Collector<T, ?, R> flatMapping(
+            Function<? super T, ? extends @Nullable Stream<? extends U>> mapper,
             Collector<? super U, A, R> downstream) {
         Objects.requireNonNull(mapper);
         BiConsumer<A, ? super U> downstreamAccumulator = downstream.accumulator();
@@ -1435,8 +1502,8 @@ public final class MoreCollectors {
      * @throws NullPointerException if mapper is null.
      * @since 0.6.0
      */
-    public static <T, U> Collector<T, ?, List<U>> flatMapping(
-            Function<? super T, ? extends Stream<? extends U>> mapper) {
+    public static <T extends @Nullable Object, U extends @Nullable Object> Collector<T, ?, List<U>> flatMapping(
+            Function<? super T, ? extends @Nullable Stream<? extends U>> mapper) {
         return flatMapping(mapper, Collectors.toList());
     }
 
@@ -1473,7 +1540,10 @@ public final class MoreCollectors {
      * @see #pairing(Collector, Collector, BiFunction)
      * @since 0.4.0
      */
-    public static <T, A, R> Collector<T, ?, R> filtering(Predicate<? super T> predicate,
+    public static <
+            T extends @Nullable Object, 
+            A extends @Nullable Object, 
+            R extends @Nullable Object> Collector<T, ?, R> filtering(Predicate<? super T> predicate,
             Collector<T, A, R> downstream) {
         Objects.requireNonNull(predicate);
         BiConsumer<A, T> downstreamAccumulator = downstream.accumulator();
@@ -1511,7 +1581,7 @@ public final class MoreCollectors {
      * @see #filtering(Predicate, Collector)
      * @since 0.6.0
      */
-    public static <T> Collector<T, ?, List<T>> filtering(Predicate<? super T> predicate) {
+    public static <T extends @Nullable Object> Collector<T, ?, List<T>> filtering(Predicate<? super T> predicate) {
         return filtering(predicate, Collectors.toList());
     }
 
@@ -1532,7 +1602,7 @@ public final class MoreCollectors {
      * @throws NullPointerException if mapper is null.
      * @since 0.4.0
      */
-    public static <T> Collector<T, ?, OptionalInt> andingInt(ToIntFunction<T> mapper) {
+    public static <T extends @Nullable Object> Collector<T, ?, OptionalInt> andingInt(ToIntFunction<T> mapper) {
         Objects.requireNonNull(mapper);
         return new CancellableCollectorImpl<>(PrimitiveBox::new, (acc, t) -> {
             if (!acc.b) {
@@ -1568,7 +1638,7 @@ public final class MoreCollectors {
      * @throws NullPointerException if mapper is null.
      * @since 0.4.0
      */
-    public static <T> Collector<T, ?, OptionalLong> andingLong(ToLongFunction<T> mapper) {
+    public static <T extends @Nullable Object> Collector<T, ?, OptionalLong> andingLong(ToLongFunction<T> mapper) {
         Objects.requireNonNull(mapper);
         return new CancellableCollectorImpl<>(PrimitiveBox::new, (acc, t) -> {
             if (!acc.b) {
@@ -1732,7 +1802,8 @@ public final class MoreCollectors {
      * @see StreamEx#collapse(BiPredicate)
      * @since 0.5.1
      */
-    public static <T> Collector<T, ?, List<T>> dominators(BiPredicate<? super T, ? super T> isDominator) {
+    public static <T extends @Nullable Object> Collector<T, ?, List<T>> dominators(
+            BiPredicate<? super T, ? super T> isDominator) {
         Objects.requireNonNull(isDominator);
         return Collector.of(ArrayList::new, (acc, t) -> {
             if (acc.isEmpty() || !isDominator.test(acc.get(acc.size() - 1), t))
@@ -1786,7 +1857,10 @@ public final class MoreCollectors {
      * @see AbstractStreamEx#takeWhile(Predicate)
      * @since 0.6.3
      */
-    public static <T, A, R> Collector<T, ?, Optional<R>> ifAllMatch(Predicate<T> predicate,
+    public static <
+            T extends @Nullable Object, 
+            A extends @Nullable Object, 
+            R> Collector<T, ?, Optional<R>> ifAllMatch(Predicate<T> predicate,
             Collector<T, A, R> downstream) {
         Objects.requireNonNull(predicate);
         Predicate<A> finished = finished(downstream);
@@ -1923,7 +1997,7 @@ public final class MoreCollectors {
      * @see Collectors#reducing(Object, BinaryOperator) 
      * @since 0.7.3
      */
-    public static <T> Collector<T, ?, T> reducingWithZero(T zero, T identity, BinaryOperator<T> op) {
+    public static <T extends @Nullable Object> Collector<T, ?, T> reducingWithZero(T zero, T identity, BinaryOperator<T> op) {
         Objects.requireNonNull(op);
         // acc.b: 1 = has element, 2 = zero reached
         return new CancellableCollectorImpl<>(

@@ -15,6 +15,9 @@
  */
 package one.util.streamex;
 
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
+
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -36,13 +39,14 @@ import java.util.stream.BaseStream;
  * 
  * @author Tagir Valeev
  */
+@NullMarked
 /* package */class StreamContext {
     static final StreamContext SEQUENTIAL = new StreamContext(false);
     static final StreamContext PARALLEL = new StreamContext(true);
 
     boolean parallel;
-    ForkJoinPool fjp;
-    Runnable closeHandler;
+    @Nullable ForkJoinPool fjp;
+    @Nullable Runnable closeHandler;
 
     private StreamContext(boolean parallel) {
         this.parallel = parallel;
@@ -99,7 +103,7 @@ import java.util.stream.BaseStream;
         }
     }
 
-    static Runnable compose(Runnable r1, Runnable r2) {
+    static Runnable compose(@Nullable Runnable r1, Runnable r2) {
         if (r1 == null)
             return r2;
         return () -> {
@@ -117,7 +121,7 @@ import java.util.stream.BaseStream;
         };
     }
 
-    StreamContext combine(BaseStream<?, ?> other) {
+    StreamContext combine(@Nullable BaseStream<?, ?> other) {
         if (other == null)
             return this;
         StreamContext otherStrategy = of(other);

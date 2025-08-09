@@ -15,6 +15,9 @@
  */
 package one.util.streamex;
 
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -34,6 +37,7 @@ import static one.util.streamex.Internals.*;
  * 
  * @author Tagir Valeev
  */
+@NullMarked
 public final class IntStreamEx extends BaseStreamEx<Integer, IntStream, Spliterator.OfInt, IntStreamEx> implements IntStream {
     IntStreamEx(IntStream stream, StreamContext context) {
         super(stream, context);
@@ -237,7 +241,7 @@ public final class IntStreamEx extends BaseStreamEx<Integer, IntStream, Splitera
     }
 
     @Override
-    public <U> StreamEx<U> mapToObj(IntFunction<? extends U> mapper) {
+    public <U extends @Nullable Object> StreamEx<U> mapToObj(IntFunction<? extends U> mapper) {
         return new StreamEx<>(stream().mapToObj(mapper), context);
     }
 
@@ -268,14 +272,15 @@ public final class IntStreamEx extends BaseStreamEx<Integer, IntStream, Splitera
      * @return the new stream
      * @since 0.3.1
      */
-    public <K, V> EntryStream<K, V> mapToEntry(IntFunction<? extends K> keyMapper,
+    public <K extends @Nullable Object, 
+            V extends @Nullable Object> EntryStream<K, V> mapToEntry(IntFunction<? extends K> keyMapper,
             IntFunction<? extends V> valueMapper) {
         return new EntryStream<>(stream().mapToObj(t -> new AbstractMap.SimpleImmutableEntry<>(keyMapper.apply(t),
                 valueMapper.apply(t))), context);
     }
 
     @Override
-    public IntStreamEx flatMap(IntFunction<? extends IntStream> mapper) {
+    public IntStreamEx flatMap(IntFunction<? extends @Nullable IntStream> mapper) {
         return new IntStreamEx(stream().flatMap(mapper), context);
     }
 
@@ -294,7 +299,7 @@ public final class IntStreamEx extends BaseStreamEx<Integer, IntStream, Splitera
      * @return the new stream
      * @since 0.3.0
      */
-    public LongStreamEx flatMapToLong(IntFunction<? extends LongStream> mapper) {
+    public LongStreamEx flatMapToLong(IntFunction<? extends @Nullable LongStream> mapper) {
         return new LongStreamEx(stream().mapToObj(mapper).flatMapToLong(Function.identity()), context);
     }
 
@@ -313,7 +318,7 @@ public final class IntStreamEx extends BaseStreamEx<Integer, IntStream, Splitera
      * @return the new stream
      * @since 0.3.0
      */
-    public DoubleStreamEx flatMapToDouble(IntFunction<? extends DoubleStream> mapper) {
+    public DoubleStreamEx flatMapToDouble(IntFunction<? extends @Nullable DoubleStream> mapper) {
         return new DoubleStreamEx(stream().mapToObj(mapper).flatMapToDouble(Function.identity()), context);
     }
 
@@ -333,7 +338,7 @@ public final class IntStreamEx extends BaseStreamEx<Integer, IntStream, Splitera
      * @return the new stream
      * @since 0.3.0
      */
-    public <R> StreamEx<R> flatMapToObj(IntFunction<? extends Stream<R>> mapper) {
+    public <R extends @Nullable Object> StreamEx<R> flatMapToObj(IntFunction<? extends @Nullable Stream<R>> mapper) {
         return new StreamEx<>(stream().mapToObj(mapper).flatMap(Function.identity()), context);
     }
 
@@ -902,7 +907,7 @@ public final class IntStreamEx extends BaseStreamEx<Integer, IntStream, Splitera
      * @see #collect(IntCollector)
      */
     @Override
-    public <R> R collect(Supplier<R> supplier, ObjIntConsumer<R> accumulator, BiConsumer<R, R> combiner) {
+    public <R extends @Nullable Object> R collect(Supplier<R> supplier, ObjIntConsumer<R> accumulator, BiConsumer<R, R> combiner) {
         if (context.fjp != null)
             return context.terminate(() -> stream().collect(supplier, accumulator, combiner));
         return stream().collect(supplier, accumulator, combiner);
@@ -929,7 +934,7 @@ public final class IntStreamEx extends BaseStreamEx<Integer, IntStream, Splitera
      * @since 0.3.0
      */
     @SuppressWarnings("unchecked")
-    public <A, R> R collect(IntCollector<A, R> collector) {
+    public <A extends @Nullable Object, R extends @Nullable Object> R collect(IntCollector<A, R> collector) {
         if (collector.characteristics().contains(Collector.Characteristics.IDENTITY_FINISH))
             return (R) collect(collector.supplier(), collector.intAccumulator(), collector.merger());
         return collector.finisher().apply(collect(collector.supplier(), collector.intAccumulator(), collector
@@ -1467,7 +1472,7 @@ public final class IntStreamEx extends BaseStreamEx<Integer, IntStream, Splitera
      * @return the new stream
      * @since 0.1.2
      */
-    public <U> StreamEx<U> elements(U[] array) {
+    public <U extends @Nullable Object> StreamEx<U> elements(U[] array) {
         return mapToObj(idx -> array[idx]);
     }
 
@@ -1489,7 +1494,7 @@ public final class IntStreamEx extends BaseStreamEx<Integer, IntStream, Splitera
      * @return the new stream
      * @since 0.1.2
      */
-    public <U> StreamEx<U> elements(List<U> list) {
+    public <U extends @Nullable Object> StreamEx<U> elements(List<U> list) {
         return mapToObj(list::get);
     }
 
@@ -1783,7 +1788,7 @@ public final class IntStreamEx extends BaseStreamEx<Integer, IntStream, Splitera
     // Necessary to generate proper JavaDoc
     // does not add overhead as it appears in bytecode anyways as bridge method
     @Override
-    public <U> U chain(Function<? super IntStreamEx, U> mapper) {
+    public <U extends @Nullable Object> U chain(Function<? super IntStreamEx, U> mapper) {
         return mapper.apply(this);
     }
 
@@ -2020,13 +2025,12 @@ public final class IntStreamEx extends BaseStreamEx<Integer, IntStream, Splitera
      * Returns a sequential ordered {@code IntStreamEx} containing all the
      * indices of the supplied list.
      *
-     * @param <T> list element type
      * @param list list to get the stream of its indices
      * @return a sequential {@code IntStreamEx} for the range of {@code int}
      *         elements starting from 0 to (not inclusive) list.size()
      * @since 0.1.1
      */
-    public static <T> IntStreamEx ofIndices(List<T> list) {
+    public static IntStreamEx ofIndices(List<?> list) {
         return range(list.size());
     }
 
@@ -2045,7 +2049,7 @@ public final class IntStreamEx extends BaseStreamEx<Integer, IntStream, Splitera
      * @return a sequential {@code IntStreamEx} of the matched list indices
      * @since 0.1.1
      */
-    public static <T> IntStreamEx ofIndices(List<T> list, Predicate<T> predicate) {
+    public static <T extends @Nullable Object> IntStreamEx ofIndices(List<T> list, Predicate<? super T> predicate) {
         return seq(IntStream.range(0, list.size()).filter(i -> predicate.test(list.get(i))));
     }
 
@@ -2053,13 +2057,12 @@ public final class IntStreamEx extends BaseStreamEx<Integer, IntStream, Splitera
      * Returns a sequential ordered {@code IntStreamEx} containing all the
      * indices of the supplied array.
      *
-     * @param <T> array element type
      * @param array array to get the stream of its indices
      * @return a sequential {@code IntStreamEx} for the range of {@code int}
      *         elements starting from 0 to (not inclusive) array.length
      * @since 0.1.1
      */
-    public static <T> IntStreamEx ofIndices(T[] array) {
+    public static IntStreamEx ofIndices(@Nullable Object[] array) {
         return range(array.length);
     }
 
@@ -2073,7 +2076,7 @@ public final class IntStreamEx extends BaseStreamEx<Integer, IntStream, Splitera
      * @return a sequential {@code IntStreamEx} of the matched array indices
      * @since 0.1.1
      */
-    public static <T> IntStreamEx ofIndices(T[] array, Predicate<T> predicate) {
+    public static <T extends @Nullable Object> IntStreamEx ofIndices(T[] array, Predicate<? super T> predicate) {
         return seq(IntStream.range(0, array.length).filter(i -> predicate.test(array[i])));
     }
 
@@ -2695,7 +2698,7 @@ public final class IntStreamEx extends BaseStreamEx<Integer, IntStream, Splitera
          * @param action consumer to be called to emit elements
          * @return next emitter or null
          */
-        IntEmitter next(IntConsumer action);
+        @Nullable IntEmitter next(IntConsumer action);
 
         /**
          * Returns the spliterator which covers all the elements emitted by this
