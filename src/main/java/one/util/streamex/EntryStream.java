@@ -257,7 +257,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      */
     public <R extends @Nullable Object> StreamEx<R> flatMapKeyValue(BiFunction<? super K, ? super V,
             ? extends @Nullable Stream<? extends R>> mapper) {
-        return this.flatMap(toFunction(mapper));
+        return this.<R>flatMap(toFunction(mapper));
     }
 
     /**
@@ -628,7 +628,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
     public <R extends @Nullable Object> StreamEx<R> mapKeyValuePartial(
             BiFunction<? super K, ? super V, ? extends Optional<? extends R>> mapper
     ) {
-        return this.mapPartial(toFunction(mapper));
+        return this.<R>mapPartial(toFunction(mapper));
     }
 
     /**
