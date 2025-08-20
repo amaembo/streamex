@@ -45,8 +45,6 @@ import static one.util.streamex.Internals.checkLength;
  * {@code Iterator}; invoking the {@link #iterator iterator} method to obtain a
  * second or subsequent iterator throws {@code IllegalStateException}.
  *
- * @author Tagir Valeev
- *
  * @param <K> the type of {@code Entry} keys
  * @param <V> the type of {@code Entry} values
  */
@@ -483,7 +481,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      */
     public <KK extends @Nullable Object> EntryStream<KK, V> mapKeys(Function<? super K, ? extends KK> keyMapper) {
         return new EntryStream<>(stream().map(
-            e -> new SimpleImmutableEntry<>(keyMapper.apply(e.getKey()), e.getValue())), context);
+                e -> new SimpleImmutableEntry<>(keyMapper.apply(e.getKey()), e.getValue())), context);
     }
 
     /**
@@ -539,7 +537,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      */
     public <VV extends @Nullable Object> EntryStream<K, VV> mapValues(Function<? super V, ? extends VV> valueMapper) {
         return new EntryStream<>(stream().map(
-            e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e.getValue()))), context);
+                e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e.getValue()))), context);
     }
 
     /**
@@ -620,7 +618,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * @param mapper a <a
      *        href="package-summary.html#NonInterference">non-interfering </a>,
      *        <a href="package-summary.html#Statelessness">stateless</a>
-     *        partial function to apply to original keys and values which returns a present optional
+     *        partial function to apply to original keys and values, which returns a present optional
      *        if it's applicable, or an empty optional otherwise
      * @return the new stream
      * @since 0.6.8
@@ -647,7 +645,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      */
     public <KK extends @Nullable Object> EntryStream<KK, V> mapToKey(BiFunction<? super K, ? super V, ? extends KK> keyMapper) {
         return new EntryStream<>(stream().map(
-            e -> new SimpleImmutableEntry<>(keyMapper.apply(e.getKey(), e.getValue()), e.getValue())), context);
+                e -> new SimpleImmutableEntry<>(keyMapper.apply(e.getKey(), e.getValue()), e.getValue())), context);
     }
 
     /**
@@ -657,7 +655,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * <p>
      * If the mapping function returns an optional containing a new key,
      * or {@link Optional#empty()} if function is not applicable to the entry.
-     * For successfully mapped keys the values are left intact. The mapping function
+     * For successfully mapped keys, the values are left intact. The mapping function
      * may not return null.
      *
      * <p>
@@ -673,7 +671,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * @param keyMapper a <a
      *                    href="package-summary.html#NonInterference">non-interfering </a>,
      *                    <a href="package-summary.html#Statelessness">stateless</a>
-     *                    partial function to apply to original keys and values which returns a present optional
+     *                    partial function to apply to original keys and values, which returns a present optional
      *                    if it's applicable, or an empty optional otherwise
      * @return the new stream
      * @since 0.6.8
@@ -703,7 +701,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      */
     public <VV extends @Nullable Object> EntryStream<K, VV> mapToValue(BiFunction<? super K, ? super V, ? extends VV> valueMapper) {
         return new EntryStream<>(stream().map(
-            e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e.getKey(), e.getValue()))), context);
+                e -> new SimpleImmutableEntry<>(e.getKey(), valueMapper.apply(e.getKey(), e.getValue()))), context);
     }
 
     /**
@@ -713,7 +711,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * <p>
      * If the mapping function returns an optional containing a new value,
      * or {@link Optional#empty()} if function is not applicable to the entry.
-     * For successfully mapped values the keys are left intact. The mapping function
+     * For successfully mapped values, the keys are left intact. The mapping function
      * may not return null.
      *
      * <p>
@@ -729,7 +727,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * @param valueMapper a <a
      *                    href="package-summary.html#NonInterference">non-interfering </a>,
      *                    <a href="package-summary.html#Statelessness">stateless</a>
-     *                    partial function to apply to original keys and values which returns a present optional
+     *                    partial function to apply to original keys and values, which returns a present optional
      *                    if it's applicable, or an empty optional otherwise
      * @return the new stream
      * @since 0.6.8
@@ -873,7 +871,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * @param predicate a non-interfering, stateless predicate to apply
      *        to elements of this stream
      * @return {@code true} if either no elements of the stream match the
-     *         provided predicate or the stream is empty,
+     *         provided predicate, or the stream is empty,
      *         otherwise {@code false}
      * @since 0.7.0
      */
@@ -903,7 +901,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
     }
 
     /**
-     * Returns a stream consisting of the elements of this stream which values
+     * Returns a stream consisting of the elements of this stream whose values
      * don't match the given predicate.
      *
      * <p>
@@ -924,7 +922,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
     }
 
     /**
-     * Returns a stream consisting of the elements of this stream which values
+     * Returns a stream consisting of the elements of this stream whose values
      * don't match the given predicate.
      *
      * <p>
@@ -986,7 +984,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
 
     /**
      * Returns a stream consisting of the elements of this stream which keys are
-     * instances of given class.
+     * instances of a given class.
      *
      * <p>
      * This is an <a href="package-summary.html#StreamOps">intermediate</a>
@@ -1007,7 +1005,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
 
     /**
      * Returns a stream consisting of the elements of this stream which values
-     * are instances of given class.
+     * are instances of a given class.
      *
      * <p>
      * This is an <a href="package-summary.html#StreamOps">intermediate</a>
@@ -1038,7 +1036,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * <p>
      * For parallel stream pipelines, the action may be called at whatever time
      * and in whatever thread the element is made available by the upstream
-     * operation. If the action modifies shared state, it is responsible for
+     * operation. If the action modifies a shared state, it is responsible for
      * providing the required synchronization.
      *
      * @param keyAction a non-interfering action to perform on the keys of the
@@ -1062,7 +1060,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * <p>
      * For parallel stream pipelines, the action may be called at whatever time
      * and in whatever thread the element is made available by the upstream
-     * operation. If the action modifies shared state, it is responsible for
+     * operation. If the action modifies a shared state, it is responsible for
      * providing the required synchronization.
      *
      * @param valueAction a non-interfering action to perform on the values of
@@ -1086,7 +1084,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * <p>
      * For parallel stream pipelines, the action may be called at whatever time
      * and in whatever thread the element is made available by the upstream
-     * operation. If the action modifies shared state, it is responsible for
+     * operation. If the action modifies a shared state, it is responsible for
      * providing the required synchronization.
      *
      * @param action a non-interfering action to perform on the keys and values
@@ -1099,7 +1097,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
     }
 
     /**
-     * Returns a stream consisting of the keys of this stream elements.
+     * Returns a stream consisting of the keys of this stream's entries.
      *
      * <p>
      * This is an <a href="package-summary.html#StreamOps">intermediate</a>
@@ -1112,7 +1110,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
     }
 
     /**
-     * Returns a stream consisting of the values of this stream elements.
+     * Returns a stream consisting of the values of this stream's entries.
      *
      * <p>
      * This is an <a href="package-summary.html#StreamOps">intermediate</a>
@@ -1181,7 +1179,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
     }
 
     /**
-     * Merge series of adjacent stream entries with equal keys combining the
+     * Merge the sequences of adjacent stream entries with equal keys combining the
      * corresponding values using the provided function.
      *
      * <p>
@@ -1248,7 +1246,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
 
     /**
      * Returns a new {@code EntryStream} which values are the same as this
-     * stream values and keys are the results of applying the accumulation
+     * stream's values and keys are the results of applying the accumulation
      * function to this stream keys, going left to right.
      *
      * <p>
@@ -1278,7 +1276,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
     /**
      * Returns a new {@code EntryStream} which keys are the same as this stream
      * keys and values are the results of applying the accumulation function to
-     * this stream values, going left to right.
+     * this stream's values, going left to right.
      *
      * <p>
      * This is a stateful
@@ -1335,7 +1333,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
 
     /**
      * Returns an immutable {@link Map} containing the elements of this stream.
-     * There's no guarantees on exact type of the returned {@code Map}. In
+     * There are no guarantees on an exact type of the returned {@code Map}. In
      * particular, no specific element order in the resulting {@code Map} is
      * guaranteed. The returned {@code Map} is guaranteed to be serializable if
      * all its elements are serializable.
@@ -1391,7 +1389,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * {@link #toCustomMap(BinaryOperator, Supplier)}.
      *
      * <p>
-     * If the mapped keys contains duplicates (according to
+     * If the mapped keys contain duplicates (according to
      * {@link Object#equals(Object)}), the value mapping function is applied to
      * each equal element, and the results are merged using the provided merging
      * function.
@@ -1438,7 +1436,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
         M map = mapSupplier.get();
         if (isParallel() && !(map instanceof ConcurrentMap)) {
             return collect(mapSupplier, (m, t) -> addToMap(m, t.getKey(), Objects.requireNonNull(t.getValue())), (m1,
-                    m2) -> m2.forEach((k, v) -> addToMap(m1, k, v)));
+                                                                                                                  m2) -> m2.forEach((k, v) -> addToMap(m1, k, v)));
         }
         forEach(toMapConsumer(map));
         return map;
@@ -1449,7 +1447,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * {@code Map} is created by a provided supplier function.
      *
      * <p>
-     * If the mapped keys contains duplicates (according to
+     * If the mapped keys contain duplicates (according to
      * {@link Object#equals(Object)}), the value mapping function is applied to
      * each equal element, and the results are merged using the provided merging
      * function.
@@ -1506,7 +1504,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * {@link #toCustomMap(BinaryOperator, Supplier)}.
      *
      * <p>
-     * If the mapped keys contains duplicates (according to
+     * If the mapped keys contain duplicates (according to
      * {@link Object#equals(Object)}), the value mapping function is applied to
      * each equal element, and the results are merged using the provided merging
      * function.
@@ -1567,7 +1565,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * {@link #toCustomMap(BinaryOperator, Supplier)}.
      *
      * <p>
-     * If the mapped keys contains duplicates (according to
+     * If the mapped keys contain duplicates (according to
      * {@link Object#equals(Object)}), the value mapping function is applied to
      * each equal element, and the results are merged using the provided merging
      * function.
@@ -1670,7 +1668,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
     /**
      * Returns a {@link Map} where elements of this stream with the same key are
      * grouped together. The resulting {@code Map} keys are the keys of this
-     * stream entries and the corresponding values are combined using the
+     * stream's entries, and the corresponding values are combined using the
      * provided downstream collector.
      *
      * <p>
@@ -1702,7 +1700,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
     /**
      * Returns a {@link Map} where elements of this stream with the same key are
      * grouped together. The resulting {@code Map} keys are the keys of this
-     * stream entries and the corresponding values are combined using the
+     * stream's entries, and the corresponding values are combined using the
      * provided downstream collector. The {@code Map} is created using
      * the provided supplier function.
      *
@@ -1726,9 +1724,9 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
         Function<Entry<K, V>, K> keyMapper = Entry::getKey;
         Collector<Entry<K, V>, ?, D> mapping = Collectors.mapping(Entry::getValue, downstream);
         if (isParallel() && downstream.characteristics().contains(Characteristics.UNORDERED)
-            && mapSupplier.get() instanceof ConcurrentMap) {
+                && mapSupplier.get() instanceof ConcurrentMap) {
             return (M) collect(Collectors.groupingByConcurrent(keyMapper,
-                (Supplier<? extends ConcurrentMap<K, D>>) mapSupplier, mapping));
+                    (Supplier<? extends ConcurrentMap<K, D>>) mapSupplier, mapping));
         }
         return collect(Collectors.groupingBy(keyMapper, mapSupplier, mapping));
     }
@@ -1779,7 +1777,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * @see Collectors#toCollection(Supplier)
      */
     public <C extends Collection<V>, M extends Map<K, C>> M groupingTo(Supplier<M> mapSupplier,
-            Supplier<C> collectionFactory) {
+                                                                       Supplier<C> collectionFactory) {
         return grouping(mapSupplier, Collectors.toCollection(collectionFactory));
     }
 
@@ -1796,7 +1794,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * respect the encounter order of the stream, as doing so would sacrifice
      * the benefit of parallelism. For any given element, the action may be
      * performed at whatever time and in whatever thread the library chooses. If
-     * the action accesses shared state, it is responsible for providing the
+     * the action accesses a shared state, it is responsible for providing the
      * required synchronization.
      *
      * @param action a non-interfering action to perform on the key and value
@@ -1858,11 +1856,11 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      *
      * <p>
      * This method is roughly equivalent to
-     * {@code EntryStream.of(Spliterators.spliteratorUnknownSize(iterator, ORDERED))}
-     * , but may show better performance for parallel processing.
+     * {@code EntryStream.of(Spliterators.spliteratorUnknownSize(iterator, ORDERED))},
+     * but may show better performance for parallel processing.
      *
      * <p>
-     * Use this method only if you cannot provide better Stream source (like
+     * Use this method only if you cannot provide a better Stream source (like
      * {@code Collection} or {@code Spliterator}).
      *
      * @param <K> the type of stream keys
@@ -1889,7 +1887,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
     }
 
     /**
-     * Returns an {@code EntryStream} object whose keys are indices of given
+     * Returns an {@code EntryStream} object whose keys are indices of a given
      * list and the values are the corresponding list elements.
      *
      * <p>
@@ -1897,7 +1895,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * should provide fast random access. The list is assumed to be unmodifiable
      * during the stream operations.
      *
-     * @param <V> list element type
+     * @param <V> the list element type
      * @param list list to create the stream from
      * @return a new {@code EntryStream}
      * @since 0.2.3
@@ -1907,7 +1905,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
     }
 
     /**
-     * Returns an {@code EntryStream} object whose keys are indices of given
+     * Returns an {@code EntryStream} object whose keys are indices of a given
      * array and the values are the corresponding array elements.
      *
      * @param <V> array element type
@@ -1965,7 +1963,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      */
     public static <K extends @Nullable Object, V extends @Nullable Object> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3) {
         return of(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
-            new SimpleImmutableEntry<>(k3, v3)));
+                new SimpleImmutableEntry<>(k3, v3)));
     }
 
     /**
@@ -1986,7 +1984,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      */
     public static <K extends @Nullable Object, V extends @Nullable Object> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4) {
         return of(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
-            new SimpleImmutableEntry<>(k3, v3), new SimpleImmutableEntry<>(k4, v4)));
+                new SimpleImmutableEntry<>(k3, v3), new SimpleImmutableEntry<>(k4, v4)));
     }
 
     /**
@@ -2009,7 +2007,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      */
     public static <K extends @Nullable Object, V extends @Nullable Object> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5) {
         return of(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
-            new SimpleImmutableEntry<>(k3, v3), new SimpleImmutableEntry<>(k4, v4), new SimpleImmutableEntry<>(k5, v5)));
+                new SimpleImmutableEntry<>(k3, v3), new SimpleImmutableEntry<>(k4, v4), new SimpleImmutableEntry<>(k5, v5)));
     }
 
     /**
@@ -2034,8 +2032,8 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      */
     public static <K extends @Nullable Object, V extends @Nullable Object> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6) {
         return of(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
-            new SimpleImmutableEntry<>(k3, v3), new SimpleImmutableEntry<>(k4, v4), new SimpleImmutableEntry<>(k5, v5),
-            new SimpleImmutableEntry<>(k6, v6)));
+                new SimpleImmutableEntry<>(k3, v3), new SimpleImmutableEntry<>(k4, v4), new SimpleImmutableEntry<>(k5, v5),
+                new SimpleImmutableEntry<>(k6, v6)));
     }
 
     /**
@@ -2061,10 +2059,10 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * @since 0.5.2
      */
     public static <K extends @Nullable Object, V extends @Nullable Object> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6,
-            K k7, V v7) {
+                                                                                                K k7, V v7) {
         return of(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
-            new SimpleImmutableEntry<>(k3, v3), new SimpleImmutableEntry<>(k4, v4), new SimpleImmutableEntry<>(k5, v5),
-            new SimpleImmutableEntry<>(k6, v6), new SimpleImmutableEntry<>(k7, v7)));
+                new SimpleImmutableEntry<>(k3, v3), new SimpleImmutableEntry<>(k4, v4), new SimpleImmutableEntry<>(k5, v5),
+                new SimpleImmutableEntry<>(k6, v6), new SimpleImmutableEntry<>(k7, v7)));
     }
 
     /**
@@ -2092,10 +2090,10 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * @since 0.5.2
      */
     public static <K extends @Nullable Object, V extends @Nullable Object> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6,
-            K k7, V v7, K k8, V v8) {
+                                                                                                K k7, V v7, K k8, V v8) {
         return of(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
-            new SimpleImmutableEntry<>(k3, v3), new SimpleImmutableEntry<>(k4, v4), new SimpleImmutableEntry<>(k5, v5),
-            new SimpleImmutableEntry<>(k6, v6), new SimpleImmutableEntry<>(k7, v7), new SimpleImmutableEntry<>(k8, v8)));
+                new SimpleImmutableEntry<>(k3, v3), new SimpleImmutableEntry<>(k4, v4), new SimpleImmutableEntry<>(k5, v5),
+                new SimpleImmutableEntry<>(k6, v6), new SimpleImmutableEntry<>(k7, v7), new SimpleImmutableEntry<>(k8, v8)));
     }
 
     /**
@@ -2125,11 +2123,11 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * @since 0.5.2
      */
     public static <K extends @Nullable Object, V extends @Nullable Object> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6,
-            K k7, V v7, K k8, V v8, K k9, V v9) {
+                                                                                                K k7, V v7, K k8, V v8, K k9, V v9) {
         return of(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
-            new SimpleImmutableEntry<>(k3, v3), new SimpleImmutableEntry<>(k4, v4), new SimpleImmutableEntry<>(k5, v5),
-            new SimpleImmutableEntry<>(k6, v6), new SimpleImmutableEntry<>(k7, v7), new SimpleImmutableEntry<>(k8, v8),
-            new SimpleImmutableEntry<>(k9, v9)));
+                new SimpleImmutableEntry<>(k3, v3), new SimpleImmutableEntry<>(k4, v4), new SimpleImmutableEntry<>(k5, v5),
+                new SimpleImmutableEntry<>(k6, v6), new SimpleImmutableEntry<>(k7, v7), new SimpleImmutableEntry<>(k8, v8),
+                new SimpleImmutableEntry<>(k9, v9)));
     }
 
     /**
@@ -2161,16 +2159,16 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * @since 0.5.2
      */
     public static <K extends @Nullable Object, V extends @Nullable Object> EntryStream<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6,
-            K k7, V v7, K k8, V v8, K k9, V v9, K k10, V v10) {
+                                                                                                K k7, V v7, K k8, V v8, K k9, V v9, K k10, V v10) {
         return of(Stream.of(new SimpleImmutableEntry<>(k1, v1), new SimpleImmutableEntry<>(k2, v2),
-            new SimpleImmutableEntry<>(k3, v3), new SimpleImmutableEntry<>(k4, v4), new SimpleImmutableEntry<>(k5, v5),
-            new SimpleImmutableEntry<>(k6, v6), new SimpleImmutableEntry<>(k7, v7), new SimpleImmutableEntry<>(k8, v8),
-            new SimpleImmutableEntry<>(k9, v9), new SimpleImmutableEntry<>(k10, v10)));
+                new SimpleImmutableEntry<>(k3, v3), new SimpleImmutableEntry<>(k4, v4), new SimpleImmutableEntry<>(k5, v5),
+                new SimpleImmutableEntry<>(k6, v6), new SimpleImmutableEntry<>(k7, v7), new SimpleImmutableEntry<>(k8, v8),
+                new SimpleImmutableEntry<>(k9, v9), new SimpleImmutableEntry<>(k10, v10)));
     }
 
     /**
      * Returns a sequential {@code EntryStream} containing {@code Entry} objects
-     * composed from corresponding key and value in given two lists.
+     * composed of corresponding keys and values in given two lists.
      *
      * <p>
      * The keys and values are accessed using {@link List#get(int)}, so the
@@ -2182,7 +2180,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * @param keys the list of keys, assumed to be unmodified during use
      * @param values the list of values, assumed to be unmodified during use
      * @return a new {@code EntryStream}
-     * @throws IllegalArgumentException if length of the lists differs.
+     * @throws IllegalArgumentException the length of the lists differs.
      * @see StreamEx#zip(List, List, BiFunction)
      * @since 0.2.1
      */
@@ -2193,14 +2191,14 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
 
     /**
      * Returns a sequential {@code EntryStream} containing {@code Entry} objects
-     * composed from corresponding key and value in given two arrays.
+     * composed of corresponding keys and values in given two arrays.
      *
      * @param <K> the type of stream element keys
      * @param <V> the type of stream element values
      * @param keys the array of keys
      * @param values the array of values
      * @return a new {@code EntryStream}
-     * @throws IllegalArgumentException if length of the arrays differs.
+     * @throws IllegalArgumentException if the length of the arrays differs.
      * @see StreamEx#zip(Object[], Object[], BiFunction)
      * @since 0.2.1
      */
@@ -2252,7 +2250,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * resulting stream is {@code array.length * (array.length - 1L) / 2}..
      *
      * @param <T> type of the array elements
-     * @param array a array to take the elements from
+     * @param array an array to take the elements from
      * @return a new {@code EntryStream}
      * @see StreamEx#ofPairs(Object[], BiFunction)
      * @since 0.3.6
@@ -2269,7 +2267,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * <p>
      * The keys of the returned stream are non-negative integer numbers. 0 is
      * used for the root node only, 1 is for root immediate children, 2 is for
-     * their children and so on.
+     * their children, and so on.
      *
      * <p>
      * The streams created by mapper may be automatically
@@ -2302,7 +2300,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * <p>
      * The keys of the returned stream are non-negative integer numbers. 0 is
      * used for the root node only, 1 is for root immediate children, 2 is for
-     * their children and so on.
+     * their children, and so on.
      *
      * <p>
      * The streams created by mapper may be automatically
@@ -2313,13 +2311,13 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * method of the resulting stream returned by {@code ofTree()}.
      *
      * @param <T> the base type of tree nodes
-     * @param <TT> the sub-type of composite tree nodes which may have children
+     * @param <TT> the subtype of composite tree nodes which may have children
      * @param root root node of the tree
      * @param collectionClass a class representing the composite tree node
      * @param mapper a non-interfering, stateless function to apply to each
-     *        composite tree node and its depth which returns stream of direct
+     *        composite tree node and its depth which returns a stream of direct
      *        children. May return null if the given node has no children.
-     * @return the new sequential ordered stream
+     * @return the new sequential, ordered stream
      * @since 0.5.2
      * @see StreamEx#ofTree(Object, Class, Function)
      * @see #ofTree(Object, BiFunction)
@@ -2360,8 +2358,8 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * May return itself if no keys were supplied.
      *
      * <p>
-     * Current implementation scans the supplied keys linearly for every stream element.
-     * If you have many keys, consider using more efficient alternative instead.
+     * The current implementation scans the supplied keys linearly for every stream element.
+     * If you have many keys, consider using a more efficient alternative instead.
      *
      * <p>
      * Future implementations may take advantage on using {@code hashCode()} or
@@ -2401,8 +2399,8 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * May return itself if no values were supplied.
      *
      * <p>
-     * Current implementation scans the supplied values linearly for every stream element.
-     * If you have many values, consider using more efficient alternative instead.
+     * The current implementation scans the supplied values linearly for every stream element.
+     * If you have many values, consider using a more efficient alternative instead.
      *
      * <p>
      * Future implementations may take advantage on using {@code hashCode()} or

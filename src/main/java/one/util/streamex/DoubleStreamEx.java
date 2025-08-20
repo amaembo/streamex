@@ -30,8 +30,6 @@ import static one.util.streamex.Internals.*;
 
 /**
  * A {@link DoubleStream} implementation with additional functionality
- * 
- * @author Tagir Valeev
  */
 @NullMarked
 public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spliterator.OfDouble, DoubleStreamEx> implements
@@ -153,7 +151,7 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
     }
 
     /**
-     * Returns a stream where the first element is the replaced with the result
+     * Returns a stream where the first element is replaced with the result
      * of applying the given function while the other elements are left intact.
      *
      * <p>
@@ -173,7 +171,7 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
     }
 
     /**
-     * Returns a stream where the last element is the replaced with the result
+     * Returns a stream where the last element is replaced with the result
      * of applying the given function while the other elements are left intact.
      *
      * <p>
@@ -182,7 +180,7 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
      *
      * <p>
      * The mapper function is called at most once. It could be not called at all
-     * if the stream is empty or there is short-circuiting operation downstream.
+     * if the stream is empty or there is a short-circuiting operation downstream.
      *
      * @param mapper a
      *        <a href="package-summary.html#NonInterference">non-interfering
@@ -301,7 +299,7 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
 
     /**
      * Returns a new stream containing all the elements of the original stream interspersed with
-     * given delimiter.
+     * a given delimiter.
      * 
      * <p>
      * For example, {@code DoubleStreamEx.of(1, 2, 3).intersperse(4)} will yield a stream containing
@@ -374,7 +372,7 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
 
     /**
      * Returns a stream consisting of the elements of this stream, sorted
-     * according to the natural order of the keys extracted by provided
+     * according to the natural order of the keys extracted by the provided
      * function.
      *
      * <p>
@@ -398,7 +396,7 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
 
     /**
      * Returns a stream consisting of the elements of this stream, sorted
-     * according to the int values extracted by provided function.
+     * according to the int values extracted by the provided function.
      *
      * <p>
      * For ordered streams, the sort is stable. For unordered streams, no
@@ -420,7 +418,7 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
 
     /**
      * Returns a stream consisting of the elements of this stream, sorted
-     * according to the long values extracted by provided function.
+     * according to the long values extracted by the provided function.
      *
      * <p>
      * For ordered streams, the sort is stable. For unordered streams, no
@@ -442,7 +440,7 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
 
     /**
      * Returns a stream consisting of the elements of this stream, sorted
-     * according to the double values extracted by provided function.
+     * according to the double values extracted by the provided function.
      *
      * <p>
      * For ordered streams, the sort is stable. For unordered streams, no
@@ -479,13 +477,13 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
      * <p>
      * The action is called at most once. For parallel stream pipelines, it's
      * not guaranteed in which thread it will be executed, so if it modifies
-     * shared state, it is responsible for providing the required
+     * the shared state, it is responsible for providing the required
      * synchronization.
      *
      * <p>
      * Note that the action might not be called at all if the first element is
-     * not consumed from the input (for example, if there's short-circuiting
-     * operation downstream which stopped the stream before the first element).
+     * not consumed from the input (for example, if there's a short-circuiting
+     * operation downstream, which stopped the stream before the first element).
      * 
      * <p>
      * This method exists mainly to support debugging.
@@ -516,12 +514,12 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
      * <p>
      * The action is called at most once. For parallel stream pipelines, it's
      * not guaranteed in which thread it will be executed, so if it modifies
-     * shared state, it is responsible for providing the required
+     * the shared state, it is responsible for providing the required
      * synchronization.
      * 
      * <p>
      * Note that the action might not be called at all if the last element is
-     * not consumed from the input (for example, if there's short-circuiting
+     * not consumed from the input (for example, if there's a short-circuiting
      * operation downstream).
      * 
      * <p>
@@ -659,7 +657,7 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
      * associative, consider using {@link #reduce(DoubleBinaryOperator)} method.
      * 
      * <p>
-     * For parallel stream it's not guaranteed that accumulator will always be
+     * For parallel stream, it's not guaranteed that accumulator will always be
      * executed in the same thread.
      *
      * @param accumulator a
@@ -707,7 +705,7 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
      * method.
      * 
      * <p>
-     * For parallel stream it's not guaranteed that accumulator will always be
+     * For parallel stream, it's not guaranteed that accumulator will always be
      * executed in the same thread.
      *
      * @param seed the starting value
@@ -734,7 +732,7 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
      * This is a terminal operation.
      * 
      * <p>
-     * For parallel stream it's not guaranteed that accumulator will always be
+     * For parallel stream, it's not guaranteed that accumulator will always be
      * executed in the same thread.
      * 
      * <p>
@@ -746,8 +744,8 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
      *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        function for incorporating an additional element into a result
      * @return the array where the first element is the first element of this
-     *         stream and every successor element is the result of applying
-     *         accumulator function to the previous array element and the
+     *         stream, and every successor element is the result of applying
+     *         the accumulator function to the previous array element and the
      *         corresponding stream element. The resulting array has the same
      *         length as this stream.
      * @see #foldLeft(DoubleBinaryOperator)
@@ -764,13 +762,13 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
 
     /**
      * Produces an array containing cumulative results of applying the
-     * accumulation function going left to right using given seed value.
+     * accumulation function going left to right using a given seed value.
      * 
      * <p>
      * This is a terminal operation.
      * 
      * <p>
-     * For parallel stream it's not guaranteed that accumulator will always be
+     * For parallel stream, it's not guaranteed that accumulator will always be
      * executed in the same thread.
      * 
      * <p>
@@ -807,8 +805,8 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
 
     /**
      * Performs a mutable reduction operation on the elements of this stream
-     * using an {@link DoubleCollector} which encapsulates the supplier,
-     * accumulator and merger functions making easier to reuse collection
+     * using an {@link DoubleCollector} which encapsulates a supplier,
+     * an accumulator, and a merger function making easier to reuse collection
      * strategies.
      *
      * <p>
@@ -1337,7 +1335,7 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
      * 
      * <p>
      * The output stream will contain one element less than this stream. If this
-     * stream contains zero or one element the output stream will be empty.
+     * stream contains zero or one element, the output stream will be empty.
      *
      * @param mapper a non-interfering, stateless function to apply to each
      *        adjacent pair of this stream elements.
@@ -1357,7 +1355,7 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
      * This is a terminal operation.
      * 
      * @param delimiter the delimiter to be used between each element
-     * @return the result of concatenation. For empty input stream empty String
+     * @return the result of concatenation. For an empty input stream, an empty String
      *         is returned.
      * @since 0.3.1
      */
@@ -1394,8 +1392,8 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
      * <p>
      * This is a short-circuiting stateful operation. It can be either
      * <a href="package-summary.html#StreamOps">intermediate or
-     * quasi-intermediate</a>. When using with JDK 1.9 or higher it calls the
-     * corresponding JDK 1.9 implementation. When using with JDK 1.8 it uses own
+     * quasi-intermediate</a>. When using with JDK 1.9 or higher, it calls the
+     * corresponding JDK 1.9 implementation. When using with JDK 1.8, it uses its own
      * implementation.
      * 
      * <p>
@@ -1445,8 +1443,8 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
      * <p>
      * This is a stateful operation. It can be either
      * <a href="package-summary.html#StreamOps">intermediate or
-     * quasi-intermediate</a>. When using with JDK 1.9 or higher it calls the
-     * corresponding JDK 1.9 implementation. When using with JDK 1.8 it uses own
+     * quasi-intermediate</a>. When using with JDK 1.9 or higher, it calls the
+     * corresponding JDK 1.9 implementation. When using with JDK 1.8, it uses its own
      * implementation.
      * 
      * <p>
@@ -1494,8 +1492,8 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
         return delegate(new PrefixOps.OfDouble(spliterator(), op));
     }
 
-    // Necessary to generate proper JavaDoc
-    // does not add overhead as it appears in bytecode anyways as bridge method
+    // Necessary to generate proper Javadoc
+    // does not add overhead as it appears in bytecode anyway as a bridge method
     @Override
     public <U extends @Nullable Object> U chain(Function<? super DoubleStreamEx, U> mapper) {
         return mapper.apply(this);
@@ -1552,7 +1550,7 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
 
     /**
      * Returns a sequential ordered {@code DoubleStreamEx} whose elements are
-     * the unboxed elements of supplied array.
+     * the unboxed elements of the supplied array.
      *
      * @param array the array to create the stream from.
      * @return the new stream
@@ -1588,7 +1586,7 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
 
     /**
      * Returns a sequential ordered {@code DoubleStreamEx} whose elements are
-     * the specified float values casted to double.
+     * the specified float values cast to double.
      *
      * @param elements the elements of the new stream
      * @return the new stream
@@ -1600,7 +1598,7 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
 
     /**
      * Returns a sequential {@link DoubleStreamEx} with the specified range of
-     * the specified array as its source. Array values will be casted to double.
+     * the specified array as its source. Array values will be cast to double.
      *
      * @param array the array, assumed to be unmodified during use
      * @param startInclusive the first index to cover, inclusive
@@ -1653,11 +1651,11 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
      *
      * <p>
      * This method is roughly equivalent to
-     * {@code DoubleStreamEx.of(Spliterators.spliteratorUnknownSize(iterator, ORDERED))}
-     * , but may show better performance for parallel processing.
+     * {@code DoubleStreamEx.of(Spliterators.spliteratorUnknownSize(iterator, ORDERED))},
+     * but may show better performance for parallel processing.
      * 
      * <p>
-     * Use this method only if you cannot provide better Stream source.
+     * Use this method only if you cannot provide a better Stream source.
      *
      * @param iterator an iterator to create the stream from.
      * @return the new stream
@@ -1683,7 +1681,7 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
 
     /**
      * Returns a sequential ordered {@code DoubleStreamEx} whose elements are
-     * the unboxed elements of supplied collection.
+     * the unboxed elements of the supplied collection.
      *
      * @param collection the collection to create the stream from.
      * @return the new stream
@@ -1776,7 +1774,7 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
      * element at position {@code n - 1}.
      *
      * @param seed the initial element
-     * @param f a function to be applied to to the previous element to produce a
+     * @param f a function to be applied to the previous element to produce a
      *        new element
      * @return A new sequential {@code DoubleStream}
      * @see #iterate(double, DoublePredicate, DoubleUnaryOperator)
@@ -1803,7 +1801,7 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
      *
      * <p>
      * The resulting sequence may be empty if the predicate does not hold on the
-     * seed value. Otherwise the first element will be the supplied seed value,
+     * seed value. Otherwise, the first element will be the supplied seed value,
      * the next element (if present) will be the result of applying the function
      * f to the seed value, and so on iteratively until the predicate indicates
      * that the stream should terminate.
@@ -1881,17 +1879,17 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
      * <p>
      * The producer function may call the passed consumer any number of times
      * and return true if the producer should be called again or false
-     * otherwise. It's guaranteed that the producer will not be called anymore,
+     * otherwise. It's guaranteed that the producer will not be called anymore 
      * once it returns false.
      * 
      * <p>
-     * This method is particularly useful when producer changes the mutable
-     * object which should be left in known state after the full stream
-     * consumption. Note however that if a short-circuiting operation is used,
+     * This method is particularly useful when the producer changes the mutable
+     * object which should be left in a known state after the full stream
+     * consumption. Note, however, that if a short-circuiting operation is used,
      * then the final state of the mutable object cannot be guaranteed.
      * 
      * @param producer a predicate which calls the passed consumer to emit
-     *        stream element(s) and returns true if it producer should be
+     *        stream element(s) and returns true if the producer should be
      *        applied again.
      * @return the new stream
      * @since 0.6.0
@@ -1924,7 +1922,7 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
      * @param mapper a non-interfering, stateless function to apply to each pair
      *        of the corresponding array elements.
      * @return a new {@code DoubleStreamEx}
-     * @throws IllegalArgumentException if length of the arrays differs.
+     * @throws IllegalArgumentException if the length of the arrays differs.
      * @since 0.2.1
      */
     public static DoubleStreamEx zip(double[] first, double[] second, DoubleBinaryOperator mapper) {
@@ -1937,13 +1935,11 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
      * creating new emitters in a chain.
      * 
      * <p>
-     * Using this interface it's possible to create custom sources which cannot
+     * Using this interface, it's possible to create custom sources which cannot
      * be easily expressed using
      * {@link DoubleStreamEx#iterate(double, DoubleUnaryOperator)} or
      * {@link DoubleStreamEx#generate(DoubleSupplier)}.
      * 
-     * @author Tagir Valeev
-     *
      * @since 0.6.0
      */
     @FunctionalInterface
@@ -1956,12 +1952,12 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
          * <p>
          * Normally one element is emitted during the {@code next()} method
          * call. However, it's not restricted: you may emit as many elements as
-         * you want, though in some cases if many elements were emitted they
+         * you want, though in some cases if many elements were emitted, they
          * might be buffered consuming additional memory.
          * 
          * <p>
-         * It's allowed not to emit anything (don't call the consumer). However
-         * if you do this and return new emitter which also does not emit
+         * It's allowed not to emit anything (don't call the consumer). However,
+         * if you do this and return a new emitter which also does not emit
          * anything, you will end up in endless loop.
          * 
          * @param action consumer to be called to emit elements

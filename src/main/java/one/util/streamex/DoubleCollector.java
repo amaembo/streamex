@@ -26,8 +26,6 @@ import static one.util.streamex.Internals.*;
 
 /**
  * A {@link Collector} specialized to work with primitive {@code double}.
- * 
- * @author Tagir Valeev
  *
  * @param <A> the mutable accumulation type of the reduction operation (often
  *        hidden as an implementation detail)
@@ -87,7 +85,7 @@ public interface DoubleCollector<A extends @Nullable Object, R extends @Nullable
      * @return the new {@code DoubleCollector}
      */
     static <R extends @Nullable Object> DoubleCollector<R, R> of(
-            Supplier<R> supplier, 
+            Supplier<R> supplier,
             ObjDoubleConsumer<R> doubleAccumulator,
             BiConsumer<R, R> merger) {
         return new DoubleCollectorImpl<>(supplier, doubleAccumulator, merger, Function.identity(), ID_CHARACTERISTICS);
@@ -96,7 +94,7 @@ public interface DoubleCollector<A extends @Nullable Object, R extends @Nullable
     /**
      * Adapts a {@code Collector} which accepts elements of type {@code Double}
      * to a {@code DoubleCollector}.
-     * 
+     *
      * @param <A> The intermediate accumulation type of the collector
      * @param <R> The final result type of the collector
      * @param collector a {@code Collector} to adapt
@@ -146,7 +144,7 @@ public interface DoubleCollector<A extends @Nullable Object, R extends @Nullable
      */
     static DoubleCollector<?, String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return PartialCollector.joining(delimiter, prefix, suffix, true).asDouble(
-            Internals.joinAccumulatorDouble(delimiter));
+                Internals.joinAccumulatorDouble(delimiter));
     }
 
     /**
@@ -160,7 +158,7 @@ public interface DoubleCollector<A extends @Nullable Object, R extends @Nullable
      */
     static DoubleCollector<?, String> joining(CharSequence delimiter) {
         return PartialCollector.joining(delimiter, null, null, false).asDouble(
-            Internals.joinAccumulatorDouble(delimiter));
+                Internals.joinAccumulatorDouble(delimiter));
     }
 
     /**
@@ -193,7 +191,7 @@ public interface DoubleCollector<A extends @Nullable Object, R extends @Nullable
      *         elements
      */
     static DoubleCollector<?, Double> summing() {
-        // Using DoubleSummaryStatistics as Kahan algorithm is implemented there
+        // Using DoubleSummaryStatistics as the Kahan algorithm is implemented there
         return summarizing().andThen(DoubleSummaryStatistics::getSum);
     }
 
@@ -207,7 +205,7 @@ public interface DoubleCollector<A extends @Nullable Object, R extends @Nullable
      */
     static DoubleCollector<?, OptionalDouble> averaging() {
         return summarizing().andThen(
-            dss -> dss.getCount() == 0L ? OptionalDouble.empty() : OptionalDouble.of(dss.getAverage()));
+                dss -> dss.getCount() == 0L ? OptionalDouble.empty() : OptionalDouble.of(dss.getAverage()));
     }
 
     /**
@@ -317,7 +315,7 @@ public interface DoubleCollector<A extends @Nullable Object, R extends @Nullable
      */
     static DoubleCollector<?, Double> reducing(double identity, DoubleBinaryOperator op) {
         return of(() -> new double[] { identity }, (box, i) -> box[0] = op.applyAsDouble(box[0], i),
-            (box1, box2) -> box1[0] = op.applyAsDouble(box1[0], box2[0]), UNBOX_DOUBLE);
+                (box1, box2) -> box1[0] = op.applyAsDouble(box1[0], box2[0]), UNBOX_DOUBLE);
     }
 
     /**
@@ -371,7 +369,7 @@ public interface DoubleCollector<A extends @Nullable Object, R extends @Nullable
             DoubleCollector<A, D> downstream) {
         ObjDoubleConsumer<A> downstreamAccumulator = downstream.doubleAccumulator();
         ObjDoubleConsumer<BooleanMap<A>> accumulator = (result, t) -> downstreamAccumulator.accept(
-            predicate.test(t) ? result.trueValue : result.falseValue, t);
+                predicate.test(t) ? result.trueValue : result.falseValue, t);
         return BooleanMap.partialCollector(downstream).asDouble(accumulator);
     }
 
@@ -457,7 +455,7 @@ public interface DoubleCollector<A extends @Nullable Object, R extends @Nullable
      */
     static <K, D extends @Nullable Object, A extends @Nullable Object, M extends Map<K, D>> DoubleCollector<?, M> groupingBy(
             DoubleFunction<? extends K> classifier,
-            Supplier<M> mapFactory, 
+            Supplier<M> mapFactory,
             DoubleCollector<A, D> downstream) {
         Supplier<A> downstreamSupplier = downstream.supplier();
         Function<K, A> supplier = k -> downstreamSupplier.get();
@@ -497,7 +495,7 @@ public interface DoubleCollector<A extends @Nullable Object, R extends @Nullable
      * Returns a {@code DoubleCollector} which produces a boolean array
      * containing the results of applying the given predicate to the input
      * elements, in encounter order.
-     * 
+     *
      * @param predicate a non-interfering, stateless predicate to apply to each
      *        input element. The result values of this predicate are collected
      *        to the resulting boolean array.

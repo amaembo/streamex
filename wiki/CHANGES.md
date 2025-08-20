@@ -6,6 +6,7 @@ Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 * [#282] JSpecify nullity annotations added.
 * [#283] Redundant type arguments on IntStreamEx.ofIndices removed
 * [#284] Added: `StreamEx.iterateUntilNull` and `takeUntilNull`.
+* Javadoc proofreading
 
 ### 0.8.4
 * [#279] Added: `AbstractStreamEx.mapToEntryPartial`.

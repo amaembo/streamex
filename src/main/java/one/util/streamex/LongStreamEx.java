@@ -30,8 +30,6 @@ import static one.util.streamex.Internals.*;
 
 /**
  * A {@link LongStream} implementation with additional functionality
- * 
- * @author Tagir Valeev
  */
 @NullMarked
 public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterator.OfLong, LongStreamEx> implements
@@ -93,7 +91,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
      * <p>
      * This is a short-circuiting terminal operation.
      * 
-     * @param value the value too look for in the stream
+     * @param value the value to look for in the stream
      * @return true if this stream contains the specified value
      * @see LongStream#anyMatch(LongPredicate)
      */
@@ -127,7 +125,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
      * operation. May return itself if no values were supplied.
      * 
      * <p>
-     * Current implementation scans the supplied values linearly for every
+     * The current implementation scans the supplied values linearly for every
      * stream element.
      * 
      * <p>
@@ -221,7 +219,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
     }
 
     /**
-     * Returns a stream where the first element is the replaced with the result
+     * Returns a stream where the first element is replaced with the result
      * of applying the given function while the other elements are left intact.
      *
      * <p>
@@ -241,7 +239,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
     }
 
     /**
-     * Returns a stream where the last element is the replaced with the result
+     * Returns a stream where the last element is replaced with the result
      * of applying the given function while the other elements are left intact.
      *
      * <p>
@@ -250,7 +248,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
      *
      * <p>
      * The mapper function is called at most once. It could be not called at all
-     * if the stream is empty or there is short-circuiting operation downstream.
+     * if the stream is empty or there is a short-circuiting operation downstream.
      *
      * @param mapper a
      *        <a href="package-summary.html#NonInterference">non-interfering
@@ -369,7 +367,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
 
     /**
      * Returns a new stream containing all the elements of the original stream interspersed with
-     * given delimiter.
+     * a given delimiter.
      * 
      * <p>
      * For example, {@code LongStreamEx.of(1, 2, 3).intersperse(4)} will yield a stream containing
@@ -436,7 +434,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
 
     /**
      * Returns a stream consisting of the elements of this stream, sorted
-     * according to the natural order of the keys extracted by provided
+     * according to the natural order of the keys extracted by the provided
      * function.
      *
      * <p>
@@ -460,7 +458,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
 
     /**
      * Returns a stream consisting of the elements of this stream, sorted
-     * according to the int values extracted by provided function.
+     * according to the int values extracted by the provided function.
      *
      * <p>
      * For ordered streams, the sort is stable. For unordered streams, no
@@ -482,7 +480,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
 
     /**
      * Returns a stream consisting of the elements of this stream, sorted
-     * according to the long values extracted by provided function.
+     * according to the long values extracted by the provided function.
      *
      * <p>
      * For ordered streams, the sort is stable. For unordered streams, no
@@ -504,7 +502,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
 
     /**
      * Returns a stream consisting of the elements of this stream, sorted
-     * according to the double values extracted by provided function.
+     * according to the double values extracted by the provided function.
      *
      * <p>
      * For ordered streams, the sort is stable. For unordered streams, no
@@ -541,13 +539,13 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
      * <p>
      * The action is called at most once. For parallel stream pipelines, it's
      * not guaranteed in which thread it will be executed, so if it modifies
-     * shared state, it is responsible for providing the required
+     * the shared state, it is responsible for providing the required
      * synchronization.
      *
      * <p>
      * Note that the action might not be called at all if the first element is
-     * not consumed from the input (for example, if there's short-circuiting
-     * operation downstream which stopped the stream before the first element).
+     * not consumed from the input (for example, if there's a short-circuiting
+     * operation downstream that stopped the stream before the first element).
      * 
      * <p>
      * This method exists mainly to support debugging.
@@ -578,12 +576,12 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
      * <p>
      * The action is called at most once. For parallel stream pipelines, it's
      * not guaranteed in which thread it will be executed, so if it modifies
-     * shared state, it is responsible for providing the required
+     * the shared state, it is responsible for providing the required
      * synchronization.
      * 
      * <p>
      * Note that the action might not be called at all if the last element is
-     * not consumed from the input (for example, if there's short-circuiting
+     * not consumed from the input (for example, if there's a short-circuiting
      * operation downstream).
      * 
      * <p>
@@ -800,7 +798,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
 
     /**
      * Produces an array containing cumulative results of applying the
-     * accumulation function going left to right using given seed value.
+     * accumulation function going left to right using a given seed value.
      * 
      * <p>
      * This is a terminal operation.
@@ -818,7 +816,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
      *        <a href="package-summary.html#NonInterference">non-interfering
      *        </a>, <a href="package-summary.html#Statelessness">stateless</a>
      *        function for incorporating an additional element into a result
-     * @return the array where the first element is the seed and every successor
+     * @return the array where the first element is the seed, and every successor
      *         element is the result of applying accumulator function to the
      *         previous array element and the corresponding stream element. The
      *         resulting array is one element longer than this stream.
@@ -843,8 +841,8 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
 
     /**
      * Performs a mutable reduction operation on the elements of this stream
-     * using an {@link LongCollector} which encapsulates the supplier,
-     * accumulator and merger functions making easier to reuse collection
+     * using an {@link LongCollector} which encapsulates a supplier,
+     * an accumulator, and a merger function making easier to reuse collection
      * strategies.
      *
      * <p>
@@ -1396,10 +1394,10 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
      * 
      * <p>
      * The output stream will contain one element less than this stream. If this
-     * stream contains zero or one element the output stream will be empty.
+     * stream contains zero or one element, the output stream will be empty.
      *
      * @param mapper a non-interfering, stateless function to apply to each
-     *        adjacent pair of this stream elements.
+     *        adjacent pair of this stream's elements.
      * @return the new stream
      * @since 0.2.1
      */
@@ -1416,7 +1414,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
      * This is a terminal operation.
      * 
      * @param delimiter the delimiter to be used between each element
-     * @return the result of concatenation. For empty input stream empty String
+     * @return the result of concatenation. For an empty input stream, an empty String
      *         is returned.
      * @since 0.3.1
      */
@@ -1453,8 +1451,8 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
      * <p>
      * This is a short-circuiting stateful operation. It can be either
      * <a href="package-summary.html#StreamOps">intermediate or
-     * quasi-intermediate</a>. When using with JDK 1.9 or higher it calls the
-     * corresponding JDK 1.9 implementation. When using with JDK 1.8 it uses own
+     * quasi-intermediate</a>. When using with JDK 1.9 or higher, it calls the
+     * corresponding JDK 1.9 implementation. When using with JDK 1.8, it uses its own
      * implementation.
      * 
      * <p>
@@ -1504,8 +1502,8 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
      * <p>
      * This is a stateful operation. It can be either
      * <a href="package-summary.html#StreamOps">intermediate or
-     * quasi-intermediate</a>. When using with JDK 1.9 or higher it calls the
-     * corresponding JDK 1.9 implementation. When using with JDK 1.8 it uses own
+     * quasi-intermediate</a>. When using with JDK 1.9 or higher, it calls the
+     * corresponding JDK 1.9 implementation. When using with JDK 1.8, it uses its own
      * implementation.
      * 
      * <p>
@@ -1555,8 +1553,8 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
                 : new PrefixOps.OfUnordLong(spltr, op));
     }
 
-    // Necessary to generate proper JavaDoc
-    // does not add overhead as it appears in bytecode anyways as bridge method
+    // Necessary to generate proper Javadoc
+    // does not add overhead as it appears in bytecode anyway as a bridge method
     @Override
     public <U extends @Nullable Object> U chain(Function<? super LongStreamEx, U> mapper) {
         return mapper.apply(this);
@@ -1613,7 +1611,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
 
     /**
      * Returns a sequential ordered {@code LongStreamEx} whose elements are the
-     * unboxed elements of supplied array.
+     * unboxed elements of a supplied array.
      *
      * @param array the array to create the stream from.
      * @return the new stream
@@ -1682,11 +1680,11 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
      *
      * <p>
      * This method is roughly equivalent to
-     * {@code LongStreamEx.of(Spliterators.spliteratorUnknownSize(iterator, ORDERED))}
-     * , but may show better performance for parallel processing.
+     * {@code LongStreamEx.of(Spliterators.spliteratorUnknownSize(iterator, ORDERED))},
+     * but may show better performance for parallel processing.
      * 
      * <p>
-     * Use this method only if you cannot provide better Stream source.
+     * Use this method only if you cannot provide a better Stream source.
      *
      * @param iterator an iterator to create the stream from.
      * @return the new stream
@@ -1712,7 +1710,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
 
     /**
      * Returns a sequential ordered {@code LongStreamEx} whose elements are the
-     * unboxed elements of supplied collection.
+     * unboxed elements of a supplied collection.
      *
      * @param collection the collection to create the stream from.
      * @return the new stream
@@ -1799,7 +1797,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
      * element at position {@code n - 1}.
      *
      * @param seed the initial element
-     * @param f a function to be applied to to the previous element to produce a
+     * @param f a function to be applied to the previous element to produce a
      *        new element
      * @return A new sequential {@code LongStream}
      * @see #iterate(long, LongPredicate, LongUnaryOperator)
@@ -1826,7 +1824,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
      *
      * <p>
      * The resulting sequence may be empty if the predicate does not hold on the
-     * seed value. Otherwise the first element will be the supplied seed value,
+     * seed value. Otherwise, the first element will be the supplied seed value,
      * the next element (if present) will be the result of applying the function
      * f to the seed value, and so on iteratively until the predicate indicates
      * that the stream should terminate.
@@ -1904,17 +1902,17 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
      * <p>
      * The producer function may call the passed consumer any number of times
      * and return true if the producer should be called again or false
-     * otherwise. It's guaranteed that the producer will not be called anymore,
+     * otherwise. It's guaranteed that the producer will not be called anymore 
      * once it returns false.
      * 
      * <p>
-     * This method is particularly useful when producer changes the mutable
-     * object which should be left in known state after the full stream
-     * consumption. Note however that if a short-circuiting operation is used,
+     * This method is particularly useful when the producer changes the mutable
+     * object which should be left in a known state after the full stream
+     * consumption. Note, however, that if a short-circuiting operation is used,
      * then the final state of the mutable object cannot be guaranteed.
      * 
      * @param producer a predicate which calls the passed consumer to emit
-     *        stream element(s) and returns true if it producer should be
+     *        stream element(s) and returns true if the producer should be
      *        applied again.
      * @return the new stream
      * @since 0.6.0
@@ -1979,7 +1977,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
      *        the consecutive values of the resulting stream.
      * @return a sequential {@code LongStreamEx} for the range of {@code long}
      *         elements
-     * @throws IllegalArgumentException if step is zero
+     * @throws IllegalArgumentException if the step is zero
      * @see LongStreamEx#range(long, long)
      * @since 0.4.0
      */
@@ -2016,7 +2014,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
      * Note that depending on the step value the {@code endInclusive} bound may
      * still not be reached. For example
      * {@code LongStreamEx.rangeClosed(0, 5, 2)} will yield the stream of three
-     * numbers: 0L, 2L and 4L.
+     * numbers: {@code 0L}, {@code 2L}, and {@code 4L}.
      *
      * @param startInclusive the (inclusive) initial value
      * @param endInclusive the inclusive upper (for positive step) or lower (for negative step) bound
@@ -2024,9 +2022,9 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
      *        the consecutive values of the resulting stream.
      * @return a sequential {@code LongStreamEx} for the range of {@code long}
      *         elements; an empty stream if startInclusive is greater than endInclusive
-     *         for positive step, or if startInclusive is less than endInclusive
-     *         for negative step.
-     * @throws IllegalArgumentException if step is zero
+     *         for a positive step, or if startInclusive is less than endInclusive
+     *         for a negative step.
+     * @throws IllegalArgumentException if the step is zero
      * @see LongStreamEx#rangeClosed(long, long)
      * @since 0.4.0
      */
@@ -2073,7 +2071,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
      * @param mapper a non-interfering, stateless function to apply to each pair
      *        of the corresponding array elements.
      * @return a new {@code LongStreamEx}
-     * @throws IllegalArgumentException if length of the arrays differs.
+     * @throws IllegalArgumentException if the length of the arrays differs.
      * @since 0.2.1
      */
     public static LongStreamEx zip(long[] first, long[] second, LongBinaryOperator mapper) {
@@ -2090,7 +2088,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
      * be easily expressed using
      * {@link LongStreamEx#iterate(long, LongUnaryOperator)} or
      * {@link LongStreamEx#generate(LongSupplier)}. For example, the following
-     * method generates a Collatz sequence starting from given number:
+     * method generates a Collatz sequence starting from a given number:
      * 
      * <pre>{@code
      * public static LongEmitter collatz(long start) {
@@ -2118,11 +2116,11 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
          * <p>
          * Normally one element is emitted during the {@code next()} method
          * call. However, it's not restricted: you may emit as many elements as
-         * you want, though in some cases if many elements were emitted they
+         * you want, though in some cases if many elements were emitted, they
          * might be buffered consuming additional memory.
          * 
          * <p>
-         * It's allowed not to emit anything (don't call the consumer). However
+         * It's allowed not to emit anything (don't call the consumer). However,
          * if you do this and return new emitter which also does not emit
          * anything, you will end up in endless loop.
          * 
