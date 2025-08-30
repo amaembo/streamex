@@ -130,9 +130,8 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
                     count++;
                 return count;
             case LENGTH_ELEMENTS:
-                return content ? 1 : 0;
             default:
-                throw new InternalError();
+                return content ? 1 : 0;
         }
     }
 
@@ -169,9 +168,8 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
                 }
                 break;
             case LENGTH_ELEMENTS:
-                break;
             default:
-                throw new InternalError();
+                break;
         }
         if (endPos < str.length()) {
             BreakIterator bi;
@@ -193,11 +191,10 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
             case CUT_ANYWHERE:
                 break;
             case CUT_CODEPOINT:
+            default:
                 if (Character.isHighSurrogate(str.charAt(endPos - 1)) && Character.isLowSurrogate(str.charAt(endPos)))
                     endPos--;
                 break;
-            default:
-                throw new InternalError();
             }
         }
         str.getChars(0, endPos, buf, pos);
