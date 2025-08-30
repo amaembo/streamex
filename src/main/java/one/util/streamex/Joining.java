@@ -16,6 +16,7 @@
 package one.util.streamex;
 
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.text.BreakIterator;
 import java.util.ArrayList;
@@ -33,7 +34,7 @@ import static one.util.streamex.Internals.checkNonNegative;
  * An advanced implementation of joining {@link Collector}. This collector is
  * capable to join the input {@code CharSequence} elements with given delimiter
  * optionally wrapping into given prefix and suffix and optionally limiting the
- * length of the resulting string (in Unicode code units, code points or
+ * length of the resulting string (in Unicode code units, code points, or
  * grapheme clusters) adding the specified ellipsis sequence. This collector
  * supersedes the standard JDK
  * {@link Collectors#joining(CharSequence, CharSequence, CharSequence)}
@@ -637,7 +638,7 @@ public class Joining extends CancellableCollector<CharSequence, Joining.Accumula
     }
 
     @Override
-    Predicate<Accumulator> finished() {
+    @Nullable Predicate<Accumulator> finished() {
         if (maxLength == -1)
             return null;
         init();

@@ -49,7 +49,9 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
 
     @Override
     final Stream<T> createStream() {
-        return StreamSupport.stream(spliterator, context.parallel);
+      //When called, spliterator must never be null
+      //noinspection DataFlowIssue
+      return StreamSupport.stream(spliterator, context.parallel);
     }
 
     final <K extends @Nullable Object, V, M extends Map<K, V>> M toMapThrowing(
@@ -460,7 +462,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      *
      * <p>
      * This is a short-circuiting terminal operation. It behaves like {@link #reduce(BinaryOperator)}. However,
-     * it additionally accepts a zero element (also known as an absorbing element). When the zero element
+     * it additionally accepts a zero-element (also known as an absorbing element). When the zero-element
      * is passed to the accumulator, then the result must be zero as well. So the operation
      * takes advantage of this and may short-circuit if zero is reached during the reduction.
      *
@@ -486,7 +488,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      *
      * <p>
      * This is a short-circuiting terminal operation. It behaves like {@link #reduce(Object, BinaryOperator)}. 
-     * However, it additionally accepts a zero element (also known as an absorbing element). When the zero element
+     * However, it additionally accepts a zero element (also known as an absorbing element). When the zero-element
      * is passed to the accumulator, then the result must be zero as well. So the operation
      * takes advantage of this and may short-circuit if zero is reached during the reduction.
      *
@@ -668,20 +670,22 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      * @since 0.4.0
      */
     public OptionalLong indexOf(Predicate<? super T> predicate) {
-        return collect(new CancellableCollectorImpl<>(() -> new long[]{-1}, (acc, t) -> {
-            if (predicate.test(t)) {
-                acc[0] = -acc[0] - 1;
-            } else {
-                acc[0]--;
-            }
-        }, (acc1, acc2) -> {
-            if (acc2[0] < 0) {
-                acc1[0] = acc1[0] + acc2[0] + 1;
-            } else {
-                acc1[0] = acc2[0] - acc1[0] - 1;
-            }
-            return acc1;
-        }, acc -> acc[0] < 0 ? OptionalLong.empty() : OptionalLong.of(acc[0]), acc -> acc[0] >= 0, NO_CHARACTERISTICS));
+      CancellableCollectorImpl<T, long[], OptionalLong> collector = new CancellableCollectorImpl<>(
+              () -> new long[]{-1}, (acc, t) -> {
+        if (predicate.test(t)) {
+          acc[0] = -acc[0] - 1;
+        } else {
+          acc[0]--;
+        }
+      }, (acc1, acc2) -> {
+        if (acc2[0] < 0) {
+          acc1[0] = acc1[0] + acc2[0] + 1;
+        } else {
+          acc1[0] = acc2[0] - acc1[0] - 1;
+        }
+        return acc1;
+      }, acc -> acc[0] < 0 ? OptionalLong.empty() : OptionalLong.of(acc[0]), acc -> acc[0] >= 0, NO_CHARACTERISTICS);
+      return collect(collector);
     }
 
     /**
@@ -1643,6 +1647,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      *        <a href="package-summary.html#Statelessness">stateless</a>
      *        function for incorporating an additional element into a result
      * @return the result of the folding
+     * @throws NullPointerException if the stream is non-empty, and the result of the folding is null
      * @see #foldLeft(Object, BiFunction)
      * @see #foldRight(BinaryOperator)
      * @see #reduce(BinaryOperator)
@@ -1651,7 +1656,10 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
     public Optional<T> foldLeft(BinaryOperator<T> accumulator) {
         Box<T> result = new Box<>(none());
         forEachOrdered(t -> result.a = result.a == NONE ? t : accumulator.apply(result.a, t));
-        return result.a == NONE ? Optional.empty() : Optional.of(result.a);
+        if (result.a == NONE) return Optional.empty();
+        //Throwing NPE here if the result is null is expected and specified
+        //noinspection DataFlowIssue
+        return Optional.of(result.a);
     }
 
     /**
@@ -1717,21 +1725,25 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      *        <a href="package-summary.html#Statelessness">stateless</a>
      *        function for incorporating an additional element into a result
      * @return the result of the folding
+     * @throws NullPointerException if the stream is non-empty, and the result of the folding is null
      * @see #foldRight(Object, BiFunction)
      * @see #foldLeft(BinaryOperator)
      * @see #reduce(BinaryOperator)
      * @since 0.4.0
      */
     public Optional<T> foldRight(BinaryOperator<T> accumulator) {
-        return toListAndThen(list -> {
-            if (list.isEmpty())
-                return Optional.empty();
-            int i = list.size() - 1;
-            T result = list.get(i--);
-            for (; i >= 0; i--)
-                result = accumulator.apply(list.get(i), result);
-            return Optional.of(result);
-        });
+      Function<List<T>, Optional<T>> finisher = list -> {
+        if (list.isEmpty())
+          return Optional.empty();
+        int i = list.size() - 1;
+        T result = list.get(i--);
+        for (; i >= 0; i--)
+          result = accumulator.apply(list.get(i), result);
+        //Throwing NPE here if the result is null is expected and specified
+        //noinspection DataFlowIssue
+        return Optional.of(result);
+      };
+      return toListAndThen(finisher);
     }
 
     /**
@@ -1758,7 +1770,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      *        href="package-summary.html#NonInterference">non-interfering </a>,
      *        <a href="package-summary.html#Statelessness">stateless</a>
      *        function for incorporating an additional element into a result
-     * @return the {@code List} where the first element is the seed and every
+     * @return the {@code List} where the first element is the seed, and every
      *         successor element is the result of applying accumulator function
      *         to the previous list element and the corresponding stream
      *         element. The resulting list is one element longer than this
@@ -1852,15 +1864,16 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      */
     @SuppressWarnings("unchecked")
     public <U extends @Nullable Object> List<U> scanRight(U seed, BiFunction<? super T, U, U> accumulator) {
-        return toListAndThen(list -> {
-            // Reusing the list for the different object type as it will save memory
-            List<U> result = (List<U>) list;
-            result.add(seed);
-            for (int i = result.size() - 2; i >= 0; i--) {
-                result.set(i, accumulator.apply((T) result.get(i), result.get(i + 1)));
-            }
-            return result;
-        });
+      Function<List<T>, List<U>> finisher = list -> {
+        // Reusing the list for the different object type as it will save memory
+        List<U> result = (List<U>) list;
+        result.add(seed);
+        for (int i = result.size() - 2; i >= 0; i--) {
+          result.set(i, accumulator.apply((T) result.get(i), result.get(i + 1)));
+        }
+        return result;
+      };
+      return toListAndThen(finisher);
     }
 
     /**
@@ -1886,7 +1899,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      *        <a href="package-summary.html#Statelessness">stateless</a>
      *        function for incorporating an additional element into a result
      * @return the {@code List} where the last element is the last element of
-     *         this stream and every predecessor element is the result of
+     *         this stream, and every predecessor element is the result of
      *         applying accumulator function to the corresponding stream element
      *         and the next list element. The resulting list is one element
      *         longer than this stream.

@@ -1927,7 +1927,8 @@ public final class MoreCollectors {
      * @see Collectors#reducing(BinaryOperator)
      * @since 0.7.3
      */
-    public static <T> Collector<T, ?, Optional<T>> reducingWithZero(T zero, BinaryOperator<T> op) {
+    public static <T extends @Nullable Object> Collector<T, ?, Optional<T>> reducingWithZero(
+            T zero, BinaryOperator<T> op) {
         Objects.requireNonNull(op);
         // acc.b: 0 = no element, 1 = has element, 2 = zero reached
         return new CancellableCollectorImpl<>(
