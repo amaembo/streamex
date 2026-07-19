@@ -128,31 +128,31 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
 
     @SuppressWarnings("unchecked")
     @Override
-    public @NonNull S sequential() {
+    public S sequential() {
         return (S) super.sequential();
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public @NonNull S parallel() {
+    public S parallel() {
         return (S) super.parallel();
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public @NonNull S parallel(ForkJoinPool fjp) {
+    public S parallel(ForkJoinPool fjp) {
         return (S) super.parallel(fjp);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public @NonNull S unordered() {
+    public S unordered() {
         return (S) super.unordered();
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public @NonNull S onClose(Runnable closeHandler) {
+    public S onClose(Runnable closeHandler) {
         return (S) super.onClose(closeHandler);
     }
 
@@ -162,7 +162,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      * @see StreamEx#select(Class)
      */
     @Override
-    public @NonNull S filter(Predicate<? super T> predicate) {
+    public S filter(Predicate<? super T> predicate) {
         return supply(stream().filter(predicate));
     }
 
@@ -298,12 +298,12 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      * @return the new stream
      * @since 0.6.6
      */
-    public @NonNull S intersperse(T delimiter) {
+    public S intersperse(T delimiter) {
         return supply(stream().flatMap(s -> StreamEx.of(delimiter, s)).skip(1));
     }
 
     @Override
-    public @NonNull S distinct() {
+    public S distinct() {
         return supply(stream().distinct());
     }
 
@@ -326,7 +326,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      * @return the new stream
      * @since 0.3.8
      */
-    public @NonNull S distinct(Function<? super T, ? extends @Nullable Object> keyExtractor) {
+    public S distinct(Function<? super T, ? extends @Nullable Object> keyExtractor) {
         return supply(stream().map(t -> new PairBox<>(t, keyExtractor.apply(t))).distinct().map(box -> box.a));
     }
 
@@ -351,7 +351,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      * @see #distinct()
      * @since 0.3.1
      */
-    public @NonNull S distinct(long atLeast) {
+    public S distinct(long atLeast) {
         if (atLeast <= 1)
             return distinct();
         Spliterator<T> spliterator = spliterator();
@@ -365,27 +365,27 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
     }
 
     @Override
-    public @NonNull S sorted() {
+    public S sorted() {
         return supply(stream().sorted());
     }
 
     @Override
-    public @NonNull S sorted(Comparator<? super T> comparator) {
+    public S sorted(Comparator<? super T> comparator) {
         return supply(stream().sorted(comparator));
     }
 
     @Override
-    public @NonNull S peek(Consumer<? super T> action) {
+    public S peek(Consumer<? super T> action) {
         return supply(stream().peek(action));
     }
 
     @Override
-    public @NonNull S limit(long maxSize) {
+    public S limit(long maxSize) {
         return supply(stream().limit(maxSize));
     }
 
     @Override
-    public @NonNull S skip(long n) {
+    public S skip(long n) {
         return supply(stream().skip(n));
     }
 
@@ -443,7 +443,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
     }
 
     @Override
-    public Optional<T> reduce(BinaryOperator<T> accumulator) {
+    public Optional<@NonNull T> reduce(BinaryOperator<T> accumulator) {
         if (context.fjp != null)
             return context.terminate(accumulator, stream()::reduce);
         return stream().reduce(accumulator);
@@ -478,7 +478,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      * @see #reduce(BinaryOperator)
      * @since 0.7.3
      */
-    public Optional<T> reduceWithZero(T zero, BinaryOperator<T> accumulator) {
+    public Optional<@NonNull T> reduceWithZero(T zero, BinaryOperator<T> accumulator) {
         return collect(MoreCollectors.reducingWithZero(zero, accumulator));
     }
 
@@ -565,12 +565,12 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
     }
 
     @Override
-    public Optional<T> min(Comparator<? super T> comparator) {
+    public Optional<@NonNull T> min(Comparator<? super T> comparator) {
         return reduce(BinaryOperator.minBy(comparator));
     }
 
     @Override
-    public Optional<T> max(Comparator<? super T> comparator) {
+    public Optional<@NonNull T> max(Comparator<? super T> comparator) {
         return reduce(BinaryOperator.maxBy(comparator));
     }
 
@@ -618,14 +618,14 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
     }
 
     @Override
-    public Optional<T> findFirst() {
+    public Optional<@NonNull T> findFirst() {
         if (context.fjp != null)
             return context.terminate(stream()::findFirst);
         return stream().findFirst();
     }
 
     @Override
-    public Optional<T> findAny() {
+    public Optional<@NonNull T> findAny() {
         if (context.fjp != null)
             return context.terminate(stream()::findAny);
         return stream().findAny();
@@ -823,7 +823,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      * @see #nonNull()
      * @see StreamEx#select(Class)
      */
-    public @NonNull S remove(Predicate<? super T> predicate) {
+    public S remove(Predicate<? super T> predicate) {
         return filter(predicate.negate());
     }
 
@@ -840,7 +840,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      * @see #remove(Predicate)
      * @see StreamEx#select(Class)
      */
-    public @NonNull S nonNull() {
+    public S nonNull() {
         return filter(Objects::nonNull);
     }
 
@@ -870,7 +870,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      * @see #findAny()
      * @see #findFirst(Predicate)
      */
-    public Optional<T> findAny(Predicate<? super T> predicate) {
+    public Optional<@NonNull T> findAny(Predicate<? super T> predicate) {
         return filter(predicate).findAny();
     }
 
@@ -892,7 +892,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      * @throws NullPointerException if the element selected is null
      * @see #findFirst()
      */
-    public Optional<T> findFirst(Predicate<? super T> predicate) {
+    public Optional<@NonNull T> findFirst(Predicate<? super T> predicate) {
         return filter(predicate).findFirst();
     }
 
@@ -914,7 +914,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      *        {@code Comparator} to be used to compare stream elements
      * @return the new stream
      */
-    public @NonNull S reverseSorted(Comparator<? super T> comparator) {
+    public S reverseSorted(Comparator<? super T> comparator) {
         return sorted(comparator.reversed());
     }
 
@@ -938,7 +938,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      *        function to be used to extract sorting keys
      * @return the new stream
      */
-    public <V extends Comparable<? super V>> @NonNull S sortedBy(Function<? super T, ? extends V> keyExtractor) {
+    public <V extends Comparable<? super V>> S sortedBy(Function<? super T, ? extends V> keyExtractor) {
         return sorted(Comparator.comparing(keyExtractor));
     }
 
@@ -960,7 +960,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      *        function to be used to extract sorting keys
      * @return the new stream
      */
-    public @NonNull S sortedByInt(ToIntFunction<? super T> keyExtractor) {
+    public S sortedByInt(ToIntFunction<? super T> keyExtractor) {
         return sorted(Comparator.comparingInt(keyExtractor));
     }
 
@@ -982,7 +982,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      *        function to be used to extract sorting keys
      * @return the new stream
      */
-    public @NonNull S sortedByLong(ToLongFunction<? super T> keyExtractor) {
+    public S sortedByLong(ToLongFunction<? super T> keyExtractor) {
         return sorted(Comparator.comparingLong(keyExtractor));
     }
 
@@ -1004,7 +1004,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      *        function to be used to extract sorting keys
      * @return the new stream
      */
-    public @NonNull S sortedByDouble(ToDoubleFunction<? super T> keyExtractor) {
+    public S sortedByDouble(ToDoubleFunction<? super T> keyExtractor) {
         return sorted(Comparator.comparingDouble(keyExtractor));
     }
 
@@ -1030,9 +1030,9 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      *         stream, or an empty {@code Optional} if the stream is empty
      * @throws NullPointerException if the minimum element is null
      */
-    public <V extends Comparable<? super V>> Optional<T> minBy(Function<? super T, ? extends V> keyExtractor) {
+    public <V extends Comparable<? super V>> Optional<@NonNull T> minBy(Function<? super T, ? extends V> keyExtractor) {
         return Box
-                .asOptional(reduce(null, (PairBox<T, V> acc, T t) -> {
+                .asOptional(this.<@Nullable PairBox<T, V>>reduce(null, (acc, t) -> {
                     V val = keyExtractor.apply(t);
                     if (acc == null)
                         return new PairBox<>(t, val);
@@ -1041,7 +1041,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
                         acc.a = t;
                     }
                     return acc;
-                }, (PairBox<T, V> acc1, PairBox<T, V> acc2) -> (acc1 == null || acc2 != null
+                }, (acc1, acc2) -> (acc1 == null || acc2 != null
                         && acc1.b.compareTo(acc2.b) > 0) ? acc2 : acc1));
     }
 
@@ -1065,8 +1065,8 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      *         stream, or an empty {@code Optional} if the stream is empty
      * @throws NullPointerException if the minimum element is null
      */
-    public Optional<T> minByInt(ToIntFunction<? super T> keyExtractor) {
-        return Box.asOptional(reduce(null, (ObjIntBox<T> acc, T t) -> {
+    public Optional<@NonNull T> minByInt(ToIntFunction<? super T> keyExtractor) {
+        return Box.asOptional(this.<@Nullable ObjIntBox<T>>reduce(null, (acc, t) -> {
             int val = keyExtractor.applyAsInt(t);
             if (acc == null)
                 return new ObjIntBox<>(t, val);
@@ -1075,7 +1075,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
                 acc.a = t;
             }
             return acc;
-        }, (ObjIntBox<T> acc1, ObjIntBox<T> acc2) -> (acc1 == null || acc2 != null && acc1.b > acc2.b) ? acc2 : acc1));
+        }, (acc1, acc2) -> (acc1 == null || acc2 != null && acc1.b > acc2.b) ? acc2 : acc1));
     }
 
     /**
@@ -1098,9 +1098,9 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      *         stream, or an empty {@code Optional} if the stream is empty
      * @throws NullPointerException if the minimum element is null
      */
-    public Optional<T> minByLong(ToLongFunction<? super T> keyExtractor) {
+    public Optional<@NonNull T> minByLong(ToLongFunction<? super T> keyExtractor) {
         return Box
-                .asOptional(reduce(null, (ObjLongBox<T> acc, T t) -> {
+                .asOptional(this.<@Nullable ObjLongBox<T>>reduce(null, (acc, t) -> {
                     long val = keyExtractor.applyAsLong(t);
                     if (acc == null)
                         return new ObjLongBox<>(t, val);
@@ -1109,8 +1109,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
                         acc.a = t;
                     }
                     return acc;
-                }, (ObjLongBox<T> acc1, ObjLongBox<T> acc2) -> (acc1 == null || acc2 != null && acc1.b > acc2.b) ? acc2
-                        : acc1));
+                }, (acc1, acc2) -> (acc1 == null || acc2 != null && acc1.b > acc2.b) ? acc2 : acc1));
     }
 
     /**
@@ -1134,8 +1133,8 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      *         stream, or an empty {@code Optional} if the stream is empty
      * @throws NullPointerException if the minimum element is null
      */
-    public Optional<T> minByDouble(ToDoubleFunction<? super T> keyExtractor) {
-        return Box.asOptional(reduce(null, (ObjDoubleBox<T> acc, T t) -> {
+    public Optional<@NonNull T> minByDouble(ToDoubleFunction<? super T> keyExtractor) {
+        return Box.asOptional(this.<@Nullable ObjDoubleBox<T>>reduce(null, (acc, t) -> {
             double val = keyExtractor.applyAsDouble(t);
             if (acc == null)
                 return new ObjDoubleBox<>(t, val);
@@ -1144,7 +1143,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
                 acc.a = t;
             }
             return acc;
-        }, (ObjDoubleBox<T> acc1, ObjDoubleBox<T> acc2) -> (acc1 == null || acc2 != null
+        }, (acc1, acc2) -> (acc1 == null || acc2 != null
                 && Double.compare(acc1.b, acc2.b) > 0) ? acc2 : acc1));
     }
 
@@ -1170,9 +1169,9 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      *         stream, or an empty {@code Optional} if the stream is empty
      * @throws NullPointerException if the maximum element is null
      */
-    public <V extends Comparable<? super V>> Optional<T> maxBy(Function<? super T, ? extends V> keyExtractor) {
+    public <V extends Comparable<? super V>> Optional<@NonNull T> maxBy(Function<? super T, ? extends V> keyExtractor) {
         return Box
-                .asOptional(reduce(null, (PairBox<T, V> acc, T t) -> {
+                .asOptional(this.<@Nullable PairBox<T, V>>reduce(null, (acc, t) -> {
                     V val = keyExtractor.apply(t);
                     if (acc == null)
                         return new PairBox<>(t, val);
@@ -1181,7 +1180,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
                         acc.a = t;
                     }
                     return acc;
-                }, (PairBox<T, V> acc1, PairBox<T, V> acc2) -> (acc1 == null || acc2 != null
+                }, (acc1, acc2) -> (acc1 == null || acc2 != null
                         && acc1.b.compareTo(acc2.b) < 0) ? acc2 : acc1));
     }
 
@@ -1205,8 +1204,8 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      *         stream, or an empty {@code Optional} if the stream is empty
      * @throws NullPointerException if the maximum element is null
      */
-    public Optional<T> maxByInt(ToIntFunction<? super T> keyExtractor) {
-        return Box.asOptional(reduce(null, (ObjIntBox<T> acc, T t) -> {
+    public Optional<@NonNull T> maxByInt(ToIntFunction<? super T> keyExtractor) {
+        return Box.asOptional(this.<@Nullable ObjIntBox<T>>reduce(null, (acc, t) -> {
             int val = keyExtractor.applyAsInt(t);
             if (acc == null)
                 return new ObjIntBox<>(t, val);
@@ -1215,7 +1214,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
                 acc.a = t;
             }
             return acc;
-        }, (ObjIntBox<T> acc1, ObjIntBox<T> acc2) -> (acc1 == null || acc2 != null && acc1.b < acc2.b) ? acc2 : acc1));
+        }, (acc1, acc2) -> (acc1 == null || acc2 != null && acc1.b < acc2.b) ? acc2 : acc1));
     }
 
     /**
@@ -1238,9 +1237,9 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      *         stream, or an empty {@code Optional} if the stream is empty
      * @throws NullPointerException if the maximum element is null
      */
-    public Optional<T> maxByLong(ToLongFunction<? super T> keyExtractor) {
+    public Optional<@NonNull T> maxByLong(ToLongFunction<? super T> keyExtractor) {
         return Box
-                .asOptional(reduce(null, (ObjLongBox<T> acc, T t) -> {
+                .asOptional(this.<@Nullable ObjLongBox<T>>reduce(null, (acc, t) -> {
                     long val = keyExtractor.applyAsLong(t);
                     if (acc == null)
                         return new ObjLongBox<>(t, val);
@@ -1249,8 +1248,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
                         acc.a = t;
                     }
                     return acc;
-                }, (ObjLongBox<T> acc1, ObjLongBox<T> acc2) -> (acc1 == null || acc2 != null && acc1.b < acc2.b) ? acc2
-                        : acc1));
+                }, (acc1, acc2) -> (acc1 == null || acc2 != null && acc1.b < acc2.b) ? acc2 : acc1));
     }
 
     /**
@@ -1274,8 +1272,8 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      *         stream, or an empty {@code Optional} if the stream is empty
      * @throws NullPointerException if the maximum element is null
      */
-    public Optional<T> maxByDouble(ToDoubleFunction<? super T> keyExtractor) {
-        return Box.asOptional(reduce(null, (ObjDoubleBox<T> acc, T t) -> {
+    public Optional<@NonNull T> maxByDouble(ToDoubleFunction<? super T> keyExtractor) {
+        return Box.asOptional(this.<@Nullable ObjDoubleBox<T>>reduce(null, (acc, t) -> {
             double val = keyExtractor.applyAsDouble(t);
             if (acc == null)
                 return new ObjDoubleBox<>(t, val);
@@ -1284,7 +1282,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
                 acc.a = t;
             }
             return acc;
-        }, (ObjDoubleBox<T> acc1, ObjDoubleBox<T> acc2) -> (acc1 == null || acc2 != null
+        }, (acc1, acc2) -> (acc1 == null || acc2 != null
                 && Double.compare(acc1.b, acc2.b) < 0) ? acc2 : acc1));
     }
 
@@ -1307,7 +1305,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      * @return this stream appended by the other stream
      * @see Stream#concat(Stream, Stream)
      */
-    public @NonNull S append(Stream<? extends T> other) {
+    public S append(Stream<? extends T> other) {
         return appendSpliterator(other, other.spliterator());
     }
 
@@ -1330,7 +1328,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      * @return this stream prepended by the other stream
      * @see Stream#concat(Stream, Stream)
      */
-    public @NonNull S prepend(Stream<? extends T> other) {
+    public S prepend(Stream<? extends T> other) {
         return prependSpliterator(other, other.spliterator());
     }
 
@@ -1352,7 +1350,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      * @return the stream whose content is replaced by other stream contents only if this stream is empty.
      * @since 0.6.6
      */
-    public @NonNull S ifEmpty(Stream<? extends T> other) {
+    public S ifEmpty(Stream<? extends T> other) {
         return ifEmpty(other, other.spliterator());
     }
 
@@ -1653,7 +1651,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      * @see #reduce(BinaryOperator)
      * @since 0.4.0
      */
-    public Optional<T> foldLeft(BinaryOperator<T> accumulator) {
+    public Optional<@NonNull T> foldLeft(BinaryOperator<T> accumulator) {
         Box<T> result = new Box<>(none());
         forEachOrdered(t -> result.a = result.a == NONE ? t : accumulator.apply(result.a, t));
         if (result.a == NONE) return Optional.empty();
@@ -1731,8 +1729,8 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      * @see #reduce(BinaryOperator)
      * @since 0.4.0
      */
-    public Optional<T> foldRight(BinaryOperator<T> accumulator) {
-      Function<List<T>, Optional<T>> finisher = list -> {
+    public Optional<@NonNull T> foldRight(BinaryOperator<T> accumulator) {
+      Function<List<T>, Optional<@NonNull T>> finisher = list -> {
         if (list.isEmpty())
           return Optional.empty();
         int i = list.size() - 1;
@@ -1940,7 +1938,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      * @see #takeWhileInclusive(Predicate)
      * @see #dropWhile(Predicate)
      */
-    public @NonNull S takeWhile(Predicate<? super T> predicate) {
+    public S takeWhile(Predicate<? super T> predicate) {
         Objects.requireNonNull(predicate);
         return VerSpec.VER_SPEC.callWhile(this, predicate, false);
     }
@@ -1966,7 +1964,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      * @since 0.5.5
      * @see #takeWhile(Predicate)
      */
-    public @NonNull S takeWhileInclusive(Predicate<? super T> predicate) {
+    public S takeWhileInclusive(Predicate<? super T> predicate) {
         Objects.requireNonNull(predicate);
         Spliterator<T> spltr = spliterator();
         return supply(
@@ -1997,7 +1995,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      * @return the new stream.
      * @since 0.3.6
      */
-    public @NonNull S dropWhile(Predicate<? super T> predicate) {
+    public S dropWhile(Predicate<? super T> predicate) {
         Objects.requireNonNull(predicate);
         return VerSpec.VER_SPEC.callWhile(this, predicate, true);
     }
@@ -2030,7 +2028,7 @@ public abstract class AbstractStreamEx<T extends @Nullable Object, S extends Abs
      * @see #scanLeft(BinaryOperator)
      * @since 0.6.1
      */
-    public @NonNull S prefix(BinaryOperator<T> op) {
+    public S prefix(BinaryOperator<T> op) {
         Spliterator<T> spltr = spliterator();
         return supply(spltr.hasCharacteristics(Spliterator.ORDERED) ? new PrefixOps.OfRef<>(spltr, op)
                 : new PrefixOps.OfUnordRef<>(spltr, op));

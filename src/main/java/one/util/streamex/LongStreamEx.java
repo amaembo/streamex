@@ -44,6 +44,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
 
     @Override
     LongStream createStream() {
+        assert spliterator != null;
         return StreamSupport.longStream(spliterator, isParallel());
     }
 
@@ -911,7 +912,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
      * @since 0.1.2
      */
     public <V extends Comparable<? super V>> OptionalLong minBy(LongFunction<V> keyExtractor) {
-        ObjLongBox<V> result = collect(() -> new ObjLongBox<>(null, 0), (box, i) -> {
+        ObjLongBox<@Nullable V> result = collect(() -> new ObjLongBox<>(null, 0), (box, i) -> {
             V val = Objects.requireNonNull(keyExtractor.apply(i));
             if (box.a == null || box.a.compareTo(val) > 0) {
                 box.a = val;
@@ -1038,7 +1039,7 @@ public final class LongStreamEx extends BaseStreamEx<Long, LongStream, Spliterat
      * @since 0.1.2
      */
     public <V extends Comparable<? super V>> OptionalLong maxBy(LongFunction<V> keyExtractor) {
-        ObjLongBox<V> result = collect(() -> new ObjLongBox<>(null, 0), (box, i) -> {
+        ObjLongBox<@Nullable V> result = collect(() -> new ObjLongBox<>(null, 0), (box, i) -> {
             V val = Objects.requireNonNull(keyExtractor.apply(i));
             if (box.a == null || box.a.compareTo(val) < 0) {
                 box.a = val;

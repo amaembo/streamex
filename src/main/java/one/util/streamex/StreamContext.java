@@ -53,10 +53,12 @@ import java.util.stream.BaseStream;
     }
 
     <T extends @Nullable Object> T terminate(Supplier<T> terminalOperation) {
+        assert fjp != null;
         return fjp.submit(terminalOperation::get).join();
     }
 
     <T extends @Nullable Object, U extends @Nullable Object> T terminate(U value, Function<U, T> terminalOperation) {
+        assert fjp != null;
         return fjp.submit(() -> terminalOperation.apply(value)).join();
     }
 

@@ -47,6 +47,7 @@ public final class IntStreamEx extends BaseStreamEx<Integer, IntStream, Splitera
 
     @Override
     IntStream createStream() {
+        assert spliterator != null;
         return StreamSupport.intStream(spliterator, context.parallel);
     }
 
@@ -981,7 +982,7 @@ public final class IntStreamEx extends BaseStreamEx<Integer, IntStream, Splitera
      * @since 0.1.2
      */
     public <V extends Comparable<? super V>> OptionalInt minBy(IntFunction<V> keyExtractor) {
-        ObjIntBox<V> result = collect(() -> new ObjIntBox<>(null, 0), (box, i) -> {
+        ObjIntBox<@Nullable V> result = collect(() -> new ObjIntBox<>(null, 0), (box, i) -> {
             V val = Objects.requireNonNull(keyExtractor.apply(i));
             if (box.a == null || box.a.compareTo(val) > 0) {
                 box.a = val;
@@ -1108,7 +1109,7 @@ public final class IntStreamEx extends BaseStreamEx<Integer, IntStream, Splitera
      * @since 0.1.2
      */
     public <V extends Comparable<? super V>> OptionalInt maxBy(IntFunction<V> keyExtractor) {
-        ObjIntBox<V> result = collect(() -> new ObjIntBox<>(null, 0), (box, i) -> {
+        ObjIntBox<@Nullable V> result = collect(() -> new ObjIntBox<>(null, 0), (box, i) -> {
             V val = Objects.requireNonNull(keyExtractor.apply(i));
             if (box.a == null || box.a.compareTo(val) < 0) {
                 box.a = val;

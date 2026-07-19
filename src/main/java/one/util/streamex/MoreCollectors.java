@@ -15,6 +15,7 @@
  */
 package one.util.streamex;
 
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -661,7 +662,7 @@ public final class MoreCollectors {
      * @since 0.4.0
      */
     public static <T> Collector<T, ?, Optional<T>> onlyOne() {
-        return new CancellableCollectorImpl<T, Box<Optional<T>>, Optional<T>>(Box::new, (box,
+        return new CancellableCollectorImpl<T, Box<@Nullable Optional<T>>, Optional<T>>(Box::new, (box,
                 t) -> box.a = box.a == null ? Optional.of(t) : Optional.empty(), (box1, box2) -> box1.a == null ? box2
                         : box2.a == null ? box1 : new Box<>(Optional.empty()), box -> box.a == null ? Optional.empty()
                                 : box.a, box -> box.a != null && !box.a.isPresent(), UNORDERED_CHARACTERISTICS);
@@ -1249,7 +1250,7 @@ public final class MoreCollectors {
      * @since 0.4.0
      */
     public static <T extends @Nullable Object, S extends Collection<T>> Collector<S, ?, Set<T>> intersecting() {
-        return new CancellableCollectorImpl<S, Box<Set<T>>, Set<T>>(Box::new, (b, t) -> {
+        return new CancellableCollectorImpl<S, Box<@Nullable Set<T>>, Set<T>>(Box::new, (b, t) -> {
             if (b.a == null) {
                 b.a = new HashSet<>(t);
             } else {
@@ -1927,7 +1928,7 @@ public final class MoreCollectors {
      * @see Collectors#reducing(BinaryOperator)
      * @since 0.7.3
      */
-    public static <T extends @Nullable Object> Collector<T, ?, Optional<T>> reducingWithZero(
+    public static <T extends @Nullable Object> Collector<T, ?, Optional<@NonNull T>> reducingWithZero(
             T zero, BinaryOperator<T> op) {
         Objects.requireNonNull(op);
         // acc.b: 0 = no element, 1 = has element, 2 = zero reached

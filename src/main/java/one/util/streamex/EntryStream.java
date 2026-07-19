@@ -623,7 +623,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * @return the new stream
      * @since 0.6.8
      */
-    public <R extends @Nullable Object> StreamEx<R> mapKeyValuePartial(
+    public <R> StreamEx<R> mapKeyValuePartial(
             BiFunction<? super K, ? super V, ? extends Optional<? extends R>> mapper
     ) {
         return this.<R>mapPartial(toFunction(mapper));
@@ -1325,8 +1325,8 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * @see Collectors#toConcurrentMap(Function, Function)
      * @see #toImmutableMap()
      */
-    public Map<K, V> toMap() {
-        Map<K, V> map = isParallel() ? new ConcurrentHashMap<>() : new HashMap<>();
+    public Map<K, @NonNull V> toMap() {
+        Map<K, @NonNull V> map = isParallel() ? new ConcurrentHashMap<>() : new HashMap<>();
         forEach(toMapConsumer(map));
         return map;
     }
@@ -1347,8 +1347,8 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * @see #toMap()
      * @since 0.6.3
      */
-    public Map<K, V> toImmutableMap() {
-        Map<K, V> map = toMap();
+    public Map<K, @NonNull V> toImmutableMap() {
+        Map<K, @NonNull V> map = toMap();
         return map.isEmpty() ? Collections.emptyMap() : Collections.unmodifiableMap(map);
     }
 
@@ -1376,7 +1376,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * @see #toMap()
      * @since 0.5.5
      */
-    public <R extends @Nullable Object> R toMapAndThen(Function<? super Map<K, V>, R> finisher) {
+    public <R extends @Nullable Object> R toMapAndThen(Function<? super Map<K, @NonNull V>, R> finisher) {
         if (context.fjp != null)
             return context.terminate(() -> finisher.apply(toMap()));
         return finisher.apply(toMap());
@@ -1432,11 +1432,11 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      * @see Collectors#toMap(Function, Function)
      * @see Collectors#toConcurrentMap(Function, Function)
      */
-    public <M extends Map<K, V>> M toCustomMap(Supplier<M> mapSupplier) {
+    public <M extends Map<K, @NonNull V>> M toCustomMap(Supplier<M> mapSupplier) {
         M map = mapSupplier.get();
         if (isParallel() && !(map instanceof ConcurrentMap)) {
-            return collect(mapSupplier, (m, t) -> addToMap(m, t.getKey(), Objects.requireNonNull(t.getValue())), (m1,
-                                                                                                                  m2) -> m2.forEach((k, v) -> addToMap(m1, k, v)));
+            return collect(mapSupplier, (m, t) -> addToMap(m, t.getKey(), Objects.requireNonNull(t.getValue())),
+                    (m1, m2) -> m2.forEach((k, v) -> addToMap(m1, k, v)));
         }
         forEach(toMapConsumer(map));
         return map;
@@ -1493,7 +1493,7 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      *         (according to {@link Object#equals(Object)})
      * @since 0.1.0
      */
-    public SortedMap<K, V> toSortedMap() {
+    public SortedMap<K, @NonNull V> toSortedMap() {
         return toNavigableMap();
     }
 
@@ -1551,8 +1551,8 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
      *         (according to {@link Object#equals(Object)})
      * @since 0.6.5
      */
-    public NavigableMap<K, V> toNavigableMap() {
-        NavigableMap<K, V> map = isParallel() ? new ConcurrentSkipListMap<>() : new TreeMap<>();
+    public NavigableMap<K, @NonNull V> toNavigableMap() {
+        NavigableMap<K, @NonNull V> map = isParallel() ? new ConcurrentSkipListMap<>() : new TreeMap<>();
         forEach(toMapConsumer(map));
         return map;
     }

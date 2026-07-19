@@ -44,6 +44,7 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
 
     @Override
     DoubleStream createStream() {
+        assert spliterator != null;
         return StreamSupport.doubleStream(spliterator, isParallel());
     }
 
@@ -877,7 +878,7 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
      * @since 0.1.2
      */
     public <V extends Comparable<? super V>> OptionalDouble minBy(DoubleFunction<V> keyExtractor) {
-        ObjDoubleBox<V> result = collect(() -> new ObjDoubleBox<>(null, 0), (box, i) -> {
+        ObjDoubleBox<@Nullable V> result = this.collect(() -> new ObjDoubleBox<>(null, 0), (box, i) -> {
             V val = Objects.requireNonNull(keyExtractor.apply(i));
             if (box.a == null || box.a.compareTo(val) > 0) {
                 box.a = val;
@@ -1004,7 +1005,7 @@ public final class DoubleStreamEx extends BaseStreamEx<Double, DoubleStream, Spl
      * @since 0.1.2
      */
     public <V extends Comparable<? super V>> OptionalDouble maxBy(DoubleFunction<V> keyExtractor) {
-        ObjDoubleBox<V> result = collect(() -> new ObjDoubleBox<>(null, 0), (box, i) -> {
+        ObjDoubleBox<@Nullable V> result = collect(() -> new ObjDoubleBox<>(null, 0), (box, i) -> {
             V val = Objects.requireNonNull(keyExtractor.apply(i));
             if (box.a == null || box.a.compareTo(val) < 0) {
                 box.a = val;

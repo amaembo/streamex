@@ -15,6 +15,8 @@
  */
 package one.util.streamex;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.util.*;
@@ -302,6 +304,7 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
+    @NullMarked
     final class BooleanMap<T> extends AbstractMap<Boolean, T> {
         T trueValue, falseValue;
 
@@ -316,7 +319,7 @@ import java.util.stream.Collector.Characteristics;
         }
 
         @Override
-        public T get(Object key) {
+        public @Nullable T get(Object key) {
             if (Boolean.TRUE.equals(key))
                 return trueValue;
             if (Boolean.FALSE.equals(key))
@@ -400,7 +403,9 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    final class PartialCollector<A, R> extends BaseCollector<Object, A, R> {
+    @NullMarked
+    final class PartialCollector<A extends @Nullable Object, R extends @Nullable Object>
+            extends BaseCollector<Object, A, R> {
         PartialCollector(Supplier<A> supplier, BiConsumer<A, A> merger, Function<A, R> finisher,
                 Set<Characteristics> characteristics) {
             super(supplier, merger, finisher, characteristics);
@@ -455,7 +460,7 @@ import java.util.stream.Collector.Characteristics;
         }
 
         @SuppressWarnings("unchecked")
-        static <K, D, A, M extends Map<K, D>> PartialCollector<Map<K, A>, M> grouping(Supplier<M> mapFactory,
+        static <K, D, A extends @Nullable Object, M extends Map<K, D>> PartialCollector<Map<K, A>, M> grouping(Supplier<M> mapFactory,
                 Collector<?, A, D> downstream) {
             BinaryOperator<A> downstreamMerger = downstream.combiner();
             BiConsumer<Map<K, A>, Map<K, A>> merger = (map1, map2) -> {
@@ -474,8 +479,8 @@ import java.util.stream.Collector.Characteristics;
             }, NO_CHARACTERISTICS);
         }
 
-        static PartialCollector<StringBuilder, String> joining(CharSequence delimiter, CharSequence prefix,
-                CharSequence suffix, boolean hasPS) {
+        static PartialCollector<StringBuilder, String> joining(CharSequence delimiter, @Nullable CharSequence prefix,
+                @Nullable CharSequence suffix, boolean hasPS) {
             BiConsumer<StringBuilder, StringBuilder> merger = (sb1, sb2) -> {
                 if (sb2.length() > 0) {
                     if (sb1.length() > 0)
@@ -491,7 +496,9 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    final class CancellableCollectorImpl<T, A, R> extends CancellableCollector<T, A, R> {
+    @NullMarked
+    final class CancellableCollectorImpl<T, A extends @Nullable Object, R extends @Nullable Object>
+            extends CancellableCollector<T, A, R> {
         private final Supplier<A> supplier;
         private final BiConsumer<A, T> accumulator;
         private final BinaryOperator<A> combiner;
@@ -541,7 +548,9 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    final class IntCollectorImpl<A, R> extends BaseCollector<Integer, A, R> implements IntCollector<A, R> {
+    @NullMarked
+    final class IntCollectorImpl<A extends @Nullable Object, R extends @Nullable Object>
+            extends BaseCollector<Integer, A, R> implements IntCollector<A, R> {
         private final ObjIntConsumer<A> intAccumulator;
 
         IntCollectorImpl(Supplier<A> supplier, ObjIntConsumer<A> intAccumulator, BiConsumer<A, A> merger,
@@ -556,7 +565,9 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    final class LongCollectorImpl<A, R> extends BaseCollector<Long, A, R> implements LongCollector<A, R> {
+    @NullMarked
+    final class LongCollectorImpl<A extends @Nullable Object, R extends @Nullable Object>
+            extends BaseCollector<Long, A, R> implements LongCollector<A, R> {
         private final ObjLongConsumer<A> longAccumulator;
 
         LongCollectorImpl(Supplier<A> supplier, ObjLongConsumer<A> longAccumulator, BiConsumer<A, A> merger,
@@ -571,7 +582,9 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    final class DoubleCollectorImpl<A, R> extends BaseCollector<Double, A, R> implements DoubleCollector<A, R> {
+    @NullMarked
+    final class DoubleCollectorImpl<A extends @Nullable Object, R extends @Nullable Object>
+            extends BaseCollector<Double, A, R> implements DoubleCollector<A, R> {
         private final ObjDoubleConsumer<A> doubleAccumulator;
 
         DoubleCollectorImpl(Supplier<A> supplier, ObjDoubleConsumer<A> doubleAccumulator,
@@ -586,7 +599,7 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    class Box<A> implements Consumer<A> {
+    class Box<A extends @Nullable Object> implements Consumer<A> {
         A a;
         
         Box() {
@@ -609,7 +622,7 @@ import java.util.stream.Collector.Characteristics;
                 box1.a, box2.a), box -> finisher.apply(box.a), NO_CHARACTERISTICS);
         }
 
-        static <A> Optional<A> asOptional(Box<A> box) {
+        static <A> Optional<@NonNull A> asOptional(@Nullable Box<@Nullable A> box) {
             return box == null ? Optional.empty() : Optional.of(box.a);
         }
     }
@@ -620,7 +633,7 @@ import java.util.stream.Collector.Characteristics;
      * @param <A> type of the first element
      * @param <B> type of the second element
      */
-    final class PairBox<A, B> extends Box<A> {
+    final class PairBox<A extends @Nullable Object, B extends @Nullable Object> extends Box<A> {
         B b;
 
         PairBox(A a, B b) {
@@ -639,11 +652,11 @@ import java.util.stream.Collector.Characteristics;
 
         @Override
         public boolean equals(Object obj) {
-            return obj != null && obj.getClass() == PairBox.class && Objects.equals(b, ((PairBox<?, ?>) obj).b);
+            return obj instanceof PairBox && Objects.equals(b, ((PairBox<?, ?>) obj).b);
         }
     }
 
-    final class ObjIntBox<A> extends Box<A> implements Entry<Integer, A> {
+    final class ObjIntBox<A extends @Nullable Object> extends Box<A> implements Entry<Integer, A> {
         int b;
 
         ObjIntBox(@Nullable A a, int b) {
@@ -685,7 +698,7 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    final class ObjLongBox<A> extends Box<A> implements Entry<A, Long> {
+    final class ObjLongBox<A extends @Nullable Object> extends Box<A> implements Entry<A, Long> {
         long b;
 
         ObjLongBox(A a, long b) {
@@ -836,6 +849,7 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
+    @NullMarked
     class ArrayCollection extends AbstractCollection<Object> {
         private final Object[] arr;
 
@@ -966,7 +980,6 @@ import java.util.stream.Collector.Characteristics;
         }
     }
 
-    @SuppressWarnings("unchecked")
     static <A> Predicate<A> finished(Collector<?, A, ?> collector) {
         if (collector instanceof CancellableCollector)
             return ((CancellableCollector<?, A, ?>) collector).finished();

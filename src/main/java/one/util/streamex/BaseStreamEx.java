@@ -15,7 +15,6 @@
  */
 package one.util.streamex;
 
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -40,19 +39,19 @@ import java.util.stream.BaseStream;
     @Nullable SPLTR spliterator;
     StreamContext context;
 
-    BaseStreamEx(@NonNull S stream, StreamContext context) {
+    BaseStreamEx(S stream, StreamContext context) {
         this.stream = stream;
         this.context = context;
     }
 
-    BaseStreamEx(@NonNull SPLTR spliterator, StreamContext context) {
+    BaseStreamEx(SPLTR spliterator, StreamContext context) {
         this.spliterator = spliterator;
         this.context = context;
     }
 
     abstract S createStream();
 
-    final @NonNull S stream() {
+    final S stream() {
         if (stream != null)
             return stream;
         if (spliterator == null)
@@ -64,7 +63,7 @@ import java.util.stream.BaseStream;
 
     @SuppressWarnings("unchecked")
     @Override
-    public @NonNull SPLTR spliterator() {
+    public SPLTR spliterator() {
         if (stream != null)
             return (SPLTR) stream.spliterator();
         if (spliterator != null) {
@@ -82,7 +81,7 @@ import java.util.stream.BaseStream;
 
     @SuppressWarnings("unchecked")
     @Override
-    public @NonNull S sequential() {
+    public S sequential() {
         context = context.sequential();
         if (stream != null)
             stream = stream.sequential();
@@ -99,7 +98,7 @@ import java.util.stream.BaseStream;
      */
     @SuppressWarnings("unchecked")
     @Override
-    public @NonNull S parallel() {
+    public S parallel() {
         context = context.parallel();
         if (stream != null)
             stream = stream.parallel();
@@ -126,7 +125,7 @@ import java.util.stream.BaseStream;
      * @since 0.2.0
      */
     @SuppressWarnings("unchecked")
-    public @NonNull S parallel(ForkJoinPool fjp) {
+    public S parallel(ForkJoinPool fjp) {
         context = context.parallel(fjp);
         if (stream != null)
             stream = stream.parallel();
@@ -135,14 +134,14 @@ import java.util.stream.BaseStream;
 
     @SuppressWarnings("unchecked")
     @Override
-    public @NonNull S unordered() {
+    public S unordered() {
         stream = stream().unordered();
         return (S) this;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public @NonNull S onClose(Runnable closeHandler) {
+    public S onClose(Runnable closeHandler) {
         context = context.onClose(closeHandler);
         return (S) this;
     }
