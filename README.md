@@ -1,4 +1,4 @@
-# StreamEx 0.8.4
+# StreamEx 0.9.0
 Enhancing the Java Stream API.
 
 [![Maven Central](https://img.shields.io/maven-central/v/one.util/streamex.svg)](https://maven-badges.herokuapp.com/maven-central/one.util/streamex/)
