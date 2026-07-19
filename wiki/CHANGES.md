@@ -6,6 +6,7 @@ Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 * [#282] JSpecify nullity annotations added.
 * [#283] Redundant type arguments on IntStreamEx.ofIndices removed
 * [#284] Added: `StreamEx.iterateUntilNull` and `takeUntilNull`.
+* [#286] Fixed: `EntryStream.withoutKeys` and `withoutValues` don't tolerate streams containing null keys and values respectively.
 * Javadoc proofreading
 
 ### 0.8.4

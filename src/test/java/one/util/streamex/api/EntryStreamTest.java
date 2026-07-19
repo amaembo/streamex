@@ -861,6 +861,20 @@ public class EntryStreamTest {
         assertEquals(EntryStream.of("b", 2, "d", 4).toMap(),
                      EntryStream.of("a", 1, "b", 2, "c", 3, "d", 4)
                                 .withoutKeys("a", "c").toMap());
+
+        assertEquals(
+                EntryStream.of(null, 1, "2", 3).toMap(),
+                EntryStream.of(null, 1, "1", 2, "2", 3).withoutKeys("1").toMap());
+        assertEquals(
+                EntryStream.of(null, 1, "2", 3).toMap(),
+                EntryStream.of(null, 1, "1", 2, "2", 3).withoutKeys("1", "4").toMap());
+
+        assertEquals(
+                EntryStream.of(1, null, 3, "2").toList(),
+                EntryStream.of(1, null, 2, "1", 3, "2").withoutValues("1").toList());
+        assertEquals(
+                EntryStream.of(1, null, 3, "2").toList(),
+                EntryStream.of(1, null, 2, "1", 3, "2").withoutValues("1", "4").toList());
     }
 
     @Test

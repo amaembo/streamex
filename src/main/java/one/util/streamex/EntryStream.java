@@ -2380,10 +2380,10 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
         if (keys.length == 0)
             return this;
         if (keys.length == 1)
-            return filter(entry -> !entry.getKey().equals(keys[0]));
+            return filter(entry -> !Objects.equals(entry.getKey(), keys[0]));
         return filter(entry -> {
             for (K key : keys) {
-                if (entry.getKey().equals(key))
+                if (Objects.equals(entry.getKey(), key))
                     return false;
             }
             return true;
@@ -2421,10 +2421,10 @@ public final class EntryStream<K extends @Nullable Object, V extends @Nullable O
         if (values.length == 0)
             return this;
         if (values.length == 1)
-            return filter(entry -> !entry.getValue().equals(values[0]));
+            return filter(entry -> !Objects.equals(entry.getValue(), values[0]));
         return filter(entry -> {
             for (V value : values) {
-                if (entry.getValue().equals(value))
+                if (Objects.equals(entry.getValue(), value))
                     return false;
             }
             return true;
