@@ -59,7 +59,7 @@ public class CombinationSpliteratorTest {
 
     @Test(timeout = 5000)
     public void testTrySplitLarge() {
-        for (int n : new int[] {64, 66}) {
+        for (int n : new int[] {32, 34, 36, 64, 66}) {
             int k = n / 2;
             Spliterator<int[]> suffix = StreamEx.ofCombinations(n, k).spliterator();
             long size = suffix.estimateSize();
