@@ -86,7 +86,10 @@ import java.util.function.Consumer;
             while (newPos >= bound + cnk) {
                 bound += cnk;
                 curN++;
-                cnk = cnk * curN / (curN - curK);
+                // Cancel the denominator before multiplying to avoid intermediate overflow.
+                long divisor = curN - curK;
+                long gcd = gcd(cnk, divisor);
+                cnk = (cnk / gcd) * (curN / (divisor / gcd));
             }
             curK--;
             newValue[i] = n - curN - 1;
