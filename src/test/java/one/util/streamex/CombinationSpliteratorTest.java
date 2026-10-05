@@ -57,6 +57,32 @@ public class CombinationSpliteratorTest {
         assertEquals(252, spliterator.estimateSize());
     }
 
+    @Test(timeout = 5000)
+    public void testTrySplitLarge() {
+        for (int n : new int[] {32, 34, 36, 64, 66}) {
+            int k = n / 2;
+            Spliterator<int[]> suffix = StreamEx.ofCombinations(n, k).spliterator();
+            long size = suffix.estimateSize();
+            Spliterator<int[]> prefix = suffix.trySplit();
+            assertNotNull(prefix);
+            assertEquals(size / 2, prefix.estimateSize());
+            assertEquals(size / 2, suffix.estimateSize());
+            assertTrue(prefix.tryAdvance(value -> assertArrayEquals(IntStreamEx.range(k).toArray(), value)));
+            // Exactly half of these combinations contain zero.
+            assertTrue(suffix.tryAdvance(value -> assertArrayEquals(IntStreamEx.rangeClosed(1, k).toArray(), value)));
+        }
+    }
+
+    @Test(timeout = 5000)
+    public void testLargeParallelLimit() {
+        int[][] expected = StreamEx.ofCombinations(64, 32).limit(2).toArray(int[][]::new);
+        int[][] actual = StreamEx.ofCombinations(64, 32).parallel().limit(2).toArray(int[][]::new);
+        assertEquals(expected.length, actual.length);
+        for (int i = 0; i < expected.length; i++) {
+            assertArrayEquals(expected[i], actual[i]);
+        }
+    }
+
     @Test
     public void testTrySplit() {
         Spliterator<int[]> spliterator = StreamEx.ofCombinations(5, 5).spliterator();
