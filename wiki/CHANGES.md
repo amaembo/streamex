@@ -2,6 +2,9 @@
 
 Check also [MIGRATION.md](MIGRATION.md) for possible compatibility problems.
 
+### 0.9.1
+* [#287] Fixed: numeric overflow in `StreamEx.ofCombinations` for huge streams
+
 ### 0.9.0
 * [#282] JSpecify nullity annotations added.
 * [#283] Redundant type arguments on IntStreamEx.ofIndices removed
